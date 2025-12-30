@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import Link from "next/link";
@@ -18,7 +19,6 @@ export interface NavProps {
 
 export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showNav, setShowNav] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
@@ -44,7 +44,6 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
   };
 
   useEffect(() => {
-    let lastScrollY = window.scrollY;
     let ticking = false;
 
     const setProgress = () => {
@@ -57,14 +56,7 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
     };
 
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (!isOpen && currentScrollY > lastScrollY && currentScrollY > 100) {
-        setShowNav(false);
-      } else if (currentScrollY < lastScrollY) {
-        setShowNav(true);
-      }
-      setScrolled(currentScrollY > 0);
-      lastScrollY = currentScrollY;
+      setScrolled(window.scrollY > 0);
       setProgress();
     };
 
@@ -79,7 +71,6 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
     };
 
     setProgress();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setScrolled(window.scrollY > 0);
 
     window.addEventListener("scroll", optimizedHandleScroll);
@@ -88,7 +79,7 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
       window.removeEventListener("scroll", optimizedHandleScroll);
       window.removeEventListener("resize", optimizedHandleScroll);
     };
-  }, [isOpen]);
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -111,9 +102,7 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
     <header
       className={`${styles.header} ${
         scrolled ? styles.scrolled : styles.transparent
-      } ${showNav || isOpen ? styles.show : styles.hide} ${
-        isOpen ? styles.open : ""
-      }`}
+      } ${isOpen ? styles.open : ""}`}
       ref={navRef}
     >
       <nav className={styles.navbar}>
@@ -123,14 +112,8 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
             shouldBlend ? styles.blend : ""
           }`}
         >
-          <Logo
-            className={`${styles.logo} ${shouldBlend ? styles.blend : ""}`}
-          />
-          <span
-            className={`${styles.logoText} ${shouldBlend ? styles.blend : ""}`}
-          >
-            Nier Transportation
-          </span>
+          <Logo className={styles.logo} />
+          <span className={styles.text}>Nier</span>
         </Link>
 
         <div
@@ -166,7 +149,7 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
             <Button
               href='/book'
               text='Book your Ride'
-              btnType='navYellowBlackOutline'
+              btnType='transparent'
               arrow
               onClick={closeMenu}
             />
@@ -183,7 +166,7 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
           <Button
             href='/book'
             text='Book your Ride'
-            btnType='navYellowBlackOutline'
+            btnType='transparent'
             arrow
           />
         </div>
