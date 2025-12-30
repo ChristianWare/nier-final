@@ -1,33 +1,40 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --black: #000000;
+  --white: #ffffff;
+  --cream: #eae9e6;
+  --paragraph: #676767;
+  --accent: #d0311e;
+  --lightGray: #e0e0e0;
+  --blue: #2563eb;
 }
 
 * {
-  box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+  line-height: 110%;
+  /* scroll-behavior: smooth;
+  scroll-margin-top: 40px;
+  */
+  -webkit-tap-highlight-color: transparent;
+  font-family: var(--inter);
+  overscroll-behavior: none;
+}
+
+html {
+  font-size: 62.5%;
+  height: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+body {
+  font-size: 1.6rem;
 }
 
 a {
@@ -35,8 +42,192 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+span {
+  color: var(--black);
+  font-family: var(--inter);
+  hyphens: auto;
+}
+
+h1 {
+  font-size: 5.4rem;
+  font-weight: 500;
+  line-height: 1.2em;
+  letter-spacing: -2.2px;
+}
+
+h2 {
+  font-size: 4.4rem;
+  font-weight: 500;
+  line-height: 1em;
+  letter-spacing: -2.2px;
+}
+
+h3 {
+  font-size: 3.2rem;
+  font-weight: 500;
+  line-height: 1.2em;
+  letter-spacing: -1.6px;
+}
+
+h4 {
+  font-size: 2.4rem;
+  font-weight: 500;
+  line-height: 1.2em;
+  letter-spacing: -1.3px;
+}
+
+h5 {
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+h6 {
+  font-size: 1.8rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+}
+
+button {
+  border: none;
+  background-color: transparent;
+  outline: none;
+}
+
+p,
+ul,
+input,
+textarea {
+  hyphens: auto;
+  font-size: 1.6rem;
+  line-height: 2.4px;
+  letter-spacing: -0.8px;
+  hyphens: auto;
+  color: var(--black);
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+}
+
+.stat {
+  font-size: 8rem;
+  font-weight: 600;
+}
+
+.h2 {
+  font-size: 4rem;
+}
+
+.h3 {
+  font-size: 3.6rem;
+  font-weight: 500;
+}
+
+.h4 {
+  font-size: 3rem;
+  font-weight: 500;
+}
+
+.h5 {
+  font-size: 2.2rem;
+  font-weight: 500;
+}
+
+.h6 {
+  font-size: 1.8rem;
+  font-weight: 500;
+}
+
+/* .toastFont {
+  font-family: var(--ABCSocialLight);
+} */
+
+/* ::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+  background: var(--secondary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+::selection {
+  background: var(--secondary);
+}
+::-moz-selection {
+  background: var(--secondary);
+} */
+
+/* ::selection {
+  background: var(--orange);
+  color: var(--black);
+}
+::-moz-selection {
+  background: var(--orange);
+  color: var(--black);
+} */
+
+@media screen and (max-width: 1268px) {
+  h1 {
+    font-size: 4.8rem;
   }
 }
+
+@media screen and (max-width: 968px) {
+  html {
+    font-size: 55%;
+  }
+
+  p {
+    font-size: 113.7%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  h1 {
+    font-size: 4.2rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  html {
+    font-size: 50%;
+  }
+
+  p {
+    font-size: 2rem;
+    letter-spacing: 0px;
+  }
+
+  .stat {
+    font-size: 7.5rem;
+  }
+}
+
+/* .toastFont {
+} */
+
+/* Only use in production */
+/* @media screen and (max-width: 480px) {
+  h1 {
+    letter-spacing: -2.5px;
+  }
+  h2 {
+    letter-spacing: -1.5px;
+    line-height: 120%;
+  }
+} */
+
+/* .toastFont {
+  font-family: var(--roboto);
+} */
