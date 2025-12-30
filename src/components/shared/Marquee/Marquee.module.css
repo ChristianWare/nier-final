@@ -1,0 +1,88 @@
+.slider {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--white);
+  padding: 2.75rem 0;
+  cursor: pointer;
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  width: max-content;
+  animation: scroll var(--marquee-duration, 24s) linear infinite;
+  will-change: transform;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.word {
+  font-family: var(--inter);
+  font-weight: 700;
+  font-size: 16rem;
+  letter-spacing: -7.5px;
+  line-height: 1;
+
+  color: var(--black);
+  text-transform: uppercase;
+}
+
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(90deg);
+  font-size: 10rem;
+  color: var(--accent);
+margin-left: 4rem;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.pauseOnHover:hover .track {
+  animation-play-state: paused;
+}
+
+@media screen and (max-width: 768px) {
+  .word {
+    font-size: 12rem;
+  }
+
+  .arrow {
+    font-size: 7rem;
+    margin-left: 2rem;
+  }
+}
+
+
+@media screen and (max-width: 568px) {
+  .slider {
+    padding: 2rem 0;
+  }
+
+  .track {
+    gap: 1rem;
+  }
+
+  .item {
+    gap: 1rem;
+  }
+
+  .word {
+    font-size: 1.4rem;
+  }
+}

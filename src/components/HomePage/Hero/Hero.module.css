@@ -7,14 +7,14 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 610px;
+  min-height: 100vh;
   overflow: hidden;
   z-index: 1;
 }
 
 .video {
   width: 100%;
-  height: 100%;
+  height: 100vh;
   object-fit: cover;
   display: block;
 }
@@ -23,6 +23,15 @@
   position: absolute;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2;
+}
+
+.marqueeWrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
 }
 
 .content {
@@ -30,15 +39,17 @@
   width: 100%;
   height: 610px;
   margin-top: 1rem;
-  z-index: 2;
+  z-index: 4;
 }
 
 .contentChildren {
+  margin-top: 10rem;
+}
+
+.cc1 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-gap: 5rem;
-  height: 100%;
-  margin-top: 10rem;
 }
 
 .left {
@@ -62,6 +73,18 @@
   max-width: 450px;
 }
 
+.cc2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 5rem;
+  width: 100%;
+  height: 100%;
+}
+
+.copyii {
+  color: var(--white);
+}
+
 @media screen and (max-width: 1268px) {
   .contentChildren {
     display: flex;
@@ -78,7 +101,7 @@
   .right {
     order: -1;
   }
-  
+
   .heading {
     max-width: 640px;
   }
