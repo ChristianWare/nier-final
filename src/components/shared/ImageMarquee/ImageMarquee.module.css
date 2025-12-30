@@ -1,0 +1,95 @@
+.slider {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--tan);
+  cursor: pointer;
+  /* mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--tan) 10%,
+    var(--tan) 90%,
+    transparent 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--tan) 10%,
+    var(--tan) 90%,
+    transparent 100%
+  ); */
+}
+
+.title {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+
+.track {
+  display: flex;
+  gap: 2rem;
+  animation: scroll 40s linear infinite;
+  width: max-content;
+}
+
+.imgContainer {
+  position: relative;
+  width: 300px;
+  height: 250px;
+  flex-shrink: 0;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.img {
+  object-fit: cover;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+
+/* centered white title */
+.label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 1rem;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.4rem;
+  font-family: var(--inter);
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.slider:hover .track {
+  animation-play-state: paused;
+}
+
+@media screen and (max-width: 568px) {
+  .track {
+    gap: 1rem;
+  }
+
+  .imgContainer {
+    width: 230px;
+    height: 230px;
+  }
+}

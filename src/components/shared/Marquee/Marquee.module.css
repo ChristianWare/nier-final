@@ -46,6 +46,7 @@
   font-size: 10rem;
   color: var(--accent);
   margin: 0 4rem;
+  margin-left: 5rem;
   flex: 0 0 auto;
 }
 
