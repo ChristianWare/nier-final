@@ -1,0 +1,26 @@
+.layout {
+  z-index: 1000;
+  max-width: 1600px;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 30px;
+  padding-left: 30px;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+  background-color: transparent;
+}
+
+.orange3 {
+  border-color: var(--yellow3);
+}
+
+.tan {
+  border-color: var(--tan);
+}
+
+@media screen and (max-width: 568px) {
+  .layout {
+    padding-right: 7px;
+    padding-left: 7px;
+  }
+}

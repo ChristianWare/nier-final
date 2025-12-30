@@ -1,0 +1,50 @@
+.container {
+  position: relative;
+}
+
+.media {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 610px;
+  border-radius: 10px;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.imgOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.content {
+  position: relative;
+  width: 100%;
+  height: 610px;
+  margin-top: 1rem;
+  z-index: 2;
+}
+
+.contentChildren {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  padding-top: 5rem;
+  height: 100%;
+}
+
+.heading,
+.copy {
+  color: var(--cream);
+}
