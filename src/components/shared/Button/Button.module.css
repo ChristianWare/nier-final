@@ -4,7 +4,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  gap: 5rem;
   text-align: center;
   border-radius: 50px;
   justify-content: center;
@@ -24,19 +24,20 @@
   color: inherit;
 }
 
-.black,
-.black:link,
-.black:visited {
-  background-color: var(--black);
-  color: var(--tan);
-  border: 1px solid var(--black);
+.underlinedWhite,
+.underlinedWhite:link,
+.underlinedWhite:visited {
+  background-color: none;
+  color: var(--white);
+  border-bottom: 1px solid var(--white);
+  border-radius: 0px;
+  padding: 5px 0px;
 }
-
-.black:hover {
+/* 
+.underlinedWhite:hover {
   border: 1px solid var(--darkGray);
   background-color: var(--darkGray);
-  /* color: var(--black); */
-}
+} */
 
 .blackOutline {
   background-color: transparent;

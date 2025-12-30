@@ -113,7 +113,7 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
           }`}
         >
           <Logo className={styles.logo} />
-          <span className={styles.text}>Nier</span>
+          <span className={styles.text}>Nier Transportation</span>
         </Link>
 
         <div

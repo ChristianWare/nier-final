@@ -1,5 +1,6 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./Hero.module.css";
+import Button from "@/components/shared/Button/Button";
 
 export default function Hero() {
   return (
@@ -21,14 +22,26 @@ export default function Hero() {
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.contentChildren}>
-            <h1 className={styles.heading}>
-              Reliable black car service <br className={styles.br} /> across
-              phoenix &amp; beyond.
-            </h1>
-            <p className={styles.copy}>
-              At Nier Transportation, we’re more than a car service; we’re your
-              trusted partner in high end transportation.
-            </p>
+            <div className={styles.left}>
+              <p className={styles.copy}>
+                At Nier Transportation, we’re more than a car service; we’re
+                your trusted partner in high end transportation.
+              </p>
+              <div className={styles.btnContainerii}>
+                <Button
+                  href='/book'
+                  text='Book your Ride'
+                  btnType='underlinedWhite'
+                  arrow
+                />
+              </div>
+            </div>
+            <div className={styles.right}>
+              <h1 className={styles.heading}>
+                Nier Transportation is a black car service company across phoenix &amp;
+                beyond.
+              </h1>
+            </div>
           </div>
         </div>
       </LayoutWrapper>
