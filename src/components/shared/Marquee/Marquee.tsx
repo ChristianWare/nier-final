@@ -36,7 +36,7 @@ export default function Marquee({
             <span className={styles.word}>
               {word}
 
-              <Logo className={styles.arrow} aria-hidden='true' />
+              <Logo className={styles.logo} aria-hidden='true' />
             </span>
             <span></span>
           </span>

@@ -18,17 +18,28 @@ export default function Hero() {
         >
           <source src='/videos/hero.mp4' type='video/mp4' />
         </video>
-
         <div className={styles.imgOverlay} />
-
         <div className={styles.marqueeWrap}>
+          <div className={styles.cc2}>
+            <div className={styles.left2}>
+              <p className={styles.copyii}>
+                Trusted by manufacturers and logistics leaders with 100+
+                successful system deployments worldwide.
+              </p>
+            </div>
+            <div className={styles.right2}>
+              <p className={styles.copyii}>Discover more</p>
+              <Arrow className={styles.arrow} />
+            </div>
+          </div>
           <Marquee
             words={[
-              "Direct booking websites",
-              "Stripe deposits",
-              "SMS reminders",
-              "Premium design",
-              "Fast launch",
+              "Phoenix",
+              "Scottsdale",
+              "Mesa",
+              "Chandler",
+              "Goodyear",
+              "Peoria",
             ]}
             speedSeconds={90}
           />
@@ -55,22 +66,9 @@ export default function Hero() {
               </div>
               <div className={styles.right}>
                 <h1 className={styles.heading}>
-                  Nier Transportation is a black car service company across
-                  phoenix &amp; beyond.
+                  Nier Transportation is a black car company servicing Phoenix
+                  &amp; beyond.
                 </h1>
-              </div>
-            </div>
-
-            <div className={styles.cc2}>
-              <div className={styles.left2}>
-                <p className={styles.copyii}>
-                  Trusted by manufacturers and logistics leaders with 100+
-                  successful system deployments worldwide.
-                </p>
-              </div>
-              <div className={styles.right2}>
-                <p className={styles.copyii}>Discover more</p>
-                <Arrow className={styles.arrow} />
               </div>
             </div>
           </div>

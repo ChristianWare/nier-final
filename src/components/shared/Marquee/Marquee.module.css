@@ -34,14 +34,13 @@
   text-transform: uppercase;
 }
 
-.arrow {
+.logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transform: rotate(90deg);
   font-size: 10rem;
   color: var(--accent);
-margin-left: 4rem;
+  margin-left: 4rem;
 }
 
 @keyframes scroll {
@@ -62,14 +61,26 @@ margin-left: 4rem;
     font-size: 12rem;
   }
 
-  .arrow {
+  .logo {
     font-size: 7rem;
     margin-left: 2rem;
   }
 }
 
-
 @media screen and (max-width: 568px) {
+  .word {
+    font-size: 9rem;
+    letter-spacing: -3px;
+  }
+
+  .logo {
+    font-size: 5rem;
+    margin-left: 1.5rem;
+  }
+}
+
+
+/* @media screen and (max-width: 568px) {
   .slider {
     padding: 2rem 0;
   }
@@ -85,4 +96,4 @@ margin-left: 4rem;
   .word {
     font-size: 1.4rem;
   }
-}
+} */
