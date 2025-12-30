@@ -39,6 +39,19 @@
   background-color: var(--darkGray);
 } */
 
+.black,
+.black:link,
+.black:visited {
+  background-color: var(--black);
+  color: var(--white);
+  border: 1px solid var(--black);
+}
+
+.black:hover {
+  background-color: var(--cream);
+  color: var(--black);
+}
+
 .blackOutline {
   background-color: transparent;
   color: var(--black);

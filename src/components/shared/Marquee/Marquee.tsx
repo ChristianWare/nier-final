@@ -31,16 +31,23 @@ export default function Marquee({
         className={styles.track}
         style={{ ["--marquee-duration" as any]: `${speedSeconds}s` }}
       >
-        {[...items, ...items].map((word, index) => (
-          <span key={`${word}-${index}`} className={styles.item}>
-            <span className={styles.word}>
-              {word}
-
+        <div className={styles.group}>
+          {items.map((word, index) => (
+            <span key={`${word}-${index}`} className={styles.item}>
+              <span className={styles.word}>{word}</span>
               <Logo className={styles.logo} aria-hidden='true' />
             </span>
-            <span></span>
-          </span>
-        ))}
+          ))}
+        </div>
+
+        <div className={styles.group} aria-hidden='true'>
+          {items.map((word, index) => (
+            <span key={`${word}-${index}-dup`} className={styles.item}>
+              <span className={styles.word}>{word}</span>
+              <Logo className={styles.logo} aria-hidden='true' />
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

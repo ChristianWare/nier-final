@@ -1,20 +1,21 @@
 .container {
   position: relative;
+  min-height: 100vh;
+  overflow: hidden;
 }
 
 .media {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
-  min-height: 100vh;
+  height: 100%;
   overflow: hidden;
   z-index: 1;
 }
 
 .video {
   width: 100%;
-  height: 100vh;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
@@ -36,19 +37,19 @@
 
 .content {
   position: relative;
-  width: 100%;
-  height: 610px;
-  margin-top: 1rem;
   z-index: 4;
+  min-height: 90vh;
+  padding-top: 15rem;
+  padding-bottom: 16rem;
 }
 
 .contentChildren {
-  margin-top: 10rem;
+  margin-top: 0;
 }
 
 .cc1 {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr 1.5fr;
   grid-gap: 10rem;
 }
 
@@ -124,7 +125,12 @@
   }
 
   .heading {
-    max-width: 640px;
+    max-width: 700px;
+  }
+
+  .content {
+    padding-top: 8rem;
+    padding-bottom: 18rem;
   }
 }
 

@@ -5,6 +5,7 @@
   --paragraph: #676767;
   --accent: #d0311e;
   --lightGray: #e0e0e0;
+  --stroke: #d8d6d2;
   --blue: #2563eb;
 }
 
@@ -108,7 +109,8 @@ input,
 textarea {
   hyphens: auto;
   font-size: 1.6rem;
-  line-height: 2.4px;
+  line-height: 1.5em;
+  font-weight: 500;
   letter-spacing: -0.8px;
   hyphens: auto;
   color: var(--black);
@@ -181,6 +183,9 @@ textarea:focus {
   h1 {
     font-size: 4.8rem;
   }
+  h2 {
+    font-size: 3.8rem;
+  }
 }
 
 @media screen and (max-width: 968px) {
@@ -197,11 +202,28 @@ textarea:focus {
   h1 {
     font-size: 4.2rem;
   }
+
+  h2 {
+    font-size: 3.4rem;
+  }
 }
 
 @media screen and (max-width: 568px) {
   html {
     font-size: 50%;
+  }
+
+  h1 {
+    letter-spacing: -2px;
+  }
+
+  h2 {
+    letter-spacing: -1.8px;
+  }
+ 
+  h3 {
+    font-size: 2.8rem;
+    letter-spacing: -1.5px;
   }
 
   p {

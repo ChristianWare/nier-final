@@ -66,8 +66,8 @@ export default function Hero() {
               </div>
               <div className={styles.right}>
                 <h1 className={styles.heading}>
-                  Nier Transportation is a black car company servicing Phoenix
-                  &amp; beyond.
+                  Nier Transportation is a black car company serving the Phoenix - 
+                  metro area.
                 </h1>
               </div>
             </div>
