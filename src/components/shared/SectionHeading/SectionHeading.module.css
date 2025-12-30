@@ -23,3 +23,7 @@
 .red {
   color: var(--accent);
 }
+
+.cream {
+  color: var(--cream);
+}

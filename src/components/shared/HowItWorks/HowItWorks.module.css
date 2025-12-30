@@ -1,0 +1,114 @@
+.container {
+  background-color: var(--cream);
+  /* padding: 10rem 0rem; */
+  padding-bottom: 0rem;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.heading {
+  text-align: center;
+ 
+}
+
+.bottom {
+  margin-top: 5rem;
+}
+
+.mapDataContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 3rem;
+}
+
+.card {
+  position: relative;
+  background-color: var(--accent);
+  padding: 3rem;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.card:nth-child(2) {
+  top: 15rem;
+  background-color: var(--stroke);
+}
+
+.card:nth-child(3) {
+  background-color: var(--white);
+}
+
+.digitalBox {
+  position: absolute;
+  content: "";
+  top: 0;
+  right: 0;
+}
+
+.index {
+  margin-bottom: 3rem;
+}
+
+.title {
+  font-size: 2.2rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .heading {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .heading {
+    width: 90%;
+  }
+
+  .mapDataContainer {
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 3rem;
+    grid-row-gap: 10rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .heading {
+    width: 100%;
+  }
+
+  .bottom {
+    margin-top: 5rem;
+  }
+}
+
+@media screen and (max-width: 668px) {
+  .container {
+    padding-bottom: 10rem;
+  }
+
+  .heading {
+    font-size: 3.5rem;
+    width: 100%;
+    line-height: normal;
+  }
+
+  .mapDataContainer {
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 3rem;
+    grid-row-gap: 2rem;
+  }
+
+  .card:nth-child(2) {
+    top: 0rem;
+  }
+}

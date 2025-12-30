@@ -1,0 +1,261 @@
+.container {
+  /* padding: 10rem 0rem; */
+  background-color: var(--cream);
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--gray);
+  padding-bottom: 2rem;
+}
+
+.heading {
+  text-align: center;
+}
+
+.mapDataContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+}
+
+.bottom {
+  margin-top: 3rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 1.5fr 2fr;
+  grid-gap: 1rem;
+  padding: 1rem;
+  background-color: var(--white);
+  border-radius: 10px;
+}
+
+.card:nth-child(even) {
+  grid-template-columns: 2fr 1.5fr;
+}
+
+.card:nth-child(odd) .cardRight {
+  align-items: flex-end;
+}
+
+.card:nth-child(odd) .cardRight .title,
+.card:nth-child(odd) .cardRight .desc {
+  text-align: right;
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.digitalBox {
+  position: absolute;
+  content: "";
+  top: -1px;
+  right: -1px;
+}
+
+.img {
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.cardRight {
+  background-color: var(--cream);
+  border-radius: 10px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 5rem;
+  height: 100%;
+}
+
+.card:nth-child(even) .cardRight {
+  order: -1;
+}
+
+.title {
+  font-size: 2rem;
+  letter-spacing: -1.2px;
+  margin-bottom: 1rem;
+}
+
+.desc {
+  color: var(--paragraph);
+  font-size: 1.4rem;
+}
+
+.btnContainer {
+  margin-top: 2rem;
+  display: grid;
+  width: 100%;
+}
+
+.topBtnContainer {
+  margin-top: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnClusterContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 5rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .bottom {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .card {
+    width: 60%;
+  }
+
+  .card:nth-child(odd) {
+    margin-left: auto;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .top {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .heading {
+    text-align: center;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .card:nth-child(odd),
+  .card:nth-child(even) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card:nth-child(odd) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .mapDataContainer {
+    grid-template-columns: 1fr;
+  }
+
+  .cardTop {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .cardBottom {
+    grid-template-columns: 1fr;
+    gap: 5rem;
+  }
+
+  .circleBtnContainer {
+    justify-content: center;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .bottom {
+    grid-gap: 5rem;
+  }
+
+  .card:nth-child(odd),
+  .card:nth-child(even) {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .imgContainer {
+    height: 250px;
+  }
+  /* 
+  .card:nth-child(odd),
+  .card:nth-child(even) {
+    border-top-left-radius: 300px;
+    border-top-right-radius: 300px;
+    border-bottom-right-radius: 15px;
+    border-bottom-left-radius: 15px;
+  } */
+
+  .card:nth-child(even) .cardRight {
+    order: 1;
+  }
+  /* 
+  .card:nth-child(even) .img,
+  .card:nth-child(odd) .img {
+    border-top-right-radius: 300px;
+    border-top-left-radius: 300px;
+    border-bottom-right-radius: 15px;
+    border-bottom-left-radius: 15px;
+  } */
+
+  .card:nth-child(odd) .cardRight {
+    align-items: center;
+  }
+
+  .cardRight {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5rem;
+    padding-top: 3rem;
+  }
+
+  .desc {
+    text-align: center;
+  }
+
+  .btnContainer,
+  .topBtnContainer {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  /* .heading {
+    text-align: left;
+  } */
+
+  .heading,
+  .desc {
+    text-align: center;
+    width: 95%;
+  }
+
+  .card:nth-child(odd) .cardRight .title,
+  .card:nth-child(odd) .cardRight .desc {
+    text-align: center;
+  }
+
+  .break {
+    display: none;
+  }
+
+  .cardRight {
+    gap: 2rem;
+  }
+}
