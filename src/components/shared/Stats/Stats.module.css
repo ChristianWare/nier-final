@@ -1,0 +1,89 @@
+.bottom {
+  /* margin-top: 10rem; */
+  width: 100%;
+  padding-top: 2rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.mapDataContainer {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 2rem;
+}
+
+.card {
+  border-right: 1px solid var(--gray);
+  padding-left: 1rem;
+}
+
+.card:last-child {
+  border-right: none;
+}
+
+.number {
+  position: relative;
+  width: fit-content;
+  margin-bottom: 1.2rem;
+  font-weight: 700;
+}
+
+/* .number::after {
+  content: "+";
+  font-size: 4.5rem;
+  color: var(--yellow);
+  position: absolute;
+  top: 0px;
+  right: -40px;
+} */
+
+.count, .suffix {
+  color: var(--accent);
+  font-size: 6rem;
+  font-weight: 900;
+  line-height: 1em;
+  letter-spacing: -3px;
+}
+
+.detail {
+  color: var(--paragraph);
+}
+
+@media screen and (max-width: 1068px) {
+  .heading {
+    width: 90%;
+  }
+
+  .mapDataContainer {
+    grid-template-columns: repeat(2, 1fr);
+    grid-column-gap: 0rem;
+    grid-row-gap: 10rem;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card:nth-child(2n) {
+    border-right: none;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .mapDataContainer {
+    grid-template-columns: repeat(1, 1fr);
+    grid-row-gap: 2rem;
+  }
+
+  .card {
+    background-color: var(--gray);
+    padding: 2rem;
+    border-radius: 10px;
+  }
+
+  .bottom {
+    margin-top: 5rem;
+  }
+}

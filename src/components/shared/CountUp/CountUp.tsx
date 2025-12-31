@@ -113,5 +113,5 @@ export default function CountUp({
     return () => unsubscribe();
   }, [springValue, separator, maxDecimals]);
 
-  return <h3 className={className} ref={ref} />;
+  return <span className={className} ref={ref} />;
 }

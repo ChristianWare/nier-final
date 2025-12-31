@@ -64,30 +64,30 @@ export const reviews = [
     company: "Sausalito, CA",
     person: Jeff,
   },
-  {
-    id: 11,
-    review:
-      "We have used this car service 4 times in the last few months. Booking a pick-up/drop-off time is very easy and seamless. Barry, the owner is very professional, friendly, and prompt as was one of his other drivers. We have flown in and out of Phoenix all 4 times with our dog and his kennel and Barry was very attentive to ensuring our dog (while in his kennel) was comfortable and safe before we left.Pricing is competitive but the service is better and good value for what you get. Cars are very roomy and spotless. Highly recommend this car service.",
-    reviewer: "Cheryl C.",
-    company: "Northwest Calgary, Canada",
-    person: CherylC,
-  },
-  {
-    id: 12,
-    review:
-      "We first rode with Barry over one year ago.We were so impressed with his level of pride, professional bearing, situational awareness, and meticulous attention to detail in all mannersrelating to our safety and satisfaction that we made the decision to use him exclusively for all our transportation needs.Nier Transportation has afforded us the luxury of worry-free rides with absolute dependability. They monitor our arrival and departure schedules in real time and adjust accordingly, with no excuses, cancellations, or surprises.Their level of service and the peace of mind it gives is priceless.",
-    reviewer: "Jim & Connie A.",
-    company: "Phoenix, AZ,",
-    person: JimConnie,
-  },
-  {
-    id: 13,
-    review:
-      "We used Nier Transportation to start and end our European vacation. It was the BEST decision! Our driver was professional, friendly, and timely. We also felt as though we were riding in luxury, the vehicle was new, fresh, and comfortable! An extra thanks for being at the airport waiting for us when we arrived back home at 1:30 a.m.!",
-    reviewer: "Lynn B",
-    company: "Tempe, AZ",
-    person: Lynn,
-  },
+  // {
+  //   id: 11,
+  //   review:
+  //     "We have used this car service 4 times in the last few months. Booking a pick-up/drop-off time is very easy and seamless. Barry, the owner is very professional, friendly, and prompt as was one of his other drivers. We have flown in and out of Phoenix all 4 times with our dog and his kennel and Barry was very attentive to ensuring our dog (while in his kennel) was comfortable and safe before we left.Pricing is competitive but the service is better and good value for what you get. Cars are very roomy and spotless. Highly recommend this car service.",
+  //   reviewer: "Cheryl C.",
+  //   company: "Northwest Calgary, Canada",
+  //   person: CherylC,
+  // },
+  // {
+  //   id: 12,
+  //   review:
+  //     "We first rode with Barry over one year ago.We were so impressed with his level of pride, professional bearing, situational awareness, and meticulous attention to detail in all mannersrelating to our safety and satisfaction that we made the decision to use him exclusively for all our transportation needs.Nier Transportation has afforded us the luxury of worry-free rides with absolute dependability. They monitor our arrival and departure schedules in real time and adjust accordingly, with no excuses, cancellations, or surprises.Their level of service and the peace of mind it gives is priceless.",
+  //   reviewer: "Jim & Connie A.",
+  //   company: "Phoenix, AZ,",
+  //   person: JimConnie,
+  // },
+  // {
+  //   id: 13,
+  //   review:
+  //     "We used Nier Transportation to start and end our European vacation. It was the BEST decision! Our driver was professional, friendly, and timely. We also felt as though we were riding in luxury, the vehicle was new, fresh, and comfortable! An extra thanks for being at the airport waiting for us when we arrived back home at 1:30 a.m.!",
+  //   reviewer: "Lynn B",
+  //   company: "Tempe, AZ",
+  //   person: Lynn,
+  // },
   {
     id: 145,
     review:
