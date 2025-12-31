@@ -55,7 +55,7 @@ export default function AboutUsIntro() {
                 for delivering exceptional transportation experiences.
               </p>
               <div className={styles.btnContanier}>
-                <Button btnType='black' text='Book your ride' />
+                <Button btnType='black' text='Book your ride' arrow />
               </div>
             </div>
           </div>

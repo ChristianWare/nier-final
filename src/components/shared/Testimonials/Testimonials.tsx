@@ -4,6 +4,7 @@ import LayoutWrapper from "../LayoutWrapper";
 import styles from "./Testimonials.module.css";
 import { useState, useEffect } from "react";
 import { reviews } from "@/lib/data";
+import StarCluster from "../StarCluster/StarCluster";
 
 export default function Testimonials() {
   return (
@@ -25,7 +26,9 @@ export default function Testimonials() {
                 </div>
               ))}
             </div>
-            <div className={styles.right}></div>
+            <div className={styles.right}>
+              <StarCluster />
+            </div>
           </div>
         </div>
       </LayoutWrapper>
