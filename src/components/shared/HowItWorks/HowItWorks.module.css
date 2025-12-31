@@ -1,7 +1,7 @@
 .container {
   background-color: var(--cream);
-  /* padding: 10rem 0rem; */
-  padding-bottom: 0rem;
+  padding: 10rem 0rem;
+  padding-bottom: 30rem;
 }
 
 .top {
@@ -14,7 +14,7 @@
 
 .heading {
   text-align: center;
- 
+  width: 50%;
 }
 
 .bottom {
@@ -70,6 +70,10 @@
 }
 
 @media screen and (max-width: 1068px) {
+  .container {
+    padding-bottom: 5rem;
+  }
+
   .heading {
     width: 90%;
   }

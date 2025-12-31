@@ -34,9 +34,10 @@ export default function HowItWorks() {
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.top}>
-            <SectionHeading text='Services' color='red' />
+            <SectionHeading text='How It Works' color='red' />
             <h3 className={styles.heading}>
-              The most common services <br /> we offer at Nier
+              Book your ride in just three simple steps – it&#39;s fast, easy,
+              and hassle-free!
             </h3>
             <div className={styles.btnClusterContainer}>
               <Button href='/' text='Book your ride' btnType='black' arrow />
