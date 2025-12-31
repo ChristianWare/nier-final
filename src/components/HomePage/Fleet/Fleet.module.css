@@ -1,0 +1,155 @@
+.container {
+  background-color: var(--tan);
+  padding: 10rem 0rem;
+}
+
+.top {
+  margin-bottom: 5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.heading {
+  text-align: center;
+  width: 100%;
+}
+
+.copy {
+  text-align: center;
+  width: 50%;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 2rem;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 5rem;
+  width: 100%;
+  background-color: var(--cream);
+  border-radius: 10px;
+  padding: 2rem;
+  position: relative;
+}
+
+.digitalBox {
+  position: absolute;
+  content: "";
+  top: 0;
+  right: 0;
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.img {
+  object-fit: contain;
+  /* background-color: white; */
+  padding: 3rem;
+}
+
+.right {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
+  width: 100%;
+  /* background-color: rgb(219, 217, 217); */
+  /* border-radius: 7px; */
+  padding: 1rem;
+}
+
+.title {
+  font-size: 3rem;
+  margin-bottom: -1rem;
+  /* text-align: center; */
+}
+
+.featureContainer {
+  border-bottom: 1px solid var(--darkGrayii);
+  padding-bottom: 2rem;
+}
+
+.featureContainer {
+  border: 0;
+  padding-bottom: 1.5rem;
+}
+
+.featureContainer + .featureContainer {
+  border-top: 1px solid var(--darkGrayii);
+  padding-top: 1rem;
+}
+
+.feature {
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: block;
+}
+
+.detail {
+  color: var(--darkGray);
+  margin-top: 0.5rem;
+}
+
+.btnContainer {
+  display: grid;
+  /* grid-template-columns: repeat(1, 1fr); */
+  /* width: 100%; */
+}
+
+@media screen and (max-width: 1268px) {
+  .content {
+    width: 100%;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .copy {
+    width: 60%;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .copy {
+    width: 80%;
+  }
+
+  .card {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .imgContainer {
+    height: 200px;
+  }
+
+  .btnContainer {
+    display: grid;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .content {
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 10rem;
+  }
+
+  .card {
+    grid-gap: 0rem;
+  }
+  .imgContainer {
+    height: 300px;
+  }
+
+  .copy {
+    width: 95%;
+  }
+}

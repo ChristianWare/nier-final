@@ -6,7 +6,7 @@
 }
 
 .dot {
-  background-color: var(--yellow);
+  background-color: var(--accent);
   width: 12px;
   height: 12px;
   border-radius: 2px;

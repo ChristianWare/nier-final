@@ -1,4 +1,5 @@
 import AboutUsIntro from "@/components/HomePage/AboutUsIntro/AboutUsIntro";
+import Fleet from "@/components/HomePage/Fleet/Fleet";
 import Hero from "@/components/HomePage/Hero/Hero";
 import ServiceAreas from "@/components/HomePage/ServiceAreas/ServiceAreas";
 import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
@@ -14,6 +15,7 @@ export default function HomePage() {
       <ServicesPreview />
       <HowItWorks />
       <ServiceAreas />
+      <Fleet />
     </main>
   );
 }
