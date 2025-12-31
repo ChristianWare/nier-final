@@ -44,11 +44,12 @@ export default function AboutUsIntro() {
         <div className={styles.content}>
           <div className={styles.left}>
             <div className={styles.l1}>
-              <SectionHeading text='About Us' color='red' />
+              <SectionHeading text='About Us' dot />
             </div>
             <div className={styles.l2}>
               <h2 className={styles.heading}>
-                For over 20 years, we&apos;ve provided the best car service in Arizona.
+                For over 20 years, we&apos;ve provided the best car service in
+                Arizona.
               </h2>
               <p className={styles.copy}>
                 Founded in 2004, Nier Transportation was born out of a passion
@@ -60,6 +61,8 @@ export default function AboutUsIntro() {
             </div>
           </div>
           <div className={styles.right}>
+            <SectionHeading text='Why ride with us?' dot />
+            <br />
             <div className={styles.mapDataContainer}>
               {data.map((item) => (
                 <div key={item.id} className={styles.card}>

@@ -34,7 +34,7 @@ export default function HowItWorks() {
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.top}>
-            <SectionHeading text='How It Works' color='red' />
+            <SectionHeading text='How It Works' dot />
             <h3 className={styles.heading}>
               Book your ride in just three simple steps – it&#39;s fast, easy,
               and hassle-free!

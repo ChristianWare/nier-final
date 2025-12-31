@@ -11,7 +11,7 @@ export default function ServicesPreview() {
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.top}>
-            <SectionHeading text='Services' color='red' />
+            <SectionHeading text='Services' dot />
 
             <h2 className={styles.heading}>
               The most common services <br className={styles.break} /> we offer
