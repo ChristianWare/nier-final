@@ -39,7 +39,7 @@ export default function ServicesPreview() {
                   <div className={styles.btnContainer}>
                     <Button
                       text='Learn More'
-                      btnType='black'
+                      btnType='red'
                       href={`/services/${x.slug}`}
                       arrow
                     />

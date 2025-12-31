@@ -55,6 +55,22 @@
   color: var(--black);
 }
 
+.red,
+.red:link,
+.red:visited {
+  background-color: var(--accent);
+  color: var(--white);
+  border: 1px solid var(--accent);
+  display: flex;
+  justify-content: space-between;
+  padding-right: 1rem;
+}
+
+.black:hover {
+  background-color: var(--cream);
+  color: var(--black);
+}
+
 .blackOutline {
   background-color: transparent;
   color: var(--black);
@@ -62,9 +78,8 @@
 }
 
 .blackOutline:hover {
-  border: 1px solid var(--yellow);
-  background-color: var(--yellow);
-  color: var(--black);
+  background-color: var(--black);
+  color: var(--white);
 }
 
 .arrow {
@@ -77,6 +92,9 @@
 .transparent {
   color: var(--white) !important;
   background-color: #ffffff1a;
+  display: flex;
+  justify-content: space-between;
+  padding-right: 1rem;
 }
 
 .transparent:hover {

@@ -55,7 +55,12 @@ export default function ServiceAreas() {
                 {/* <li>And surrounding communities</li> */}
               </ul>
               <div className={styles.btnContainer}>
-                <Button href='/' text='Learn More about us' btnType='black' />
+                <Button
+                  href='/'
+                  text='Learn More about us'
+                  btnType='black'
+                  arrow
+                />
               </div>
             </div>
           </LayoutWrapper>
