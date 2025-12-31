@@ -4,9 +4,10 @@
   --cream: #eae9e6;
   --paragraph: #676767;
   --accent: #d0311e;
-  --accent600: #B21A15;
+  --accent600: #b21a15;
   --lightGray: #e0e0e0;
   --stroke: #d8d6d2;
+  --strokeii: #a7a6a2;
   --blue: #2563eb;
 }
 
@@ -77,7 +78,8 @@ h3 {
   letter-spacing: -1.6px;
 }
 
-h4 {
+h4,
+.h4 {
   font-size: 2.4rem;
   font-weight: 500;
   line-height: 1.2em;
@@ -122,34 +124,6 @@ textarea:focus {
   outline: none;
 }
 
-.stat {
-  font-size: 8rem;
-  font-weight: 600;
-}
-
-.h2 {
-  font-size: 4rem;
-}
-
-.h3 {
-  font-size: 3.6rem;
-  font-weight: 500;
-}
-
-.h4 {
-  font-size: 3rem;
-  font-weight: 500;
-}
-
-.h5 {
-  font-size: 2.2rem;
-  font-weight: 500;
-}
-
-.h6 {
-  font-size: 1.8rem;
-  font-weight: 500;
-}
 
 /* .toastFont {
   font-family: var(--ABCSocialLight);
@@ -221,7 +195,7 @@ textarea:focus {
   h2 {
     letter-spacing: -1.8px;
   }
- 
+
   h3 {
     font-size: 2.8rem;
     letter-spacing: -1.5px;
