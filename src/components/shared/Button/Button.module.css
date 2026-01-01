@@ -82,9 +82,9 @@
   padding-right: 1rem;
 }
 
-.black:hover {
+.red:hover {
   background-color: var(--cream);
-  color: var(--black);
+  color: var(--accent);
 }
 
 .blackOutline {
@@ -130,17 +130,6 @@
   color: var(--black) !important;
 }
 
-.yellow {
-  background-color: var(--yellow);
-  color: var(--black);
-  border: 1px solid var(--yellow);
-}
-
-.yellow:hover {
-  background-color: transparent;
-  color: var(--yellow);
-}
-
 .arrowBtn {
   background-color: var(--black);
   padding: 1rem;
@@ -168,21 +157,8 @@
   color: var(--black);
 }
 
-.navGray {
-  border: 1px solid var(--darkGrayii);
-  color: var(--black);
-  padding: 10px 18px;
-  background-color: var(--gray);
-}
-
 @media (hover: hover) and (pointer: fine) {
   .container:hover .arrow {
     transform: rotate(90deg) translateY(-5px);
-  }
-}
-
-@media screen and (max-width: 868px) {
-  .noBackgroundBlueText {
-    border: 1px solid var(--lightBlue);
   }
 }

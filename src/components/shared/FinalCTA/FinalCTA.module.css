@@ -28,6 +28,15 @@
   gap: 1rem;
 }
 
+.heading {
+  color: var(--cream);
+}
+
+.logo {
+  font-size: 15rem;
+  color: var(--cream);
+}
+
 .imgContainer {
   position: relative;
   width: 100%;
