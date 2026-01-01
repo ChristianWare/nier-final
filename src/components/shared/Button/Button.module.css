@@ -39,6 +39,22 @@
   background-color: var(--darkGray);
 } */
 
+.underlinedBlack,
+.underlinedBlack:link,
+.underlinedBlack:visited {
+  background-color: none;
+  color: var(--black);
+  font-size: 2rem;
+  border-bottom: 1px solid var(--black);
+  border-radius: 0px;
+  padding: 5px 0px;
+}
+/* 
+.underlinedBlack:hover {
+  border: 1px solid var(--darkGray);
+  background-color: var(--darkGray);
+} */
+
 .black,
 .black:link,
 .black:visited {

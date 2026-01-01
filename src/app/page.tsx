@@ -4,13 +4,17 @@ import Hero from "@/components/HomePage/Hero/Hero";
 import ServiceAreas from "@/components/HomePage/ServiceAreas/ServiceAreas";
 import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
 import Stats from "@/components/HomePage/Stats/Stats";
+import BlogSection from "@/components/shared/BlogSection/BlogSection";
+import Faq from "@/components/shared/Faq/Faq";
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import Testimonials from "@/components/shared/Testimonials/Testimonials";
+import { homeQuestions } from "@/lib/data";
+
 
 export default function HomePage() {
   return (
     <main>
-      <Hero />
+      <Hero /> 
       <AboutUsIntro />
       <Stats />
       <ServicesPreview />
@@ -18,6 +22,8 @@ export default function HomePage() {
       <ServiceAreas />
       <Fleet />
       <Testimonials />
+      <Faq items={homeQuestions} />
+      <BlogSection />
     </main>
   );
 }
