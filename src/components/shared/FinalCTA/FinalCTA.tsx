@@ -17,17 +17,17 @@ export default function FinalCTA() {
                 <h2 className={`${styles.heading} h1`}>
                   Take the first step toward an elevated travel experience.
                 </h2>
+              </div>
+              <div className={styles.bottom}>
                 <p className={`${styles.copy} h4`}>
                   Schedule your ride today and experience the comfort and
                   reliability of our premium black car service.
                 </p>
-              </div>
-              <div className={styles.bottom}>
                 <div className={styles.btnContainer}>
                   <Button
                     as='span'
                     text='Contact Us'
-                    btnType='underlinedWhite'
+                    btnType='underlinedBlack'
                     arrow
                   />
                 </div>

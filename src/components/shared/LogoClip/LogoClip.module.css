@@ -1,0 +1,6 @@
+.clip1 {
+  clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 0% 100%, 25% 50%, 0% 0%);
+  background-color: red;
+  width: 5rem;
+  height: 5rem;
+}

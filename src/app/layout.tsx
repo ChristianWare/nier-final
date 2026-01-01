@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Nav from "@/components/shared/Nav/Nav";
+import Footer from "@/components/shared/Footer/Footer";
 
 const inter = Inter({
   variable: "--inter",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className={`${inter.variable} `}>
         <Nav />
         {children}</body>
+        <Footer />
     </html>
   );
 }

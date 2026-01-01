@@ -1,0 +1,131 @@
+.form {
+  /* padding: 2rem; */
+  width: 100%;
+}
+
+.namesContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3rem;
+  width: 100%;
+}
+
+.labelInputBox {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex: 1;
+  width: 100%;
+}
+
+.labelInputBox label {
+  font-weight: 400;
+  /* padding-left: 0.3rem; */
+}
+
+.labelInputBox input,
+.labelInputBox textarea {
+  border: none;
+  border-bottom: 2px solid var(--stroke);
+  height: 40px;
+  width: 100%;
+  padding: 1rem;
+  width: 100%;
+  font-weight: 400;
+  background-color: var(--lightGray);
+}
+
+.labelInputBox span {
+  font-size: 1.4rem;
+  color: rgb(140, 139, 139);
+}
+
+.labelInputBox textarea {
+  height: 130px;
+  resize: vertical;
+}
+
+.error {
+  color: red !important;
+}
+
+.btnContainer {
+  margin-top: 3rem;
+}
+
+@media screen and (max-width: 1058px) {
+  .top {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    display: flex;
+  }
+
+  .copy {
+    width: 60%;
+    text-align: center;
+  }
+
+  .bottom {
+    flex-direction: column;
+    align-items: center;
+    gap: 4rem;
+  }
+
+  .left {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .form {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 758px) {
+  .copy {
+    width: 100%;
+  }
+
+  .letsTalkContainer {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    padding-top: 5rem;
+    padding-bottom: 0rem;
+  }
+
+  .copy {
+    width: 100%;
+  }
+
+  .left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  .letsTalkContainer {
+    width: 100%;
+  }
+
+  .namesContainer {
+    flex-direction: column;
+    gap: 0rem;
+  }
+
+  .btnContainer {
+    display: grid;
+    width: 100%;
+  }
+}
