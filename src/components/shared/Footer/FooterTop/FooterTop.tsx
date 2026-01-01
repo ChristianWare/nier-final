@@ -13,8 +13,7 @@ export default function FooterTop() {
           </div>
           <div className={styles.right}>
             <span className={`${styles.heading} h3`}>
-              Ready to Ride? Take the first step toward an elevated travel
-              experience.
+              Contact us for <br /> questions or collaboration
             </span>
             <ContactSection />
           </div>

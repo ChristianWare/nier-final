@@ -1,5 +1,6 @@
 .container {
   /* padding: 10rem 0rem; */
+  padding-bottom: 10rem;
   background-color: var(--cream);
 }
 

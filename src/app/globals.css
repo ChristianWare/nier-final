@@ -4,6 +4,7 @@
   --cream: #eae9e6;
   --paragraph: #676767;
   --accent: #d0311e;
+
   --accent600: #b21a15;
   --lightGray: #e0e0e0;
   --stroke: #d8d6d2;
@@ -165,10 +166,12 @@ textarea:focus {
 } */
 
 @media screen and (max-width: 1268px) {
-  h1, .h1 {
+  h1,
+  .h1 {
     font-size: 4.8rem;
   }
-  h2, .h2 {
+  h2,
+  .h2 {
     font-size: 3.8rem;
   }
 }
@@ -184,11 +187,13 @@ textarea:focus {
 }
 
 @media screen and (max-width: 768px) {
-  h1, .h1 {
+  h1,
+  .h1 {
     font-size: 4.2rem;
   }
 
-  h2, .h2 {
+  h2,
+  .h2 {
     font-size: 3.4rem;
   }
 }
