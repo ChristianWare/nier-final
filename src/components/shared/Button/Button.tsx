@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ReactNode } from "react";
 import Link from "next/link";
 import styles from "./Button.module.css";
@@ -12,11 +11,8 @@ interface Props {
   disabled?: boolean;
   children?: ReactNode;
   arrow?: boolean;
-  image?: boolean;
-  onClick?: (
-    e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>
-  ) => void;
   type?: "button" | "submit" | "reset";
+  as?: "auto" | "button" | "span";
 }
 
 export default function Button({
@@ -26,46 +22,44 @@ export default function Button({
   target,
   disabled,
   children,
-  onClick,
   arrow,
   type = "button",
+  as = "auto",
 }: Props) {
   const content = text || children;
+  const className = `${styles.btn} ${styles[btnType]}`;
 
-  // LINK VARIANT
-  if (href) {
-    return (
-      <Link
-        href={href}
-        target={target}
-        rel={target === "_blank" ? "noopener noreferrer" : undefined}
-        onClick={onClick as any}
-        className={`${styles.btn} ${styles[btnType]}`}
-      >
-        {content}
-        {arrow && (
-          <div className={styles.arrowContainer}>
-            <Arrow className={styles.arrow} />
-          </div>
-        )}{" "}
-      </Link>
-    );
-  }
-
-  // BUTTON VARIANT
-  return (
-    <button
-      type={type}
-      className={`${styles.btn} ${styles[btnType]}`}
-      disabled={disabled}
-      onClick={onClick}
-    >
+  const Inner = (
+    <>
       {content}
       {arrow && (
         <div className={styles.arrowContainer}>
           <Arrow className={styles.arrow} />
         </div>
       )}
-    </button>
+    </>
+  );
+
+  if (as === "span") {
+    return <span className={className}>{Inner}</span>;
+  }
+
+  if (as === "button" || !href) {
+    return (
+      <button type={type} className={className} disabled={disabled}>
+        {Inner}
+      </button>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      target={target}
+      rel={target === "_blank" ? "noopener noreferrer" : undefined}
+      className={className}
+    >
+      {Inner}
+    </Link>
   );
 }
