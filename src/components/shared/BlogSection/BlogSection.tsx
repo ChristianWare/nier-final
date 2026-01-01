@@ -6,6 +6,7 @@ import BlogCardTwo from "@/components/BlogPage/BlogCardTwo/BlogCardTwo";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import Button from "@/components/shared/Button/Button";
+import SectionHeading from "../SectionHeading/SectionHeading";
 
 type Post = {
   _id: string;
@@ -45,7 +46,15 @@ export default async function BlogSection() {
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.top}>
-            <h2 className={`${styles.heading} h4`}>Latest insights</h2>
+            <SectionHeading text='blog' dot />
+            <h2 className={`${styles.heading} h2`}>
+              Insights, updates, and <br /> practical knowledge
+            </h2>
+            <p className={styles.copy}>
+              Stay informed with our latest blog posts, featuring expert
+              insights, industry trends, and practical tips to help you navigate
+              the world of web development and design.
+            </p>
           </div>
 
           <div className={styles.bottom}>

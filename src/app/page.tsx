@@ -6,15 +6,15 @@ import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPrevi
 import Stats from "@/components/HomePage/Stats/Stats";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import Faq from "@/components/shared/Faq/Faq";
+import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import Testimonials from "@/components/shared/Testimonials/Testimonials";
 import { homeQuestions } from "@/lib/data";
 
-
 export default function HomePage() {
   return (
     <main>
-      <Hero /> 
+      <Hero />
       <AboutUsIntro />
       <Stats />
       <ServicesPreview />
@@ -24,6 +24,7 @@ export default function HomePage() {
       <Testimonials />
       <Faq items={homeQuestions} />
       <BlogSection />
+      <FinalCTA />
     </main>
   );
 }
