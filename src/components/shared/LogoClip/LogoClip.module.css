@@ -1,6 +1,25 @@
-.clip1 {
-  clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 0% 100%, 25% 50%, 0% 0%);
+.top, .bottom {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: fit-content;
+}
+
+.clip1,
+.clip2 {
+  clip-path: polygon(0% 0%, 0% 40%, 50% 100%, 50% 55%, 100% 55%, 50% 0%);
+
   background-color: red;
-  width: 5rem;
-  height: 5rem;
+  width: 7rem;
+  height: 7rem;
+}
+
+.clip2 {
+  position: relative;
+  left: -10px;
+}
+
+.bottom {
+    transform: rotate(-180deg);
+    margin-left: 2.5rem;
 }

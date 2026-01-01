@@ -151,7 +151,6 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
               text='Book your Ride'
               btnType='transparent'
               arrow
-              onClick={closeMenu}
             />
           </div>
         </div>

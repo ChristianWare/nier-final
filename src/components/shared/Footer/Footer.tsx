@@ -1,7 +1,6 @@
 import styles from "./Footer.module.css";
 import Link from "next/link";
 import LayoutWrapper from "../LayoutWrapper";
-import Logo from "../Logo/Logo";
 import Instagram from "../icons/Instagram/Instagram";
 import Yelp from "../icons/Yelp/Yelp";
 import LinkedIn from "../icons/LinkedIn/LinkedIn";
@@ -20,58 +19,6 @@ interface Section {
 }
 
 const data: Section[] = [
-  {
-    id: 1,
-    title: "Head Office",
-    options: [
-      {
-        id: 1.1,
-        option: "NIer Transporttion \n 123 Main St. \n Phoenix, AZ 85001",
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Phone",
-    options: [
-      {
-        id: 1.1,
-        option: "480-300-6003",
-      },
-      {
-        id: 1.2,
-        option: "480-300-6005",
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "Email",
-    options: [
-      {
-        id: 1.1,
-        option: "reservations@niertransportation.com",
-      },
-      {
-        id: 1.2,
-        option: "info@niertransportation.com",
-      },
-    ],
-  },
-  {
-    id: 4,
-    title: "Company",
-    options: [
-      {
-        id: 1.1,
-        option: "About us",
-      },
-      {
-        id: 1.2,
-        option: "Careers",
-      },
-    ],
-  },
   {
     id: 1,
     title: "Services",
@@ -97,11 +44,24 @@ const data: Section[] = [
   },
   {
     id: 2,
-    title: "Resources",
+    title: "Quick Links",
     options: [
-      { id: 2.1, option: "Blog", href: "/blog" },
-      { id: 2.2, option: "Events", href: "/events" },
-      { id: 2.3, option: "Glossary", href: "/glossary" },
+      { id: 2.1, option: "About", href: "/about" },
+      { id: 2.2, option: "Services", href: "/services" },
+      { id: 2.3, option: "Blog", href: "/blog" },
+      { id: 2.4, option: "Contact", href: "/contact" },
+    ],
+  },
+  {
+    id: 3,
+    title: "Connect",
+    options: [
+      {
+        id: 3.1,
+        option: "reservations@niertransportation.com",
+        href: "mailto:reservations@niertransportation.com",
+      },
+      { id: 3.2, option: "480-300-6003", href: "tel:4803006003" },
     ],
   },
 ];
@@ -113,11 +73,11 @@ export default function Footer() {
         <div className={styles.content}>
           <FooterTop />
           <div className={styles.top}>
-            {/* <div className={styles.logoDetailsSocials}>
-              <Link href='/' className={styles.logoContainer}>
+            <div className={styles.logoDetailsSocials}>
+              {/* <Link href='/' className={styles.logoContainer}>
                 <Logo className={styles.logo} />
                 <span className={styles.logoText}>Nier Transportation</span>
-              </Link>
+              </Link> */}
               <p className={styles.copy}>
                 At Nier Transportation, we’re more than a car service; we’re
                 your trusted partner in high end transportation.
@@ -127,7 +87,7 @@ export default function Footer() {
                 <Yelp className={styles.socialIcon} />
                 <LinkedIn className={styles.socialIcon} />
               </div>
-            </div> */}
+            </div>
             <div className={styles.links}>
               {data.map((section) => (
                 <div key={section.id} className={styles.linkSection}>
