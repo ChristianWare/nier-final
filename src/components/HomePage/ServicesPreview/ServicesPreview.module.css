@@ -1,21 +1,20 @@
 .container {
-  /* padding: 10rem 0rem; */
   background-color: var(--cream);
 }
 
 .top {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 1rem;
-  border-bottom: 1px solid var(--gray);
+  border-bottom: 2px solid var(--stroke);
   padding-bottom: 2rem;
 }
 
-.heading {
+/* .heading {
   text-align: center;
-}
+} */
 
 .mapDataContainer {
   display: grid;
@@ -26,43 +25,23 @@
 .bottom {
   margin-top: 3rem;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-gap: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 5rem;
 }
 
 .card {
-  display: grid;
-  grid-template-columns: 1.5fr 2fr;
-  grid-gap: 1rem;
-  padding: 1rem;
-  background-color: var(--white);
-  border-radius: 10px;
-}
-
-.card:nth-child(even) {
-  grid-template-columns: 2fr 1.5fr;
-}
-
-.card:nth-child(odd) .cardRight {
-  align-items: flex-end;
-}
-
-.card:nth-child(odd) .cardRight .title,
-.card:nth-child(odd) .cardRight .desc {
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
 }
 
 .imgContainer {
   position: relative;
   width: 100%;
-  height: 100%;
-}
-
-.digitalBox {
-  position: absolute;
-  content: "";
-  top: -1px;
-  right: -1px;
+  height: 220px;
+  margin-top: 2rem;
 }
 
 .img {
@@ -70,37 +49,47 @@
   border-radius: 10px;
 }
 
-.cardRight {
-  background-color: var(--cream);
-  border-radius: 10px;
-  padding: 2rem;
+.idTitleBox {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 5rem;
-  height: 100%;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.card:nth-child(even) .cardRight {
-  order: -1;
+.idBox {
+  background-color: var(--accent);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.title {
-  font-size: 2rem;
-  letter-spacing: -1.2px;
-  margin-bottom: 1rem;
+.id {
+  color: var(--cream);
+  font-size: 1.6rem;
 }
 
 .desc {
   color: var(--paragraph);
-  font-size: 1.4rem;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  text-overflow: ellipsis;
+  color: var(--paragraph);
+  letter-spacing: -0.8px;
+  -webkit-box-orient: vertical;
+  font-size: 1.6rem;
+  font-weight: 500;
+  display: -webkit-box;
+  overflow: hidden;
 }
 
 .btnContainer {
-  margin-top: 2rem;
-  display: grid;
-  width: 100%;
+  margin-top: 1rem;
+  /* display: grid; */
+  /* width: 100%; */
 }
 
 .topBtnContainer {
@@ -117,24 +106,12 @@
   margin-top: 5rem;
 }
 
-@media screen and (max-width: 1268px) {
-  .bottom {
-    grid-template-columns: repeat(1, 1fr);
-  }
-
-  .card {
-    width: 60%;
-  }
-
-  .card:nth-child(odd) {
-    margin-left: auto;
-  }
-}
-
 @media screen and (max-width: 1068px) {
   .top {
     flex-direction: column;
     text-align: center;
+    align-items: center;
+    justify-content: center;
   }
 
   .heading {
@@ -145,14 +122,9 @@
     width: 100%;
   }
 
-  .card:nth-child(odd),
-  .card:nth-child(even) {
+  .bottom {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .card:nth-child(odd) {
-    margin-left: auto;
-    margin-right: auto;
+    grid-gap: 5rem;
   }
 }
 
@@ -160,102 +132,25 @@
   .mapDataContainer {
     grid-template-columns: 1fr;
   }
-
-  .cardTop {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-
-  .cardBottom {
-    grid-template-columns: 1fr;
-    gap: 5rem;
-  }
-
-  .circleBtnContainer {
-    justify-content: center;
-  }
 }
 
 @media screen and (max-width: 568px) {
   .bottom {
-    grid-gap: 5rem;
-  }
-
-  .card:nth-child(odd),
-  .card:nth-child(even) {
+    grid-gap: 7rem;
     grid-template-columns: repeat(1, 1fr);
   }
 
   .imgContainer {
-    height: 250px;
-  }
-  /* 
-  .card:nth-child(odd),
-  .card:nth-child(even) {
-    border-top-left-radius: 300px;
-    border-top-right-radius: 300px;
-    border-bottom-right-radius: 15px;
-    border-bottom-left-radius: 15px;
-  } */
-
-  .card:nth-child(even) .cardRight {
-    order: 1;
-  }
-  /* 
-  .card:nth-child(even) .img,
-  .card:nth-child(odd) .img {
-    border-top-right-radius: 300px;
-    border-top-left-radius: 300px;
-    border-bottom-right-radius: 15px;
-    border-bottom-left-radius: 15px;
-  } */
-
-  .card:nth-child(odd) .cardRight {
-    align-items: center;
+    height: 215px;
   }
 
-  .cardRight {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5rem;
-    padding-top: 3rem;
-  }
-
-  .desc {
-    text-align: center;
-  }
-
-  .btnContainer,
-  .topBtnContainer {
+  .btnContainer {
     display: grid;
     grid-template-columns: repeat(1, 1fr);
     width: 100%;
   }
-}
-
-@media screen and (max-width: 568px) {
-  /* .heading {
-    text-align: left;
-  } */
-
-  .heading,
-  .desc {
-    text-align: center;
-    width: 95%;
-  }
-
-  .card:nth-child(odd) .cardRight .title,
-  .card:nth-child(odd) .cardRight .desc {
-    text-align: center;
-  }
 
   .break {
     display: none;
-  }
-
-  .cardRight {
-    gap: 2rem;
   }
 }

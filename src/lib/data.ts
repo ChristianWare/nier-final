@@ -111,7 +111,7 @@ export const services = [
     id: 1,
     title: "Airport Transfers",
     slug: "airport-transfers",
-    copy: "Reliable black car service to Scottsdale, Sky Harbor, and Gateway airports. Professional chauffeurs ensure punctual, stress-free travel.",
+    copy: "Reliable black car service to Scottsdale, Sky Harbor, and Gateway airports. Professional chauffeurs ensure, stress-free travel.",
     src: Airport,
     src2: Airport2,
     description:
@@ -181,7 +181,7 @@ export const services = [
   },
   {
     id: 3,
-    title: "Point-to-Point City Transfers",
+    title: "Point-to-Point Transfers",
     slug: "point-to-point",
     copy: "Direct, door-to-door rides across the Valley with fixed pricing and 15-minute courtesy wait time.",
     src: Point,

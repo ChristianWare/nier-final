@@ -14,36 +14,37 @@ export default function ServicesPreview() {
             <SectionHeading text='Services' dot />
 
             <h2 className={styles.heading}>
-              The most common services <br className={styles.break} /> we offer
-              at Nier
+              Core services we offer
+              <br className={styles.break} /> at Nier Transporttion
             </h2>
           </div>
           <div className={styles.bottom}>
-            {services.slice(0, 4).map((x) => (
+            {services.slice(0, 3).map((x) => (
               <div key={x.id} className={styles.card}>
-                <div className={styles.cardLeft}>
-                  <div className={styles.imgContainer}>
-                    <Image
-                      src={x.src}
-                      alt={x.title}
-                      fill
-                      className={styles.img}
-                    />
+                <div className={styles.titleDescBox}>
+                  <div className={styles.idTitleBox}>
+                    <div className={styles.idBox}>
+                      <span className={styles.id}>{x.id}</span>
+                    </div>
+                    <h3 className={`${styles.title} h5`}>{x.title}</h3>
                   </div>
+                  <p className={styles.desc}>{x.copy}</p>
                 </div>
-                <div className={styles.cardRight}>
-                  <div className={styles.titleDescBox}>
-                    <h3 className={styles.title}>{x.title}</h3>
-                    <p className={styles.desc}>{x.copy}</p>
-                  </div>
-                  <div className={styles.btnContainer}>
-                    <Button
-                      text='Learn More'
-                      btnType='red'
-                      href={`/services/${x.slug}`}
-                      arrow
-                    />
-                  </div>
+                <div className={styles.btnContainer}>
+                  <Button
+                    text='Learn More'
+                    btnType='underlinedBlack'
+                    href={`/services/${x.slug}`}
+                    arrow
+                  />
+                </div>
+                <div className={styles.imgContainer}>
+                  <Image
+                    src={x.src}
+                    alt={x.title}
+                    fill
+                    className={styles.img}
+                  />
                 </div>
               </div>
             ))}
