@@ -38,6 +38,12 @@
   grid-gap: 2rem;
 }
 
+.bottom {
+  background-color: var(--white);
+  border-radius: 20px;
+  padding: 2rem;
+}
+
 @media screen and (max-width: 1068px) {
   .bottom {
     grid-template-columns: repeat(1, 1fr);

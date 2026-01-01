@@ -102,7 +102,7 @@ export default async function BlogSection() {
             </div>
           </div>
           <div className={styles.btnContainer}>
-            <Button href='/blog' btnType='black' text='All blog posts' />
+            <Button href='/blog' btnType='black' text='All blog posts' arrow />
           </div>
         </div>
       </LayoutWrapper>
