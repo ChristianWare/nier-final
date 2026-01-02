@@ -1,0 +1,38 @@
+.container {
+  background-color: var(--cream);
+  padding: 10rem 0rem;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 3rem;
+}
+
+.right {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.heading {
+  width: 90%;
+}
+
+.copy {
+  color: var(--paragraph);
+  max-width: 700px;
+}
+
+@media screen and (max-width: 1068px) {
+  .top {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .heading {
+    width: 100%;
+  }
+}

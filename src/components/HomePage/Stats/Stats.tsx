@@ -3,11 +3,15 @@ import styles from "./Stats.module.css";
 import Button from "@/components/shared/Button/Button";
 import ImageMarquee from "@/components/shared/ImageMarquee/ImageMarquee";
 
-export default function Stats() {
+type StatsProps = {
+  flipped?: boolean;
+};
+
+export default function Stats({ flipped = false }: StatsProps) {
   return (
     <section className={styles.container}>
       <LayoutWrapper>
-        <div className={styles.content}>
+        <div className={`${styles.content} ${flipped ? styles.flipped : ""}`}>
           <div className={styles.left}>
             <div className={styles.media}>
               <video
@@ -48,8 +52,8 @@ export default function Stats() {
                 />
               </div>
             </div>
-            
-              <ImageMarquee />
+
+            <ImageMarquee />
           </div>
         </div>
       </LayoutWrapper>
