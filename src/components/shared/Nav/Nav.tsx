@@ -114,7 +114,8 @@ export default function Nav({
 
   const forceSolid = Boolean(background);
 
-  const btnType = background ? "black" : "transparent";
+const btnType =
+  background === "accent" ? "lightRed" : background ? "black" : "transparent";
 
 
   return (

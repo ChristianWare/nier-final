@@ -88,6 +88,22 @@
   color: var(--accent);
 }
 
+.lightRed,
+.lightRed:link,
+.lightRed:visited {
+  background-color: #0000001a;
+  color: var(--black);
+  border: 1px solid var(--accent);
+  display: flex;
+  justify-content: space-between;
+  padding-right: 1rem;
+}
+
+.lightRed:hover {
+  background-color: var(--accent600);
+  /* color: var(--accent); */
+}
+
 .blackOutline {
   background-color: transparent;
   color: var(--black);
