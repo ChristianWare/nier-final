@@ -101,7 +101,21 @@
 
 .lightRed:hover {
   background-color: var(--accent600);
-  /* color: var(--accent); */
+}
+
+.cream,
+.cream:link,
+.cream:visited {
+  background-color: var(--cream);
+  color: var(--black);
+  border: 1px solid var(--cream);
+  display: flex;
+  justify-content: space-between;
+  padding-right: 1rem;
+}
+
+.cream:hover {
+  background-color: var(--strokeii);
 }
 
 .blackOutline {
@@ -133,45 +147,6 @@
 .transparent:hover {
   background-color: var(--black);
   color: var(--yellow);
-}
-
-.navBlack {
-  border: 1px solid var(--black);
-  color: var(--tan) !important;
-  padding: 10px 18px;
-  background-color: var(--black);
-}
-
-.navBlack:hover {
-  background-color: transparent;
-  color: var(--black) !important;
-}
-
-.arrowBtn {
-  background-color: var(--black);
-  padding: 1rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 4rem;
-  height: 4rem;
-}
-
-.arrowBtn .arrow {
-  color: var(--tan);
-  transition: all 0.3s ease-in-out;
-  position: relative;
-  top: 2px;
-  font-size: 1.4rem;
-}
-
-.arrowBtn:hover {
-  background-color: var(--yellow);
-}
-
-.arrowBtn:hover .arrow {
-  color: var(--black);
 }
 
 @media (hover: hover) and (pointer: fine) {

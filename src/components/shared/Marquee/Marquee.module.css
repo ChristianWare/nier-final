@@ -1,7 +1,7 @@
 .slider {
   width: 100%;
   overflow: hidden;
-  background-color: var(--cream);
+  background-color: var(--marquee-bg, var(--cream));
   padding: 2.75rem 0;
   border-bottom: 1px solid var(--stroke);
   cursor: pointer;
@@ -35,7 +35,7 @@
   font-size: 16rem;
   letter-spacing: -7.5px;
   line-height: 1;
-  color: var(--black);
+  color: var(--marquee-color, var(--black));
   text-transform: uppercase;
 }
 

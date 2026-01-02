@@ -220,8 +220,7 @@ textarea:focus {
   }
 
   p {
-    font-size: 2rem;
-    letter-spacing: 0px;
+    font-size: 16px;
   }
 
   .stat {
