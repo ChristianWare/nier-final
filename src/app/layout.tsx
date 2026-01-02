@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Nav from "@/components/shared/Nav/Nav";
+
 import Footer from "@/components/shared/Footer/Footer";
 
 const inter = Inter({
@@ -21,10 +21,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body className={`${inter.variable} `}>
-        <Nav />
-        {children}</body>
-        <Footer />
+      <body className={`${inter.variable} `}>{children}</body>
+      <Footer />
     </html>
   );
 }

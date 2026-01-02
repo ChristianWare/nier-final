@@ -7,14 +7,15 @@ import Stats from "@/components/HomePage/Stats/Stats";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import Faq from "@/components/shared/Faq/Faq";
-import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
+import Nav from "@/components/shared/Nav/Nav";
 import Testimonials from "@/components/shared/Testimonials/Testimonials";
 import { homeQuestions } from "@/lib/data";
 
 export default function HomePage() {
   return (
     <main>
+      <Nav />
       <Hero />
       <AboutUsIntro />
       <Stats />
@@ -25,7 +26,6 @@ export default function HomePage() {
       <Testimonials />
       <Faq items={homeQuestions} />
       <BlogSection />
-      {/* <FinalCTA /> */}
       <AboutNumbers />
     </main>
   );

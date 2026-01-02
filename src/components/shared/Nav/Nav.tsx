@@ -15,9 +15,14 @@ export interface NavProps {
   navItemColor?: string;
   color?: string;
   hamburgerColor?: string;
+  background?: "white" | "cream" | "accent";
 }
 
-export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
+export default function Nav({
+  color = "",
+  hamburgerColor = "",
+  background,
+}: NavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
@@ -98,11 +103,27 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
 
   const shouldBlend = !scrolled && !isOpen;
 
+  const bgClass =
+    background === "white"
+      ? styles.bgWhite
+      : background === "cream"
+        ? styles.bgCream
+        : background === "accent"
+          ? styles.bgAccent
+          : "";
+
+  const forceSolid = Boolean(background);
+
+  const btnType = background ? "black" : "transparent";
+
+
   return (
     <header
       className={`${styles.header} ${
         scrolled ? styles.scrolled : styles.transparent
-      } ${isOpen ? styles.open : ""}`}
+      } ${isOpen ? styles.open : ""} ${bgClass} ${
+        forceSolid ? styles.forceSolid : ""
+      }`}
       ref={navRef}
     >
       <nav className={styles.navbar}>
@@ -149,7 +170,7 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
             <Button
               href='/book'
               text='Book your Ride'
-              btnType='transparent'
+              btnType={btnType}
               arrow
             />
           </div>
@@ -162,12 +183,7 @@ export default function Nav({ color = "", hamburgerColor = "" }: NavProps) {
           )}
 
         <div className={styles.btnContainer}>
-          <Button
-            href='/book'
-            text='Book your Ride'
-            btnType='transparent'
-            arrow
-          />
+          <Button href='/book' text='Book your Ride' btnType={btnType} arrow />
         </div>
 
         <span

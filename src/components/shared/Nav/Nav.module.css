@@ -63,7 +63,34 @@
   opacity: 1;
 }
 
+.forceSolid::before {
+  opacity: 0;
+}
+.forceSolid::after {
+  opacity: 0;
+}
+
+.bgWhite {
+  background: var(--white);
+  --nav-fg: var(--black);
+  --nav-border: rgba(0, 0, 0, 0.12);
+}
+
+.bgCream {
+  background: var(--cream);
+  --nav-fg: var(--black);
+  --nav-border: rgba(0, 0, 0, 0.12);
+}
+
+.bgAccent {
+  background: var(--accent);
+  --nav-fg: var(--black);
+  --nav-border: rgba(0, 0, 0, 0.12);
+}
+
 .navbar {
+    max-width: 1600px;
+
   margin: 0 auto;
   padding: 1.5rem 2rem;
   padding-right: 1rem;
@@ -75,16 +102,15 @@
 .logoContainer {
   display: flex;
   align-items: flex-end;
-  justify-content: flex-start;  
-  gap: .5rem;
+  justify-content: flex-start;
+  gap: 0.5rem;
 }
 
 .text {
-  color: var(--white);
+  color: var(--nav-fg);
   font-size: 1.8rem;
   font-weight: 500;
-    letter-spacing: -0.5px;
-
+  letter-spacing: -0.5px;
 }
 
 .logo {
@@ -121,20 +147,6 @@
   position: relative;
 }
 
-/* .navItemActive::after {
-  content: "";
-  position: absolute;
-  bottom: -12px;
-  left: 0;
-  right: 0;
-  height: 5px;
-  width: 5px;
-  border-radius: 50%;
-  border: 1px solid var(--nav-fg);
-  background-color: var(--accent);
-  margin: 0 auto;
-} */
-
 .black {
   color: var(--black);
 }
@@ -169,7 +181,9 @@
   margin: 5px auto;
   border-radius: 15px;
   background-color: var(--nav-fg);
-  transition: transform 0.3s ease-in-out, opacity 0.2s ease-in-out,
+  transition:
+    transform 0.3s ease-in-out,
+    opacity 0.2s ease-in-out,
     background-color 0.2s ease-in-out;
 }
 
@@ -322,13 +336,11 @@
 
   .hamburger.active .whiteBar:nth-child(1) {
     transform: translateY(8px) rotate(45deg);
-    background-color: var(--black);
   }
   .hamburger.active .whiteBar:nth-child(2) {
     opacity: 0;
   }
   .hamburger.active .whiteBar:nth-child(3) {
-    background-color: var(--black);
     transform: translateY(-8px) rotate(-45deg);
   }
 }

@@ -1,5 +1,11 @@
+import ServicePageIntro from "@/components/ServicesPage/ServicePageIntro/ServicePageIntro";
+import Nav from "@/components/shared/Nav/Nav";
+
 export default function ServicesPage() {
   return (
-    <div>ServicesPage</div>
-  )
+    <main>
+      <Nav background='cream' />
+      <ServicePageIntro />
+    </main>
+  );
 }
