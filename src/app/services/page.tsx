@@ -1,3 +1,4 @@
+import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
 import ServicePageIntro from "@/components/ServicesPage/ServicePageIntro/ServicePageIntro";
 import ServicesMission from "@/components/ServicesPage/ServicesMission/ServicesMission";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
@@ -9,6 +10,7 @@ export default function ServicesPage() {
       <Nav background='cream' />
       <ServicePageIntro />
       <ServicesMission />
+      <ServicesPreview />
       <AboutNumbers />
     </main>
   );
