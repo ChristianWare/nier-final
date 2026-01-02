@@ -11,7 +11,10 @@ export default function AboutPageIntro() {
           <div className={styles.leftContent}>
             <div className={styles.top}>
               <SectionHeading text='About us' dot />
-              <h1 className={styles.heading}>Who we are and what drives us</h1>
+              <h1 className={styles.heading}>
+                We&apos;ve been at the forefront of the travel industry for over a
+                decade.{" "}
+              </h1>
               <p className={styles.copy}>
                 At Nier Transportation, we are passionate about connecting
                 travelers with unforgettable experiences.
@@ -33,10 +36,8 @@ export default function AboutPageIntro() {
             </div>
             <div className={styles.bottom}>
               <p className={styles.bottomCopy}>
-                Founded in 2010, Nier Transportation has been at the forefront
-                of the travel industry for over a decade. Our commitment to
-                excellence and innovation has made us a trusted partner for
-                travelers worldwide.
+                Our commitment to excellence and innovation has made us a
+                trusted partner for travelers worldwide.
               </p>
             </div>
           </div>

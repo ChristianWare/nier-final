@@ -1,0 +1,150 @@
+.container {
+  background-color: var(--cream);
+  padding: 10rem 0rem;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 10rem;
+}
+
+.left,
+.leftii {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.leftii {
+  display: none;
+}
+
+.right {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 5rem;
+}
+
+.heading {
+  width: 90%;
+}
+
+.copy {
+  color: var(--paragraph);
+  max-width: 700px;
+}
+
+.bottom {
+  margin-top: 3rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 2rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-right: 1px solid var(--stroke);
+  padding: 0rem 2rem;
+}
+
+.idTitleBox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.idBox {
+  background-color: var(--accent);
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.id {
+  color: var(--cream);
+  font-size: 1.6rem;
+}
+
+.desc {
+  color: var(--paragraph);
+  text-overflow: ellipsis;
+  color: var(--paragraph);
+  letter-spacing: -0.8px;
+  font-size: 1.6rem;
+  font-weight: 500;
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  margin-top: 2rem;
+}
+
+.img {
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+@media screen and (max-width: 1268px) {
+  .top {
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 2rem;
+  }
+
+  .left {
+    display: none;
+  }
+
+  .leftii {
+    display: flex;
+  }
+
+  .right {
+    order: -1;
+  }
+
+  .heading {
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .bottom {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card:nth-last-child(1) {
+    grid-column: span 2;
+    border-right: none;
+  }
+}
+
+@media screen and (max-width: 568px) {
+    .bottom {
+      grid-template-columns: repeat(1, 1fr);
+    }
+    
+    .card:nth-last-child(1) {
+      grid-column: span 1;
+
+    }
+    .imgContainer {
+    height: 215px;
+  }
+}
