@@ -1119,8 +1119,8 @@ export const fleetData: ReadonlyArray<Vehicle> = [
   },
   {
     id: 6,
-    title: "56 Passenger Bus",
-    slug: "mini-party-bus-20",
+    title: "Motorcoach",
+    slug: "motorcoach",
     class: "Party/Limo Bus",
     heroLine: "Group celebrations with room to move.",
     shortDesc:
