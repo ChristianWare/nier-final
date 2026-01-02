@@ -27,7 +27,7 @@
   margin-top: 3rem;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-gap: 5rem;
+  grid-gap: 2rem;
 }
 
 .card {
@@ -36,6 +36,9 @@
   align-items: flex-start;
   justify-content: flex-start;
   gap: 1rem;
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 2rem;
 }
 
 .imgContainer {
@@ -52,7 +55,7 @@
 
 .idTitleBox {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-start;
   gap: 1rem;
   margin-bottom: 1.5rem;
@@ -125,7 +128,6 @@
 
   .bottom {
     grid-template-columns: repeat(2, 1fr);
-    grid-gap: 5rem;
   }
 }
 
@@ -137,7 +139,6 @@
 
 @media screen and (max-width: 568px) {
   .bottom {
-    grid-gap: 7rem;
     grid-template-columns: repeat(1, 1fr);
   }
 
@@ -153,5 +154,9 @@
 
   .break {
     display: none;
+  }
+
+  .card {
+    padding: 1.5rem;
   }
 }

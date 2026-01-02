@@ -27,3 +27,21 @@
 .btnContainer {
   margin-top: 1rem;
 }
+
+@media screen and (max-width: 1268px) {
+  .container {
+    background-size: 300px 300px;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .container {
+    background-size: 250px 250px;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    background-size: 75px 75px;
+  }
+}
