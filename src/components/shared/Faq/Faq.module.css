@@ -34,7 +34,7 @@
 
 .qaContainer {
   padding: 3rem 0rem;
-  border-top: 1px solid var(--stroke);
+  border-top: 2px solid var(--stroke);
   width: 100%;
   cursor: pointer;
   user-select: none;

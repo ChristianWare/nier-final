@@ -5,6 +5,7 @@ import Instagram from "../icons/Instagram/Instagram";
 import Yelp from "../icons/Yelp/Yelp";
 import LinkedIn from "../icons/LinkedIn/LinkedIn";
 import FooterTop from "./FooterTop/FooterTop";
+import Logo from "../Logo/Logo";
 
 interface Option {
   id: number;
@@ -74,10 +75,10 @@ export default function Footer() {
           <FooterTop />
           <div className={styles.top}>
             <div className={styles.logoDetailsSocials}>
-              {/* <Link href='/' className={styles.logoContainer}>
+              <Link href='/' className={styles.logoContainer}>
                 <Logo className={styles.logo} />
                 <span className={styles.logoText}>Nier Transportation</span>
-              </Link> */}
+              </Link>
               <p className={styles.copy}>
                 At Nier Transportation, we’re more than a car service; we’re
                 your trusted partner in high end transportation.
