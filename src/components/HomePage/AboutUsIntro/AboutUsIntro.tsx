@@ -1,5 +1,5 @@
-import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./AboutUsIntro.module.css";
+import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
 import Donut from "@/components/shared/icons/Donut/Donut";

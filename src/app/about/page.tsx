@@ -1,4 +1,5 @@
 import AboutPageIntro from "@/components/AboutPage/AboutPageIntro/AboutPageIntro";
+import MissionValues from "@/components/AboutPage/MissionValues/MissionValues";
 import Story from "@/components/AboutPage/Story/Story";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
@@ -12,6 +13,7 @@ export default function AboutPage() {
       <Nav background='white' />
       <AboutPageIntro />
       <Story />
+      <MissionValues />
       <Faq items={aboutQuestions} />
       <BlogSection />
       <AboutNumbers />

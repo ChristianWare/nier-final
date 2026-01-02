@@ -57,12 +57,6 @@ export default function Story() {
                   for private aviation.
                 </div>
               </div>
-              {/* <p className={styles.copy}>
-                With 24/7 customer support, transparent pricing, and a
-                relentless focus on exceeding expectations, Nier Transportation
-                sets the standard for high-end ground transportation in the
-                Valley.
-              </p> */}
               <div className={styles.bottom}>
                 {values.map((x) => (
                   <div key={x.id} className={styles.card}>

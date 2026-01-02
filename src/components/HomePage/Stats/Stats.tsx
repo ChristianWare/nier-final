@@ -26,7 +26,6 @@ export default function Stats({ flipped = false }: StatsProps) {
               </video>
               <div className={styles.imgOverlay} />
             </div>
-
             <div className={styles.statBox}>
               <div className={styles.statNumber}>250+</div>
               <h4 className={styles.subheading}>Systems deployed worldwide</h4>

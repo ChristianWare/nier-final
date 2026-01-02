@@ -1,0 +1,136 @@
+.container {
+  background-color: var(--cream);
+  padding: 10rem 0rem;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 5rem;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.mainCopy {
+  color: var(--paragraph);
+}
+
+.mapDataContainer {
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+  border-top: 2px solid var(--stroke);
+  padding: 2rem 0rem;
+  width: 100%;
+}
+
+.card:last-child {
+  padding-bottom: 0rem;
+}
+
+.desc {
+  color: var(--paragraph);
+}
+
+.icon {
+  color: var(--accent);
+  font-size: 3.5rem;
+}
+
+.right {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 4rem;
+  min-height: 100%;
+  grid-column: span 2;
+}
+
+.media {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.imgOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.statBox {
+  position: relative;
+  z-index: 2;
+  background-color: var(--accent);
+  border-radius: 12px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5rem;
+  width: min(400px, 100%);
+}
+
+.statNumber {
+  color: var(--black);
+  font-size: 6rem;
+  font-weight: 900;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+
+.subheading {
+  color: var(--black);
+}
+
+.copy {
+  color: var(--black);
+  line-height: 1.6;
+}
+
+@media screen and (max-width: 1268px) {
+  .top {
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 2rem;
+  }
+
+  .card:last-child {
+    padding-bottom: 2rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .bottom {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card:nth-last-child(1) {
+    grid-column: span 2;
+    border-right: none;
+  }
+}
+/* 
+@media screen and (max-width: 568px) {
+} */
