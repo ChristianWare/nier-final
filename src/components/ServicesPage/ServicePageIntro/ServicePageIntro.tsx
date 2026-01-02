@@ -17,11 +17,6 @@ export default function ServicePageIntro() {
                 Chauffeur services
                 <br className={styles.br} /> tailored to every journey.
               </h1>
-              <p className={styles.copy}>
-                Whether it&lsquo;s airport transfers, corporate travel, or
-                special events, we ensure a seamless and comfortable ride every
-                time.
-              </p>
             </div>
             <div className={styles.right}>
               <div className={styles.statBox}>
@@ -31,7 +26,6 @@ export default function ServicePageIntro() {
                   care about safety and a great customer experience, would
                   definitely recommend it.&rdquo;
                 </div>
-                {/* <div className={styles.statii}>Years of experience</div> */}
 
                 <div className={styles.statiii}>
                   <Image
@@ -55,19 +49,19 @@ export default function ServicePageIntro() {
               </div>
             </div>
           </div>
-          <div className={styles.bottom}>
-            <div className={styles.imgContainer}>
-              <Image
-                src={Img1}
-                alt='hero image'
-                className={styles.img}
-                priority
-                fill
-              />
-            </div>
-          </div>
         </div>
       </LayoutWrapper>
+      <div className={styles.bottom}>
+        <div className={styles.imgContainer}>
+          <Image
+            src={Img1}
+            alt='hero image'
+            className={styles.img}
+            priority
+            fill
+          />
+        </div>
+      </div>
     </section>
   );
 }

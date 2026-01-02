@@ -1,0 +1,29 @@
+.container {
+  background-color: var(--white);
+  padding: 10rem 0rem;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--stroke),
+    var(--stroke) 1px,
+    transparent 1px,
+    transparent
+  );
+  background-size: 500px 500px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.heading {
+  max-width: 850px;
+  text-align: center;
+}
+
+.btnContainer {
+  margin-top: 1rem;
+}

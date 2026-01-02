@@ -101,7 +101,7 @@
 
 .logoContainer {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-start;
   gap: 0.5rem;
 }
@@ -111,6 +111,8 @@
   font-size: 1.8rem;
   font-weight: 500;
   letter-spacing: -0.5px;
+  position: relative;
+  top: 6px;
 }
 
 .logo {
