@@ -13,9 +13,9 @@ import Distance from "../../public/images/distance.jpg";
 import Distance2 from "../../public/images/road.jpg";
 import Golf from "../../public/images/golf.jpg";
 import Golf2 from "../../public/images/golf2.jpg";
-import CherylC from "../../public/images/CherylC.jpg";
-import JimConnie from "../../public/images/Jim&Connie.jpg";
-import Lynn from "../../public/images/lynn.jpg";
+// import CherylC from "../../public/images/CherylC.jpg";
+// import JimConnie from "../../public/images/Jim&Connie.jpg";
+// import Lynn from "../../public/images/lynn.jpg";
 import Lady from "../../public/images/lady.jpg";
 import Corporate from "../../public/images/corporateii.jpg";
 import Corporate3 from "../../public/images/corporate.jpg";
@@ -37,6 +37,7 @@ import Escalade from "../../public/images/escalade.avif";
 import Sprinter from "../../public/images/sprinter.png";
 import MercedesSedan from "../../public/images/mercedesSedan.avif";
 import PartyBus from "../../public/images/partyBusii.png";
+import Bus from "../../public/images/bus.png";
 import { Vehicle } from "./types/fleet";
 
 export const reviews = [
@@ -1115,5 +1116,99 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     },
     desc: "Color-changing LED lights, Bluetooth sound, and wrap-around seating keep the celebration rolling from door to door.",
     src: PartyBus,
+  },
+  {
+    id: 6,
+    title: "56 Passenger Bus",
+    slug: "mini-party-bus-20",
+    class: "Party/Limo Bus",
+    heroLine: "Group celebrations with room to move.",
+    shortDesc:
+      "Open-plan seating, standing room, and lighting for a celebratory atmosphere—perfect for nights out and weddings.",
+    longDesc:
+      "Designed for celebrations and group fun with safety at the forefront. Great for bachelor/ette parties, concert nights, and wedding guest moves.",
+    seats: "20 seater",
+    luggage: "By request (best for people-moving)",
+    cargo: "Ample cabin storage",
+    cargoCuFt: "Config-dependent",
+    bestFor: ["Weddings", "Concerts", "Bachelor/ette", "Birthdays"],
+    specs: {
+      drivetrain: "RWD",
+      rideFeel: "Comfortable and social",
+      cabin: "Open plan with standing room",
+    },
+    amenities: [
+      "Bottled water",
+      "Phone chargers",
+      "Privacy tint",
+      "Ambient lighting",
+      "Bluetooth audio",
+    ],
+    safetyTech: [
+      "ABS & stability control",
+      "Forward collision warning",
+      "Parking sensors",
+      "Airbags where equipped",
+    ],
+    features: [
+      "Open-plan seating and lighting",
+      "Ideal for venue hops and celebration loops",
+      "Coordinated drop-offs and pickup windows",
+    ],
+    availabilityNotes:
+      "Alcohol policy varies by event—confirm at booking. No glass containers permitted.",
+    images: [
+      { src: PartyBus, alt: "Mini party bus exterior" },
+      { src: "/images/fleet/partybus-2.jpg", alt: "Mini party bus interior" },
+    ],
+    rateRules: {
+      minimumHours: 4,
+      hourlyFromUSD: 195,
+      meetAndGreetUSD: 0,
+      afterHoursSurchargePct: 25,
+      waitTimeGraceMin: 10,
+      extraStopUSD: 45,
+    },
+    policy: {
+      summary: "Free cancellation up to 72 hours before pickup.",
+      details: [
+        "Within 72 hours, cancellation fees may apply up to the full fare.",
+        "Security deposit may be required.",
+        "Spill/cleaning fees may apply if needed.",
+      ],
+    },
+    faqs: [
+      {
+        q: "Can we bring drinks onboard?",
+        a: "Policies vary by event—please confirm during booking. No glass containers are permitted.",
+      },
+      {
+        q: "Do you allow venue loops?",
+        a: "Yes—share your schedule and we’ll build a safe loop with planned stops.",
+      },
+      {
+        q: "Is there a restroom onboard?",
+        a: "No—mini party buses do not include restrooms. We can schedule brief stops as needed.",
+      },
+      {
+        q: "Can we play our own music and lights?",
+        a: "Yes—Bluetooth audio is available and ambient lighting is included. Share any special requests in advance.",
+      },
+      {
+        q: "Are decorations allowed?",
+        a: "Light, removable décor is fine with prior approval. No adhesives that leave residue, glitter, or confetti.",
+      },
+      {
+        q: "Is gratuity included?",
+        a: "Gratuity is optional unless specified for certain events. You can add it during checkout or after the ride.",
+      },
+    ],
+    seo: {
+      metaTitle: "Mini Party Bus (20) | Nier Transportation Fleet",
+      metaDescription:
+        "Celebrate safely with a mini party bus—perfect for weddings, concerts, and group nights out.",
+    },
+    desc: "Color-changing LED lights, Bluetooth sound, and wrap-around seating keep the celebration rolling from door to door.",
+    src: Bus,
   },
 ] as const;

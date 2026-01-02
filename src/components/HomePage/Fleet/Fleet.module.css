@@ -20,6 +20,7 @@
 .copy {
   text-align: center;
   width: 50%;
+  color: var(--paragraph);
 }
 
 .content {
