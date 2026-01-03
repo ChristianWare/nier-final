@@ -27,7 +27,7 @@
   */
   -webkit-tap-highlight-color: transparent;
   font-family: var(--inter);
-  /* overscroll-behavior: none; */
+  overscroll-behavior: none;
 }
 
 html {

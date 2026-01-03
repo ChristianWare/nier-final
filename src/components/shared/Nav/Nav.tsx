@@ -97,7 +97,7 @@ export default function Nav({
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
     { text: "Blog", href: "/blog" },
-    { text: "My Account", href: "/account" },
+    // { text: "My Account", href: "/account" },
     { text: "Contact", href: "/contact" },
   ];
 

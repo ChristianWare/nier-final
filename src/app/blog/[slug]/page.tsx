@@ -218,7 +218,7 @@ export default async function BlogPostPage({
 
   return (
     <main className={styles.container}>
-      <Nav />
+      <Nav background='cream' />
       <LayoutWrapper>
         <div className={styles.top}>
           <div className={styles.left}>
@@ -228,16 +228,18 @@ export default async function BlogPostPage({
                   {post.tags.map((t) => (
                     <li key={t._id}>
                       {t.slug?.current ? (
-                        <SectionHeading text={t.name} />
+                        <SectionHeading text={t.name} dot />
                       ) : (
-                        <SectionHeading text='Fonts & Footers' />
+                        <SectionHeading text='Nier Transportation' dot />
                       )}
                     </li>
                   ))}
                 </ul>
               ) : null}
-              <h1 className={styles.heading}>{post.title}</h1>
-              <div className={styles.date}>Chris Ware • {prettyDate}</div>
+              <h1 className={`${styles.heading} h2`}>{post.title}</h1>
+              <div className={styles.date}>
+                Barry LaNier - Owner, CEO • {prettyDate}
+              </div>
             </div>
 
             <div className={styles.leftBottom}>
@@ -270,21 +272,23 @@ export default async function BlogPostPage({
           <div className={styles.right}>
             <div className={styles.rightContent}>
               <div className={styles.searchContainerParent}>
-                <span className={styles.searchHeading}>Search</span>
+                <span className={`${styles.searchHeading} h3`}>Search</span>
                 <div className={styles.searchContainer}>
                   <SearchIcon className={styles.icon} />
                   <small className={styles.small}>Search</small>
                 </div>
               </div>
               <div className={styles.categoriesContainer}>
-                <span className={styles.searchHeading}>Categories</span>
+                <span className={`${styles.searchHeading} h3`}>Categories</span>
                 <BlogPostSidebarCategories
                   tags={tags}
                   initialSlug={initialCategorySlug}
                 />
               </div>
               <div className={styles.categoriesContainer}>
-                <span className={styles.searchHeading}>Recent Posts</span>
+                <span className={`${styles.searchHeading} h3`}>
+                  Recent Posts
+                </span>
                 <MoreInsights currentSlug={post.slug.current} />
               </div>
             </div>
