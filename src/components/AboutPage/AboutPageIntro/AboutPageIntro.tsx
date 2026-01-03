@@ -11,7 +11,7 @@ export default function AboutPageIntro() {
           <div className={styles.leftContent}>
             <div className={styles.top}>
               <SectionHeading text='About us' dot />
-              <h1 className={styles.heading}>
+              <h1 className={`${styles.heading} h2`}>
                 We&apos;ve been at the forefront of the travel industry for over
                 a decade.{" "}
               </h1>
