@@ -29,13 +29,14 @@
   width: 450px;
   border: 2px solid var(--stroke);
   padding: 1rem;
-  border-radius: 10px;
+  padding-left: 2rem;
+  border-radius: 50px;
   margin-top: 2rem;
 }
 
 .text {
   display: block;
-  color: var(--darkGray);
+  color: var(--stroke);
 }
 
 @media screen and (max-width: 568px) {

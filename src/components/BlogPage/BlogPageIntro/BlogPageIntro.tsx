@@ -21,7 +21,7 @@ export default function BlogPageIntro() {
           <div className={styles.searchBar}>
             <span className={styles.text}>Search the blog</span>
             <div className={styles.btnContainer}>
-              <Button href='/' text='Search' btnType='underlinedBlack' arrow />
+              <Button href='/' text='Search' btnType='black' arrow />
             </div>
           </div>
         </div>
