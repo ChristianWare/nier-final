@@ -92,11 +92,11 @@
   color: var(--cream);
 }
 
-@media screen and (max-width: 1268px) {
+/* @media screen and (max-width: 1268px) {
   .left {
     padding: 0rem;
   }
-}
+} */
 
 @media screen and (max-width: 1068px) {
   .content {
@@ -109,9 +109,9 @@
 }
 
 @media screen and (max-width: 568px) {
-  .left {
+  /* .left {
     padding: 7rem 0rem;
-  }
+  } */
 
   .list {
     grid-column-gap: 5rem;
