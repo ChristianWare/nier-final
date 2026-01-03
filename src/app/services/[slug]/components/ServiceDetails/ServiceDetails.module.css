@@ -7,9 +7,8 @@
   display: grid;
   grid-template-columns: 4fr 2fr;
   gap: 10rem;
-  /* width: 80%; */
-  margin-left: auto;
-  margin-right: auto;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 2rem;
 }
 
 .serviceoverview {
@@ -24,7 +23,6 @@
 
 .desc {
   color: var(--paragraph);
-
 }
 
 .details {

@@ -229,6 +229,7 @@ export default function ServiceDetails({ service }: { service: Service }) {
           </div>
         </div>
       </LayoutWrapper>
+      <ServicesPreview />
       <Faq
         items={(service.faqs ?? []).map((f, i) => ({
           id: i,
@@ -238,7 +239,6 @@ export default function ServiceDetails({ service }: { service: Service }) {
       />
       <HowItWorks />
       <AboutTestimonials />
-      <ServicesPreview />
 
       <AboutNumbers />
       <script
