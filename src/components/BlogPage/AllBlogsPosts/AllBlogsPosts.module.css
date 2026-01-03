@@ -1,0 +1,87 @@
+.container {
+  /* padding: 10rem 0rem; */
+  background-color: var(--white);
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 2rem;
+  list-style: none;
+  margin-bottom: 2rem;
+}
+
+.tagChip {
+  background-color: var(--stroke);
+  color: var(--black);
+  font-weight: 600;
+  padding: 1rem 1.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.tagChipActive,
+.tagChip:hover {
+  background-color: var(--accent);
+  color: var(--yellow);
+}
+
+.top {
+  border-top: 1px solid var(--gray);
+  padding-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-column-gap: 2rem;
+  grid-row-gap: 10rem;
+  border-top: 1px solid var(--darkGrayii);
+  padding-top: 2rem;
+}
+
+.filter {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 0.5rem 0;
+}
+
+.filterInner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filterChip {
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--black, #000);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.filterChipActive {
+  background: var(--black, #000);
+  color: var(--white, #fff);
+}
+
+@media screen and (max-width: 1068px) {
+  .content {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 668px) {
+  .content {
+    grid-template-columns: repeat(1, 1fr);
+    grid-row-gap: 7rem;
+  }
+}

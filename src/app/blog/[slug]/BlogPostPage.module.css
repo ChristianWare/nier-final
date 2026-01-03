@@ -1,0 +1,284 @@
+.top {
+  display: grid;
+  grid-template-columns: 4fr 2fr;
+  grid-gap: 5rem;
+  padding: 10rem 0rem;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4rem;
+}
+
+.leftTop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.heading {
+  font-size: 6rem;
+  line-height: 1.1;
+}
+
+.date {
+  font-size: 1.4rem;
+  color: var(--darkGray);
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  height: 500px;
+}
+
+.img {
+  object-fit: cover;
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+}
+
+.tags {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  list-style: none;
+}
+
+.article {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3rem;
+}
+
+.introText {
+  font-size: 2rem;
+  line-height: 1.5;
+  background-color: var(--lightGray);
+  padding: 2rem;
+  border-radius: 15px;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  line-height: 1.5;
+}
+
+.body p {
+  line-height: 1.5;
+  /* background-color: red; */
+}
+
+.ptH2,
+.searchHeading {
+  font-size: 2.5rem;
+  letter-spacing: normal;
+  margin-top: 3rem;
+  line-height: 1.5;
+}
+
+.ptH3 {
+  line-height: 1.5;
+  font-size: 1.3rem;
+  margin-top: 1.5rem;
+}
+
+.ptP {
+  line-height: 1.5;
+  font-size: 1.6rem;
+}
+.ptUl,
+.ptOl {
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.5rem;
+  line-height: 1.5;
+}
+
+.ptLink {
+  text-decoration: underline;
+  line-height: 1.5;
+}
+
+.ptStrong {
+  font-family: var(--SuisseIntlMedium);
+  font-weight: normal;
+  line-height: 1.5;
+}
+
+.ptEm {
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.ptCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: var(--muted);
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+  line-height: 1.5;
+}
+
+.ptBlockquote {
+  border-left: 3px solid var(--gray);
+  padding-left: 1rem;
+  color: var(--grayii);
+  margin: 3rem 0rem;
+  line-height: 1.5;
+}
+
+.ptImage {
+  display: grid;
+  gap: 0.375rem;
+  margin: 1.5rem 0;
+}
+
+.ptImageEl {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  line-height: 1.5;
+}
+
+.ptCaption {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.right {
+  border-left: 1px solid var(--lighterGray);
+  padding-left: 3rem;
+  position: -webkit-sticky;
+  position: sticky;
+  top: 90px;
+  width: fit-content;
+  width: 100%;
+}
+
+.rightContent {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 90px;
+  width: fit-content;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3rem;
+}
+
+.searchContainerParent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+  width: 100%;
+}
+
+.searchHeading {
+  margin-top: 0rem;
+  font-size: 2rem;
+}
+
+.searchContainer {
+  background-color: var(--lightGray);
+  border-radius: 7px;
+  border: 1px solid var(--lighterGray);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+}
+
+.small {
+  color: var(--darkGray);
+}
+
+.icon {
+  color: var(--darkGray);
+}
+
+@media screen and (max-width: 1068px) {
+  .top {
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 15rem;
+  }
+
+  .heading {
+    /* font-size: 5.4rem; */
+    letter-spacing: -0.01em;
+  }
+
+  .right {
+    padding-left: 0rem;
+    border-left: none;
+    border-top: 1px solid var(--lighterGray);
+    padding-top: 2rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .imgContainer {
+    height: 400px;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .heading {
+    font-size: 8vw;
+    letter-spacing: -0.05vw;
+  }
+
+  .imgContainer {
+    height: 350px;
+  }
+}
+
+/* @media screen and (max-width: 1068px) {
+  .container {
+    padding-top: 10rem;
+  }
+
+  .top {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .imgContainer {
+    height: 60vh;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .imgContainer {
+    height: 40vh;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .heading {
+    font-size: 5.4rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .imgContainer {
+    height: 30vh;
+  }
+} */

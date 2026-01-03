@@ -1,3 +1,11 @@
+.container {
+  /* background-color: var(--lightGray); */
+  /* padding: 1rem; */
+  /* border-radius: 10px; */
+  height: 100%;
+  /* border: 1px solid var(--stroke); */
+}
+
 .imgContainer {
   position: relative;
   width: 100%;
