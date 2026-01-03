@@ -30,7 +30,7 @@ export default function AboutNumbers() {
         playsInline
         className={styles.video}
       >
-        <source src='./videos/road.mp4' type='video/mp4' />
+        <source src='./videos/phx.mp4' type='video/mp4' />
       </video>
 
       <div className={styles.imgOverlay} />
