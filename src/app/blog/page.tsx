@@ -3,6 +3,7 @@ import AllBlogsPosts from "@/components/BlogPage/AllBlogsPosts/AllBlogsPosts";
 import BlogPageIntro from "@/components/BlogPage/BlogPageIntro/BlogPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
 import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
+import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
 
 export default function BlogPage() {
   return (
@@ -14,7 +15,8 @@ export default function BlogPage() {
       <Suspense
         fallback={
           <section style={{ padding: "2rem 0" }}>
-            <p>Loading posts…</p>
+            {/* <p>Loading posts…</p> */}
+            <LoadingPulse />
           </section>
         }
       >
