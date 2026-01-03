@@ -4,7 +4,7 @@
 import styles from "./ServiceDetails.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Link from "next/link";
-import Image from "next/image";
+// import Image from "next/image";
 import Button from "@/components/shared/Button/Button";
 import Faq from "@/components/shared/Faq/Faq";
 // import AddOns from "../AddOns/AddOns";
@@ -145,7 +145,7 @@ export default function ServiceDetails({ service }: { service: Service }) {
                 title={service.coverageTitle || "Coverage & Service Area"}
                 items={service.coverageAndAirports}
               />
-              {service.src2 && (
+              {/* {service.src2 && (
                 <div className={styles.imgContainer}>
                   <Image
                     src={service.src2}
@@ -154,7 +154,7 @@ export default function ServiceDetails({ service }: { service: Service }) {
                     className={styles.img}
                   />
                 </div>
-              )}
+              )} */}
               <SectionList
                 title='What’s included'
                 items={service.whatsIncluded}
@@ -236,12 +236,6 @@ export default function ServiceDetails({ service }: { service: Service }) {
           answer: f.a,
         }))}
       />
-      {/* <AddOns
-        heading='Add-ons'
-        ctaHref={`/book?service=${encodeURIComponent(service.slug)}`}
-        ctaText='Book your ride'
-        items={toAddOnItems(service.addOns)}
-      /> */}
       <HowItWorks />
       <AboutTestimonials />
       <ServicesPreview />
