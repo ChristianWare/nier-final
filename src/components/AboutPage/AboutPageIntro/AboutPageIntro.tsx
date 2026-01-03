@@ -12,8 +12,8 @@ export default function AboutPageIntro() {
             <div className={styles.top}>
               <SectionHeading text='About us' dot />
               <h1 className={styles.heading}>
-                We&apos;ve been at the forefront of the travel industry for over a
-                decade.{" "}
+                We&apos;ve been at the forefront of the travel industry for over
+                a decade.{" "}
               </h1>
               <p className={styles.copy}>
                 At Nier Transportation, we are passionate about connecting
@@ -60,12 +60,12 @@ export default function AboutPageIntro() {
           <div className={styles.marqueeWrap}>
             <Marquee
               words={[
-                "Phoenix",
-                "Scottsdale",
-                "Mesa",
-                "Chandler",
-                "Goodyear",
-                "Peoria",
+                "Nier",
+                "Transportation",
+                "Nier",
+                "Transportation",
+                "Nier",
+                "Transportation",
               ]}
               speedSeconds={90}
               background='none'

@@ -4,12 +4,16 @@
   --cream: #eae9e6;
   --paragraph: #676767;
   --accent: #d0311e;
-
   --accent600: #b21a15;
   --lightGray: #e0e0e0;
   --stroke: #d8d6d2;
   --strokeii: #a7a6a2;
   --blue: #2563eb;
+  --stickyTop: 20vh;
+  --cardGap: 1rem;
+  --cardMinH: clamp(300px, 20vh, 480px);
+  --cardStep: 28vh;
+  --fadeDur: 340ms;
 }
 
 * {
