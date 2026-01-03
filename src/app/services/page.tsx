@@ -2,6 +2,7 @@ import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPrevi
 import ServicePageIntro from "@/components/ServicesPage/ServicePageIntro/ServicePageIntro";
 import ServicesMission from "@/components/ServicesPage/ServicesMission/ServicesMission";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
+import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import Nav from "@/components/shared/Nav/Nav";
 
 export default function ServicesPage() {
@@ -11,6 +12,7 @@ export default function ServicesPage() {
       <ServicePageIntro />
       <ServicesMission />
       <ServicesPreview />
+      <HowItWorks />
       <AboutNumbers />
     </main>
   );

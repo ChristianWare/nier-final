@@ -1,4 +1,3 @@
-import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./ServiceAreas.module.css";
 import Image from "next/image";
 import Img1 from "../../../../public/images/phoenix.jpg";
@@ -10,9 +9,9 @@ export default function ServiceAreas() {
     <div className={styles.container}>
       <div className={styles.content}>
         <div className={styles.left}>
-          <LayoutWrapper>
+          {/* <LayoutWrapper> */}
             <div className={styles.leftContent}>
-              <h2 className={styles.heading}>
+              <h2 className={`${styles.heading} h3`}>
                 No matter where you are in the Phoenix area, Nier Transportation
                 is ready to provide top-notch service to enhance your travel
                 experience.
@@ -63,7 +62,7 @@ export default function ServiceAreas() {
                 />
               </div>
             </div>
-          </LayoutWrapper>
+          {/* </LayoutWrapper> */}
         </div>
         <div className={styles.right}>
           <div className={styles.imgContainer}>
