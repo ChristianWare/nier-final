@@ -61,6 +61,16 @@
   width: 100%;
 }
 
+.review {
+      -webkit-line-clamp: 4;
+    line-clamp: 2;
+    text-overflow: ellipsis;
+    -webkit-box-orient: vertical;
+    width: 98%;
+    display: -webkit-box;
+    overflow: hidden;
+}
+
 .rightBottom {
   width: 100%;
 }

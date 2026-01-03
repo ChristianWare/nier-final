@@ -50,7 +50,7 @@ export default function Testimonials() {
               </div>
 
               <div className={styles.rightMiddle}>
-                <h3 className='h3'>
+                <h3 className={`${styles.review} h3`}>
                   &ldquo;{activeReview?.review ?? "Review"}&rdquo;
                 </h3>
               </div>

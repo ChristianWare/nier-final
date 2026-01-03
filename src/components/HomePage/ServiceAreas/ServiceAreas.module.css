@@ -36,6 +36,7 @@
 }
 
 .list li {
+  color: var(--cream);
   font-size: 1.6rem;
   text-transform: uppercase;
   font-weight: 500;
@@ -45,6 +46,10 @@
   justify-content: flex-start;
   gap: 1rem;
   font-weight: 700;
+}
+
+.dot {
+  color: var(--cream);
 }
 
 .btnContainer {
