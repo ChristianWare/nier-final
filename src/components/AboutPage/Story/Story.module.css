@@ -84,9 +84,6 @@
   color: var(--paragraph);
   text-overflow: ellipsis;
   color: var(--paragraph);
-  letter-spacing: -0.8px;
-  font-size: 1.6rem;
-  font-weight: 500;
 }
 
 .imgContainer {

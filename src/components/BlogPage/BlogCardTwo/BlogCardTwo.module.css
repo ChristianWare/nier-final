@@ -43,7 +43,4 @@
   overflow: hidden;
   text-overflow: ellipsis;
   color: var(--paragraph);
-  font-size: 1.6rem;
-  line-height: 1.5em;
-  letter-spacing: -.8px;
 }

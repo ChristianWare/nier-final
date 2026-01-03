@@ -82,18 +82,13 @@
   line-clamp: 2;
   text-overflow: ellipsis;
   color: var(--paragraph);
-  letter-spacing: -0.8px;
   -webkit-box-orient: vertical;
-  font-size: 1.6rem;
-  font-weight: 500;
   display: -webkit-box;
   overflow: hidden;
 }
 
 .btnContainer {
   margin-top: 1rem;
-  /* display: grid; */
-  /* width: 100%; */
 }
 
 .topBtnContainer {
