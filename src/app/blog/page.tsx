@@ -8,18 +8,15 @@ import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
 export default function BlogPage() {
   return (
     <main>
+      <Suspense
+        fallback={
+            <LoadingPulse />
+        }
+      >
       <Nav background='cream' />
 
       <BlogPageIntro />
       {/* Anything that renders a client component using useSearchParams must be inside Suspense */}
-      <Suspense
-        fallback={
-          <section style={{ padding: "2rem 0" }}>
-            {/* <p>Loading posts…</p> */}
-            <LoadingPulse />
-          </section>
-        }
-      >
         <AllBlogsPosts />
         <FinalCTA />
       </Suspense>
