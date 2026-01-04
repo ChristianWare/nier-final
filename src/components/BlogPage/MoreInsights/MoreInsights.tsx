@@ -1,5 +1,5 @@
 import styles from "./MoreInsights.module.css";
-import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
+// import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import BlogCardTwo from "../BlogCardTwo/BlogCardTwo";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";

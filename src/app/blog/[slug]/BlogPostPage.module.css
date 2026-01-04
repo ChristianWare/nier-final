@@ -1,12 +1,15 @@
 .container {
   background-color: var(--cream);
+  padding: 10rem 0rem;
 }
 
 .top {
-  display: grid;
+  /* display: grid;
   grid-template-columns: 4fr 2fr;
-  grid-gap: 5rem;
-  padding: 10rem 0rem;
+  grid-gap: 5rem; */
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .left {
@@ -71,7 +74,7 @@
 .body {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
+  gap: 3rem;
   line-height: 1.5;
 }
 
@@ -81,24 +84,26 @@
 }
 
 .ptH2 {
-  font-size: 2.5rem;
-  letter-spacing: normal;
-  margin-top: 3rem;
-  line-height: 1.5;
+  font-size: 3.2rem;
+  font-weight: 500;
+  line-height: 1.2em;
+  letter-spacing: -1.6px;
 }
 
 .ptH3 {
-  line-height: 1.5;
-  font-size: 1.3rem;
+  
+  /* font-size: 1.3rem; */
   margin-top: 1.5rem;
 }
 
 .ptP {
-  line-height: 1.5;
-  font-size: 1.6rem;
+  color: var(--paragraph);
+  /* line-height: 1.5; */
+  /* font-size: 1.6rem; */
 }
 .ptUl,
 .ptOl {
+  color: var(--paragraph);
   padding-left: 1.2rem;
   display: grid;
   gap: 0.5rem;
@@ -111,8 +116,7 @@
 }
 
 .ptStrong {
-  font-family: var(--SuisseIntlMedium);
-  font-weight: normal;
+  color: var(--paragraph);
   line-height: 1.5;
 }
 
@@ -213,6 +217,10 @@
   color: var(--darkGray);
 }
 
+.categoriesContainer {
+  margin-top: 10rem;
+}
+
 @media screen and (max-width: 1068px) {
   .top {
     grid-template-columns: repeat(1, 1fr);
@@ -234,6 +242,11 @@
 }
 
 @media screen and (max-width: 568px) {
+  .ptH2 {
+    font-size: 2.8rem;
+    letter-spacing: -1.5px;
+  }
+
   .imgContainer {
     height: 350px;
   }

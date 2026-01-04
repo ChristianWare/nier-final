@@ -41,7 +41,7 @@ export default function FleetSlugPageIntro({ vehicle }: { vehicle: Vehicle }) {
             </article>
 
             <div className={styles.btnContainer}>
-              <Button href='/' text='Book your ride' btnType='yellow' arrow />
+              <Button href='/' text='Book your ride' btnType='black' arrow />
             </div>
           </div>
         </div>

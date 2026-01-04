@@ -6,6 +6,7 @@ import FleetDetails from "./components/FleetDetails/FleetDetails";
 import FleetSlugPageIntro from "./components/FleetSlugPageIntro/FleetSlugPageIntro";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
+import Nav from "@/components/shared/Nav/Nav";
 
 type Params = { slug: string };
 
@@ -30,6 +31,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
 
   return (
     <main>
+      <Nav background='accent' />
       <FleetSlugPageIntro vehicle={vehicle} />
       <FleetDetails vehicle={vehicle} />
       <BlogSection />

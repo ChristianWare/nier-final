@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./BlogPostPage.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
@@ -10,8 +11,8 @@ import { notFound } from "next/navigation";
 import MoreInsights from "@/components/BlogPage/MoreInsights/MoreInsights";
 
 import type { Metadata } from "next";
-import SearchIcon from "@/components/shared/icons/SearchIcon/SearchIcon";
-import BlogPostSidebarCategories from "@/components/BlogPage/BlogPostSidebarCategories/BlogPostSidebarCategories";
+// import SearchIcon from "@/components/shared/icons/SearchIcon/SearchIcon";
+// import BlogPostSidebarCategories from "@/components/BlogPage/BlogPostSidebarCategories/BlogPostSidebarCategories";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 
 type Tag = { _id: string; name: string; slug?: { current?: string } };
@@ -213,8 +214,8 @@ export default async function BlogPostPage({
     ? urlFor(post.coverImage).width(2000).height(1200).fit("crop").url()
     : undefined;
 
-  const initialCategorySlug =
-    post.tags?.find((t) => t.slug?.current)?.slug?.current || "all";
+  // const initialCategorySlug =
+  //   post.tags?.find((t) => t.slug?.current)?.slug?.current || "all";
 
   return (
     <main className={styles.container}>
@@ -269,7 +270,7 @@ export default async function BlogPostPage({
             </div>
           </div>
 
-          <div className={styles.right}>
+          {/* <div className={styles.right}>
             <div className={styles.rightContent}>
               <div className={styles.searchContainerParent}>
                 <span className={`${styles.searchHeading} h3`}>Search</span>
@@ -285,15 +286,15 @@ export default async function BlogPostPage({
                   initialSlug={initialCategorySlug}
                 />
               </div>
-              <div className={styles.categoriesContainer}>
-                <span className={`${styles.searchHeading} h3`}>
-                  Recent Posts
-                </span>
-                <MoreInsights currentSlug={post.slug.current} />
-              </div>
             </div>
-          </div>
+          </div> */}
         </div>
+                <div className={styles.categoriesContainer}>
+                  <span className={`${styles.searchHeading} h3`}>
+                    Recent Posts
+                  </span>
+                  <MoreInsights currentSlug={post.slug.current} />
+                </div>
       </LayoutWrapper>
     </main>
   );
