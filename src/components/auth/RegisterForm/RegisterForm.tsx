@@ -5,7 +5,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormField from "../FormField/FormField";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
-import GoogleButton from "../GoogleButton/GoogleButton";
+// import GoogleButton from "../GoogleButton/GoogleButton";
 import Link from "next/link";
 import { RegisterSchema, RegisterSchemaType } from "@/schemas/RegisterSchema";
 import { signUp } from "../../../../actions/auth/register";
@@ -36,7 +36,7 @@ export default function RegisterForm() {
 
   return (
     <div className={styles.container}>
-      <GoogleButton title='up' />
+      {/* <GoogleButton title='up' /> */}
       <p className={styles.or}>or</p>
 
       {/* Turn off browser autofill at the form level */}
@@ -125,7 +125,7 @@ export default function RegisterForm() {
           <FalseButton
             text={isPending ? "Submitting..." : "Register"}
             type='submit'
-            btnType='accent'
+            btnType='black'
             disabled={isPending}
           />
         </div>

@@ -1,0 +1,84 @@
+.container {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  font-family: var(--DotSansRegular);
+  font-size: 1.4rem;
+  border-radius: 50px;
+  width: 100%;
+  transition: all 0.2s ease-in-out;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.lime {
+  background-color: var(--lime);
+}
+
+.lime:hover {
+  background-color: var(--black);
+  color: var(--white);
+}
+
+.grayOutline {
+  background-color: var(--white);
+  border: 1px solid var(--gray);
+}
+
+.grayOutlineii {
+  background-color: transparent;
+  border: 1px solid var(--tan);
+  color: var(--tan);
+}
+
+.imgContainer {
+  position: relative;
+  width: 35px;
+  height: 35px;
+}
+
+.img {
+  border: 1px solid var(--black);
+  padding: 3px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.noBackgroundBlueText {
+  border: 1px solid var(--black);
+  padding: 0.4rem 0.5rem;
+  padding-right: 1rem;
+}
+
+.black {
+  background-color: var(--black);
+  color: var(--white);
+  border: 1px solid var(--black);
+}
+
+.black:hover {
+  background-color: transparent;
+  color: var(--black);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .container:hover .arrow {
+    transform: rotate(90deg) translateY(-5px);
+  }
+}
+
+@media screen and (max-width: 868px) {
+  .noBackgroundBlueText {
+    border: 1px solid var(--lightBlue);
+  }
+}

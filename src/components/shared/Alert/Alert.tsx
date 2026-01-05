@@ -1,6 +1,6 @@
 import styles from "./Alert.module.css";
-import Close from "@/components/icons/Close/Close";
-import Check from "@/components/icons/Check/Check";
+import Close from "../icons/Close/Close";
+import Check from "../icons/Check/Check";
 
 export default function Alert({
   success,

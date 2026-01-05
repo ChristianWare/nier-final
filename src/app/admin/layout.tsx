@@ -2,6 +2,8 @@ import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
 import styles from "./AdminLayout.module.css";
 import AdminSideNav from "@/components/admin/AdminSideNav/AdminSideNav";
+import Nav from "@/components/shared/Nav/Nav";
+import LayoutWrapper from "@/components/shared/LayoutWrapper";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +21,9 @@ export default async function AdminLayout({
 
   return (
     <main>
+      <Nav background='white' />
+      <LayoutWrapper>
+
       <section className={styles.container}>
         <div className={styles.content}>
           <div className={styles.left}>
@@ -29,6 +34,7 @@ export default async function AdminLayout({
           <div className={styles.right}>{children}</div>
         </div>
       </section>
+      </LayoutWrapper>
     </main>
   );
 }

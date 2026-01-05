@@ -51,6 +51,8 @@ const data: Section[] = [
       { id: 2.2, option: "Services", href: "/services" },
       { id: 2.3, option: "Blog", href: "/blog" },
       { id: 2.4, option: "Contact", href: "/contact" },
+      { id: 2.5, option: "Login", href: "/login" },
+      { id: 2.6, option: "Register", href: "/register" },
     ],
   },
   {

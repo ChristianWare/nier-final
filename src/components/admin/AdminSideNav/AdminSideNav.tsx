@@ -2,16 +2,16 @@
 
 import styles from "./AdminSideNav.module.css";
 import Link from "next/link";
-import Calendar from "@/components/icons/Calendar/Calendar";
-import House from "@/components/icons/House/House";
-import Employee from "@/components/icons/Employee/Employee";
-import Cog from "@/components/icons/Cog/Cog";
-import Bell from "@/components/icons/Bell/Bell";
-import Users from "@/components/icons/Users/Users";
-import Wheel from "@/components/icons/Wheel/Wheel";
-import Report from "@/components/icons/Report/Report";
-import Car from "@/components/icons/Car/Car";
-import Listing from "@/components/icons/Listing/Listing";
+import Calendar from "@/components/shared/icons/Calendar/Calendar";
+import House from "@/components/shared/icons/House/House";
+// import Employee from "@/components/icons/Employee/Employee";
+// import Cog from "@/components/icons/Cog/Cog";
+import Bell from "@/components/shared/icons/Bell/Bell";
+import Users from "@/components/shared/icons/Users/Users";
+import Wheel from "@/components/shared/icons/Wheel/Wheel";
+// import Report from "@/components/shared/icons/Report/Report";
+import Car from "@/components/shared/icons/Car/Car";
+import Listing from "@/components/shared/icons/Listing/Listing";
 import UserButton from "@/components/shared/UserButton/UserButton";
 import Button from "@/components/shared/Button/Button";
 import { useState } from "react";
@@ -92,7 +92,7 @@ export default function AdminSideNav() {
 
         <div className={styles.btnContainer}>
           <UserButton />
-          <Button btnType='black' text='Go Home' href='/' />
+          <Button btnType='black' text='Go Home' href='/' arrow />
         </div>
       </nav>
     </aside>

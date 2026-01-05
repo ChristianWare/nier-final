@@ -8,8 +8,8 @@ import {
   UseFormRegister,
   FieldValues,
 } from "react-hook-form";
-import EyeOff from "@/components/icons/EyeOff/EyeOff";
-import EyeOn from "@/components/icons/EyeOn/EyeOn";
+import EyeOff from "@/components/shared/icons/EyeOff/EyeOff";
+import EyeOn from "@/components/shared/icons/EyeOn/EyeOn";
 
 interface FormFieldProps<T extends FieldValues> {
   id: string;

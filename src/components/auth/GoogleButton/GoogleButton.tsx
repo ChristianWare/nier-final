@@ -1,5 +1,5 @@
 import styles from "./GoogleButton.module.css";
-import GoogleIcon from "@/components/icons/GoogleIcon/GoogleIcon";
+import GoogleIcon from "@/components/shared/icons/GoogleIcon/GoogleIcon";
 // import { signIn } from "next-auth/react";
 // import { LOGIN_REDIRECT } from "../../../../routes";
 import { useActionState } from "react";

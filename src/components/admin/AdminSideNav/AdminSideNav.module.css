@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   border-radius: 10px;
-  background-color: var(--gray);
+  background-color: var(--cream);
 }
 
 .nav {
@@ -55,7 +55,7 @@
   font-weight: 600;
   color: var(--black);
   text-decoration: none;
-  background-color: var(--tan);
+  background-color: var(--stroke);
   border-radius: 5px;
   width: 100%;
   padding: 1rem 2rem;
@@ -63,12 +63,10 @@
   transition: all 0.2s ease-in;
 }
 
+.navLinkActive,
 .navLink:hover {
-  background-color: var(--yellow);
-}
-
-.navLinkActive {
-  background-color: var(--yellow);
+  background-color: var(--accent);
+  color: var(--white);
 }
 
 .btnContainer,

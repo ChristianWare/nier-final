@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema, LoginSchemaType } from "@/schemas/LoginSchema";
 import FormField from "../FormField/FormField";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
-import GoogleButton from "../GoogleButton/GoogleButton";
+// import GoogleButton from "../GoogleButton/GoogleButton";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { login } from "../../../../actions/auth/login";
@@ -120,7 +120,7 @@ export default function LoginForm() {
           />
         </div>
         <p className={styles.or}>or</p>
-        <GoogleButton title='in' />
+        {/* <GoogleButton title='in' /> */}
       </form>
       <footer className={styles.cardFooter}>
         <p className={styles.footerText}>
