@@ -1,8 +1,8 @@
+import AboutPageIntro from "@/components/AboutPage/AboutPageIntro/AboutPageIntro";
 import AboutTestimonials from "@/components/AboutPage/AboutTestimonials/AboutTestimonials";
 import Areas from "@/components/AboutPage/Areas/Areas";
 import MissionValues from "@/components/AboutPage/MissionValues/MissionValues";
 import Story from "@/components/AboutPage/Story/Story";
-import Hero from "@/components/HomePage/Hero/Hero";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import Faq from "@/components/shared/Faq/Faq";
@@ -12,8 +12,8 @@ import { aboutQuestions } from "@/lib/data";
 export default function AboutPage() {
   return (
     <main>
-      <Nav />
-      <Hero />
+      <Nav background='white' />
+      <AboutPageIntro />
       <Story />
       <MissionValues />
       <Areas />

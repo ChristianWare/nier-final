@@ -10,22 +10,18 @@ export default function AboutPageIntro() {
         <div className={styles.left}>
           <div className={styles.leftContent}>
             <div className={styles.top}>
-              <SectionHeading text='Nier Transportation' dot />
+              <SectionHeading text='About us' dot />
               <h1 className={`${styles.heading} h2`}>
-                {/* We&apos;ve been at the forefront of the travel industry for over
-                a decade.{" "} */}
-                Nier Transportation is a black car company serving the Phoenix -
-                metro area.
+                We&apos;ve been at the forefront of the travel industry for over
+                a decade.{" "}
               </h1>
               <p className={styles.copy}>
-                {/* At Nier Transportation, we are passionate about connecting
-                travelers with unforgettable experiences. */}
-                We’re more than a car service; we’re
-                your trusted partner in high end transportation.
+                At Nier Transportation, we are passionate about connecting
+                travelers with unforgettable experiences.
               </p>
               <div className={styles.btnContainer}>
                 <Button
-                  text='Book your ride'
+                  text='Get in touch'
                   btnType='red'
                   href='/contact'
                   arrow

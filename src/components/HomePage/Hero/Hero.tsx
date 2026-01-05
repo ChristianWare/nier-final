@@ -51,6 +51,10 @@ export default function Hero() {
           <div className={styles.contentChildren}>
             <div className={styles.cc1}>
               <div className={styles.left}>
+                <p className={styles.copy}>
+                  At Nier Transportation, we’re more than a car service; we’re
+                  your trusted partner in high end transportation.
+                </p>
                 <div className={styles.btnContainerii}>
                   <Button
                     href='/book'
@@ -62,13 +66,9 @@ export default function Hero() {
               </div>
               <div className={styles.right}>
                 <h1 className={styles.heading}>
-                  We&apos;ve been at the forefront of the travel industry for
-                  over a decade.
+                  Nier Transportation is a black car company serving the Phoenix - 
+                  metro area.
                 </h1>
-                <p className={styles.copy}>
-                  At Nier Transportation, we are passionate about connecting
-                  travelers with unforgettable experiences.
-                </p>
               </div>
             </div>
           </div>
