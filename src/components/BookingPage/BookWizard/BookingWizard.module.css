@@ -1,0 +1,193 @@
+.container {
+  background-color: var(--tan);
+}
+
+.wizard {
+  background-color: white;
+  padding: 3rem;
+  border-radius: 20px;
+}
+
+.stepIndicator {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.stepPill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+}
+
+.stepPillActive {
+  opacity: 1;
+}
+
+.stepPillInactive {
+  opacity: 0.55;
+}
+
+.stepWrap {
+  display: grid;
+  gap: 14px;
+}
+
+.h2 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.grid4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.control {
+  padding: 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: white;
+}
+
+.stack {
+  display: grid;
+  gap: 10px;
+}
+
+.emptyBox {
+  padding: 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+}
+
+.vehicleCard {
+  text-align: left;
+  padding: 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: white;
+  cursor: pointer;
+  display: grid;
+  gap: 6px;
+}
+
+.vehicleCardSelected {
+  border: 2px solid #111;
+}
+
+.vehicleRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vehicleName {
+  font-weight: 600;
+}
+
+.vehiclePrice {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.vehicleMeta {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.summaryCard {
+  padding: 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  display: grid;
+  gap: 6px;
+  background: white;
+}
+
+.summaryTitle {
+  font-weight: 600;
+}
+
+.summaryLine {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.summaryNote {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.textarea {
+  padding: 0.8rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  resize: vertical;
+  background: white;
+}
+
+.actionsEnd {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.actionsBetween {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.button {
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: white;
+  cursor: pointer;
+}
+
+.buttonEnabled {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.buttonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media screen and (max-width: 968px) {
+  .grid4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .grid4 {
+    grid-template-columns: 1fr;
+  }
+
+  .content {
+    padding: 2rem;
+  }
+}
