@@ -1,0 +1,395 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  engineType    = "library"
+  binaryTargets = ["native", "darwin", "darwin-arm64"]
+}
+
+/**
+ * =========================
+ * ENUMS
+ * =========================
+ */
+
+enum Role {
+  USER
+  ADMIN
+  DRIVER
+}
+
+enum BookingStatus {
+  DRAFT
+  PENDING_REVIEW
+  PENDING_PAYMENT
+  CONFIRMED
+  ASSIGNED
+  EN_ROUTE
+  ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  NONE
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum ServicePricingStrategy {
+  POINT_TO_POINT
+  HOURLY
+  FLAT
+}
+
+enum AddonType {
+  CHILD_SEAT
+  WHEELCHAIR
+  EXTRA_STOP
+  MEET_GREET
+  OTHER
+}
+
+/**
+ * =========================
+ * NEXTAUTH MODELS
+ * =========================
+ */
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+
+  // Credentials auth support
+  password String?
+
+  role Role @default(USER)
+
+  accounts Account[]
+  sessions Session[]
+
+  // Booking relations
+  bookings          Booking[]    @relation("UserBookings")
+  driverAssignments Assignment[] @relation("DriverAssignments")
+  assignedByAdmin   Assignment[] @relation("AssignedByAdmin")
+
+  statusEventsCreated BookingStatusEvent[] @relation("StatusEventsCreated")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model EmailVerificationToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+  @@index([email])
+  @@index([expires])
+}
+
+model PasswordResetToken {
+  id      String   @id @default(cuid())
+  email   String
+  token   String   @unique
+  expires DateTime
+
+  @@unique([email, token])
+  @@index([email])
+  @@index([expires])
+}
+
+/**
+ * =========================
+ * BOOKING / OPERATIONS MODELS
+ * =========================
+ * Vehicle = "Vehicle Category" (SUV, Van, Bus)
+ * VehicleUnit = individual unit (Escalade #1, Sprinter #2, etc)
+ */
+
+model Vehicle {
+  id              String  @id @default(cuid())
+  name            String
+  description     String?
+  capacity        Int
+  luggageCapacity Int
+  imageUrl        String?
+
+  // Minimum billable hours for HOURLY services (SUV 2, Vans/Buses 3)
+  minHours Int @default(0)
+
+  // Pricing knobs (in cents)
+  baseFareCents  Int @default(0)
+  perMileCents   Int @default(0)
+  perMinuteCents Int @default(0)
+  perHourCents   Int @default(0)
+
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  // ✅ Units in this category
+  units VehicleUnit[] @relation("VehicleCategoryUnits")
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+  @@index([sortOrder])
+}
+
+model VehicleUnit {
+  id String @id @default(cuid())
+
+  name  String
+  plate String? // optional for now ✅
+
+  // Unit belongs to a Vehicle "category"
+  categoryId String?
+  category   Vehicle? @relation("VehicleCategoryUnits", fields: [categoryId], references: [id], onDelete: SetNull)
+
+  active Boolean @default(true)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  assignments Assignment[]
+
+  @@index([categoryId])
+  @@index([active])
+}
+
+model ServiceType {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  pricingStrategy ServicePricingStrategy @default(POINT_TO_POINT)
+
+  // Pricing knobs (in cents)
+  minFareCents   Int @default(0)
+  baseFeeCents   Int @default(0)
+  perMileCents   Int @default(0)
+  perMinuteCents Int @default(0)
+  perHourCents   Int @default(0)
+
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  bookings Booking[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+  @@index([sortOrder])
+}
+
+model Booking {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+
+  serviceTypeId String
+  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id])
+
+  // Selected category
+  vehicleId String?
+  vehicle   Vehicle? @relation(fields: [vehicleId], references: [id])
+
+  status BookingStatus @default(DRAFT)
+
+  // Trip details
+  pickupAt   DateTime
+  passengers Int      @default(1)
+  luggage    Int      @default(0)
+
+  // Hourly services
+  hoursRequested Int?
+  hoursBilled    Int?
+
+  // (Optional / can remove later) if you’re not using it:
+  // charterHours Int?
+
+  pickupAddress String
+  pickupPlaceId String?
+  pickupLat     Decimal? @db.Decimal(10, 7)
+  pickupLng     Decimal? @db.Decimal(10, 7)
+
+  dropoffAddress String
+  dropoffPlaceId String?
+  dropoffLat     Decimal? @db.Decimal(10, 7)
+  dropoffLng     Decimal? @db.Decimal(10, 7)
+
+  // Route estimates
+  distanceMiles   Decimal? @db.Decimal(8, 2)
+  durationMinutes Int?
+
+  // Special requests / notes
+  specialRequests String? @db.Text
+  internalNotes   String? @db.Text
+
+  // Pricing totals (in cents)
+  currency      String @default("usd")
+  subtotalCents Int    @default(0)
+  feesCents     Int    @default(0)
+  taxesCents    Int    @default(0)
+  totalCents    Int    @default(0)
+
+  // Relationships
+  addons       BookingAddon[]
+  payment      Payment?
+  assignment   Assignment?
+  statusEvents BookingStatusEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([serviceTypeId])
+  @@index([vehicleId])
+  @@index([status])
+  @@index([pickupAt])
+}
+
+model BookingAddon {
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  type     AddonType
+  label    String?
+  quantity Int       @default(1)
+
+  unitPriceCents  Int @default(0)
+  totalPriceCents Int @default(0)
+
+  notes String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([type])
+}
+
+model Payment {
+  id        String  @id @default(cuid())
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  status PaymentStatus @default(NONE)
+
+  // Stripe identifiers
+  stripeCheckoutSessionId String? @unique
+  stripePaymentIntentId   String? @unique
+  stripeCustomerId        String?
+
+  amountSubtotalCents Int    @default(0)
+  amountTotalCents    Int    @default(0)
+  currency            String @default("usd")
+
+  receiptUrl String?
+  paidAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Assignment {
+  id String @id @default(cuid())
+
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  // Assign a DRIVER user
+  driverId String
+  driver   User   @relation("DriverAssignments", fields: [driverId], references: [id], onDelete: Cascade)
+
+  // ✅ Optional: assign a specific vehicle unit too (recommended for dispatch)
+  vehicleUnitId String?
+  vehicleUnit   VehicleUnit? @relation(fields: [vehicleUnitId], references: [id], onDelete: SetNull)
+
+  assignedById String?
+  assignedBy   User?   @relation("AssignedByAdmin", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  assignedAt DateTime @default(now())
+
+  @@index([driverId])
+  @@index([assignedById])
+  @@index([vehicleUnitId])
+}
+
+model BookingStatusEvent {
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  status BookingStatus
+
+  createdById String?
+  createdBy   User?   @relation("StatusEventsCreated", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([createdAt])
+}
