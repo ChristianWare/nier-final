@@ -1,0 +1,44 @@
+.successContainer {
+  background-color: lightgreen;
+  padding: 1rem;
+  font-size: 1.4rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  /* margin-top: 1rem; */
+  margin-bottom: -2rem;
+}
+
+.success {
+  color: var(--green);
+}
+
+.successMessage {
+  color: var(--green);
+  font-family: var(--inter);
+  font-weight: 700;
+}
+
+.errorContainer {
+  background-color: pink;
+  padding: 1rem;
+  font-size: 1.4rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-bottom: -2rem;
+}
+
+.error {
+  color: red;
+}
+
+.errorMessage {
+  color: red;
+  font-family: var(--inter);
+  font-weight: 700;
+}

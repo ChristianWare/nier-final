@@ -1,0 +1,41 @@
+/* .form {
+  width: 100%;
+} */
+
+.googleBtn {
+  padding: 1rem 1.5rem;
+  border: 1px solid var(--darkGray);
+  border-radius: 50px;
+  font-size: 1.4rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  transition: all 0.2s ease-in;
+  cursor: pointer;
+}
+
+.googleBtn:hover {
+  background-color: var(--darkGray);
+}
+
+.google {
+  width: 2rem;
+  height: 2rem;
+  transition: all 0.2s ease-in;
+}
+
+.googleBtnText {
+  text-transform: none;
+  color: var(--darkGray);
+  /* text-transform: uppercase; */
+  font-size: 1.6rem;
+  font-family: var(--SuisseIntlMedium);
+  transition: all 0.2s ease-in;
+}
+
+.googleBtn:hover .googleBtnText {
+  color: var(--white);
+  transition: all 0.2s ease-in;
+}

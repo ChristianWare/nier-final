@@ -1,0 +1,60 @@
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.label {
+  color: var(--lightBlack);
+  font-family: var(--PPNeueMontrealMediumThick);
+  text-transform: capitalize;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  padding: 0.7rem;
+  padding-left: 1.5rem;
+  border: 1px solid var(--gray);
+  background-color: var(--lightGray);
+  border-radius: 50px;
+  font-size: 1.6rem;
+  position: relative;
+  width: 100%;
+}
+
+.error {
+  color: var(--pink);
+}
+
+.icon {
+  color: var(--textii);
+  cursor: pointer;
+  position: absolute;
+  top: calc(50% - 1.2rem);
+  right: 1.5rem;
+}
+
+.errorContainer {
+  background-color: pink;
+  padding: 1rem;
+  font-size: 1.4rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-bottom: -2rem;
+}
+
+.error {
+  color: red;
+}
+
+.errorMessage {
+  color: red;
+  font-family: var(--inter);
+  font-weight: 700;
+}
