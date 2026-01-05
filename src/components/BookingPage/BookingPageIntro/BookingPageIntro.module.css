@@ -1,13 +1,13 @@
 .container {
   padding: 10rem 0rem;
   padding-bottom: 0rem;
-  background-color: var(--tan);
+  background-color: var(--cream);
 }
 
 .hero {
   position: relative;
   min-height: 420px;
-  border-radius: 20px;
+  border-radius: 10px;
   overflow: hidden;
   isolation: isolate;
   display: grid;
@@ -39,12 +39,9 @@
 }
 
 .heading,
-.copy {
-  color: var(--tan);
-}
-
+.copy,
 .subheading {
-  color: var(--tan);
+  color: var(--cream);
 }
 
 @media screen and (max-width: 768px) {
@@ -60,7 +57,8 @@
     gap: 2rem;
   }
 
-  .heading, .copy {
+  .heading,
+  .copy {
     text-align: center;
   }
 }

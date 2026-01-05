@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import BookingWizard from "@/components/BookingPage/BookWizard/BookWizard";
 import BookingPageIntro from "@/components/BookingPage/BookingPageIntro/BookingPageIntro";
+import Nav from "@/components/shared/Nav/Nav";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,6 +62,7 @@ export default async function BookPage() {
 
   return (
     <main>
+      <Nav background='cream' />
       <BookingPageIntro />
       <BookingWizard serviceTypes={serviceTypes} vehicles={vehicles} />
     </main>
