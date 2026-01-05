@@ -18,6 +18,7 @@
   white-space: nowrap;
   cursor: pointer;
   text-transform: capitalize;
+  line-height: 1;
 }
 
 .btn:link,

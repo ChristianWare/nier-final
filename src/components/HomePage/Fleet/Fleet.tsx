@@ -52,7 +52,7 @@ export default function Fleet() {
                   <Button
                     href={`/fleet/${x.slug}`}
                     btnType='black'
-                    text='Book Now'
+                    text='More Details'
                     arrow
                   />
                 </div>
