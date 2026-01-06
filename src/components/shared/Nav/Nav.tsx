@@ -10,6 +10,7 @@ import Image from "next/image";
 import Img1 from "../../../../public/images/road.jpg";
 import { usePathname } from "next/navigation";
 import Logo from "../Logo/Logo";
+import { useSession } from "next-auth/react";
 
 export interface NavProps {
   navItemColor?: string;
@@ -23,6 +24,9 @@ export default function Nav({
   hamburgerColor = "",
   background,
 }: NavProps) {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "ADMIN";
+
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
@@ -97,7 +101,6 @@ export default function Nav({
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
     { text: "Blog", href: "/blog" },
-    // { text: "My Account", href: "/account" },
     { text: "Contact", href: "/contact" },
   ];
 
@@ -114,9 +117,8 @@ export default function Nav({
 
   const forceSolid = Boolean(background);
 
-const btnType =
-  background === "accent" ? "lightRed" : background ? "black" : "transparent";
-
+  const btnType =
+    background === "accent" ? "lightRed" : background ? "black" : "transparent";
 
   return (
     <header
@@ -168,6 +170,7 @@ const btnType =
           </div>
 
           <div className={styles.btnContainerii}>
+            {isAdmin && <Button href='/admin' text='Admin' btnType={btnType} />}
             <Button
               href='/book'
               text='Book your Ride'
@@ -184,6 +187,7 @@ const btnType =
           )}
 
         <div className={styles.btnContainer}>
+          {isAdmin && <Button href='/admin' text='Admin' btnType={btnType} />}
           <Button href='/book' text='Book your Ride' btnType={btnType} arrow />
         </div>
 
