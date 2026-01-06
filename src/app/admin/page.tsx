@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AdminPageIntro from "@/components/admin/AdminPageIntro/AdminPageIntro";
+import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
+import AdminAlerts, {
+  AlertItem,
+} from "@/components/admin/AdminAlerts/AdminAlerts";
 import AdminUrgentQueue, {
   UrgentBookingItem,
 } from "@/components/admin/AdminUrgentQueue/AdminUrgentQueue";
@@ -63,6 +67,7 @@ export default async function AdminHome() {
   const dayAfterStart = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000);
 
   const next3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+  const next12h = new Date(now.getTime() + 12 * 60 * 60 * 1000);
   const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
@@ -77,6 +82,10 @@ export default async function AdminHome() {
     pendingReview,
     pendingPayment,
     confirmed,
+
+    // Alerts counts
+    unassignedWithin24hCount,
+    pendingPaymentWithin12hCount,
 
     // Urgent buckets
     unassignedSoon,
@@ -113,7 +122,24 @@ export default async function AdminHome() {
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
     db.booking.count({ where: { status: "CONFIRMED" } }),
 
-    // A) Unassigned + pickup within 24h
+    // Alerts: unassigned within 24h
+    db.booking.count({
+      where: {
+        pickupAt: { gte: now, lt: next24h },
+        assignment: { is: null },
+        NOT: { status: { in: cancelledLike as any } },
+      },
+    }),
+
+    // Alerts: pending payment within 12h
+    db.booking.count({
+      where: {
+        status: "PENDING_PAYMENT",
+        pickupAt: { gte: now, lt: next12h },
+      },
+    }),
+
+    // A) Unassigned + pickup within 24h (top items)
     db.booking.findMany({
       where: {
         pickupAt: { gte: now, lt: next24h },
@@ -139,7 +165,7 @@ export default async function AdminHome() {
       },
     }),
 
-    // B) Pending payment + pickup within 24h
+    // B) Pending payment + pickup within 24h (top items)
     db.booking.findMany({
       where: {
         status: "PENDING_PAYMENT",
@@ -164,7 +190,7 @@ export default async function AdminHome() {
       },
     }),
 
-    // C) Pending review older than 2 hours (and still upcoming)
+    // C) Pending review older than 2 hours (and still upcoming) (top items)
     db.booking.findMany({
       where: {
         status: "PENDING_REVIEW",
@@ -352,8 +378,6 @@ export default async function AdminHome() {
       },
     }),
 
-    // Best-effort "payment link sent": a payment record with a checkout session id
-    // (Later we can make this perfect by creating an explicit AdminActivity row/event)
     db.payment.findMany({
       where: { stripeCheckoutSessionId: { not: null } },
       orderBy: [{ updatedAt: "desc" }],
@@ -373,6 +397,39 @@ export default async function AdminHome() {
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
+
+  // Alerts build
+  const alerts: AlertItem[] = [];
+
+  if (unassignedWithin24hCount > 0) {
+    alerts.push({
+      id: "unassigned-24h",
+      severity: unassignedWithin24hCount >= 3 ? "danger" : "warning",
+      message: `${unassignedWithin24hCount} booking(s) are unassigned within 24 hours`,
+      href: "/admin/bookings",
+      ctaLabel: "Review",
+    });
+  }
+
+  if (pendingPaymentWithin12hCount > 0) {
+    alerts.push({
+      id: "pending-payment-12h",
+      severity: pendingPaymentWithin12hCount >= 2 ? "danger" : "warning",
+      message: `${pendingPaymentWithin12hCount} booking(s) pending payment within 12 hours`,
+      href: "/admin/bookings",
+      ctaLabel: "Open",
+    });
+  }
+
+  if (activeDrivers === 0) {
+    alerts.push({
+      id: "no-drivers",
+      severity: "danger",
+      message: "0 active drivers — add drivers before dispatching",
+      href: "/admin/drivers",
+      ctaLabel: "Add driver",
+    });
+  }
 
   // Vehicle readiness calculations
   const assignedActiveUnitIdsToday = new Set(
@@ -423,7 +480,7 @@ export default async function AdminHome() {
     .sort((a, b) => b.activeUnits - a.activeUnits)
     .slice(0, 8);
 
-  // Build unified activity feed (merge + sort)
+  // Activity feed merge
   const activity: AdminActivityItem[] = [];
 
   for (const e of recentStatusEvents) {
@@ -502,6 +559,10 @@ export default async function AdminHome() {
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
+
+      <AdminQuickActions />
+
+      <AdminAlerts alerts={alerts} />
 
       <AdminScheduleSnapshot
         today={{
