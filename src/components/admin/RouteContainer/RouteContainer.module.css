@@ -1,0 +1,16 @@
+.container {
+  background-color: var(--accent);
+  color: var(--white);
+  white-space: nowrap;
+  border-radius: 5px;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  padding: 1rem 2rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease-in;
+  display: flex;
+}

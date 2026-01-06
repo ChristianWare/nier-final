@@ -45,13 +45,14 @@
   display: none;
 }
 
-.navLink {
+.navLink,
+.signOutBtn,
+.homeBtn {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 2rem;
   font-size: 1.6rem;
-  font-family: var(--interTight);
   font-weight: 600;
   color: var(--black);
   text-decoration: none;
@@ -69,27 +70,53 @@
   color: var(--white);
 }
 
-.btnContainer,
-.btnContainerii {
+.btnContainer {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: 1rem;
   width: 100%;
-  padding: 1rem;
 }
 
-.btnContainerii {
-  display: none;
+.signOutBtn,
+.homeBtn {
+  cursor: pointer;
+  background-color: var(--black);
+  color: var(--cream);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-@media screen and (max-width: 768px) {
-  .nav {
-    gap: 0rem;
-  }
+.signOutBtn:hover {
+  background-color: var(--black400);
 }
 
-@media screen and (max-width: 568px) {
+.homeBtn {
+  background-color: var(--paragraph);
+}
+
+.homeBtn:hover {
+  background-color: var(--black300);
+}
+
+.arrow {
+  transform: rotate(90deg);
+}
+
+@media screen and (max-width: 968px) {
   .linksWrapper {
-    grid-template-columns: repeat(1, 1fr);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .navLink {
+    width: 100%;
+  }
+
+  @media screen and (max-width: 568px) {
+    .linksWrapper {
+      grid-template-columns: repeat(2, 1fr);
+    }
   }
 }

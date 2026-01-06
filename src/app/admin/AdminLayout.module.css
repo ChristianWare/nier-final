@@ -1,15 +1,15 @@
 .container {
-  background-color: var(--crea);
   padding: 10rem 0rem;
-  /* min-height: 100vh; */
 }
 
 .content {
-  margin: 1rem;
-  border-radius: 15px;
   display: grid;
   grid-template-columns: 1fr 5fr;
   grid-gap: 3rem;
+}
+
+.heading {
+  display: none;
 }
 
 .AdminSideNavContainer {
@@ -24,60 +24,16 @@
   width: 100%;
 }
 
-.heading {
-  color: var(--blue);
-}
-
-.copy {
-  color: var(--blue);
-  width: 375px;
-}
-
-.btnContainer {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-gap: 2rem;
-  width: 50%;
-}
-
-.adminBtnContainer {
-  width: 100%;
-  display: grid;
-  width: 50%;
-}
-
-@media screen and (max-width: 1268px) {
-  /* .content {
-    grid-template-columns: 2fr 4fr;
-    grid-gap: 2rem;
-  } */
-
-  .heading,
-  .copy {
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
-
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 968px) {
   .content {
     grid-template-columns: 1fr;
     grid-gap: 2rem;
   }
-}
 
-@media screen and (max-width: 1068px) {
-  /* .content {
-    grid-template-columns: 1fr;
-    grid-gap: 10rem;
-  } */
-
-  /* .right {
-    order: -1;
-  } */
-
-  .copy {
+  .heading {
+    display: block;
+    text-align: center;
     width: 100%;
+    margin-bottom: 2rem;
   }
 }

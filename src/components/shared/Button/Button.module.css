@@ -74,6 +74,22 @@
   color: var(--black);
 }
 
+.blackAdmin,
+.blackAdmin:link,
+.blackAdmin:visited {
+  background-color: var(--black);
+  color: var(--white);
+  border: 1px solid var(--black);
+  display: flex;
+  justify-content: space-between;
+  padding-right: 1rem;
+}
+
+.blackAdmin:hover {
+  background-color: var(--cream);
+  color: var(--black);
+}
+
 .gray,
 .gray:link,
 .gray:visited {

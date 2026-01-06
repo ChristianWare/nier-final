@@ -9,7 +9,7 @@ export default function UserButton() {
   return (
     <>
       <Button
-        btnType='gray'
+        btnType='blackAdmin'
         arrow
         onClick={() => signOut()}
         text='Sign Out'

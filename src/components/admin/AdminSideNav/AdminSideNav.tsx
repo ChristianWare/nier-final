@@ -4,19 +4,18 @@ import styles from "./AdminSideNav.module.css";
 import Link from "next/link";
 import Calendar from "@/components/shared/icons/Calendar/Calendar";
 import House from "@/components/shared/icons/House/House";
-// import Employee from "@/components/icons/Employee/Employee";
-// import Cog from "@/components/icons/Cog/Cog";
 import Bell from "@/components/shared/icons/Bell/Bell";
 import Users from "@/components/shared/icons/Users/Users";
 import Wheel from "@/components/shared/icons/Wheel/Wheel";
-// import Report from "@/components/shared/icons/Report/Report";
 import Car from "@/components/shared/icons/Car/Car";
 import Listing from "@/components/shared/icons/Listing/Listing";
-import UserButton from "@/components/shared/UserButton/UserButton";
-import Button from "@/components/shared/Button/Button";
 import { useState } from "react";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import Cog from "@/components/shared/icons/Cog/Cog";
+import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
@@ -30,12 +29,16 @@ const NAV_ITEMS = [
   { title: "Vehicles", href: "/admin/vehicles", icon: <Car /> },
   { title: "Users", href: "/admin/users", icon: <Users /> },
   { title: "Drivers", href: "/admin/drivers", icon: <Wheel /> },
-  //   { title: "Groomers", href: "/admin/groomers", icon: <Employee /> },
-  //   { title: "Reports", href: "/admin/reports", icon: <Report /> },
-  //   { title: "Settings", href: "/admin/settings", icon: <Cog /> },
+  { title: "Settings", href: "/admin/settings", icon: <Cog /> },
 ];
 
-export default function AdminSideNav() {
+export type AdminSideNavProps = {
+  bookingNeedsAttentionCount?: number;
+};
+
+export default function AdminSideNav({
+  bookingNeedsAttentionCount = 0,
+}: AdminSideNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
@@ -61,6 +64,11 @@ export default function AdminSideNav() {
               const active = isDashboard
                 ? pathname === "/admin"
                 : pathname === href || pathname.startsWith(href + "/");
+
+              const showBookingsBadge = href === "/admin/bookings";
+              const showBadge =
+                showBookingsBadge && (bookingNeedsAttentionCount ?? 0) > 0;
+
               return (
                 <li key={href}>
                   <Link
@@ -73,27 +81,24 @@ export default function AdminSideNav() {
                   >
                     {icon}
                     {title}
+
+                    {showBadge ? (
+                      <BadgeCount value={bookingNeedsAttentionCount} max={99} />
+                    ) : null}
                   </Link>
                 </li>
               );
             })}
-          </div>
 
-          <div className={styles.btnContainerii}>
-            {/* <UserButton /> */}
-            <Button btnType='brownBorder' text='Go Home' href='/' />
-            <Button
-              btnType='brownBorder'
-              text='User Dashboard'
-              href='/dashboard'
-            />
+            <Link href='/' className={styles.homeBtn}>
+              Go Home <Arrow className={styles.arrow} />
+            </Link>
+
+            <button className={styles.signOutBtn} onClick={() => signOut()}>
+              Sign Out <Arrow className={styles.arrow} />
+            </button>
           </div>
         </ul>
-
-        <div className={styles.btnContainer}>
-          <UserButton />
-          <Button btnType='black' text='Go Home' href='/' arrow />
-        </div>
       </nav>
     </aside>
   );

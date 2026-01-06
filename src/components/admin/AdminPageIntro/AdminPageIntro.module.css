@@ -1,0 +1,23 @@
+.content {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
+}
+
+.routeContainer {
+  width: fit-content;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--stroke);
+}
+
+@media screen and (max-width: 968px) {
+  .heading {
+    display: none;
+  }
+}
