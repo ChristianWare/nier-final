@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import { db } from "@/lib/db";
 import styles from "./BookingsPage.module.css";
+import { Prisma, BookingStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -103,6 +103,18 @@ function clampPage(raw: string | undefined) {
   return Math.floor(n);
 }
 
+type BookingRow = Prisma.BookingGetPayload<{
+  include: {
+    user: { select: { name: true; email: true } };
+    serviceType: { select: { name: true } };
+    vehicle: { select: { name: true } };
+    payment: { select: { status: true } };
+    assignment: {
+      include: { driver: { select: { name: true; email: true } } };
+    };
+  };
+}>;
+
 export default async function AdminBookingsPage({
   searchParams,
 }: {
@@ -126,7 +138,7 @@ export default async function AdminBookingsPage({
   const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
 
-  const pickupAtFilter =
+  const pickupAtFilter: Prisma.DateTimeFilter | undefined =
     range === "today"
       ? { gte: todayStart, lt: tomorrowStart }
       : range === "tomorrow"
@@ -137,9 +149,9 @@ export default async function AdminBookingsPage({
             ? { gte: now, lt: next7d }
             : undefined;
 
-  const where: any = {};
+  const where: Prisma.BookingWhereInput = {};
 
-  if (status !== "ALL") where.status = status;
+  if (status !== "ALL") where.status = status as BookingStatus;
   if (pickupAtFilter) where.pickupAt = pickupAtFilter;
   if (unassigned) where.assignment = { is: null };
   if (paid) where.payment = { is: { status: "PAID" } };
@@ -150,12 +162,12 @@ export default async function AdminBookingsPage({
     where.pickupAt = { gte: now };
   }
 
-  const orderBy =
+  const orderBy: Prisma.BookingOrderByWithRelationInput[] =
     stuck || status === "PENDING_REVIEW"
-      ? [{ createdAt: "asc" }]
+      ? [{ createdAt: Prisma.SortOrder.asc }]
       : status === "COMPLETED" || status === "CANCELLED" || status === "NO_SHOW"
-        ? [{ pickupAt: "desc" }]
-        : [{ pickupAt: "asc" }];
+        ? [{ pickupAt: Prisma.SortOrder.desc }]
+        : [{ pickupAt: Prisma.SortOrder.asc }];
 
   const totalCount = await db.booking.count({ where });
 
@@ -163,7 +175,7 @@ export default async function AdminBookingsPage({
   const safePage = Math.min(page, totalPages);
   const skip = (safePage - 1) * PAGE_SIZE;
 
-  const bookings = await db.booking.findMany({
+  const bookings: BookingRow[] = await db.booking.findMany({
     where,
     include: {
       user: { select: { name: true, email: true } },
@@ -226,6 +238,7 @@ export default async function AdminBookingsPage({
         <table className={styles.table}>
           <thead>
             <tr>
+              <th className={styles.overlayTh} />
               <Th>Pickup</Th>
               <Th>ETA</Th>
               <Th>Customer</Th>
@@ -242,7 +255,7 @@ export default async function AdminBookingsPage({
           <tbody>
             {bookings.length === 0 ? (
               <tr>
-                <td className={styles.emptyCell} colSpan={11}>
+                <td className={styles.emptyCell} colSpan={12}>
                   <div className={styles.emptyText}>No bookings found.</div>
                 </td>
               </tr>
@@ -303,7 +316,7 @@ export default async function AdminBookingsPage({
 
                     <Td>
                       <span
-                        className={`${styles.badge} ${paymentBadgeClass(pay, styles)}`}
+                        className={`${styles.badge} ${paymentBadgeClass(String(pay), styles)}`}
                       >
                         {pay}
                       </span>
@@ -483,18 +496,21 @@ function Pagination({
 }) {
   if (totalCount === 0) return null;
 
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
+
+  const prevPage = page - 1;
+  const nextPage = page + 1;
+
   const prevHref = buildHref("/admin/bookings", {
     ...current,
-    page: page > 2 ? String(page - 1) : page === 2 ? undefined : undefined,
+    page: prevPage > 1 ? String(prevPage) : undefined,
   });
 
   const nextHref = buildHref("/admin/bookings", {
     ...current,
-    page: String(page + 1),
+    page: String(nextPage),
   });
-
-  const hasPrev = page > 1;
-  const hasNext = page < totalPages;
 
   return (
     <div className={styles.pagination}>

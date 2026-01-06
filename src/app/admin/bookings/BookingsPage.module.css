@@ -136,6 +136,11 @@
   border-collapse: collapse;
 }
 
+.overlayTh {
+  width: 0;
+  padding: 0;
+}
+
 .th {
   padding: 1.2rem 1.4rem;
   font-size: 1.15rem;
@@ -169,7 +174,6 @@
   position: absolute;
   inset: 0;
   z-index: 2;
-  border-radius: 0;
 }
 
 .pickupLink {
@@ -188,6 +192,8 @@
   font-weight: 900;
   opacity: 0.9;
   white-space: nowrap;
+  position: relative;
+  z-index: 3;
 }
 
 .customerName {
