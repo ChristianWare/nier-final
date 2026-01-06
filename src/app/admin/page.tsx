@@ -5,6 +5,9 @@ import AdminUrgentQueue, {
 } from "@/components/admin/AdminUrgentQueue/AdminUrgentQueue";
 import AdminScheduleSnapshot from "@/components/admin/AdminScheduleSnapshot/AdminScheduleSnapshot";
 import AdminDriverSnapshot from "@/components/admin/AdminDriverSnapshot/AdminDriverSnapshot";
+import AdminVehicleSnapshot, {
+  VehicleCategoryReadiness,
+} from "@/components/admin/AdminVehicleSnapshot/AdminVehicleSnapshot";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -67,6 +70,12 @@ export default async function AdminHome() {
     // Driver readiness
     activeDrivers,
     driversAssignedTodayDistinct,
+
+    // Vehicle readiness
+    activeUnits,
+    inactiveUnits,
+    activeUnitsByCategory,
+    assignedActiveUnitsToday,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -216,12 +225,9 @@ export default async function AdminHome() {
     // -------------------------
     // Driver readiness
     // -------------------------
-    // "Active drivers" (for now: all users with role DRIVER)
     db.user.count({
       where: { role: "DRIVER" },
     }),
-
-    // Distinct drivers assigned to trips TODAY
     db.assignment.findMany({
       where: {
         booking: {
@@ -232,9 +238,88 @@ export default async function AdminHome() {
       select: { driverId: true },
       distinct: ["driverId"],
     }),
+
+    // -------------------------
+    // Vehicle readiness
+    // -------------------------
+    db.vehicleUnit.count({ where: { active: true } }),
+    db.vehicleUnit.count({ where: { active: false } }),
+
+    // Active units by category (includes null categoryId)
+    db.vehicleUnit.groupBy({
+      by: ["categoryId"],
+      where: { active: true },
+      _count: { _all: true },
+    }),
+
+    // Active units that are assigned TODAY (distinct units)
+    db.vehicleUnit.findMany({
+      where: {
+        active: true,
+        assignments: {
+          some: {
+            booking: {
+              pickupAt: { gte: todayStart, lt: tomorrowStart },
+              NOT: { status: { in: cancelledLike as any } },
+            },
+          },
+        },
+      },
+      select: { id: true, categoryId: true },
+      distinct: ["id"],
+    }),
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
+
+  // Vehicle readiness calculations
+  const assignedActiveUnitIdsToday = new Set(
+    assignedActiveUnitsToday.map((u) => u.id)
+  );
+  const availableUnitsToday = Math.max(
+    0,
+    activeUnits - assignedActiveUnitIdsToday.size
+  );
+
+  // Build category readiness: active count from groupBy + assigned count from assignedActiveUnitsToday
+  const assignedByCategory = new Map<string, number>();
+  for (const u of assignedActiveUnitsToday) {
+    const key = u.categoryId ?? "unassigned";
+    assignedByCategory.set(key, (assignedByCategory.get(key) ?? 0) + 1);
+  }
+
+  const categoryIds = activeUnitsByCategory
+    .map((g) => g.categoryId)
+    .filter((x): x is string => typeof x === "string");
+
+  const categoryRows = categoryIds.length
+    ? await db.vehicle.findMany({
+        where: { id: { in: categoryIds } },
+        select: { id: true, name: true },
+      })
+    : [];
+
+  const categoryNameById = new Map(categoryRows.map((c) => [c.id, c.name]));
+
+  const byCategory: VehicleCategoryReadiness[] = activeUnitsByCategory
+    .map((g) => {
+      const key = g.categoryId ?? "unassigned";
+      const activeCount = g._count._all;
+      const assignedCount = assignedByCategory.get(key) ?? 0;
+      const name =
+        g.categoryId == null
+          ? "Unassigned"
+          : (categoryNameById.get(g.categoryId) ?? "Unknown");
+
+      return {
+        id: key,
+        name,
+        activeUnits: activeCount,
+        availableToday: Math.max(0, activeCount - assignedCount),
+      };
+    })
+    .sort((a, b) => b.activeUnits - a.activeUnits)
+    .slice(0, 8);
 
   return (
     <>
@@ -265,6 +350,13 @@ export default async function AdminHome() {
         activeDrivers={activeDrivers}
         driversAssignedToday={driversAssignedToday}
         unassignedTripsToday={todayUnassigned}
+      />
+
+      <AdminVehicleSnapshot
+        activeUnits={activeUnits}
+        availableUnitsToday={availableUnitsToday}
+        inactiveUnits={inactiveUnits}
+        byCategory={byCategory}
       />
 
       <AdminUrgentQueue
