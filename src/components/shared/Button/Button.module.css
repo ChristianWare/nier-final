@@ -34,6 +34,7 @@
   border-bottom: 1px solid var(--white);
   border-radius: 0px;
   padding: 5px 0px;
+  justify-content: space-between;
 }
 /* 
 .underlinedWhite:hover {

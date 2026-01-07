@@ -87,7 +87,6 @@ export async function assignBooking(formData: FormData) {
   });
   if (!booking) return { error: "Booking not found." };
 
-  // upsert assignment
   await db.$transaction([
     db.assignment.upsert({
       where: { bookingId },
@@ -103,7 +102,6 @@ export async function assignBooking(formData: FormData) {
         assignedById: session.user.userId,
       },
     }),
-    // only bump status forward if not already beyond ASSIGNED
     db.booking.update({
       where: { id: bookingId },
       data: {
@@ -148,19 +146,14 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   if (!booking) return { error: "Booking not found." };
   if (!booking.user?.email) return { error: "Booking user email missing." };
 
-  // must have a price to pay
   if (!booking.totalCents || booking.totalCents <= 0) {
     return { error: "Set a total price before sending payment link." };
   }
 
   const APP_URL = process.env.APP_URL || "http://localhost:3000";
-  // Stripe needs absolute URLs
-  const successUrl = `${APP_URL}/account?paid=1&bookingId=${booking.id}`;
-  const cancelUrl = `${APP_URL}/account?cancelled=1&bookingId=${booking.id}`;
+  const successUrl = `${APP_URL}/dashboard?paid=1&bookingId=${booking.id}`;
+  const cancelUrl = `${APP_URL}/dashboard?cancelled=1&bookingId=${booking.id}`;
 
-  // If we already created a checkout session and still have its URL, reuse it
-  // (optional; Stripe sessions can expire depending on settings)
-  // We'll create a new one each time to be safe.
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: booking.user.email,
@@ -208,7 +201,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
         checkoutUrl: session.url,
       },
     }),
-    // Ensure status reflects payment required
     db.booking.update({
       where: { id: booking.id },
       data: { status: "PENDING_PAYMENT" },
@@ -218,7 +210,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     }),
   ]);
 
-  // send email
   await sendPaymentLinkEmail({
     to: booking.user.email,
     name: booking.user.name,

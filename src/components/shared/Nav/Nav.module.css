@@ -172,15 +172,22 @@
   color: var(--white);
 }
 
-.btnContainer {
+/* .btnContainer {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
-}
+} */
 
 .navItemsMobile,
 .btnContainerMobile {
   display: none;
+}
+
+.btnContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2rem;
 }
 
 .hamburger {

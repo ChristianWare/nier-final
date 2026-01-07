@@ -554,7 +554,6 @@ export default async function AdminHome() {
   return (
     <>
       <AdminPageIntro
-        name='Barry'
         pendingReview={pendingReview}
         pendingPayment={pendingPayment}
         confirmed={confirmed}

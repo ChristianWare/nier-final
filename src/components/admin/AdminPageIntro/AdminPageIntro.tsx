@@ -1,4 +1,6 @@
-// components/admin/AdminPageIntro/AdminPageIntro.tsx
+"use client";
+
+import { useSession } from "next-auth/react";
 import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
 import styles from "./AdminPageIntro.module.css";
 
@@ -10,16 +12,23 @@ export type AdminPageIntroProps = {
 };
 
 export default function AdminPageIntro({
-  name = "Barry",
+  name,
   pendingReview,
   pendingPayment,
   confirmed,
 }: AdminPageIntroProps) {
+  const { data: session } = useSession();
+
+  const sessionName =
+    session?.user?.role === "ADMIN" ? (session?.user?.name ?? "") : "";
+
+  const displayName = (name ?? sessionName ?? "Admin").trim() || "Admin";
+
   return (
     <section className={styles.container}>
       <div className={styles.content}>
         <div className={styles.top}>
-          <h1 className={`${styles.heading} h2`}>Welcome {name}!</h1>
+          <h1 className={`${styles.heading} h2`}>Welcome {displayName}!</h1>
         </div>
 
         <div className={styles.kpiGrid}>

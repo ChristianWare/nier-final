@@ -25,7 +25,20 @@ export default function Nav({
   background,
 }: NavProps) {
   const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "ADMIN";
+
+  const role = session?.user?.role;
+  const isAuthed = Boolean(session?.user);
+  const displayName = (session?.user?.name ?? "Account").trim() || "Account";
+
+  const accountHref = !isAuthed
+    ? "/login"
+    : role === "ADMIN"
+      ? "/admin"
+      : role === "DRIVER"
+        ? "/driver-dashboard"
+        : "/dashboard";
+
+  const accountText = !isAuthed ? "Login" : displayName;
 
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -170,7 +183,14 @@ export default function Nav({
           </div>
 
           <div className={styles.btnContainerii}>
-            {isAdmin && <Button href='/admin' text='Admin' btnType={btnType} />}
+            <Link
+              href={accountHref}
+              className={`${styles.navItem} ${styles[color]}`}
+              onClick={closeMenu}
+            >
+              {accountText}
+            </Link>
+
             <Button
               href='/book'
               text='Book your Ride'
@@ -187,7 +207,14 @@ export default function Nav({
           )}
 
         <div className={styles.btnContainer}>
-          {isAdmin && <Button href='/admin' text='Admin' btnType={btnType} />}
+          <Link
+            href={accountHref}
+            className={`${styles.navItem} ${styles[color]}`}
+            onClick={closeMenu}
+          >
+            {accountText}
+          </Link>
+
           <Button href='/book' text='Book your Ride' btnType={btnType} arrow />
         </div>
 
