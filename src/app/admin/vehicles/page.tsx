@@ -1,3 +1,4 @@
+import styles from "./AdminVehiclesPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { toggleVehicleUnit } from "../../../../actions/admin/vehicleUnits";
@@ -13,9 +14,9 @@ export default async function AdminVehiclesPage() {
   });
 
   return (
-    <section style={{ display: "grid", gap: 14 }}>
-      <header style={{ display: "flex", justifyContent: "space-between" }}>
-        <h1 style={{ margin: 0, fontSize: 22 }}>Vehicles (units)</h1>
+    <section className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={`${styles.heading} h2`}>Vehicles (units)</h1>
         <Button
           href='/admin/vehicles/new'
           text='New vehicle'
@@ -24,10 +25,10 @@ export default async function AdminVehiclesPage() {
         />
       </header>
 
-      <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 14 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <div className={styles.tableCard}>
+        <table className={styles.table}>
           <thead>
-            <tr style={{ textAlign: "left" }}>
+            <tr className={styles.theadRow}>
               <Th>Name</Th>
               <Th>Category</Th>
               <Th>Plate</Th>
@@ -37,24 +38,26 @@ export default async function AdminVehiclesPage() {
           </thead>
           <tbody>
             {units.map((u) => (
-              <tr
-                key={u.id}
-                style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}
-              >
+              <tr key={u.id} className={styles.tr}>
                 <Td>{u.name}</Td>
                 <Td>{u.category?.name ?? "—"}</Td>
-                <Td style={{ opacity: 0.8 }}>{u.plate ?? "—"}</Td>
+                <Td className={styles.plateCell}>{u.plate ?? "—"}</Td>
                 <Td>{u.active ? "Yes" : "No"}</Td>
                 <Td>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <Link href={`/admin/vehicles/${u.id}`}>Edit</Link>
+                  <div className={styles.actions}>
+                    <Link
+                      href={`/admin/vehicles/${u.id}`}
+                      className={styles.editLink}
+                    >
+                      Edit
+                    </Link>
                     <form
                       action={async () => {
                         "use server";
                         await toggleVehicleUnit(u.id, !u.active);
                       }}
                     >
-                      <button type='submit' style={{ cursor: "pointer" }}>
+                      <button type='submit' className={styles.toggleBtn}>
                         {u.active ? "Disable" : "Enable"}
                       </button>
                     </form>
@@ -70,18 +73,15 @@ export default async function AdminVehiclesPage() {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th style={{ padding: "12px 14px", fontSize: 12, opacity: 0.7 }}>
-      {children}
-    </th>
-  );
+  return <th className={styles.th}>{children}</th>;
 }
+
 function Td({
   children,
-  style,
+  className = "",
 }: {
   children: React.ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }) {
-  return <td style={{ padding: "12px 14px", ...style }}>{children}</td>;
+  return <td className={`${styles.td} ${className}`}>{children}</td>;
 }

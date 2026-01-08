@@ -112,7 +112,7 @@
 .red:visited {
   background-color: var(--accent);
   color: var(--white);
-  border: 1px solid var(--accent);
+  border: 1px solid var(--accent600);
   display: flex;
   justify-content: space-between;
   padding-right: 1rem;

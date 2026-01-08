@@ -24,7 +24,7 @@ export default function Nav({
   hamburgerColor = "",
   background,
 }: NavProps) {
-const { data: session, status, update } = useSession();
+  const { data: session, status, update } = useSession();
 
   const role = session?.user?.role;
   const isAuthed = Boolean(session?.user);
@@ -130,20 +130,19 @@ const { data: session, status, update } = useSession();
 
   const forceSolid = Boolean(background);
 
-  const btnType =
-    background === "accent" ? "lightRed" : background ? "black" : "transparent";
+  // const btnType =
+  //   background === "accent" ? "lightRed" : background ? "black" : "transparent";
 
-    const lastPathRef = useRef<string>("");
+  const lastPathRef = useRef<string>("");
 
-    useEffect(() => {
-      if (status === "loading") return;
+  useEffect(() => {
+    if (status === "loading") return;
 
-      if (lastPathRef.current !== pathname) {
-        lastPathRef.current = pathname;
-        update(); // re-fetches /api/auth/session so the name updates without refresh
-      }
-    }, [pathname, status, update]);
-
+    if (lastPathRef.current !== pathname) {
+      lastPathRef.current = pathname;
+      update(); // re-fetches /api/auth/session so the name updates without refresh
+    }
+  }, [pathname, status, update]);
 
   return (
     <header
@@ -203,12 +202,7 @@ const { data: session, status, update } = useSession();
               {accountText}
             </Link>
 
-            <Button
-              href='/book'
-              text='Book your Ride'
-              btnType={btnType}
-              arrow
-            />
+            <Button href='/book' text='Book your Ride' btnType='red' arrow />
           </div>
         </div>
 
@@ -227,7 +221,7 @@ const { data: session, status, update } = useSession();
             {accountText}
           </Link>
 
-          <Button href='/book' text='Book your Ride' btnType={btnType} arrow />
+          <Button href='/book' text='Book your Ride' btnType='red' arrow />
         </div>
 
         <span
