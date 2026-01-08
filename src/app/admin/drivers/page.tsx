@@ -1,3 +1,4 @@
+import styles from "./AdminDriversPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 
@@ -13,10 +14,10 @@ export default async function AdminDriversPage() {
   });
 
   return (
-    <section style={{ display: "grid", gap: 14 }}>
-      <header style={{ display: "grid", gap: 6 }}>
-        <h1 style={{ margin: 0, fontSize: 22 }}>Drivers</h1>
-        <p style={{ margin: 0, opacity: 0.75 }}>
+    <section className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={`${styles.heading} h2`}>Drivers</h1>
+        <p className={styles.subcopy}>
           This page is read-only for now. Later we’ll add driver features here
           (availability, earnings, assigned trips, etc.).
         </p>
@@ -25,22 +26,19 @@ export default async function AdminDriversPage() {
       {drivers.length === 0 ? (
         <EmptyDrivers />
       ) : (
-        <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 14 }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className={styles.tableCard}>
+          <table className={styles.table}>
             <thead>
-              <tr style={{ textAlign: "left" }}>
+              <tr className={styles.theadRow}>
                 <Th>Name</Th>
                 <Th>Email</Th>
               </tr>
             </thead>
             <tbody>
               {drivers.map((d) => (
-                <tr
-                  key={d.id}
-                  style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}
-                >
+                <tr key={d.id} className={styles.tr}>
                   <Td>{d.name ?? "—"}</Td>
-                  <Td style={{ opacity: 0.8 }}>{d.email}</Td>
+                  <Td className={styles.emailCell}>{d.email}</Td>
                 </tr>
               ))}
             </tbody>
@@ -53,38 +51,29 @@ export default async function AdminDriversPage() {
 
 function EmptyDrivers() {
   return (
-    <div
-      style={{
-        border: "1px solid rgba(0,0,0,0.12)",
-        borderRadius: 14,
-        padding: "1rem",
-        maxWidth: 900,
-      }}
-    >
-      <div style={{ fontWeight: 700, marginBottom: 6 }}>No drivers yet</div>
-      <div style={{ opacity: 0.75, marginBottom: 12 }}>
+    <div className={styles.emptyCard}>
+      <div className={styles.emptyTitle}>No drivers yet</div>
+      <div className={styles.emptyCopy}>
         Drivers should sign up like normal users. Then go to Users and change
         their role to DRIVER.
       </div>
-      <Link href='/admin/users'>Go to Users</Link>
+      <Link href='/admin/users' className={styles.emptyLink}>
+        Go to Users
+      </Link>
     </div>
   );
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th style={{ padding: "12px 14px", fontSize: 12, opacity: 0.7 }}>
-      {children}
-    </th>
-  );
+  return <th className={styles.th}>{children}</th>;
 }
 
 function Td({
   children,
-  style,
+  className = "",
 }: {
   children: React.ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }) {
-  return <td style={{ padding: "12px 14px", ...style }}>{children}</td>;
+  return <td className={`${styles.td} ${className}`}>{children}</td>;
 }
