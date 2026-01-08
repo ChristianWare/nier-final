@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import EditVehicleCategoryForm from "./EditVehicleCategoryForm";
+import styles from "./EditVehicleCategoryPage.module.css";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,9 +26,11 @@ export default async function EditVehicleCategoryPage({
   if (!category) return notFound();
 
   return (
-    <section style={{ display: "grid", gap: 14, maxWidth: 820 }}>
-      <h1 style={{ margin: 0, fontSize: 22 }}>Edit vehicle category</h1>
-      <EditVehicleCategoryForm category={category} />
+    <section className={styles.container}>
+      <div className={styles.content}>
+        <h1 className={`${styles.heading} h2`}>Edit vehicle category</h1>
+        <EditVehicleCategoryForm category={category} />
+      </div>
     </section>
   );
 }

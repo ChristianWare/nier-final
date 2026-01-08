@@ -1,6 +1,7 @@
+import styles from "./AdminVehicleCategoriesPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { toggleVehicleCategory } from "../../../../actions/admin/vehicleCategories"; 
+import { toggleVehicleCategory } from "../../../../actions/admin/vehicleCategories";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,16 +12,18 @@ export default async function AdminVehicleCategoriesPage() {
   });
 
   return (
-    <section style={{ display: "grid", gap: 14 }}>
-      <header style={{ display: "flex", justifyContent: "space-between" }}>
-        <h1 style={{ margin: 0, fontSize: 22 }}>Vehicle categories</h1>
-        <Link href='/admin/vehicle-categories/new'>New category</Link>
+    <section className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={`${styles.heading} h2`}>Vehicle categories</h1>
+        <Link href='/admin/vehicle-categories/new' className={styles.newLink}>
+          New category
+        </Link>
       </header>
 
-      <div style={{ border: "1px solid rgba(0,0,0,0.12)", borderRadius: 14 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+      <div className={styles.tableCard}>
+        <table className={styles.table}>
           <thead>
-            <tr style={{ textAlign: "left" }}>
+            <tr className={styles.theadRow}>
               <Th>Name</Th>
               <Th>Capacity</Th>
               <Th>Luggage</Th>
@@ -30,24 +33,26 @@ export default async function AdminVehicleCategoriesPage() {
           </thead>
           <tbody>
             {categories.map((c) => (
-              <tr
-                key={c.id}
-                style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}
-              >
+              <tr key={c.id} className={styles.tr}>
                 <Td>{c.name}</Td>
                 <Td>{c.capacity}</Td>
                 <Td>{c.luggageCapacity}</Td>
                 <Td>{c.active ? "Yes" : "No"}</Td>
                 <Td>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <Link href={`/admin/vehicle-categories/${c.id}`}>Edit</Link>
+                  <div className={styles.actions}>
+                    <Link
+                      href={`/admin/vehicle-categories/${c.id}`}
+                      className={styles.editLink}
+                    >
+                      Edit
+                    </Link>
                     <form
                       action={async () => {
                         "use server";
                         await toggleVehicleCategory(c.id, !c.active);
                       }}
                     >
-                      <button type='submit' style={{ cursor: "pointer" }}>
+                      <button type='submit' className={styles.toggleBtn}>
                         {c.active ? "Disable" : "Enable"}
                       </button>
                     </form>
@@ -63,18 +68,15 @@ export default async function AdminVehicleCategoriesPage() {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th style={{ padding: "12px 14px", fontSize: 12, opacity: 0.7 }}>
-      {children}
-    </th>
-  );
+  return <th className={styles.th}>{children}</th>;
 }
+
 function Td({
   children,
-  style,
+  className = "",
 }: {
   children: React.ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }) {
-  return <td style={{ padding: "12px 14px", ...style }}>{children}</td>;
+  return <td className={`${styles.td} ${className}`}>{children}</td>;
 }
