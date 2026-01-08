@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema, LoginSchemaType } from "@/schemas/LoginSchema";
 import FormField from "../FormField/FormField";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
-// import GoogleButton from "../GoogleButton/GoogleButton";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { login } from "../../../../actions/auth/login";
@@ -35,19 +34,25 @@ export default function LoginForm() {
 
   const onSubmit: SubmitHandler<LoginSchemaType> = (data) => {
     setError("");
+    setSuccess("");
+
+    const next = searchParams.get("next");
+    const safeNext = next && next.startsWith("/") ? next : null;
+    const destination = safeNext ?? LOGIN_REDIRECT;
+
     startTransition(() => {
       login(data).then((res) => {
         if (res?.error) {
           router.replace("/login");
+          router.refresh();
           setError(res.error);
+          return;
         }
-        if (!res?.error) {
-          router.push(LOGIN_REDIRECT);
-        }
-        if (res?.success) {
-          setSuccess(res.success);
-          router.push(LOGIN_REDIRECT);
-        }
+
+        if (res?.success) setSuccess(res.success);
+
+        router.replace(destination);
+        router.refresh();
       });
     });
   };
@@ -90,7 +95,6 @@ export default function LoginForm() {
           id='email'
           register={register}
           errors={errors}
-          // placeholder='email'
           label='email'
           disabled={isPending}
           type='email'
@@ -100,13 +104,13 @@ export default function LoginForm() {
           id='password'
           register={register}
           errors={errors}
-          // placeholder='password'
           type='password'
           label='password'
           disabled={isPending}
           eye
           autoComplete='new-password'
         />
+
         {error && <Alert message={error} error />}
         {urlError && <Alert message={urlError} error />}
         {success && <Alert message={success} success />}
@@ -119,9 +123,10 @@ export default function LoginForm() {
             disabled={isPending}
           />
         </div>
+
         <p className={styles.or}>or</p>
-        {/* <GoogleButton title='in' /> */}
       </form>
+
       <footer className={styles.cardFooter}>
         <p className={styles.footerText}>
           Don’t have an account?{" "}

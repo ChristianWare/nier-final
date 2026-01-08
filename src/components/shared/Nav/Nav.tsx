@@ -24,7 +24,7 @@ export default function Nav({
   hamburgerColor = "",
   background,
 }: NavProps) {
-  const { data: session } = useSession();
+const { data: session, status, update } = useSession();
 
   const role = session?.user?.role;
   const isAuthed = Boolean(session?.user);
@@ -132,6 +132,18 @@ export default function Nav({
 
   const btnType =
     background === "accent" ? "lightRed" : background ? "black" : "transparent";
+
+    const lastPathRef = useRef<string>("");
+
+    useEffect(() => {
+      if (status === "loading") return;
+
+      if (lastPathRef.current !== pathname) {
+        lastPathRef.current = pathname;
+        update(); // re-fetches /api/auth/session so the name updates without refresh
+      }
+    }, [pathname, status, update]);
+
 
   return (
     <header
