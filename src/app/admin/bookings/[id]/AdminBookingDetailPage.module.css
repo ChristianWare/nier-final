@@ -1,0 +1,91 @@
+.container {
+  display: grid;
+  gap: 16px;
+  max-width: 980px;
+}
+
+.header {
+  display: grid;
+  gap: 6px;
+}
+
+.heading {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  width: 100%;
+}
+
+.meta {
+  opacity: 0.75;
+  font-size: 13px;
+}
+
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.cardTitle {
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.keyVal {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.key {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.val {
+  font-size: 13px;
+}
+
+.muted {
+  opacity: 0.75;
+}
+
+.inlineLink {
+  text-decoration: underline;
+  color: inherit;
+}
+
+.paymentBlock {
+  display: grid;
+  gap: 10px;
+}
+
+.paymentStatus {
+  opacity: 0.8;
+  font-size: 13px;
+}
+
+.checkoutUrl {
+  font-size: 12px;
+  opacity: 0.75;
+  word-break: break-all;
+}
+
+.eventsList {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.eventItem {
+  margin-bottom: 6px;
+}
+
+.eventStatus {
+  font-weight: 700;
+}
+
+.eventTime {
+  opacity: 0.7;
+  font-size: 12px;
+}

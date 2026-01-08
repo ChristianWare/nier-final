@@ -23,7 +23,7 @@ export default async function AdminVehicleCategoriesPage() {
           href='/admin/vehicle-categories/new'
           text='New category'
           btnType='black'
-          arrow
+          plus
         />
       </header>
 

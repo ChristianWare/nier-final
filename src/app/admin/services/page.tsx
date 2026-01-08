@@ -20,7 +20,7 @@ export default async function AdminServicesPage() {
           href='/admin/services/new'
           text='New service'
           btnType='black'
-          arrow
+          plus
         />
       </header>
 

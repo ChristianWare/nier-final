@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import Link from "next/link";
 import styles from "./Button.module.css";
 import Arrow from "../icons/Arrow/Arrow";
+import Plus from "../icons/Plus/Plus";
 
 interface Props {
   href?: string;
@@ -11,6 +12,7 @@ interface Props {
   disabled?: boolean;
   children?: ReactNode;
   arrow?: boolean;
+  plus?: boolean;
   type?: "button" | "submit" | "reset";
   as?: "auto" | "button" | "span";
 }
@@ -23,6 +25,7 @@ export default function Button({
   disabled,
   children,
   arrow,
+  plus,
   type = "button",
   as = "auto",
 }: Props) {
@@ -35,6 +38,11 @@ export default function Button({
       {arrow && (
         <div className={styles.arrowContainer}>
           <Arrow className={styles.arrow} />
+        </div>
+      )}
+      {plus && (
+        <div className={styles.plusContainer}>
+          <Plus className={styles.arrow} />
         </div>
       )}
     </>

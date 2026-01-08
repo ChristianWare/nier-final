@@ -1,3 +1,4 @@
+import styles from "./AdminBookingDetailPage.module.css";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import ApprovePriceForm from "@/components/admin/ApprovePriceForm/ApprovePriceForm";
@@ -51,10 +52,10 @@ export default async function AdminBookingDetailPage({
   });
 
   return (
-    <section style={{ display: "grid", gap: 16, maxWidth: 980 }}>
-      <header style={{ display: "grid", gap: 6 }}>
-        <h1 style={{ margin: 0, fontSize: 22 }}>Booking</h1>
-        <div style={{ opacity: 0.75, fontSize: 13 }}>
+    <section className={styles.container}>
+      <header className={styles.header}>
+        <h1 className={`${styles.heading} h2`}>Booking</h1>
+        <div className={styles.meta}>
           ID: {booking.id} • Status: <strong>{booking.status}</strong>
         </div>
       </header>
@@ -84,9 +85,12 @@ export default async function AdminBookingDetailPage({
 
       <Card title='Assign (allowed before payment)'>
         {drivers.length === 0 ? (
-          <div style={{ opacity: 0.75 }}>
+          <div className={styles.muted}>
             No drivers yet. Create users and assign DRIVER role in{" "}
-            <a href='/admin/users'>Users</a>.
+            <a className={styles.inlineLink} href='/admin/users'>
+              Users
+            </a>
+            .
           </div>
         ) : (
           <AssignBookingForm
@@ -111,15 +115,13 @@ export default async function AdminBookingDetailPage({
       </Card>
 
       <Card title='Payment link'>
-        <div style={{ display: "grid", gap: 10 }}>
-          <div style={{ opacity: 0.8, fontSize: 13 }}>
+        <div className={styles.paymentBlock}>
+          <div className={styles.paymentStatus}>
             Payment status: <strong>{booking.payment?.status ?? "NONE"}</strong>
           </div>
           <SendPaymentLinkButton bookingId={booking.id} />
           {booking.payment?.checkoutUrl ? (
-            <div
-              style={{ fontSize: 12, opacity: 0.75, wordBreak: "break-all" }}
-            >
+            <div className={styles.checkoutUrl}>
               Latest checkout URL: {booking.payment.checkoutUrl}
             </div>
           ) : null}
@@ -128,13 +130,13 @@ export default async function AdminBookingDetailPage({
 
       <Card title='Status events'>
         {booking.statusEvents.length === 0 ? (
-          <div style={{ opacity: 0.75 }}>No events yet.</div>
+          <div className={styles.muted}>No events yet.</div>
         ) : (
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
+          <ul className={styles.eventsList}>
             {booking.statusEvents.map((e) => (
-              <li key={e.id} style={{ marginBottom: 6 }}>
-                <span style={{ fontWeight: 700 }}>{e.status}</span>{" "}
-                <span style={{ opacity: 0.7, fontSize: 12 }}>
+              <li key={e.id} className={styles.eventItem}>
+                <span className={styles.eventStatus}>{e.status}</span>{" "}
+                <span className={styles.eventTime}>
                   — {new Date(e.createdAt).toLocaleString()}
                 </span>
               </li>
@@ -154,14 +156,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        border: "1px solid rgba(0,0,0,0.12)",
-        borderRadius: 14,
-        padding: 14,
-      }}
-    >
-      <div style={{ fontWeight: 800, marginBottom: 10 }}>{title}</div>
+    <div className={styles.card}>
+      <div className={styles.cardTitle}>{title}</div>
       {children}
     </div>
   );
@@ -169,16 +165,9 @@ function Card({
 
 function KeyVal({ k, v }: { k: string; v: string }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "180px 1fr",
-        gap: 10,
-        padding: "6px 0",
-      }}
-    >
-      <div style={{ fontSize: 12, opacity: 0.65 }}>{k}</div>
-      <div style={{ fontSize: 13 }}>{v}</div>
+    <div className={styles.keyVal}>
+      <div className={styles.key}>{k}</div>
+      <div className={styles.val}>{v}</div>
     </div>
   );
 }

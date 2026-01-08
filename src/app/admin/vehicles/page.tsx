@@ -21,7 +21,7 @@ export default async function AdminVehiclesPage() {
           href='/admin/vehicles/new'
           text='New vehicle'
           btnType='black'
-          arrow
+          plus
         />
       </header>
 

@@ -3,6 +3,7 @@ import styles from "./BookingsPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { Prisma, BookingStatus } from "@prisma/client";
+import Button from "@/components/shared/Button/Button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -211,6 +212,13 @@ export default async function AdminBookingsPage({
           <div className={styles.top}>
             <h1 className={`${styles.heading} h2`}>Bookings</h1>
           </div>
+            <Button
+              href='/admin/bookings/new'
+              text='New Booking'
+              btnType='black'
+              plus
+            />
+            <br />
           <div className={styles.meta}>
             <strong>{totalCount}</strong> total
             {totalCount > 0 ? (
@@ -220,6 +228,7 @@ export default async function AdminBookingsPage({
               </span>
             ) : null}
           </div>
+          <br />
         </div>
 
         <div className={styles.filters}>

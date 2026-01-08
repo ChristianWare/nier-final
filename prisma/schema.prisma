@@ -337,10 +337,11 @@ model Payment {
 
   status PaymentStatus @default(NONE)
 
-  // Stripe identifiers
   stripeCheckoutSessionId String? @unique
   stripePaymentIntentId   String? @unique
   stripeCustomerId        String?
+
+  checkoutUrl String? @db.Text
 
   amountSubtotalCents Int    @default(0)
   amountTotalCents    Int    @default(0)
@@ -352,6 +353,7 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 model Assignment {
   id String @id @default(cuid())

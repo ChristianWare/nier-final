@@ -9,7 +9,7 @@ export default function Plus(props: SVGProps<SVGSVGElement>) {
       height='1em'
       fill='none'
       stroke='currentColor'
-      strokeWidth={2}
+      strokeWidth={3}
       strokeLinecap='round'
       strokeLinejoin='round'
       className='lucide lucide-plus-icon'
