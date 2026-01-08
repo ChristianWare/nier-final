@@ -1,8 +1,8 @@
 "use client";
 
+import styles from "./AdminPageIntro.module.css";
 import { useSession } from "next-auth/react";
 import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
-import styles from "./AdminPageIntro.module.css";
 
 export type AdminPageIntroProps = {
   name?: string;

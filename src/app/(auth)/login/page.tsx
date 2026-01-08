@@ -2,6 +2,7 @@ import { auth } from "../../../../auth";
 import { redirect } from "next/navigation";
 import LoginPageIntro from "@/components/loginPage/LoginPageIntro/LoginPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
+import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,6 +30,7 @@ export default async function LoginPage({
     <main>
       <Nav background='white' />
       <LoginPageIntro />
+      <AboutNumbers />
     </main>
   );
 }

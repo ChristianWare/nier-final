@@ -1,0 +1,70 @@
+.container {
+  display: grid;
+  gap: 14px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.heading {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  width: 100%;
+}
+.tableCard {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.theadRow {
+  text-align: left;
+}
+
+.tr {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.th {
+  padding: 12px 14px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.td {
+  padding: 12px 14px;
+}
+
+.slugCell {
+  opacity: 0.75;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.toggleBtn {
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-decoration: underline;
+}
+
+.newServiceLink,
+.editLink {
+  text-decoration: underline;
+}

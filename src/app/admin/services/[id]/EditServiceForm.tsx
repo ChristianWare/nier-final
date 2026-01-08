@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { slugify } from "@/lib/slugify";
 
-type ActionResult = { success?: string; error?: string };
+export type ActionResult = { success?: string; error?: string };
 
 type ServiceTypeDTO = {
   id: string;

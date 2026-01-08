@@ -1,3 +1,4 @@
+import styles from "./EditServicePage.module.css";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -5,7 +6,7 @@ import {
   updateService,
   deleteService,
 } from "../../../../../actions/admin/services";
-import EditServiceForm from "./EditServiceForm";
+import EditServiceForm, { type ActionResult } from "./EditServiceForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,31 +24,40 @@ export default async function EditServicePage({
 
   if (!service) notFound();
 
-  // Wrap server actions so the client form can call them cleanly
-  async function updateAction(formData: FormData) {
+  async function updateAction(formData: FormData): Promise<ActionResult> {
     "use server";
-    await updateService(id, formData);
+    try {
+      const res = await updateService(id, formData);
+      return (res ?? { success: "ok" }) as ActionResult;
+    } catch {
+      return { error: "Failed to update service." };
+    }
   }
 
-  async function deleteAction() {
+  async function deleteAction(): Promise<ActionResult> {
     "use server";
-    await deleteService(id);
+    try {
+      const res = await deleteService(id);
+      return (res ?? { success: "ok" }) as ActionResult;
+    } catch {
+      return { error: "Failed to delete service." };
+    }
   }
 
   return (
-    <section style={{ display: "grid", gap: 14, maxWidth: 760 }}>
-      <header
-        style={{ display: "flex", justifyContent: "space-between", gap: 12 }}
-      >
-        <div style={{ display: "grid", gap: 6 }}>
-          <h1 style={{ margin: 0, fontSize: 22 }}>Edit service</h1>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>
-            <span style={{ fontFamily: "monospace" }}>{service.id}</span>
+    <section className={styles.container}>
+      <header className={styles.header}>
+        <div className={styles.titleBlock}>
+          <h1 className={`${styles.heading} h2`}>Edit service</h1>
+          <div className={styles.meta}>
+            <span className={styles.mono}>{service.id}</span>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <Link href='/admin/services'>Back</Link>
+        <div className={styles.headerActions}>
+          <Link href='/admin/services' className={styles.backLink}>
+            Back
+          </Link>
         </div>
       </header>
 

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import RegisterPageIntro from "@/components/registerPage/RegisterPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
 import Footer from "@/components/shared/Footer/Footer";
+import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
 function roleHome(role?: string) {
   if (role === "ADMIN") return "/admin";
@@ -17,7 +18,7 @@ export default async function RegisterPage() {
     <main>
       <Nav background='white' />
       <RegisterPageIntro />
-      <Footer />
+      <AboutNumbers />
     </main>
   );
 }

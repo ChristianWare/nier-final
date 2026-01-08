@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import styles from "./BookingsPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import styles from "./BookingsPage.module.css";
 import { Prisma, BookingStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
@@ -208,7 +208,9 @@ export default async function AdminBookingsPage({
     <section className={styles.container}>
       <header className={styles.header}>
         <div className={styles.headerTop}>
-          <h1 className={styles.heading}>Bookings</h1>
+          <div className={styles.top}>
+            <h1 className={`${styles.heading} h2`}>Bookings</h1>
+          </div>
           <div className={styles.meta}>
             <strong>{totalCount}</strong> total
             {totalCount > 0 ? (

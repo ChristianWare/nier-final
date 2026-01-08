@@ -1,0 +1,45 @@
+/* .container {
+  display: grid;
+  gap: 14px;
+  max-width: 760px;
+} */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.heading {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  width: 100%;
+}
+
+.titleBlock {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.meta {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.mono {
+  font-family: monospace;
+}
+
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.backLink {
+  text-decoration: underline;
+}
