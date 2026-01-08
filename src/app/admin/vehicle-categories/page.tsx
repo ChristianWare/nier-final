@@ -2,6 +2,7 @@ import styles from "./AdminVehicleCategoriesPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { toggleVehicleCategory } from "../../../../actions/admin/vehicleCategories";
+import Button from "@/components/shared/Button/Button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,9 +16,15 @@ export default async function AdminVehicleCategoriesPage() {
     <section className={styles.container}>
       <header className={styles.header}>
         <h1 className={`${styles.heading} h2`}>Vehicle categories</h1>
-        <Link href='/admin/vehicle-categories/new' className={styles.newLink}>
+        {/* <Link href='/admin/vehicle-categories/new' className={styles.newLink}>
           New category
-        </Link>
+        </Link> */}
+        <Button
+          href='/admin/vehicle-categories/new'
+          text='New category'
+          btnType='black'
+          arrow
+        />
       </header>
 
       <div className={styles.tableCard}>

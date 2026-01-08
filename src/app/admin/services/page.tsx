@@ -2,6 +2,7 @@ import styles from "./ServicesPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { toggleService } from "../../../../actions/admin/services";
+import Button from "@/components/shared/Button/Button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,9 +16,12 @@ export default async function AdminServicesPage() {
     <section className={styles.container}>
       <header className={styles.header}>
         <h1 className={`${styles.heading} h2`}>Services</h1>
-        <Link href='/admin/services/new' className={styles.newServiceLink}>
-          New service
-        </Link>
+        <Button
+          href='/admin/services/new'
+          text='New service'
+          btnType='black'
+          arrow
+        />
       </header>
 
       <div className={styles.tableCard}>
