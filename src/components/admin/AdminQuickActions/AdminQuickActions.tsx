@@ -1,5 +1,5 @@
-import Link from "next/link";
 import styles from "./AdminQuickActions.module.css";
+import Button from "@/components/shared/Button/Button";
 
 type QuickAction = {
   label: string;
@@ -40,20 +40,18 @@ export default function AdminQuickActions() {
     <section className={styles.container} aria-label='Quick actions'>
       <header className={styles.header}>
         <h2 className={`${styles.title} h4`}>Quick actions</h2>
-        <div className={styles.meta}>Go do the thing</div>
       </header>
 
       <div className={styles.grid}>
         {ACTIONS.map((a) => (
-          <Link key={a.href} href={a.href} className={styles.card}>
-            <div className={styles.cardTop}>
-              <div className={styles.label}>{a.label}</div>
-              <div className={styles.arrow}>→</div>
+          <div key={a.href} className={styles.card}>
+            <div className={styles.btnContainer}>
+              <Button href={a.href} text={a.label} btnType='black' arrow />
             </div>
             {a.description ? (
-              <div className={styles.desc}>{a.description}</div>
+              <p className={styles.desc}>{a.description}</p>
             ) : null}
-          </Link>
+          </div>
         ))}
       </div>
     </section>

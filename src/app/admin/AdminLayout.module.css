@@ -10,6 +10,9 @@
 
 .heading {
   display: none;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  width: 100%;
 }
 
 .AdminSideNavContainer {
@@ -33,6 +36,6 @@
     display: block;
     text-align: center;
     width: 100%;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
 }

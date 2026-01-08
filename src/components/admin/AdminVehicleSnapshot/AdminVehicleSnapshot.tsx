@@ -67,7 +67,7 @@ function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className={styles.metric}>
       <div className={styles.metricLabel}>{label}</div>
-      <div className={styles.metricValue}>{value}</div>
+      <p className={styles.metricValue}>{value}</p>
     </div>
   );
 }

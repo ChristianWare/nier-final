@@ -50,7 +50,7 @@
 
 .left {
   display: grid;
-  gap: 0.35rem;
+  gap: 2rem;
 }
 
 .topLine {
@@ -64,6 +64,8 @@
 
 .kind {
   font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: normal;
 }
 
 .dot {
@@ -71,22 +73,22 @@
 }
 
 .time {
-  opacity: 0.8;
+  color: var(--paragraph);
 }
 
 .titleLine {
   font-size: 1.35rem;
   font-weight: 800;
+  letter-spacing: normal;
 }
 
 .subtitle {
-  font-size: 1.25rem;
-  opacity: 0.85;
+  color: var(--paragraph);
 }
 
 .right {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: flex-end;
 }
 

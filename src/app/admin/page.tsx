@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import styles from "./AdminStyles.module.css";
 import AdminPageIntro from "@/components/admin/AdminPageIntro/AdminPageIntro";
 import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
 import AdminAlerts, {
@@ -552,7 +553,7 @@ export default async function AdminHome() {
     .slice(0, 10);
 
   return (
-    <>
+    <section className={styles.content}>
       <AdminPageIntro
         pendingReview={pendingReview}
         pendingPayment={pendingPayment}
@@ -602,6 +603,6 @@ export default async function AdminHome() {
         stuckReview={stuckReview as unknown as UrgentBookingItem[]}
         timeZone='America/Phoenix'
       />
-    </>
+    </section>
   );
 }

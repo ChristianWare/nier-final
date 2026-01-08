@@ -1,5 +1,5 @@
-import Link from "next/link";
 import styles from "./AdminAlerts.module.css";
+import Link from "next/link";
 
 export type AlertItem = {
   id: string;
@@ -31,7 +31,7 @@ export default function AdminAlerts({ alerts }: Props) {
             <li key={a.id} className={`${styles.row} ${styles[a.severity]}`}>
               <div className={styles.left}>
                 <div className={styles.sev}>{labelSeverity(a.severity)}</div>
-                <div className={styles.msg}>{a.message}</div>
+                <p className={styles.msg}>{a.message}</p>
               </div>
 
               <div className={styles.right}>

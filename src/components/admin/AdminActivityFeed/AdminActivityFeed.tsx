@@ -1,5 +1,5 @@
-import Link from "next/link";
 import styles from "./AdminActivityFeed.module.css";
+import Link from "next/link";
 
 export type AdminActivityItem = {
   kind: "STATUS" | "ASSIGNMENT" | "PAYMENT_RECEIVED" | "PAYMENT_LINK_SENT";
@@ -40,9 +40,9 @@ export default function AdminActivityFeed({
                 <div className={styles.topLine}>
                   <span className={styles.kind}>{labelKind(x.kind)}</span>
                   <span className={styles.dot}>•</span>
-                  <span className={styles.time}>
+                  <p className={styles.time}>
                     {formatDateTime(x.at, timeZone)}
-                  </span>
+                  </p>
                 </div>
 
                 <div className={styles.titleLine}>{x.title}</div>

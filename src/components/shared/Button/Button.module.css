@@ -71,8 +71,9 @@
 }
 
 .black:hover {
-  background-color: var(--cream);
-  color: var(--black);
+  border: 1px solid var(--black400);
+  background-color: var(--black400);
+  color: var(--cream);
 }
 
 .blackAdmin,
