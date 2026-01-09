@@ -28,7 +28,8 @@ export default function Nav({
 
   const role = session?.user?.role;
   const isAuthed = Boolean(session?.user);
-  const displayName = (session?.user?.name ?? "Account").trim() || "Account";
+  const fullName = (session?.user?.name ?? "").trim();
+  const firstName = fullName.split(/\s+/)[0] || "there";
 
   const accountHref = !isAuthed
     ? "/login"
@@ -38,7 +39,7 @@ export default function Nav({
         ? "/driver-dashboard"
         : "/dashboard";
 
-  const accountText = !isAuthed ? "Login" : displayName;
+  const accountText = !isAuthed ? "Login" : `Hello, ${firstName} (Account)`;
 
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
