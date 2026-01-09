@@ -17,6 +17,12 @@
   gap: 3rem;
 }
 
+.heading {
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 1rem;
+  width: 100%;
+}
+
 .imgContainer {
   position: relative;
   width: 100%;
@@ -28,13 +34,9 @@
   border-radius: 20px;
 }
 
-.heading {
-  font-size: 5rem;
-}
-
 .copy {
   max-width: 500px;
-  font-size: 1.6rem;
+  color: var(--paragraph);
 }
 
 .right {
@@ -42,7 +44,7 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .icon {
@@ -58,7 +60,6 @@
 @media screen and (max-width: 1268px) {
   .content {
     grid-template-columns: repeat(1, 1fr);
-    /* grid-gap: 0rem; */
     margin-top: 3rem;
   }
 
@@ -78,7 +79,8 @@
     text-align: center;
   }
 
-  .formContainer {
+  .formContainer,
+  .heading {
     width: 80%;
     margin-left: auto;
     margin-right: auto;
@@ -94,7 +96,8 @@
 }
 
 @media screen and (max-width: 768px) {
-  .formContainer {
+  .formContainer,
+  .heading {
     width: 100%;
   }
 }

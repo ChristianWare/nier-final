@@ -16,8 +16,8 @@ export default function LoginPageIntro() {
             </div>
           </div>
           <div className={styles.right}>
-            <SectionHeading text='Nier Transportation' />
-            <h1 className={styles.heading}>Welcome back</h1>
+            <SectionHeading text='Login' dot />
+            <h1 className={`${styles.heading} h2`}>Welcome back</h1>
             <p className={styles.copy}>
               Enter your email and password to access your account
             </p>

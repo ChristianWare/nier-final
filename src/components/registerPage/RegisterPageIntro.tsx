@@ -3,6 +3,7 @@ import LayoutWrapper from "../shared/LayoutWrapper";
 import RegisterForm from "../auth/RegisterForm/RegisterForm";
 import Image from "next/image";
 import Img1 from "../../../public/images/airport2.jpg";
+import SectionHeading from "../shared/SectionHeading/SectionHeading";
 
 export default function RegisterPageIntro() {
   return (
@@ -16,7 +17,8 @@ export default function RegisterPageIntro() {
               </div>
             </div>
             <div className={styles.right}>
-              <h1 className={styles.heading}>Create An Account</h1>{" "}
+              <SectionHeading text='Register' dot />
+              <h1 className={`${styles.heading} h2`}>Create An Account</h1>{" "}
               <p className={styles.copy}>
                 Let’s get started with your free account
               </p>

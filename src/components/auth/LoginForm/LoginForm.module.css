@@ -19,8 +19,8 @@
   top: 50%;
   left: 0;
   width: 40%;
-  height: 1px;
-  background-color: var(--gray);
+  height: 2px;
+  background-color: var(--stroke);
 }
 
 .or:before {
@@ -29,8 +29,8 @@
   top: 50%;
   right: 0;
   width: 40%;
-  height: 1px;
-  background-color: var(--gray);
+  height: 2px;
+  background-color: var(--stroke);
 }
 
 .btnContainer {

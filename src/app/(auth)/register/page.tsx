@@ -2,7 +2,6 @@ import { auth } from "../../../../auth";
 import { redirect } from "next/navigation";
 import RegisterPageIntro from "@/components/registerPage/RegisterPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
-import Footer from "@/components/shared/Footer/Footer";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
 function roleHome(role?: string) {
