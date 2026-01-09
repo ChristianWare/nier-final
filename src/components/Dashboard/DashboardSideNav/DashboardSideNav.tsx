@@ -13,13 +13,13 @@ import Listing from "@/components/shared/icons/Listing/Listing";
 import Bell from "@/components/shared/icons/Bell/Bell";
 import Users from "@/components/shared/icons/Users/Users";
 import Cog from "@/components/shared/icons/Cog/Cog";
-import Wheel from "@/components/shared/icons/Wheel/Wheel";
+import Email from "@/components/shared/icons/Email/Email";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/dashboard", icon: <House /> },
-  { title: "Book a Ride", href: "/dashboard/book", icon: <Car /> },
+  { title: "Book a Ride", href: "/book", icon: <Car /> },
   { title: "My Trips", href: "/dashboard/trips", icon: <Calendar /> },
   {
     title: "Payments & Receipts",
@@ -29,7 +29,7 @@ const NAV_ITEMS = [
   { title: "Saved Details", href: "/dashboard/saved", icon: <Users /> },
   { title: "Notifications", href: "/dashboard/notifications", icon: <Bell /> },
   { title: "Profile & Security", href: "/dashboard/profile", icon: <Cog /> },
-  { title: "Support", href: "/dashboard/support", icon: <Wheel /> },
+  { title: "Support", href: "/dashboard/support", icon: <Email /> },
 ];
 
 export default function DashboardSideNav() {

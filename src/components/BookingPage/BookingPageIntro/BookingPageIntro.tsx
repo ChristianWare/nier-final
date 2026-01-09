@@ -21,9 +21,9 @@ export default function BookingPageIntro() {
           <div className={styles.content}>
             <SectionHeading text='Nier Transportation' color='cream' dot />
             <h1 className={styles.heading}>Book A ride </h1>
-            <p className={styles.copy}>
+            {/* <p className={styles.copy}>
               Request a ride. A dispatcher will confirm and send a payment link.
-            </p>
+            </p> */}
           </div>
         </div>
       </LayoutWrapper>
