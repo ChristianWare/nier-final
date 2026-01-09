@@ -4,12 +4,6 @@
   grid-gap: 3rem;
 }
 
-/* .header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-} */
-
 .actions {
   display: flex;
   align-items: flex-start;
@@ -81,11 +75,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-}
-
-.cardTitle {
-  margin: 0;
-  font-size: 16px;
 }
 
 .badge {

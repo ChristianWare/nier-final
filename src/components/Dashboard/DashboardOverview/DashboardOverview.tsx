@@ -160,11 +160,11 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
               <p className={styles.emptyCopy}>
                 Ready when you are—book a ride anytime.
               </p>
-              <div className={styles.btnRow}>
+              {/* <div className={styles.btnRow}>
                 <Link className={styles.primaryBtn} href='/book'>
                   Book a ride
                 </Link>
-              </div>
+              </div> */}
             </div>
           ) : (
             <>

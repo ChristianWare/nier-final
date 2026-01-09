@@ -1,5 +1,5 @@
 // src/app/dashboard/page.tsx
-import styles from './DashboardPage.module.css'
+import styles from "./DashboardPage.module.css";
 import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -24,10 +24,6 @@ const UPCOMING_STATUSES: BookingStatus[] = [
 export default async function DashboardHomePage() {
   const session = await auth();
   if (!session) redirect("/login?next=/dashboard");
-
-  const role = session?.user?.role;
-  if (role === "ADMIN") redirect("/admin");
-  if (role === "DRIVER") redirect("/driver");
 
   const email = session.user?.email ?? null;
   const sessionUserId = (session.user as { id?: string }).id ?? null;
