@@ -12,7 +12,7 @@ export default async function EmailVerificationPage({
 
   return (
     <main>
-      <Nav />
+      <Nav background='white' />
       <EmailVerificationClient token={token} />
     </main>
   );
