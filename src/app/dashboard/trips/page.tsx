@@ -28,16 +28,19 @@ const PAST_STATUSES: BookingStatus[] = [
 
 type Tab = "upcoming" | "past" | "drafts";
 
-function normalizeTab(v?: string): Tab {
+function normalizeTab(v?: string | null): Tab {
   if (v === "past") return "past";
   if (v === "drafts") return "drafts";
   return "upcoming";
 }
 
+type SearchParams = { tab?: string | string[] };
+
 export default async function DashboardTripsPage({
   searchParams,
 }: {
-  searchParams?: { tab?: string };
+  // ✅ robust across Next versions (some pass as Promise)
+  searchParams?: SearchParams | Promise<SearchParams>;
 }) {
   const session = await auth();
   if (!session) redirect("/login?next=/dashboard/trips");
@@ -57,7 +60,11 @@ export default async function DashboardTripsPage({
 
   if (!userId) redirect("/login?next=/dashboard/trips");
 
-  const tab = normalizeTab(searchParams?.tab);
+  // ✅ Works whether searchParams is object OR Promise
+  const sp = await Promise.resolve(searchParams);
+
+  const rawTab = Array.isArray(sp?.tab) ? sp?.tab[0] : sp?.tab;
+  const tab = normalizeTab(rawTab);
 
   const [upcomingCount, pastCount, draftsCount] = await Promise.all([
     db.booking.count({
@@ -101,6 +108,7 @@ export default async function DashboardTripsPage({
   return (
     <section className={styles.container}>
       <DashboardTrips
+        key={tab} // ✅ ensure clean rerender when query changes
         tab={tab}
         counts={{
           upcoming: upcomingCount,

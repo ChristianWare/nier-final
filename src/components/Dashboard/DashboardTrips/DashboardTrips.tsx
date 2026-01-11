@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import styles from "./DashboardTrips.module.css";
 import Link from "next/link";
-import { Prisma, BookingStatus, PaymentStatus } from "@prisma/client";
+import { Prisma, BookingStatus } from "@prisma/client";
 import { cancelTrip } from "../../../../actions/bookings/cancelTrips"; 
 import CancelTripButton from "../CancelTripButton/CancelTripButton";
 
@@ -126,24 +125,30 @@ export default function DashboardTrips({
   return (
     <section className={styles.container} aria-label='My trips'>
       <header className={styles.header}>
-          <h1 className={`${styles.heading} h2`}>My trips</h1>          
+        <div className={styles.titleBox}>
+          <h1 className={`${styles.heading} h2`}>My trips</h1>
+          <p className={styles.subheading}>
+            Manage upcoming rides, view history, and handle payments.
+          </p>
+        </div>
+
         <nav className={styles.tabs} aria-label='Trip filters'>
           <Link
-            href='/dashboard/trips?tab=upcoming'
+            href={{ pathname: "/dashboard/trips", query: { tab: "upcoming" } }}
             className={`${styles.tab} ${tab === "upcoming" ? styles.tabActive : ""}`}
           >
             Upcoming <span className={styles.count}>{counts.upcoming}</span>
           </Link>
 
           <Link
-            href='/dashboard/trips?tab=past'
+            href={{ pathname: "/dashboard/trips", query: { tab: "past" } }}
             className={`${styles.tab} ${tab === "past" ? styles.tabActive : ""}`}
           >
             Past <span className={styles.count}>{counts.past}</span>
           </Link>
 
           <Link
-            href='/dashboard/trips?tab=drafts'
+            href={{ pathname: "/dashboard/trips", query: { tab: "drafts" } }}
             className={`${styles.tab} ${tab === "drafts" ? styles.tabActive : ""}`}
           >
             Drafts <span className={styles.count}>{counts.drafts}</span>
