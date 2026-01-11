@@ -126,13 +126,7 @@ export default function DashboardTrips({
   return (
     <section className={styles.container} aria-label='My trips'>
       <header className={styles.header}>
-        <div className={styles.titleBox}>
-          <h1 className={`${styles.heading} h2`}>My trips</h1>
-          <p className={styles.subheading}>
-            Manage upcoming rides, view history, and handle payments.
-          </p>
-        </div>
-
+          <h1 className={`${styles.heading} h2`}>My trips</h1>          
         <nav className={styles.tabs} aria-label='Trip filters'>
           <Link
             href='/dashboard/trips?tab=upcoming'
