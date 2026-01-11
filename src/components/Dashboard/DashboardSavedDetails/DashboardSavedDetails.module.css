@@ -1,0 +1,180 @@
+.container {
+  display: grid;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.titleBox {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.heading {
+  margin: 0;
+}
+
+.subheading {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--paragraph);
+  max-width: 70ch;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.cardTitle {
+  margin: 0;
+}
+
+.rows {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.key {
+  font-size: 1.25rem;
+  opacity: 0.75;
+}
+
+.val {
+  font-size: 1.35rem;
+  color: var(--black);
+  word-break: break-word;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.item {
+  padding: 1rem;
+  border-radius: 10px;
+  background: var(--cream);
+  border: 1px solid var(--stroke);
+}
+
+.itemLeft {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.itemTitle {
+  font-weight: 900;
+  font-size: 1.35rem;
+  word-break: break-word;
+}
+
+.itemMeta {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+}
+
+.muted {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--paragraph);
+}
+
+.btnRow {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 1.3rem;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid var(--stroke);
+}
+
+.primaryBtn {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+.secondaryBtn {
+  background: var(--cream);
+  color: var(--black);
+}
+
+.empty {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-weight: 900;
+  font-size: 1.6rem;
+}
+
+.emptyCopy {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--paragraph);
+}
+
+@media screen and (max-width: 1000px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
