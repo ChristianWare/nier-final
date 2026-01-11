@@ -14,10 +14,21 @@ import bcryptjs from "bcryptjs";
 
 export type AppRole = "USER" | "ADMIN" | "DRIVER";
 
+function derivePrimaryRole(roles: AppRole[]): AppRole {
+  if (roles.includes("ADMIN")) return "ADMIN";
+  if (roles.includes("DRIVER")) return "DRIVER";
+  return "USER";
+}
+
 declare module "next-auth" {
   interface Session {
     user: {
+      // ✅ new
+      roles?: AppRole[];
+
+      // ✅ keep for backwards compatibility while you migrate checks
       role?: AppRole;
+
       userId?: string;
       emailVerified?: Date | null;
     } & DefaultSession["user"];
@@ -26,7 +37,12 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
   interface JWT {
+    // ✅ new
+    roles?: AppRole[];
+
+    // ✅ keep for backwards compatibility
     role?: AppRole;
+
     userId?: string;
     emailVerified?: Date | null;
   }
@@ -78,19 +94,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     /**
      * Server-side JWT callback (Node runtime) — allowed to hit the DB.
-     * We standardize token fields here so middleware & server agree:
+     * Standardize token fields:
      * - token.userId
-     * - token.role
+     * - token.roles
+     * - token.role (derived primary for compatibility)
      * - token.emailVerified
      */
     async jwt({ token }) {
       if (!token.email) return token;
 
-      const user = await getUserByEmail(token.email);
+      // Pull both during transition (role + roles)
+      const user = await db.user.findUnique({
+        where: { email: token.email },
+        select: {
+          id: true,
+          role: true,
+          roles: true,
+          emailVerified: true,
+        },
+      });
+
       if (!user) return token;
 
+      const roles =
+        user.roles && user.roles.length > 0
+          ? (user.roles as unknown as AppRole[])
+          : ([user.role] as unknown as AppRole[]);
+
       token.userId = user.id;
-      token.role = user.role as AppRole;
+      token.roles = roles;
+      token.role = derivePrimaryRole(roles);
       token.emailVerified = user.emailVerified ?? null;
 
       return token;
@@ -98,9 +131,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async session({ session, token }) {
       if (token.userId) session.user.userId = token.userId;
+
+      if (token.roles) session.user.roles = token.roles;
       if (token.role) session.user.role = token.role;
-      if ("emailVerified" in token)
+
+      if ("emailVerified" in token) {
         session.user.emailVerified = token.emailVerified ?? null;
+      }
 
       return session;
     },

@@ -8,16 +8,51 @@ export const { auth: withAuth } = NextAuth(authConfig);
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
-function getRole(req: any): AppRole | undefined {
-  return (
+function getRoles(req: any): AppRole[] {
+  // Try the most likely places where NextAuth can expose the token/session in middleware
+  const roles =
+    req?.auth?.user?.roles ??
+    req?.auth?.roles ??
+    req?.auth?.token?.roles ??
+    null;
+
+  if (Array.isArray(roles) && roles.length > 0) {
+    return roles as AppRole[];
+  }
+
+  // Fallback to legacy single role
+  const role =
     req?.auth?.user?.role ??
     req?.auth?.role ??
     req?.auth?.token?.role ??
-    undefined
-  );
+    undefined;
+
+  return role ? ([role] as AppRole[]) : [];
 }
 
-function roleHome(role?: AppRole) {
+function hasRole(req: any, role: AppRole) {
+  return getRoles(req).includes(role);
+}
+
+function primaryRole(req: any): AppRole | undefined {
+  // Use explicit primary if present, otherwise derive from roles
+  const r =
+    req?.auth?.user?.role ??
+    req?.auth?.role ??
+    req?.auth?.token?.role ??
+    undefined;
+
+  if (r) return r as AppRole;
+
+  const roles = getRoles(req);
+  if (roles.includes("ADMIN")) return "ADMIN";
+  if (roles.includes("DRIVER")) return "DRIVER";
+  if (roles.includes("USER")) return "USER";
+  return undefined;
+}
+
+function roleHome(req: any) {
+  const role = primaryRole(req);
   if (role === "ADMIN") return "/admin";
   if (role === "DRIVER") return "/driver-dashboard";
   return "/dashboard";
@@ -44,27 +79,31 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
     isSettings || isAdminArea || isDriverDashboard || isUserDashboard;
 
   const isLoggedIn = !!req.auth;
-  const role = getRole(req);
 
+  // Logged-in users should not see auth pages
   if (isLoggedIn && authPages.has(pathname)) {
-    return NextResponse.redirect(new URL(roleHome(role), nextUrl));
+    return NextResponse.redirect(new URL(roleHome(req), nextUrl));
   }
 
+  // Not logged in → redirect to login for protected areas
   if (!isLoggedIn && authedOnly) {
     const url = new URL("/login", nextUrl);
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
 
-  if (isAdminArea && role !== "ADMIN") {
+  // ✅ Admin area requires ADMIN
+  if (isAdminArea && !hasRole(req, "ADMIN")) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 
-  if (isDriverDashboard && role !== "DRIVER" && role !== "ADMIN") {
+  // ✅ Driver dashboard allows DRIVER or ADMIN
+  if (isDriverDashboard && !hasRole(req, "DRIVER") && !hasRole(req, "ADMIN")) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 
-  if (isUserDashboard && role !== "USER" && role !== "ADMIN") {
+  // ✅ User dashboard allows USER or ADMIN
+  if (isUserDashboard && !hasRole(req, "USER") && !hasRole(req, "ADMIN")) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 

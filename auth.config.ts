@@ -2,6 +2,14 @@
 // auth.config.ts
 import type { NextAuthConfig } from "next-auth";
 
+type AppRole = "USER" | "ADMIN" | "DRIVER";
+
+function derivePrimaryRole(roles: AppRole[]): AppRole {
+  if (roles.includes("ADMIN")) return "ADMIN";
+  if (roles.includes("DRIVER")) return "DRIVER";
+  return "USER";
+}
+
 const authConfig = {
   providers: [], // required by the type (real providers are in auth.ts)
   session: { strategy: "jwt" },
@@ -17,11 +25,26 @@ const authConfig = {
      */
     async jwt({ token, user }) {
       if (user) {
-        // Standardize on userId + role
         token.userId = (user as any).id;
-        token.role = (user as any).role ?? "USER";
+
+        // ✅ Multi-role support (preferred)
+        const rolesFromUser = (user as any).roles as AppRole[] | undefined;
+        const roleFromUser =
+          ((user as any).role as AppRole | undefined) ?? "USER";
+
+        const roles: AppRole[] =
+          Array.isArray(rolesFromUser) && rolesFromUser.length > 0
+            ? rolesFromUser
+            : [roleFromUser];
+
+        token.roles = roles;
+
+        // ✅ Backwards compatibility (single "primary" role)
+        token.role = derivePrimaryRole(roles);
+
         token.emailVerified = (user as any).emailVerified ?? null;
       }
+
       return token;
     },
 
@@ -30,12 +53,17 @@ const authConfig = {
      * - Ensures session.user includes our standardized fields
      */
     async session({ session, token }) {
+      const roles =
+        ((token as any).roles as AppRole[] | undefined) ?? undefined;
+
       (session.user as any) = {
         ...session.user,
         userId: (token as any).userId,
-        role: (token as any).role ?? "USER",
+        roles, // ✅ new
+        role: (token as any).role ?? "USER", // ✅ keep compatibility
         emailVerified: (token as any).emailVerified ?? null,
       };
+
       return session;
     },
 

@@ -1,7 +1,8 @@
+// app/admin/users/page.tsx
 import styles from "./AdminUsersPage.module.css";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import RoleSelectForm from "@/components/admin/RoleSelectForm";
+import RoleCheckboxForm from "@/components/admin/RoleCheckboxForm/RoleCheckboxForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,22 +21,49 @@ export default async function AdminUsersPage({
     roleFilter === "ALL"
       ? {}
       : {
-          role: roleFilter,
+          OR: [
+            // ✅ New multi-role field
+            { roles: { has: roleFilter } },
+            // ✅ Legacy single role field (so filters still work pre-backfill)
+            { role: roleFilter },
+          ],
         };
 
   const users = await db.user.findMany({
     where,
-    orderBy: [{ role: "asc" }, { createdAt: "desc" }],
+    orderBy: [{ createdAt: "desc" }],
     select: {
       id: true,
       name: true,
       email: true,
+      // ✅ Pull both during transition
       role: true,
+      roles: true,
       emailVerified: true,
       createdAt: true,
     },
     take: 500,
   });
+
+  // Optional: nice grouping (Admins first, then Drivers, then Users)
+  const priority = (roles: string[]) => {
+    if (roles.includes("ADMIN")) return 0;
+    if (roles.includes("DRIVER")) return 1;
+    return 2;
+  };
+
+  const normalized = users
+    .map((u) => {
+      const roles =
+        u.roles && u.roles.length > 0 ? u.roles : ([u.role] as typeof u.roles);
+      return { ...u, roles };
+    })
+    .sort((a, b) => {
+      const pa = priority(a.roles as unknown as string[]);
+      const pb = priority(b.roles as unknown as string[]);
+      if (pa !== pb) return pa - pb;
+      return +new Date(b.createdAt) - +new Date(a.createdAt);
+    });
 
   return (
     <section className={styles.container}>
@@ -52,29 +80,37 @@ export default async function AdminUsersPage({
             <tr className={styles.theadRow}>
               <Th>Name</Th>
               <Th>Email</Th>
-              <Th>Role</Th>
+              <Th>Roles</Th>
               <Th>Verified</Th>
-              <Th>Change role</Th>
+              <Th>Update roles</Th>
             </tr>
           </thead>
+
           <tbody>
-            {users.length === 0 ? (
+            {normalized.length === 0 ? (
               <tr>
                 <td className={styles.emptyCell} colSpan={5}>
                   <div className={styles.emptyText}>No users found.</div>
                 </td>
               </tr>
             ) : (
-              users.map((u) => (
+              normalized.map((u) => (
                 <tr key={u.id} className={styles.tr}>
                   <Td>{u.name ?? "—"}</Td>
                   <Td className={styles.emailCell}>{u.email}</Td>
-                  <Td>{u.role}</Td>
+
+                  <Td>{(u.roles as unknown as string[]).join(", ")}</Td>
+
                   <Td>{u.emailVerified ? "Yes" : "No"}</Td>
+
                   <Td>
-                    <RoleSelectForm
+                    <RoleCheckboxForm
                       userId={u.id}
-                      currentRole={u.role as "USER" | "DRIVER" | "ADMIN"}
+                      initialRoles={
+                        u.roles as unknown as Array<"USER" | "DRIVER" | "ADMIN">
+                      }
+                      // Optional UX: don’t allow editing roles of unverified users
+                      // disabled={!u.emailVerified}
                     />
                   </Td>
                 </tr>

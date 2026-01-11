@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
@@ -7,17 +8,30 @@ import { auth } from "../../auth";
 import { stripe } from "@/lib/stripe";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 
+type AppRole = "USER" | "ADMIN" | "DRIVER";
+
 function requireEnv(name: string) {
   const v = process.env[name];
   if (!v) throw new Error(`Missing required env var: ${name}`);
   return v;
 }
 
+function getSessionRoles(session: any): AppRole[] {
+  const roles = session?.user?.roles;
+  if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
+
+  const role = session?.user?.role;
+  return role ? ([role] as AppRole[]) : [];
+}
+
 async function requireAdmin() {
   const session = await auth();
-  if (!session?.user?.userId || session.user.role !== "ADMIN") {
+  const roles = getSessionRoles(session);
+
+  if (!session?.user?.userId || !roles.includes("ADMIN")) {
     throw new Error("Unauthorized");
   }
+
   return session;
 }
 
@@ -76,6 +90,7 @@ const AssignSchema = z.object({
 
 export async function assignBooking(formData: FormData) {
   const session = await requireAdmin();
+
   const parsed = AssignSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid assignment data." };
 
@@ -86,6 +101,13 @@ export async function assignBooking(formData: FormData) {
     select: { id: true, status: true },
   });
   if (!booking) return { error: "Booking not found." };
+
+  const nextStatus =
+    booking.status === "COMPLETED" ||
+    booking.status === "CANCELLED" ||
+    booking.status === "NO_SHOW"
+      ? booking.status
+      : "ASSIGNED";
 
   await db.$transaction([
     db.assignment.upsert({
@@ -104,24 +126,12 @@ export async function assignBooking(formData: FormData) {
     }),
     db.booking.update({
       where: { id: bookingId },
-      data: {
-        status:
-          booking.status === "COMPLETED" ||
-          booking.status === "CANCELLED" ||
-          booking.status === "NO_SHOW"
-            ? booking.status
-            : "ASSIGNED",
-      },
+      data: { status: nextStatus },
     }),
     db.bookingStatusEvent.create({
       data: {
         bookingId,
-        status:
-          booking.status === "COMPLETED" ||
-          booking.status === "CANCELLED" ||
-          booking.status === "NO_SHOW"
-            ? booking.status
-            : "ASSIGNED",
+        status: nextStatus,
         createdById: session.user.userId,
       },
     }),
@@ -135,7 +145,8 @@ const SendPaymentSchema = z.object({
 });
 
 export async function createPaymentLinkAndEmail(formData: FormData) {
-  await requireAdmin();
+  const session = await requireAdmin();
+
   const parsed = SendPaymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid request." };
 
@@ -154,7 +165,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const successUrl = `${APP_URL}/dashboard?paid=1&bookingId=${booking.id}`;
   const cancelUrl = `${APP_URL}/dashboard?cancelled=1&bookingId=${booking.id}`;
 
-  const session = await stripe.checkout.sessions.create({
+  const stripeSession = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: booking.user.email,
     success_url: successUrl,
@@ -178,27 +189,28 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     ],
   });
 
-  if (!session.url) return { error: "Stripe did not return a checkout URL." };
+  if (!stripeSession.url)
+    return { error: "Stripe did not return a checkout URL." };
 
   await db.$transaction([
     db.payment.upsert({
       where: { bookingId: booking.id },
       update: {
         status: "PENDING",
-        stripeCheckoutSessionId: session.id,
+        stripeCheckoutSessionId: stripeSession.id,
         amountSubtotalCents: booking.subtotalCents,
         amountTotalCents: booking.totalCents,
         currency: booking.currency,
-        checkoutUrl: session.url,
+        checkoutUrl: stripeSession.url,
       },
       create: {
         bookingId: booking.id,
         status: "PENDING",
-        stripeCheckoutSessionId: session.id,
+        stripeCheckoutSessionId: stripeSession.id,
         amountSubtotalCents: booking.subtotalCents,
         amountTotalCents: booking.totalCents,
         currency: booking.currency,
-        checkoutUrl: session.url,
+        checkoutUrl: stripeSession.url,
       },
     }),
     db.booking.update({
@@ -206,7 +218,11 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
       data: { status: "PENDING_PAYMENT" },
     }),
     db.bookingStatusEvent.create({
-      data: { bookingId: booking.id, status: "PENDING_PAYMENT" },
+      data: {
+        bookingId: booking.id,
+        status: "PENDING_PAYMENT",
+        createdById: session.user.userId,
+      },
     }),
   ]);
 
@@ -218,7 +234,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     dropoffAddress: booking.dropoffAddress,
     totalCents: booking.totalCents,
     currency: booking.currency,
-    payUrl: session.url,
+    payUrl: stripeSession.url,
     bookingId: booking.id,
   });
 
