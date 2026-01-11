@@ -4,6 +4,7 @@ import "./globals.css";
 
 import Footer from "@/components/shared/Footer/Footer";
 import SessionProviderWrap from "@/components/Providers/SessionProvider";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   variable: "--inter",
@@ -25,6 +26,12 @@ export default function RootLayout({
     <html lang='en'>
       <body className={`${inter.variable} `}>
         <SessionProviderWrap>
+          <Toaster
+            position='bottom-right'
+            toastOptions={{
+              className: "toastFont",
+            }}
+          />
           {children}
           <Footer />
         </SessionProviderWrap>
