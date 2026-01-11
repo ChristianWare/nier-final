@@ -27,6 +27,14 @@ export default async function AdminLayout({
 
   const bookingNeedsAttentionCount = pendingReview + pendingPayment;
 
+const fullName =
+  session?.user?.role === "ADMIN" ? (session?.user?.name ?? "") : "";
+
+const firstName = fullName.trim().split(/\s+/)[0] ?? "";
+const displayName = firstName || "Admin";
+
+
+
   return (
     <main>
       <Nav background='white' />
@@ -34,7 +42,8 @@ export default async function AdminLayout({
         <section className={styles.container}>
           <div className={styles.content}>
             <div className={styles.left}>
-              <h1 className={`${styles.heading} h2`}>Welcome Barry!</h1>
+              <h1 className={`${styles.heading} h2`}>Welcome {displayName}! (Admin)</h1>
+
               <div className={styles.AdminSideNavContainer}>
                 <AdminSideNav
                   bookingNeedsAttentionCount={bookingNeedsAttentionCount}

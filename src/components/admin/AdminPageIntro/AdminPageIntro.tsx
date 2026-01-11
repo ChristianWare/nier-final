@@ -5,30 +5,30 @@ import { useSession } from "next-auth/react";
 import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
 
 export type AdminPageIntroProps = {
-  name?: string;
+  
   pendingReview: number;
   pendingPayment: number;
   confirmed: number;
 };
 
 export default function AdminPageIntro({
-  name,
   pendingReview,
   pendingPayment,
   confirmed,
 }: AdminPageIntroProps) {
   const { data: session } = useSession();
 
-  const sessionName =
-    session?.user?.role === "ADMIN" ? (session?.user?.name ?? "") : "";
+    const fullName =
+      session?.user?.role === "ADMIN" ? (session?.user?.name ?? "") : "";
 
-  const displayName = (name ?? sessionName ?? "Admin").trim() || "Admin";
 
+const firstName = fullName.trim().split(/\s+/)[0] ?? "";
+const displayName = firstName || "Admin";
   return (
     <section className={styles.container}>
       <div className={styles.content}>
         <div className={styles.top}>
-          <h1 className={`${styles.heading} h2`}>Welcome {displayName}!</h1>
+          <h1 className={`${styles.heading} h2`}>Welcome {displayName}! (Admin)</h1>
         </div>
 
         <div className={styles.kpiGrid}>
