@@ -9,6 +9,8 @@ import { BookingStatus, PaymentStatus } from "@prisma/client";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type AppRole = "USER" | "ADMIN" | "DRIVER";
+
 type NotificationItem = {
   id: string;
   createdAt: string; // ISO
@@ -20,7 +22,26 @@ type NotificationItem = {
   tag: "Trip update" | "Payment";
 };
 
+function getRoles(session: any): AppRole[] {
+  const roles = session?.user?.roles;
+  if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
+
+  const role = session?.user?.role;
+  return role ? ([role] as AppRole[]) : (["USER"] as AppRole[]);
+}
+
+function derivePrimaryRole(roles: AppRole[]): AppRole {
+  if (roles.includes("ADMIN")) return "ADMIN";
+  if (roles.includes("DRIVER")) return "DRIVER";
+  return "USER";
+}
+
 async function resolveUserId(session: any) {
+  // Prefer standardized field from your auth.ts
+  const standardizedUserId = session?.user?.userId ?? null;
+  if (standardizedUserId) return standardizedUserId;
+
+  // Fallbacks (older session shapes)
   const sessionUserId =
     (session?.user as { id?: string } | undefined)?.id ?? null;
   if (sessionUserId) return sessionUserId;
@@ -94,13 +115,35 @@ export default async function DashboardNotificationsPage() {
   const userId = await resolveUserId(session);
   if (!userId) redirect("/login?next=/dashboard/notifications");
 
-  const role = session.user?.role;
+  const roles = getRoles(session);
+  const viewerRole = derivePrimaryRole(roles);
+
+  const isAdmin = roles.includes("ADMIN");
+  const isDriver = roles.includes("DRIVER");
+  const isUser = roles.includes("USER");
 
   // Scope:
-  // - DRIVER: notifications for bookings assigned to them
-  // - USER/ADMIN: notifications for bookings owned by them
-  const bookingScopeWhere =
-    role === "DRIVER" ? { assignment: { driverId: userId } } : { userId };
+  // - ADMIN: all notifications
+  // - DRIVER: assigned bookings
+  // - USER: owned bookings
+  // - DRIVER+USER: assigned OR owned
+  const bookingScopeWhere = isAdmin
+    ? {}
+    : isDriver && isUser
+      ? {
+          OR: [{ userId }, { assignment: { driverId: userId } }],
+        }
+      : isDriver
+        ? { assignment: { driverId: userId } }
+        : { userId };
+
+  // Where should "View trip" go?
+  // - USER: /dashboard/trips/[id]
+  // - DRIVER/ADMIN: /driver-dashboard/trips/[id]
+  const tripBase =
+    viewerRole === "DRIVER" || viewerRole === "ADMIN"
+      ? "/driver-dashboard/trips"
+      : "/dashboard/trips";
 
   const [statusEvents, payments] = await Promise.all([
     db.bookingStatusEvent.findMany({
@@ -137,22 +180,27 @@ export default async function DashboardNotificationsPage() {
     }),
   ]);
 
-  const statusItems: NotificationItem[] = statusEvents.map((e) => ({
-    id: `se_${e.id}`,
-    createdAt: e.createdAt.toISOString(),
-    title: statusLabel(e.status),
-    subtitle: `${e.booking.pickupAddress} → ${e.booking.dropoffAddress}`,
-    bookingId: e.booking.id,
-    bookingHref: `/dashboard/trips/${e.booking.id}`,
-    links: [{ label: "View trip", href: `/dashboard/trips/${e.booking.id}` }],
-    tag: "Trip update",
-  }));
+  const statusItems: NotificationItem[] = statusEvents.map((e) => {
+    const href = `${tripBase}/${e.booking.id}`;
+    return {
+      id: `se_${e.id}`,
+      createdAt: e.createdAt.toISOString(),
+      title: statusLabel(e.status),
+      subtitle: `${e.booking.pickupAddress} → ${e.booking.dropoffAddress}`,
+      bookingId: e.booking.id,
+      bookingHref: href,
+      links: [{ label: "View trip", href }],
+      tag: "Trip update",
+    };
+  });
 
   const paymentItems: NotificationItem[] = payments.map((p) => {
     const occurredAt = (p.paidAt ?? p.updatedAt).toISOString();
 
+    const href = `${tripBase}/${p.booking.id}`;
+
     const links: { label: string; href: string }[] = [
-      { label: "View trip", href: `/dashboard/trips/${p.booking.id}` },
+      { label: "View trip", href },
     ];
 
     // Helpful links
@@ -171,7 +219,7 @@ export default async function DashboardNotificationsPage() {
       title: paymentTitle(p.status),
       subtitle: `${p.booking.pickupAddress} → ${p.booking.dropoffAddress}`,
       bookingId: p.booking.id,
-      bookingHref: `/dashboard/trips/${p.booking.id}`,
+      bookingHref: href,
       links,
       tag: "Payment",
     };

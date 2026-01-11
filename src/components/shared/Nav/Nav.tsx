@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
@@ -19,6 +20,16 @@ export interface NavProps {
   background?: "white" | "cream" | "accent";
 }
 
+type AppRole = "USER" | "ADMIN" | "DRIVER";
+
+function getRoles(session: any): AppRole[] {
+  const roles = (session?.user as any)?.roles;
+  if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
+
+  const role = (session?.user as any)?.role as AppRole | undefined;
+  return role ? ([role] as AppRole[]) : [];
+}
+
 export default function Nav({
   color = "",
   hamburgerColor = "",
@@ -26,16 +37,17 @@ export default function Nav({
 }: NavProps) {
   const { data: session, status, update } = useSession();
 
-  const role = session?.user?.role;
+  const roles = getRoles(session);
   const isAuthed = Boolean(session?.user);
+
   const fullName = (session?.user?.name ?? "").trim();
   const firstName = fullName.split(/\s+/)[0] || "there";
 
   const accountHref = !isAuthed
     ? "/login"
-    : role === "ADMIN"
+    : roles.includes("ADMIN")
       ? "/admin"
-      : role === "DRIVER"
+      : roles.includes("DRIVER")
         ? "/driver-dashboard"
         : "/dashboard";
 
@@ -131,9 +143,6 @@ export default function Nav({
 
   const forceSolid = Boolean(background);
 
-  // const btnType =
-  //   background === "accent" ? "lightRed" : background ? "black" : "transparent";
-
   const lastPathRef = useRef<string>("");
 
   useEffect(() => {
@@ -145,7 +154,6 @@ export default function Nav({
     }
   }, [pathname, status, update]);
 
-  // add this near your other computed values (after pathname/isActive/items etc.)
   const accountActive = ["/dashboard", "/admin", "/driver-dashboard"].some(
     (base) => pathname === base || pathname.startsWith(`${base}/`)
   );

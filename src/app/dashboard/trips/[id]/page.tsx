@@ -8,7 +8,22 @@ import TripDetails from "@/components/Dashboard/TripDetails/TripDetails";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type AppRole = "USER" | "ADMIN" | "DRIVER";
+
+function getRoles(session: any): AppRole[] {
+  const roles = session?.user?.roles;
+  if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
+
+  const role = session?.user?.role;
+  return role ? ([role] as AppRole[]) : (["USER"] as AppRole[]);
+}
+
 async function resolveUserId(session: any) {
+  // Prefer standardized field from your auth.ts
+  const standardizedUserId = session?.user?.userId ?? null;
+  if (standardizedUserId) return standardizedUserId;
+
+  // Fallback older session shapes
   const sessionUserId =
     (session?.user as { id?: string } | undefined)?.id ?? null;
   if (sessionUserId) return sessionUserId;
@@ -32,9 +47,13 @@ export default async function TripDetailsPage({
   const session = await auth();
   if (!session) redirect(`/login?next=/dashboard/trips/${params.id}`);
 
-  const role = session.user?.role;
   const userId = await resolveUserId(session);
   if (!userId) redirect(`/login?next=/dashboard/trips/${params.id}`);
+
+  const roles = getRoles(session);
+  const isAdmin = roles.includes("ADMIN");
+  const isDriver = roles.includes("DRIVER");
+  const isUser = roles.includes("USER");
 
   const booking = await db.booking.findUnique({
     where: { id: params.id },
@@ -64,19 +83,19 @@ export default async function TripDetailsPage({
 
   if (!booking) notFound();
 
-  // ✅ Access control:
-  // - ADMIN: can view any booking
-  // - DRIVER: can view only assigned bookings
-  // - USER: can view only their own bookings
-  const isAdmin = role === "ADMIN";
-  const isDriver = role === "DRIVER";
   const isOwner = booking.userId === userId;
   const isAssignedDriver = Boolean(
     booking.assignment && booking.assignment.driverId === userId
   );
 
+  // ✅ Access control:
+  // - ADMIN: any booking
+  // - DRIVER: assigned bookings
+  // - USER: own bookings
+  // - DRIVER + USER: union of both (assigned OR own)
   const allowed =
-    isAdmin || (isDriver && isAssignedDriver) || (!isDriver && isOwner);
+    isAdmin || (isDriver && isAssignedDriver) || (isUser && isOwner);
+
   if (!allowed) redirect("/dashboard/trips");
 
   return (
