@@ -3,7 +3,7 @@ import styles from "./AdminKPICard.module.css";
 
 export type AdminKPICardProps = {
   title: string;
-  value: number;
+  value: number | string;
 };
 
 export default function AdminKPICard({ title, value }: AdminKPICardProps) {

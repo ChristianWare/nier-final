@@ -79,7 +79,6 @@ model User {
   // Credentials auth support
   password String?
 
-  role Role @default(USER)
 
   roles Role[] @default([USER])
 

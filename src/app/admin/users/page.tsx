@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type RoleFilter = "ALL" | "ADMIN" | "DRIVER" | "USER";
+type AppRole = "USER" | "ADMIN" | "DRIVER";
 
 export default async function AdminUsersPage({
   searchParams,
@@ -21,12 +22,7 @@ export default async function AdminUsersPage({
     roleFilter === "ALL"
       ? {}
       : {
-          OR: [
-            // ✅ New multi-role field
-            { roles: { has: roleFilter } },
-            // ✅ Legacy single role field (so filters still work pre-backfill)
-            { role: roleFilter },
-          ],
+          roles: { has: roleFilter },
         };
 
   const users = await db.user.findMany({
@@ -36,8 +32,6 @@ export default async function AdminUsersPage({
       id: true,
       name: true,
       email: true,
-      // ✅ Pull both during transition
-      role: true,
       roles: true,
       emailVerified: true,
       createdAt: true,
@@ -46,7 +40,7 @@ export default async function AdminUsersPage({
   });
 
   // Optional: nice grouping (Admins first, then Drivers, then Users)
-  const priority = (roles: string[]) => {
+  const priority = (roles: AppRole[]) => {
     if (roles.includes("ADMIN")) return 0;
     if (roles.includes("DRIVER")) return 1;
     return 2;
@@ -54,13 +48,12 @@ export default async function AdminUsersPage({
 
   const normalized = users
     .map((u) => {
-      const roles =
-        u.roles && u.roles.length > 0 ? u.roles : ([u.role] as typeof u.roles);
+      const roles = (u.roles?.length ? u.roles : ["USER"]) as AppRole[];
       return { ...u, roles };
     })
     .sort((a, b) => {
-      const pa = priority(a.roles as unknown as string[]);
-      const pb = priority(b.roles as unknown as string[]);
+      const pa = priority(a.roles as AppRole[]);
+      const pb = priority(b.roles as AppRole[]);
       if (pa !== pb) return pa - pb;
       return +new Date(b.createdAt) - +new Date(a.createdAt);
     });
@@ -99,16 +92,14 @@ export default async function AdminUsersPage({
                   <Td>{u.name ?? "—"}</Td>
                   <Td className={styles.emailCell}>{u.email}</Td>
 
-                  <Td>{(u.roles as unknown as string[]).join(", ")}</Td>
+                  <Td>{(u.roles as AppRole[]).join(", ")}</Td>
 
                   <Td>{u.emailVerified ? "Yes" : "No"}</Td>
 
                   <Td>
                     <RoleCheckboxForm
                       userId={u.id}
-                      initialRoles={
-                        u.roles as unknown as Array<"USER" | "DRIVER" | "ADMIN">
-                      }
+                      initialRoles={u.roles as AppRole[]}
                       // Optional UX: don’t allow editing roles of unverified users
                       // disabled={!u.emailVerified}
                     />

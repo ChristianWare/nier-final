@@ -8,26 +8,31 @@ import { z } from "zod";
 
 type AppRole = "USER" | "DRIVER" | "ADMIN";
 
+function getActorId(session: any) {
+  return (
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined)
+  );
+}
+
+function getSessionRoles(session: any): AppRole[] {
+  const roles = session?.user?.roles;
+  return Array.isArray(roles) && roles.length > 0 ? (roles as AppRole[]) : [];
+}
+
 async function requireAdmin() {
   const session = await auth();
-  const roles =
-    session?.user?.roles ?? (session?.user?.role ? [session.user.role] : []);
+  const actorId = getActorId(session);
+  const roles = getSessionRoles(session);
 
-  if (!session?.user?.userId || !roles.includes("ADMIN")) {
+  if (!session?.user || !actorId || !roles.includes("ADMIN")) {
     throw new Error("Unauthorized");
   }
 
-  return session;
+  return { session, actorId, roles };
 }
 
 const RoleEnum = z.enum(["USER", "DRIVER", "ADMIN"]);
-
-function derivePrimaryRole(roles: AppRole[]): AppRole {
-  // priority: ADMIN > DRIVER > USER
-  if (roles.includes("ADMIN")) return "ADMIN";
-  if (roles.includes("DRIVER")) return "DRIVER";
-  return "USER";
-}
 
 const UpdateRolesSchema = z.object({
   userId: z.string().min(1),
@@ -57,7 +62,7 @@ export async function updateUserRoles(formData: FormData) {
     await db.$transaction(async (tx) => {
       const target = await tx.user.findUnique({
         where: { id: userId },
-        select: { id: true, role: true, roles: true },
+        select: { id: true, roles: true },
       });
 
       if (!target) {
@@ -65,38 +70,29 @@ export async function updateUserRoles(formData: FormData) {
       }
 
       const currentRoles: AppRole[] =
-        target.roles && target.roles.length > 0
+        Array.isArray(target.roles) && target.roles.length > 0
           ? (target.roles as unknown as AppRole[])
-          : ([target.role] as unknown as AppRole[]);
+          : (["USER"] as AppRole[]);
 
       const hadAdmin = currentRoles.includes("ADMIN");
       const willHaveAdmin = nextRoles.includes("ADMIN");
 
-      // ✅ Prevent removing ADMIN from the last remaining admin
+      // ✅ Prevent removing ADMIN from the last remaining admin (roles-only)
       if (hadAdmin && !willHaveAdmin) {
         const adminCount = await tx.user.count({
-          where: {
-            OR: [
-              { roles: { has: "ADMIN" } },
-              { role: "ADMIN" }, // legacy support during transition
-            ],
-          },
+          where: { roles: { has: "ADMIN" } },
         });
 
         if (adminCount <= 1) {
-          // exact toast message user requested
           throw new Error("There needs to be at least 1 admin");
         }
       }
 
-      const primary = derivePrimaryRole(nextRoles);
-
-      // ✅ Update both fields during transition
+      // ✅ Update roles only
       await tx.user.update({
         where: { id: userId },
         data: {
           roles: nextRoles as unknown as any,
-          role: primary as unknown as any,
         },
       });
     });

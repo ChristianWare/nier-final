@@ -10,33 +10,47 @@ export const dynamic = "force-dynamic";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
-function getRoles(session: any): AppRole[] {
-  const roles = session?.user?.roles;
-  if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
-
-  const role = session?.user?.role;
-  return role ? ([role] as AppRole[]) : (["USER"] as AppRole[]);
+function normalizeRoles(roles: any): AppRole[] {
+  return Array.isArray(roles) && roles.length > 0
+    ? (roles as AppRole[])
+    : (["USER"] as AppRole[]);
 }
 
-async function resolveUserId(session: any) {
-  // Prefer standardized field from your auth.ts
-  const standardizedUserId = session?.user?.userId ?? null;
-  if (standardizedUserId) return standardizedUserId;
+async function resolveViewer(
+  session: any
+): Promise<{ userId: string; roles: AppRole[] }> {
+  const idFromSession =
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined);
 
-  // Fallback older session shapes
-  const sessionUserId =
-    (session?.user as { id?: string } | undefined)?.id ?? null;
-  if (sessionUserId) return sessionUserId;
+  const rolesFromSession = normalizeRoles(session?.user?.roles);
 
+  if (idFromSession) {
+    // If session already has roles, we’re done
+    if (rolesFromSession.length)
+      return { userId: idFromSession, roles: rolesFromSession };
+
+    // Otherwise, pull roles from DB (avoids stale token issues)
+    const u = await db.user.findUnique({
+      where: { id: idFromSession },
+      select: { id: true, roles: true },
+    });
+
+    if (u?.id) return { userId: u.id, roles: normalizeRoles(u.roles) };
+  }
+
+  // Last fallback: resolve by email
   const email = session?.user?.email ?? null;
-  if (!email) return null;
+  if (!email) throw new Error("Missing identity");
 
-  const user = await db.user.findUnique({
+  const u = await db.user.findUnique({
     where: { email },
-    select: { id: true },
+    select: { id: true, roles: true },
   });
 
-  return user?.id ?? null;
+  if (!u?.id) throw new Error("User not found");
+
+  return { userId: u.id, roles: normalizeRoles(u.roles) };
 }
 
 export default async function TripDetailsPage({
@@ -47,10 +61,15 @@ export default async function TripDetailsPage({
   const session = await auth();
   if (!session) redirect(`/login?next=/dashboard/trips/${params.id}`);
 
-  const userId = await resolveUserId(session);
-  if (!userId) redirect(`/login?next=/dashboard/trips/${params.id}`);
+  let viewer: { userId: string; roles: AppRole[] };
+  try {
+    viewer = await resolveViewer(session);
+  } catch {
+    redirect(`/login?next=/dashboard/trips/${params.id}`);
+  }
 
-  const roles = getRoles(session);
+  const { userId, roles } = viewer;
+
   const isAdmin = roles.includes("ADMIN");
   const isDriver = roles.includes("DRIVER");
   const isUser = roles.includes("USER");
@@ -96,7 +115,11 @@ export default async function TripDetailsPage({
   const allowed =
     isAdmin || (isDriver && isAssignedDriver) || (isUser && isOwner);
 
-  if (!allowed) redirect("/dashboard/trips");
+  if (!allowed) {
+    redirect(
+      isAdmin || isDriver ? "/driver-dashboard/trips" : "/dashboard/trips"
+    );
+  }
 
   return (
     <section className={styles.container}>

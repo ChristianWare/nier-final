@@ -18,14 +18,11 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
-
   if (!session) redirect("/login?next=/admin");
 
-  const roles: AppRole[] = (session.user as any)?.roles?.length
-    ? ((session.user as any).roles as AppRole[])
-    : (session.user as any)?.role
-      ? ([(session.user as any).role] as AppRole[])
-      : [];
+  const roles: AppRole[] = Array.isArray((session.user as any)?.roles)
+    ? (((session.user as any).roles as AppRole[]) ?? [])
+    : [];
 
   const isAdmin = roles.includes("ADMIN");
   if (!isAdmin) redirect("/");
@@ -37,8 +34,8 @@ export default async function AdminLayout({
 
   const bookingNeedsAttentionCount = pendingReview + pendingPayment;
 
-  const fullName = isAdmin ? (session?.user?.name ?? "") : "";
-  const firstName = fullName.trim().split(/\s+/)[0] ?? "";
+  const fullName = session.user?.name?.trim() ?? "";
+  const firstName = fullName.split(/\s+/)[0] || "";
   const displayName = firstName || "Admin";
 
   return (

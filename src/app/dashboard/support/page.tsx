@@ -11,50 +11,69 @@ export const dynamic = "force-dynamic";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
-function getRoles(session: any): AppRole[] {
-  const roles = session?.user?.roles;
-  if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
-
-  const role = session?.user?.role;
-  return role ? ([role] as AppRole[]) : (["USER"] as AppRole[]);
+function normalizeRoles(roles: any): AppRole[] {
+  return Array.isArray(roles) && roles.length > 0
+    ? (roles as AppRole[])
+    : (["USER"] as AppRole[]);
 }
 
-function derivePrimaryRole(roles: AppRole[]): AppRole {
+function primaryFromRoles(roles: AppRole[]): AppRole {
   if (roles.includes("ADMIN")) return "ADMIN";
   if (roles.includes("DRIVER")) return "DRIVER";
   return "USER";
 }
 
-async function resolveUserId(session: any) {
-  // Prefer standardized field from your auth.ts
-  const standardizedUserId = session?.user?.userId ?? null;
-  if (standardizedUserId) return standardizedUserId;
+async function resolveViewer(
+  session: any
+): Promise<{ userId: string; roles: AppRole[] }> {
+  const idFromSession =
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined);
 
-  // Fallbacks (older session shapes)
-  const sessionUserId =
-    (session?.user as { id?: string } | undefined)?.id ?? null;
-  if (sessionUserId) return sessionUserId;
+  const rolesFromSession = normalizeRoles(session?.user?.roles);
 
+  if (idFromSession) {
+    // If session already has roles, we’re done
+    if (rolesFromSession.length)
+      return { userId: idFromSession, roles: rolesFromSession };
+
+    // Otherwise, pull roles from DB (avoids stale token issues)
+    const u = await db.user.findUnique({
+      where: { id: idFromSession },
+      select: { id: true, roles: true },
+    });
+
+    if (u?.id) return { userId: u.id, roles: normalizeRoles(u.roles) };
+  }
+
+  // Last fallback: resolve by email
   const email = session?.user?.email ?? null;
-  if (!email) return null;
+  if (!email) throw new Error("Missing identity");
 
-  const user = await db.user.findUnique({
+  const u = await db.user.findUnique({
     where: { email },
-    select: { id: true },
+    select: { id: true, roles: true },
   });
 
-  return user?.id ?? null;
+  if (!u?.id) throw new Error("User not found");
+
+  return { userId: u.id, roles: normalizeRoles(u.roles) };
 }
 
 export default async function DashboardSupportPage() {
   const session = await auth();
   if (!session) redirect("/login?next=/dashboard/support");
 
-  const userId = await resolveUserId(session);
-  if (!userId) redirect("/login?next=/dashboard/support");
+  let viewer: { userId: string; roles: AppRole[] };
+  try {
+    viewer = await resolveViewer(session);
+  } catch {
+    redirect("/login?next=/dashboard/support");
+  }
 
-  const roles = getRoles(session);
-  const viewerRole = derivePrimaryRole(roles);
+  const { userId, roles } = viewer;
+
+  const viewerRole = primaryFromRoles(roles);
 
   const isAdmin = roles.includes("ADMIN");
   const isDriver = roles.includes("DRIVER");
@@ -65,12 +84,10 @@ export default async function DashboardSupportPage() {
   // - DRIVER: assigned bookings
   // - USER: bookings they own
   // - DRIVER + USER: union of both (assigned + owned)
-  const where = isAdmin
+  const where: any = isAdmin
     ? {}
     : isDriver && isUser
-      ? {
-          OR: [{ userId }, { assignment: { driverId: userId } }],
-        }
+      ? { OR: [{ userId }, { assignment: { driverId: userId } }] }
       : isDriver
         ? { assignment: { driverId: userId } }
         : { userId };

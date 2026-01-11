@@ -10,16 +10,10 @@ export const dynamic = "force-dynamic";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
-function derivePrimaryRole(roles: AppRole[]): AppRole {
-  if (roles.includes("ADMIN")) return "ADMIN";
-  if (roles.includes("DRIVER")) return "DRIVER";
-  return "USER";
-}
-
 function roleHomeFromRoles(roles: AppRole[]) {
-  const primary = derivePrimaryRole(roles);
-  if (primary === "ADMIN") return "/admin";
-  if (primary === "DRIVER") return "/driver-dashboard";
+  // priority: ADMIN > DRIVER > USER
+  if (roles.includes("ADMIN")) return "/admin";
+  if (roles.includes("DRIVER")) return "/driver-dashboard";
   return "/dashboard";
 }
 
@@ -34,11 +28,9 @@ export default async function LoginPage({
     const next = searchParams?.next;
     if (next && next.startsWith("/")) redirect(next);
 
-    const roles: AppRole[] = (session.user as any)?.roles?.length
-      ? ((session.user as any).roles as AppRole[])
-      : (session.user as any)?.role
-        ? ([(session.user as any).role] as AppRole[])
-        : (["USER"] as AppRole[]);
+    const roles: AppRole[] = Array.isArray((session.user as any)?.roles)
+      ? (((session.user as any).roles as AppRole[]) ?? ["USER"])
+      : (["USER"] as AppRole[]);
 
     redirect(roleHomeFromRoles(roles));
   }

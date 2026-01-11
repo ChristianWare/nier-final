@@ -1,0 +1,362 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.topGrid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 1.6rem;
+}
+
+.bottomGrid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 1.6rem;
+}
+
+.card {
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cardTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.kpiStrip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.2rem;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.kv,
+.kvRight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.kvBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.k {
+  font-size: 1.2rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.v {
+  font-size: 1.5rem;
+  font-weight: 650;
+  color: var(--black);
+}
+
+.mins {
+  font-size: 1.2rem;
+  font-weight: 700;
+  opacity: 0.75;
+  margin-left: 0.6rem;
+}
+
+.smallLink {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--black);
+  opacity: 0.75;
+}
+
+.smallLink:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.nextTripBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.contactBtns {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.iconBtn {
+  text-decoration: none;
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: var(--stroke);
+  color: var(--black);
+  padding: 0.7rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.iconBtn:hover {
+  background: var(--accent);
+  color: var(--white);
+}
+
+.disabledLink {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.notes {
+  background: var(--stroke);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.noteText {
+  font-size: 1.35rem;
+  line-height: 1.35;
+}
+
+.viewTripRow {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--black);
+  color: var(--cream);
+  padding: 0.9rem 1.2rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.linkBtn:hover {
+  background: var(--black400);
+}
+
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.9rem;
+}
+
+.actionForm {
+  width: 100%;
+}
+
+.actionBtn {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  background: var(--stroke);
+  color: var(--black);
+  padding: 1.1rem 1rem;
+  border-radius: 8px;
+  font-size: 1.35rem;
+  font-weight: 850;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionBtn:hover {
+  background: var(--accent);
+  color: var(--white);
+}
+
+.reportBtn {
+  background: var(--black);
+  color: var(--cream);
+}
+
+.reportBtn:hover {
+  background: var(--black400);
+}
+
+.actionBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 1.2rem;
+  background: var(--stroke);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.timeCol {
+  font-size: 1.25rem;
+  font-weight: 900;
+  opacity: 0.8;
+}
+
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.route {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.routeStrong {
+  font-size: 1.35rem;
+  font-weight: 850;
+}
+
+.routeArrow {
+  opacity: 0.7;
+  font-weight: 900;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.alertList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.alertItem {
+  background: var(--stroke);
+  border-radius: 8px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.alertTitle {
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.alertBody {
+  font-size: 1.25rem;
+  opacity: 0.8;
+  line-height: 1.35;
+}
+
+.empty,
+.emptySmall {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.emptyTitle {
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.emptyCopy {
+  font-size: 1.3rem;
+  opacity: 0.75;
+  line-height: 1.35;
+}
+
+/* Status pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.pillNeutral {
+  background: var(--stroke);
+  color: var(--black);
+}
+
+.pillInfo {
+  background: var(--paragraph);
+  color: var(--cream);
+}
+
+.pillWarn {
+  background: var(--accent);
+  color: var(--white);
+}
+
+.pillSuccess {
+  background: var(--black);
+  color: var(--cream);
+}
+
+.pillMuted {
+  background: var(--black200);
+  color: var(--black);
+}
+
+.pillDanger {
+  background: var(--lightRed);
+  color: var(--white);
+}
+
+@media screen and (max-width: 968px) {
+  .topGrid,
+  .bottomGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .kpiStrip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

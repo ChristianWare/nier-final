@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { revalidatePath } from "next/cache";
+
+type AppRole = "USER" | "DRIVER" | "ADMIN";
 
 function toInt(v: FormDataEntryValue | null, fallback = 0) {
   const n = Number(v ?? fallback);
@@ -14,12 +17,27 @@ function toString(v: FormDataEntryValue | null) {
   return s.length ? s : null;
 }
 
+function getActorId(session: any) {
+  return (
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined)
+  );
+}
+
+function getSessionRoles(session: any): AppRole[] {
+  const roles = session?.user?.roles;
+  return Array.isArray(roles) && roles.length > 0 ? (roles as AppRole[]) : [];
+}
+
 async function requireAdmin() {
   const session = await auth();
-  const role = session?.user?.role;
-  if (!session?.user || role !== "ADMIN") {
+  const actorId = getActorId(session);
+  const roles = getSessionRoles(session);
+
+  if (!session?.user || !actorId || !roles.includes("ADMIN")) {
     return { error: "Unauthorized" as const };
   }
+
   return { session };
 }
 

@@ -26,8 +26,8 @@ function getRoles(session: any): AppRole[] {
   const roles = (session?.user as any)?.roles;
   if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
 
-  const role = (session?.user as any)?.role as AppRole | undefined;
-  return role ? ([role] as AppRole[]) : [];
+  // ✅ roles-only app: if authed but roles missing (stale session), treat as USER
+  return session?.user ? (["USER"] as AppRole[]) : [];
 }
 
 export default function Nav({

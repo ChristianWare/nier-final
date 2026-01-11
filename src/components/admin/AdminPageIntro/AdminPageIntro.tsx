@@ -20,16 +20,14 @@ export default function AdminPageIntro({
 }: AdminPageIntroProps) {
   const { data: session } = useSession();
 
-  const roles: AppRole[] = (session?.user as any)?.roles?.length
-    ? (((session?.user as any).roles as AppRole[]) ?? [])
-    : (session?.user as any)?.role
-      ? ([(session?.user as any).role] as AppRole[])
-      : [];
+  const roles: AppRole[] = Array.isArray((session?.user as any)?.roles)
+    ? (((session?.user as any)?.roles as AppRole[]) ?? [])
+    : [];
 
   const isAdmin = roles.includes("ADMIN");
 
   const fullName = isAdmin ? (session?.user?.name ?? "") : "";
-  const firstName = fullName.trim().split(/\s+/)[0] ?? "";
+  const firstName = fullName.trim().split(/\s+/)[0] || "";
   const displayName = firstName || "Admin";
 
   return (

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { revalidatePath } from "next/cache";
@@ -5,6 +6,8 @@ import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { slugify } from "@/lib/slugify";
 import { ServicePricingStrategy } from "@prisma/client";
+
+type AppRole = "USER" | "ADMIN" | "DRIVER";
 
 function moneyToCents(v: FormDataEntryValue | null) {
   const s = typeof v === "string" ? v.trim() : "";
@@ -21,18 +24,36 @@ function intFromForm(v: FormDataEntryValue | null) {
   return Number.isFinite(n) ? n : 0;
 }
 
+function getActorId(session: any) {
+  return (
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined)
+  );
+}
+
+function getSessionRoles(session: any): AppRole[] {
+  const roles = session?.user?.roles;
+  return Array.isArray(roles) && roles.length > 0 ? (roles as AppRole[]) : [];
+}
+
 async function requireAdmin() {
   const session = await auth();
-  const userId = session?.user?.userId;
-  if (!userId) throw new Error("Unauthorized");
+  const actorId = getActorId(session);
+  if (!session?.user || !actorId) throw new Error("Unauthorized");
 
+  // Fast path: session already has roles
+  const roles = getSessionRoles(session);
+  if (roles.includes("ADMIN")) return { userId: actorId };
+
+  // Source-of-truth path: verify from DB (roles-only)
   const me = await db.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
+    where: { id: actorId },
+    select: { roles: true },
   });
 
-  if (!me || me.role !== "ADMIN") throw new Error("Forbidden");
-  return { userId };
+  if (!me?.roles?.includes("ADMIN")) throw new Error("Forbidden");
+
+  return { userId: actorId };
 }
 
 export async function createService(formData: FormData) {

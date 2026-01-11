@@ -22,39 +22,48 @@ type NotificationItem = {
   tag: "Trip update" | "Payment";
 };
 
-function getRoles(session: any): AppRole[] {
-  const roles = session?.user?.roles;
-  if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
-
-  const role = session?.user?.role;
-  return role ? ([role] as AppRole[]) : (["USER"] as AppRole[]);
+function normalizeRoles(roles: any): AppRole[] {
+  return Array.isArray(roles) && roles.length > 0
+    ? (roles as AppRole[])
+    : (["USER"] as AppRole[]);
 }
 
-function derivePrimaryRole(roles: AppRole[]): AppRole {
-  if (roles.includes("ADMIN")) return "ADMIN";
-  if (roles.includes("DRIVER")) return "DRIVER";
-  return "USER";
-}
+async function resolveViewer(
+  session: any
+): Promise<{ userId: string; roles: AppRole[] }> {
+  // Prefer canonical session fields (from your auth callbacks)
+  const idFromSession =
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined);
 
-async function resolveUserId(session: any) {
-  // Prefer standardized field from your auth.ts
-  const standardizedUserId = session?.user?.userId ?? null;
-  if (standardizedUserId) return standardizedUserId;
+  const rolesFromSession = normalizeRoles(session?.user?.roles);
 
-  // Fallbacks (older session shapes)
-  const sessionUserId =
-    (session?.user as { id?: string } | undefined)?.id ?? null;
-  if (sessionUserId) return sessionUserId;
+  if (idFromSession) {
+    // If session already has roles, we’re done
+    if (rolesFromSession.length)
+      return { userId: idFromSession, roles: rolesFromSession };
 
+    // Otherwise, pull roles from DB (avoids stale token issues)
+    const u = await db.user.findUnique({
+      where: { id: idFromSession },
+      select: { id: true, roles: true },
+    });
+
+    if (u?.id) return { userId: u.id, roles: normalizeRoles(u.roles) };
+  }
+
+  // Last fallback: resolve by email
   const email = session?.user?.email ?? null;
-  if (!email) return null;
+  if (!email) throw new Error("Missing identity");
 
-  const user = await db.user.findUnique({
+  const u = await db.user.findUnique({
     where: { email },
-    select: { id: true },
+    select: { id: true, roles: true },
   });
 
-  return user?.id ?? null;
+  if (!u?.id) throw new Error("User not found");
+
+  return { userId: u.id, roles: normalizeRoles(u.roles) };
 }
 
 function statusLabel(status: BookingStatus) {
@@ -112,11 +121,14 @@ export default async function DashboardNotificationsPage() {
   const session = await auth();
   if (!session) redirect("/login?next=/dashboard/notifications");
 
-  const userId = await resolveUserId(session);
-  if (!userId) redirect("/login?next=/dashboard/notifications");
+  let viewer: { userId: string; roles: AppRole[] };
+  try {
+    viewer = await resolveViewer(session);
+  } catch {
+    redirect("/login?next=/dashboard/notifications");
+  }
 
-  const roles = getRoles(session);
-  const viewerRole = derivePrimaryRole(roles);
+  const { userId, roles } = viewer;
 
   const isAdmin = roles.includes("ADMIN");
   const isDriver = roles.includes("DRIVER");
@@ -127,12 +139,10 @@ export default async function DashboardNotificationsPage() {
   // - DRIVER: assigned bookings
   // - USER: owned bookings
   // - DRIVER+USER: assigned OR owned
-  const bookingScopeWhere = isAdmin
+  const bookingScopeWhere: any = isAdmin
     ? {}
     : isDriver && isUser
-      ? {
-          OR: [{ userId }, { assignment: { driverId: userId } }],
-        }
+      ? { OR: [{ userId }, { assignment: { driverId: userId } }] }
       : isDriver
         ? { assignment: { driverId: userId } }
         : { userId };
@@ -141,9 +151,7 @@ export default async function DashboardNotificationsPage() {
   // - USER: /dashboard/trips/[id]
   // - DRIVER/ADMIN: /driver-dashboard/trips/[id]
   const tripBase =
-    viewerRole === "DRIVER" || viewerRole === "ADMIN"
-      ? "/driver-dashboard/trips"
-      : "/dashboard/trips";
+    isAdmin || isDriver ? "/driver-dashboard/trips" : "/dashboard/trips";
 
   const [statusEvents, payments] = await Promise.all([
     db.bookingStatusEvent.findMany({
@@ -196,16 +204,15 @@ export default async function DashboardNotificationsPage() {
 
   const paymentItems: NotificationItem[] = payments.map((p) => {
     const occurredAt = (p.paidAt ?? p.updatedAt).toISOString();
-
     const href = `${tripBase}/${p.booking.id}`;
 
     const links: { label: string; href: string }[] = [
       { label: "View trip", href },
     ];
 
-    // Helpful links
     if (p.receiptUrl)
       links.unshift({ label: "Open receipt", href: p.receiptUrl });
+
     if (
       p.checkoutUrl &&
       (p.status === "NONE" || p.status === "PENDING" || p.status === "FAILED")

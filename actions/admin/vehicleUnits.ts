@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { z } from "zod";
@@ -6,11 +7,37 @@ import { auth } from "../../auth";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/actionResult";
 
+type AppRole = "USER" | "ADMIN" | "DRIVER";
+
+function getActorId(session: any) {
+  return (
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined)
+  );
+}
+
+function getSessionRoles(session: any): AppRole[] {
+  const roles = session?.user?.roles;
+  return Array.isArray(roles) && roles.length > 0 ? (roles as AppRole[]) : [];
+}
+
 async function requireAdmin() {
   const session = await auth();
-  if (!session?.user?.userId || session.user.role !== "ADMIN") {
-    throw new Error("Unauthorized");
-  }
+  const actorId = getActorId(session);
+  if (!session?.user || !actorId) throw new Error("Unauthorized");
+
+  // Fast path: session roles
+  const roles = getSessionRoles(session);
+  if (roles.includes("ADMIN")) return session;
+
+  // Source-of-truth: DB roles (roles-only)
+  const me = await db.user.findUnique({
+    where: { id: actorId },
+    select: { roles: true },
+  });
+
+  if (!me?.roles?.includes("ADMIN")) throw new Error("Unauthorized");
+
   return session;
 }
 

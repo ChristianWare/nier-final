@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
 import { z } from "zod";
@@ -10,29 +9,29 @@ import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
-function requireEnv(name: string) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing required env var: ${name}`);
-  return v;
+function getActorId(session: any) {
+  // Prefer canonical id, fallback to userId for migration safety
+  return (
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined)
+  );
 }
 
 function getSessionRoles(session: any): AppRole[] {
   const roles = session?.user?.roles;
-  if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
-
-  const role = session?.user?.role;
-  return role ? ([role] as AppRole[]) : [];
+  return Array.isArray(roles) && roles.length > 0 ? (roles as AppRole[]) : [];
 }
 
 async function requireAdmin() {
   const session = await auth();
   const roles = getSessionRoles(session);
+  const actorId = getActorId(session);
 
-  if (!session?.user?.userId || !roles.includes("ADMIN")) {
+  if (!session?.user || !actorId || !roles.includes("ADMIN")) {
     throw new Error("Unauthorized");
   }
 
-  return session;
+  return { session, actorId, roles };
 }
 
 const ApprovePricingSchema = z.object({
@@ -45,7 +44,7 @@ const ApprovePricingSchema = z.object({
 });
 
 export async function approveBookingAndSetPrice(formData: FormData) {
-  const session = await requireAdmin();
+  const { actorId } = await requireAdmin();
 
   const parsed = ApprovePricingSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid pricing data." };
@@ -74,7 +73,7 @@ export async function approveBookingAndSetPrice(formData: FormData) {
       data: {
         bookingId: booking.id,
         status: "PENDING_PAYMENT",
-        createdById: session.user.userId,
+        createdById: actorId,
       },
     }),
   ]);
@@ -89,7 +88,7 @@ const AssignSchema = z.object({
 });
 
 export async function assignBooking(formData: FormData) {
-  const session = await requireAdmin();
+  const { actorId } = await requireAdmin();
 
   const parsed = AssignSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid assignment data." };
@@ -115,13 +114,13 @@ export async function assignBooking(formData: FormData) {
       update: {
         driverId,
         vehicleUnitId: vehicleUnitId || null,
-        assignedById: session.user.userId,
+        assignedById: actorId,
       },
       create: {
         bookingId,
         driverId,
         vehicleUnitId: vehicleUnitId || null,
-        assignedById: session.user.userId,
+        assignedById: actorId,
       },
     }),
     db.booking.update({
@@ -132,7 +131,7 @@ export async function assignBooking(formData: FormData) {
       data: {
         bookingId,
         status: nextStatus,
-        createdById: session.user.userId,
+        createdById: actorId,
       },
     }),
   ]);
@@ -145,7 +144,7 @@ const SendPaymentSchema = z.object({
 });
 
 export async function createPaymentLinkAndEmail(formData: FormData) {
-  const session = await requireAdmin();
+  const { actorId } = await requireAdmin();
 
   const parsed = SendPaymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid request." };
@@ -189,8 +188,9 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     ],
   });
 
-  if (!stripeSession.url)
+  if (!stripeSession.url) {
     return { error: "Stripe did not return a checkout URL." };
+  }
 
   await db.$transaction([
     db.payment.upsert({
@@ -221,7 +221,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
       data: {
         bookingId: booking.id,
         status: "PENDING_PAYMENT",
-        createdById: session.user.userId,
+        createdById: actorId,
       },
     }),
   ]);
