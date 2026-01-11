@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import styles from "./AdminLayout.module.css";
 import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
-import styles from "./AdminLayout.module.css";
 import AdminSideNav from "@/components/admin/AdminSideNav/AdminSideNav";
 import Nav from "@/components/shared/Nav/Nav";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";

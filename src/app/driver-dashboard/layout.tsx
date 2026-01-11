@@ -1,9 +1,9 @@
 import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
-import styles from "./DashboardLayout.module.css";
+import styles from './DriverDashboardLayout.module.css'
 import Nav from "@/components/shared/Nav/Nav";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
-import DashboardSideNav from "@/components/Dashboard/DashboardSideNav/DashboardSideNav"; 
+import DriverSideNav from "@/components/Driver/DriverSideNav/DriverSideNav";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,8 +29,8 @@ export default async function DriverDashboardLayout({
             <div className={styles.left}>
               <h1 className={`${styles.heading} h2`}>Welcome {firstName}!</h1>
               <div className={styles.sideNavContainer}>
-                {/* <DashboardSideNav /> */}
-                Driver Side Nav Here
+                
+                <DriverSideNav />
               </div>
             </div>
             <div className={styles.right}>{children}</div>
