@@ -1,0 +1,277 @@
+.container {
+  display: grid;
+  gap: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.titleBox {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.heading {
+  margin: 0;
+}
+
+.subheading {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--paragraph);
+  max-width: 70ch;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.card,
+.cardWide {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 1rem;
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.cardWide {
+  grid-column: 1 / -1;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.cardTitle {
+  margin-bottom: 3rem;
+}
+
+.metaRight {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.9;
+}
+
+.contactGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}
+
+.contactPill {
+  text-decoration: none;
+  background: var(--cream);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  font-size: 1.3rem;
+  color: var(--black);
+  font-weight: 900;
+}
+
+.divider {
+  height: 1px;
+  background: var(--stroke);
+  opacity: 0.9;
+}
+
+.form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.formTitle {
+  font-weight: 900;
+  font-size: 1.35rem;
+}
+
+.label {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  color: var(--paragraph);
+}
+
+.select,
+.textarea {
+  border: 1px solid var(--stroke);
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  font-size: 1.35rem;
+  color: var(--black);
+  outline: none;
+}
+
+.select:focus,
+.textarea:focus {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.tripMeta {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.tripMetaBox {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  background: var(--cream);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+}
+
+.tripMetaLine {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tripMetaKey {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+}
+
+.tripMetaVal {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--black);
+  word-break: break-word;
+  text-align: right;
+}
+
+.tripActions,
+.formActions,
+.bottomCtas {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.muted {
+  margin: 0;
+  font-size: 1.35rem;
+  color: var(--paragraph);
+}
+
+.miniNote {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.85;
+}
+
+.faqGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.faqItem {
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: var(--cream);
+  padding: 0.9rem 1rem;
+}
+
+.faqSummary {
+  font-weight: 900;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.faqBody {
+  padding-top: 0.6rem;
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  line-height: 1.4;
+}
+
+.inlineLink {
+  color: var(--black);
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.adminNote {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.9;
+}
+
+.primaryBtn,
+.secondaryBtn,
+.tertiaryBtn {
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 1.3rem;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid var(--stroke);
+  cursor: pointer;
+}
+
+.primaryBtn {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+.secondaryBtn {
+  background: var(--cream);
+  color: var(--black);
+}
+
+.tertiaryBtn {
+  background: transparent;
+  color: var(--black);
+}
+
+.tertiaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media screen and (max-width: 1000px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .faqGrid {
+    grid-template-columns: 1fr;
+  }
+}
