@@ -145,6 +145,11 @@ export default function Nav({
     }
   }, [pathname, status, update]);
 
+  // add this near your other computed values (after pathname/isActive/items etc.)
+  const accountActive = ["/dashboard", "/admin", "/driver-dashboard"].some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`)
+  );
+
   return (
     <header
       className={`${styles.header} ${
@@ -197,12 +202,14 @@ export default function Nav({
           <div className={styles.btnContainerii}>
             <Link
               href={accountHref}
-              className={`${styles.navItem} ${styles[color]}`}
+              className={`${styles.navItem} ${styles[color]} ${
+                accountActive ? styles.navItemActive : ""
+              }`}
               onClick={closeMenu}
+              aria-current={accountActive ? "page" : undefined}
             >
               {accountText}
             </Link>
-
             <Button href='/book' text='Book your Ride' btnType='red' arrow />
           </div>
         </div>
@@ -216,8 +223,11 @@ export default function Nav({
         <div className={styles.btnContainer}>
           <Link
             href={accountHref}
-            className={`${styles.navItem} ${styles[color]}`}
+            className={`${styles.navItem} ${styles[color]} ${
+              accountActive ? styles.navItemActive : ""
+            }`}
             onClick={closeMenu}
+            aria-current={accountActive ? "page" : undefined}
           >
             {accountText}
           </Link>
