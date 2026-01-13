@@ -77,16 +77,17 @@ function emailHtmlVerify(
   submittedAt: string
 ) {
   const brandBlue = "#4e94ec";
-  const brandYellow = "#fab700";
-  const sand = "#f8f7ec";
+  const brandYellow = "#d0311e";
+  // const sand = "#f8f7ec";
+  const white = "#ffffff";
   const ink = "#0f1720";
   return `
-  <div style="font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto; background:${sand}; padding:24px;">
+  <div style="font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto; background:${white}; padding:24px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:720px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 6px 24px rgba(0,0,0,.08)">
       <tr>
         <td style="background:${brandYellow}; color:#fff; padding:20px 24px">
           <div style="font-size:14px; opacity:.9; letter-spacing:.08em; text-transform:uppercase;">Email Verification</div>
-          <div style="font-size:20px; font-weight:700; margin-top:4px; color:black;">${escapeHtml(
+          <div style="font-size:20px; font-weight:700; margin-top:4px; color:#f8f7ec;">${escapeHtml(
             BRAND
           )} — Verify Your Email</div>
           <div style="font-size:12px; opacity:.9; margin-top:6px">${submittedAt}</div>
@@ -103,7 +104,7 @@ function emailHtmlVerify(
           <div style="margin:18px 0;">
             <a href="${escapeHtml(
               verifyLink
-            )}" style="display:inline-block; padding:12px 18px; background:${brandYellow}; color:black; text-decoration:none; border-radius:10px; font-weight:600;">Verify email</a>
+            )}" style="display:inline-block; padding:12px 18px; background:${brandYellow}; color:#f8f7ec; text-decoration:none; border-radius:10px; font-weight:600;">Verify email</a>
           </div>
           <p style="margin:18px 0 0; font-size:13px; line-height:1.6; opacity:.85;">If the button doesn’t work, copy and paste this URL into your browser:</p>
           <p style="margin:8px 0 18px; font-size:13px; word-break:break-all;">
