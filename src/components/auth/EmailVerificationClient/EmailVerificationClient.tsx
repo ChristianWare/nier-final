@@ -54,6 +54,11 @@ export default function EmailVerificationClient({ token }: Props) {
     <section className={styles.container}>
       <LayoutWrapper>
         <div className={styles.content}>
+          <div className={styles.left}>
+              <div className={styles.imgContainer}>
+                <Image src={Yay} alt='happy face' fill className={styles.img} />
+              </div>
+          </div>
           {pending && <div>Verifying email...</div>}
           {/* {success && <Alert message={success} success />} */}
           {error && (
@@ -70,16 +75,19 @@ export default function EmailVerificationClient({ token }: Props) {
             </>
           )}
           {success && (
-            <>
-              <div className={styles.imgContainer}>
-                <Image src={Yay} alt='happy face' fill className={styles.img} />
-              </div>
+            <div>
+              <h1 className='h2'>You’re all set</h1>
+              <p className={styles.copy}>
+                Thanks for verifying your email. You can now request, pay for,
+                and manage bookings online.
+              </p>
               <Alert message={success} success />
               <div className={styles.btnContainer}>
-                <Button text='Login' btnType='black' href='/login' />
+                <Button text='Login' btnType='black' href='/login' arrow />
               </div>
-            </>
+            </div>
           )}
+          <div className={styles.right}></div>
         </div>
       </LayoutWrapper>
     </section>
