@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/components/shared/Button/Button";
 import styles from "./DashboardNotifications.module.css";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -97,46 +98,45 @@ export default function DashboardNotifications({
   }
 
   return (
-    <section className={styles.container} aria-label='Notifications'>
-      <header className={styles.header}>
-        <div className={styles.titleBox}>
-          <h1 className={`${styles.heading} h2`}>Notifications</h1>
-          <p className={styles.subheading}>
-            Recent activity from trip updates and payments.
-          </p>
-        </div>
+    <section className='container' aria-label='Notifications'>
+      <header className='header'>
+        <h1 className={`heading h2`}>Notifications</h1>
+        <p className='subheading'>
+          Recent activity from trip updates and payments.
+        </p>
 
         <div className={styles.headerActions}>
-          <div className={styles.unread}>
-            Unread <span className={styles.unreadCount}>{unreadCount}</span>
+          <div className="tab">
+            Unread: <span className={styles.count}>{unreadCount}</span>
           </div>
 
           <button
             type='button'
-            className={styles.secondaryBtn}
+            className='tab'
             onClick={markAllAsRead}
             disabled={items.length === 0 || unreadCount === 0}
           >
             Mark all as read
           </button>
 
-          <Link className={styles.primaryBtn} href='/dashboard/trips'>
+          <Link className="tab" href='/dashboard/trips'>
             View trips
           </Link>
         </div>
       </header>
 
       {items.length === 0 ? (
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>No notifications yet.</p>
-          <p className={styles.emptyCopy}>
+        <div className="empty">
+          <p className="emptyTitle">No notifications yet.</p>
+          <p className="emptyCopy">
             When your trip status changes or a payment updates, it will show up
             here.
           </p>
           <div className={styles.btnRow}>
-            <Link className={styles.primaryBtn} href='/book'>
-              Book a ride
-            </Link>
+     
+             <div className={styles.btnContainer}>
+<Button href='/book' btnType='red' text='Book a ride' arrow />
+</div>
           </div>
         </div>
       ) : (
@@ -216,7 +216,7 @@ export default function DashboardNotifications({
         </div>
       )}
 
-      <p className={styles.footerNote}>
+      <p className="emptyCopy">
         Note: “Read” state is stored on this device only for now. If you want it
         synced across devices, we’ll add a small Notification model.
       </p>
