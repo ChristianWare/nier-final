@@ -108,9 +108,7 @@ export default async function DashboardHomePage() {
         pendingPayment={pendingPayment}
         confirmed={upcomingCount}
       />
-
       <DashboardQuickActions />
-
       <DashboardOverview nextTrip={nextTrip} recentActivity={recentActivity} />
     </section>
   );

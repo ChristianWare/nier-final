@@ -252,3 +252,71 @@ textarea:focus {
 /* .toastFont {
   font-family: var(--roboto);
 } */
+
+
+/* dashboard styles */
+.tabs {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  text-decoration: none;
+  border: 1px solid var(--stroke);
+  background: var(--cream);
+  color: var(--black);
+  border-radius: 5px;
+  padding: 0.7rem 1rem;
+  font-size: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  white-space: nowrap;
+}
+
+.tabActive {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+.count {
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--stroke);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 1.15rem;
+}
+
+.tabActive .count {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.empty {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.emptyTitle {
+  font-weight: 900;
+  font-size: 1.6rem;
+  letter-spacing: normal;
+}
+
+.emptyCopy {
+  font-size: 1.35rem;
+  color: var(--paragraph);
+}
+
+.actionsRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Prisma, BookingStatus } from "@prisma/client";
 import { cancelTrip } from "../../../../actions/bookings/cancelTrips"; 
 import CancelTripButton from "../CancelTripButton/CancelTripButton";
+import Button from "@/components/shared/Button/Button";
 
 type Tab = "upcoming" | "past" | "drafts";
 
@@ -125,47 +126,44 @@ export default function DashboardTrips({
   return (
     <section className={styles.container} aria-label='My trips'>
       <header className={styles.header}>
-        <div className={styles.titleBox}>
-          <h1 className={`${styles.heading} h2`}>My trips</h1>
-          <p className={styles.subheading}>
-            Manage upcoming rides, view history, and handle payments.
-          </p>
-        </div>
-
-        <nav className={styles.tabs} aria-label='Trip filters'>
+        <h1 className={`${styles.heading} h2`}>My trips</h1>
+        <p className={styles.subheading}>
+          Manage upcoming rides, view history, and handle payments.
+        </p>
+        <nav className='tabs' aria-label='Trip filters'>
           <Link
             href={{ pathname: "/dashboard/trips", query: { tab: "upcoming" } }}
-            className={`${styles.tab} ${tab === "upcoming" ? styles.tabActive : ""}`}
+            className={`tab ${tab === "upcoming" ? "tabActive" : ""}`}
           >
-            Upcoming <span className={styles.count}>{counts.upcoming}</span>
+            Upcoming <span className='count'>{counts.upcoming}</span>
           </Link>
 
           <Link
             href={{ pathname: "/dashboard/trips", query: { tab: "past" } }}
-            className={`${styles.tab} ${tab === "past" ? styles.tabActive : ""}`}
+            className={`tab ${tab === "past" ? "tabActive" : ""}`}
           >
-            Past <span className={styles.count}>{counts.past}</span>
+            Past <span className='count'>{counts.past}</span>
           </Link>
 
           <Link
             href={{ pathname: "/dashboard/trips", query: { tab: "drafts" } }}
-            className={`${styles.tab} ${tab === "drafts" ? styles.tabActive : ""}`}
+            className={`tab ${tab === "drafts" ? "tabActive" : ""}`}
           >
-            Drafts <span className={styles.count}>{counts.drafts}</span>
+            Drafts <span className='count'>{counts.drafts}</span>
           </Link>
         </nav>
       </header>
 
       {trips.length === 0 ? (
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>No trips found.</p>
-          <p className={styles.emptyCopy}>
+        <div className="empty">
+          <p className="emptyTitle">No trips found.</p>
+          <p className="emptyCopy">
             Book a ride and it will show up here.
           </p>
-          <div className={styles.actionsRow}>
-            <Link className={styles.primaryBtn} href='/book'>
-              Book a ride
-            </Link>
+          <div className="actionsRow">
+            <div className={styles.btnContainer}>
+            <Button href='/book' btnType='black' text='Book a ride' arrow />
+            </div>
           </div>
         </div>
       ) : (
