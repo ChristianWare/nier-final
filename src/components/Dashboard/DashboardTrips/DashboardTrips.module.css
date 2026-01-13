@@ -20,11 +20,9 @@
     padding-bottom: 1rem;
 }
 
-
 .subheading {
   color: var(--paragraph);
 }
-
 
 .list {
   display: grid;

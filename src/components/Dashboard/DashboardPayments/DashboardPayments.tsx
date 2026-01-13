@@ -1,6 +1,7 @@
 import styles from "./DashboardPayments.module.css";
 import Link from "next/link";
 import { PaymentStatus, Prisma } from "@prisma/client";
+import Button from "@/components/shared/Button/Button";
 
 type Filter = "all" | "paid" | "pending" | "failed" | "refunded";
 
@@ -98,21 +99,18 @@ export default function DashboardPayments({
   payments: PaymentRow[];
 }) {
   return (
-    <section className={styles.container} aria-label='Payments and receipts'>
-      <header className={styles.header}>
-        <div className={styles.titleBox}>
-          <h1 className={`${styles.heading} h2`}>Payments & receipts</h1>
-          <p className={styles.subheading}>
-            View payment status, download receipts, or continue checkout.
-          </p>
-        </div>
-
-        <nav className={styles.tabs} aria-label='Payment filters'>
+    <section className="container" aria-label='Payments and receipts'>
+      <header className="header">
+        <h1 className={`heading h2`}>Payments & receipts</h1>
+        <p className="subheading">
+          View payment status, download receipts, or continue checkout.
+        </p>
+        <nav className="tabs" aria-label='Payment filters'>
           <Link
             href={{ pathname: "/dashboard/payments", query: {} }}
-            className={`${styles.tab} ${filter === "all" ? styles.tabActive : ""}`}
+            className={`tab ${filter === "all" ? "tabActive" : ""}`}
           >
-            All <span className={styles.count}>{counts.all}</span>
+            All <span className='count'>{counts.all}</span>
           </Link>
 
           <Link
@@ -120,19 +118,18 @@ export default function DashboardPayments({
               pathname: "/dashboard/payments",
               query: { status: "paid" },
             }}
-            className={`${styles.tab} ${filter === "paid" ? styles.tabActive : ""}`}
+            className={`tab ${filter === "paid" ? "tabActive" : ""}`}
           >
-            Paid <span className={styles.count}>{counts.paid}</span>
+            Paid <span className='count'>{counts.paid}</span>
           </Link>
-
           <Link
             href={{
               pathname: "/dashboard/payments",
               query: { status: "pending" },
             }}
-            className={`${styles.tab} ${filter === "pending" ? styles.tabActive : ""}`}
+            className={`tab ${filter === "pending" ? "tabActive" : ""}`}
           >
-            Pending <span className={styles.count}>{counts.pending}</span>
+            Pending <span className='count'>{counts.pending}</span>
           </Link>
 
           <Link
@@ -140,9 +137,9 @@ export default function DashboardPayments({
               pathname: "/dashboard/payments",
               query: { status: "failed" },
             }}
-            className={`${styles.tab} ${filter === "failed" ? styles.tabActive : ""}`}
+            className={`tab ${filter === "failed" ? "tabActive" : ""}`}
           >
-            Failed <span className={styles.count}>{counts.failed}</span>
+            Failed <span className='count'>{counts.failed}</span>
           </Link>
 
           <Link
@@ -150,26 +147,31 @@ export default function DashboardPayments({
               pathname: "/dashboard/payments",
               query: { status: "refunded" },
             }}
-            className={`${styles.tab} ${filter === "refunded" ? styles.tabActive : ""}`}
+            className={`tab ${filter === "refunded" ? "tabActive" : ""}`}
           >
-            Refunded <span className={styles.count}>{counts.refunded}</span>
+            Refunded <span className='count'>{counts.refunded}</span>
           </Link>
         </nav>
       </header>
 
       {payments.length === 0 ? (
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>No payments found.</p>
-          <p className={styles.emptyCopy}>
+        <div className='empty'>
+          <p className='emptyTitle'>No payments found.</p>
+          <p className='emptyCopy'>
             When you book a ride, receipts and payment history will appear here.
           </p>
-          <div className={styles.actionsRow}>
-            <Link className={styles.primaryBtn} href='/book'>
-              Book a ride
-            </Link>
-            <Link className={styles.secondaryBtn} href='/dashboard/trips'>
-              View trips
-            </Link>
+          <div className='actionsRow'>
+          <div className='btnContainer'>
+            <Button href='/book' btnType='red' text='Book a ride' arrow />
+            </div>
+            <div className="btnContainer">
+            <Button
+              href='/dashboard/trips'
+              btnType='gray'
+              text='View trips'
+              arrow
+              />
+              </div>
           </div>
         </div>
       ) : (

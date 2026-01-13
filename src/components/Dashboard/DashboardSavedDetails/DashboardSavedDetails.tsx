@@ -1,3 +1,4 @@
+import Button from "@/components/shared/Button/Button";
 import styles from "./DashboardSavedDetails.module.css";
 import Link from "next/link";
 
@@ -38,37 +39,40 @@ export default function DashboardSavedDetails({
     Boolean(lastUsed);
 
   return (
-    <section className={styles.container} aria-label='Saved details'>
-      <header className={styles.header}>
-        <div className={styles.titleBox}>
-          <h1 className={`${styles.heading} h2`}>Saved details</h1>
-          <p className={styles.subheading}>
-            Quick access to your frequent locations and preferences.
-            (Auto-generated from your booking history for now.)
-          </p>
-        </div>
+    <section className='container' aria-label='Saved details'>
+      <header className='header'>
+        <h1 className={`heading h2`}>Saved details</h1>
+        <p className='subheading'>
+          Quick access to your frequent locations and preferences.
+          (Auto-generated from your booking history for now.)
+        </p>
 
-        <div className={styles.headerActions}>
-          <Link className={styles.primaryBtn} href='/book'>
+        {/* <div className={styles.headerActions}>
+          <Link className="tab" href='/book'>
             Book a ride
           </Link>
           <Link className={styles.secondaryBtn} href='/dashboard/profile'>
             Profile & security
           </Link>
-        </div>
+        </div> */}
       </header>
 
       {!hasAny ? (
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>Nothing saved yet.</p>
-          <p className={styles.emptyCopy}>
+        <div className='empty'>
+          <p className='emptyTitle'>Nothing saved yet.</p>
+          <p className='emptyCopy'>
             Once you complete a trip, we’ll start surfacing your frequent
             pickup/dropoff locations and preferences here.
           </p>
-          <div className={styles.btnRow}>
-            <Link className={styles.primaryBtn} href='/book'>
-              Book your first ride
-            </Link>
+          <div className="actionsRow">
+          <div className='btnContainer'>
+            <Button
+              href='/book'
+              btnType='red'
+              text='Book your first ride'
+              arrow
+              />
+              </div>
           </div>
         </div>
       ) : (

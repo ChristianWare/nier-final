@@ -95,8 +95,8 @@
 .gray,
 .gray:link,
 .gray:visited {
-  background-color: var(--strokeii);
-  color: var(--white);
+  background-color: var(--stroke);
+  color: var(--black);
   border: 1px solid var(--strokeii);
   display: flex;
   justify-content: space-between;

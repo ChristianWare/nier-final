@@ -29,7 +29,7 @@
 @media screen and (max-width: 968px) {
   .content {
     grid-template-columns: 1fr;
-    grid-gap: 2rem;
+    grid-gap: 7rem;
   }
 
   .heading {

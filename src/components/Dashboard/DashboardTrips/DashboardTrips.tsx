@@ -124,8 +124,8 @@ export default function DashboardTrips({
   trips: Trip[];
 }) {
   return (
-    <section className={styles.container} aria-label='My trips'>
-      <header className={styles.header}>
+    <section className="container" aria-label='My trips'>
+      <header className="header">
         <h1 className={`${styles.heading} h2`}>My trips</h1>
         <p className={styles.subheading}>
           Manage upcoming rides, view history, and handle payments.
@@ -162,7 +162,7 @@ export default function DashboardTrips({
           </p>
           <div className="actionsRow">
             <div className={styles.btnContainer}>
-            <Button href='/book' btnType='black' text='Book a ride' arrow />
+            <Button href='/book' btnType='red' text='Book a ride' arrow />
             </div>
           </div>
         </div>
