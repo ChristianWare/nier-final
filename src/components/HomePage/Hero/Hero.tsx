@@ -16,7 +16,7 @@ export default function Hero() {
           playsInline
           className={styles.video}
         >
-          <source src='/videos/hero.mp4' type='video/mp4' />
+          <source src='/videos/phx.mp4' type='video/mp4' />
         </video>
         <div className={styles.imgOverlay} />
         <div className={styles.marqueeWrap}>
