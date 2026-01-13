@@ -284,7 +284,7 @@ export default async function AdminHome() {
     // -------------------------
     // Driver readiness
     // -------------------------
-    db.user.count({ where: { role: "DRIVER" } }),
+db.user.count({ where: { roles: { has: "DRIVER" } } }),
     db.assignment.findMany({
       where: {
         booking: {
