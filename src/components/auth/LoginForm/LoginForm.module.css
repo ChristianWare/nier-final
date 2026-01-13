@@ -41,6 +41,11 @@
 
 .cardFooter {
   margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
 }
 
 .footerText {
@@ -60,10 +65,11 @@
   text-decoration: underline;
 }
 
-.cardFooter {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1rem;
+/* Honeypot inputs (replaces inline styles) */
+.honeypot {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  pointer-events: none;
 }

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, MouseEventHandler } from "react";
 import Link from "next/link";
 import styles from "./Button.module.css";
 import Arrow from "../icons/Arrow/Arrow";
@@ -15,6 +15,7 @@ interface Props {
   plus?: boolean;
   type?: "button" | "submit" | "reset";
   as?: "auto" | "button" | "span";
+  onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
 export default function Button({
@@ -28,6 +29,7 @@ export default function Button({
   plus,
   type = "button",
   as = "auto",
+  onClick,
 }: Props) {
   const content = text || children;
   const className = `${styles.btn} ${styles[btnType]}`;
@@ -54,7 +56,12 @@ export default function Button({
 
   if (as === "button" || !href) {
     return (
-      <button type={type} className={className} disabled={disabled}>
+      <button
+        type={type}
+        className={className}
+        disabled={disabled}
+        onClick={onClick}
+      >
         {Inner}
       </button>
     );

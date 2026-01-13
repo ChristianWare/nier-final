@@ -6,7 +6,6 @@
 
 .label {
   color: var(--lightBlack);
-  font-family: var(--PPNeueMontrealMediumThick);
   text-transform: capitalize;
 }
 
@@ -19,7 +18,7 @@
   padding-left: 1.5rem;
   border: 1px solid var(--gray);
   background-color: var(--lightGray);
-  border-radius: 50px;
+  border-radius: 5px;
   font-size: 1.6rem;
   position: relative;
   width: 100%;

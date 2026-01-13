@@ -2,7 +2,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, MouseEvent } from "react";
-import Close from "@/components/icons/Close/Close";
+import Close from "../icons/Close/Close";
 import styles from "./Modal.module.css";
 
 interface Props {

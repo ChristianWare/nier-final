@@ -5,13 +5,13 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginSchema, LoginSchemaType } from "@/schemas/LoginSchema";
 import FormField from "../FormField/FormField";
-import FalseButton from "@/components/shared/FalseButton/FalseButton";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { login } from "../../../../actions/auth/login";
 import Alert from "@/components/shared/Alert/Alert";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LOGIN_REDIRECT } from "../../../../routes";
+import Button from "@/components/shared/Button/Button";
 
 export default function LoginForm() {
   const {
@@ -64,31 +64,22 @@ export default function LoginForm() {
         className={styles.form}
         autoComplete='off'
       >
+        {/* Honeypot inputs (no inline styles) */}
         <input
+          className={styles.honeypot}
           type='text'
           name='fake-username'
           autoComplete='username'
           tabIndex={-1}
-          style={{
-            position: "absolute",
-            opacity: 0,
-            height: 0,
-            width: 0,
-            pointerEvents: "none",
-          }}
+          aria-hidden='true'
         />
         <input
+          className={styles.honeypot}
           type='password'
           name='fake-password'
           autoComplete='new-password'
           tabIndex={-1}
-          style={{
-            position: "absolute",
-            opacity: 0,
-            height: 0,
-            width: 0,
-            pointerEvents: "none",
-          }}
+          aria-hidden='true'
         />
 
         <FormField
@@ -100,6 +91,7 @@ export default function LoginForm() {
           type='email'
           autoComplete='off'
         />
+
         <FormField
           id='password'
           register={register}
@@ -116,11 +108,12 @@ export default function LoginForm() {
         {success && <Alert message={success} success />}
 
         <div className={styles.btnContainer}>
-          <FalseButton
+          <Button
             text={isPending ? "Submitting..." : "Sign In"}
             type='submit'
-            btnType='black'
             disabled={isPending}
+            btnType='black'
+            arrow
           />
         </div>
 
@@ -134,6 +127,7 @@ export default function LoginForm() {
             Sign up
           </Link>
         </p>
+
         <p className={styles.footerText}>
           Forgot password?{" "}
           <Link href='/password-email-form' className={styles.link}>

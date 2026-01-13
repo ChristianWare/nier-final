@@ -34,12 +34,13 @@ export default async function AdminBookingDetailPage({
 
   if (!booking) return notFound();
 
-  const drivers = await db.user.findMany({
-    where: { role: "DRIVER" },
-    select: { id: true, name: true, email: true },
-    orderBy: { createdAt: "desc" },
-    take: 300,
-  });
+ const drivers = await db.user.findMany({
+   where: { roles: { has: "DRIVER" } },
+   select: { id: true, name: true, email: true },
+   orderBy: { createdAt: "desc" },
+   take: 300,
+ });
+
 
   const vehicleUnits = await db.vehicleUnit.findMany({
     where: {

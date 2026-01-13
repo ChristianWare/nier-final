@@ -60,3 +60,74 @@
   color: #1d4ed8;
   text-decoration: underline;
 }
+.container,
+.form {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+  width: 100%;
+}
+
+.or {
+  text-align: center;
+  width: 100%;
+  color: var(--text);
+  position: relative;
+}
+
+.or:after {
+  position: absolute;
+  content: "";
+  top: 50%;
+  left: 0;
+  width: 40%;
+  height: 2px;
+  background-color: var(--stroke);
+}
+
+.or:before {
+  position: absolute;
+  content: "";
+  top: 50%;
+  right: 0;
+  width: 40%;
+  height: 2px;
+  background-color: var(--stroke);
+}
+
+.btnContainer {
+  display: grid;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.cardFooter {
+  margin-top: 1rem;
+}
+
+.footerText {
+  color: var(--black);
+  font-size: 1.6rem;
+  font-family: var(--SuisseIntlMedium);
+}
+
+.link {
+  color: #2563eb !important;
+  text-decoration: none;
+  transition: color 0.15s ease-in-out;
+  margin-left: 0.5rem;
+}
+
+.link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* Honeypot inputs (replaces inline styles) */
+.honeypot {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+  pointer-events: none;
+}

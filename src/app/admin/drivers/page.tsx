@@ -7,11 +7,12 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminDriversPage() {
   const drivers = await db.user.findMany({
-    where: { role: "DRIVER" },
+    where: { roles: { has: "DRIVER" } },
     orderBy: [{ createdAt: "desc" }],
     select: { id: true, name: true, email: true, createdAt: true },
     take: 500,
   });
+
 
   return (
     <section className={styles.container}>

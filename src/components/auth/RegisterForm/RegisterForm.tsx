@@ -4,13 +4,12 @@ import styles from "./RegisterForm.module.css";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormField from "../FormField/FormField";
-import FalseButton from "@/components/shared/FalseButton/FalseButton";
-// import GoogleButton from "../GoogleButton/GoogleButton";
 import Link from "next/link";
 import { RegisterSchema, RegisterSchemaType } from "@/schemas/RegisterSchema";
 import { signUp } from "../../../../actions/auth/register";
 import { useTransition, useState } from "react";
 import Alert from "@/components/shared/Alert/Alert";
+import Button from "@/components/shared/Button/Button";
 
 export default function RegisterForm() {
   const [isPending, startTransition] = useTransition();
@@ -21,11 +20,14 @@ export default function RegisterForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<RegisterSchemaType>({ resolver: zodResolver(RegisterSchema) });
+  } = useForm<RegisterSchemaType>({
+    resolver: zodResolver(RegisterSchema),
+  });
 
   const onSubmit: SubmitHandler<RegisterSchemaType> = (data) => {
     setSuccess("");
     setError("");
+
     startTransition(() => {
       signUp(data).then((res) => {
         setError(res.error);
@@ -39,7 +41,6 @@ export default function RegisterForm() {
       {/* <GoogleButton title='up' /> */}
       <p className={styles.or}>or</p>
 
-      {/* Turn off browser autofill at the form level */}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className={styles.form}
@@ -47,37 +48,26 @@ export default function RegisterForm() {
       >
         {/* Small hidden “honeypot” inputs help keep Chrome from force-filling */}
         <input
+          className={styles.honeypot}
           type='text'
           name='fake-username'
           autoComplete='username'
           tabIndex={-1}
-          style={{
-            position: "absolute",
-            opacity: 0,
-            height: 0,
-            width: 0,
-            pointerEvents: "none",
-          }}
+          aria-hidden='true'
         />
         <input
+          className={styles.honeypot}
           type='password'
           name='fake-password'
           autoComplete='new-password'
           tabIndex={-1}
-          style={{
-            position: "absolute",
-            opacity: 0,
-            height: 0,
-            width: 0,
-            pointerEvents: "none",
-          }}
+          aria-hidden='true'
         />
 
         <FormField
           id='name'
           register={register}
           errors={errors}
-          // placeholder='name'
           label='name'
           disabled={isPending}
           autoComplete='off'
@@ -87,7 +77,6 @@ export default function RegisterForm() {
           id='email'
           register={register}
           errors={errors}
-          // placeholder='email'
           label='email'
           disabled={isPending}
           type='email'
@@ -122,11 +111,12 @@ export default function RegisterForm() {
         {success && <Alert message={success} success />}
 
         <div className={styles.btnContainer}>
-          <FalseButton
-            text={isPending ? "Submitting..." : "Register"}
+          <Button
+            text={isPending ? "Submitting..." : "Sign In"}
             type='submit'
-            btnType='black'
             disabled={isPending}
+            btnType='black'
+            arrow
           />
         </div>
       </form>
