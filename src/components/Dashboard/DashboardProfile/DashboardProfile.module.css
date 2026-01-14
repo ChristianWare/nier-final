@@ -3,55 +3,11 @@
   gap: 1rem;
 }
 
-.header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.titleBox {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.heading {
-  margin: 0;
-}
-
-.subheading {
-  margin: 0;
-  font-size: 1.35rem;
-  color: var(--paragraph);
-  max-width: 70ch;
-}
-
-.headerActions {
-  display: flex;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-}
-
-.banner {
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 0.9rem 1rem;
-  font-size: 1.3rem;
-}
-
-.bannerOk {
-  background: rgba(0, 0, 0, 0.05);
-}
-
-.bannerError {
-  background: rgba(255, 0, 0, 0.08);
-}
 
 .grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .card {
@@ -60,19 +16,22 @@
   border-radius: 10px;
   padding: 1rem;
   display: grid;
-  gap: 1rem;
+  gap: 3rem;
   min-width: 0;
 }
 
-.cardTop {
+/* .cardTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.8rem;
-}
+} */
 
 .cardTitle {
   margin: 0;
+  background-color: var(--cream);
+  padding: 1rem;
+  border-radius: 5px;
 }
 
 .rows {
@@ -92,30 +51,6 @@
   opacity: 0.75;
 }
 
-.val {
-  font-size: 1.35rem;
-  color: var(--black);
-  word-break: break-word;
-}
-
-.pill {
-  font-size: 1.15rem;
-  padding: 0.35rem 0.7rem;
-  border-radius: 999px;
-  border: 1px solid var(--stroke);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.pillGood {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.pillWarn {
-  background: rgba(255, 200, 9, 0.25);
-}
-
 .helpText {
   margin: 0;
   font-size: 1.25rem;
@@ -124,23 +59,17 @@
 
 .form {
   display: grid;
-  gap: 0.9rem;
-}
-
-.label {
-  display: grid;
-  gap: 0.5rem;
-  font-size: 1.25rem;
-  color: var(--paragraph);
+  gap: 3rem;
 }
 
 .input {
   border: 1px solid var(--stroke);
-  background: var(--cream);
-  border-radius: 10px;
+  background: var(--white);
+  border-radius: 5px;
   padding: 0.9rem 1rem;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--black);
+  letter-spacing: normal;
   outline: none;
 }
 
@@ -156,14 +85,7 @@
 
 .formActions {
   display: grid;
-  gap: 0.6rem;
-}
-
-.miniNote {
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--paragraph);
-  opacity: 0.85;
+  gap: 2rem;
 }
 
 .disabledBox {
@@ -187,38 +109,7 @@
   flex-wrap: wrap;
 }
 
-.primaryBtn,
-.secondaryBtn,
-.tertiaryBtn {
-  text-decoration: none;
-  border-radius: 10px;
-  padding: 0.9rem 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  font-size: 1.3rem;
-  line-height: 1;
-  white-space: nowrap;
-  border: 1px solid var(--stroke);
-  cursor: pointer;
-}
 
-.primaryBtn {
-  background: var(--black);
-  color: var(--white);
-  border-color: var(--black);
-}
-
-.secondaryBtn {
-  background: var(--cream);
-  color: var(--black);
-}
-
-.tertiaryBtn {
-  background: transparent;
-  color: var(--black);
-}
 
 @media screen and (max-width: 1000px) {
   .grid {

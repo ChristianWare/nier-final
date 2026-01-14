@@ -1,9 +1,8 @@
 import styles from "./DashboardProfile.module.css";
-import Link from "next/link";
 import { updateName } from "../../../../actions/auth/updateName"; 
 import { changePassword } from "../../../../actions/auth/changePassword"; 
 import SubmitButton from "./SubmitButton";
-import SignOutButton from "./SignOutButton";
+
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -31,55 +30,37 @@ export default function DashboardProfile({
     : "Not verified";
 
   return (
-    <section className={styles.container} aria-label='Profile and security'>
-      <header className={styles.header}>
-        <div className={styles.titleBox}>
-          <h1 className={`${styles.heading} h2`}>Profile & security</h1>
-          <p className={styles.subheading}>
-            Update your account details and manage security settings.
-          </p>
-        </div>
-
-        <div className={styles.headerActions}>
-          <Link className={styles.secondaryBtn} href='/dashboard'>
-            Dashboard
-          </Link>
-          <Link className={styles.primaryBtn} href='/book'>
-            Book a ride
-          </Link>
-        </div>
+    <section className='container' aria-label='Profile and security'>
+      <header className='header'>
+        <h1 className='heading h2'>Profile & security</h1>
+        <p className='subheading'>
+          Update your account details and manage security settings.
+        </p>
       </header>
 
       {flash.err ? (
-        <div className={`${styles.banner} ${styles.bannerError}`}>
-          {flash.err}
-        </div>
+        <div className={`banner bannerError`}>{flash.err}</div>
       ) : null}
 
-      {flash.ok ? (
-        <div className={`${styles.banner} ${styles.bannerOk}`}>{flash.ok}</div>
-      ) : null}
+      {flash.ok ? <div className={`banner bannerOk`}>{flash.ok}</div> : null}
 
       <div className={styles.grid}>
         {/* Account */}
         <section className={styles.card}>
           <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>Account</h2>
+            <h2 className={`cardTitle h4`}>Account</h2>
           </header>
-
           <div className={styles.rows}>
             <div className={styles.row}>
-              <div className={styles.key}>Email</div>
-              <div className={styles.val}>{user.email}</div>
+              <div className='emptyTitle'>Email</div>
+              <div className='val'>{user.email}</div>
             </div>
 
             <div className={styles.row}>
-              <div className={styles.key}>Status</div>
-              <div className={styles.val}>
+              <div className='emptyTitle'>Status</div>
+              <div className='val'>
                 <span
-                  className={`${styles.pill} ${
-                    user.emailVerified ? styles.pillGood : styles.pillWarn
-                  }`}
+                  className={`pill ${user.emailVerified ? "pillGood" : "pillWarn"}`}
                 >
                   {verifiedLabel}
                 </span>
@@ -98,13 +79,13 @@ export default function DashboardProfile({
         {/* Update name */}
         <section className={styles.card}>
           <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>Display name</h2>
+            <h2 className={`cardTitle h4`}>Display name</h2>
           </header>
 
           <form action={updateName} className={styles.form}>
             <input type='hidden' name='userId' value={user.id} />
 
-            <label className={styles.label}>
+            <label className='label'>
               Name
               <input
                 name='name'
@@ -116,8 +97,8 @@ export default function DashboardProfile({
             </label>
 
             <div className={styles.formActions}>
-              <SubmitButton className={styles.primaryBtn} text='Save name' />
-              <p className={styles.miniNote}>
+              <SubmitButton className="primaryBtn" text='Save name' />
+              <p className="miniNote">
                 This is what you’ll see in your dashboard and receipts.
               </p>
             </div>
@@ -127,7 +108,7 @@ export default function DashboardProfile({
         {/* Password */}
         <section className={styles.card}>
           <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>Password</h2>
+            <h2 className={`cardTitle h4`}>Password</h2>
           </header>
 
           {!user.hasPassword ? (
@@ -145,7 +126,7 @@ export default function DashboardProfile({
             <form action={changePassword} className={styles.form}>
               <input type='hidden' name='userId' value={user.id} />
 
-              <label className={styles.label}>
+              <label className='label'>
                 Current password
                 <input
                   name='currentPassword'
@@ -157,7 +138,7 @@ export default function DashboardProfile({
               </label>
 
               <div className={styles.twoCol}>
-                <label className={styles.label}>
+                <label className='label'>
                   New password
                   <input
                     name='newPassword'
@@ -169,7 +150,7 @@ export default function DashboardProfile({
                   />
                 </label>
 
-                <label className={styles.label}>
+                <label className='label'>
                   Confirm new password
                   <input
                     name='confirmPassword'
@@ -184,10 +165,10 @@ export default function DashboardProfile({
 
               <div className={styles.formActions}>
                 <SubmitButton
-                  className={styles.primaryBtn}
+                  className="primaryBtn"
                   text='Update password'
                 />
-                <p className={styles.miniNote}>
+                <p className="miniNote">
                   Use at least 8 characters. Avoid reusing old passwords.
                 </p>
               </div>
@@ -195,23 +176,8 @@ export default function DashboardProfile({
           )}
         </section>
 
-        {/* Session */}
-        <section className={styles.card}>
-          <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>Session</h2>
-          </header>
-
-          <p className={styles.muted}>
-            If you’re using a shared device, sign out when you’re finished.
-          </p>
-
-          <div className={styles.sessionActions}>
-            <SignOutButton className={styles.secondaryBtn} />
-            <Link className={styles.tertiaryBtn} href='/dashboard/support'>
-              Support
-            </Link>
-          </div>
-        </section>
+      
+       
       </div>
     </section>
   );

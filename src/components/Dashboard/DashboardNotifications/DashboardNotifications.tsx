@@ -133,10 +133,10 @@ export default function DashboardNotifications({
             here.
           </p>
           <div className={styles.btnRow}>
-     
-             <div className={styles.btnContainer}>
-<Button href='/book' btnType='red' text='Book a ride' arrow />
-</div>
+    
+             <div className="btnContainer">
+              <Button href='/book' btnType='red' text='Book a ride' arrow />
+            </div>
           </div>
         </div>
       ) : (
