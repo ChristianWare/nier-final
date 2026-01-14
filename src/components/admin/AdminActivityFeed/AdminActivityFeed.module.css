@@ -1,9 +1,4 @@
 .container {
-  margin-top: 2rem;
-  background: var(--cream);
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 1.2rem;
   display: grid;
   gap: 1rem;
 }
@@ -13,100 +8,33 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-}
-
-.title {
-  margin: 0;
-}
-
-.meta {
-  font-size: 1.25rem;
-  opacity: 0.75;
-}
-
-.empty {
-  font-size: 1.3rem;
-  opacity: 0.75;
-  padding: 0.6rem 0;
+  flex-wrap: wrap;
 }
 
 .list {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
   display: grid;
-  gap: 0.8rem;
+  gap: 10px;
 }
 
+/* Match DashboardOverview .activityItem */
 .row {
-  background: var(--white);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 1.5rem;
+  border-radius: 7px;
+  background: var(--lightGrayii);
   border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
 }
 
+/* Match DashboardOverview .activityLeft */
 .left {
   display: grid;
-  gap: 2rem;
-}
-
-.topLine {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-  font-size: 1.2rem;
-  opacity: 0.85;
-}
-
-.kind {
-  font-weight: 800;
-  font-size: 1.4rem;
-  letter-spacing: normal;
-}
-
-.dot {
-  opacity: 0.6;
-}
-
-.time {
-  color: var(--paragraph);
-}
-
-.titleLine {
-  font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: normal;
-}
-
-.subtitle {
-  color: var(--paragraph);
-}
-
-.right {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.7rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--stroke);
-  background: var(--black);
-  color: var(--cream);
-  text-decoration: none;
-  font-weight: 800;
-  font-size: 1.2rem;
-  white-space: nowrap;
-}
-
-.btn:hover {
-  background: var(--black400);
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
+  min-width: 0;
 }

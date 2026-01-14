@@ -5,92 +5,104 @@ export type AdminActivityItem = {
   kind: "STATUS" | "ASSIGNMENT" | "PAYMENT_RECEIVED" | "PAYMENT_LINK_SENT";
   at: Date;
   title: string;
-  subtitle?: string;
-  bookingId?: string;
+  subtitle: string;
+  bookingId: string;
+  href?: string; // optional override
+  ctaLabel?: string; // optional override
 };
 
 type Props = {
   items: AdminActivityItem[];
   timeZone?: string;
+  title?: string;
+  emptyText?: string;
+  hrefBase?: string; // default: "/admin/bookings"
 };
 
-export default function AdminActivityFeed({
-  items,
-  timeZone = "America/Phoenix",
-}: Props) {
-  return (
-    <section className={styles.container} aria-label='Recent activity'>
-      <header className={styles.header}>
-        <h2 className={`${styles.title} h4`}>Recent activity</h2>
-        <div className={styles.meta}>
-          Last {Math.min(10, items.length)} events
-        </div>
-      </header>
-
-      {items.length === 0 ? (
-        <div className={styles.empty}>No recent admin activity.</div>
-      ) : (
-        <ul className={styles.list}>
-          {items.map((x, idx) => (
-            <li
-              key={`${x.kind}-${x.at.toISOString()}-${idx}`}
-              className={styles.row}
-            >
-              <div className={styles.left}>
-                <div className={styles.topLine}>
-                  <span className={styles.kind}>{labelKind(x.kind)}</span>
-                  <span className={styles.dot}>•</span>
-                  <p className={styles.time}>
-                    {formatDateTime(x.at, timeZone)}
-                  </p>
-                </div>
-
-                <div className={styles.titleLine}>{x.title}</div>
-
-                {x.subtitle ? (
-                  <div className={styles.subtitle}>{x.subtitle}</div>
-                ) : null}
-              </div>
-
-              <div className={styles.right}>
-                {x.bookingId ? (
-                  <Link
-                    className={styles.btn}
-                    href={`/admin/bookings/${x.bookingId}`}
-                  >
-                    Review
-                  </Link>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
-  );
-}
-
-function labelKind(kind: AdminActivityItem["kind"]) {
-  switch (kind) {
-    case "STATUS":
-      return "Status";
-    case "ASSIGNMENT":
-      return "Assignment";
-    case "PAYMENT_RECEIVED":
-      return "Payment";
-    case "PAYMENT_LINK_SENT":
-      return "Payment link";
-    default:
-      return "Event";
-  }
-}
-
-function formatDateTime(d: Date, timeZone: string) {
+function formatDateTime(d: Date, timeZone?: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone,
+    weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    ...(timeZone ? { timeZone } : {}),
   }).format(d);
+}
+
+function kindLabel(kind: AdminActivityItem["kind"]) {
+  switch (kind) {
+    case "STATUS":
+      return "Trip update";
+    case "ASSIGNMENT":
+      return "Driver assigned";
+    case "PAYMENT_RECEIVED":
+      return "Payment received";
+    case "PAYMENT_LINK_SENT":
+      return "Payment link sent";
+    default:
+      return "Update";
+  }
+}
+
+function kindTone(kind: AdminActivityItem["kind"]) {
+  // maps to your global badge classes: badge_neutral / badge_warn / badge_good / badge_accent / badge_bad
+  switch (kind) {
+    case "PAYMENT_RECEIVED":
+      return "good";
+    case "ASSIGNMENT":
+      return "accent";
+    case "PAYMENT_LINK_SENT":
+      return "warn";
+    case "STATUS":
+    default:
+      return "neutral";
+  }
+}
+
+export default function AdminActivityFeed({
+  items,
+  timeZone,
+  title = "Recent activity",
+  emptyText = "No activity yet.",
+  hrefBase = "/admin/bookings",
+}: Props) {
+  return (
+    <section className={styles.container} aria-label='Admin activity feed'>
+      <header className={styles.header}>
+        <h2 className='cardTitle h4'>{title}</h2>
+      </header>
+
+      {items.length === 0 ? (
+        <p className='emptySmall'>{emptyText}</p>
+      ) : (
+        <ul className={styles.list}>
+          {items.map((it) => {
+            const href = it.href ?? `${hrefBase}/${it.bookingId}`;
+            const key = `${it.bookingId}-${it.kind}-${it.at.toISOString()}`;
+
+            return (
+              <li key={key} className={styles.row}>
+                <div className={styles.left}>
+                  <span className={`badge badge_${kindTone(it.kind)}`}>
+                    {kindLabel(it.kind)}
+                  </span>
+
+                  <div className='miniNote'>
+                    {formatDateTime(it.at, timeZone)} • {it.title}
+                  </div>
+
+                  <div className='emptySmall'>{it.subtitle}</div>
+                </div>
+
+                <Link className='primaryBtn' href={href}>
+                  {it.ctaLabel ?? "Open"}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
 }
