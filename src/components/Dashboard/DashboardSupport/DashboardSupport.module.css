@@ -1,7 +1,7 @@
 
 .grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
 }
 
@@ -13,7 +13,7 @@
   padding: 1rem;
   display: grid;
   gap: 3rem;
-  min-width: 0;
+  /* min-width: 0; */
 }
 
 .cardWide {
@@ -54,12 +54,6 @@
   font-size: 1.35rem;
 }
 
-.label {
-  display: grid;
-  gap: 0.5rem;
-  font-size: 1.25rem;
-  color: var(--paragraph);
-}
 
 .select,
 .textarea {
@@ -70,6 +64,10 @@
   font-size: 1.35rem;
   color: var(--black);
   outline: none;
+}
+
+.select option {
+  width: fit-content;
 }
 
 .select:focus,
@@ -178,7 +176,7 @@
   opacity: 0.9;
 }
 
-@media screen and (max-width: 1000px) {
+@media screen and (max-width: 1268px) {
   .grid {
     grid-template-columns: 1fr;
   }

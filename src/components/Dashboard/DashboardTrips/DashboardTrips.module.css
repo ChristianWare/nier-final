@@ -1,5 +1,6 @@
 .list {
   display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 14px;
 }
 
@@ -96,4 +97,10 @@
 
 .btnContainer {
   margin-top: 1rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .list {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }

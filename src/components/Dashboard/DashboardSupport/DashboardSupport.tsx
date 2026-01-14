@@ -199,8 +199,7 @@ export default function DashboardSupport({
                 <option value=''>No specific trip</option>
                 {trips.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {formatDateTime(t.pickupAt)} • {t.pickupAddress} →{" "}
-                    {t.dropoffAddress}
+                    {formatDateTime(t.pickupAt)}
                   </option>
                 ))}
               </select>
@@ -390,9 +389,6 @@ export default function DashboardSupport({
               href='/dashboard/notifications'
             >
               View recent activity
-            </Link>
-            <Link className="primaryBtn" href='/book'>
-              Book a ride
             </Link>
           </div>
 
