@@ -10,7 +10,7 @@
   height: 150px;
   width: 150px;
   animation: pulse 1.5s ease-in-out infinite;
-  color: var(--red);
+  color: var(--black);
 }
 
 .headingContainer {
@@ -27,7 +27,7 @@
 .thunder {
   height: 100px;
   width: 100px;
-  color: var(--red);
+  color: var(--black);
 }
 
 @keyframes pulse {
