@@ -19,6 +19,8 @@ type Props = {
   hrefBase?: string; // default: "/admin/bookings"
 };
 
+type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
+
 function formatDateTime(d: Date, timeZone?: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
@@ -45,18 +47,77 @@ function kindLabel(kind: AdminActivityItem["kind"]) {
   }
 }
 
-function kindTone(kind: AdminActivityItem["kind"]) {
-  // maps to your global badge classes: badge_neutral / badge_warn / badge_good / badge_accent / badge_bad
-  switch (kind) {
+function toneFromStatusTitle(titleRaw: string): BadgeTone {
+  const t = (titleRaw ?? "").trim().toLowerCase();
+
+  // BAD
+  if (
+    t.includes("cancelled") ||
+    t.includes("canceled") ||
+    t.includes("no-show") ||
+    t.includes("no show") ||
+    t.includes("failed") ||
+    t.includes("declined")
+  ) {
+    return "bad";
+  }
+
+  // GOOD (explicitly treat approval as good, even if it mentions pending payment)
+  if (
+    t.includes("approved") ||
+    t.includes("booking approved") ||
+    t.includes("confirmed") ||
+    t.includes("completed") ||
+    t.includes("assigned")
+  ) {
+    return "good";
+  }
+
+  // ACCENT (in-motion)
+  if (
+    t.includes("en route") ||
+    t.includes("en-route") ||
+    t.includes("arrived") ||
+    t.includes("in progress") ||
+    t.includes("in-progress") ||
+    t.includes("started") ||
+    t.includes("driver en route") ||
+    t.includes("driver arrived")
+  ) {
+    return "accent";
+  }
+
+  // WARN
+  if (
+    t.includes("payment due") ||
+    t.includes("payment link") ||
+    t.includes("pending payment")
+  ) {
+    return "warn";
+  }
+
+  // NEUTRAL
+  if (t.includes("pending review") || t.includes("draft")) return "neutral";
+
+  return "neutral";
+}
+
+/**
+ * Activity-feed tone:
+ * - for non-STATUS items we know the intent, so tone is deterministic
+ * - for STATUS items we infer tone from the status text (your `it.title`)
+ */
+function kindTone(it: AdminActivityItem): BadgeTone {
+  switch (it.kind) {
     case "PAYMENT_RECEIVED":
       return "good";
-    case "ASSIGNMENT":
-      return "accent";
     case "PAYMENT_LINK_SENT":
       return "warn";
+    case "ASSIGNMENT":
+      return "good";
     case "STATUS":
     default:
-      return "neutral";
+      return toneFromStatusTitle(it.title);
   }
 }
 
@@ -80,16 +141,21 @@ export default function AdminActivityFeed({
           {items.map((it) => {
             const href = it.href ?? `${hrefBase}/${it.bookingId}`;
             const key = `${it.bookingId}-${it.kind}-${it.at.toISOString()}`;
+            const tone = kindTone(it);
 
             return (
               <li key={key} className={styles.row}>
                 <div className={styles.left}>
-                  <span className={`badge badge_${kindTone(it.kind)}`}>
+                  <span className='emptyTitle underline'>
                     {kindLabel(it.kind)}
                   </span>
 
-                  <div className='miniNote'>
-                    {formatDateTime(it.at, timeZone)} • {it.title}
+                  <div className={styles.box}>
+                    <span className='miniNote'>
+                      {formatDateTime(it.at, timeZone)}{" "}
+                    </span>
+
+                    <span className={`badge badge_${tone}`}>{it.title}</span>
                   </div>
 
                   <div className='emptySmall'>{it.subtitle}</div>

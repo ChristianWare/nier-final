@@ -12,7 +12,7 @@
   --stroke: #d8d6d2;
   --strokeii: #a7a6a2;
   --blue: #2563eb;
-  --green: #16a34a;
+  --green: rgb(22, 163, 74);
   --darkGreen: #0B7547;
   --red: #dc2626;
   --darkRed: #8b1a1a;
@@ -459,14 +459,13 @@ textarea:focus {
 }
 
 .badge_warn {
-  background: rgba(255, 200, 9, 0.25);
+  background: rgba(255, 200, 9, 0.04);
   background-color: var(--yellow);
   color: var(--darkYellow);
 }
 
 .badge_good {
-  background: rgba(0, 0, 0, 0.06);
-  background-color: var(--green);
+  background: rgba(22, 163, 74, 0.3);
   color: var(--darkGreen);
 }
 
