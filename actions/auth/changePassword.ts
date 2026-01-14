@@ -1,53 +1,59 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { auth } from "../../auth";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-
-// If you already use bcrypt in your project, this will work.
-// If not installed yet: npm i bcryptjs
 import bcrypt from "bcryptjs";
 
 function str(v: unknown) {
   return String(v ?? "");
 }
 
+function toProfileOk(message: string): never {
+  redirect(`/dashboard/profile?ok=${encodeURIComponent(message)}`);
+}
+
+function toProfileErr(message: string): never {
+  redirect(`/dashboard/profile?err=${encodeURIComponent(message)}`);
+}
+
+async function resolveUserId(session: any) {
+  const sessionUserId = (session?.user as { id?: string })?.id ?? null;
+  if (sessionUserId) return sessionUserId;
+
+  const email = session?.user?.email ?? null;
+  if (!email) return null;
+
+  const u = await db.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  return u?.id ?? null;
+}
+
 export async function changePassword(formData: FormData) {
   const session = await auth();
   if (!session) redirect("/login?next=/dashboard/profile");
 
-  const sessionUserId = (session.user as { id?: string }).id ?? null;
-  const email = session.user?.email ?? null;
-
-  let userId = sessionUserId;
-
-  if (!userId && email) {
-    const user = await db.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
-    userId = user?.id ?? null;
-  }
-
+  const userId = await resolveUserId(session);
   if (!userId) redirect("/login?next=/dashboard/profile");
 
   const incomingUserId = str(formData.get("userId"));
-  if (incomingUserId !== userId)
-    redirect("/dashboard/profile?err=Unauthorized");
+  if (incomingUserId !== userId) toProfileErr("Unauthorized");
 
   const currentPassword = str(formData.get("currentPassword"));
   const newPassword = str(formData.get("newPassword"));
   const confirmPassword = str(formData.get("confirmPassword"));
 
   if (newPassword.length < 8) {
-    redirect(
-      "/dashboard/profile?err=New%20password%20must%20be%20at%20least%208%20characters"
-    );
+    toProfileErr("New password must be at least 8 characters");
   }
 
   if (newPassword !== confirmPassword) {
-    redirect("/dashboard/profile?err=Passwords%20do%20not%20match");
+    toProfileErr("Passwords do not match");
   }
 
   const user = await db.user.findUnique({
@@ -55,18 +61,13 @@ export async function changePassword(formData: FormData) {
     select: { password: true },
   });
 
-  if (!user) redirect("/dashboard/profile?err=Account%20not%20found");
+  if (!user) toProfileErr("Account not found");
 
-  if (!user.password) {
-    // Per your requirement: only allow change if using credentials auth (password exists)
-    redirect(
-      "/dashboard/profile?err=This%20account%20does%20not%20have%20a%20password%20set"
-    );
-  }
+  const hash = user.password;
+  if (!hash) toProfileErr("This account does not have a password set");
 
-  const ok = await bcrypt.compare(currentPassword, user.password);
-  if (!ok)
-    redirect("/dashboard/profile?err=Current%20password%20is%20incorrect");
+  const ok = await bcrypt.compare(currentPassword, hash);
+  if (!ok) toProfileErr("Current password is incorrect");
 
   const hashed = await bcrypt.hash(newPassword, 10);
 
@@ -76,5 +77,5 @@ export async function changePassword(formData: FormData) {
   });
 
   revalidatePath("/dashboard/profile");
-  redirect("/dashboard/profile?ok=Password%20updated");
+  toProfileOk("Password updated");
 }

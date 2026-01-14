@@ -5,6 +5,7 @@ import "./globals.css";
 import Footer from "@/components/shared/Footer/Footer";
 import SessionProviderWrap from "@/components/Providers/SessionProvider";
 import { Toaster } from "react-hot-toast";
+import FlashToasts from "@/components/shared/FlashToasts/FlashToasts";
 
 const inter = Inter({
   variable: "--inter",
@@ -32,6 +33,7 @@ export default function RootLayout({
               className: "toastFont",
             }}
           />
+          <FlashToasts />
           {children}
           <Footer />
         </SessionProviderWrap>
