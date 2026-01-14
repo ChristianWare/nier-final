@@ -6,8 +6,9 @@ import {
   AddonType,
   Prisma,
 } from "@prisma/client";
-import { cancelTrip } from "../../../../actions/bookings/cancelTrips"; 
+import { cancelTrip } from "../../../../actions/bookings/cancelTrips";
 import CancelTripButton from "../CancelTripButton/CancelTripButton";
+// import Modal from "@/components/shared/Modal/Modal";
 
 type BookingWithDetails = Prisma.BookingGetPayload<{
   include: {
@@ -146,16 +147,14 @@ export default function TripDetails({
 }) {
   const payUrl = booking.payment?.checkoutUrl ?? null;
 
-  const showPayNow = booking
-    ? Boolean(payUrl) &&
-      (booking.status === "PENDING_PAYMENT" ||
-        booking.payment?.status === "PENDING" ||
-        booking.payment?.status === "NONE" ||
-        booking.payment?.status === "FAILED")
-    : false;
+  const showPayNow =
+    Boolean(payUrl) &&
+    (booking.status === "PENDING_PAYMENT" ||
+      booking.payment?.status === "PENDING" ||
+      booking.payment?.status === "NONE" ||
+      booking.payment?.status === "FAILED");
 
-  const showReceipt = booking ? Boolean(booking.payment?.receiptUrl) : false;
-
+  const showReceipt = Boolean(booking.payment?.receiptUrl);
   const cancellable = canCancel(booking.status);
 
   const primaryHref =
@@ -164,97 +163,97 @@ export default function TripDetails({
       : `/dashboard/trips/${booking.id}`;
 
   return (
-    <section className={styles.container} aria-label='Trip details'>
-      <header className={styles.header}>
-        <div className={styles.titleBox}>
-          <Link className={styles.backLink} href='/dashboard/trips'>
-            ← Back to trips
-          </Link>
-
-          <div className={styles.titleRow}>
-            <h1 className={`${styles.heading} h2`}>Trip details</h1>
-            <span
-              className={`${styles.badge} ${styles[`badge_${badgeTone(booking.status)}`]}`}
-            >
-              {statusLabel(booking.status)}
-            </span>
-          </div>
-
-          <p className={styles.subheading}>
-            Pickup:{" "}
-            <span className={styles.strong}>
-              {formatDateTime(booking.pickupAt)}
-            </span>
-          </p>
-        </div>
-
-        <div className={styles.headerActions}>
-          <Link
-            className={styles.secondaryBtn}
-            href={`/book?rebook=${booking.id}`}
-          >
-            Rebook
-          </Link>
-
-          {cancellable ? (
-            <form action={cancelTrip} className={styles.inlineForm}>
-              <input type='hidden' name='bookingId' value={booking.id} />
-              <CancelTripButton className={styles.dangerBtn} />
-            </form>
-          ) : null}
-        </div>
+    <section className='container' aria-label='Trip details'>
+      <header className='header'>
+        <h1 className='heading h2'>Trip details</h1>
+        <Link className={styles.backLink} href='/dashboard/trips'>
+          ← Back to trips
+        </Link>
       </header>
+      <span className={`badge badge_${badgeTone(booking.status)}`}>
+        {statusLabel(booking.status)}
+      </span>
+
+      <p className='subheading'>
+        Pickup:{" "}
+        <span className={styles.strong}>
+          {formatDateTime(booking.pickupAt)}
+        </span>
+      </p>
+
+      <div className={styles.headerActions}>
+        <Link className='tertiaryBtn' href={`/book?rebook=${booking.id}`}>
+          Rebook
+        </Link>
+
+        {cancellable ? (
+          <form action={cancelTrip} className={styles.inlineForm}>
+            <input type='hidden' name='bookingId' value={booking.id} />
+            <CancelTripButton className='dangerBtn' />
+          </form>
+        ) : null}
+      </div>
 
       <div className={styles.grid}>
-        {/* LEFT COLUMN */}
         <div className={styles.leftCol}>
-          {/* Summary */}
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Summary</h2>
+              <h2 className='cardTitle h4'>Summary</h2>
             </header>
 
-            <div className={styles.rows}>
+            <div className={styles.tripMeta}>
               <div className={styles.row}>
-                <div className={styles.key}>Service</div>
-                <div className={styles.val}>{booking.serviceType.name}</div>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Service
+                </div>
+                <div className='emptySmall'>{booking.serviceType.name}</div>
               </div>
 
               <div className={styles.row}>
-                <div className={styles.key}>Pickup time</div>
-                <div className={styles.val}>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Pickup time
+                </div>
+                <div className='emptySmall'>
                   {formatDateTime(booking.pickupAt)}
                 </div>
               </div>
 
               <div className={styles.row}>
-                <div className={styles.key}>From</div>
-                <div className={styles.val}>{booking.pickupAddress}</div>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  From
+                </div>
+                <div className='emptySmall'>{booking.pickupAddress}</div>
               </div>
 
               <div className={styles.row}>
-                <div className={styles.key}>To</div>
-                <div className={styles.val}>{booking.dropoffAddress}</div>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>To</div>
+                <div className='emptySmall'>{booking.dropoffAddress}</div>
               </div>
 
               <div className={styles.row}>
-                <div className={styles.key}>Vehicle</div>
-                <div className={styles.val}>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Vehicle
+                </div>
+                <div className='emptySmall'>
                   {booking.vehicle?.name ?? "Vehicle TBD"}
                 </div>
               </div>
 
               <div className={styles.row}>
-                <div className={styles.key}>Passengers</div>
-                <div className={styles.val}>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Passengers
+                </div>
+                <div className='emptySmall'>
                   {booking.passengers} • Luggage: {booking.luggage}
                 </div>
               </div>
 
               {booking.hoursRequested ? (
                 <div className={styles.row}>
-                  <div className={styles.key}>Hours</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Hours
+                  </div>
+                  <div className='emptySmall'>
                     Requested: {booking.hoursRequested}
                     {booking.hoursBilled
                       ? ` • Billed: ${booking.hoursBilled}`
@@ -265,8 +264,10 @@ export default function TripDetails({
 
               {booking.distanceMiles ? (
                 <div className={styles.row}>
-                  <div className={styles.key}>Distance</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Distance
+                  </div>
+                  <div className='emptySmall'>
                     {String(booking.distanceMiles)} mi
                   </div>
                 </div>
@@ -274,8 +275,10 @@ export default function TripDetails({
 
               {booking.durationMinutes ? (
                 <div className={styles.row}>
-                  <div className={styles.key}>Duration</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Duration
+                  </div>
+                  <div className='emptySmall'>
                     {booking.durationMinutes} min
                   </div>
                 </div>
@@ -283,30 +286,40 @@ export default function TripDetails({
 
               {booking.specialRequests ? (
                 <div className={styles.row}>
-                  <div className={styles.key}>Requests</div>
-                  <div className={styles.val}>{booking.specialRequests}</div>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Requests
+                  </div>
+                  <div className='emptySmall'>{booking.specialRequests}</div>
                 </div>
               ) : null}
+
+              <div className={styles.row}>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Total
+                </div>
+                <div className='val'>
+                  {moneyFromCents(booking.totalCents, booking.currency)}
+                </div>
+              </div>
             </div>
           </section>
 
-          {/* Addons */}
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Add-ons</h2>
+              <h2 className='cardTitle h4'>Add-ons</h2>
             </header>
 
             {booking.addons.length === 0 ? (
-              <p className={styles.muted}>No add-ons for this trip.</p>
+              <p className='emptySmall'>No add-ons for this trip.</p>
             ) : (
               <ul className={styles.addonList}>
                 {booking.addons.map((a) => (
                   <li key={a.id} className={styles.addonItem}>
                     <div className={styles.addonMain}>
                       <div className={styles.addonTitle}>
-                        {addonLabel(a)}{" "}
+                        {addonLabel(a)}
                         {a.quantity > 1 ? (
-                          <span className={styles.qty}>x{a.quantity}</span>
+                          <span className={styles.qty}> x{a.quantity}</span>
                         ) : null}
                       </div>
                       {a.notes ? (
@@ -322,22 +335,21 @@ export default function TripDetails({
             )}
           </section>
 
-          {/* Status timeline */}
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Status timeline</h2>
+              <h2 className='cardTitle h4'>Status timeline</h2>
             </header>
 
             {booking.statusEvents.length === 0 ? (
-              <p className={styles.muted}>No status updates yet.</p>
+              <p className='emptySmall'>No status updates yet.</p>
             ) : (
               <ul className={styles.timeline}>
                 {booking.statusEvents.map((e) => (
                   <li key={e.id} className={styles.timelineItem}>
-                    <div className={styles.timelineLeft}>
-                      <div className={styles.timelineStatus}>
+                    <div className={styles.timelineTop}>
+                      <span className={`badge badge_${badgeTone(e.status)}`}>
                         {statusLabel(e.status)}
-                      </div>
+                      </span>
                       <div className={styles.timelineMeta}>
                         {formatDateTime(e.createdAt)}
                         {e.createdBy ? (
@@ -358,38 +370,42 @@ export default function TripDetails({
           </section>
         </div>
 
-        {/* RIGHT COLUMN */}
         <div className={styles.rightCol}>
-          {/* Payment */}
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Payment</h2>
+              <h2 className='cardTitle h4'>Payment</h2>
             </header>
 
             {!booking.payment ? (
-              <p className={styles.muted}>No payment record yet.</p>
+              <p className='emptySmall'>No payment record yet.</p>
             ) : (
-              <div className={styles.paymentBox}>
-                <div className={styles.paymentRow}>
-                  <div className={styles.key}>Status</div>
-                  <div className={styles.val}>
-                    <span className={styles.pill}>
-                      {paymentLabel(booking.payment.status)}
-                    </span>
+              <>
+                <div className={styles.tripMeta}>
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      Status
+                    </div>
+                    <div className='val'>
+                      <span className={styles.pill}>
+                        {paymentLabel(booking.payment.status)}
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                <div className={styles.paymentRow}>
-                  <div className={styles.key}>Total</div>
-                  <div className={styles.val}>
-                    {moneyFromCents(booking.totalCents, booking.currency)}
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      Total
+                    </div>
+                    <div className='val'>
+                      {moneyFromCents(booking.totalCents, booking.currency)}
+                    </div>
                   </div>
                 </div>
 
                 <div className={styles.btnRow}>
                   {showPayNow ? (
                     <a
-                      className={styles.primaryBtn}
+                      className='primaryBtn'
                       href={booking.payment.checkoutUrl ?? "#"}
                       target='_blank'
                       rel='noreferrer'
@@ -400,7 +416,7 @@ export default function TripDetails({
 
                   {showReceipt ? (
                     <a
-                      className={styles.secondaryBtn}
+                      className='tertiaryBtn'
                       href={booking.payment.receiptUrl ?? "#"}
                       target='_blank'
                       rel='noreferrer'
@@ -409,69 +425,72 @@ export default function TripDetails({
                     </a>
                   ) : null}
 
-                  <Link
-                    className={styles.tertiaryBtn}
-                    href='/dashboard/payments'
-                  >
+                  <Link className='tertiaryBtn' href='/dashboard/payments'>
                     Payments & receipts
                   </Link>
                 </div>
-              </div>
+              </>
             )}
           </section>
 
-          {/* Pricing breakdown */}
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Pricing</h2>
+              <h2 className='cardTitle h4'>Pricing</h2>
             </header>
 
-            <div className={styles.rows}>
+            <div className={styles.tripMeta}>
               <div className={styles.row}>
-                <div className={styles.key}>Subtotal</div>
-                <div className={styles.val}>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Subtotal
+                </div>
+                <div className='val'>
                   {moneyFromCents(booking.subtotalCents, booking.currency)}
                 </div>
               </div>
 
               <div className={styles.row}>
-                <div className={styles.key}>Fees</div>
-                <div className={styles.val}>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Fees
+                </div>
+                <div className='val'>
                   {moneyFromCents(booking.feesCents, booking.currency)}
                 </div>
               </div>
 
               <div className={styles.row}>
-                <div className={styles.key}>Taxes</div>
-                <div className={styles.val}>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Taxes
+                </div>
+                <div className='val'>
                   {moneyFromCents(booking.taxesCents, booking.currency)}
                 </div>
               </div>
 
-              <div className={styles.hr} />
-
               <div className={styles.row}>
-                <div className={styles.keyStrong}>Total</div>
-                <div className={styles.valStrong}>
+                <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                  Total
+                </div>
+                <div className='val'>
                   {moneyFromCents(booking.totalCents, booking.currency)}
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Driver + vehicle unit */}
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Driver & vehicle</h2>
+              <h2 className='cardTitle h4'>Driver & vehicle</h2>
             </header>
 
             {!booking.assignment ? (
-              <p className={styles.muted}>Driver hasn’t been assigned yet.</p>
+              <p className='emptySmall'>Driver hasn’t been assigned yet.</p>
             ) : (
-              <div className={styles.rows}>
+              <div className={styles.tripMeta}>
                 <div className={styles.row}>
-                  <div className={styles.key}>Driver</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Driver
+                  </div>
+                  <div className='emptySmall'>
                     {booking.assignment.driver.name?.trim()
                       ? booking.assignment.driver.name
                       : booking.assignment.driver.email}
@@ -479,8 +498,10 @@ export default function TripDetails({
                 </div>
 
                 <div className={styles.row}>
-                  <div className={styles.key}>Vehicle unit</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Vehicle unit
+                  </div>
+                  <div className='emptySmall'>
                     {booking.assignment.vehicleUnit
                       ? `${booking.assignment.vehicleUnit.name}${
                           booking.assignment.vehicleUnit.plate
@@ -494,25 +515,24 @@ export default function TripDetails({
             )}
           </section>
 
-          {/* Support CTA */}
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Need help?</h2>
+              <h2 className='cardTitle h4'>Need help?</h2>
             </header>
 
-            <p className={styles.supportCopy}>
+            <p className='emptySmall'>
               If you need to update your trip or have questions, contact support
               and reference this booking.
             </p>
 
             <div className={styles.btnRow}>
               <Link
-                className={styles.primaryBtn}
+                className='primaryBtn'
                 href={`/dashboard/support?bookingId=${booking.id}`}
               >
                 Contact support
               </Link>
-              <Link className={styles.secondaryBtn} href='/dashboard/support'>
+              <Link className='tertiaryBtn' href='/dashboard/support'>
                 Support center
               </Link>
             </div>
@@ -520,12 +540,11 @@ export default function TripDetails({
         </div>
       </div>
 
-      {/* Footer quick actions */}
       <div className={styles.footerActions}>
-        <Link className={styles.secondaryBtn} href='/dashboard/trips'>
+        <Link className='tertiaryBtn' href='/dashboard/trips'>
           Back to trips
         </Link>
-        <Link className={styles.secondaryBtn} href={primaryHref}>
+        <Link className='tertiaryBtn' href={primaryHref}>
           {booking.status === "DRAFT" ? "Continue booking" : "View in trips"}
         </Link>
       </div>

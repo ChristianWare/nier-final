@@ -10,10 +10,14 @@ export const dynamic = "force-dynamic";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
-function normalizeRoles(roles: any): AppRole[] {
-  return Array.isArray(roles) && roles.length > 0
-    ? (roles as AppRole[])
-    : (["USER"] as AppRole[]);
+function normalizeRoles(input: any): AppRole[] {
+  if (Array.isArray(input)) {
+    return input.filter(Boolean) as AppRole[];
+  }
+  if (typeof input === "string" && input.trim()) {
+    return [input as AppRole];
+  }
+  return [];
 }
 
 async function resolveViewer(
@@ -23,23 +27,28 @@ async function resolveViewer(
     (session?.user?.id as string | undefined) ??
     (session?.user?.userId as string | undefined);
 
-  const rolesFromSession = normalizeRoles(session?.user?.roles);
+  const rolesFromSession = normalizeRoles(
+    session?.user?.roles ?? session?.user?.role
+  );
 
   if (idFromSession) {
-    // If session already has roles, we’re done
     if (rolesFromSession.length)
       return { userId: idFromSession, roles: rolesFromSession };
 
-    // Otherwise, pull roles from DB (avoids stale token issues)
     const u = await db.user.findUnique({
       where: { id: idFromSession },
       select: { id: true, roles: true },
     });
 
-    if (u?.id) return { userId: u.id, roles: normalizeRoles(u.roles) };
+    if (u?.id) {
+      const roles = normalizeRoles(u.roles);
+      return {
+        userId: u.id,
+        roles: roles.length ? roles : (["USER"] as AppRole[]),
+      };
+    }
   }
 
-  // Last fallback: resolve by email
   const email = session?.user?.email ?? null;
   if (!email) throw new Error("Missing identity");
 
@@ -50,22 +59,30 @@ async function resolveViewer(
 
   if (!u?.id) throw new Error("User not found");
 
-  return { userId: u.id, roles: normalizeRoles(u.roles) };
+  const roles = normalizeRoles(u.roles);
+  return {
+    userId: u.id,
+    roles: roles.length ? roles : (["USER"] as AppRole[]),
+  };
 }
 
 export default async function TripDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: { id: string } | Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+  if (!id) notFound();
+
   const session = await auth();
-  if (!session) redirect(`/login?next=/dashboard/trips/${params.id}`);
+  if (!session)
+    redirect(`/login?next=${encodeURIComponent(`/dashboard/trips/${id}`)}`);
 
   let viewer: { userId: string; roles: AppRole[] };
   try {
     viewer = await resolveViewer(session);
   } catch {
-    redirect(`/login?next=/dashboard/trips/${params.id}`);
+    redirect(`/login?next=${encodeURIComponent(`/dashboard/trips/${id}`)}`);
   }
 
   const { userId, roles } = viewer;
@@ -75,7 +92,7 @@ export default async function TripDetailsPage({
   const isUser = roles.includes("USER");
 
   const booking = await db.booking.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       user: { select: { id: true, name: true, email: true } },
       serviceType: {
@@ -107,11 +124,6 @@ export default async function TripDetailsPage({
     booking.assignment && booking.assignment.driverId === userId
   );
 
-  // ✅ Access control:
-  // - ADMIN: any booking
-  // - DRIVER: assigned bookings
-  // - USER: own bookings
-  // - DRIVER + USER: union of both (assigned OR own)
   const allowed =
     isAdmin || (isDriver && isAssignedDriver) || (isUser && isOwner);
 

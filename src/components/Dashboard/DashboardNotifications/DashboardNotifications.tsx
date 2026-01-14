@@ -169,10 +169,10 @@ export default function DashboardNotifications({
                             {it.tag}
                           </span>
                           <span className={styles.sep}>•</span>
-                          <span>{formatTime(createdAt)}</span>
+                          <span className="emptySmall">{formatTime(createdAt)}</span>
                         </div>
 
-                        <div className={styles.subtitle}>{it.subtitle}</div>
+                        <div className="label">{it.subtitle}</div>
 
                         {it.links.length ? (
                           <div className={styles.actions}>
@@ -221,7 +221,7 @@ export default function DashboardNotifications({
         </div>
       )}
 
-      <p className={styles.footerNote}>
+      <p className='miniNote'>
         Note: “Read” state is stored on this device only for now. If you want it
         synced across devices, we’ll add a small Notification model.
       </p>
