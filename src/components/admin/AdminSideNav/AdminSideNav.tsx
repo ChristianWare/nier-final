@@ -16,6 +16,7 @@ import { signOut } from "next-auth/react";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Cog from "@/components/shared/icons/Cog/Cog";
 import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
+import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
@@ -90,12 +91,14 @@ export default function AdminSideNav({
               );
             })}
 
-            <Link href='/' className={styles.homeBtn}>
-              Go Home <Arrow className={styles.arrow} />
+            <Link href='/dashboard' className={styles.dshbrdBtn}>
+              User Dashboard <Arrow className={styles.arrow} />
             </Link>
-
+            <Link href='/driver-dashboard' className={styles.drvrDshbrdBtn}>
+              Driver Dashboard <Arrow className={styles.arrow} />
+            </Link>
             <button className={styles.signOutBtn} onClick={() => signOut()}>
-              Sign Out <Arrow className={styles.arrow} />
+              Sign Out <SignOutLogo className={styles.signOutLogo} />
             </button>
           </div>
         </ul>

@@ -47,7 +47,7 @@
 
 .navLink,
 .signOutBtn,
-.homeBtn {
+.dshbrdBtn, .drvrDshbrdBtn {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -78,7 +78,7 @@
 }
 
 .signOutBtn,
-.homeBtn {
+.dshbrdBtn, .drvrDshbrdBtn {
   cursor: pointer;
   background-color: var(--black);
   color: var(--cream);
@@ -92,16 +92,31 @@
   background-color: var(--black400);
 }
 
-.homeBtn {
-  background-color: var(--paragraph);
+.dshbrdBtn {
+  background-color: var(--lightGray);
+  border: 1px solid var(--strokeii);
+  color: var(--black)
 }
 
-.homeBtn:hover {
+.dshbrdBtn:hover {
+  background-color: var(--black300);
+}
+
+.drvrDshbrdBtn {
+  background-color: var(--black400);
+  border: 1px solid var(--black400);
+}
+
+.drvrDshbrdBtn:hover {
   background-color: var(--black300);
 }
 
 .arrow {
   transform: rotate(90deg);
+}
+
+.signOutLogo {
+  color: var(--cream)
 }
 
 @media screen and (max-width: 968px) {
