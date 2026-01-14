@@ -91,7 +91,7 @@
 .row {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   align-items: flex-start;
   justify-content: space-between;
   background: var(--lightGrayii);

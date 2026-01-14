@@ -41,8 +41,8 @@ export default function AdminDriverSnapshot({
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className={styles.metric}>
-      <div className="emptyTitle underline">{label}</div>
-      <p className={styles.metricValue}>{value}</p>
+      <div className='emptyTitle underline'>{label}</div>
+      <p className='countPill'>{value}</p>
     </div>
   );
 }

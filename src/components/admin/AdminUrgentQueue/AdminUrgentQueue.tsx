@@ -92,7 +92,7 @@ function UrgentSection({
     <div className={styles.card}>
       <div className={styles.cardHeader}>
           <div className="emptyTitle underline">{title}</div>
-          <div className={styles.countPill}>{items.length}</div>
+          <div className="countPill">{items.length}</div>
           {subtitle ? (
             <div className="miniNote">{subtitle}</div>
           ) : null}
@@ -110,11 +110,11 @@ function UrgentSection({
 
             return (
               <li key={b.id} className={styles.row}>
+                    <StatusPill status={b.status} />
                 <div className={styles.rowLeft}>
                   <div className={styles.rowTop}>
                     <span className="emptyTitleSmall">{pickupWhen}</span>
                     <span className={styles.rel}>{rel}</span>
-                    <StatusPill status={b.status} />
                   </div>
 
                   <div className={styles.rowMiddle}>
@@ -159,7 +159,7 @@ function UrgentSection({
 
 function StatusPill({ status }: { status: string }) {
   const label = status.replaceAll("_", " ").toLowerCase();
-  return <span className={styles.statusPill}>{label}</span>;
+  return <span className='pill pillWarn emptyTitleSmall'>{label}</span>;
 }
 
 function shortAddress(address: string) {

@@ -21,7 +21,7 @@ export default function AdminAlerts({ alerts }: Props) {
     <section className={styles.container} aria-label='Alerts'>
       <header className={styles.header}>
         <h2 className={`cardTitle h4${count > 0 ? ' redBorder' : ''}`}>Alerts</h2>
-        <div className={styles.meta}>
+        <div className="miniNote">
           {count === 0 ? (
             "All clear"
           ) : (
@@ -33,7 +33,7 @@ export default function AdminAlerts({ alerts }: Props) {
       </header>
 
       {count === 0 ? (
-        <div className={styles.empty}>No alerts right now.</div>
+        <div className="emptySmall">No alerts right now.</div>
       ) : (
         <ul className={styles.list}>
           {alerts.map((a) => (

@@ -37,7 +37,7 @@ export default function AdminScheduleSnapshot({
           </div>
           <div className={styles.metaItem}>
             <span className='emptyTitle underline'>Next 3 hours:</span>{" "}
-            <span className='emptySmall'>{tripsNext3Hours}</span>
+            <span className='countPill'>{tripsNext3Hours}</span>
           </div>
         </div>
       </header>

@@ -66,8 +66,8 @@ export default function AdminVehicleSnapshot({
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className={styles.metric}>
-      <div className="emptyTitle underline">{label}</div>
-      <p className="emptySmall">{value}</p>
+      <div className='emptyTitle underline'>{label}</div>
+      <p className='countPill'>{value}</p>
     </div>
   );
 }

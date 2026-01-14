@@ -338,6 +338,16 @@ textarea:focus {
   gap: 1rem;
 }
 
+.cardTitle {
+  margin: 0;
+  background-color: var(--cream);
+  padding: 1rem;
+  border-radius: 5px;
+  text-transform: capitalize;
+  width: 100%;
+}
+
+
 .emptyTitle {
   font-weight: 900;
   font-size: 1.6rem;
@@ -380,15 +390,6 @@ textarea:focus {
 
 .btnContainer {
   margin-top: 2rem;
-}
-
-.cardTitle {
-  margin: 0;
-  background-color: var(--cream);
-  padding: 1rem;
-  border-radius: 5px;
-  text-transform: capitalize;
-  width: 100%;
 }
 
 .banner {
@@ -533,4 +534,18 @@ textarea:focus {
 .underline  {
   border-bottom: 1px solid var(--stroke);
   padding-bottom: 1rem;
+}
+
+.countPill {
+    border: 1px solid var(--strokeii);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: .7rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1;
 }
