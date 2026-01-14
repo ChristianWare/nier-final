@@ -14,7 +14,7 @@ function formatDate(d: Date) {
 
 export default function DashboardProfile({
   user,
-  flash,
+  // flash,
 }: {
   user: {
     id: string;
@@ -38,11 +38,11 @@ export default function DashboardProfile({
         </p>
       </header>
 
-      {flash.err ? (
+      {/* {flash.err ? (
         <div className={`banner bannerError`}>{flash.err}</div>
       ) : null}
 
-      {flash.ok ? <div className={`banner bannerOk`}>{flash.ok}</div> : null}
+      {flash.ok ? <div className={`banner bannerOk`}>{flash.ok}</div> : null} */}
 
       <div className={styles.grid}>
         {/* Account */}
