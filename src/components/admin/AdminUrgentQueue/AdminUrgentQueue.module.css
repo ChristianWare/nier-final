@@ -6,8 +6,9 @@
 
 .header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 
 .title {
@@ -28,19 +29,24 @@
 }
 
 .card {
-  background: var(--cream);
   border: 1px solid var(--stroke);
   border-radius: 10px;
-  padding: 1.2rem;
-  display: grid;
+  padding: 1.5rem;
+  /* display: grid; */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 1rem;
 }
 
 .cardHeader {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 1rem;
+  width: 100%;
 }
 
 .cardTitle {
@@ -79,22 +85,25 @@
   gap: 0.8rem;
   padding: 0;
   margin: 0;
+  width: 100%;
 }
 
 .row {
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 2rem;
   align-items: flex-start;
   justify-content: space-between;
-  background: var(--white);
+  background: var(--lightGrayii);
   border: 1px solid var(--stroke);
   border-radius: 10px;
   padding: 1rem;
+  width: 100%;
 }
 
 .rowLeft {
   display: grid;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 
 .rowTop {

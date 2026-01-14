@@ -1,5 +1,6 @@
-import Link from "next/link";
+import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import styles from "./AdminUrgentQueue.module.css";
+import Link from "next/link";
 
 export type UrgentBookingItem = {
   id: string;
@@ -32,10 +33,19 @@ export default function AdminUrgentQueue({
   return (
     <section className={styles.container} aria-label='Urgent queue'>
       <header className={styles.header}>
-        <h2 className={`${styles.title} h4`}>Urgent</h2>
-        <div className={styles.meta}>
+        <h2 className={`cardTitle h4`}>Urgent</h2>
+        {/* <div className={styles.meta}>
           {total > 0 ? `${total} item(s)` : "All clear"}
-        </div>
+        </div> */}
+         <div className={styles.meta}>
+                  {total === 0 ? (
+                    "All clear"
+                  ) : (
+                    <>
+                      <BadgeCount value={total} max={99} hideIfZero />
+                    </>
+                  )}
+                </div>
       </header>
 
       <div className={styles.grid}>
@@ -81,17 +91,14 @@ function UrgentSection({
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
-        <div>
-          <div className={styles.cardTitle}>{title}</div>
+          <div className="emptyTitle underline">{title}</div>
+          <div className={styles.countPill}>{items.length}</div>
           {subtitle ? (
-            <div className={styles.cardSubtitle}>{subtitle}</div>
+            <div className="miniNote">{subtitle}</div>
           ) : null}
-        </div>
-        <div className={styles.countPill}>{items.length}</div>
       </div>
-
       {items.length === 0 ? (
-        <div className={styles.empty}>{emptyText}</div>
+        <div className="emptySmall">{emptyText}</div>
       ) : (
         <ul className={styles.list}>
           {items.map((b) => {
@@ -105,13 +112,13 @@ function UrgentSection({
               <li key={b.id} className={styles.row}>
                 <div className={styles.rowLeft}>
                   <div className={styles.rowTop}>
-                    <span className={styles.time}>{pickupWhen}</span>
+                    <span className="emptyTitleSmall">{pickupWhen}</span>
                     <span className={styles.rel}>{rel}</span>
                     <StatusPill status={b.status} />
                   </div>
 
                   <div className={styles.rowMiddle}>
-                    <span className={styles.customer}>{customer}</span>
+                    <span className="emptyTitleSmall">{customer}</span>
                     {b.serviceType?.name ? (
                       <span className={styles.service}>
                         • {b.serviceType.name}
