@@ -64,18 +64,12 @@
   background: var(--white);
   border-radius: 12px;
   padding: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--stroke);
   display: grid;
   gap: 12px;
   min-width: 0;
 }
 
-.cardTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
 
 .badge {
   font-size: 12px;
@@ -180,10 +174,7 @@
   opacity: 0.75;
 }
 
-.emptySmall {
-  opacity: 0.75;
-  font-size: 14px;
-}
+
 
 .activityList {
   list-style: none;

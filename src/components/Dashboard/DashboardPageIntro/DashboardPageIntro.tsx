@@ -27,6 +27,7 @@ export default function DashboardPageIntro({
       <div className={styles.content}>
         <div className={styles.top}>
           <h1 className={`${styles.heading} h2`}>Welcome {displayName}!</h1>
+     
         </div>
 
         <div className={styles.kpiGrid}>

@@ -1,37 +1,3 @@
-.container {
-  display: grid;
-  gap: 1rem;
-}
-
-.header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.titleBox {
-  display: grid;
-  gap: 0.35rem;
-}
-
-.heading {
-  margin: 0;
-}
-
-.subheading {
-  margin: 0;
-  font-size: 1.35rem;
-  color: var(--paragraph);
-  max-width: 70ch;
-}
-
-.headerActions {
-  display: flex;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-}
 
 .grid {
   display: grid;
@@ -46,20 +12,12 @@
   border-radius: 10px;
   padding: 1rem;
   display: grid;
-  gap: 1rem;
+  gap: 3rem;
   min-width: 0;
 }
 
 .cardWide {
   grid-column: 1 / -1;
-}
-
-.cardTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem;
-  flex-wrap: wrap;
 }
 
 .cardTitle {
@@ -70,24 +28,15 @@
   font-size: 1.2rem;
   color: var(--paragraph);
   opacity: 0.9;
+  margin-top: 1rem;
 }
 
 .contactGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
-.contactPill {
-  text-decoration: none;
-  background: var(--cream);
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 0.9rem 1rem;
-  font-size: 1.3rem;
-  color: var(--black);
-  font-weight: 900;
-}
 
 .divider {
   height: 1px;
@@ -115,8 +64,8 @@
 .select,
 .textarea {
   border: 1px solid var(--stroke);
-  background: var(--cream);
-  border-radius: 10px;
+  /* background: var(--cream); */
+  border-radius: 5px;
   padding: 0.9rem 1rem;
   font-size: 1.35rem;
   color: var(--black);
@@ -142,7 +91,7 @@
   display: grid;
   gap: 0.6rem;
   padding: 1rem;
-  background: var(--cream);
+  /* background: var(--cream); */
   border: 1px solid var(--stroke);
   border-radius: 10px;
 }
@@ -197,14 +146,15 @@
 
 .faqItem {
   border: 1px solid var(--stroke);
-  border-radius: 10px;
-  background: var(--cream);
-  padding: 0.9rem 1rem;
+  border-radius: 5px;
+  /* background: var(--cream); */
+  padding:1rem;
 }
 
 .faqSummary {
-  font-weight: 900;
-  font-size: 1.3rem;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: normal;
   cursor: pointer;
 }
 
@@ -226,44 +176,6 @@
   font-size: 1.2rem;
   color: var(--paragraph);
   opacity: 0.9;
-}
-
-.primaryBtn,
-.secondaryBtn,
-.tertiaryBtn {
-  text-decoration: none;
-  border-radius: 10px;
-  padding: 0.9rem 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  font-size: 1.3rem;
-  line-height: 1;
-  white-space: nowrap;
-  border: 1px solid var(--stroke);
-  cursor: pointer;
-}
-
-.primaryBtn {
-  background: var(--black);
-  color: var(--white);
-  border-color: var(--black);
-}
-
-.secondaryBtn {
-  background: var(--cream);
-  color: var(--black);
-}
-
-.tertiaryBtn {
-  background: transparent;
-  color: var(--black);
-}
-
-.tertiaryBtn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 @media screen and (max-width: 1000px) {

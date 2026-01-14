@@ -4,7 +4,7 @@ import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import DashboardPageIntro from "@/components/Dashboard/DashboardPageIntro/DashboardPageIntro";
-import DashboardQuickActions from "@/components/Dashboard/DashboardQuickActions/DashboardQuickActions";
+// import DashboardQuickActions from "@/components/Dashboard/DashboardQuickActions/DashboardQuickActions";
 import DashboardOverview from "@/components/Dashboard/DashboardOverview/DashboardOverview";
 import { BookingStatus } from "@prisma/client";
 
@@ -108,7 +108,7 @@ export default async function DashboardHomePage() {
         pendingPayment={pendingPayment}
         confirmed={upcomingCount}
       />
-      <DashboardQuickActions />
+      {/* <DashboardQuickActions /> */}
       <DashboardOverview nextTrip={nextTrip} recentActivity={recentActivity} />
     </section>
   );

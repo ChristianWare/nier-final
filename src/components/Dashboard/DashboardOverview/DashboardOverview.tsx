@@ -144,7 +144,7 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
       <div className={styles.grid}>
         <section className={styles.card}>
           <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>Next trip</h2>
+            <h2 className={`cardTitle h4`}>Next trip</h2>
             {nextTrip ? (
               <span
                 className={`${styles.badge} ${styles[`badge_${badgeTone(nextTrip.status)}`]}`}
@@ -273,14 +273,14 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
 
         <section className={styles.card}>
           <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>Recent activity</h2>
-            <Link className={styles.inlineLink} href='/dashboard/trips'>
+            <h2 className={`cardTitle h4`}>Recent activity</h2>
+            {/* <Link className={styles.inlineLink} href='/dashboard/trips'>
               View all
-            </Link>
+            </Link> */}
           </header>
 
           {recentActivity.length === 0 ? (
-            <p className={styles.emptySmall}>
+            <p className="emptySmall">
               No activity yet. Your updates will show up here.
             </p>
           ) : (

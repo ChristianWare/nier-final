@@ -44,7 +44,7 @@ export default function DashboardSavedDetails({
         <h1 className={`heading h2`}>Saved details</h1>
         <p className='subheading'>
           Quick access to your frequent locations and preferences.
-          (Auto-generated from your booking history for now.)
+          (Auto-generated from your booking history.)
         </p>
 
         {/* <div className={styles.headerActions}>

@@ -155,46 +155,31 @@ export default function DashboardSupport({
   }
 
   return (
-    <section className={styles.container} aria-label='Support'>
-      <header className={styles.header}>
-        <div className={styles.titleBox}>
-          <h1 className={`${styles.heading} h2`}>Support</h1>
-          <p className={styles.subheading}>
-            Get quick answers, contact support, or reference a specific trip.
-          </p>
-        </div>
-
-        <div className={styles.headerActions}>
-          <Link className={styles.secondaryBtn} href='/dashboard/notifications'>
-            Notifications
-          </Link>
-          <Link className={styles.secondaryBtn} href='/dashboard/trips'>
-            My trips
-          </Link>
-          <Link className={styles.primaryBtn} href='/book'>
-            Book a ride
-          </Link>
-        </div>
+    <section className='container' aria-label='Support'>
+      <header className='header'>
+        <h1 className={`heading h2`}>Support</h1>
+        <p className='subheading'>
+          Get quick answers, contact support, or reference a specific trip.
+        </p>
       </header>
 
       <div className={styles.grid}>
-        {/* Contact + Trip selector */}
         <section className={styles.card}>
           <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>Contact</h2>
+            <h2 className={`cardTitle h4`}>Contact</h2>
             <div className={styles.metaRight}>{SUPPORT.hours}</div>
           </header>
 
           <div className={styles.contactGrid}>
-            <a className={styles.contactPill} href={`mailto:${SUPPORT.email}`}>
+            <a className='emptyTitle' href={`mailto:${SUPPORT.email}`}>
               Email: {SUPPORT.email}
             </a>
 
-            <a className={styles.contactPill} href={`tel:${SUPPORT.phone}`}>
+            <a className='emptyTitle' href={`tel:${SUPPORT.phone}`}>
               Phone: {SUPPORT.phone}
             </a>
 
-            <a className={styles.contactPill} href={`sms:${SUPPORT.sms}`}>
+            <a className='emptyTitle' href={`sms:${SUPPORT.sms}`}>
               SMS: {SUPPORT.sms}
             </a>
           </div>
@@ -204,7 +189,7 @@ export default function DashboardSupport({
           <div className={styles.form}>
             <div className={styles.formTitle}>Regarding a trip?</div>
 
-            <label className={styles.label}>
+            <label className="label">
               Select trip
               <select
                 className={styles.select}
@@ -238,7 +223,7 @@ export default function DashboardSupport({
                   </div>
                 </div>
               ) : (
-                <p className={styles.muted}>
+                <p className="miniNote">
                   Choose a trip to include details in your message.
                 </p>
               )}
@@ -247,14 +232,14 @@ export default function DashboardSupport({
             <div className={styles.tripActions}>
               <button
                 type='button'
-                className={styles.tertiaryBtn}
+                className="tertiaryBtn"
                 onClick={goToTrip}
                 disabled={!selectedTripId}
               >
                 Open trip
               </button>
 
-              <Link className={styles.tertiaryBtn} href='/dashboard/payments'>
+              <Link className="primaryBtn" href='/dashboard/payments'>
                 Payments & receipts
               </Link>
             </div>
@@ -264,11 +249,11 @@ export default function DashboardSupport({
         {/* Email form (mailto) */}
         <section className={styles.card}>
           <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>Send a message</h2>
+            <h2 className={`cardTitle h4`}>Send a message</h2>
           </header>
 
           <div className={styles.form}>
-            <label className={styles.label}>
+            <label className="label">
               Topic
               <select
                 className={styles.select}
@@ -284,7 +269,7 @@ export default function DashboardSupport({
               </select>
             </label>
 
-            <label className={styles.label}>
+            <label className="label">
               Message
               <textarea
                 className={styles.textarea}
@@ -296,16 +281,16 @@ export default function DashboardSupport({
             </label>
 
             <div className={styles.formActions}>
-              <a className={styles.primaryBtn} href={mailtoHref}>
+              <a className="primaryBtn" href={mailtoHref}>
                 Email support
               </a>
 
-              <a className={styles.secondaryBtn} href={`sms:${SUPPORT.sms}`}>
+              <a className="secondaryBtn" href={`sms:${SUPPORT.sms}`}>
                 Text support
               </a>
             </div>
 
-            <p className={styles.miniNote}>
+            <p className="miniNote">
               This opens your email app (no messages are stored in the website
               yet). If you later want in-app messaging, we’ll turn this into a
               ticket/thread list.
@@ -316,7 +301,7 @@ export default function DashboardSupport({
         {/* FAQs */}
         <section className={styles.cardWide}>
           <header className={styles.cardTop}>
-            <h2 className={`${styles.cardTitle} h4`}>FAQs & policies</h2>
+            <h2 className={`cardTitle h4`}>FAQs & policies</h2>
             <div className={styles.metaRight}>
               Quick answers to reduce delays and confusion.
             </div>
@@ -401,12 +386,12 @@ export default function DashboardSupport({
 
           <div className={styles.bottomCtas}>
             <Link
-              className={styles.secondaryBtn}
+              className="secondaryBtn"
               href='/dashboard/notifications'
             >
               View recent activity
             </Link>
-            <Link className={styles.primaryBtn} href='/book'>
+            <Link className="primaryBtn" href='/book'>
               Book a ride
             </Link>
           </div>

@@ -340,9 +340,16 @@ textarea:focus {
   letter-spacing: normal;
 }
 
-.emptyCopy {
+.emptyCopy, .val {
   font-size: 1.35rem;
   color: var(--paragraph);
+  letter-spacing: -0.5px;
+}
+
+.emptySmall {
+  opacity: 0.75;
+  font-size: 14px;
+  letter-spacing: -.07px;
 }
 
 .actionsRow {
@@ -387,12 +394,6 @@ textarea:focus {
   color: var(--paragraph);
   font-weight: 600;
   letter-spacing: normal;
-}
-
-.val {
-  font-size: 1.35rem;
-  color: var(--black);
-  word-break: break-word;
 }
 
 .pill {
@@ -447,6 +448,11 @@ textarea:focus {
 .tertiaryBtn {
   background: transparent;
   color: var(--black);
+}
+
+.tertiaryBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .miniNote {

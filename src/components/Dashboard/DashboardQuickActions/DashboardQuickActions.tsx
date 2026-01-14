@@ -54,7 +54,7 @@ export default function DashboardQuickActions() {
               <Button href={a.href} text={a.label} btnType='black' arrow />
             </div>
             {a.description ? (
-              <p className={styles.desc}>{a.description}</p>
+              <p className="subheading">{a.description}</p>
             ) : null}
           </div>
         ))}
