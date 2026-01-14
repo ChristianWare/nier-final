@@ -71,7 +71,7 @@ export default async function DriverDashboardLayout({
           <div className={styles.content}>
             <div className={styles.left}>
               <h1 className={`${styles.heading} h2`}>Welcome {firstName}!</h1>
-              <div className={styles.sideNavContainer}>
+              <div className={styles.AdminSideNavContainer}>
                 <DriverSideNav />
               </div>
             </div>

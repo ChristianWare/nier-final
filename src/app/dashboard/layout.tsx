@@ -30,7 +30,7 @@ export default async function DashboardLayout({
               <h1 className={`${styles.heading} h2`}>
                 Welcome {firstName}! - User Dashboard
               </h1>
-              <div className={styles.sideNavContainer}>
+              <div className={styles.AdminSideNavContainer}>
                 <DashboardSideNav />
               </div>
             </div>
