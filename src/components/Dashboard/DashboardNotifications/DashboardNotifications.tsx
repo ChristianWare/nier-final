@@ -1,13 +1,13 @@
 "use client";
 
-import Button from "@/components/shared/Button/Button";
 import styles from "./DashboardNotifications.module.css";
+import Button from "@/components/shared/Button/Button";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type NotificationItem = {
   id: string;
-  createdAt: string; // ISO
+  createdAt: string;
   title: string;
   subtitle: string;
   bookingId: string;
@@ -50,12 +50,16 @@ function readLastSeen(): string | null {
   }
 }
 
+function tagTone(tag: NotificationItem["tag"]) {
+  if (tag === "Payment") return "warn";
+  return "neutral";
+}
+
 export default function DashboardNotifications({
   items,
 }: {
   items: NotificationItem[];
 }) {
-  // ✅ no useEffect needed; avoids eslint set-state-in-effect
   const [lastSeenIso, setLastSeenIso] = useState<string | null>(() =>
     readLastSeen()
   );
@@ -106,8 +110,8 @@ export default function DashboardNotifications({
         </p>
 
         <div className={styles.headerActions}>
-          <div className="tab">
-            Unread: <span className={styles.count}>{unreadCount}</span>
+          <div className='tab'>
+            Unread: <span className={styles.unreadCount}>{unreadCount}</span>
           </div>
 
           <button
@@ -119,22 +123,21 @@ export default function DashboardNotifications({
             Mark all as read
           </button>
 
-          <Link className="tab" href='/dashboard/trips'>
+          <Link className='tab' href='/dashboard/trips'>
             View trips
           </Link>
         </div>
       </header>
 
       {items.length === 0 ? (
-        <div className="empty">
-          <p className="emptyTitle">No notifications yet.</p>
-          <p className="emptyCopy">
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>No notifications yet.</p>
+          <p className={styles.emptyCopy}>
             When your trip status changes or a payment updates, it will show up
             here.
           </p>
           <div className={styles.btnRow}>
-    
-             <div className="btnContainer">
+            <div className='btnContainer'>
               <Button href='/book' btnType='red' text='Book a ride' arrow />
             </div>
           </div>
@@ -147,76 +150,78 @@ export default function DashboardNotifications({
                 {formatDateHeading(group.date)}
               </div>
 
-              <div className={styles.list}>
+              <ul className={styles.activityList}>
                 {group.items.map((it) => {
                   const createdAt = new Date(it.createdAt);
                   const isUnread =
                     !lastSeenAt || createdAt.getTime() > lastSeenAt.getTime();
 
                   return (
-                    <article key={it.id} className={styles.card}>
-                      <div className={styles.cardTop}>
-                        <div className={styles.left}>
-                          <div className={styles.titleRow}>
-                            {isUnread ? <span className={styles.dot} /> : null}
-                            <div className={styles.title}>{it.title}</div>
-                          </div>
-
-                          <div className={styles.meta}>
-                            <span className={styles.tag}>{it.tag}</span>
-                            <span className={styles.sep}>•</span>
-                            <span>{formatTime(createdAt)}</span>
-                          </div>
-
-                          <div className={styles.subtitle}>{it.subtitle}</div>
+                    <li key={it.id} className={styles.activityItem}>
+                      <div className={styles.activityLeft}>
+                        <div className={styles.titleRow}>
+                          {isUnread ? <span className={styles.dot} /> : null}
+                          <div className='emptyTitle'>{it.title}</div>
                         </div>
 
-                        <Link className={styles.link} href={it.bookingHref}>
-                          Open
-                        </Link>
+                        <div className={styles.meta}>
+                          <span className={`badge badge_${tagTone(it.tag)}`}>
+                            {it.tag}
+                          </span>
+                          <span className={styles.sep}>•</span>
+                          <span>{formatTime(createdAt)}</span>
+                        </div>
+
+                        <div className={styles.subtitle}>{it.subtitle}</div>
+
+                        {it.links.length ? (
+                          <div className={styles.actions}>
+                            {it.links.map((l) => {
+                              const isExternal = l.href.startsWith("http");
+                              const cls =
+                                l.label === "Continue checkout"
+                                  ? styles.primaryBtn
+                                  : l.label === "Open receipt"
+                                    ? styles.secondaryBtn
+                                    : styles.tertiaryBtn;
+
+                              return isExternal ? (
+                                <a
+                                  key={l.href + l.label}
+                                  className={cls}
+                                  href={l.href}
+                                  target='_blank'
+                                  rel='noreferrer'
+                                >
+                                  {l.label}
+                                </a>
+                              ) : (
+                                <Link
+                                  key={l.href + l.label}
+                                  className={cls}
+                                  href={l.href}
+                                >
+                                  {l.label}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        ) : null}
                       </div>
 
-                      <div className={styles.actions}>
-                        {it.links.map((l) => {
-                          const isExternal = l.href.startsWith("http");
-                          const cls =
-                            l.label === "Continue checkout"
-                              ? styles.primaryBtn
-                              : l.label === "Open receipt"
-                                ? styles.secondaryBtn
-                                : styles.tertiaryBtn;
-
-                          return isExternal ? (
-                            <a
-                              key={l.href + l.label}
-                              className={cls}
-                              href={l.href}
-                              target='_blank'
-                              rel='noreferrer'
-                            >
-                              {l.label}
-                            </a>
-                          ) : (
-                            <Link
-                              key={l.href + l.label}
-                              className={cls}
-                              href={l.href}
-                            >
-                              {l.label}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </article>
+                      <Link className='primaryBtn' href={it.bookingHref}>
+                        Open
+                      </Link>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             </section>
           ))}
         </div>
       )}
 
-      <p className="emptyCopy">
+      <p className={styles.footerNote}>
         Note: “Read” state is stored on this device only for now. If you want it
         synced across devices, we’ll add a small Notification model.
       </p>

@@ -46,95 +46,115 @@ export default function DashboardSavedDetails({
           Quick access to your frequent locations and preferences.
           (Auto-generated from your booking history.)
         </p>
-
-        {/* <div className={styles.headerActions}>
-          <Link className="tab" href='/book'>
-            Book a ride
-          </Link>
-          <Link className={styles.secondaryBtn} href='/dashboard/profile'>
-            Profile & security
-          </Link>
-        </div> */}
       </header>
 
       {!hasAny ? (
-        <div className='empty'>
-          <p className='emptyTitle'>Nothing saved yet.</p>
-          <p className='emptyCopy'>
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>Nothing saved yet.</p>
+          <p className={styles.emptyCopy}>
             Once you complete a trip, we’ll start surfacing your frequent
             pickup/dropoff locations and preferences here.
           </p>
-          <div className="actionsRow">
-          <div className='btnContainer'>
-            <Button
-              href='/book'
-              btnType='red'
-              text='Book your first ride'
-              arrow
+          <div className={styles.actionsRow}>
+            <div className={styles.btnContainer}>
+              <Button
+                href='/book'
+                btnType='red'
+                text='Book your first ride'
+                arrow
               />
-              </div>
+            </div>
           </div>
         </div>
       ) : (
         <div className={styles.grid}>
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Account</h2>
+              <h2 className={`cardTitle h4`}>Account</h2>
+              <div className={styles.metaRight}>Profile basics</div>
             </header>
 
             <div className={styles.rows}>
               <div className={styles.row}>
-                <div className={styles.key}>Name</div>
-                <div className={styles.val}>{profile.name || "—"}</div>
+                <span className={styles.key}>Name</span>
+                <span className={styles.val}>{profile.name || "—"}</span>
               </div>
               <div className={styles.row}>
-                <div className={styles.key}>Email</div>
-                <div className={styles.val}>{profile.email || "—"}</div>
+                <span className={styles.key}>Email</span>
+                <span className={styles.val}>{profile.email || "—"}</span>
               </div>
+            </div>
+
+            <div className={styles.cardActions}>
+              <Link className={styles.secondaryBtn} href='/dashboard/profile'>
+                Profile & security
+              </Link>
+              <Link className={styles.secondaryBtn} href='/book'>
+                Book a ride
+              </Link>
             </div>
           </section>
 
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Last used</h2>
+              <h2 className={`cardTitle h4`}>Last used</h2>
+              <div className={styles.metaRight}>
+                Recent preferences from your last booking
+              </div>
             </header>
 
             {!lastUsed ? (
               <p className={styles.muted}>No recent trip details yet.</p>
             ) : (
-              <div className={styles.rows}>
-                <div className={styles.row}>
-                  <div className={styles.key}>Date</div>
-                  <div className={styles.val}>
+              <div className={styles.tripMetaBox}>
+                <div className={styles.tripMetaLine}>
+                  <span className={styles.tripMetaKey}>Date</span>
+                  <span className={styles.tripMetaVal}>
                     {formatDate(lastUsed.pickupAt)}
-                  </div>
+                  </span>
                 </div>
-                <div className={styles.row}>
-                  <div className={styles.key}>From</div>
-                  <div className={styles.val}>{lastUsed.pickupAddress}</div>
+
+                <div className={styles.tripMetaLine}>
+                  <span className={styles.tripMetaKey}>From</span>
+                  <span className={styles.tripMetaVal}>
+                    {lastUsed.pickupAddress}
+                  </span>
                 </div>
-                <div className={styles.row}>
-                  <div className={styles.key}>To</div>
-                  <div className={styles.val}>{lastUsed.dropoffAddress}</div>
+
+                <div className={styles.tripMetaLine}>
+                  <span className={styles.tripMetaKey}>To</span>
+                  <span className={styles.tripMetaVal}>
+                    {lastUsed.dropoffAddress}
+                  </span>
                 </div>
-                <div className={styles.row}>
-                  <div className={styles.key}>Service</div>
-                  <div className={styles.val}>{lastUsed.service ?? "—"}</div>
+
+                <div className={styles.tripMetaLine}>
+                  <span className={styles.tripMetaKey}>Service</span>
+                  <span className={styles.tripMetaVal}>
+                    {lastUsed.service ?? "—"}
+                  </span>
                 </div>
-                <div className={styles.row}>
-                  <div className={styles.key}>Vehicle</div>
-                  <div className={styles.val}>{lastUsed.vehicle ?? "—"}</div>
+
+                <div className={styles.tripMetaLine}>
+                  <span className={styles.tripMetaKey}>Vehicle</span>
+                  <span className={styles.tripMetaVal}>
+                    {lastUsed.vehicle ?? "—"}
+                  </span>
                 </div>
-                <div className={styles.row}>
-                  <div className={styles.key}>Prefs</div>
-                  <div className={styles.val}>
+
+                <div className={styles.tripMetaLine}>
+                  <span className={styles.tripMetaKey}>Prefs</span>
+                  <span className={styles.tripMetaVal}>
                     {lastUsed.passengers} pax • {lastUsed.luggage} luggage
-                  </div>
+                  </span>
                 </div>
+
                 {lastUsed.specialRequests ? (
-                  <div className={styles.row}>
-                    <div className={styles.key}>Notes</div>
-                    <div className={styles.val}>{lastUsed.specialRequests}</div>
+                  <div className={styles.tripMetaLine}>
+                    <span className={styles.tripMetaKey}>Notes</span>
+                    <span className={styles.tripMetaVal}>
+                      {lastUsed.specialRequests}
+                    </span>
                   </div>
                 ) : null}
               </div>
@@ -143,7 +163,8 @@ export default function DashboardSavedDetails({
 
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Frequent pickups</h2>
+              <h2 className={`cardTitle h4`}>Frequent pickups</h2>
+              <div className={styles.metaRight}>Based on your history</div>
             </header>
 
             {frequentPickups.length === 0 ? (
@@ -167,7 +188,8 @@ export default function DashboardSavedDetails({
 
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Frequent dropoffs</h2>
+              <h2 className={`cardTitle h4`}>Frequent dropoffs</h2>
+              <div className={styles.metaRight}>Based on your history</div>
             </header>
 
             {frequentDropoffs.length === 0 ? (
@@ -191,7 +213,8 @@ export default function DashboardSavedDetails({
 
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Frequent routes</h2>
+              <h2 className={`cardTitle h4`}>Frequent routes</h2>
+              <div className={styles.metaRight}>Most common pairs</div>
             </header>
 
             {frequentRoutes.length === 0 ? (
@@ -215,7 +238,10 @@ export default function DashboardSavedDetails({
 
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`${styles.cardTitle} h4`}>Coming soon</h2>
+              <h2 className={`cardTitle h4`}>Coming soon</h2>
+              <div className={styles.metaRight}>
+                Manual saves + one-click prefill
+              </div>
             </header>
 
             <p className={styles.muted}>
@@ -223,7 +249,7 @@ export default function DashboardSavedDetails({
               (with one-click prefill in the booking flow).
             </p>
 
-            <div className={styles.btnRow}>
+            <div className={styles.formActions}>
               <Link className={styles.secondaryBtn} href='/dashboard/trips'>
                 View trips
               </Link>
