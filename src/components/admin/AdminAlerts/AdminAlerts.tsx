@@ -1,5 +1,6 @@
 import styles from "./AdminAlerts.module.css";
 import Link from "next/link";
+import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 
 export type AlertItem = {
   id: string;
@@ -14,29 +15,37 @@ type Props = {
 };
 
 export default function AdminAlerts({ alerts }: Props) {
+  const count = alerts.length;
+
   return (
     <section className={styles.container} aria-label='Alerts'>
       <header className={styles.header}>
-        <h2 className={`${styles.title} h4`}>Alerts</h2>
+        <h2 className={`cardTitle h4${count > 0 ? ' redBorder' : ''}`}>Alerts</h2>
         <div className={styles.meta}>
-          {alerts.length ? `${alerts.length} active` : "All clear"}
+          {count === 0 ? (
+            "All clear"
+          ) : (
+            <>
+              <BadgeCount value={count} max={99} hideIfZero />
+            </>
+          )}
         </div>
       </header>
 
-      {alerts.length === 0 ? (
+      {count === 0 ? (
         <div className={styles.empty}>No alerts right now.</div>
       ) : (
         <ul className={styles.list}>
           {alerts.map((a) => (
             <li key={a.id} className={`${styles.row} ${styles[a.severity]}`}>
               <div className={styles.left}>
-                <div className={styles.sev}>{labelSeverity(a.severity)}</div>
-                <p className={styles.msg}>{a.message}</p>
+                <div className="emptyTitle">{labelSeverity(a.severity)}</div>
+                <p className="emptySmall">{a.message}</p>
               </div>
 
               <div className={styles.right}>
                 {a.href ? (
-                  <Link className={styles.btn} href={a.href}>
+                  <Link className='primaryBtn' href={a.href}>
                     {a.ctaLabel || "View"}
                   </Link>
                 ) : null}

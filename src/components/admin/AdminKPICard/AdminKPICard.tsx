@@ -9,7 +9,7 @@ export type AdminKPICardProps = {
 export default function AdminKPICard({ title, value }: AdminKPICardProps) {
   return (
     <div className={styles.card}>
-      <div className={styles.title}>{title}</div>
+      <div className={`${styles.title} badge badge_neutral`}>{title}</div>
       <p className={styles.value}>{value}</p>
     </div>
   );

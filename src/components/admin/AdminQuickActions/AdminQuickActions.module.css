@@ -65,10 +65,6 @@
   opacity: 0.8;
 }
 
-.desc {
-  font-size: 1.4rem;
-  color: var(--paragraph);
-}
 
 @media screen and (max-width: 1100px) {
   .grid {

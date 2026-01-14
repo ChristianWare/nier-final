@@ -20,4 +20,16 @@
   .heading {
     display: none;
   }
+
+  .kpiGrid  {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 568px) {
+
+
+  .kpiGrid  {
+    grid-template-columns: repeat(1, 1fr);
+  }
 }
