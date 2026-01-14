@@ -18,12 +18,12 @@ export default function AdminDriverSnapshot({
 
   return (
     <section
-      className={styles.container}
+      className="container"
       aria-label='Driver readiness snapshot'
     >
-      <header className={styles.header}>
-        <h2 className={`${styles.title} h4`}>Driver readiness</h2>
-        <div className={styles.meta}>
+      <header className="header">
+        <h2 className={`cardTitle h4`}>Driver readiness</h2>
+        <div className="emptySmall">
           Coverage today:{" "}
           <span className={styles.metaStrong}>{coveragePct}%</span>
         </div>
@@ -41,7 +41,7 @@ export default function AdminDriverSnapshot({
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className={styles.metric}>
-      <div className={styles.metricLabel}>{label}</div>
+      <div className="emptyTitle underline">{label}</div>
       <p className={styles.metricValue}>{value}</p>
     </div>
   );

@@ -25,9 +25,9 @@ export default function AdminVehicleSnapshot({
       className={styles.container}
       aria-label='Vehicle readiness snapshot'
     >
-      <header className={styles.header}>
-        <h2 className={`${styles.title} h4`}>Vehicle readiness</h2>
-        <div className={styles.meta}>
+      <header className='header'>
+        <h2 className={`cardTitle h4`}>Vehicle readiness</h2>
+        <div className='emptySmall'>
           Available today:{" "}
           <span className={styles.metaStrong}>{availableUnitsToday}</span>
         </div>
@@ -41,16 +41,16 @@ export default function AdminVehicleSnapshot({
 
       {byCategory.length > 0 ? (
         <div className={styles.breakdown}>
-          <div className={styles.breakdownTitle}>By category</div>
+          <div className='emptyTitle underline'>By category</div>
           <ul className={styles.list}>
             {byCategory.map((c) => (
               <li key={c.id} className={styles.row}>
-                <span className={styles.catName}>{c.name}</span>
+                <span className='emptyTitleSmall'>{c.name}</span>
                 <span className={styles.catNums}>
-                  <span className={styles.pill}>
+                  <span className='pill pillGood'>
                     Active: <strong>{c.activeUnits}</strong>
                   </span>
-                  <span className={styles.pill}>
+                  <span className='pill pillGood'>
                     Available today: <strong>{c.availableToday}</strong>
                   </span>
                 </span>
@@ -66,8 +66,8 @@ export default function AdminVehicleSnapshot({
 function Metric({ label, value }: { label: string; value: number }) {
   return (
     <div className={styles.metric}>
-      <div className={styles.metricLabel}>{label}</div>
-      <p className={styles.metricValue}>{value}</p>
+      <div className="emptyTitle underline">{label}</div>
+      <p className="emptySmall">{value}</p>
     </div>
   );
 }

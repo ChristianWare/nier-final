@@ -23,22 +23,21 @@ export default function AdminScheduleSnapshot({
 }: Props) {
   return (
     <section className={styles.container} aria-label='Schedule snapshot'>
-      <header className={styles.header}>
-        <h2 className={`${styles.title} h4`}>Schedule</h2>
+      <header className='header'>
+        <h2 className={`cardTitle h4`}>Schedule</h2>
 
         <div className={styles.meta}>
           <div className={styles.metaItem}>
-            <span className={styles.metaLabel}>Earliest upcoming:</span>{" "}
-            <span className={styles.metaValue}>
+            <div className='emptyTitle underline'>Earliest upcoming:</div>{" "}
+            <div className='emptySmall'>
               {earliestUpcomingPickupAt
                 ? formatDateTime(earliestUpcomingPickupAt, timeZone)
                 : "—"}
-            </span>
+            </div>
           </div>
-
           <div className={styles.metaItem}>
-            <span className={styles.metaLabel}>Next 3 hours:</span>{" "}
-            <span className={styles.metaValue}>{tripsNext3Hours}</span>
+            <span className='emptyTitle underline'>Next 3 hours:</span>{" "}
+            <span className='emptySmall'>{tripsNext3Hours}</span>
           </div>
         </div>
       </header>
@@ -46,20 +45,20 @@ export default function AdminScheduleSnapshot({
       <div className={styles.table}>
         <div className={styles.rowHead}>
           <div className={styles.colLabel}></div>
-          <div className={styles.col}>Total</div>
-          <div className={styles.col}>Confirmed</div>
-          <div className={styles.col}>Unassigned</div>
+          <div className='label'>Total</div>
+          <div className='label'>Confirmed</div>
+          <div className='label'>Unassigned</div>
         </div>
 
         <div className={styles.row}>
-          <div className={styles.colLabel}>Today</div>
+          <div className='emptyTitleSmall'>Today</div>
           <div className={styles.colValue}>{today.total}</div>
           <div className={styles.colValue}>{today.confirmed}</div>
           <div className={styles.colValue}>{today.unassigned}</div>
         </div>
 
         <div className={styles.row}>
-          <div className={styles.colLabel}>Tomorrow</div>
+          <div className='emptyTitleSmall'>Tomorrow</div>
           <div className={styles.colValue}>{tomorrow.total}</div>
           <div className={styles.colValue}>{tomorrow.confirmed}</div>
           <div className={styles.colValue}>{tomorrow.unassigned}</div>
