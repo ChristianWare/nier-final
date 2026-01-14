@@ -8,6 +8,7 @@
   --accent: #d0311e;
   --accent600: #b21a15;
   --lightGray: #e0e0e0;
+  --lightGrayii: #eeeded;
   --stroke: #d8d6d2;
   --strokeii: #a7a6a2;
   --blue: #2563eb;
@@ -16,7 +17,7 @@
   --red: #dc2626;
   --darkRed: #8b1a1a;
   --yellow: #facc15;
-  --darkYellow: #b38600;
+  --darkYellow: #745000;
   --stickyTop: 20vh;
   --cardGap: 1rem;
   --cardMinH: clamp(300px, 20vh, 480px);
@@ -352,6 +353,14 @@ textarea:focus {
   letter-spacing: -.07px;
 }
 
+.miniNote {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.85;
+  letter-spacing: normal;
+}
+
 .actionsRow {
   display: flex;
   gap: 2rem;
@@ -367,6 +376,8 @@ textarea:focus {
   background-color: var(--cream);
   padding: 1rem;
   border-radius: 5px;
+  text-transform: capitalize;
+  width: 100%;
 }
 
 .banner {
@@ -396,6 +407,8 @@ textarea:focus {
   letter-spacing: normal;
 }
 
+/* Buttons and badges */
+
 .pill {
   font-size: 1.15rem;
   padding: .5rem 1rem;
@@ -416,6 +429,46 @@ textarea:focus {
   color: var(--darkYellow);
 }
 
+.badge {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+  font-weight: 700;
+  letter-spacing: normal;
+  width: fit-content;
+  text-transform: uppercase;
+}
+
+.badge_neutral {
+  background: rgba(0, 0, 0, 0.04);
+  background-color: var(--lightGray);
+}
+
+.badge_warn {
+  background: rgba(255, 200, 9, 0.25);
+  background-color: var(--yellow);
+  color: var(--darkYellow);
+}
+
+.badge_good {
+  background: rgba(0, 0, 0, 0.06);
+  background-color: var(--green);
+  color: var(--darkGreen);
+}
+
+.badge_accent {
+  background: rgba(255, 200, 9, 0.25);
+  color: var(--darkYellow);
+}
+
+.badge_bad {
+  background: rgba(255, 0, 0, 0.08);
+  color: var(--red);
+  color: var(--darkRed);
+}
+
 .primaryBtn,
 .secondaryBtn,
 .tertiaryBtn {
@@ -429,6 +482,7 @@ textarea:focus {
   font-size: 1.3rem;
   font-weight: 600;
   line-height: 1;
+  text-transform: capitalize;
   white-space: nowrap;
   border: 1px solid var(--stroke);
   cursor: pointer;
@@ -454,13 +508,3 @@ textarea:focus {
   opacity: 0.6;
   cursor: not-allowed;
 }
-
-.miniNote {
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--paragraph);
-  opacity: 0.85;
-  letter-spacing: normal;
-}
-
-

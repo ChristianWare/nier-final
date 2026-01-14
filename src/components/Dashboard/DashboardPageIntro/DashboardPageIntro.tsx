@@ -12,22 +12,23 @@ export type DashboardPageIntroProps = {
 };
 
 export default function DashboardPageIntro({
-  name,
+  // name,
   pendingReview,
   pendingPayment,
   confirmed,
 }: DashboardPageIntroProps) {
   const { data: session } = useSession();
 
-  const sessionName = session?.user?.name ?? session?.user?.email ?? "";
-  const displayName = (name ?? sessionName ?? "there").trim() || "there";
+  const fullName = session?.user?.name?.trim() || "";
+  const firstName = fullName.split(" ")[0] || "there";
 
   return (
     <section className={styles.container}>
       <div className={styles.content}>
         <div className={styles.top}>
-          <h1 className={`${styles.heading} h2`}>Welcome {displayName}!</h1>
-     
+          <h1 className={`${styles.heading} h2`}>
+            Welcome {firstName}! - User Dashboard
+          </h1>
         </div>
 
         <div className={styles.kpiGrid}>

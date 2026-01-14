@@ -144,11 +144,9 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
       <div className={styles.grid}>
         <section className={styles.card}>
           <header className={styles.cardTop}>
-            <h2 className={`cardTitle h4`}>Next trip</h2>
+            <h2 className={`cardTitle h4`}>Next trip details</h2>
             {nextTrip ? (
-              <span
-                className={`${styles.badge} ${styles[`badge_${badgeTone(nextTrip.status)}`]}`}
-              >
+              <span className={`badge badge_${badgeTone(nextTrip.status)}`}>
                 {statusLabel(nextTrip.status)}
               </span>
             ) : null}
@@ -170,44 +168,58 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
             <>
               <div className={styles.tripMeta}>
                 <div className={styles.row}>
-                  <div className={styles.key}>Pickup</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Date
+                  </div>
+                  <div className='emptySmall'>
                     {formatDateTime(nextTrip.pickupAt)}
                   </div>
                 </div>
 
                 <div className={styles.row}>
-                  <div className={styles.key}>From</div>
-                  <div className={styles.val}>{nextTrip.pickupAddress}</div>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    From
+                  </div>
+                  <div className='emptySmall'>{nextTrip.pickupAddress}</div>
                 </div>
 
                 <div className={styles.row}>
-                  <div className={styles.key}>To</div>
-                  <div className={styles.val}>{nextTrip.dropoffAddress}</div>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    To
+                  </div>
+                  <div className='emptySmall'>{nextTrip.dropoffAddress}</div>
                 </div>
 
                 <div className={styles.row}>
-                  <div className={styles.key}>Service</div>
-                  <div className={styles.val}>{nextTrip.serviceType.name}</div>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Service
+                  </div>
+                  <div className='emptySmall'>{nextTrip.serviceType.name}</div>
                 </div>
 
                 <div className={styles.row}>
-                  <div className={styles.key}>Vehicle</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Vehicle
+                  </div>
+                  <div className='emptySmall'>
                     {nextTrip.vehicle?.name ?? "Not selected"}
                   </div>
                 </div>
 
                 <div className={styles.row}>
-                  <div className={styles.key}>Passengers</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Passengers
+                  </div>
+                  <div className='emptySmall'>
                     {nextTrip.passengers} • Luggage: {nextTrip.luggage}
                   </div>
                 </div>
 
                 <div className={styles.row}>
-                  <div className={styles.key}>Total</div>
-                  <div className={styles.val}>
+                  <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                    Total
+                  </div>
+                  <div className='val'>
                     {moneyFromCents(nextTrip.totalCents, nextTrip.currency)}
                     {nextTrip.payment ? (
                       <span className={styles.pill}>
@@ -239,7 +251,7 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
 
               <div className={styles.btnRow}>
                 <Link
-                  className={styles.secondaryBtn}
+                  className='primaryBtn'
                   href={`/dashboard/trips/${nextTrip.id}`}
                 >
                   View trip details
@@ -280,7 +292,7 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
           </header>
 
           {recentActivity.length === 0 ? (
-            <p className="emptySmall">
+            <p className='emptySmall'>
               No activity yet. Your updates will show up here.
             </p>
           ) : (
@@ -288,20 +300,23 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
               {recentActivity.map((evt) => (
                 <li key={evt.id} className={styles.activityItem}>
                   <div className={styles.activityLeft}>
-                    <div className={styles.activityTitle}>
+                    {/* <div className={styles.activityTitle}>
                       {statusLabel(evt.status)}
-                    </div>
-                    <div className={styles.activityMeta}>
+                    </div> */}
+                    <span className={`badge badge_${badgeTone(evt.status)}`}>
+                      {statusLabel(evt.status)}
+                    </span>
+                    <div className='miniNote'>
                       {formatDateTime(evt.createdAt)} • Trip:{" "}
                       {formatDateTime(evt.booking.pickupAt)}
                     </div>
-                    <div className={styles.activityRoute}>
+                    <div className='emptySmall'>
                       {evt.booking.pickupAddress} → {evt.booking.dropoffAddress}
                     </div>
                   </div>
 
                   <Link
-                    className={styles.activityLink}
+                    className='primaryBtn'
                     href={`/dashboard/trips/${evt.booking.id}`}
                   >
                     Open

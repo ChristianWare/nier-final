@@ -65,43 +65,40 @@
   border-radius: 12px;
   padding: 14px;
   border: 1px solid var(--stroke);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3rem;
+  width: 100%;
+}
+
+.cardTop {
   display: grid;
-  gap: 12px;
-  min-width: 0;
-}
-
-
-.badge {
-  font-size: 12px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  white-space: nowrap;
-}
-
-.badge_neutral {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.badge_warn {
-  background: rgba(255, 200, 9, 0.25);
-}
-
-.badge_good {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.badge_accent {
-  background: rgba(255, 200, 9, 0.25);
-}
-
-.badge_bad {
-  background: rgba(255, 0, 0, 0.08);
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 3rem;
+  width: 100%;
 }
 
 .tripMeta {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.emptyTitleLocal {
+  border-bottom: 1px solid var(--stroke);
+  width: 100%;
+  padding-bottom: .5rem;
 }
 
 .tripLine {
@@ -174,8 +171,6 @@
   opacity: 0.75;
 }
 
-
-
 .activityList {
   list-style: none;
   margin: 0;
@@ -189,16 +184,17 @@
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: start;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--cream);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  border-radius: 7px;
+  background: var(--lightGrayii);
+  border: 1px solid var(--stroke);
 }
 
 .activityLeft {
   display: grid;
-  gap: 6px;
-  min-width: 0;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
+  
 }
 
 .activityTitle {
