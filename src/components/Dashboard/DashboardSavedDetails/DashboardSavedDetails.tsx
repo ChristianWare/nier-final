@@ -77,11 +77,11 @@ export default function DashboardSavedDetails({
             <div className={styles.rows}>
               <div className={styles.row}>
                 <span className={styles.key}>Name</span>
-                <span className={styles.val}>{profile.name || "—"}</span>
+                <span className="emptyTitleSmall">{profile.name || "—"}</span>
               </div>
               <div className={styles.row}>
                 <span className={styles.key}>Email</span>
-                <span className={styles.val}>{profile.email || "—"}</span>
+                <span className="emptyTitleSmall">{profile.email || "—"}</span>
               </div>
             </div>
 
@@ -109,42 +109,42 @@ export default function DashboardSavedDetails({
               <div className={styles.tripMetaBox}>
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>Date</span>
-                  <span className={styles.tripMetaVal}>
+                  <span className="emptyTitleSmall">
                     {formatDate(lastUsed.pickupAt)}
                   </span>
                 </div>
 
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>From</span>
-                  <span className={styles.tripMetaVal}>
+                  <span className="emptyTitleSmall">
                     {lastUsed.pickupAddress}
                   </span>
                 </div>
 
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>To</span>
-                  <span className={styles.tripMetaVal}>
+                  <span className="emptyTitleSmall">
                     {lastUsed.dropoffAddress}
                   </span>
                 </div>
 
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>Service</span>
-                  <span className={styles.tripMetaVal}>
+                  <span className="emptyTitleSmall">
                     {lastUsed.service ?? "—"}
                   </span>
                 </div>
 
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>Vehicle</span>
-                  <span className={styles.tripMetaVal}>
+                  <span className="emptyTitleSmall">
                     {lastUsed.vehicle ?? "—"}
                   </span>
                 </div>
 
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>Prefs</span>
-                  <span className={styles.tripMetaVal}>
+                  <span className="emptyTitleSmall">
                     {lastUsed.passengers} pax • {lastUsed.luggage} luggage
                   </span>
                 </div>
@@ -152,7 +152,7 @@ export default function DashboardSavedDetails({
                 {lastUsed.specialRequests ? (
                   <div className={styles.tripMetaLine}>
                     <span className={styles.tripMetaKey}>Notes</span>
-                    <span className={styles.tripMetaVal}>
+                    <span className="emptyTitleSmall">
                       {lastUsed.specialRequests}
                     </span>
                   </div>
@@ -174,7 +174,7 @@ export default function DashboardSavedDetails({
                 {frequentPickups.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
-                      <div className={styles.itemTitle}>{x.label}</div>
+                      <div className='emptyTitleSmall'>{x.label}</div>
                       <div className={styles.itemMeta}>
                         {x.count} trip{x.count === 1 ? "" : "s"} • Last:{" "}
                         {formatDate(x.lastAt)}
@@ -199,7 +199,7 @@ export default function DashboardSavedDetails({
                 {frequentDropoffs.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
-                      <div className={styles.itemTitle}>{x.label}</div>
+                      <div className='emptyTitleSmall'>{x.label}</div>
                       <div className={styles.itemMeta}>
                         {x.count} trip{x.count === 1 ? "" : "s"} • Last:{" "}
                         {formatDate(x.lastAt)}
@@ -224,7 +224,7 @@ export default function DashboardSavedDetails({
                 {frequentRoutes.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
-                      <div className={styles.itemTitle}>{x.label}</div>
+                      <div className='emptyTitleSmall'>{x.label}</div>
                       <div className={styles.itemMeta}>
                         {x.count} time{x.count === 1 ? "" : "s"} • Last:{" "}
                         {formatDate(x.lastAt)}

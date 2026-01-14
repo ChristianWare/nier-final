@@ -344,6 +344,12 @@ textarea:focus {
   letter-spacing: normal;
 }
 
+.emptyTitleSmall {
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+}
+
 .emptyCopy, .val {
   font-size: 1.35rem;
   color: var(--paragraph);

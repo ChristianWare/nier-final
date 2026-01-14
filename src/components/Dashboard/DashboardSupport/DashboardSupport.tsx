@@ -308,7 +308,7 @@ export default function DashboardSupport({
 
           <div className={styles.faqGrid}>
             <details className={styles.faqItem}>
-              <summary className={styles.faqSummary}>
+              <summary className="emptyTitleSmall">
                 How do I change or cancel a trip?
               </summary>
               <div className={styles.faqBody}>
@@ -323,7 +323,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className={styles.faqSummary}>
+              <summary className="emptyTitleSmall">
                 Where do I find my receipts?
               </summary>
               <div className={styles.faqBody}>
@@ -336,7 +336,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className={styles.faqSummary}>
+              <summary className="emptyTitleSmall">
                 What if my payment failed?
               </summary>
               <div className={styles.faqBody}>
@@ -350,7 +350,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className={styles.faqSummary}>
+              <summary className="emptyTitleSmall">
                 Airport pickup help
               </summary>
               <div className={styles.faqBody}>
@@ -361,7 +361,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className={styles.faqSummary}>Lost item</summary>
+              <summary className="emptyTitleSmall">Lost item</summary>
               <div className={styles.faqBody}>
                 Contact support as soon as possible with your booking ID and a
                 description of the item. We’ll coordinate with the driver to
@@ -370,7 +370,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className={styles.faqSummary}>Refunds</summary>
+              <summary className="emptyTitleSmall">Refunds</summary>
               <div className={styles.faqBody}>
                 Refund eligibility depends on trip status and timing. If your
                 booking shows “Refunded” or “Partially refunded” you’ll also see

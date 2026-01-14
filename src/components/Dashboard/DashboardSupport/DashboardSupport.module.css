@@ -145,7 +145,7 @@
 .faqItem {
   border: 1px solid var(--stroke);
   border-radius: 5px;
-  /* background: var(--cream); */
+  cursor: pointer;
   padding:1rem;
 }
 
@@ -157,7 +157,7 @@
 }
 
 .faqBody {
-  padding-top: 0.6rem;
+  padding-top: 2rem;
   font-size: 1.3rem;
   color: var(--paragraph);
   line-height: 1.4;
