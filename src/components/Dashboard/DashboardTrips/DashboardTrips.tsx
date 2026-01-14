@@ -1,7 +1,7 @@
 import styles from "./DashboardTrips.module.css";
 import Link from "next/link";
-import { Prisma, BookingStatus } from "@prisma/client";
-import { cancelTrip } from "../../../../actions/bookings/cancelTrips"; 
+import { Prisma, BookingStatus, PaymentStatus } from "@prisma/client";
+import { cancelTrip } from "../../../../actions/bookings/cancelTrips";
 import CancelTripButton from "../CancelTripButton/CancelTripButton";
 import Button from "@/components/shared/Button/Button";
 
@@ -80,6 +80,24 @@ function badgeTone(status: BookingStatus) {
   return "neutral";
 }
 
+function paymentLabel(status: PaymentStatus) {
+  switch (status) {
+    case "PAID":
+      return "Paid";
+    case "PENDING":
+      return "Pending";
+    case "FAILED":
+      return "Failed";
+    case "REFUNDED":
+      return "Refunded";
+    case "PARTIALLY_REFUNDED":
+      return "Partially refunded";
+    case "NONE":
+    default:
+      return "Not paid";
+  }
+}
+
 function canCancel(status: BookingStatus) {
   return (
     status === "DRAFT" ||
@@ -102,7 +120,7 @@ function showPayNow(status: BookingStatus, payment: Trip["payment"]) {
 
 function primaryActionLabel(status: BookingStatus) {
   if (status === "DRAFT") return "Continue booking";
-  return "View details";
+  return "View trip details";
 }
 
 function primaryActionHref(status: BookingStatus, id: string) {
@@ -124,12 +142,13 @@ export default function DashboardTrips({
   trips: Trip[];
 }) {
   return (
-    <section className="container" aria-label='My trips'>
-      <header className="header">
-        <h1 className={`${styles.heading} h2`}>My trips</h1>
-        <p className={styles.subheading}>
+    <section className='container' aria-label='My trips'>
+      <header className='header'>
+        <h1 className='heading h2'>My trips</h1>
+        <p className='subheading'>
           Manage upcoming rides, view history, and handle payments.
         </p>
+
         <nav className='tabs' aria-label='Trip filters'>
           <Link
             href={{ pathname: "/dashboard/trips", query: { tab: "upcoming" } }}
@@ -155,81 +174,103 @@ export default function DashboardTrips({
       </header>
 
       {trips.length === 0 ? (
-        <div className="empty">
-          <p className="emptyTitle">No trips found.</p>
-          <p className="emptyCopy">
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>No trips found.</p>
+          <p className={styles.emptyCopy}>
             Book a ride and it will show up here.
           </p>
-          <div className="actionsRow">
+          <div className={styles.actionsRow}>
             <div className={styles.btnContainer}>
-            <Button href='/book' btnType='red' text='Book a ride' arrow />
+              <Button href='/book' btnType='red' text='Book a ride' arrow />
             </div>
           </div>
         </div>
       ) : (
         <div className={styles.list}>
           {trips.map((t) => {
+            const payUrl = t.payment?.checkoutUrl ?? null;
+            const receiptUrl = t.payment?.receiptUrl ?? null;
             const payNow = showPayNow(t.status, t.payment);
             const cancellable = canCancel(t.status);
 
             return (
               <article key={t.id} className={styles.card}>
-                <div className={styles.cardTop}>
-                  <div className={styles.meta}>
-                    <div className={styles.date}>
+                <header className={styles.cardTop}>
+                  <h2 className={`cardTitle h4`}>Trip</h2>
+                  <span className={`badge badge_${badgeTone(t.status)}`}>
+                    {statusLabel(t.status)}
+                  </span>
+                </header>
+
+                <div className={styles.tripMeta}>
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      Date
+                    </div>
+                    <div className='emptySmall'>
                       {formatDateTime(t.pickupAt)}
-                    </div>
-                    <div className={styles.route}>
-                      {t.pickupAddress} → {t.dropoffAddress}
-                    </div>
-                    <div className={styles.smallMeta}>
-                      <span>{t.serviceType?.name ?? "Service"}</span>
-                      <span className={styles.dot}>•</span>
-                      <span>{t.vehicle?.name ?? "Vehicle TBD"}</span>
-                      <span className={styles.dot}>•</span>
-                      <span>
-                        {t.passengers} pax / {t.luggage} luggage
-                      </span>
                     </div>
                   </div>
 
-                  <div className={styles.rightMeta}>
-                    <span
-                      className={`${styles.badge} ${styles[`badge_${badgeTone(t.status)}`]}`}
-                    >
-                      {statusLabel(t.status)}
-                    </span>
-
-                    <div className={styles.total}>
-                      {moneyFromCents(t.totalCents, t.currency)}
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      From
                     </div>
+                    <div className='emptySmall'>{t.pickupAddress}</div>
+                  </div>
 
-                    {t.payment ? (
-                      <div className={styles.paymentLine}>
-                        Payment:{" "}
-                        <span className={styles.paymentStatus}>
-                          {t.payment.status === "NONE"
-                            ? "Not paid"
-                            : t.payment.status === "PENDING"
-                              ? "Pending"
-                              : t.payment.status === "PAID"
-                                ? "Paid"
-                                : t.payment.status === "FAILED"
-                                  ? "Failed"
-                                  : t.payment.status === "REFUNDED"
-                                    ? "Refunded"
-                                    : t.payment.status === "PARTIALLY_REFUNDED"
-                                      ? "Partially refunded"
-                                      : t.payment.status}
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      To
+                    </div>
+                    <div className='emptySmall'>{t.dropoffAddress}</div>
+                  </div>
+
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      Service
+                    </div>
+                    <div className='emptySmall'>
+                      {t.serviceType?.name ?? "Service"}
+                    </div>
+                  </div>
+
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      Vehicle
+                    </div>
+                    <div className='emptySmall'>
+                      {t.vehicle?.name ?? "Vehicle TBD"}
+                    </div>
+                  </div>
+
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      Passengers
+                    </div>
+                    <div className='emptySmall'>
+                      {t.passengers} • Luggage: {t.luggage}
+                    </div>
+                  </div>
+
+                  <div className={styles.row}>
+                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                      Total
+                    </div>
+                    <div className='val'>
+                      {moneyFromCents(t.totalCents, t.currency)}
+                      {t.payment ? (
+                        <span className={styles.pill}>
+                          {paymentLabel(t.payment.status)}
                         </span>
-                      </div>
-                    ) : null}
+                      ) : null}
+                    </div>
                   </div>
                 </div>
 
-                <div className={styles.actionsRow}>
+                <div className={styles.btnRow}>
                   <Link
-                    className={styles.primaryBtn}
+                    className='primaryBtn'
                     href={primaryActionHref(t.status, t.id)}
                   >
                     {primaryActionLabel(t.status)}
@@ -237,23 +278,34 @@ export default function DashboardTrips({
 
                   {payNow ? (
                     <a
-                      className={styles.secondaryBtn}
-                      href={t.payment?.checkoutUrl ?? "#"}
+                      className={styles.primaryBtn}
+                      href={payUrl ?? "#"}
                       target='_blank'
                       rel='noreferrer'
                     >
-                      Pay now
+                      Complete payment
                     </a>
                   ) : null}
 
-                  <Link className={styles.secondaryBtn} href={rebookHref(t.id)}>
+                  {receiptUrl ? (
+                    <a
+                      className={styles.tertiaryBtn}
+                      href={receiptUrl}
+                      target='_blank'
+                      rel='noreferrer'
+                    >
+                      View receipt
+                    </a>
+                  ) : null}
+
+                  <Link className="tertiaryBtn" href={rebookHref(t.id)}>
                     Rebook
                   </Link>
 
                   {cancellable ? (
                     <form action={cancelTrip} className={styles.form}>
                       <input type='hidden' name='bookingId' value={t.id} />
-                      <CancelTripButton className={styles.dangerBtn} />
+                      <CancelTripButton className="dangerBtn" />
                     </form>
                   ) : null}
                 </div>

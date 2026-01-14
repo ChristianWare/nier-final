@@ -508,3 +508,9 @@ textarea:focus {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.dangerBtn {
+  background: transparent;
+  color: var(--black);
+  border: 1px solid rgba(255, 0, 0, 0.28);
+}
