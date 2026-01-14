@@ -4,7 +4,8 @@
   align-items: flex-start;
   justify-content: flex-start;
   gap: 2rem;
-  background-color: var(--cream);
+  /* background-color: var(--cream); */
+  border: 2px solid var(--stroke);
   border-radius: 7px;
   padding: 1.5rem;
 }

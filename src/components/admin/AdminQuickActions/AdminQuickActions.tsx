@@ -39,7 +39,7 @@ export default function AdminQuickActions() {
   return (
     <section className={styles.container} aria-label='Quick actions'>
       <header className={styles.header}>
-        <h2 className={`${styles.title} h4`}>Quick actions</h2>
+        <h2 className={`cardTitle h4`}>Quick actions</h2>
       </header>
 
       <div className={styles.grid}>
