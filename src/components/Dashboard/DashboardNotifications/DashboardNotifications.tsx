@@ -132,15 +132,7 @@ function toneFromPaymentTitle(titleRaw: string): BadgeTone {
     t.includes("payment link") ||
     t.includes("invoice") ||
     t.includes("due") ||
-    t.includes("pending")
-  ) {
-    return "warn";
-  }
-
-  if (
-    t.includes("payment due") ||
-    t.includes("payment link") ||
-    t.includes("pending payment") ||
+    t.includes("pending") ||
     t.includes("payment needed") ||
     t.includes("payment required") ||
     t.includes("needs payment")
@@ -158,8 +150,6 @@ function toneFromPaymentTitle(titleRaw: string): BadgeTone {
   ) {
     return "warn";
   }
-
-
 
   return "warn";
 }
@@ -255,8 +245,8 @@ export default function DashboardNotifications({
             When your trip status changes or a payment updates, it will show up
             here.
           </p>
-          <div className={styles.btnRow}>
-            <div className='btnContainer'>
+          <div className={styles.actionsRow}>
+            <div className={styles.btnContainer}>
               <Button href='/book' btnType='red' text='Book a ride' arrow />
             </div>
           </div>
@@ -342,7 +332,7 @@ export default function DashboardNotifications({
         </div>
       )}
 
-      <p className='miniNote'>
+      <p className={styles.footerNote}>
         Note: “Read” state is stored on this device only for now. If you want it
         synced across devices, we’ll add a small Notification model.
       </p>
