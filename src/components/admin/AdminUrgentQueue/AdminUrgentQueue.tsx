@@ -37,15 +37,15 @@ export default function AdminUrgentQueue({
         {/* <div className={styles.meta}>
           {total > 0 ? `${total} item(s)` : "All clear"}
         </div> */}
-         <div className={styles.meta}>
-                  {total === 0 ? (
-                    "All clear"
-                  ) : (
-                    <>
-                      <BadgeCount value={total} max={99} hideIfZero />
-                    </>
-                  )}
-                </div>
+        <div className={styles.meta}>
+          {total === 0 ? (
+            "All clear"
+          ) : (
+            <>
+              <BadgeCount value={total} max={99} hideIfZero />
+            </>
+          )}
+        </div>
       </header>
 
       <div className={styles.grid}>
@@ -91,14 +91,12 @@ function UrgentSection({
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
-          <div className="emptyTitle underline">{title}</div>
-          <div className="countPill">{items.length}</div>
-          {subtitle ? (
-            <div className="miniNote">{subtitle}</div>
-          ) : null}
+        <div className='emptyTitle underline'>{title}</div>
+        <div className='countPill'>{items.length}</div>
+        {subtitle ? <div className='miniNote'>{subtitle}</div> : null}
       </div>
       {items.length === 0 ? (
-        <div className="emptySmall">{emptyText}</div>
+        <div className='emptySmall'>{emptyText}</div>
       ) : (
         <ul className={styles.list}>
           {items.map((b) => {
@@ -110,41 +108,56 @@ function UrgentSection({
 
             return (
               <li key={b.id} className={styles.row}>
-                    <StatusPill status={b.status} />
+                <StatusPill status={b.status} />
                 <div className={styles.rowLeft}>
-                  <div className={styles.rowTop}>
-                    <span className="emptyTitleSmall">{pickupWhen}</span>
-                    <span className={styles.rel}>{rel}</span>
-                  </div>
-
                   <div className={styles.rowMiddle}>
-                    <span className="emptyTitleSmall">{customer}</span>
+                    <div className={styles.box}>
+                      <div className='emptyTitle underline'>
+                        Date <span className={styles.rel}>({rel})</span>
+                      </div>
+
+                      <span className='emptySmall'>{pickupWhen}</span>
+                    </div>
+                    <div className={styles.box}>
+                      <div className='emptyTitle underline'>Client</div>
+                      <span className='emptySmall'>{customer}</span>
+                    </div>
+
                     {b.serviceType?.name ? (
-                      <span className={styles.service}>
-                        • {b.serviceType.name}
-                      </span>
+                      <div className={styles.box}>
+                        <div className='emptyTitle underline'>Service</div>
+                        <span className='emptySmall'>{b.serviceType.name}</span>
+                      </div>
                     ) : null}
                     {b.assignment?.driver?.name ||
                     b.assignment?.driver?.email ? (
-                      <span className={styles.driver}>
-                        • Driver:{" "}
-                        {b.assignment.driver.name || b.assignment.driver.email}
-                      </span>
+                      <div className={styles.box}>
+                        <div className='emptyTitle underline'>Assigned to</div>
+                        <span className='emptySmall'>
+                          Driver:{" "}
+                          {b.assignment.driver.name ||
+                            b.assignment.driver.email}
+                        </span>
+                      </div>
                     ) : (
-                      <span className={styles.driver}>• Unassigned</span>
+                      <div className={styles.box}>
+                        <div className='emptyTitle underline'>Assigned to</div>
+                        <span className='emptySmall'>Unassigned</span>
+                      </div>
                     )}
-                  </div>
-
-                  <div className={styles.route}>
-                    {pickupShort} → {dropoffShort}
+                    <div className={styles.box}>
+                      <div className='emptyTitle underline'>Pickup</div>
+                      <div className='emptySmall'>{pickupShort}</div>
+                    </div>
+                    <div className={styles.box}>
+                      <div className='emptyTitle underline'>Drop off</div>
+                      <div className='emptySmall'>{dropoffShort}</div>
+                    </div>
                   </div>
                 </div>
 
                 <div className={styles.rowRight}>
-                  <Link
-                    className={styles.reviewBtn}
-                    href={`/admin/bookings/${b.id}`}
-                  >
+                  <Link className='primaryBtn' href={`/admin/bookings/${b.id}`}>
                     Review
                   </Link>
                 </div>

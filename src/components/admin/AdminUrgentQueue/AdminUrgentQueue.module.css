@@ -24,8 +24,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.2rem;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.5rem;
 }
 
 .card {
@@ -97,13 +97,14 @@
   background: var(--lightGrayii);
   border: 1px solid var(--stroke);
   border-radius: 10px;
-  padding: 1rem;
+  padding: 1.5rem;
   width: 100%;
 }
 
 .rowLeft {
   display: grid;
   gap: 1rem;
+  width: 100%;
 }
 
 .rowTop {
@@ -134,32 +135,21 @@
 
 .rowMiddle {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 2rem;
   font-size: 1.3rem;
+  width: 100%;
 }
 
-.customer {
-  font-weight: 700;
-}
-
-.service {
-  opacity: 0.85;
-}
-
-.driver {
-  opacity: 0.85;
-}
-
-.route {
-  font-size: 1.25rem;
-  opacity: 0.85;
-}
-
-.rowRight {
+.box {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 1rem;
+}
+.rowRight {
+  display: grid;
+  width: 100%;
 }
 
 .reviewBtn {
