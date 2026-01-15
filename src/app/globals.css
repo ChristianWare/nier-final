@@ -360,6 +360,7 @@ textarea:focus {
   font-weight: 900;
   font-size: 1.4rem;
   letter-spacing: normal;
+  line-height: 1.5;
 }
 
 .emptyCopy, .val {

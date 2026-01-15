@@ -99,7 +99,8 @@
 
 .itemLeft {
   display: grid;
-  gap: 0.35rem;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
 }
 
 .itemTitle {

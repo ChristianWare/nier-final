@@ -1,5 +1,5 @@
-import Button from "@/components/shared/Button/Button";
 import styles from "./DashboardSavedDetails.module.css";
+import Button from "@/components/shared/Button/Button";
 import Link from "next/link";
 
 function formatDate(d: Date) {
@@ -76,11 +76,11 @@ export default function DashboardSavedDetails({
 
             <div className={styles.rows}>
               <div className={styles.row}>
-                <span className={styles.key}>Name</span>
+                <span className="label">Name</span>
                 <span className="emptyTitleSmall">{profile.name || "—"}</span>
               </div>
               <div className={styles.row}>
-                <span className={styles.key}>Email</span>
+                <span className="label">Email</span>
                 <span className="emptyTitleSmall">{profile.email || "—"}</span>
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function DashboardSavedDetails({
             </header>
 
             {!lastUsed ? (
-              <p className={styles.muted}>No recent trip details yet.</p>
+              <p className="miniNote">No recent trip details yet.</p>
             ) : (
               <div className={styles.tripMetaBox}>
                 <div className={styles.tripMetaLine}>
@@ -168,14 +168,14 @@ export default function DashboardSavedDetails({
             </header>
 
             {frequentPickups.length === 0 ? (
-              <p className={styles.muted}>No pickup history yet.</p>
+              <p className="miniNote">No pickup history yet.</p>
             ) : (
               <ul className={styles.list}>
                 {frequentPickups.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
                       <div className='emptyTitleSmall'>{x.label}</div>
-                      <div className={styles.itemMeta}>
+                      <div className="emptySmall">
                         {x.count} trip{x.count === 1 ? "" : "s"} • Last:{" "}
                         {formatDate(x.lastAt)}
                       </div>
@@ -193,14 +193,14 @@ export default function DashboardSavedDetails({
             </header>
 
             {frequentDropoffs.length === 0 ? (
-              <p className={styles.muted}>No dropoff history yet.</p>
+              <p className="miniNote">No dropoff history yet.</p>
             ) : (
               <ul className={styles.list}>
                 {frequentDropoffs.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
                       <div className='emptyTitleSmall'>{x.label}</div>
-                      <div className={styles.itemMeta}>
+                      <div className="emptySmall">
                         {x.count} trip{x.count === 1 ? "" : "s"} • Last:{" "}
                         {formatDate(x.lastAt)}
                       </div>
@@ -218,14 +218,14 @@ export default function DashboardSavedDetails({
             </header>
 
             {frequentRoutes.length === 0 ? (
-              <p className={styles.muted}>No route history yet.</p>
+              <p className="miniNote">No route history yet.</p>
             ) : (
               <ul className={styles.list}>
                 {frequentRoutes.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
                       <div className='emptyTitleSmall'>{x.label}</div>
-                      <div className={styles.itemMeta}>
+                      <div className="emptySmall">
                         {x.count} time{x.count === 1 ? "" : "s"} • Last:{" "}
                         {formatDate(x.lastAt)}
                       </div>
@@ -244,7 +244,7 @@ export default function DashboardSavedDetails({
               </div>
             </header>
 
-            <p className={styles.muted}>
+            <p className="miniNote">
               Soon you’ll be able to save addresses and preferences manually
               (with one-click prefill in the booking flow).
             </p>

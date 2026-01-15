@@ -46,17 +46,17 @@
   align-items: start;
   padding: 1.5rem;
   border-radius: 7px;
-  /* background: var(--lightGrayii); */
   border: 1px solid var(--stroke);
 }
 
 .activityLeft {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  grid-gap: 2rem;
+  grid-gap: 1rem;
+  min-width: 0;
 }
 
-.titleRow {
+.tagRow {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -71,24 +71,12 @@
   flex: 0 0 auto;
 }
 
-.meta {
+.box {
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
-  gap: 2rem;
-  font-size: 1.2rem;
-  color: var(--paragraph);
-}
-
-.sep {
-  opacity: 0.6;
-  display: none;
-}
-
-.subtitle {
-  font-size: 1.3rem;
-  color: var(--paragraph);
-  word-break: break-word;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
 }
 
 .actions {

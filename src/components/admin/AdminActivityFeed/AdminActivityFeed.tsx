@@ -7,8 +7,8 @@ export type AdminActivityItem = {
   title: string;
   subtitle: string;
   bookingId: string;
-  href?: string; // optional override
-  ctaLabel?: string; // optional override
+  href?: string;
+  ctaLabel?: string;
 };
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
   timeZone?: string;
   title?: string;
   emptyText?: string;
-  hrefBase?: string; // default: "/admin/bookings"
+  hrefBase?: string; 
 };
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";

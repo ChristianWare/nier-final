@@ -16,6 +16,8 @@ type NotificationItem = {
   tag: "Trip update" | "Payment";
 };
 
+type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
+
 const STORAGE_KEY = "nier_dashboard_notifications_last_seen";
 
 function formatTime(d: Date) {
@@ -50,9 +52,126 @@ function readLastSeen(): string | null {
   }
 }
 
-function tagTone(tag: NotificationItem["tag"]) {
-  if (tag === "Payment") return "warn";
+function toneFromTripTitle(titleRaw: string): BadgeTone {
+  const t = (titleRaw ?? "").trim().toLowerCase();
+
+  if (
+    t.includes("cancelled") ||
+    t.includes("canceled") ||
+    t.includes("no-show") ||
+    t.includes("no show") ||
+    t.includes("failed") ||
+    t.includes("declined")
+  ) {
+    return "bad";
+  }
+
+  if (t.includes("refunded") || t.includes("refund")) return "neutral";
+
+  if (
+    t.includes("approved") ||
+    t.includes("booking approved") ||
+    t.includes("confirmed") ||
+    t.includes("completed") ||
+    t.includes("assigned")
+  ) {
+    return "good";
+  }
+
+  if (
+    t.includes("en route") ||
+    t.includes("en-route") ||
+    t.includes("arrived") ||
+    t.includes("in progress") ||
+    t.includes("in-progress") ||
+    t.includes("started") ||
+    t.includes("driver en route") ||
+    t.includes("driver arrived")
+  ) {
+    return "accent";
+  }
+
+  if (
+    t.includes("payment due") ||
+    t.includes("payment link") ||
+    t.includes("pending payment")
+  ) {
+    return "warn";
+  }
+
+  if (t.includes("pending review") || t.includes("draft")) return "neutral";
+
   return "neutral";
+}
+
+function toneFromPaymentTitle(titleRaw: string): BadgeTone {
+  const t = (titleRaw ?? "").trim().toLowerCase();
+
+  if (
+    t.includes("failed") ||
+    t.includes("declined") ||
+    t.includes("rejected") ||
+    t.includes("chargeback")
+  ) {
+    return "bad";
+  }
+
+  if (t.includes("refunded") || t.includes("refund")) return "neutral";
+
+  if (
+    t.includes("received") ||
+    t.includes("paid") ||
+    t.includes("payment received") ||
+    t.includes("succeeded") ||
+    t.includes("success")
+  ) {
+    return "good";
+  }
+
+  if (
+    t.includes("payment link") ||
+    t.includes("invoice") ||
+    t.includes("due") ||
+    t.includes("pending")
+  ) {
+    return "warn";
+  }
+
+  if (
+    t.includes("payment due") ||
+    t.includes("payment link") ||
+    t.includes("pending payment") ||
+    t.includes("payment needed") ||
+    t.includes("payment required") ||
+    t.includes("needs payment")
+  ) {
+    return "warn";
+  }
+
+  if (
+    t.includes("payment") &&
+    (t.includes("due") ||
+      t.includes("pending") ||
+      t.includes("link") ||
+      t.includes("need") ||
+      t.includes("required"))
+  ) {
+    return "warn";
+  }
+
+
+
+  return "warn";
+}
+
+function toneTag(it: NotificationItem): BadgeTone {
+  switch (it.tag) {
+    case "Payment":
+      return toneFromPaymentTitle(it.title);
+    case "Trip update":
+    default:
+      return toneFromTripTitle(it.title);
+  }
 }
 
 export default function DashboardNotifications({
@@ -104,7 +223,7 @@ export default function DashboardNotifications({
   return (
     <section className='container' aria-label='Notifications'>
       <header className='header'>
-        <h1 className={`heading h2`}>Notifications</h1>
+        <h1 className='heading h2'>Notifications</h1>
         <p className='subheading'>
           Recent activity from trip updates and payments.
         </p>
@@ -155,24 +274,26 @@ export default function DashboardNotifications({
                   const createdAt = new Date(it.createdAt);
                   const isUnread =
                     !lastSeenAt || createdAt.getTime() > lastSeenAt.getTime();
+                  const tone = toneTag(it);
 
                   return (
                     <li key={it.id} className={styles.activityItem}>
                       <div className={styles.activityLeft}>
-                        <div className={styles.titleRow}>
+                        <div className={styles.tagRow}>
                           {isUnread ? <span className={styles.dot} /> : null}
-                          <div className='emptyTitle'>{it.title}</div>
+                          <span className='emptyTitle underline'>{it.tag}</span>
                         </div>
 
-                        <div className={styles.meta}>
-                          <span className={`badge badge_${tagTone(it.tag)}`}>
-                            {it.tag}
+                        <div className={styles.box}>
+                          <span className='miniNote'>
+                            {formatTime(createdAt)}
                           </span>
-                          <span className={styles.sep}>•</span>
-                          <span className="emptySmall">{formatTime(createdAt)}</span>
+                          <span className={`badge badge_${tone}`}>
+                            {it.title}
+                          </span>
                         </div>
 
-                        <div className="label">{it.subtitle}</div>
+                        <div className='emptySmall'>{it.subtitle}</div>
 
                         {it.links.length ? (
                           <div className={styles.actions}>
