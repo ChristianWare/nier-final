@@ -275,17 +275,18 @@ export default function DashboardNotifications({
                         </div>
 
                         <div className={styles.box}>
-                          <span className='miniNote'>
-                            {formatTime(createdAt)}
-                          </span>
                           <span className={`badge badge_${tone}`}>
                             {it.title}
+                          </span>
+
+                          <span className='miniNote'>
+                            {formatTime(createdAt)}
                           </span>
                         </div>
 
                         <div className='emptySmall'>{it.subtitle}</div>
 
-                        {it.links.length ? (
+                        {/* {it.links.length ? (
                           <div className={styles.actions}>
                             {it.links.map((l) => {
                               const isExternal = l.href.startsWith("http");
@@ -317,7 +318,7 @@ export default function DashboardNotifications({
                               );
                             })}
                           </div>
-                        ) : null}
+                        ) : null} */}
                       </div>
 
                       <Link className='primaryBtn' href={it.bookingHref}>
