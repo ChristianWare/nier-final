@@ -2,7 +2,7 @@
 import styles from "./BookingsPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { Prisma, BookingStatus } from "@prisma/client";
+import { Prisma, BookingStatus, PaymentStatus } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
 
 export const runtime = "nodejs";
@@ -32,6 +32,8 @@ type SearchParams = {
   stuck?: "1";
   page?: string;
 };
+
+type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 const PAGE_SIZE = 50;
@@ -102,6 +104,82 @@ function clampPage(raw: string | undefined) {
   const n = Number(raw);
   if (!Number.isFinite(n) || n <= 1) return 1;
   return Math.floor(n);
+}
+
+function statusLabel(status: BookingStatus) {
+  switch (status) {
+    case "PENDING_REVIEW":
+      return "Pending review";
+    case "PENDING_PAYMENT":
+      return "Payment due";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "ASSIGNED":
+      return "Driver assigned";
+    case "EN_ROUTE":
+      return "Driver en route";
+    case "ARRIVED":
+      return "Driver arrived";
+    case "IN_PROGRESS":
+      return "In progress";
+    case "COMPLETED":
+      return "Completed";
+    case "CANCELLED":
+      return "Cancelled";
+    case "NO_SHOW":
+      return "No-show";
+    case "REFUNDED":
+      return "Refunded";
+    case "PARTIALLY_REFUNDED":
+      return "Partially refunded";
+    case "DRAFT":
+      return "Draft";
+    default:
+      return String(status).replaceAll("_", " ");
+  }
+}
+
+function badgeTone(status: BookingStatus): BadgeTone {
+  if (status === "PENDING_PAYMENT") return "warn";
+  if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
+  if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
+  if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
+    return "accent";
+  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
+  if (status === "COMPLETED") return "good";
+  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
+    return "neutral";
+  return "neutral";
+}
+
+function paymentLabel(status: PaymentStatus | null | undefined) {
+  if (!status) return "—";
+  switch (status) {
+    case "PAID":
+      return "Paid";
+    case "PENDING":
+      return "Pending";
+    case "FAILED":
+      return "Failed";
+    case "REFUNDED":
+      return "Refunded";
+    case "PARTIALLY_REFUNDED":
+      return "Partially refunded";
+    case "NONE":
+    default:
+      return "Not paid";
+  }
+}
+
+function paymentTone(status: PaymentStatus | null | undefined): BadgeTone {
+  if (!status) return "neutral";
+  if (status === "PAID") return "good";
+  if (status === "PENDING") return "warn";
+  if (status === "FAILED") return "bad";
+  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
+    return "neutral";
+  if (status === "NONE") return "neutral";
+  return "neutral";
 }
 
 type BookingRow = Prisma.BookingGetPayload<{
@@ -206,29 +284,31 @@ export default async function AdminBookingsPage({
   };
 
   return (
-    <section className={styles.container}>
+    <section className={styles.container} aria-label='Bookings'>
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <div className={styles.top}>
             <h1 className={`${styles.heading} h2`}>Bookings</h1>
           </div>
+
+          <div className={styles.headerActions}>
             <Button
               href='/admin/bookings/new'
               text='New Booking'
               btnType='black'
               plus
             />
-            <br />
+          </div>
+
           <div className={styles.meta}>
             <strong>{totalCount}</strong> total
             {totalCount > 0 ? (
-              <span className={styles.metaSep}>
-                • Page <strong>{safePage}</strong> of{" "}
-                <strong>{totalPages}</strong>
+              <span className='emptySmall'>
+                • Page <strong className='emptyTitleSmall'>{safePage}</strong>{" "}
+                of <strong className='emptyTitleSmall'>{totalPages}</strong>
               </span>
             ) : null}
           </div>
-          <br />
         </div>
 
         <div className={styles.filters}>
@@ -245,123 +325,152 @@ export default async function AdminBookingsPage({
         />
       </header>
 
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th className={styles.overlayTh} />
-              <Th>Pickup</Th>
-              <Th>ETA</Th>
-              <Th>Customer</Th>
-              <Th>Service</Th>
-              <Th>Route</Th>
-              <Th>Vehicle</Th>
-              <Th>Status</Th>
-              <Th>Payment</Th>
-              <Th>Driver</Th>
-              <Th style={{ textAlign: "right" }}>Total</Th>
-              <Th style={{ textAlign: "right" }}>Action</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {bookings.length === 0 ? (
-              <tr>
-                <td className={styles.emptyCell} colSpan={12}>
-                  <div className={styles.emptyText}>No bookings found.</div>
-                </td>
-              </tr>
-            ) : (
-              bookings.map((b) => {
-                const pay = b.payment?.status ?? "—";
-                const total = formatMoneyFromCents(b.totalCents ?? 0);
-                const eta = formatEta(b.pickupAt, now);
-                const href = `/admin/bookings/${b.id}`;
+      {bookings.length === 0 ? (
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>No bookings found.</p>
+          <p className={styles.emptyCopy}>
+            Try adjusting filters or create a new booking.
+          </p>
+          <div className={styles.actionsRow}>
+            <div className={styles.btnContainer}>
+              <Button
+                href='/admin/bookings/new'
+                btnType='red'
+                text='New Booking'
+                arrow
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className={styles.list}>
+          {bookings.map((b) => {
+            const href = `/admin/bookings/${b.id}`;
+            const eta = formatEta(b.pickupAt, now);
+            const total = formatMoneyFromCents(b.totalCents ?? 0);
+            const payStatus = b.payment?.status ?? null;
 
-                return (
-                  <tr key={b.id} className={styles.tr}>
-                    <td className={styles.overlayCell}>
-                      <Link
-                        className={styles.rowOverlay}
-                        href={href}
-                        aria-label='Open booking'
-                      />
-                    </td>
+            const driverName = b.assignment?.driver?.name?.trim() || "—";
+            const driverEmail = b.assignment?.driver?.email ?? "";
 
-                    <Td>
-                      <Link className={styles.pickupLink} href={href}>
-                        {formatPhoenix(b.pickupAt)}
-                      </Link>
-                    </Td>
+            const customerName = b.user?.name?.trim() || "—";
+            const customerEmail = b.user?.email ?? "";
 
-                    <Td className={styles.etaCell}>{eta}</Td>
+            return (
+              <article key={b.id} className={styles.card}>
+                <Link
+                  className={styles.cardOverlay}
+                  href={href}
+                  aria-label='Open booking'
+                />
 
-                    <Td>
-                      <div className={styles.customerName}>
-                        {b.user?.name ?? "—"}
-                      </div>
-                      <div className={styles.customerEmail}>
-                        {b.user?.email}
-                      </div>
-                    </Td>
-
-                    <Td>{b.serviceType.name}</Td>
-
-                    <Td className={styles.routeCell}>
-                      <div className={styles.routeTop}>
-                        {shortAddress(b.pickupAddress)}
-                      </div>
-                      <div className={styles.routeBottom}>
-                        → {shortAddress(b.dropoffAddress)}
-                      </div>
-                    </Td>
-
-                    <Td>{b.vehicle?.name ?? "—"}</Td>
-
-                    <Td>
-                      <span
-                        className={`${styles.badge} ${statusBadgeClass(b.status, styles)}`}
-                      >
-                        {b.status}
+                <div className={styles.cardContent}>
+                  <header className={styles.cardTop}>
+                    <h2 className={`cardTitle h4`}>Booking</h2>
+                    <div className={styles.badgesRow}>
+                      <span className={`badge badge_${badgeTone(b.status)}`}>
+                        {statusLabel(b.status)}
                       </span>
-                    </Td>
-
-                    <Td>
-                      <span
-                        className={`${styles.badge} ${paymentBadgeClass(String(pay), styles)}`}
-                      >
-                        {pay}
+                      <span className={`badge badge_${paymentTone(payStatus)}`}>
+                        {paymentLabel(payStatus)}
                       </span>
-                    </Td>
+                    </div>
+                  </header>
 
-                    <Td>
-                      {b.assignment?.driver ? (
-                        <div className={styles.driverCell}>
-                          <div className={styles.driverName}>
-                            {b.assignment.driver.name ?? "Driver"}
-                          </div>
-                          <div className={styles.driverEmail}>
-                            {b.assignment.driver.email}
-                          </div>
+                  <div className={styles.tripMeta}>
+                    <div className={styles.row}>
+                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                        Pickup
+                      </div>
+                      <div className='emptySmall'>
+                        <span className={styles.pickupStrong}>
+                          {formatPhoenix(b.pickupAt)}
+                        </span>
+                        <span className={styles.pill}>{eta}</span>
+                      </div>
+                    </div>
+
+                    <div className={styles.row}>
+                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                        Customer
+                      </div>
+                      <div className='emptySmall'>
+                        <div className={styles.personName}>{customerName}</div>
+                        <div className={styles.personEmail}>
+                          {customerEmail}
                         </div>
-                      ) : (
-                        <span className={styles.muted}>—</span>
-                      )}
-                    </Td>
+                      </div>
+                    </div>
 
-                    <Td style={{ textAlign: "right" }}>{total}</Td>
+                    <div className={styles.row}>
+                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                        Service
+                      </div>
+                      <div className='emptySmall'>
+                        {b.serviceType?.name ?? "—"}
+                      </div>
+                    </div>
 
-                    <Td style={{ textAlign: "right" }}>
-                      <Link className={styles.reviewBtn} href={href}>
-                        Review
-                      </Link>
-                    </Td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+                    <div className={styles.row}>
+                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                        Route
+                      </div>
+                      <div className='emptySmall'>
+                        <div className={styles.routeTop}>
+                          {shortAddress(b.pickupAddress)}
+                        </div>
+                        <div className={styles.routeBottom}>
+                          → {shortAddress(b.dropoffAddress)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.row}>
+                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                        Vehicle
+                      </div>
+                      <div className='emptySmall'>{b.vehicle?.name ?? "—"}</div>
+                    </div>
+
+                    <div className={styles.row}>
+                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                        Driver
+                      </div>
+                      <div className='emptySmall'>
+                        {b.assignment?.driver ? (
+                          <div className={styles.personBlock}>
+                            <div className={styles.personName}>
+                              {driverName}
+                            </div>
+                            <div className={styles.personEmail}>
+                              {driverEmail}
+                            </div>
+                          </div>
+                        ) : (
+                          "Unassigned"
+                        )}
+                      </div>
+                    </div>
+
+                    <div className={styles.row}>
+                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                        Total
+                      </div>
+                      <div className='val'>{total}</div>
+                    </div>
+                  </div>
+
+                  <div className={styles.btnRow}>
+                    <Link className='primaryBtn' href={href}>
+                      Review booking →
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
 
       <Pagination
         totalCount={totalCount}
@@ -553,53 +662,4 @@ function Pagination({
       </div>
     </div>
   );
-}
-
-function Th({
-  children,
-  style,
-}: {
-  children: React.ReactNode;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <th className={styles.th} style={style}>
-      {children}
-    </th>
-  );
-}
-
-function Td({
-  children,
-  className,
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) {
-  return (
-    <td className={`${styles.td} ${className ?? ""}`} style={style}>
-      {children}
-    </td>
-  );
-}
-
-function statusBadgeClass(status: string, s: Record<string, string>) {
-  if (status === "PENDING_REVIEW") return s.badgeWarn;
-  if (status === "PENDING_PAYMENT") return s.badgeDanger;
-  if (status === "CONFIRMED") return s.badgeOk;
-  if (status === "ASSIGNED") return s.badgeInfo;
-  if (status === "COMPLETED") return s.badgeMuted;
-  if (status === "CANCELLED") return s.badgeMuted;
-  if (status === "NO_SHOW") return s.badgeMuted;
-  return s.badgeMuted;
-}
-
-function paymentBadgeClass(payStatus: string, s: Record<string, string>) {
-  if (payStatus === "PAID") return s.badgeOk;
-  if (payStatus === "PENDING") return s.badgeWarn;
-  if (payStatus === "FAILED") return s.badgeDanger;
-  if (payStatus === "NONE") return s.badgeMuted;
-  return s.badgeMuted;
 }

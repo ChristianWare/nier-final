@@ -5,7 +5,8 @@
 
 .header {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 3rem;
 }
 
 .headerTop {
@@ -20,6 +21,13 @@
   padding-bottom: 1rem;
   border-bottom: 2px solid var(--stroke);
   width: 100%;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }
 
 .meta {
@@ -125,208 +133,155 @@
   pointer-events: none;
 }
 
-.tableWrap {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 14px;
-  overflow: hidden;
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.card {
   background: var(--white);
-}
-
-.table {
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid var(--stroke);
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
   width: 100%;
-  border-collapse: collapse;
-}
-
-.overlayTh {
-  width: 0;
-  padding: 0;
-}
-
-.th {
-  padding: 1.2rem 1.4rem;
-  font-size: 1.15rem;
-  opacity: 0.7;
-  text-align: left;
-  background: rgba(0, 0, 0, 0.02);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  white-space: nowrap;
-}
-
-.td {
-  padding: 1.2rem 1.4rem;
-  vertical-align: top;
-}
-
-.tr {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
   position: relative;
 }
 
-.tr:hover {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.overlayCell {
-  width: 0;
-  padding: 0;
-}
-
-.rowOverlay {
+.cardOverlay {
   position: absolute;
   inset: 0;
+  z-index: 1;
+}
+
+.cardContent {
+  position: relative;
   z-index: 2;
+  display: grid;
+  gap: 3rem;
 }
 
-.pickupLink {
-  color: inherit;
-  text-decoration: none;
+.cardTop {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 1rem;
+  width: 100%;
+}
+
+.badgesRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.tripMeta {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.emptyTitleLocal {
+  border-bottom: 1px solid var(--stroke);
+  width: 100%;
+  padding-bottom: 0.5rem;
+}
+
+.pickupStrong {
   font-weight: 900;
-  position: relative;
-  z-index: 3;
 }
 
-.pickupLink:hover {
-  text-decoration: underline;
-}
-
-.etaCell {
-  font-weight: 900;
-  opacity: 0.9;
+.pill {
+  margin-left: 10px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   white-space: nowrap;
-  position: relative;
-  z-index: 3;
-}
-
-.customerName {
-  font-weight: 900;
-  position: relative;
-  z-index: 3;
-}
-
-.customerEmail {
-  font-size: 1.15rem;
-  opacity: 0.7;
-  margin-top: 0.2rem;
-  position: relative;
-  z-index: 3;
-}
-
-.routeCell {
-  max-width: 34rem;
 }
 
 .routeTop {
   font-size: 1.15rem;
   opacity: 0.9;
-  position: relative;
-  z-index: 3;
 }
 
 .routeBottom {
   font-size: 1.15rem;
   opacity: 0.7;
   margin-top: 0.2rem;
-  position: relative;
-  z-index: 3;
 }
 
-.driverCell {
+.personBlock {
   display: grid;
   gap: 0.2rem;
-  position: relative;
-  z-index: 3;
 }
 
-.driverName {
+.personName {
   font-weight: 900;
 }
 
-.driverEmail {
+.personEmail {
   font-size: 1.15rem;
   opacity: 0.7;
+  margin-top: 0.2rem;
 }
 
-.reviewBtn {
-  display: inline-flex;
+.btnRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   align-items: center;
-  justify-content: center;
-  padding: 0.7rem 1rem;
-  border-radius: 10px;
-  border: 1px solid var(--stroke);
-  background: var(--black);
-  color: var(--cream);
-  text-decoration: none;
-  font-weight: 900;
-  font-size: 1.2rem;
-  white-space: nowrap;
-  position: relative;
-  z-index: 3;
 }
 
-.reviewBtn:hover {
-  background: var(--black400);
+.empty {
+  padding: 14px 2px;
+  display: grid;
+  gap: 8px;
 }
 
-.muted {
-  opacity: 0.6;
-  position: relative;
-  z-index: 3;
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
 }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  padding: 0.45rem 0.75rem;
-  font-size: 1.1rem;
-  font-weight: 900;
-  border: 1px solid var(--stroke);
-  background: var(--white);
-  white-space: nowrap;
-  position: relative;
-  z-index: 3;
-}
-
-.badgeOk {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.35);
-}
-
-.badgeWarn {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.35);
-}
-
-.badgeDanger {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.35);
-}
-
-.badgeInfo {
-  background: rgba(59, 130, 246, 0.15);
-  border-color: rgba(59, 130, 246, 0.35);
-}
-
-.badgeMuted {
-  background: rgba(0, 0, 0, 0.05);
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-.emptyCell {
-  padding: 1.4rem;
-}
-
-.emptyText {
+.emptyCopy {
+  margin: 0;
   opacity: 0.75;
 }
 
-@media screen and (max-width: 980px) {
-  .tableWrap {
-    overflow-x: auto;
-  }
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
 
-  .table {
-    min-width: 1200px;
+.btnContainer {
+  margin-top: 1rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .list {
+    grid-template-columns: repeat(1, 1fr);
   }
 }
