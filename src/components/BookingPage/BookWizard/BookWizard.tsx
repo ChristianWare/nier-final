@@ -2,7 +2,7 @@
 "use client";
 
 import styles from "./BookingWizard.module.css";
-import React, { useMemo, useState, useTransition } from "react";
+import React, { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {
@@ -38,7 +38,6 @@ type VehicleDTO = {
   luggageCapacity: number;
   imageUrl: string | null;
 
-  // ✅ min hours for HOURLY bookings
   minHours: number;
 
   baseFareCents: number;
@@ -68,7 +67,6 @@ function estimateTotalCents(args: {
   const { service, vehicle, distanceMiles, durationMinutes, hoursRequested } =
     args;
 
-  // Prefer vehicle rates if they’re set (>0), else fall back to service.
   const base =
     vehicle && vehicle.baseFareCents > 0
       ? vehicle.baseFareCents
@@ -91,7 +89,6 @@ function estimateTotalCents(args: {
 
   if (service.pricingStrategy === "HOURLY") {
     const minHours = vehicle?.minHours ?? 0;
-    // bill hours rounded up, and at least minHours
     const billedHours = Math.max(
       Math.ceil(hoursRequested || 0),
       Math.ceil(minHours || 0)
@@ -100,7 +97,6 @@ function estimateTotalCents(args: {
     return Math.max(service.minFareCents, raw);
   }
 
-  // POINT_TO_POINT or FLAT (phase 1: treat similarly)
   const raw =
     base +
     Math.round(distanceMiles * perMile) +
@@ -120,7 +116,6 @@ export default function BookingWizard({
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
-  // ✅ Alias + safe defaults so nothing is ever undefined
   const services: ServiceTypeDTO[] = serviceTypes ?? [];
   const vehicleOptions: VehicleDTO[] = vehicles ?? [];
 
@@ -133,7 +128,12 @@ export default function BookingWizard({
   const [passengers, setPassengers] = useState<number>(1);
   const [luggage, setLuggage] = useState<number>(0);
 
+  // ✅ route state is still owned here
   const [route, setRoute] = useState<RoutePickerValue | null>(null);
+
+  // ✅ external inputs live on the RIGHT now
+  const pickupInputRef = useRef<HTMLInputElement | null>(null);
+  const dropoffInputRef = useRef<HTMLInputElement | null>(null);
 
   // HOURLY
   const [hoursRequested, setHoursRequested] = useState<number>(2);
@@ -164,7 +164,6 @@ export default function BookingWizard({
       ? Math.max(Math.ceil(hoursRequested || 0), Math.ceil(minHours || 0))
       : null;
 
-  // ✅ RoutePickerValue uses miles/minutes
   const distanceMiles = Number(route?.miles ?? 0);
   const durationMinutes = Number(route?.minutes ?? 0);
 
@@ -221,7 +220,6 @@ export default function BookingWizard({
     ).toISOString();
 
     startTransition(async () => {
-      // ✅ Guard: require both pickup + dropoff before submitting
       if (!route?.pickup || !route?.dropoff) {
         toast.error("Please select both pickup and dropoff locations.");
         return;
@@ -251,7 +249,6 @@ export default function BookingWizard({
         distanceMiles: route.miles ?? null,
         durationMinutes: route.minutes ?? null,
 
-        // ✅ only send for hourly services
         hoursRequested:
           selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
 
@@ -277,16 +274,15 @@ export default function BookingWizard({
         <div className={styles.content}>
           <div className={styles.left}>
             <Stepper step={step} />
-            <div style={{ display: "grid", gap: 8 }}>
-              <label style={labelStyle}>Route</label>
-              <RoutePicker value={route} onChange={setRoute} />
-              {route?.miles != null ? (
-                <div style={{ fontSize: 12, opacity: 0.7 }}>
-                  Est: {route.miles} mi • {route.minutes ?? 0} min
-                </div>
-              ) : null}
-            </div>
+            <RoutePicker
+              value={route}
+              onChange={setRoute}
+              pickupInputRef={pickupInputRef}
+              dropoffInputRef={dropoffInputRef}
+              inputsKey={step}
+            />
           </div>
+
           <div className={styles.right}>
             <div className={styles.wizard}>
               {step === 1 ? (
@@ -295,6 +291,7 @@ export default function BookingWizard({
                   <p className='subheading'>
                     Please provide the details for your trip below
                   </p>
+
                   <div style={{ display: "grid", gap: 8 }}>
                     <label className='cardTitle h5'>Service</label>
                     <select
@@ -303,7 +300,6 @@ export default function BookingWizard({
                         const next = e.target.value;
                         setServiceTypeId(next);
 
-                        // If switching to HOURLY, keep hours reasonable
                         const svc = services.find((s) => s.id === next);
                         if (svc?.pricingStrategy === "HOURLY") {
                           setHoursRequested((prev) =>
@@ -315,7 +311,7 @@ export default function BookingWizard({
                           );
                         }
                       }}
-                      style={inputStyle}
+                      className='input emptySmall'
                     >
                       {services.map((s) => (
                         <option key={s.id} value={s.id}>
@@ -332,7 +328,7 @@ export default function BookingWizard({
                         type='date'
                         value={pickupAtDate}
                         onChange={(e) => setPickupAtDate(e.target.value)}
-                        style={inputStyle}
+                        className='input emptySmall'
                       />
                     </div>
 
@@ -342,7 +338,7 @@ export default function BookingWizard({
                         type='time'
                         value={pickupAtTime}
                         onChange={(e) => setPickupAtTime(e.target.value)}
-                        style={inputStyle}
+                        className='input emptySmall'
                       />
                     </div>
                   </Grid2>
@@ -355,7 +351,7 @@ export default function BookingWizard({
                         min={1}
                         value={passengers}
                         onChange={(e) => setPassengers(Number(e.target.value))}
-                        style={inputStyle}
+                        className='input emptySmall'
                       />
                     </div>
 
@@ -366,10 +362,43 @@ export default function BookingWizard({
                         min={0}
                         value={luggage}
                         onChange={(e) => setLuggage(Number(e.target.value))}
-                        style={inputStyle}
+                        className='input emptySmall'
                       />
                     </div>
                   </Grid2>
+
+                  {/* ✅ NEW: Pickup / Dropoff fields live on the RIGHT */}
+                  <div style={{ display: "grid", gap: 10 }}>
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Pickup</label>
+                      <input
+                        ref={pickupInputRef}
+                        placeholder='Enter pickup address'
+                        autoComplete='off'
+                        className='input emptySmall'
+                      />
+                      {route?.pickup?.address ? (
+                        <div style={{ fontSize: 12, opacity: 0.75 }}>
+                          Selected: {route.pickup.address}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Dropoff</label>
+                      <input
+                        ref={dropoffInputRef}
+                        placeholder='Enter dropoff address'
+                        autoComplete='off'
+                        className='input emptySmall'
+                      />
+                      {route?.dropoff?.address ? (
+                        <div style={{ fontSize: 12, opacity: 0.75 }}>
+                          Selected: {route.dropoff.address}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
 
                   {selectedService?.pricingStrategy === "HOURLY" ? (
                     <div style={{ display: "grid", gap: 8 }}>
@@ -382,7 +411,7 @@ export default function BookingWizard({
                         onChange={(e) =>
                           setHoursRequested(Number(e.target.value))
                         }
-                        style={inputStyle}
+                        className='input emptySmall'
                       />
                       <div style={{ fontSize: 12, opacity: 0.7 }}>
                         Vehicle minimum applies after you choose a vehicle
@@ -390,6 +419,7 @@ export default function BookingWizard({
                       </div>
                     </div>
                   ) : null}
+
                   <div
                     style={{
                       display: "flex",
@@ -423,6 +453,7 @@ export default function BookingWizard({
                 <div style={{ display: "grid", gap: 14 }}>
                   <h2 className={` underline`}>Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
+
                   <div style={{ display: "grid", gap: 10 }}>
                     {vehicleOptions.map((v) => {
                       const isSelected = v.id === vehicleId;
@@ -545,6 +576,7 @@ export default function BookingWizard({
                 <div style={{ display: "grid", gap: 14 }}>
                   <h2 className={` underline`}>Confirm</h2>
                   <p className='subheading'>Overview</p>
+
                   <div style={summaryCardStyle}>
                     <SummaryRow
                       label='Service'
@@ -600,7 +632,7 @@ export default function BookingWizard({
                     <textarea
                       value={specialRequests}
                       onChange={(e) => setSpecialRequests(e.target.value)}
-                      style={{ ...inputStyle, minHeight: 90 }}
+                      style={{ minHeight: 90 }}
                       placeholder='Child seat, wheelchair needs, extra stops, meet & greet...'
                     />
                   </div>
@@ -640,13 +672,6 @@ export default function BookingWizard({
 }
 
 const labelStyle: React.CSSProperties = { fontSize: 12, opacity: 0.8 };
-
-const inputStyle: React.CSSProperties = {
-  padding: "0.75rem",
-  borderRadius: 10,
-  border: "1px solid rgba(0,0,0,0.15)",
-  background: "white",
-};
 
 const btnStyle: React.CSSProperties = {
   padding: "0.85rem 1.05rem",

@@ -8,9 +8,9 @@
   background-color: var(--cream);
   padding: 2rem;
   border-radius: 20px;
-  /* display: grid;
+  display: grid;
   grid-template-columns: repeat(1, 1fr);
-  grid-gap: 2rem; */
+  grid-gap: 2rem;
   height: fit-content;
   position: sticky;
   top: 80px;

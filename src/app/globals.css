@@ -1,7 +1,7 @@
 :root {
   --black: #000000;
   --black400: #666666;
-  --black300: #B2B2B2;
+  --black300: #b2b2b2;
   --white: #ffffff;
   --cream: #eae9e6;
   --paragraph: #676767;
@@ -13,7 +13,7 @@
   --strokeii: #a7a6a2;
   --blue: #2563eb;
   --green: rgb(22, 163, 74);
-  --darkGreen: #0B7547;
+  --darkGreen: #0b7547;
   --red: #dc2626;
   --darkRed: #8b1a1a;
   --yellow: #facc15;
@@ -348,7 +348,6 @@ textarea:focus {
   width: 100%;
 }
 
-
 .emptyTitle {
   font-weight: 900;
   font-size: 1.6rem;
@@ -364,7 +363,8 @@ textarea:focus {
   line-height: 1.5;
 }
 
-.emptyCopy, .val {
+.emptyCopy,
+.val {
   font-size: 1.35rem;
   color: var(--paragraph);
   letter-spacing: -0.5px;
@@ -373,7 +373,7 @@ textarea:focus {
 .emptySmall {
   opacity: 0.75;
   font-size: 14px;
-  letter-spacing: -.09px;
+  letter-spacing: -0.09px;
 }
 
 .miniNote {
@@ -425,7 +425,7 @@ textarea:focus {
 
 .pill {
   font-size: 1.15rem;
-  padding: .5rem 1rem;
+  padding: 0.5rem 1rem;
   border-radius: 999px;
   border: 1px solid var(--stroke);
   font-size: 1.4rem;
@@ -486,7 +486,8 @@ textarea:focus {
 
 .primaryBtn,
 .secondaryBtn,
-.tertiaryBtn, .dangerBtn {
+.tertiaryBtn,
+.dangerBtn {
   text-decoration: none;
   border-radius: 5px;
   padding: 0.9rem 1rem;
@@ -534,21 +535,28 @@ textarea:focus {
   border: 1px solid var(--accent);
 }
 
-.underline  {
+.underline {
   border-bottom: 1px solid var(--stroke);
   padding-bottom: 1rem;
 }
 
 .countPill {
-    border: 1px solid var(--strokeii);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 2.4rem;
-    height: 2.4rem;
-    padding: .7rem;
-    font-size: 1.2rem;
-    font-weight: 700;
-    line-height: 1;
+  border: 1px solid var(--strokeii);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0.7rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.input {
+  padding: 0.75rem;
+  border: none;
+  border-bottom: 3px solid var(--stroke);
+  background: white;
 }

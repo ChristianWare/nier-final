@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 
 type LatLng = { lat: number; lng: number };
 
@@ -15,11 +15,9 @@ export type RoutePickerValue = {
   pickup: RoutePickerPlace | null;
   dropoff: RoutePickerPlace | null;
 
-  // ✅ keep existing names (your app already uses these)
   miles: number | null;
   minutes: number | null;
 
-  // ✅ aliases so the booking wizard can use them too
   distanceMiles?: number | null;
   durationMinutes?: number | null;
 };
@@ -66,25 +64,45 @@ const loadGoogleMaps = (browserKey: string) => {
 export default function RoutePicker({
   value,
   onChange,
+  pickupInputRef,
+  dropoffInputRef,
+  inputsKey,
 }: {
   value: RoutePickerValue | null;
   onChange: (v: RoutePickerValue) => void;
+
+  // ✅ external input refs (rendered outside this component)
+  pickupInputRef?: RefObject<HTMLInputElement | null>;
+  dropoffInputRef?: RefObject<HTMLInputElement | null>;
+
+  // ✅ change this when inputs mount/unmount (we pass step from the wizard)
+  inputsKey?: any;
 }) {
   const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
 
   const mapRef = useRef<HTMLDivElement | null>(null);
-  const pickupRef = useRef<HTMLInputElement | null>(null);
-  const dropoffRef = useRef<HTMLInputElement | null>(null);
+
+  // internal fallback refs (if you ever want RoutePicker to render its own inputs again)
+  const internalPickupRef = useRef<HTMLInputElement | null>(null);
+  const internalDropoffRef = useRef<HTMLInputElement | null>(null);
+
+  // choose external refs if provided
+  const pickupRef = pickupInputRef ?? internalPickupRef;
+  const dropoffRef = dropoffInputRef ?? internalDropoffRef;
 
   const mapInstance = useRef<any>(null);
   const pickupMarker = useRef<any>(null);
   const dropoffMarker = useRef<any>(null);
   const routePolyline = useRef<any>(null);
 
+  const pickupAC = useRef<any>(null);
+  const dropoffAC = useRef<any>(null);
+  const pickupACEl = useRef<HTMLInputElement | null>(null);
+  const dropoffACEl = useRef<HTMLInputElement | null>(null);
+
   const [error, setError] = useState("");
   const [loadingRoute, setLoadingRoute] = useState(false);
 
-  // ✅ keep latest value in a ref to avoid stale closures inside listeners
   const latestValueRef = useRef<RoutePickerValue | null>(value);
   useEffect(() => {
     latestValueRef.current = value;
@@ -95,7 +113,7 @@ export default function RoutePicker({
 
   const canRoute = useMemo(() => !!pickup && !!dropoff, [pickup, dropoff]);
 
-  // Init maps + autocomplete (runs once when key exists)
+  // Init maps + autocomplete
   useEffect(() => {
     if (!browserKey) {
       setError("Missing NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY");
@@ -121,15 +139,20 @@ export default function RoutePicker({
           });
         }
 
-        // Pickup autocomplete
-        if (pickupRef.current) {
-          const ac = new google.maps.places.Autocomplete(pickupRef.current, {
+        // ✅ Attach pickup autocomplete (supports external input)
+        const pickupEl = pickupRef.current;
+        if (
+          pickupEl &&
+          (!pickupAC.current || pickupACEl.current !== pickupEl)
+        ) {
+          pickupACEl.current = pickupEl;
+          pickupAC.current = new google.maps.places.Autocomplete(pickupEl, {
             fields: ["place_id", "formatted_address", "geometry"],
             componentRestrictions: { country: "us" },
           });
 
-          ac.addListener("place_changed", () => {
-            const place = ac.getPlace();
+          pickupAC.current.addListener("place_changed", () => {
+            const place = pickupAC.current.getPlace();
             const loc = place?.geometry?.location;
             if (!place?.place_id || !place?.formatted_address || !loc) return;
 
@@ -143,26 +166,29 @@ export default function RoutePicker({
               },
               dropoff: latest?.dropoff ?? null,
 
-              // keep existing
               miles: latest?.miles ?? null,
               minutes: latest?.minutes ?? null,
 
-              // aliases
               distanceMiles: latest?.distanceMiles ?? null,
               durationMinutes: latest?.durationMinutes ?? null,
             });
           });
         }
 
-        // Dropoff autocomplete
-        if (dropoffRef.current) {
-          const ac = new google.maps.places.Autocomplete(dropoffRef.current, {
+        // ✅ Attach dropoff autocomplete (supports external input)
+        const dropoffEl = dropoffRef.current;
+        if (
+          dropoffEl &&
+          (!dropoffAC.current || dropoffACEl.current !== dropoffEl)
+        ) {
+          dropoffACEl.current = dropoffEl;
+          dropoffAC.current = new google.maps.places.Autocomplete(dropoffEl, {
             fields: ["place_id", "formatted_address", "geometry"],
             componentRestrictions: { country: "us" },
           });
 
-          ac.addListener("place_changed", () => {
-            const place = ac.getPlace();
+          dropoffAC.current.addListener("place_changed", () => {
+            const place = dropoffAC.current.getPlace();
             const loc = place?.geometry?.location;
             if (!place?.place_id || !place?.formatted_address || !loc) return;
 
@@ -176,11 +202,9 @@ export default function RoutePicker({
                 location: { lat: loc.lat(), lng: loc.lng() },
               },
 
-              // keep existing
               miles: latest?.miles ?? null,
               minutes: latest?.minutes ?? null,
 
-              // aliases
               distanceMiles: latest?.distanceMiles ?? null,
               durationMinutes: latest?.durationMinutes ?? null,
             });
@@ -194,9 +218,10 @@ export default function RoutePicker({
     return () => {
       cancelled = true;
     };
-  }, [browserKey, onChange]);
+    // ✅ inputsKey lets us re-run when the wizard mounts/unmounts the inputs
+  }, [browserKey, onChange, pickupRef, dropoffRef, inputsKey]);
 
-  // Markers (and basic bounds when both points exist)
+  // Markers + bounds
   useEffect(() => {
     const google = window.google;
     if (!google?.maps || !mapInstance.current) return;
@@ -223,7 +248,6 @@ export default function RoutePicker({
       dropoffMarker.current = null;
     }
 
-    // If both exist and no polyline yet, fit to endpoints
     if (pickup && dropoff && !routePolyline.current) {
       const bounds = new google.maps.LatLngBounds();
       bounds.extend(pickup.location);
@@ -236,7 +260,6 @@ export default function RoutePicker({
   useEffect(() => {
     const google = window.google;
 
-    // If missing either, clear polyline + clear miles/minutes
     if (!pickup || !dropoff) {
       if (routePolyline.current) {
         routePolyline.current.setMap(null);
@@ -284,23 +307,17 @@ export default function RoutePicker({
         onChange({
           pickup,
           dropoff,
-
-          // original
           miles,
           minutes,
-
-          // aliases
           distanceMiles: miles,
           durationMinutes: minutes,
         });
 
-        // Clear old polyline
         if (routePolyline.current) {
           routePolyline.current.setMap(null);
           routePolyline.current = null;
         }
 
-        // Draw new polyline
         if (data.encodedPolyline) {
           const geom = google.maps.geometry?.encoding;
           if (geom?.decodePath) {
@@ -309,7 +326,7 @@ export default function RoutePicker({
             routePolyline.current = new google.maps.Polyline({
               path,
               geodesic: true,
-              strokeColor: "#1A73E8", // blue
+              strokeColor: "#1A73E8",
               strokeOpacity: 0.9,
               strokeWeight: 4,
             });
@@ -331,7 +348,6 @@ export default function RoutePicker({
     return () => {
       cancelled = true;
     };
-    // ✅ depend on the actual pickup/dropoff identity so it recomputes on changes
   }, [
     pickup?.placeId,
     dropoff?.placeId,
@@ -343,57 +359,24 @@ export default function RoutePicker({
   ]);
 
   const displayMiles = value?.miles ?? value?.distanceMiles ?? null;
-
   const displayMinutes = value?.minutes ?? value?.durationMinutes ?? null;
 
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {/* <div style={{ display: "grid", gap: 6 }}>
-          <label className='cardTitle h5'>Pickup</label>
-          <input
-            ref={pickupRef}
-            placeholder='Enter pickup address'
-            style={{
-              padding: "0.75rem",
-              borderRadius: 10,
-              border: "1px solid rgba(0,0,0,0.15)",
-            }}
-          />
-          {pickup && (
-            <div style={{ fontSize: 12, opacity: 0.75 }}>{pickup.address}</div>
-          )}
-        </div>
-
-        <div style={{ display: "grid", gap: 6 }}>
-          <label className='cardTitle h5'>Dropoff</label>
-          <input
-            ref={dropoffRef}
-            placeholder='Enter dropoff address'
-            style={{
-              padding: "0.75rem",
-              borderRadius: 10,
-              border: "1px solid rgba(0,0,0,0.15)",
-            }}
-          />
-          {dropoff && (
-            <div style={{ fontSize: 12, opacity: 0.75 }}>{dropoff.address}</div>
-          )}
-        </div> */}
-      </div>
-
+      {/* ✅ distance/duration stays above map */}
       <div
-        style={{
-          padding: "0.75rem",
-          borderRadius: 12,
-          border: "1px solid rgba(0,0,0,0.12)",
-          display: "flex",
-          gap: "1rem",
-          alignItems: "center",
-          flexWrap: "wrap",
-        }}
+        // style={{
+        //   padding: "0.75rem",
+        //   borderRadius: 12,
+        //   border: "1px solid rgba(0,0,0,0.12)",
+        //   display: "flex",
+        //   gap: "1rem",
+        //   alignItems: "center",
+        //   flexWrap: "wrap",
+        //   background: "white",
+        // }}
       >
-        <div>
+        {/* <div>
           <div className='emptyTitleSmall'>Distance</div>
           <div style={{ fontSize: 18 }}>
             {displayMiles == null ? "—" : `${displayMiles} mi`}
@@ -405,7 +388,7 @@ export default function RoutePicker({
           <div style={{ fontSize: 18 }}>
             {displayMinutes == null ? "—" : `${displayMinutes} min`}
           </div>
-        </div>
+        </div> */}
 
         {loadingRoute && <div style={{ opacity: 0.7 }}>Calculating…</div>}
         {error && <div style={{ color: "crimson", fontSize: 14 }}>{error}</div>}
@@ -419,6 +402,7 @@ export default function RoutePicker({
           borderRadius: 14,
           border: "1px solid rgba(0,0,0,0.12)",
           overflow: "hidden",
+          background: "white",
         }}
       />
     </div>
