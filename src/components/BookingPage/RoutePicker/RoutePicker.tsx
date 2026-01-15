@@ -349,7 +349,7 @@ export default function RoutePicker({
   return (
     <div style={{ display: "grid", gap: 10 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        <div style={{ display: "grid", gap: 6 }}>
+        {/* <div style={{ display: "grid", gap: 6 }}>
           <label className='cardTitle h5'>Pickup</label>
           <input
             ref={pickupRef}
@@ -379,7 +379,7 @@ export default function RoutePicker({
           {dropoff && (
             <div style={{ fontSize: 12, opacity: 0.75 }}>{dropoff.address}</div>
           )}
-        </div>
+        </div> */}
       </div>
 
       <div

@@ -72,7 +72,7 @@
   font-weight: 400;
 }
 
-@media screen and (max-width: 1068px) {
+/* @media screen and (max-width: 1068px) {
   .container {
     display: flex;
     align-items: flex-start;
@@ -105,4 +105,4 @@
     margin-top: 0;
     margin-left: 0.75rem;
   }
-}
+} */

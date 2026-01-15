@@ -277,6 +277,15 @@ export default function BookingWizard({
         <div className={styles.content}>
           <div className={styles.left}>
             <Stepper step={step} />
+            <div style={{ display: "grid", gap: 8 }}>
+              <label style={labelStyle}>Route</label>
+              <RoutePicker value={route} onChange={setRoute} />
+              {route?.miles != null ? (
+                <div style={{ fontSize: 12, opacity: 0.7 }}>
+                  Est: {route.miles} mi • {route.minutes ?? 0} min
+                </div>
+              ) : null}
+            </div>
           </div>
           <div className={styles.right}>
             <div className={styles.wizard}>
@@ -381,17 +390,6 @@ export default function BookingWizard({
                       </div>
                     </div>
                   ) : null}
-
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <label style={labelStyle}>Route</label>
-                    <RoutePicker value={route} onChange={setRoute} />
-                    {route?.miles != null ? (
-                      <div style={{ fontSize: 12, opacity: 0.7 }}>
-                        Est: {route.miles} mi • {route.minutes ?? 0} min
-                      </div>
-                    ) : null}
-                  </div>
-
                   <div
                     style={{
                       display: "flex",
