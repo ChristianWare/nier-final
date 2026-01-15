@@ -225,7 +225,7 @@ export default async function DriverEarningsPage() {
           </table>
         </div>
 
-        <div className={styles.footerNote}>
+        <div className='miniNote'>
           Base payout / Tip / Adjustments aren’t stored yet. If you want to
           track payroll internally, we can add fields without any Stripe
           integration.

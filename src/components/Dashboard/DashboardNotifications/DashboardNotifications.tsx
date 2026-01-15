@@ -255,7 +255,7 @@ export default function DashboardNotifications({
         <div className={styles.feed}>
           {grouped.map((group) => (
             <section key={dateKey(group.date)} className={styles.dayGroup}>
-              <div className={styles.dayHeading}>
+              <div className='emptyTitleSmall'>
                 {formatDateHeading(group.date)}
               </div>
 
@@ -333,7 +333,7 @@ export default function DashboardNotifications({
         </div>
       )}
 
-      <p className={styles.footerNote}>
+      <p className='miniNote'>
         Note: “Read” state is stored on this device only for now. If you want it
         synced across devices, we’ll add a small Notification model.
       </p>
