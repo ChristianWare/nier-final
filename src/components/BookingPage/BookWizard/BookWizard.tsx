@@ -272,371 +272,374 @@ export default function BookingWizard({
   }
 
   return (
-    <section
-      style={{
-        border: "1px solid rgba(0,0,0,0.12)",
-        borderRadius: 16,
-        padding: 16,
-        display: "grid",
-        gap: 16,
-      }}
-      className={styles.container}
-    >
-      <div className={styles.content}>
-        <LayoutWrapper>
-          <div className={styles.wizard}>
+    <section className={styles.container}>
+      <LayoutWrapper>
+        <div className={styles.content}>
+          <div className={styles.left}>
             <Stepper step={step} />
-
-            {step === 1 ? (
-              <div style={{ display: "grid", gap: 14 }}>
-                <h2 className={styles.heading}>Trip details</h2>
-
-                <div style={{ display: "grid", gap: 8 }}>
-                  <label style={labelStyle}>Service</label>
-                  <select
-                    value={serviceTypeId}
-                    onChange={(e) => {
-                      const next = e.target.value;
-                      setServiceTypeId(next);
-
-                      // If switching to HOURLY, keep hours reasonable
-                      const svc = services.find((s) => s.id === next);
-                      if (svc?.pricingStrategy === "HOURLY") {
-                        setHoursRequested((prev) =>
-                          Math.max(prev || 2, selectedVehicle?.minHours ?? 0, 2)
-                        );
-                      }
-                    }}
-                    style={inputStyle}
-                  >
-                    {services.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <Grid2>
+          </div>
+          <div className={styles.right}>
+            <div className={styles.wizard}>
+              {step === 1 ? (
+                <div style={{ display: "grid", gap: 14 }}>
+                  <h2 className={` underline`}>Trip details</h2>
+                  <p className='subheading'>
+                    Please provide the details for your trip below
+                  </p>
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label style={labelStyle}>Date</label>
-                    <input
-                      type='date'
-                      value={pickupAtDate}
-                      onChange={(e) => setPickupAtDate(e.target.value)}
+                    <label className='cardTitle h5'>Service</label>
+                    <select
+                      value={serviceTypeId}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setServiceTypeId(next);
+
+                        // If switching to HOURLY, keep hours reasonable
+                        const svc = services.find((s) => s.id === next);
+                        if (svc?.pricingStrategy === "HOURLY") {
+                          setHoursRequested((prev) =>
+                            Math.max(
+                              prev || 2,
+                              selectedVehicle?.minHours ?? 0,
+                              2
+                            )
+                          );
+                        }
+                      }}
                       style={inputStyle}
-                    />
+                    >
+                      {services.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <label style={labelStyle}>Time</label>
-                    <input
-                      type='time'
-                      value={pickupAtTime}
-                      onChange={(e) => setPickupAtTime(e.target.value)}
-                      style={inputStyle}
-                    />
-                  </div>
-                </Grid2>
-
-                <Grid2>
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <label style={labelStyle}>Passengers</label>
-                    <input
-                      type='number'
-                      min={1}
-                      value={passengers}
-                      onChange={(e) => setPassengers(Number(e.target.value))}
-                      style={inputStyle}
-                    />
-                  </div>
-
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <label style={labelStyle}>Luggage</label>
-                    <input
-                      type='number'
-                      min={0}
-                      value={luggage}
-                      onChange={(e) => setLuggage(Number(e.target.value))}
-                      style={inputStyle}
-                    />
-                  </div>
-                </Grid2>
-
-                {selectedService?.pricingStrategy === "HOURLY" ? (
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <label style={labelStyle}>Hours</label>
-                    <input
-                      type='number'
-                      min={1}
-                      step={1}
-                      value={hoursRequested}
-                      onChange={(e) =>
-                        setHoursRequested(Number(e.target.value))
-                      }
-                      style={inputStyle}
-                    />
-                    <div style={{ fontSize: 12, opacity: 0.7 }}>
-                      Vehicle minimum applies after you choose a vehicle
-                      category.
+                  <Grid2>
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Date</label>
+                      <input
+                        type='date'
+                        value={pickupAtDate}
+                        onChange={(e) => setPickupAtDate(e.target.value)}
+                        style={inputStyle}
+                      />
                     </div>
-                  </div>
-                ) : null}
 
-                <div style={{ display: "grid", gap: 8 }}>
-                  <label style={labelStyle}>Route</label>
-                  <RoutePicker value={route} onChange={setRoute} />
-                  {route?.miles != null ? (
-                    <div style={{ fontSize: 12, opacity: 0.7 }}>
-                      Est: {route.miles} mi • {route.minutes ?? 0} min
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Time</label>
+                      <input
+                        type='time'
+                        value={pickupAtTime}
+                        onChange={(e) => setPickupAtTime(e.target.value)}
+                        style={inputStyle}
+                      />
                     </div>
-                  ) : null}
-                </div>
+                  </Grid2>
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                  }}
-                >
-                  <div />
-                  <button
-                    type='button'
-                    onClick={() => {
-                      if (!canGoStep2()) {
-                        toast.error(
-                          "Please complete service, date/time, and route."
-                        );
-                        return;
-                      }
-                      setStep(2);
-                    }}
-                    style={btnStyle}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            ) : null}
+                  <Grid2>
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Passengers</label>
+                      <input
+                        type='number'
+                        min={1}
+                        value={passengers}
+                        onChange={(e) => setPassengers(Number(e.target.value))}
+                        style={inputStyle}
+                      />
+                    </div>
 
-            {step === 2 ? (
-              <div style={{ display: "grid", gap: 14 }}>
-                <h2 style={{ margin: 0, fontSize: 18 }}>Choose a vehicle</h2>
-
-                <div style={{ display: "grid", gap: 10 }}>
-                  {vehicleOptions.map((v) => {
-                    const isSelected = v.id === vehicleId;
-
-                    const rowEstimateCents = selectedService
-                      ? estimateTotalCents({
-                          service: selectedService,
-                          vehicle: v,
-                          distanceMiles,
-                          durationMinutes,
-                          hoursRequested,
-                        })
-                      : 0;
-
-                    const rowMinHours =
-                      selectedService?.pricingStrategy === "HOURLY"
-                        ? v.minHours
-                        : null;
-
-                    const rowBillable =
-                      selectedService?.pricingStrategy === "HOURLY"
-                        ? Math.max(
-                            Math.ceil(hoursRequested || 0),
-                            Math.ceil(v.minHours || 0)
-                          )
-                        : null;
-
-                    return (
-                      <button
-                        key={v.id}
-                        type='button'
-                        onClick={() => {
-                          setVehicleId(v.id);
-                          if (selectedService?.pricingStrategy === "HOURLY") {
-                            setHoursRequested((prev) =>
-                              Math.max(prev || 1, v.minHours || 0)
-                            );
-                          }
-                        }}
-                        style={{
-                          textAlign: "left",
-                          padding: 14,
-                          borderRadius: 14,
-                          border: isSelected
-                            ? "2px solid rgba(0,0,0,0.6)"
-                            : "1px solid rgba(0,0,0,0.12)",
-                          background: "white",
-                          cursor: "pointer",
-                          display: "grid",
-                          gap: 6,
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: 12,
-                          }}
-                        >
-                          <div style={{ fontWeight: 700 }}>{v.name}</div>
-                          <div style={{ fontWeight: 700 }}>
-                            ${centsToUsd(rowEstimateCents)}
-                          </div>
-                        </div>
-
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
-                          Capacity: {v.capacity} • Luggage: {v.luggageCapacity}
-                          {rowMinHours !== null
-                            ? ` • Min hours: ${rowMinHours}`
-                            : ""}
-                          {rowBillable !== null
-                            ? ` • Billable hours: ${rowBillable}`
-                            : ""}
-                        </div>
-
-                        {v.description ? (
-                          <div style={{ fontSize: 12, opacity: 0.75 }}>
-                            {v.description}
-                          </div>
-                        ) : null}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                  }}
-                >
-                  <button
-                    type='button'
-                    onClick={() => setStep(1)}
-                    style={btnSecondaryStyle}
-                  >
-                    Back
-                  </button>
-
-                  <button
-                    type='button'
-                    onClick={() => {
-                      if (!canGoStep3()) {
-                        toast.error("Please choose a vehicle category.");
-                        return;
-                      }
-                      setStep(3);
-                    }}
-                    style={btnStyle}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
-            {step === 3 ? (
-              <div style={{ display: "grid", gap: 14 }}>
-                <h2 style={{ margin: 0, fontSize: 18 }}>Confirm</h2>
-
-                <div style={summaryCardStyle}>
-                  <SummaryRow
-                    label='Service'
-                    value={selectedService?.name ?? "—"}
-                  />
-                  <SummaryRow
-                    label='Pickup time'
-                    value={
-                      pickupAtDate && pickupAtTime
-                        ? `${pickupAtDate} @ ${pickupAtTime}`
-                        : "—"
-                    }
-                  />
-                  <SummaryRow label='Passengers' value={String(passengers)} />
-                  <SummaryRow label='Luggage' value={String(luggage)} />
-                  <SummaryRow
-                    label='Pickup'
-                    value={route?.pickup?.address ?? "—"}
-                  />
-                  <SummaryRow
-                    label='Dropoff'
-                    value={route?.dropoff?.address ?? "—"}
-                  />
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Luggage</label>
+                      <input
+                        type='number'
+                        min={0}
+                        value={luggage}
+                        onChange={(e) => setLuggage(Number(e.target.value))}
+                        style={inputStyle}
+                      />
+                    </div>
+                  </Grid2>
 
                   {selectedService?.pricingStrategy === "HOURLY" ? (
-                    <>
-                      <SummaryRow
-                        label='Hours requested'
-                        value={String(hoursRequested)}
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Hours</label>
+                      <input
+                        type='number'
+                        min={1}
+                        step={1}
+                        value={hoursRequested}
+                        onChange={(e) =>
+                          setHoursRequested(Number(e.target.value))
+                        }
+                        style={inputStyle}
                       />
-                      <SummaryRow
-                        label='Billable hours (min applied)'
-                        value={String(billableHours ?? hoursRequested)}
-                      />
-                    </>
+                      <div style={{ fontSize: 12, opacity: 0.7 }}>
+                        Vehicle minimum applies after you choose a vehicle
+                        category.
+                      </div>
+                    </div>
                   ) : null}
 
-                  <SummaryRow
-                    label='Estimate'
-                    value={`$${centsToUsd(estimateCents)}`}
-                    strong
-                  />
-                  <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>
-                    This is an estimate. Dispatch may adjust for special dates,
-                    late night, extra stops, etc.
+                  <div style={{ display: "grid", gap: 8 }}>
+                    <label style={labelStyle}>Route</label>
+                    <RoutePicker value={route} onChange={setRoute} />
+                    {route?.miles != null ? (
+                      <div style={{ fontSize: 12, opacity: 0.7 }}>
+                        Est: {route.miles} mi • {route.minutes ?? 0} min
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                    }}
+                  >
+                    <div />
+                    <div className={styles.btnContainer}>
+                      <button
+                        type='button'
+                        onClick={() => {
+                          if (!canGoStep2()) {
+                            toast.error(
+                              "Please complete service, date/time, and route."
+                            );
+                            return;
+                          }
+                          setStep(2);
+                        }}
+                        className='primaryBtn'
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ) : null}
 
-                <div style={{ display: "grid", gap: 8 }}>
-                  <label style={labelStyle}>Special requests (optional)</label>
-                  <textarea
-                    value={specialRequests}
-                    onChange={(e) => setSpecialRequests(e.target.value)}
-                    style={{ ...inputStyle, minHeight: 90 }}
-                    placeholder='Child seat, wheelchair needs, extra stops, meet & greet...'
-                  />
-                </div>
+              {step === 2 ? (
+                <div style={{ display: "grid", gap: 14 }}>
+                  <h2 className={` underline`}>Choose a vehicle</h2>
+                  <p className='subheading'>Choose a vehicle category</p>
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {vehicleOptions.map((v) => {
+                      const isSelected = v.id === vehicleId;
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 10,
-                  }}
-                >
-                  <button
-                    type='button'
-                    onClick={() => setStep(2)}
-                    style={btnSecondaryStyle}
+                      const rowEstimateCents = selectedService
+                        ? estimateTotalCents({
+                            service: selectedService,
+                            vehicle: v,
+                            distanceMiles,
+                            durationMinutes,
+                            hoursRequested,
+                          })
+                        : 0;
+
+                      const rowMinHours =
+                        selectedService?.pricingStrategy === "HOURLY"
+                          ? v.minHours
+                          : null;
+
+                      const rowBillable =
+                        selectedService?.pricingStrategy === "HOURLY"
+                          ? Math.max(
+                              Math.ceil(hoursRequested || 0),
+                              Math.ceil(v.minHours || 0)
+                            )
+                          : null;
+
+                      return (
+                        <button
+                          key={v.id}
+                          type='button'
+                          onClick={() => {
+                            setVehicleId(v.id);
+                            if (selectedService?.pricingStrategy === "HOURLY") {
+                              setHoursRequested((prev) =>
+                                Math.max(prev || 1, v.minHours || 0)
+                              );
+                            }
+                          }}
+                          style={{
+                            textAlign: "left",
+                            padding: 14,
+                            borderRadius: 14,
+                            border: isSelected
+                              ? "2px solid rgba(0,0,0,0.6)"
+                              : "1px solid rgba(0,0,0,0.12)",
+                            background: "white",
+                            cursor: "pointer",
+                            display: "grid",
+                            gap: 6,
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              gap: 12,
+                            }}
+                          >
+                            <div style={{ fontWeight: 700 }}>{v.name}</div>
+                            <div style={{ fontWeight: 700 }}>
+                              ${centsToUsd(rowEstimateCents)}
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: 12, opacity: 0.75 }}>
+                            Capacity: {v.capacity} • Luggage:{" "}
+                            {v.luggageCapacity}
+                            {rowMinHours !== null
+                              ? ` • Min hours: ${rowMinHours}`
+                              : ""}
+                            {rowBillable !== null
+                              ? ` • Billable hours: ${rowBillable}`
+                              : ""}
+                          </div>
+
+                          {v.description ? (
+                            <div style={{ fontSize: 12, opacity: 0.75 }}>
+                              {v.description}
+                            </div>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                    }}
                   >
-                    Back
-                  </button>
+                    <button
+                      type='button'
+                      onClick={() => setStep(1)}
+                      style={btnSecondaryStyle}
+                    >
+                      Back
+                    </button>
 
-                  <button
-                    type='button'
-                    onClick={handleSubmit}
-                    style={btnStyle}
-                    disabled={isPending}
-                  >
-                    {isPending ? "Submitting..." : "Submit request"}
-                  </button>
+                    <button
+                      type='button'
+                      onClick={() => {
+                        if (!canGoStep3()) {
+                          toast.error("Please choose a vehicle category.");
+                          return;
+                        }
+                        setStep(3);
+                      }}
+                      style={btnStyle}
+                    >
+                      Next
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+
+              {step === 3 ? (
+                <div style={{ display: "grid", gap: 14 }}>
+                  <h2 className={` underline`}>Confirm</h2>
+                  <p className='subheading'>Overview</p>
+                  <div style={summaryCardStyle}>
+                    <SummaryRow
+                      label='Service'
+                      value={selectedService?.name ?? "—"}
+                    />
+                    <SummaryRow
+                      label='Pickup time'
+                      value={
+                        pickupAtDate && pickupAtTime
+                          ? `${pickupAtDate} @ ${pickupAtTime}`
+                          : "—"
+                      }
+                    />
+                    <SummaryRow label='Passengers' value={String(passengers)} />
+                    <SummaryRow label='Luggage' value={String(luggage)} />
+                    <SummaryRow
+                      label='Pickup'
+                      value={route?.pickup?.address ?? "—"}
+                    />
+                    <SummaryRow
+                      label='Dropoff'
+                      value={route?.dropoff?.address ?? "—"}
+                    />
+
+                    {selectedService?.pricingStrategy === "HOURLY" ? (
+                      <>
+                        <SummaryRow
+                          label='Hours requested'
+                          value={String(hoursRequested)}
+                        />
+                        <SummaryRow
+                          label='Billable hours (min applied)'
+                          value={String(billableHours ?? hoursRequested)}
+                        />
+                      </>
+                    ) : null}
+
+                    <SummaryRow
+                      label='Estimate'
+                      value={`$${centsToUsd(estimateCents)}`}
+                      strong
+                    />
+                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>
+                      This is an estimate. Dispatch may adjust for special
+                      dates, late night, extra stops, etc.
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gap: 8 }}>
+                    <label style={labelStyle}>
+                      Special requests (optional)
+                    </label>
+                    <textarea
+                      value={specialRequests}
+                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      style={{ ...inputStyle, minHeight: 90 }}
+                      placeholder='Child seat, wheelchair needs, extra stops, meet & greet...'
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      gap: 10,
+                    }}
+                  >
+                    <button
+                      type='button'
+                      onClick={() => setStep(2)}
+                      style={btnSecondaryStyle}
+                    >
+                      Back
+                    </button>
+
+                    <button
+                      type='button'
+                      onClick={handleSubmit}
+                      style={btnStyle}
+                      disabled={isPending}
+                    >
+                      {isPending ? "Submitting..." : "Submit request"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </div>
-        </LayoutWrapper>
-      </div>
+        </div>
+      </LayoutWrapper>
     </section>
   );
 }
-
-
 
 const labelStyle: React.CSSProperties = { fontSize: 12, opacity: 0.8 };
 

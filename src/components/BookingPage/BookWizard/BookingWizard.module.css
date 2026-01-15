@@ -1,118 +1,18 @@
-.container {
-  background-color: var(--tan);
+.content {
+  display: grid;
+  grid-template-columns: 2fr 4fr;
+  grid-gap: 2rem;
 }
 
-.wizard {
-  background-color: white;
-  padding: 3rem;
+.left {
+  background-color: var(--cream);
+  padding: 2rem;
   border-radius: 20px;
-}
-
-.stepIndicator {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.stepPill {
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  font-size: 13px;
-}
-
-.stepPillActive {
-  opacity: 1;
-}
-
-.stepPillInactive {
-  opacity: 0.55;
-}
-
-.stepWrap {
-  display: grid;
-  gap: 14px;
-}
-
-.h2 {
-  font-size: 18px;
-  margin: 0;
-}
-
-.grid4 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 12px;
-}
-
-.grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.field {
-  display: grid;
-  gap: 6px;
-}
-
-.label {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.control {
-  padding: 0.7rem;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  background: white;
-}
-
-.stack {
-  display: grid;
-  gap: 10px;
-}
-
-.emptyBox {
-  padding: 0.75rem;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 12px;
-}
-
-.vehicleCard {
-  text-align: left;
-  padding: 0.9rem;
-  border-radius: 14px;
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  background: white;
-  cursor: pointer;
-  display: grid;
-  gap: 6px;
-}
-
-.vehicleCardSelected {
-  border: 2px solid #111;
-}
-
-.vehicleRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.vehicleName {
-  font-weight: 600;
-}
-
-.vehiclePrice {
-  font-weight: 600;
-  opacity: 0.9;
-}
-
-.vehicleMeta {
-  font-size: 13px;
-  opacity: 0.75;
+  height: fit-content;
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  z-index: 10;
 }
 
 .summaryCard {
@@ -176,18 +76,13 @@
   cursor: not-allowed;
 }
 
-@media screen and (max-width: 968px) {
-  .grid4 {
-    grid-template-columns: 1fr 1fr;
-  }
+.btnContainer {
+  display: grid;
+  width: 100%;
 }
 
-@media screen and (max-width: 768px) {
-  .grid4 {
-    grid-template-columns: 1fr;
-  }
-
+@media screen and (max-width: 1068px) {
   .content {
-    padding: 2rem;
+    grid-template-columns: 1fr;
   }
 }

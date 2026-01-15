@@ -1,5 +1,5 @@
-import { auth } from "../../../auth";
-import { redirect } from "next/navigation";
+// import { auth } from "../../../auth";
+// import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import BookingWizard from "@/components/BookingPage/BookWizard/BookWizard";
 import BookingPageIntro from "@/components/BookingPage/BookingPageIntro/BookingPageIntro";
@@ -9,8 +9,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function BookPage() {
-  const session = await auth();
-  if (!session) redirect("/login?next=/book");
+  // const session = await auth();
+  // if (!session) redirect("/login?next=/book");
 
   const serviceTypes = await db.serviceType.findMany({
     where: { active: true },
@@ -62,7 +62,7 @@ export default async function BookPage() {
 
   return (
     <main>
-      <Nav background='cream' />
+      <Nav background='white' />
       <BookingPageIntro />
       <BookingWizard serviceTypes={serviceTypes} vehicles={vehicles} />
     </main>

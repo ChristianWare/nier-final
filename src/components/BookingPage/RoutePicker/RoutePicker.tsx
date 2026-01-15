@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -349,7 +350,7 @@ export default function RoutePicker({
     <div style={{ display: "grid", gap: 10 }}>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ fontSize: 12, opacity: 0.8 }}>Pickup</label>
+          <label className='cardTitle h5'>Pickup</label>
           <input
             ref={pickupRef}
             placeholder='Enter pickup address'
@@ -365,7 +366,7 @@ export default function RoutePicker({
         </div>
 
         <div style={{ display: "grid", gap: 6 }}>
-          <label style={{ fontSize: 12, opacity: 0.8 }}>Dropoff</label>
+          <label className='cardTitle h5'>Dropoff</label>
           <input
             ref={dropoffRef}
             placeholder='Enter dropoff address'
@@ -393,14 +394,14 @@ export default function RoutePicker({
         }}
       >
         <div>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Distance</div>
+          <div className='emptyTitleSmall'>Distance</div>
           <div style={{ fontSize: 18 }}>
             {displayMiles == null ? "—" : `${displayMiles} mi`}
           </div>
         </div>
 
         <div>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>Duration</div>
+          <div className='emptyTitleSmall'>Duration</div>
           <div style={{ fontSize: 18 }}>
             {displayMinutes == null ? "—" : `${displayMinutes} min`}
           </div>

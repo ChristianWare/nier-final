@@ -1,0 +1,108 @@
+.container {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+}
+
+.step {
+  width: 100%;
+}
+
+.stepDetails {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.left {
+  flex: 0 0 auto;
+}
+
+.marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stepNumber {
+  border: 1px solid var(--strokeii);
+  width: 3rem;
+  height: 3rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stepNumberActive {
+  background-color: var(--black);
+  color: var(--cream);
+}
+
+.stepNumberInactive {
+  background-color: var(--cream);
+  color: var(--strokeii);
+}
+
+.connector {
+  width: 1px;
+  height: 10rem;
+  background: rgba(0, 0, 0, 0.18);
+  margin-top: 0.75rem;
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 1.6rem;
+  font-weight: 500;
+}
+
+.copy {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  font-weight: 400;
+}
+
+@media screen and (max-width: 1068px) {
+  .container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .stepDetails {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .left {
+    flex: 1;
+    width: 100%;
+  }
+
+  .marker {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+
+  .connector {
+    flex: 1;
+    height: 1px;
+    width: auto;
+    margin-top: 0;
+    margin-left: 0.75rem;
+  }
+}

@@ -302,7 +302,8 @@ textarea:focus {
   color: var(--black);
   border-radius: 5px;
   padding: 0.7rem 1rem;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -357,7 +358,7 @@ textarea:focus {
 }
 
 .emptyTitleSmall {
-  font-weight: 900;
+  font-weight: 700;
   font-size: 1.4rem;
   letter-spacing: normal;
   line-height: 1.5;
