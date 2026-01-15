@@ -4,9 +4,70 @@ import { notFound } from "next/navigation";
 import ApprovePriceForm from "@/components/admin/ApprovePriceForm/ApprovePriceForm";
 import AssignBookingForm from "@/components/admin/AssignBookingForm/AssignBookingForm";
 import SendPaymentLinkButton from "@/components/admin/SendPaymentLinkButton/SendPaymentLinkButton";
+import { BookingStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+// --- shared-ish label helpers (matches the spirit of AdminActivityFeed kindLabel) ---
+function statusLabel(status: BookingStatus) {
+  switch (status) {
+    case "PENDING_REVIEW":
+      return "Pending review";
+    case "PENDING_PAYMENT":
+      return "Payment due";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "ASSIGNED":
+      return "Driver assigned";
+    case "EN_ROUTE":
+      return "Driver en route";
+    case "ARRIVED":
+      return "Driver arrived";
+    case "IN_PROGRESS":
+      return "In progress";
+    case "COMPLETED":
+      return "Completed";
+    case "CANCELLED":
+      return "Cancelled";
+    case "NO_SHOW":
+      return "No-show";
+    case "REFUNDED":
+      return "Refunded";
+    case "PARTIALLY_REFUNDED":
+      return "Partially refunded";
+    case "DRAFT":
+      return "Draft";
+    default:
+      return status;
+  }
+}
+
+type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
+
+function badgeTone(status: BookingStatus): BadgeTone {
+  if (status === "PENDING_PAYMENT") return "warn";
+  if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
+  if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
+  if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
+    return "accent";
+  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
+  if (status === "COMPLETED") return "good";
+  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
+    return "neutral";
+  return "neutral";
+}
+
+function formatDateTime(d: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(d);
+}
 
 export default async function AdminBookingDetailPage({
   params,
@@ -34,13 +95,12 @@ export default async function AdminBookingDetailPage({
 
   if (!booking) return notFound();
 
- const drivers = await db.user.findMany({
-   where: { roles: { has: "DRIVER" } },
-   select: { id: true, name: true, email: true },
-   orderBy: { createdAt: "desc" },
-   take: 300,
- });
-
+  const drivers = await db.user.findMany({
+    where: { roles: { has: "DRIVER" } },
+    select: { id: true, name: true, email: true },
+    orderBy: { createdAt: "desc" },
+    take: 300,
+  });
 
   const vehicleUnits = await db.vehicleUnit.findMany({
     where: {
@@ -53,11 +113,13 @@ export default async function AdminBookingDetailPage({
   });
 
   return (
-    <section className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={`${styles.heading} h2`}>Booking</h1>
-        <div className={styles.meta}>
-          ID: {booking.id} • Status: <strong>{booking.status}</strong>
+    <section className='container'>
+      <header className='header'>
+        <h1 className={`heading h2`}>Booking Details</h1>
+
+        <div className={styles.box}>
+          <div className='emptyTitle'>Booking ID:</div>
+          <p className='emptySmall'>{booking.id}</p>
         </div>
       </header>
 
@@ -77,7 +139,9 @@ export default async function AdminBookingDetailPage({
         />
         <KeyVal
           k='Distance / duration'
-          v={`${booking.distanceMiles ?? "—"} mi • ${booking.durationMinutes ?? "—"} min`}
+          v={`${booking.distanceMiles ?? "—"} mi • ${
+            booking.durationMinutes ?? "—"
+          } min`}
         />
         {booking.specialRequests ? (
           <KeyVal k='Special requests' v={booking.specialRequests} />
@@ -129,19 +193,25 @@ export default async function AdminBookingDetailPage({
         </div>
       </Card>
 
+      {/* ✅ Updated: friendly label + badge tone, similar to AdminActivityFeed */}
       <Card title='Status events'>
         {booking.statusEvents.length === 0 ? (
           <div className={styles.muted}>No events yet.</div>
         ) : (
           <ul className={styles.eventsList}>
-            {booking.statusEvents.map((e) => (
-              <li key={e.id} className={styles.eventItem}>
-                <span className={styles.eventStatus}>{e.status}</span>{" "}
-                <span className={styles.eventTime}>
-                  — {new Date(e.createdAt).toLocaleString()}
-                </span>
-              </li>
-            ))}
+            {booking.statusEvents.map((e) => {
+              const tone = badgeTone(e.status as BookingStatus);
+              const label = statusLabel(e.status as BookingStatus);
+
+              return (
+                <li key={e.id} className={styles.eventItem}>
+                  <div className={styles.eventLeft}>
+                    <span className={`badge badge_${tone}`}>{label}</span>
+                  </div>
+                  <p className='val'>{formatDateTime(new Date(e.createdAt))}</p>
+                </li>
+              );
+            })}
           </ul>
         )}
       </Card>
@@ -158,7 +228,7 @@ function Card({
 }) {
   return (
     <div className={styles.card}>
-      <div className={styles.cardTitle}>{title}</div>
+      <div className='cardTitle h4'>{title}</div>
       {children}
     </div>
   );
@@ -167,8 +237,8 @@ function Card({
 function KeyVal({ k, v }: { k: string; v: string }) {
   return (
     <div className={styles.keyVal}>
-      <div className={styles.key}>{k}</div>
-      <div className={styles.val}>{v}</div>
+      <div className='emptyTitleSmall'>{k}</div>
+      <div className='val'>{v}</div>
     </div>
   );
 }

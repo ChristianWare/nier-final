@@ -1,9 +1,10 @@
 "use client";
 
+import styles from "./AssignBookingForm.module.css";
 import { useTransition } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { assignBooking } from "../../../../actions/admin/bookings"; 
+import { assignBooking } from "../../../../actions/admin/bookings";
 
 export default function AssignBookingForm({
   bookingId,
@@ -23,6 +24,7 @@ export default function AssignBookingForm({
 
   return (
     <form
+      className={styles.form}
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -36,15 +38,14 @@ export default function AssignBookingForm({
           });
         });
       }}
-      style={{ display: "grid", gap: 10 }}
     >
-      <div style={{ display: "grid", gap: 6 }}>
-        <label style={{ fontSize: 12, opacity: 0.8 }}>Driver</label>
+      <div className={styles.group}>
+        <label className='emptyTitleSmall'>Driver</label>
         <select
           name='driverId'
           defaultValue={currentDriverId ?? ""}
           disabled={isPending}
-          style={selectStyle}
+          className={styles.select}
         >
           <option value='' disabled>
             Select driver
@@ -57,15 +58,13 @@ export default function AssignBookingForm({
         </select>
       </div>
 
-      <div style={{ display: "grid", gap: 6 }}>
-        <label style={{ fontSize: 12, opacity: 0.8 }}>
-          Vehicle unit (optional)
-        </label>
+      <div className={styles.groupTight}>
+        <label className='emptyTitleSmall'>Vehicle unit (optional)</label>
         <select
           name='vehicleUnitId'
           defaultValue={currentVehicleUnitId ?? ""}
           disabled={isPending}
-          style={selectStyle}
+          className={styles.select}
         >
           <option value=''>Unassigned</option>
           {vehicleUnits.map((u) => (
@@ -77,23 +76,9 @@ export default function AssignBookingForm({
         </select>
       </div>
 
-      <button disabled={isPending} style={btnStyle} type='submit'>
+      <button disabled={isPending} className='primaryBtn' type='submit'>
         {isPending ? "Saving..." : "Assign"}
       </button>
     </form>
   );
 }
-
-const selectStyle: React.CSSProperties = {
-  padding: "0.75rem",
-  borderRadius: 10,
-  border: "1px solid rgba(0,0,0,0.15)",
-};
-
-const btnStyle: React.CSSProperties = {
-  padding: "0.85rem 1rem",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.2)",
-  cursor: "pointer",
-  justifySelf: "start",
-};

@@ -15,6 +15,7 @@ export default function SendPaymentLinkButton({
 
   return (
     <form
+    style={{ marginTop: "1rem" }}
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData();
@@ -29,16 +30,13 @@ export default function SendPaymentLinkButton({
         });
       }}
     >
-      <button disabled={isPending} style={btnStyle} type='submit'>
+      <button
+        disabled={isPending}
+        type='submit'
+        className='primaryBtn'
+      >
         {isPending ? "Sending..." : "Email payment link"}
       </button>
     </form>
   );
 }
-
-const btnStyle: React.CSSProperties = {
-  padding: "0.85rem 1rem",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.2)",
-  cursor: "pointer",
-};

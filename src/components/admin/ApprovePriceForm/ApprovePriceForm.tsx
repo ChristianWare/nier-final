@@ -1,9 +1,10 @@
 "use client";
 
+import styles from "./ApprovePriceForm.module.css";
 import { useTransition } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { approveBookingAndSetPrice } from "../../../../actions/admin/bookings"; 
+import { approveBookingAndSetPrice } from "../../../../actions/admin/bookings";
 
 export default function ApprovePriceForm({
   bookingId,
@@ -25,6 +26,7 @@ export default function ApprovePriceForm({
 
   return (
     <form
+      className={styles.form}
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -38,7 +40,6 @@ export default function ApprovePriceForm({
           });
         });
       }}
-      style={{ display: "grid", gap: 10 }}
     >
       <input type='hidden' name='currency' defaultValue={currency} />
 
@@ -72,27 +73,15 @@ export default function ApprovePriceForm({
         />
       </Grid2>
 
-      <button disabled={isPending} style={btnStyle} type='submit'>
+      <button disabled={isPending} className='primaryBtn' type='submit'>
         {isPending ? "Saving..." : "Approve & Set Price"}
       </button>
     </form>
   );
 }
 
-const btnStyle: React.CSSProperties = {
-  padding: "0.85rem 1rem",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.2)",
-  cursor: "pointer",
-  justifySelf: "start",
-};
-
 function Grid2({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-      {children}
-    </div>
-  );
+  return <div className={styles.grid2}>{children}</div>;
 }
 
 function Field({
@@ -107,17 +96,13 @@ function Field({
   disabled?: boolean;
 }) {
   return (
-    <div style={{ display: "grid", gap: 6 }}>
-      <label style={{ fontSize: 12, opacity: 0.8 }}>{label}</label>
+    <div className={styles.field}>
+      <label className='emptyTitleSmall'>{label}</label>
       <input
         name={name}
         defaultValue={defaultValue}
         disabled={disabled}
-        style={{
-          padding: "0.75rem",
-          borderRadius: 10,
-          border: "1px solid rgba(0,0,0,0.15)",
-        }}
+        className={styles.input}
       />
     </div>
   );

@@ -1,0 +1,44 @@
+.form {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.group {
+  display: grid;
+  gap: 10px;
+}
+
+.groupTight {
+  display: grid;
+  gap: 6px;
+}
+
+.select {
+  padding: 1rem;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: #fff;
+  font: inherit;
+}
+
+.select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.button {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  justify-self: start;
+  background: #fff;
+  font: inherit;
+}
+
+.button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
