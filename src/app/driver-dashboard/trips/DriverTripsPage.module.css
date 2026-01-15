@@ -1,0 +1,106 @@
+.list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid var(--stroke);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3rem;
+  width: 100%;
+}
+
+.cardTop {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 3rem;
+  width: 100%;
+}
+
+.tripMeta {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.emptyTitleLocal {
+  border-bottom: 1px solid var(--stroke);
+  width: 100%;
+  padding-bottom: 0.5rem;
+}
+
+.pill {
+  margin-left: 10px;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.btnRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.form {
+  display: inline-flex;
+}
+
+.empty {
+  padding: 14px 2px;
+  display: grid;
+  gap: 8px;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emptyCopy {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.btnContainer {
+  margin-top: 1rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .list {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}

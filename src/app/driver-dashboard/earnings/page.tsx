@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import styles from "./DriverEarningsPage.module.css";
 import { redirect } from "next/navigation";
-import { auth } from "../../../../auth"; 
+import { auth } from "../../../../auth";
 import { db } from "@/lib/db";
 import { BookingStatus } from "@prisma/client";
 
@@ -10,9 +11,7 @@ export const dynamic = "force-dynamic";
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
 function normalizeRoles(roles: any): AppRole[] {
-  return Array.isArray(roles) && roles.length > 0
-    ? (roles as AppRole[])
-    : (["USER"] as AppRole[]);
+  return Array.isArray(roles) && roles.length > 0 ? (roles as AppRole[]) : [];
 }
 
 async function resolveViewer(
@@ -85,10 +84,8 @@ export default async function DriverEarningsPage() {
   const weekStart = startOfWeekSunday(now);
   const monthStart = startOfMonth(now);
 
-  // Scope: driver sees assigned bookings; admin sees all (MVP)
   const scopeWhere: any = isAdmin ? {} : { assignment: { driverId: userId } };
 
-  // “Earnings” here = completed trip totals (gross), since payroll is handled offline
   const [weekAgg, monthAgg, completedCountWeek, completedCountMonth, list] =
     await Promise.all([
       db.booking.aggregate({
@@ -128,7 +125,6 @@ export default async function DriverEarningsPage() {
       db.booking.findMany({
         where: {
           ...scopeWhere,
-          // show recent completed + in-progress so the list feels useful
           status: {
             in: [
               BookingStatus.COMPLETED,
@@ -156,23 +152,16 @@ export default async function DriverEarningsPage() {
   const monthTotal = monthAgg._sum.totalCents ?? 0;
 
   return (
-    <section style={{ display: "grid", gap: 14 }}>
-      <header style={{ display: "grid", gap: 6 }}>
-        <h1 className="h2">Earnings</h1>
-        <p style={{ margin: 0, opacity: 0.75 }}>
+    <section className='container' aria-label='Earnings'>
+      <header className='header'>
+        <h1 className='heading h2'>Earnings</h1>
+        <p className='subheading'>
           Payroll is handled offline — this page shows trip totals for quick
           clarity.
         </p>
       </header>
 
-      {/* Summary cards */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-          gap: 10,
-        }}
-      >
+      <div className={styles.metricsGrid}>
         <MetricCard
           label='Completed total (this week)'
           value={formatMoney(weekTotal)}
@@ -191,25 +180,13 @@ export default async function DriverEarningsPage() {
         />
       </div>
 
-      {/* Earnings list */}
-      <div
-        style={{
-          border: "1px solid rgba(0,0,0,0.08)",
-          borderRadius: 12,
-          overflow: "hidden",
-        }}
-      >
-        <div style={{ padding: 12, fontWeight: 900 }}>Trip list</div>
+      <div className={styles.tableCard}>
+        <div className={styles.tableTitle}>Trip list</div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div className={styles.tableScroll}>
+          <table className={styles.table}>
             <thead>
-              <tr
-                style={{
-                  textAlign: "left",
-                  borderTop: "1px solid rgba(0,0,0,0.08)",
-                }}
-              >
+              <tr className={styles.trHead}>
                 <Th>Date</Th>
                 <Th>Trip ID</Th>
                 <Th>Route</Th>
@@ -224,33 +201,23 @@ export default async function DriverEarningsPage() {
             <tbody>
               {list.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: 14, opacity: 0.75 }}>
+                  <td colSpan={8} className={styles.emptyRow}>
                     No trips yet.
                   </td>
                 </tr>
               ) : (
                 list.map((t) => (
-                  <tr
-                    key={t.id}
-                    style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}
-                  >
+                  <tr key={t.id} className={styles.tr}>
                     <Td>{formatDateTime(t.pickupAt)}</Td>
-                    <Td style={{ fontFamily: "monospace" }}>
-                      {t.id.slice(0, 10)}…
-                    </Td>
-                    <Td style={{ minWidth: 320 }}>
+                    <Td mono>{t.id.slice(0, 10)}…</Td>
+                    <Td wide>
                       {t.pickupAddress} → {t.dropoffAddress}
                     </Td>
-
-                    {/* Not in schema yet (placeholders) */}
                     <Td>—</Td>
                     <Td>—</Td>
                     <Td>—</Td>
-
                     <Td>{String(t.status).replaceAll("_", " ")}</Td>
-                    <Td style={{ fontWeight: 900 }}>
-                      {formatMoney(t.totalCents)}
-                    </Td>
+                    <Td strong>{formatMoney(t.totalCents)}</Td>
                   </tr>
                 ))
               )}
@@ -258,7 +225,7 @@ export default async function DriverEarningsPage() {
           </table>
         </div>
 
-        <div style={{ padding: 12, fontSize: 12, opacity: 0.7 }}>
+        <div className={styles.footerNote}>
           Base payout / Tip / Adjustments aren’t stored yet. If you want to
           track payroll internally, we can add fields without any Stripe
           integration.
@@ -270,55 +237,36 @@ export default async function DriverEarningsPage() {
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      style={{
-        border: "1px solid rgba(0,0,0,0.08)",
-        borderRadius: 12,
-        padding: 12,
-        display: "grid",
-        gap: 6,
-      }}
-    >
-      <div style={{ fontSize: 12, opacity: 0.7, fontWeight: 800 }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 900 }}>{value}</div>
+    <div className={styles.metricCard}>
+      <div className={styles.metricLabel}>{label}</div>
+      <div className={styles.metricValue}>{value}</div>
     </div>
   );
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th
-      style={{
-        padding: 10,
-        fontSize: 12,
-        opacity: 0.75,
-        fontWeight: 900,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {children}
-    </th>
-  );
+  return <th className={styles.th}>{children}</th>;
 }
 
 function Td({
   children,
-  style,
+  mono,
+  wide,
+  strong,
 }: {
   children: React.ReactNode;
-  style?: React.CSSProperties;
+  mono?: boolean;
+  wide?: boolean;
+  strong?: boolean;
 }) {
-  return (
-    <td
-      style={{
-        padding: 10,
-        fontSize: 13,
-        fontWeight: 700,
-        verticalAlign: "top",
-        ...style,
-      }}
-    >
-      {children}
-    </td>
-  );
+  const className = [
+    styles.td,
+    mono ? styles.tdMono : "",
+    wide ? styles.tdWide : "",
+    strong ? styles.tdStrong : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return <td className={className}>{children}</td>;
 }

@@ -1,0 +1,105 @@
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.metricCard {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+  background: var(--white);
+}
+
+.metricLabel {
+  font-size: 12px;
+  opacity: 0.7;
+  font-weight: 800;
+}
+
+.metricValue {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.tableCard {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.tableTitle {
+  padding: 12px;
+  font-weight: 900;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.trHead {
+  text-align: left;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.th {
+  padding: 10px;
+  font-size: 12px;
+  opacity: 0.75;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.tr {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.td {
+  padding: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  vertical-align: top;
+}
+
+.tdMono {
+  font-family: monospace;
+}
+
+.tdWide {
+  min-width: 320px;
+}
+
+.tdStrong {
+  font-weight: 900;
+}
+
+.emptyRow {
+  padding: 14px;
+  opacity: 0.75;
+}
+
+.footerNote {
+  padding: 12px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@media screen and (max-width: 1268px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .metricsGrid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
