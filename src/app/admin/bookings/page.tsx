@@ -383,9 +383,9 @@ export default async function AdminBookingsPage({
                         Pickup
                       </div>
                       <div className='emptySmall'>
-                        <span className={styles.pickupStrong}>
+                        {/* <span className={styles.pickupStrong}> */}
                           {formatPhoenix(b.pickupAt)}
-                        </span>
+                        {/* </span> */}
                         <span className={styles.pill}>{eta}</span>
                       </div>
                     </div>
@@ -395,7 +395,7 @@ export default async function AdminBookingsPage({
                         Customer
                       </div>
                       <div className='emptySmall'>
-                        <div className={styles.personName}>{customerName}</div>
+                        <div className="emptySmall">{customerName}</div>
                         <div className={styles.personEmail}>
                           {customerEmail}
                         </div>

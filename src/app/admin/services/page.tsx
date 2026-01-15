@@ -38,11 +38,13 @@ export default async function AdminServicesPage() {
           <tbody>
             {services.map((s) => (
               <tr key={s.id} className={styles.tr}>
-                <Td>{s.name}</Td>
-                <Td className={styles.slugCell}>{s.slug}</Td>
-                <Td>{s.pricingStrategy}</Td>
-                <Td>{s.active ? "Yes" : "No"}</Td>
-                <Td>
+                <Td label='Name'>{s.name}</Td>
+                <Td label='Slug' className={styles.slugCell}>
+                  {s.slug}
+                </Td>
+                <Td label='Strategy'>{s.pricingStrategy}</Td>
+                <Td label='Active'>{s.active ? "Yes" : "No"}</Td>
+                <Td label='Actions'>
                   <div className={styles.actions}>
                     <Link
                       href={`/admin/services/${s.id}`}
@@ -57,7 +59,7 @@ export default async function AdminServicesPage() {
                         await toggleService(s.id);
                       }}
                     >
-                      <button type='submit' className={styles.toggleBtn}>
+                      <button type='submit' className='dangerBtn'>
                         {s.active ? "Disable" : "Enable"}
                       </button>
                     </form>
@@ -73,15 +75,21 @@ export default async function AdminServicesPage() {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className={styles.th}>{children}</th>;
+  return <th className={`${styles.th} emptyTitleSmall`}>{children}</th>;
 }
 
 function Td({
   children,
   className = "",
+  label,
 }: {
   children: React.ReactNode;
   className?: string;
+  label?: string;
 }) {
-  return <td className={`${styles.td} ${className}`}>{children}</td>;
+  return (
+    <td className={`${styles.td} ${className}`} data-label={label}>
+      {children}
+    </td>
+  );
 }

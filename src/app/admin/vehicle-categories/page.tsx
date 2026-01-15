@@ -16,9 +16,6 @@ export default async function AdminVehicleCategoriesPage() {
     <section className={styles.container}>
       <header className={styles.header}>
         <h1 className={`${styles.heading} h2`}>Vehicle categories</h1>
-        {/* <Link href='/admin/vehicle-categories/new' className={styles.newLink}>
-          New category
-        </Link> */}
         <Button
           href='/admin/vehicle-categories/new'
           text='New category'
@@ -41,11 +38,11 @@ export default async function AdminVehicleCategoriesPage() {
           <tbody>
             {categories.map((c) => (
               <tr key={c.id} className={styles.tr}>
-                <Td>{c.name}</Td>
-                <Td>{c.capacity}</Td>
-                <Td>{c.luggageCapacity}</Td>
-                <Td>{c.active ? "Yes" : "No"}</Td>
-                <Td>
+                <Td label='Name'>{c.name}</Td>
+                <Td label='Capacity'>{c.capacity}</Td>
+                <Td label='Luggage'>{c.luggageCapacity}</Td>
+                <Td label='Active'>{c.active ? "Yes" : "No"}</Td>
+                <Td label='Actions'>
                   <div className={styles.actions}>
                     <Link
                       href={`/admin/vehicle-categories/${c.id}`}
@@ -53,13 +50,14 @@ export default async function AdminVehicleCategoriesPage() {
                     >
                       Edit
                     </Link>
+
                     <form
                       action={async () => {
                         "use server";
                         await toggleVehicleCategory(c.id, !c.active);
                       }}
                     >
-                      <button type='submit' className={styles.toggleBtn}>
+                      <button type='submit' className='dangerBtn'>
                         {c.active ? "Disable" : "Enable"}
                       </button>
                     </form>
@@ -75,15 +73,21 @@ export default async function AdminVehicleCategoriesPage() {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className={styles.th}>{children}</th>;
+  return <th className={`${styles.th} emptyTitleSmall`}>{children}</th>;
 }
 
 function Td({
   children,
   className = "",
+  label,
 }: {
   children: React.ReactNode;
   className?: string;
+  label?: string;
 }) {
-  return <td className={`${styles.td} ${className}`}>{children}</td>;
+  return (
+    <td className={`${styles.td} ${className}`} data-label={label}>
+      {children}
+    </td>
+  );
 }

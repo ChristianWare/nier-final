@@ -39,11 +39,13 @@ export default async function AdminVehiclesPage() {
           <tbody>
             {units.map((u) => (
               <tr key={u.id} className={styles.tr}>
-                <Td>{u.name}</Td>
-                <Td>{u.category?.name ?? "—"}</Td>
-                <Td className={styles.plateCell}>{u.plate ?? "—"}</Td>
-                <Td>{u.active ? "Yes" : "No"}</Td>
-                <Td>
+                <Td label='Name'>{u.name}</Td>
+                <Td label='Category'>{u.category?.name ?? "—"}</Td>
+                <Td label='Plate' className={styles.plateCell}>
+                  {u.plate ?? "—"}
+                </Td>
+                <Td label='Active'>{u.active ? "Yes" : "No"}</Td>
+                <Td label='Actions'>
                   <div className={styles.actions}>
                     <Link
                       href={`/admin/vehicles/${u.id}`}
@@ -51,13 +53,14 @@ export default async function AdminVehiclesPage() {
                     >
                       Edit
                     </Link>
+
                     <form
                       action={async () => {
                         "use server";
                         await toggleVehicleUnit(u.id, !u.active);
                       }}
                     >
-                      <button type='submit' className={styles.toggleBtn}>
+                      <button type='submit' className='dangerBtn'>
                         {u.active ? "Disable" : "Enable"}
                       </button>
                     </form>
@@ -73,15 +76,21 @@ export default async function AdminVehiclesPage() {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className={styles.th}>{children}</th>;
+  return <th className={`${styles.th} emptyTitleSmall`}>{children}</th>;
 }
 
 function Td({
   children,
   className = "",
+  label,
 }: {
   children: React.ReactNode;
   className?: string;
+  label?: string;
 }) {
-  return <td className={`${styles.td} ${className}`}>{children}</td>;
+  return (
+    <td className={`${styles.td} ${className}`} data-label={label}>
+      {children}
+    </td>
+  );
 }

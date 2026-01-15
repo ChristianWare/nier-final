@@ -1,4 +1,3 @@
-// app/admin/users/page.tsx
 import styles from "./AdminUsersPage.module.css";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -39,7 +38,6 @@ export default async function AdminUsersPage({
     take: 500,
   });
 
-  // Optional: nice grouping (Admins first, then Drivers, then Users)
   const priority = (roles: AppRole[]) => {
     if (roles.includes("ADMIN")) return 0;
     if (roles.includes("DRIVER")) return 1;
@@ -89,19 +87,16 @@ export default async function AdminUsersPage({
             ) : (
               normalized.map((u) => (
                 <tr key={u.id} className={styles.tr}>
-                  <Td>{u.name ?? "—"}</Td>
-                  <Td className={styles.emailCell}>{u.email}</Td>
-
-                  <Td>{(u.roles as AppRole[]).join(", ")}</Td>
-
-                  <Td>{u.emailVerified ? "Yes" : "No"}</Td>
-
-                  <Td>
+                  <Td label='Name'>{u.name ?? "—"}</Td>
+                  <Td label='Email' className={styles.emailCell}>
+                    {u.email}
+                  </Td>
+                  <Td label='Roles'>{(u.roles as AppRole[]).join(", ")}</Td>
+                  <Td label='Verified'>{u.emailVerified ? "Yes" : "No"}</Td>
+                  <Td label='Update roles'>
                     <RoleCheckboxForm
                       userId={u.id}
                       initialRoles={u.roles as AppRole[]}
-                      // Optional UX: don’t allow editing roles of unverified users
-                      // disabled={!u.emailVerified}
                     />
                   </Td>
                 </tr>
@@ -130,14 +125,14 @@ function RoleTabs({ active }: { active: RoleFilter }) {
           x.value === "ALL" ? "/admin/users" : `/admin/users?role=${x.value}`;
 
         return (
-          <Link
-            key={x.value}
-            href={href}
-            prefetch
-            className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
-          >
-            {x.label}
-          </Link>
+            <Link
+              key={x.value}
+              href={href}
+              prefetch
+              className={`tab ${isActive ? "tabActive" : ""}`}
+            >
+              {x.label}
+            </Link>
         );
       })}
     </div>
@@ -145,15 +140,21 @@ function RoleTabs({ active }: { active: RoleFilter }) {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className={styles.th}>{children}</th>;
+  return <th className={`${styles.th} emptyTitleSmall`}>{children}</th>;
 }
 
 function Td({
   children,
   className = "",
+  label,
 }: {
   children: React.ReactNode;
   className?: string;
+  label?: string;
 }) {
-  return <td className={`${styles.td} ${className}`}>{children}</td>;
+  return (
+    <td className={`${styles.td} ${className}`} data-label={label}>
+      {children}
+    </td>
+  );
 }
