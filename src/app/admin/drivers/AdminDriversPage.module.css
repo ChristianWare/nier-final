@@ -1,4 +1,3 @@
-
 .container {
   display: grid;
   gap: 14px;
@@ -72,4 +71,58 @@
 
 .emptyLink {
   text-decoration: underline;
+}
+
+@media screen and (max-width: 1068px) {
+  .tableCard {
+    overflow: visible;
+  }
+
+  .table {
+    display: block;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .tr {
+    display: block;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    padding: 14px;
+    background: var(--white);
+  }
+
+  .td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .tr .td:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+
+  .tr .td:last-of-type {
+    padding-bottom: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    font-size: 12px;
+    opacity: 0.7;
+    font-weight: 800;
+    min-width: 110px;
+    padding-right: 10px;
+  }
 }

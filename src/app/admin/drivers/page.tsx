@@ -13,7 +13,6 @@ export default async function AdminDriversPage() {
     take: 500,
   });
 
-
   return (
     <section className={styles.container}>
       <header className={styles.header}>
@@ -38,8 +37,10 @@ export default async function AdminDriversPage() {
             <tbody>
               {drivers.map((d) => (
                 <tr key={d.id} className={styles.tr}>
-                  <Td>{d.name ?? "—"}</Td>
-                  <Td className={styles.emailCell}>{d.email}</Td>
+                  <Td label='Name'>{d.name ?? "—"}</Td>
+                  <Td label='Email' className={styles.emailCell}>
+                    {d.email}
+                  </Td>
                 </tr>
               ))}
             </tbody>
@@ -66,15 +67,21 @@ function EmptyDrivers() {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className={styles.th}>{children}</th>;
+  return <th className={`${styles.th} emptyTitleSmall`}>{children}</th>;
 }
 
 function Td({
   children,
   className = "",
+  label,
 }: {
   children: React.ReactNode;
   className?: string;
+  label?: string;
 }) {
-  return <td className={`${styles.td} ${className}`}>{children}</td>;
+  return (
+    <td className={`${styles.td} ${className}`} data-label={label}>
+      {children}
+    </td>
+  );
 }
