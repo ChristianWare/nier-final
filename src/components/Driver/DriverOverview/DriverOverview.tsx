@@ -1,9 +1,9 @@
-import Link from "next/link";
 import styles from "./DriverOverview.module.css";
+import Link from "next/link";
 import { BookingStatus } from "@prisma/client";
 
 import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
-import { updateDriverBookingStatus } from "../../../../actions/driver-dashboard/actions"; 
+import { updateDriverBookingStatus } from "../../../../actions/driver-dashboard/actions";
 
 type NextTrip = {
   id: string;
@@ -163,151 +163,144 @@ export default function DriverOverview({
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.topGrid}>
-        <section className={styles.card}>
-          <header className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Next trip</div>
-            {nextTrip ? <StatusPill status={nextTrip.status} /> : null}
-          </header>
-
-          {!nextTrip ? (
-            <div className={styles.empty}>
-              <div className={styles.emptyTitle}>No upcoming trips</div>
-              <p className={styles.emptyCopy}>
-                When dispatch assigns you a job, it’ll appear here.
-              </p>
-              <Link className={styles.linkBtn} href='/driver-dashboard/trips'>
+      <section className={styles.card}>
+        <header className={styles.cardHeader}>
+          <h2 className='cardTitle h4'>Next trip</h2>
+          {nextTrip ? <StatusPill status={nextTrip.status} /> : null}
+        </header>
+        {!nextTrip ? (
+          <div className={styles.empty}>
+            <div className='emptyTitle underline'>No upcoming trips</div>
+            <p className="emptySmall">
+              When dispatch assigns you a job, it’ll appear here.
+            </p>
+            <div className={styles.btnContainer}>
+              <Link className='primaryBtn' href='/driver-dashboard/trips'>
                 View trips
               </Link>
             </div>
-          ) : (
-            <div className={styles.nextTripBody}>
-              <div className={styles.row}>
-                <div className={styles.kv}>
-                  <div className={styles.k}>Pickup</div>
-                  <div className={styles.v}>
-                    {formatTime(nextTrip.pickupAt)}{" "}
-                    <span className={styles.mins}>{minsLabel}</span>
-                  </div>
+          </div>
+        ) : (
+          <div className={styles.nextTripBody}>
+            <div className={styles.row}>
+              <div className={styles.kv}>
+                <div className={styles.k}>Pickup</div>
+                <div className={styles.v}>
+                  {formatTime(nextTrip.pickupAt)}{" "}
+                  <span className={styles.mins}>{minsLabel}</span>
                 </div>
+              </div>
 
-                <a
-                  className={styles.smallLink}
-                  href={mapsUrl(nextTrip.pickupAddress)}
-                  target='_blank'
-                  rel='noreferrer'
-                >
-                  Open in Maps
+              <a
+                className={styles.smallLink}
+                href={mapsUrl(nextTrip.pickupAddress)}
+                target='_blank'
+                rel='noreferrer'
+              >
+                Open in Maps
+              </a>
+            </div>
+
+            <div className={styles.kvBlock}>
+              <div className={styles.k}>Pickup location</div>
+              <div className={styles.v}>{nextTrip.pickupAddress}</div>
+            </div>
+
+            <div className={styles.kvBlock}>
+              <div className={styles.k}>Dropoff</div>
+              <div className={styles.v}>{nextTrip.dropoffAddress}</div>
+            </div>
+
+            <div className={styles.row}>
+              <div className={styles.kv}>
+                <div className={styles.k}>Passenger</div>
+                <div className={styles.v}>{passengerName}</div>
+              </div>
+
+              <div className={styles.contactBtns}>
+                <a className={styles.iconBtn} href={`mailto:${passengerEmail}`}>
+                  Email
                 </a>
               </div>
+            </div>
 
-              <div className={styles.kvBlock}>
-                <div className={styles.k}>Pickup location</div>
-                <div className={styles.v}>{nextTrip.pickupAddress}</div>
-              </div>
-
-              <div className={styles.kvBlock}>
-                <div className={styles.k}>Dropoff</div>
-                <div className={styles.v}>{nextTrip.dropoffAddress}</div>
-              </div>
-
-              <div className={styles.row}>
-                <div className={styles.kv}>
-                  <div className={styles.k}>Passenger</div>
-                  <div className={styles.v}>{passengerName}</div>
-                </div>
-
-                <div className={styles.contactBtns}>
-                  <a
-                    className={styles.iconBtn}
-                    href={`mailto:${passengerEmail}`}
-                  >
-                    Email
-                  </a>
-                </div>
-              </div>
-
-              <div className={styles.rowChips}>
-                <span className={styles.chip}>
-                  {nextTrip.passengers} passenger(s)
-                </span>
-                <span className={styles.chip}>{nextTrip.luggage} luggage</span>
-                {extraStops > 0 ? (
-                  <span className={styles.chip}>
-                    {extraStops} extra stop(s)
-                  </span>
-                ) : null}
-              </div>
-
-              <div className={styles.kvBlock}>
-                <div className={styles.k}>Vehicle</div>
-                <div className={styles.v}>{vehicleDisplay}</div>
-              </div>
-
-              {nextTrip.specialRequests ? (
-                <div className={styles.notes}>
-                  <div className={styles.k}>Notes</div>
-                  <div className={styles.noteText}>
-                    {nextTrip.specialRequests}
-                  </div>
-                </div>
+            <div className={styles.rowChips}>
+              <span className={styles.chip}>
+                {nextTrip.passengers} passenger(s)
+              </span>
+              <span className={styles.chip}>{nextTrip.luggage} luggage</span>
+              {extraStops > 0 ? (
+                <span className={styles.chip}>{extraStops} extra stop(s)</span>
               ) : null}
+            </div>
 
-              <div className={styles.viewTripRow}>
-                <Link
-                  className={styles.linkBtn}
-                  href={`/driver-dashboard/trips/${nextTrip.id}`}
-                >
-                  View trip details
-                </Link>
+            <div className={styles.kvBlock}>
+              <div className={styles.k}>Vehicle</div>
+              <div className={styles.v}>{vehicleDisplay}</div>
+            </div>
+
+            {nextTrip.specialRequests ? (
+              <div className={styles.notes}>
+                <div className={styles.k}>Notes</div>
+                <div className={styles.noteText}>
+                  {nextTrip.specialRequests}
+                </div>
               </div>
-            </div>
-          )}
-        </section>
+            ) : null}
 
-        <section className={styles.card}>
-          <header className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Quick actions</div>
-          </header>
-
-          {!nextTrip ? (
-            <div className={styles.emptySmall}>
-              <p className={styles.emptyCopy}>
-                Actions appear when you have a next trip.
-              </p>
-            </div>
-          ) : (
-            <div className={styles.actionsGrid}>
-              <Action
-                bookingId={nextTrip.id}
-                nextStatus='EN_ROUTE'
-                label="I'm en route"
-              />
-              <Action
-                bookingId={nextTrip.id}
-                nextStatus='ARRIVED'
-                label='Arrived'
-              />
-              <Action
-                bookingId={nextTrip.id}
-                nextStatus='IN_PROGRESS'
-                label='Passenger onboard'
-              />
-              <Action
-                bookingId={nextTrip.id}
-                nextStatus='COMPLETED'
-                label='Complete trip'
-              />
+            <div className={styles.viewTripRow}>
               <Link
-                className={`${styles.actionBtn} ${styles.reportBtn}`}
-                href={`/driver-dashboard/support?tripId=${nextTrip.id}`}
+                className='primaryBtn'
+                href={`/driver-dashboard/trips/${nextTrip.id}`}
               >
-                Report issue
+                View trip details
               </Link>
             </div>
-          )}
-        </section>
-      </div>
+          </div>
+        )}
+      </section>
+      <section className={styles.card}>
+        <header className={styles.cardHeader}>
+          <h2 className='cardTitle h4'>Quick actions</h2>
+        </header>
+
+        {!nextTrip ? (
+          <div className={styles.emptySmall}>
+            <p className="emptySmall">
+              Actions appear when you have a next trip.
+            </p>
+          </div>
+        ) : (
+          <div className={styles.actionsGrid}>
+            <Action
+              bookingId={nextTrip.id}
+              nextStatus='EN_ROUTE'
+              label="I'm en route"
+            />
+            <Action
+              bookingId={nextTrip.id}
+              nextStatus='ARRIVED'
+              label='Arrived'
+            />
+            <Action
+              bookingId={nextTrip.id}
+              nextStatus='IN_PROGRESS'
+              label='Passenger onboard'
+            />
+            <Action
+              bookingId={nextTrip.id}
+              nextStatus='COMPLETED'
+              label='Complete trip'
+            />
+            <Link
+              className={`${styles.actionBtn} ${styles.reportBtn}`}
+              href={`/driver-dashboard/support?tripId=${nextTrip.id}`}
+            >
+              Report issue
+            </Link>
+          </div>
+        )}
+      </section>
 
       <section className={styles.kpiStrip}>
         <AdminKPICard title='Trips today' value={kpis.tripsToday} />
@@ -325,7 +318,7 @@ export default function DriverOverview({
       <div className={styles.bottomGrid}>
         <section className={styles.card}>
           <header className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Today’s schedule</div>
+            <div className='cardTitle h4'>Today’s schedule</div>
             <Link className={styles.smallLink} href='/driver-dashboard/trips'>
               View all
             </Link>
@@ -333,8 +326,8 @@ export default function DriverOverview({
 
           {todayTrips.length === 0 ? (
             <div className={styles.emptySmall}>
-              <div className={styles.emptyTitle}>No trips today</div>
-              <p className={styles.emptyCopy}>
+              <div className="emptyTitle underline">No trips today</div>
+              <p className="emptySmall">
                 If dispatch assigns a trip for today, it’ll show up here.
               </p>
             </div>
@@ -373,7 +366,7 @@ export default function DriverOverview({
 
         <section className={styles.card}>
           <header className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Alerts</div>
+            <div className='cardTitle h4'>Alerts</div>
             <Link className={styles.smallLink} href='/driver-dashboard/trips'>
               View all
             </Link>
@@ -381,8 +374,8 @@ export default function DriverOverview({
 
           {alerts.length === 0 ? (
             <div className={styles.emptySmall}>
-              <div className={styles.emptyTitle}>All caught up</div>
-              <p className={styles.emptyCopy}>
+              <div className="emptyTitle underline">All caught up</div>
+              <p className='emptySmall'>
                 Trip updates and dispatch notes will appear here.
               </p>
             </div>

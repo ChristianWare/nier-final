@@ -1,7 +1,7 @@
 .wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 7rem;
 }
 
 .topGrid {
@@ -12,17 +12,15 @@
 
 .bottomGrid {
   display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 1.6rem;
+  grid-template-columns: 1fr;
+  gap: 7rem;
 }
 
 .card {
-  background: var(--cream);
-  border-radius: 10px;
-  padding: 1.4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+  width: 100%;
 }
 
 .cardHeader {
@@ -40,7 +38,7 @@
 
 .kpiStrip {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.2rem;
 }
 
@@ -294,21 +292,10 @@
 .empty,
 .emptySmall {
   display: grid;
-  gap: 0.6rem;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
 }
 
-.emptyTitle {
-  font-size: 1.5rem;
-  font-weight: 900;
-}
-
-.emptyCopy {
-  font-size: 1.3rem;
-  opacity: 0.75;
-  line-height: 1.35;
-}
-
-/* Status pill */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -350,6 +337,11 @@
   color: var(--white);
 }
 
+.btnContainer {
+  display: flex;
+  width: fit-content;
+}
+
 @media screen and (max-width: 968px) {
   .topGrid,
   .bottomGrid {
@@ -358,5 +350,16 @@
 
   .kpiStrip {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .btnContainer {
+    display: grid;
+    width: 100%;
+  }
+
+  .kpiStrip {
+    grid-template-columns: repeat(1, 1fr);
   }
 }

@@ -7,6 +7,7 @@ import { auth } from "../../../auth";
 import { db } from "@/lib/db";
 
 import DriverOverview from "@/components/Driver/DriverOverview/DriverOverview";
+import DriverPageIntro from "@/components/Driver/DriverPageIntro/DriverPageIntro";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,7 +41,6 @@ export default async function DriverDashboardHome() {
   const session = await auth();
   if (!session) redirect("/login?next=/driver-dashboard");
 
-  // ✅ Use roles[] instead of role
   const roles = (session.user as any)?.roles as string[] | undefined;
   const hasAccess = Array.isArray(roles)
     ? roles.includes("DRIVER") || roles.includes("ADMIN")
@@ -55,8 +55,23 @@ export default async function DriverDashboardHome() {
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
   const upcomingEnd = endOfDay(addDays(now, 7));
+  const completed30Start = startOfDay(addDays(now, -30));
 
-  // Active trips (for "next trip" selection)
+  const activeAssignedCount = await db.booking.count({
+    where: {
+      status: { notIn: TERMINAL },
+      assignment: { driverId },
+    },
+  });
+
+  const completed30DaysCount = await db.booking.count({
+    where: {
+      pickupAt: { gte: completed30Start, lte: todayEnd },
+      status: BookingStatus.COMPLETED,
+      assignment: { driverId },
+    },
+  });
+
   const activeTrips = await db.booking.findMany({
     where: {
       status: { notIn: TERMINAL },
@@ -89,7 +104,6 @@ export default async function DriverDashboardHome() {
 
   const nextTrip = activeTrips[0] ?? null;
 
-  // Today's schedule
   const todayTrips = await db.booking.findMany({
     where: {
       pickupAt: { gte: todayStart, lte: todayEnd },
@@ -107,7 +121,6 @@ export default async function DriverDashboardHome() {
     },
   });
 
-  // KPI: Upcoming (next 7 days)
   const upcoming7DaysCount = await db.booking.count({
     where: {
       pickupAt: { gt: now, lte: upcomingEnd },
@@ -116,7 +129,6 @@ export default async function DriverDashboardHome() {
     },
   });
 
-  // KPI: "Earnings this week" (not payroll, so we show completed trip totals)
   const weekStart = startOfWeekSunday(now);
   const weekTotals = await db.booking.aggregate({
     where: {
@@ -127,7 +139,6 @@ export default async function DriverDashboardHome() {
     _sum: { totalCents: true },
   });
 
-  // Alerts: recent status changes on this driver's bookings (mostly dispatch updates)
   const statusEvents = await db.bookingStatusEvent.findMany({
     where: {
       booking: { assignment: { driverId } },
@@ -152,6 +163,12 @@ export default async function DriverDashboardHome() {
 
   return (
     <section className={styles.container}>
+      <DriverPageIntro
+        assigned={activeAssignedCount}
+        upcoming={upcoming7DaysCount}
+        completed={completed30DaysCount}
+      />
+
       <DriverOverview
         nextTrip={nextTrip}
         todayTrips={todayTrips}

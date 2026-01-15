@@ -1,5 +1,5 @@
 .container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 7rem;
 }
