@@ -140,8 +140,7 @@ textarea {
 
 input:focus,
 textarea:focus,
-select:focus
-{
+select:focus {
   outline: none;
 }
 
@@ -289,6 +288,8 @@ select:focus
 
 .subheading {
   color: var(--paragraph);
+  font-size: 1.6rem;
+  font-weight: 500;
 }
 
 .tabs {
@@ -561,4 +562,10 @@ select:focus
   border: none;
   border-bottom: 3px solid var(--stroke);
   background: white;
+}
+
+.box {
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2rem;
 }

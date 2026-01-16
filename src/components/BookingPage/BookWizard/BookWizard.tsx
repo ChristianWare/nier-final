@@ -14,6 +14,7 @@ import Grid2 from "../Grid2/Grid2";
 import Stepper from "../Stepper/Stepper";
 import SummaryRow from "../SummaryRow/SummaryRow";
 import BookingDateTimePicker from "@/components/BookingPage/BookingDateTimePicker/BookingDateTimePicker";
+import { useSession } from "next-auth/react";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 
@@ -99,6 +100,10 @@ function estimateTotalCents(args: {
   return Math.max(service.minFareCents, raw);
 }
 
+function isValidEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
 export default function BookingWizard({
   serviceTypes,
   vehicles,
@@ -107,6 +112,9 @@ export default function BookingWizard({
   vehicles: VehicleDTO[];
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const isAuthed = Boolean(session?.user);
+
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -137,6 +145,10 @@ export default function BookingWizard({
   const [hoursRequested, setHoursRequested] = useState<number>(2);
   const [vehicleId, setVehicleId] = useState<string>("");
   const [specialRequests, setSpecialRequests] = useState<string>("");
+
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
 
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceTypeId) ?? null,
@@ -211,6 +223,25 @@ export default function BookingWizard({
       return;
     }
 
+    if (!isAuthed) {
+      const n = guestName.trim();
+      const e = guestEmail.trim().toLowerCase();
+      const p = guestPhone.trim();
+
+      if (!n) {
+        toast.error("Please enter your name.");
+        return;
+      }
+      if (!e || !isValidEmail(e)) {
+        toast.error("Please enter a valid email address.");
+        return;
+      }
+      if (!p) {
+        toast.error("Please enter your phone number.");
+        return;
+      }
+    }
+
     const pickupAtIso = new Date(
       `${pickupAtDate}T${pickupAtTime}:00`
     ).toISOString();
@@ -240,6 +271,9 @@ export default function BookingWizard({
         hoursRequested:
           selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
         specialRequests: specialRequests || null,
+        guestName: isAuthed ? null : guestName.trim(),
+        guestEmail: isAuthed ? null : guestEmail.trim().toLowerCase(),
+        guestPhone: isAuthed ? null : guestPhone.trim(),
       });
 
       const data = res as any;
@@ -253,11 +287,13 @@ export default function BookingWizard({
       setSubmitted(true);
       toast.success("Request submitted.");
 
-      const bookingId =
-        data?.bookingId ?? data?.id ?? data?.booking?.id ?? null;
+      const bookingId = data?.bookingId ?? null;
+      const claimToken = data?.claimToken ?? null;
 
       const href = bookingId
-        ? `/book/success?id=${encodeURIComponent(String(bookingId))}`
+        ? claimToken
+          ? `/book/success?id=${encodeURIComponent(String(bookingId))}&t=${encodeURIComponent(String(claimToken))}`
+          : `/book/success?id=${encodeURIComponent(String(bookingId))}`
         : "/book/success";
 
       router.replace(href);
@@ -541,11 +577,11 @@ export default function BookingWizard({
               ) : null}
 
               {step === 3 ? (
-                <div style={{ display: "grid", gap: 14 }}>
+                <div style={{ display: "grid", gap: 30 }}>
                   <h2 className='underline'>Confirm</h2>
                   <p className='subheading'>Overview</p>
 
-                  <div style={summaryCardStyle}>
+                  <div className='box'>
                     <SummaryRow
                       label='Service'
                       value={selectedService?.name ?? "—"}
@@ -593,12 +629,60 @@ export default function BookingWizard({
                     </div>
                   </div>
 
+                  {!isAuthed ? (
+                    <div style={{ display: "grid", gap: 10 }}>
+                      <div style={{ display: "grid", gap: 20 }}>
+                        <div className='cardTitle h5'>Full name</div>
+                        <input
+                          value={guestName}
+                          onChange={(e) => setGuestName(e.target.value)}
+                          className='input subheading'
+                          placeholder='Your name'
+                        />
+                      </div>
+
+                      <Grid2>
+                        <div style={{ display: "grid", gap: 10 }}>
+                          <div className='cardTitle h5'>Email</div>
+                          <input
+                            value={guestEmail}
+                            onChange={(e) => setGuestEmail(e.target.value)}
+                            className='input subheading'
+                            placeholder='you@email.com'
+                            inputMode='email'
+                          />
+                        </div>
+
+                        <div style={{ display: "grid", gap: 6 }}>
+                          <div className='cardTitle h5'>Phone</div>
+                          <input
+                            value={guestPhone}
+                            onChange={(e) => setGuestPhone(e.target.value)}
+                            className='input subheading'
+                            placeholder='(602) 555-1234'
+                            inputMode='tel'
+                          />
+                        </div>
+                      </Grid2>
+
+                      <div
+                        className='emptyTitleSmall'
+                        style={{ color: "rgba(0, 0, 0, 0.7)" }}
+                      >
+                        We’ll use this email to send updates and your payment
+                        link after approval.
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label className='label'>Special requests (optional)</label>
+                    <div className='cardTitle h5'>
+                      Special requests (optional)
+                    </div>
                     <textarea
                       value={specialRequests}
                       onChange={(e) => setSpecialRequests(e.target.value)}
-                      className='input emptySmall'
+                      className='input subheading'
                       style={{ minHeight: 90 }}
                       placeholder='Child seat, wheelchair needs, extra stops, meet & greet...'
                     />

@@ -79,9 +79,7 @@ model User {
   // Credentials auth support
   password String?
 
-
   roles Role[] @default([USER])
-
 
   accounts Account[]
   sessions Session[]
@@ -247,8 +245,8 @@ model ServiceType {
 model Booking {
   id String @id @default(cuid())
 
-  userId String
-  user   User   @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+  user   User?   @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
 
   serviceTypeId String
   serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id])
@@ -305,6 +303,13 @@ model Booking {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  guestName            String?
+  guestEmail           String?
+  guestPhone           String?
+  guestEmailVerifiedAt DateTime?
+
+  guestClaimToken String? @unique
+
   @@index([userId])
   @@index([serviceTypeId])
   @@index([vehicleId])
@@ -355,7 +360,6 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 model Assignment {
   id String @id @default(cuid())

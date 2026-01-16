@@ -4,12 +4,13 @@ import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import { BookingStatus } from "@prisma/client";
+import { randomUUID } from "crypto";
 
 type CreateBookingRequestInput = {
   serviceTypeId: string;
   vehicleId?: string | null;
 
-  pickupAt: string; // ISO
+  pickupAt: string;
   passengers: number;
   luggage: number;
 
@@ -26,16 +27,34 @@ type CreateBookingRequestInput = {
   distanceMiles?: number | null;
   durationMinutes?: number | null;
 
-  // NEW for hourly
   hoursRequested?: number | null;
 
   specialRequests?: string | null;
+
+  guestName?: string | null;
+  guestEmail?: string | null;
+  guestPhone?: string | null;
 };
+
+function isValidEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
 
 export async function createBookingRequest(input: CreateBookingRequestInput) {
   const session = await auth();
-  const userId = session?.user?.userId;
-  if (!userId) return { error: "Unauthorized" as const };
+  const userId = (session?.user as { id?: string } | null)?.id ?? null;
+
+  const guestName = (input.guestName ?? "").trim();
+  const guestEmail = (input.guestEmail ?? "").trim().toLowerCase();
+  const guestPhone = (input.guestPhone ?? "").trim();
+
+  if (!userId) {
+    if (!guestName) return { error: "Please enter your name." as const };
+    if (!guestEmail || !isValidEmail(guestEmail))
+      return { error: "Please enter a valid email address." as const };
+    if (!guestPhone)
+      return { error: "Please enter your phone number." as const };
+  }
 
   const service = await db.serviceType.findUnique({
     where: { id: input.serviceTypeId },
@@ -47,7 +66,6 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     ? await db.vehicle.findUnique({ where: { id: input.vehicleId } })
     : null;
 
-  // If they selected a vehicle, ensure active
   if (input.vehicleId && (!vehicle || !vehicle.active)) {
     return { error: "Vehicle not available" as const };
   }
@@ -71,9 +89,17 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     vehiclePerHourCents: vehicle?.perHourCents ?? 0,
   });
 
+  const claimToken = userId ? null : randomUUID();
+
   const booking = await db.booking.create({
     data: {
-      userId,
+      userId: userId ?? undefined,
+
+      guestName: userId ? undefined : guestName,
+      guestEmail: userId ? undefined : guestEmail,
+      guestPhone: userId ? undefined : guestPhone,
+      guestClaimToken: claimToken ?? undefined,
+
       serviceTypeId: service.id,
       vehicleId: vehicle?.id ?? null,
 
@@ -96,7 +122,6 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       distanceMiles: input.distanceMiles ?? null,
       durationMinutes: input.durationMinutes ?? null,
 
-      // NEW: hourly tracking
       hoursRequested: quote.requestedHours ?? input.hoursRequested ?? null,
       hoursBilled: quote.billedHours ?? null,
 
@@ -105,7 +130,12 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       subtotalCents: quote.subtotalCents,
       totalCents: quote.totalCents,
     },
+    select: { id: true, guestClaimToken: true },
   });
 
-  return { success: true as const, bookingId: booking.id };
+  return {
+    success: true as const,
+    bookingId: booking.id,
+    claimToken: booking.guestClaimToken ?? null,
+  };
 }
