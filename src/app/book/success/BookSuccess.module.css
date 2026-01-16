@@ -1,0 +1,81 @@
+.container {
+  display: grid;
+  place-items: center;
+  padding: 34px 0 64px;
+}
+
+.card {
+  width: min(640px, 100%);
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 22px;
+  display: grid;
+  gap: 12px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
+}
+
+.icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.title {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+
+.subheading {
+  margin: 0;
+  opacity: 0.78;
+  line-height: 1.5;
+}
+
+.meta {
+  font-size: 13px;
+  opacity: 0.7;
+  padding-top: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 6px;
+}
+
+.primary {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: black;
+  color: white;
+  font-weight: 600;
+}
+
+.secondary {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  color: black;
+  font-weight: 600;
+}
+
+.note {
+  font-size: 12px;
+  opacity: 0.7;
+  padding-top: 4px;
+}

@@ -527,14 +527,14 @@ export default function BookingDateTimePicker({
 
               <div className={styles.timeCol}>
                 <div className={styles.colLabel}>AM/PM</div>
-                <button
+                {/* <button
                   type='button'
                   className={styles.pinnedChip}
                   onClick={() => scrollToSelected("meridiem")}
                   aria-label={`Selected meridiem ${draftMeridiem}`}
                 >
                   {draftMeridiem}
-                </button>
+                </button> */}
                 <div
                   className={styles.colList}
                   role='listbox'

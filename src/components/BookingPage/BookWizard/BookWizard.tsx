@@ -2,7 +2,7 @@
 "use client";
 
 import styles from "./BookingWizard.module.css";
-import React, { useMemo, useRef, useState, useTransition } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {
@@ -107,8 +107,9 @@ export default function BookingWizard({
   vehicles: VehicleDTO[];
 }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const services = useMemo<ServiceTypeDTO[]>(
     () => serviceTypes ?? [],
@@ -191,6 +192,8 @@ export default function BookingWizard({
   }
 
   async function handleSubmit() {
+    if (submitting || submitted) return;
+
     if (!selectedService) {
       toast.error("Please select a service.");
       return;
@@ -212,53 +215,56 @@ export default function BookingWizard({
       `${pickupAtDate}T${pickupAtTime}:00`
     ).toISOString();
 
-    startTransition(async () => {
-      if (!route?.pickup || !route?.dropoff) {
-        toast.error("Please select both pickup and dropoff locations.");
-        return;
-      }
+    setSubmitting(true);
 
+    try {
       const pickup = route.pickup;
       const dropoff = route.dropoff;
 
       const res = await createBookingRequest({
         serviceTypeId,
         vehicleId,
-
         pickupAt: pickupAtIso,
         passengers,
         luggage,
-
         pickupAddress: pickup.address,
         pickupPlaceId: pickup.placeId ?? null,
         pickupLat: pickup.location?.lat ?? null,
         pickupLng: pickup.location?.lng ?? null,
-
         dropoffAddress: dropoff.address,
         dropoffPlaceId: dropoff.placeId ?? null,
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
-
         distanceMiles: route.miles ?? null,
         durationMinutes: route.minutes ?? null,
-
         hoursRequested:
           selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
-
         specialRequests: specialRequests || null,
       });
 
-      if ((res as any)?.error) {
-        toast.error((res as any).error);
+      const data = res as any;
+
+      if (data?.error) {
+        toast.error(data.error);
+        setSubmitting(false);
         return;
       }
 
-      toast.success(
-        "Request submitted. Dispatch will email your payment link."
-      );
-      router.push("/account");
-      router.refresh();
-    });
+      setSubmitted(true);
+      toast.success("Request submitted.");
+
+      const bookingId =
+        data?.bookingId ?? data?.id ?? data?.booking?.id ?? null;
+
+      const href = bookingId
+        ? `/book/success?id=${encodeURIComponent(String(bookingId))}`
+        : "/book/success";
+
+      router.replace(href);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Something went wrong. Please try again.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -609,6 +615,7 @@ export default function BookingWizard({
                       type='button'
                       onClick={() => setStep(2)}
                       className='secondaryBtn'
+                      disabled={submitting || submitted}
                     >
                       Back
                     </button>
@@ -617,9 +624,13 @@ export default function BookingWizard({
                       type='button'
                       onClick={handleSubmit}
                       className='primaryBtn'
-                      disabled={isPending}
+                      disabled={submitting || submitted}
                     >
-                      {isPending ? "Submitting..." : "Submit request"}
+                      {submitted
+                        ? "Submitted"
+                        : submitting
+                          ? "Submitting..."
+                          : "Submit request"}
                     </button>
                   </div>
                 </div>
