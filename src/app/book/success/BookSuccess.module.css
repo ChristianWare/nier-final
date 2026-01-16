@@ -1,3 +1,9 @@
+.parent {
+  padding: 7rem 0rem;
+  padding-bottom: 0rem;
+  background-color: var(--cream);
+}
+
 .container {
   display: grid;
   place-items: center;
@@ -11,7 +17,7 @@
   border-radius: 16px;
   padding: 22px;
   display: grid;
-  gap: 12px;
+  gap: 2rem;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.08);
 }
 
@@ -25,16 +31,8 @@
   background: rgba(0, 0, 0, 0.06);
 }
 
-.title {
-  margin: 0;
-  font-size: 28px;
-  letter-spacing: -0.02em;
-}
-
-.subheading {
-  margin: 0;
-  opacity: 0.78;
-  line-height: 1.5;
+.copy {
+  color: var(--paragraph);
 }
 
 .meta {
@@ -78,4 +76,12 @@
   font-size: 12px;
   opacity: 0.7;
   padding-top: 4px;
+}
+
+@media screen and (max-width: 568px) {
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 1rem;
+  }
 }
