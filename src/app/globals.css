@@ -446,6 +446,11 @@ select:focus {
   color: var(--darkYellow);
 }
 
+.pillBad {
+  background: rgba(255, 9, 9, 0.25);
+  color: var(--accent);
+}
+
 .badge {
   font-size: 12px;
   padding: 6px 10px;

@@ -83,22 +83,11 @@ export default async function AdminAirportsPage() {
                         <span style={{ opacity: 0.7 }}>({a.iata})</span>
                       </div>
 
-                      <span
-                        className='pill'
-                        style={{
-                          padding: "3px 8px",
-                          borderRadius: 999,
-                          fontSize: 12,
-                          fontWeight: 800,
-                          border: "1px solid rgba(0,0,0,0.12)",
-                          background: a.active
-                            ? "rgba(0,0,0,0.05)"
-                            : "rgba(255,0,0,0.05)",
-                          opacity: 0.85,
-                        }}
-                      >
+                        <span
+                        className={`pill ${a.active ? 'pillGood' : 'pillBad'}`}
+                        >
                         {a.active ? "Active" : "Disabled"}
-                      </span>
+                        </span>
                     </div>
 
                     <div className='emptySmall' style={{ opacity: 0.8 }}>
