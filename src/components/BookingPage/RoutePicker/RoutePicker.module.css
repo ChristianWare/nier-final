@@ -1,0 +1,15 @@
+.infoItemContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+  width: 100%;
+}
+
+.infoItem {
+  border: 1px solid var(--stroke);
+  width: 100%;
+  padding: 1rem;
+  border-radius: 7px;
+}

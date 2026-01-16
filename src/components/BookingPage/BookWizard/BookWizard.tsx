@@ -13,6 +13,7 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Grid2 from "../Grid2/Grid2";
 import Stepper from "../Stepper/Stepper";
 import SummaryRow from "../SummaryRow/SummaryRow";
+import BookingDateTimePicker from "@/components/BookingPage/BookingDateTimePicker/BookingDateTimePicker";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 
@@ -37,14 +38,11 @@ type VehicleDTO = {
   capacity: number;
   luggageCapacity: number;
   imageUrl: string | null;
-
   minHours: number;
-
   baseFareCents: number;
   perMileCents: number;
   perMinuteCents: number;
   perHourCents: number;
-
   active: boolean;
   sortOrder: number;
 };
@@ -53,10 +51,6 @@ function centsToUsd(cents: number) {
   return (cents / 100).toFixed(2);
 }
 
-/**
- * Client-side estimate (NOT the source of truth).
- * Server enforces rules again in createBookingRequest.
- */
 function estimateTotalCents(args: {
   service: ServiceTypeDTO;
   vehicle: VehicleDTO | null;
@@ -119,29 +113,21 @@ export default function BookingWizard({
   const services: ServiceTypeDTO[] = serviceTypes ?? [];
   const vehicleOptions: VehicleDTO[] = vehicles ?? [];
 
-  // Step 1 fields
   const [serviceTypeId, setServiceTypeId] = useState<string>(
     services[0]?.id ?? ""
   );
-  const [pickupAtDate, setPickupAtDate] = useState<string>(""); // yyyy-mm-dd
-  const [pickupAtTime, setPickupAtTime] = useState<string>(""); // HH:mm
+  const [pickupAtDate, setPickupAtDate] = useState<string>("");
+  const [pickupAtTime, setPickupAtTime] = useState<string>("");
   const [passengers, setPassengers] = useState<number>(1);
   const [luggage, setLuggage] = useState<number>(0);
 
-  // ✅ route state is still owned here
   const [route, setRoute] = useState<RoutePickerValue | null>(null);
 
-  // ✅ external inputs live on the RIGHT now
   const pickupInputRef = useRef<HTMLInputElement | null>(null);
   const dropoffInputRef = useRef<HTMLInputElement | null>(null);
 
-  // HOURLY
   const [hoursRequested, setHoursRequested] = useState<number>(2);
-
-  // Step 2
   const [vehicleId, setVehicleId] = useState<string>("");
-
-  // Step 3
   const [specialRequests, setSpecialRequests] = useState<string>("");
 
   const selectedService = useMemo(
@@ -287,7 +273,7 @@ export default function BookingWizard({
             <div className={styles.wizard}>
               {step === 1 ? (
                 <div style={{ display: "grid", gap: 14 }}>
-                  <h2 className={` underline`}>Trip details</h2>
+                  <h2 className='underline'>Trip details</h2>
                   <p className='subheading'>
                     Please provide the details for your trip below
                   </p>
@@ -321,27 +307,12 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  <Grid2>
-                    <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Date</label>
-                      <input
-                        type='date'
-                        value={pickupAtDate}
-                        onChange={(e) => setPickupAtDate(e.target.value)}
-                        className='input emptySmall'
-                      />
-                    </div>
-
-                    <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Time</label>
-                      <input
-                        type='time'
-                        value={pickupAtTime}
-                        onChange={(e) => setPickupAtTime(e.target.value)}
-                        className='input emptySmall'
-                      />
-                    </div>
-                  </Grid2>
+                  <BookingDateTimePicker
+                    date={pickupAtDate}
+                    time={pickupAtTime}
+                    onChangeDate={setPickupAtDate}
+                    onChangeTime={setPickupAtTime}
+                  />
 
                   <Grid2>
                     <div style={{ display: "grid", gap: 8 }}>
@@ -367,7 +338,6 @@ export default function BookingWizard({
                     </div>
                   </Grid2>
 
-                  {/* ✅ NEW: Pickup / Dropoff fields live on the RIGHT */}
                   <div style={{ display: "grid", gap: 10 }}>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>Pickup</label>
@@ -451,7 +421,7 @@ export default function BookingWizard({
 
               {step === 2 ? (
                 <div style={{ display: "grid", gap: 14 }}>
-                  <h2 className={` underline`}>Choose a vehicle</h2>
+                  <h2 className='underline'>Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
 
                   <div style={{ display: "grid", gap: 10 }}>
@@ -550,7 +520,7 @@ export default function BookingWizard({
                     <button
                       type='button'
                       onClick={() => setStep(1)}
-                      style={btnSecondaryStyle}
+                      className='secondaryBtn'
                     >
                       Back
                     </button>
@@ -564,7 +534,7 @@ export default function BookingWizard({
                         }
                         setStep(3);
                       }}
-                      style={btnStyle}
+                      className='primaryBtn'
                     >
                       Next
                     </button>
@@ -574,7 +544,7 @@ export default function BookingWizard({
 
               {step === 3 ? (
                 <div style={{ display: "grid", gap: 14 }}>
-                  <h2 className={` underline`}>Confirm</h2>
+                  <h2 className='underline'>Confirm</h2>
                   <p className='subheading'>Overview</p>
 
                   <div style={summaryCardStyle}>
@@ -632,6 +602,7 @@ export default function BookingWizard({
                     <textarea
                       value={specialRequests}
                       onChange={(e) => setSpecialRequests(e.target.value)}
+                      className='input emptySmall'
                       style={{ minHeight: 90 }}
                       placeholder='Child seat, wheelchair needs, extra stops, meet & greet...'
                     />
@@ -647,7 +618,7 @@ export default function BookingWizard({
                     <button
                       type='button'
                       onClick={() => setStep(2)}
-                      style={btnSecondaryStyle}
+                      className='secondaryBtn'
                     >
                       Back
                     </button>
@@ -655,7 +626,7 @@ export default function BookingWizard({
                     <button
                       type='button'
                       onClick={handleSubmit}
-                      style={btnStyle}
+                      className='primaryBtn'
                       disabled={isPending}
                     >
                       {isPending ? "Submitting..." : "Submit request"}
@@ -672,19 +643,6 @@ export default function BookingWizard({
 }
 
 const labelStyle: React.CSSProperties = { fontSize: 12, opacity: 0.8 };
-
-const btnStyle: React.CSSProperties = {
-  padding: "0.85rem 1.05rem",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.22)",
-  cursor: "pointer",
-  background: "white",
-};
-
-const btnSecondaryStyle: React.CSSProperties = {
-  ...btnStyle,
-  opacity: 0.85,
-};
 
 const summaryCardStyle: React.CSSProperties = {
   border: "1px solid rgba(0,0,0,0.12)",

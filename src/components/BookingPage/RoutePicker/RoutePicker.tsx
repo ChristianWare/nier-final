@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import styles from "./RoutePicker.module.css";
 import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 
 type LatLng = { lat: number; lng: number };
@@ -364,26 +365,15 @@ export default function RoutePicker({
   return (
     <div style={{ display: "grid", gap: 10 }}>
       {/* ✅ distance/duration stays above map */}
-      <div
-        // style={{
-        //   padding: "0.75rem",
-        //   borderRadius: 12,
-        //   border: "1px solid rgba(0,0,0,0.12)",
-        //   display: "flex",
-        //   gap: "1rem",
-        //   alignItems: "center",
-        //   flexWrap: "wrap",
-        //   background: "white",
-        // }}
-      >
-        {/* <div>
+      <div className={styles.infoItemContainer}>
+        {/* <div className={styles.infoItem}>
           <div className='emptyTitleSmall'>Distance</div>
           <div style={{ fontSize: 18 }}>
             {displayMiles == null ? "—" : `${displayMiles} mi`}
           </div>
         </div>
 
-        <div>
+        <div className={styles.infoItem}>
           <div className='emptyTitleSmall'>Duration</div>
           <div style={{ fontSize: 18 }}>
             {displayMinutes == null ? "—" : `${displayMinutes} min`}

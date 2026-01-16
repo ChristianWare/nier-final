@@ -139,7 +139,9 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus
+{
   outline: none;
 }
 
@@ -555,7 +557,7 @@ textarea:focus {
 }
 
 .input {
-  padding: 0.75rem;
+  padding: 0.75rem 0rem;
   border: none;
   border-bottom: 3px solid var(--stroke);
   background: white;
