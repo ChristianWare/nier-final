@@ -110,8 +110,15 @@ export default function BookingWizard({
   const [isPending, startTransition] = useTransition();
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
-  const services: ServiceTypeDTO[] = serviceTypes ?? [];
-  const vehicleOptions: VehicleDTO[] = vehicles ?? [];
+  const services = useMemo<ServiceTypeDTO[]>(
+    () => serviceTypes ?? [],
+    [serviceTypes]
+  );
+
+  const vehicleOptions = useMemo<VehicleDTO[]>(
+    () => vehicles ?? [],
+    [vehicles]
+  );
 
   const [serviceTypeId, setServiceTypeId] = useState<string>(
     services[0]?.id ?? ""
@@ -349,11 +356,6 @@ export default function BookingWizard({
                         autoComplete='off'
                         className='input emptySmall'
                       />
-                      {/* {route?.pickup?.address ? (
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
-                          Selected: {route.pickup.address}
-                        </div>
-                      ) : null} */}
                     </div>
 
                     <div style={{ display: "grid", gap: 8 }}>
@@ -364,11 +366,6 @@ export default function BookingWizard({
                         autoComplete='off'
                         className='input emptySmall'
                       />
-                      {/* {route?.dropoff?.address ? (
-                        <div style={{ fontSize: 12, opacity: 0.75 }}>
-                          Selected: {route.dropoff.address}
-                        </div>
-                      ) : null} */}
                     </div>
                   </div>
 
@@ -478,13 +475,13 @@ export default function BookingWizard({
                               gap: 12,
                             }}
                           >
-                            <div className="emptyTitle">{v.name}</div>
-                            <div className="emptyTitleSmall">
+                            <div className='emptyTitle'>{v.name}</div>
+                            <div className='emptyTitleSmall'>
                               ${centsToUsd(rowEstimateCents)}
                             </div>
                           </div>
 
-                          <div style={{ fontSize: 12, opacity: 0.75 }}>
+                          <div className='val'>
                             Capacity: {v.capacity} • Luggage:{" "}
                             {v.luggageCapacity}
                             {rowMinHours !== null
@@ -584,16 +581,14 @@ export default function BookingWizard({
                       value={`$${centsToUsd(estimateCents)}`}
                       strong
                     />
-                    <div style={{ fontSize: 12, opacity: 0.7, marginTop: 8 }}>
+                    <div className='miniNote'>
                       This is an estimate. Dispatch may adjust for special
                       dates, late night, extra stops, etc.
                     </div>
                   </div>
 
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label style={labelStyle}>
-                      Special requests (optional)
-                    </label>
+                    <label className='label'>Special requests (optional)</label>
                     <textarea
                       value={specialRequests}
                       onChange={(e) => setSpecialRequests(e.target.value)}
@@ -636,8 +631,6 @@ export default function BookingWizard({
     </section>
   );
 }
-
-const labelStyle: React.CSSProperties = { fontSize: 12, opacity: 0.8 };
 
 const summaryCardStyle: React.CSSProperties = {
   border: "1px solid rgba(0,0,0,0.12)",

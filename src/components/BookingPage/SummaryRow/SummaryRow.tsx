@@ -10,8 +10,8 @@ export default function SummaryRow({
   strong?: boolean;
 }) {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-      <div style={{ fontSize: 12, opacity: 0.75 }}>{label}</div>
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, borderBottom: '1px solid var(--black300)', paddingBottom: 8, marginBottom: 8 }}>
+      <div className='emptyTitleSmall'>{label}</div>
       <div style={{ fontSize: 13, fontWeight: strong ? 800 : 500 }}>
         {value}
       </div>
