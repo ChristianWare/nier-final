@@ -9,7 +9,10 @@ export type UrgentBookingItem = {
   status: string;
   pickupAddress: string;
   dropoffAddress: string;
-  user: { name: string | null; email: string };
+  user: { name: string | null; email: string } | null;
+  guestName: string | null;
+  guestEmail: string | null;
+  guestPhone: string | null;
   serviceType?: { name: string } | null;
   assignment?: { driver: { name: string | null; email: string } } | null;
 };
@@ -18,7 +21,7 @@ type Props = {
   unassignedSoon: UrgentBookingItem[];
   pendingPaymentSoon: UrgentBookingItem[];
   stuckReview: UrgentBookingItem[];
-  timeZone?: string; // "America/Phoenix"
+  timeZone?: string;
 };
 
 export default function AdminUrgentQueue({
@@ -34,9 +37,6 @@ export default function AdminUrgentQueue({
     <section className={styles.container} aria-label='Urgent queue'>
       <header className={styles.header}>
         <h2 className={`cardTitle h4`}>Urgent</h2>
-        {/* <div className={styles.meta}>
-          {total > 0 ? `${total} item(s)` : "All clear"}
-        </div> */}
         <div className={styles.meta}>
           {total === 0 ? (
             "All clear"
@@ -100,7 +100,13 @@ function UrgentSection({
       ) : (
         <ul className={styles.list}>
           {items.map((b) => {
-            const customer = b.user.name?.trim() || b.user.email;
+            const customer =
+              b.user?.name?.trim() ||
+              b.user?.email ||
+              b.guestName?.trim() ||
+              b.guestEmail ||
+              "Guest";
+
             const pickupShort = shortAddress(b.pickupAddress);
             const dropoffShort = shortAddress(b.dropoffAddress);
             const pickupWhen = formatDateTime(b.pickupAt, timeZone);

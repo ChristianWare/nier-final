@@ -2,7 +2,7 @@
 "use client";
 
 import styles from "./BookingWizard.module.css";
-import React, { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {
@@ -17,6 +17,17 @@ import BookingDateTimePicker from "@/components/BookingPage/BookingDateTimePicke
 import { useSession } from "next-auth/react";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
+type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
+
+type AirportDTO = {
+  id: string;
+  name: string;
+  iata: string;
+  address: string;
+  placeId: string | null;
+  lat: any | null; // Prisma Decimal at runtime
+  lng: any | null;
+};
 
 type ServiceTypeDTO = {
   id: string;
@@ -30,6 +41,9 @@ type ServiceTypeDTO = {
   perHourCents: number;
   active: boolean;
   sortOrder: number;
+
+  airportLeg: AirportLeg;
+  airports: AirportDTO[];
 };
 
 type VehicleDTO = {
@@ -104,6 +118,12 @@ function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
+function decimalToNumber(v: any) {
+  if (v == null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export default function BookingWizard({
   serviceTypes,
   vehicles,
@@ -132,6 +152,7 @@ export default function BookingWizard({
   const [serviceTypeId, setServiceTypeId] = useState<string>(
     services[0]?.id ?? ""
   );
+
   const [pickupAtDate, setPickupAtDate] = useState<string>("");
   const [pickupAtTime, setPickupAtTime] = useState<string>("");
   const [passengers, setPassengers] = useState<number>(1);
@@ -150,6 +171,10 @@ export default function BookingWizard({
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
 
+  // ✅ airport selections
+  const [pickupAirportId, setPickupAirportId] = useState<string>("");
+  const [dropoffAirportId, setDropoffAirportId] = useState<string>("");
+
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceTypeId) ?? null,
     [services, serviceTypeId]
@@ -159,6 +184,46 @@ export default function BookingWizard({
     () => vehicleOptions.find((v) => v.id === vehicleId) ?? null,
     [vehicleOptions, vehicleId]
   );
+
+  const serviceAirports = selectedService?.airports ?? [];
+  const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
+  const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
+
+  // Reset airport picks when service changes
+  // useEffect(() => {
+  //   setPickupAirportId("");
+  //   setDropoffAirportId("");
+  // }, [serviceTypeId]);
+
+  function applyAirportToRoute(side: "pickup" | "dropoff", airportId: string) {
+    const a = serviceAirports.find((x) => x.id === airportId) ?? null;
+
+    setRoute((prev) => {
+      const next: any = { ...(prev ?? {}) };
+
+      if (!a) {
+        delete next[side];
+        next.miles = null;
+        next.minutes = null;
+        return Object.keys(next).length ? next : null;
+      }
+
+      const lat = decimalToNumber(a.lat);
+      const lng = decimalToNumber(a.lng);
+
+      next[side] = {
+        address: a.address,
+        placeId: a.placeId ?? null,
+        location: lat != null && lng != null ? { lat, lng } : (null as any),
+      };
+
+      // force recalculation downstream (RoutePicker usually recomputes)
+      next.miles = null;
+      next.minutes = null;
+
+      return next;
+    });
+  }
 
   const minHours =
     selectedService?.pricingStrategy === "HOURLY"
@@ -193,7 +258,18 @@ export default function BookingWizard({
   function canGoStep2() {
     if (!selectedService) return false;
     if (!pickupAtDate || !pickupAtTime) return false;
+
+    // ✅ Option 4: airport service must have airports configured
+    if (selectedService.airportLeg !== "NONE" && serviceAirports.length === 0) {
+      return false;
+    }
+
+    // Require airport selection if needed
+    if (usesPickupAirport && !pickupAirportId) return false;
+    if (usesDropoffAirport && !dropoffAirportId) return false;
+
     if (!route?.pickup || !route?.dropoff) return false;
+
     return true;
   }
 
@@ -210,6 +286,23 @@ export default function BookingWizard({
       toast.error("Please select a service.");
       return;
     }
+
+    if (selectedService.airportLeg !== "NONE" && serviceAirports.length === 0) {
+      toast.error(
+        "This airport service is not configured yet. Please choose a different service or contact support."
+      );
+      return;
+    }
+
+    if (usesPickupAirport && !pickupAirportId) {
+      toast.error("Please choose a pickup airport.");
+      return;
+    }
+    if (usesDropoffAirport && !dropoffAirportId) {
+      toast.error("Please choose a dropoff airport.");
+      return;
+    }
+
     if (!route?.pickup || !route?.dropoff) {
       toast.error("Please select pickup and dropoff.");
       return;
@@ -228,18 +321,10 @@ export default function BookingWizard({
       const e = guestEmail.trim().toLowerCase();
       const p = guestPhone.trim();
 
-      if (!n) {
-        toast.error("Please enter your name.");
-        return;
-      }
-      if (!e || !isValidEmail(e)) {
-        toast.error("Please enter a valid email address.");
-        return;
-      }
-      if (!p) {
-        toast.error("Please enter your phone number.");
-        return;
-      }
+      if (!n) return toast.error("Please enter your name.");
+      if (!e || !isValidEmail(e))
+        return toast.error("Please enter a valid email address.");
+      if (!p) return toast.error("Please enter your phone number.");
     }
 
     const pickupAtIso = new Date(
@@ -292,7 +377,9 @@ export default function BookingWizard({
 
       const href = bookingId
         ? claimToken
-          ? `/book/success?id=${encodeURIComponent(String(bookingId))}&t=${encodeURIComponent(String(claimToken))}`
+          ? `/book/success?id=${encodeURIComponent(
+              String(bookingId)
+            )}&t=${encodeURIComponent(String(claimToken))}`
           : `/book/success?id=${encodeURIComponent(String(bookingId))}`
         : "/book/success";
 
@@ -335,6 +422,14 @@ export default function BookingWizard({
                       value={serviceTypeId}
                       onChange={(e) => {
                         const next = e.target.value;
+
+                        // ✅ reset airport picks here (no effect)
+                        setPickupAirportId("");
+                        setDropoffAirportId("");
+
+                        // ✅ reset route to avoid stale endpoints
+                        setRoute(null);
+
                         setServiceTypeId(next);
 
                         const svc = services.find((s) => s.id === next);
@@ -357,6 +452,19 @@ export default function BookingWizard({
                       ))}
                     </select>
                   </div>
+
+                  {/* Option 4 fallback notice */}
+                  {selectedService?.airportLeg !== "NONE" &&
+                  serviceAirports.length === 0 ? (
+                    <div
+                      className='miniNote'
+                      style={{ color: "rgba(180,0,0,0.8)" }}
+                    >
+                      This airport service isn’t configured yet (no airports
+                      assigned). Please choose another service or contact
+                      support.
+                    </div>
+                  ) : null}
 
                   <BookingDateTimePicker
                     date={pickupAtDate}
@@ -390,24 +498,101 @@ export default function BookingWizard({
                   </Grid2>
 
                   <div className={styles.pickupDropoffContainer}>
+                    {/* PICKUP */}
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Pickup</label>
-                      <input
-                        ref={pickupInputRef}
-                        placeholder='Enter pickup address'
-                        autoComplete='off'
-                        className='input emptySmall'
-                      />
+                      <label className='cardTitle h5'>
+                        {usesPickupAirport ? "Pickup airport" : "Pickup"}
+                      </label>
+
+                      {usesPickupAirport ? (
+                        <select
+                          value={pickupAirportId}
+                          onChange={(e) => {
+                            const id = e.target.value;
+                            setPickupAirportId(id);
+                            applyAirportToRoute("pickup", id);
+                          }}
+                          className='input emptySmall'
+                        >
+                          <option value=''>Select an airport...</option>
+                          {serviceAirports.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.name} ({a.iata})
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          ref={pickupInputRef}
+                          placeholder='Enter pickup address'
+                          autoComplete='off'
+                          className='input emptySmall'
+                        />
+                      )}
+
+                      {/* keep ref mounted for RoutePicker even when dropdown is used */}
+                      {usesPickupAirport ? (
+                        <input
+                          ref={pickupInputRef}
+                          style={{
+                            position: "absolute",
+                            width: 1,
+                            height: 1,
+                            opacity: 0,
+                            pointerEvents: "none",
+                          }}
+                          tabIndex={-1}
+                          aria-hidden='true'
+                        />
+                      ) : null}
                     </div>
 
+                    {/* DROPOFF */}
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Dropoff</label>
-                      <input
-                        ref={dropoffInputRef}
-                        placeholder='Enter dropoff address'
-                        autoComplete='off'
-                        className='input emptySmall'
-                      />
+                      <label className='cardTitle h5'>
+                        {usesDropoffAirport ? "Dropoff airport" : "Dropoff"}
+                      </label>
+
+                      {usesDropoffAirport ? (
+                        <select
+                          value={dropoffAirportId}
+                          onChange={(e) => {
+                            const id = e.target.value;
+                            setDropoffAirportId(id);
+                            applyAirportToRoute("dropoff", id);
+                          }}
+                          className='input emptySmall'
+                        >
+                          <option value=''>Select an airport...</option>
+                          {serviceAirports.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.name} ({a.iata})
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          ref={dropoffInputRef}
+                          placeholder='Enter dropoff address'
+                          autoComplete='off'
+                          className='input emptySmall'
+                        />
+                      )}
+
+                      {usesDropoffAirport ? (
+                        <input
+                          ref={dropoffInputRef}
+                          style={{
+                            position: "absolute",
+                            width: 1,
+                            height: 1,
+                            opacity: 0,
+                            pointerEvents: "none",
+                          }}
+                          tabIndex={-1}
+                          aria-hidden='true'
+                        />
+                      ) : null}
                     </div>
                   </div>
 
@@ -438,13 +623,20 @@ export default function BookingWizard({
                         onClick={() => {
                           if (!canGoStep2()) {
                             toast.error(
-                              "Please complete service, date/time, and route."
+                              selectedService?.airportLeg !== "NONE" &&
+                                serviceAirports.length === 0
+                                ? "This airport service isn’t configured yet."
+                                : "Please complete service, date/time, and route."
                             );
                             return;
                           }
                           setStep(2);
                         }}
                         className='primaryBtn'
+                        disabled={
+                          selectedService?.airportLeg !== "NONE" &&
+                          serviceAirports.length === 0
+                        }
                       >
                         Next
                       </button>
@@ -452,6 +644,9 @@ export default function BookingWizard({
                   </div>
                 </div>
               ) : null}
+
+              {/* steps 2 + 3 unchanged from your version */}
+              {/* ... keep your existing Step 2 and Step 3 code exactly as-is ... */}
 
               {step === 2 ? (
                 <div style={{ display: "grid", gap: 14 }}>
@@ -726,12 +921,3 @@ export default function BookingWizard({
     </section>
   );
 }
-
-const summaryCardStyle: React.CSSProperties = {
-  border: "1px solid rgba(0,0,0,0.12)",
-  borderRadius: 14,
-  padding: 14,
-  display: "grid",
-  gap: 8,
-  background: "white",
-};

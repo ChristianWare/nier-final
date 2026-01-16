@@ -63,6 +63,13 @@ enum AddonType {
   OTHER
 }
 
+/** ✅ NEW: airport behavior for service types */
+enum AirportLeg {
+  NONE
+  PICKUP
+  DROPOFF
+}
+
 /**
  * =========================
  * NEXTAUTH MODELS
@@ -216,12 +223,44 @@ model VehicleUnit {
   @@index([active])
 }
 
+/** ✅ NEW: Airports live here (addresses belong to airports, not services) */
+model Airport {
+  id      String @id @default(cuid())
+  name    String
+  iata    String @unique
+  address String
+
+  // Optional: helps your RoutePicker / maps integrations if you have it
+  placeId String?
+  lat     Decimal? @db.Decimal(10, 7)
+  lng     Decimal? @db.Decimal(10, 7)
+
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  // Many-to-many with ServiceType
+  services ServiceType[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+  @@index([sortOrder])
+  @@index([iata])
+}
+
 model ServiceType {
   id   String @id @default(cuid())
   name String
   slug String @unique
 
   pricingStrategy ServicePricingStrategy @default(POINT_TO_POINT)
+
+  // ✅ NEW: airport behavior
+  airportLeg AirportLeg @default(NONE)
+
+  // ✅ NEW: airports allowed for this service (only used when airportLeg != NONE)
+  airports Airport[]
 
   // Pricing knobs (in cents)
   minFareCents   Int @default(0)
@@ -265,9 +304,6 @@ model Booking {
   // Hourly services
   hoursRequested Int?
   hoursBilled    Int?
-
-  // (Optional / can remove later) if you’re not using it:
-  // charterHours Int?
 
   pickupAddress String
   pickupPlaceId String?

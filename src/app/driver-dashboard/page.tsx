@@ -37,6 +37,24 @@ const TERMINAL: BookingStatus[] = [
   BookingStatus.NO_SHOW,
 ];
 
+async function resolveSessionUserId(session: any) {
+  const direct =
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined);
+
+  if (direct) return direct;
+
+  const email = session?.user?.email ?? null;
+  if (!email) return null;
+
+  const u = await db.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  return u?.id ?? null;
+}
+
 export default async function DriverDashboardHome() {
   const session = await auth();
   if (!session) redirect("/login?next=/driver-dashboard");
@@ -48,7 +66,7 @@ export default async function DriverDashboardHome() {
 
   if (!hasAccess) redirect("/");
 
-  const driverId = session.user?.id;
+  const driverId = await resolveSessionUserId(session);
   if (!driverId) redirect("/");
 
   const now = new Date();
@@ -90,6 +108,9 @@ export default async function DriverDashboardHome() {
       specialRequests: true,
       internalNotes: true,
       totalCents: true,
+      guestName: true,
+      guestEmail: true,
+      guestPhone: true,
       serviceType: { select: { name: true, slug: true } },
       vehicle: { select: { name: true } },
       user: { select: { name: true, email: true } },

@@ -72,22 +72,18 @@ export default function RoutePicker({
   value: RoutePickerValue | null;
   onChange: (v: RoutePickerValue) => void;
 
-  // ✅ external input refs (rendered outside this component)
   pickupInputRef?: RefObject<HTMLInputElement | null>;
   dropoffInputRef?: RefObject<HTMLInputElement | null>;
 
-  // ✅ change this when inputs mount/unmount (we pass step from the wizard)
   inputsKey?: any;
 }) {
   const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
 
   const mapRef = useRef<HTMLDivElement | null>(null);
 
-  // internal fallback refs (if you ever want RoutePicker to render its own inputs again)
   const internalPickupRef = useRef<HTMLInputElement | null>(null);
   const internalDropoffRef = useRef<HTMLInputElement | null>(null);
 
-  // choose external refs if provided
   const pickupRef = pickupInputRef ?? internalPickupRef;
   const dropoffRef = dropoffInputRef ?? internalDropoffRef;
 
@@ -109,10 +105,12 @@ export default function RoutePicker({
     latestValueRef.current = value;
   }, [value]);
 
-  const pickup = value?.pickup ?? null;
-  const dropoff = value?.dropoff ?? null;
+  const pickup: RoutePickerPlace | null = value?.pickup ?? null;
+  const dropoff: RoutePickerPlace | null = value?.dropoff ?? null;
 
   const canRoute = useMemo(() => !!pickup && !!dropoff, [pickup, dropoff]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _canRoute = canRoute; // (kept only if you want to use it later; otherwise delete both lines)
 
   // Init maps + autocomplete
   useEffect(() => {
@@ -140,7 +138,7 @@ export default function RoutePicker({
           });
         }
 
-        // ✅ Attach pickup autocomplete (supports external input)
+        // Attach pickup autocomplete
         const pickupEl = pickupRef.current;
         if (
           pickupEl &&
@@ -166,17 +164,15 @@ export default function RoutePicker({
                 location: { lat: loc.lat(), lng: loc.lng() },
               },
               dropoff: latest?.dropoff ?? null,
-
               miles: latest?.miles ?? null,
               minutes: latest?.minutes ?? null,
-
               distanceMiles: latest?.distanceMiles ?? null,
               durationMinutes: latest?.durationMinutes ?? null,
             });
           });
         }
 
-        // ✅ Attach dropoff autocomplete (supports external input)
+        // Attach dropoff autocomplete
         const dropoffEl = dropoffRef.current;
         if (
           dropoffEl &&
@@ -202,10 +198,8 @@ export default function RoutePicker({
                 address: place.formatted_address,
                 location: { lat: loc.lat(), lng: loc.lng() },
               },
-
               miles: latest?.miles ?? null,
               minutes: latest?.minutes ?? null,
-
               distanceMiles: latest?.distanceMiles ?? null,
               durationMinutes: latest?.durationMinutes ?? null,
             });
@@ -219,8 +213,26 @@ export default function RoutePicker({
     return () => {
       cancelled = true;
     };
-    // ✅ inputsKey lets us re-run when the wizard mounts/unmounts the inputs
   }, [browserKey, onChange, pickupRef, dropoffRef, inputsKey]);
+
+  // ✅ Sync input text when pickup/dropoff set programmatically (airport dropdown)
+  useEffect(() => {
+    const el = pickupRef.current;
+    if (!el) return;
+    if (document.activeElement === el) return;
+
+    const next = pickup?.address ?? "";
+    if (el.value !== next) el.value = next;
+  }, [pickup, pickupRef, inputsKey]);
+
+  useEffect(() => {
+    const el = dropoffRef.current;
+    if (!el) return;
+    if (document.activeElement === el) return;
+
+    const next = dropoff?.address ?? "";
+    if (el.value !== next) el.value = next;
+  }, [dropoff, dropoffRef, inputsKey]);
 
   // Markers + bounds
   useEffect(() => {
@@ -349,22 +361,13 @@ export default function RoutePicker({
     return () => {
       cancelled = true;
     };
-  }, [
-    pickup?.placeId,
-    dropoff?.placeId,
-    pickup?.location?.lat,
-    pickup?.location?.lng,
-    dropoff?.location?.lat,
-    dropoff?.location?.lng,
-    onChange,
-  ]);
+  }, [pickup, dropoff, onChange]);
 
   const displayMiles = value?.miles ?? value?.distanceMiles ?? null;
   const displayMinutes = value?.minutes ?? value?.durationMinutes ?? null;
 
   return (
     <div style={{ display: "grid", gap: 10 }}>
-      {/* ✅ distance/duration stays above map */}
       <div className={styles.infoItemContainer}>
         {loadingRoute && <div style={{ opacity: 0.7 }}>Calculating…</div>}
         {error && <div style={{ color: "crimson", fontSize: 14 }}>{error}</div>}
@@ -381,10 +384,10 @@ export default function RoutePicker({
           background: "white",
         }}
       />
+
       <div className={styles.infoItem}>
         <div className='emptyTitleSmall'>Distance</div>
         <div className='subheading'>
-          {" "}
           {displayMiles == null ? "—" : `${displayMiles} mi`}
         </div>
       </div>

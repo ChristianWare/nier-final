@@ -1,17 +1,29 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import styles from "./NewServiceForm.module.css";
+import React, { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { slugify } from "@/lib/slugify";
+import Link from "next/link";
 
 type ActionResult = { success?: string; error?: string };
 
-type Props = {
-  action: (formData: FormData) => Promise<ActionResult>;
+type AirportDTO = {
+  id: string;
+  name: string;
+  iata: string;
+  address: string;
 };
 
-export default function NewServiceForm({ action }: Props) {
+type Props = {
+  action: (formData: FormData) => Promise<ActionResult>;
+  airports: AirportDTO[];
+};
+
+type AirportLegUI = "NONE" | "PICKUP" | "DROPOFF";
+
+export default function NewServiceForm({ action, airports }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -21,13 +33,32 @@ export default function NewServiceForm({ action }: Props) {
 
   const suggestedSlug = useMemo(() => slugify(name || ""), [name]);
 
+  const [airportLeg, setAirportLeg] = useState<AirportLegUI>("NONE");
+  const [selectedAirportIds, setSelectedAirportIds] = useState<string[]>([]);
+
+  const showAirportConfig = airportLeg !== "NONE";
+
+  function toggleAirport(id: string) {
+    setSelectedAirportIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
+
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
 
+        if (showAirportConfig && selectedAirportIds.length === 0) {
+          toast.error("Select at least one airport for an airport service.");
+          return;
+        }
+
         const form = e.currentTarget;
         const formData = new FormData(form);
+
+        formData.set("airportLeg", airportLeg);
+        selectedAirportIds.forEach((id) => formData.append("airportIds", id));
 
         startTransition(async () => {
           const res = await action(formData);
@@ -37,12 +68,12 @@ export default function NewServiceForm({ action }: Props) {
             return;
           }
 
-          toast.success("service added");
+          toast.success("Service added");
           router.push("/admin/services");
           router.refresh();
         });
       }}
-      style={{ display: "grid", gap: 10 }}
+      className={styles.form}
     >
       <Field label='Name'>
         <input
@@ -52,11 +83,9 @@ export default function NewServiceForm({ action }: Props) {
             const nextName = e.target.value;
             setName(nextName);
 
-            if (!slugTouched) {
-              setSlug(slugify(nextName));
-            }
+            if (!slugTouched) setSlug(slugify(nextName));
           }}
-          style={inputStyle}
+          className='inputBorder'
           disabled={isPending}
         />
       </Field>
@@ -74,7 +103,7 @@ export default function NewServiceForm({ action }: Props) {
               setSlug(e.target.value);
             }}
             placeholder={suggestedSlug || "auto-generated"}
-            style={inputStyle}
+            className='inputBorder'
             disabled={isPending}
           />
 
@@ -85,7 +114,7 @@ export default function NewServiceForm({ action }: Props) {
                 setSlugTouched(false);
                 setSlug(slugify(name));
               }}
-              style={smallBtnStyle}
+              className='tab tabActive'
               disabled={isPending}
             >
               Reset to auto
@@ -100,6 +129,112 @@ export default function NewServiceForm({ action }: Props) {
           </div>
         </div>
       </Field>
+
+      {/* ✅ Option 2a: simple, clear selector. If "Standard", airport UI stays hidden */}
+      <Field
+        label='Service kind'
+        hint='Choose “Standard” unless pickup or dropoff should be selected from an airport list.'
+      >
+        <select
+          className='inputBorder'
+          value={airportLeg}
+          onChange={(e) => {
+            const next = e.target.value as AirportLegUI;
+            setAirportLeg(next);
+            if (next === "NONE") setSelectedAirportIds([]);
+          }}
+          disabled={isPending}
+        >
+          <option value='NONE'>Standard (no airport dropdown)</option>
+          <option value='PICKUP'>Airport pickup (pickup is an airport)</option>
+          <option value='DROPOFF'>
+            Airport dropoff (dropoff is an airport)
+          </option>
+        </select>
+      </Field>
+
+      {/* ✅ Only shown when relevant */}
+      {showAirportConfig ? (
+        <Field
+          label='Airports for this service'
+          hint='These airports will appear as a dropdown in the BookingWizard.'
+        >
+          <div className={styles.airportBox}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 10,
+                flexWrap: "wrap",
+              }}
+            >
+              <div className='miniNote'>
+                Airports are managed in <strong>Admin → Airports</strong>.
+              </div>
+
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <Link className='tab tabActive' href='/admin/airports'>
+                  Manage airports
+                </Link>
+                <Link className='tab' href='/admin/airports/new'>
+                  Add airport
+                </Link>
+              </div>
+            </div>
+
+            {airports.length === 0 ? (
+              <div style={{ paddingTop: 10 }}>
+                <div className='emptyTitle underline'>No airports yet</div>
+                <p className='emptySmall'>
+                  Add airports first, then come back and select them here.
+                </p>
+              </div>
+            ) : (
+              <div className={styles.airportList}>
+                {airports.map((a) => {
+                  const checked = selectedAirportIds.includes(a.id);
+                  return (
+                    <label key={a.id} className={styles.airportRow}>
+                      <input
+                        type='checkbox'
+                        checked={checked}
+                        onChange={() => toggleAirport(a.id)}
+                        disabled={isPending}
+                      />
+                      <div className={styles.airportRowText}>
+                        <div className={styles.airportName}>
+                          {a.name}{" "}
+                          <span className={styles.iata}>({a.iata})</span>
+                        </div>
+                        <div className={styles.airportAddr}>{a.address}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className={styles.airportActions}>
+              <button
+                type='button'
+                className='tab tabActive'
+                disabled={isPending || airports.length === 0}
+                onClick={() => setSelectedAirportIds(airports.map((a) => a.id))}
+              >
+                Select all
+              </button>
+              <button
+                type='button'
+                className='tab'
+                disabled={isPending}
+                onClick={() => setSelectedAirportIds([])}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </Field>
+      ) : null}
 
       <Select
         label='Pricing strategy'
@@ -116,7 +251,7 @@ export default function NewServiceForm({ action }: Props) {
             inputMode='decimal'
             name='minFare'
             defaultValue='55.00'
-            style={inputStyle}
+            className='inputBorder'
             disabled={isPending}
           />
         </Field>
@@ -128,7 +263,7 @@ export default function NewServiceForm({ action }: Props) {
             inputMode='decimal'
             name='baseFee'
             defaultValue='0.00'
-            style={inputStyle}
+            className='inputBorder'
             disabled={isPending}
           />
         </Field>
@@ -140,7 +275,7 @@ export default function NewServiceForm({ action }: Props) {
             inputMode='decimal'
             name='perMile'
             defaultValue='2.75'
-            style={inputStyle}
+            className='inputBorder'
             disabled={isPending}
           />
         </Field>
@@ -152,7 +287,7 @@ export default function NewServiceForm({ action }: Props) {
             inputMode='decimal'
             name='perMinute'
             defaultValue='0.00'
-            style={inputStyle}
+            className='inputBorder'
             disabled={isPending}
           />
         </Field>
@@ -164,7 +299,7 @@ export default function NewServiceForm({ action }: Props) {
             inputMode='decimal'
             name='perHour'
             defaultValue='0.00'
-            style={inputStyle}
+            className='inputBorder'
             disabled={isPending}
           />
         </Field>
@@ -176,35 +311,34 @@ export default function NewServiceForm({ action }: Props) {
             inputMode='numeric'
             name='sortOrder'
             defaultValue='0'
-            style={inputStyle}
+            className='inputBorder'
             disabled={isPending}
           />
         </Field>
       </Grid2>
 
-      <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <label className={styles.labelinputcheckbox}>
         <input
           type='checkbox'
           name='active'
           defaultChecked
           disabled={isPending}
+          className={styles.labelinputcheckbox}
         />
-        Active
+        <span className='emptyTitle'>Active</span>
       </label>
 
-      <button type='submit' style={submitBtnStyle} disabled={isPending}>
-        {isPending ? "Creating..." : "Create"}
-      </button>
+      <div className={styles.btnContainer}>
+        <button type='submit' className='primaryBtn' disabled={isPending}>
+          {isPending ? "Creating..." : "Create"}
+        </button>
+      </div>
     </form>
   );
 }
 
 function Grid2({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-      {children}
-    </div>
-  );
+  return <div className={styles.grid2}>{children}</div>;
 }
 
 function Field({
@@ -218,9 +352,9 @@ function Field({
 }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <label style={{ fontSize: 12, opacity: 0.8 }}>{label}</label>
+      <label className='cardTitle h5'>{label}</label>
       {children}
-      {hint ? <div style={{ fontSize: 12, opacity: 0.6 }}>{hint}</div> : null}
+      {hint ? <div className='miniNote'>{hint}</div> : null}
     </div>
   );
 }
@@ -238,11 +372,11 @@ function Select({
 }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <label style={{ fontSize: 12, opacity: 0.8 }}>{label}</label>
+      <label className='cardTitle h5'>{label}</label>
       <select
         name={name}
         defaultValue={options[0]}
-        style={inputStyle}
+        className='inputBorder'
         disabled={disabled}
       >
         {options.map((o) => (
@@ -254,25 +388,3 @@ function Select({
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  padding: "0.75rem",
-  borderRadius: 10,
-  border: "1px solid rgba(0,0,0,0.15)",
-};
-
-const submitBtnStyle: React.CSSProperties = {
-  padding: "0.8rem 1rem",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.2)",
-  cursor: "pointer",
-  justifySelf: "start",
-};
-
-const smallBtnStyle: React.CSSProperties = {
-  padding: "0.4rem 0.6rem",
-  borderRadius: 10,
-  border: "1px solid rgba(0,0,0,0.2)",
-  cursor: "pointer",
-  background: "transparent",
-};

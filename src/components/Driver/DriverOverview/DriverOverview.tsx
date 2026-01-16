@@ -18,7 +18,10 @@ type NextTrip = {
   totalCents: number;
   serviceType: { name: string; slug: string };
   vehicle: { name: string } | null;
-  user: { name: string | null; email: string };
+  user: { name: string | null; email: string } | null;
+  guestName: string | null;
+  guestEmail: string | null;
+  guestPhone: string | null;
   assignment: {
     vehicleUnit: { name: string; plate: string | null } | null;
   } | null;
@@ -150,8 +153,15 @@ export default function DriverOverview({
         ? `(${Math.abs(mins)} min ago)`
         : `(in ${mins} min)`;
 
-  const passengerName = nextTrip?.user?.name?.trim() || "Passenger";
-  const passengerEmail = nextTrip?.user?.email || "";
+  const passengerName =
+    nextTrip?.user?.name?.trim() ||
+    nextTrip?.guestName?.trim() ||
+    nextTrip?.user?.email ||
+    nextTrip?.guestEmail ||
+    "Passenger";
+
+  const passengerEmail = nextTrip?.user?.email || nextTrip?.guestEmail || "";
+  const passengerPhone = nextTrip?.guestPhone || "";
 
   const vehicleUnit = nextTrip?.assignment?.vehicleUnit;
   const vehicleDisplay = vehicleUnit
@@ -171,7 +181,7 @@ export default function DriverOverview({
         {!nextTrip ? (
           <div className={styles.empty}>
             <div className='emptyTitle underline'>No upcoming trips</div>
-            <p className="emptySmall">
+            <p className='emptySmall'>
               When dispatch assigns you a job, it’ll appear here.
             </p>
             <div className={styles.btnContainer}>
@@ -218,9 +228,19 @@ export default function DriverOverview({
               </div>
 
               <div className={styles.contactBtns}>
-                <a className={styles.iconBtn} href={`mailto:${passengerEmail}`}>
-                  Email
-                </a>
+                {passengerEmail ? (
+                  <a
+                    className={styles.iconBtn}
+                    href={`mailto:${passengerEmail}`}
+                  >
+                    Email
+                  </a>
+                ) : null}
+                {passengerPhone ? (
+                  <a className={styles.iconBtn} href={`tel:${passengerPhone}`}>
+                    Call
+                  </a>
+                ) : null}
               </div>
             </div>
 
@@ -259,6 +279,7 @@ export default function DriverOverview({
           </div>
         )}
       </section>
+
       <section className={styles.card}>
         <header className={styles.cardHeader}>
           <h2 className='cardTitle h4'>Quick actions</h2>
@@ -266,7 +287,7 @@ export default function DriverOverview({
 
         {!nextTrip ? (
           <div className={styles.emptySmall}>
-            <p className="emptySmall">
+            <p className='emptySmall'>
               Actions appear when you have a next trip.
             </p>
           </div>
@@ -326,8 +347,8 @@ export default function DriverOverview({
 
           {todayTrips.length === 0 ? (
             <div className={styles.emptySmall}>
-              <div className="emptyTitle underline">No trips today</div>
-              <p className="emptySmall">
+              <div className='emptyTitle underline'>No trips today</div>
+              <p className='emptySmall'>
                 If dispatch assigns a trip for today, it’ll show up here.
               </p>
             </div>
@@ -374,7 +395,7 @@ export default function DriverOverview({
 
           {alerts.length === 0 ? (
             <div className={styles.emptySmall}>
-              <div className="emptyTitle underline">All caught up</div>
+              <div className='emptyTitle underline'>All caught up</div>
               <p className='emptySmall'>
                 Trip updates and dispatch notes will appear here.
               </p>

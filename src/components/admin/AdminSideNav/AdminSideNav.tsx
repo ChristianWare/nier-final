@@ -17,6 +17,7 @@ import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Cog from "@/components/shared/icons/Cog/Cog";
 import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
+import Plane from "@/components/shared/icons/Plane/Plane";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { title: "Vehicles", href: "/admin/vehicles", icon: <Car /> },
   { title: "Users", href: "/admin/users", icon: <Users /> },
   { title: "Drivers", href: "/admin/drivers", icon: <Wheel /> },
+  { title: "Airports", href: "/admin/airports", icon: <Plane /> },
   { title: "Settings", href: "/admin/settings", icon: <Cog /> },
 ];
 

@@ -1,0 +1,145 @@
+.form {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 5rem;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 2rem;
+}
+
+.labelinputcheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.labelinputcheckbox input {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 5px;
+}
+
+.btnContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.airportBox {
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background: white;
+}
+
+.airportTop {
+  display: grid;
+  gap: 10px;
+}
+
+.airportHint {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.airportGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.airportCol {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.airportList {
+  display: grid;
+  gap: 10px;
+}
+
+.airportRow {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.airportRow input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+}
+
+.airportRowText {
+  display: grid;
+  gap: 4px;
+}
+
+.airportName {
+  font-weight: 800;
+}
+
+.iata {
+  opacity: 0.75;
+  font-weight: 800;
+}
+
+.airportAddr {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.airportActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.newAirportForm {
+  display: grid;
+  gap: 10px;
+}
+
+.newAirportList {
+  display: grid;
+  gap: 10px;
+}
+
+.newAirportItem {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+}
+
+@media screen and (max-width: 768px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+
+  .btnContainer {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    width: 100%;
+  }
+
+  .airportGrid {
+    grid-template-columns: 1fr;
+  }
+}

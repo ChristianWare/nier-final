@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { slugify } from "@/lib/slugify";
-import { ServicePricingStrategy } from "@prisma/client";
+import { ServicePricingStrategy, AirportLeg } from "@prisma/client";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -56,6 +56,20 @@ async function requireAdmin() {
   return { userId: actorId };
 }
 
+function parseAirportLeg(v: FormDataEntryValue | null): AirportLeg {
+  const s = typeof v === "string" ? v.trim().toUpperCase() : "";
+  if (s === "PICKUP") return AirportLeg.PICKUP;
+  if (s === "DROPOFF") return AirportLeg.DROPOFF;
+  return AirportLeg.NONE;
+}
+
+function airportIdsFromForm(fd: FormData) {
+  return fd
+    .getAll("airportIds")
+    .map((x) => (typeof x === "string" ? x.trim() : ""))
+    .filter(Boolean);
+}
+
 export async function createService(formData: FormData) {
   try {
     await requireAdmin();
@@ -80,6 +94,14 @@ export async function createService(formData: FormData) {
     const sortOrder = intFromForm(formData.get("sortOrder"));
     const active = formData.get("active") === "on";
 
+    const airportLeg = parseAirportLeg(formData.get("airportLeg"));
+    const airportIds = airportIdsFromForm(formData);
+
+    // ✅ Validation (Option 4)
+    if (airportLeg !== AirportLeg.NONE && airportIds.length === 0) {
+      return { error: "Select at least one airport for an airport service." };
+    }
+
     const existing = await db.serviceType.findUnique({ where: { slug } });
     if (existing) return { error: "That slug is already in use." };
 
@@ -95,6 +117,12 @@ export async function createService(formData: FormData) {
         perHourCents,
         sortOrder,
         active,
+
+        airportLeg,
+        airports:
+          airportLeg === AirportLeg.NONE
+            ? undefined
+            : { connect: airportIds.map((id) => ({ id })) },
       },
     });
 
@@ -129,6 +157,13 @@ export async function updateService(serviceId: string, formData: FormData) {
     const sortOrder = intFromForm(formData.get("sortOrder"));
     const active = formData.get("active") === "on";
 
+    const airportLeg = parseAirportLeg(formData.get("airportLeg"));
+    const airportIds = airportIdsFromForm(formData);
+
+    if (airportLeg !== AirportLeg.NONE && airportIds.length === 0) {
+      return { error: "Select at least one airport for an airport service." };
+    }
+
     const existing = await db.serviceType.findUnique({ where: { slug } });
     if (existing && existing.id !== serviceId) {
       return { error: "That slug is already in use." };
@@ -147,6 +182,12 @@ export async function updateService(serviceId: string, formData: FormData) {
         perHourCents,
         sortOrder,
         active,
+
+        airportLeg,
+        airports:
+          airportLeg === AirportLeg.NONE
+            ? { set: [] }
+            : { set: airportIds.map((id) => ({ id })) },
       },
     });
 

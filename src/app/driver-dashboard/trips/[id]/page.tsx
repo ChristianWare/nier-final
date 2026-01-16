@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
-import { auth } from "../../../../../auth"; 
+import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
 import { BookingStatus } from "@prisma/client";
 import { updateDriverBookingStatus } from "../../../../../actions/driver-dashboard/actions";
@@ -68,7 +68,6 @@ function formatDateTime(dt: Date) {
 }
 
 function bufferRecommendation(durationMinutes: number | null | undefined) {
-  // MVP rule of thumb — tweak later
   const mins = durationMinutes ?? 0;
   if (mins >= 90) return "Arrive 20–25 minutes early.";
   if (mins >= 45) return "Arrive 15–20 minutes early.";
@@ -76,8 +75,6 @@ function bufferRecommendation(durationMinutes: number | null | undefined) {
 }
 
 function nextActionOptions(status: BookingStatus) {
-  // We map “Passenger onboard” -> IN_PROGRESS
-  // (Your enum doesn’t have ONBOARD, so IN_PROGRESS is the clean equivalent)
   if (TERMINAL.includes(status)) return [];
 
   if (
@@ -98,17 +95,19 @@ function nextActionOptions(status: BookingStatus) {
     return [{ label: "Complete trip", next: BookingStatus.COMPLETED }];
   }
 
-  // Default fallback for weird states
   return [];
 }
 
 export default async function DriverTripDetailsPage({
   params,
 }: {
-  params: { id: string };
+  params: { id?: string };
 }) {
+  const bookingId = params?.id;
+  if (!bookingId) notFound();
+
   const session = await auth();
-  if (!session) redirect(`/login?next=/driver-dashboard/trips/${params.id}`);
+  if (!session) redirect(`/login?next=/driver-dashboard/trips/${bookingId}`);
 
   const { userId, roles } = await resolveViewer(session);
   const isAdmin = roles.includes("ADMIN");
@@ -116,7 +115,7 @@ export default async function DriverTripDetailsPage({
   if (!isAdmin && !isDriver) redirect("/");
 
   const booking = await db.booking.findUnique({
-    where: { id: params.id },
+    where: { id: bookingId },
     include: {
       user: { select: { id: true, name: true, email: true } },
       serviceType: {
@@ -147,14 +146,24 @@ export default async function DriverTripDetailsPage({
     booking.assignment?.driverId && booking.assignment.driverId === userId
   );
 
-  // Access control:
-  // - ADMIN: any booking
-  // - DRIVER: assigned bookings only
   if (!isAdmin && !isAssignedDriver) redirect("/driver-dashboard/trips");
 
-  const passengerName = booking.user?.name?.trim() || "Passenger";
+  const passengerName =
+    booking.user?.name?.trim() ||
+    booking.guestName?.trim() ||
+    booking.user?.email ||
+    booking.guestEmail ||
+    "Passenger";
+
+  const passengerEmail = booking.user?.email || booking.guestEmail || "—";
+  const passengerPhone = booking.guestPhone || "—";
+
   const vehicleUnit = booking.assignment?.vehicleUnit
-    ? `${booking.assignment.vehicleUnit.name}${booking.assignment.vehicleUnit.plate ? ` • ${booking.assignment.vehicleUnit.plate}` : ""}`
+    ? `${booking.assignment.vehicleUnit.name}${
+        booking.assignment.vehicleUnit.plate
+          ? ` • ${booking.assignment.vehicleUnit.plate}`
+          : ""
+      }`
     : null;
 
   const actions = nextActionOptions(booking.status);
@@ -185,7 +194,6 @@ export default async function DriverTripDetailsPage({
         </Link>
       </header>
 
-      {/* Core info */}
       <Card title='Core info'>
         <Row label='Pickup time' value={formatDateTime(booking.pickupAt)} />
         <Row
@@ -223,17 +231,12 @@ export default async function DriverTripDetailsPage({
         />
       </Card>
 
-      {/* Passenger */}
       <Card title='Passenger'>
         <Row label='Name' value={passengerName} />
-        <Row label='Email' value={booking.user?.email ?? "—"} />
-        <div style={{ fontSize: 12, opacity: 0.7 }}>
-          Phone/Call/SMS buttons can be added once you add a phone field to the
-          User model.
-        </div>
+        <Row label='Email' value={passengerEmail} />
+        <Row label='Phone' value={passengerPhone} />
       </Card>
 
-      {/* Notes */}
       <Card title='Notes & instructions'>
         <div style={{ display: "grid", gap: 10 }}>
           <div>
@@ -267,13 +270,11 @@ export default async function DriverTripDetailsPage({
         </div>
       </Card>
 
-      {/* Vehicle */}
       <Card title='Vehicle'>
         <Row label='Category' value={booking.vehicle?.name ?? "—"} />
         <Row label='Unit' value={vehicleUnit ?? "TBD"} />
       </Card>
 
-      {/* Job actions */}
       <Card title='Job actions'>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {actions.length === 0 ? (
@@ -304,7 +305,6 @@ export default async function DriverTripDetailsPage({
             ))
           )}
 
-          {/* Issue reporting (MVP) */}
           <Link
             href={`/driver-dashboard/support?bookingId=${booking.id}`}
             style={{
@@ -322,7 +322,6 @@ export default async function DriverTripDetailsPage({
         </div>
       </Card>
 
-      {/* Activity log */}
       <Card title='Activity log'>
         {booking.statusEvents.length === 0 ? (
           <div style={{ opacity: 0.75 }}>No updates yet.</div>
@@ -353,7 +352,6 @@ export default async function DriverTripDetailsPage({
         )}
       </Card>
 
-      {/* Payment (optional visibility) */}
       {booking.payment ? (
         <Card title='Payment (FYI)'>
           <Row label='Status' value={booking.payment.status} />

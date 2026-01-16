@@ -1,5 +1,3 @@
-// import { auth } from "../../../auth";
-// import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import BookingWizard from "@/components/BookingPage/BookWizard/BookWizard";
 import BookingPageIntro from "@/components/BookingPage/BookingPageIntro/BookingPageIntro";
@@ -9,9 +7,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function BookPage() {
-  // const session = await auth();
-  // if (!session) redirect("/login?next=/book");
-
   const serviceTypes = await db.serviceType.findMany({
     where: { active: true },
     orderBy: { sortOrder: "asc" },
@@ -28,7 +23,23 @@ export default async function BookPage() {
       perMinuteCents: true,
       perHourCents: true,
 
-      // ✅ include these so types match
+      // ✅ airport behavior + airports
+      airportLeg: true,
+      airports: {
+        where: { active: true },
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          iata: true,
+          address: true,
+          placeId: true,
+          lat: true,
+          lng: true,
+        },
+      },
+
+      // include these so types match
       active: true,
       sortOrder: true,
     },
@@ -45,7 +56,7 @@ export default async function BookPage() {
       luggageCapacity: true,
       imageUrl: true,
 
-      // ✅ REQUIRED for hourly minHours logic
+      // REQUIRED for hourly minHours logic
       minHours: true,
 
       // pricing
@@ -54,7 +65,6 @@ export default async function BookPage() {
       perMinuteCents: true,
       perHourCents: true,
 
-      // ✅ include these so types match
       active: true,
       sortOrder: true,
     },
