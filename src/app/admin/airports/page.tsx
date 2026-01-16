@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Link from "next/link";
 import { db } from "@/lib/db";
+import { toggleAirport } from "../../../../actions/admin/airports";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -7,124 +9,133 @@ export const dynamic = "force-dynamic";
 export default async function AdminAirportsPage() {
   const airports = await db.airport.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    take: 500,
     select: {
       id: true,
       name: true,
       iata: true,
       address: true,
-      active: true,
+      placeId: true,
       sortOrder: true,
+      active: true,
     },
+    take: 500,
   });
 
   return (
-    <section style={{ display: "grid", gap: 14 }}>
+    <section style={{ display: "grid", gap: 16 }}>
       <header className='header'>
-        <h1 className='heading h2'>Airports</h1>
-        <p style={{ margin: 0, opacity: 0.75 }}>
-          These airports power the BookingWizard dropdown for airport services.
+        <h1 className='heading h2' style={{ margin: 0 }}>
+          Airports
+        </h1>
+        <p className='miniNote' style={{ margin: 0 }}>
+          Manage the airport list used by airport pickup/dropoff services.
         </p>
-
         <Link className='primaryBtn' href='/admin/airports/new'>
-          Add airport
+          New airport
         </Link>
       </header>
-
       {airports.length === 0 ? (
-        <div className='box'>
+        <div className='box' style={{ display: "grid", gap: 10 }}>
           <div className='emptyTitle underline'>No airports yet</div>
           <p className='emptySmall'>
-            Add at least one airport to use airport services.
+            Create one to enable airport dropdowns in the BookingWizard.
           </p>
-          <div style={{ paddingTop: 10 }}>
+          <div>
             <Link className='primaryBtn' href='/admin/airports/new'>
-              Add airport
+              Create airport
             </Link>
           </div>
         </div>
       ) : (
-        <div className='box' style={{ padding: 0, overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ textAlign: "left" }}>
-                <th
+        <div className='box' style={{ display: "grid", gap: 10 }}>
+          <div style={{ display: "grid", gap: 10 }}>
+            {airports.map((a) => {
+              // ✅ Wrap toggleAirport so the form action returns void
+              const toggleAction = async (_formData: FormData) => {
+                "use server";
+                await toggleAirport(a.id);
+              };
+
+              return (
+                <div
+                  key={a.id}
                   style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    gap: 12,
                     padding: 12,
-                    borderBottom: "1px solid rgba(0,0,0,0.08)",
+                    borderRadius: 12,
+                    border: "1px solid rgba(0,0,0,0.12)",
+                    background: "white",
                   }}
                 >
-                  Airport
-                </th>
-                <th
-                  style={{
-                    padding: 12,
-                    borderBottom: "1px solid rgba(0,0,0,0.08)",
-                  }}
-                >
-                  IATA
-                </th>
-                <th
-                  style={{
-                    padding: 12,
-                    borderBottom: "1px solid rgba(0,0,0,0.08)",
-                  }}
-                >
-                  Address
-                </th>
-                <th
-                  style={{
-                    padding: 12,
-                    borderBottom: "1px solid rgba(0,0,0,0.08)",
-                  }}
-                >
-                  Active
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {airports.map((a) => (
-                <tr key={a.id}>
-                  <td
-                    style={{
-                      padding: 12,
-                      borderBottom: "1px solid rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    <div style={{ fontWeight: 900 }}>{a.name}</div>
-                    <div style={{ fontSize: 12, opacity: 0.7 }}>
-                      Sort: {a.sortOrder}
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        flexWrap: "wrap",
+                        alignItems: "baseline",
+                      }}
+                    >
+                      <div className='emptyTitle underline'>
+                        {a.name}{" "}
+                        <span style={{ opacity: 0.7 }}>({a.iata})</span>
+                      </div>
+
+                      <span
+                        className='pill'
+                        style={{
+                          padding: "3px 8px",
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 800,
+                          border: "1px solid rgba(0,0,0,0.12)",
+                          background: a.active
+                            ? "rgba(0,0,0,0.05)"
+                            : "rgba(255,0,0,0.05)",
+                          opacity: 0.85,
+                        }}
+                      >
+                        {a.active ? "Active" : "Disabled"}
+                      </span>
                     </div>
-                  </td>
-                  <td
+
+                    <div className='emptySmall' style={{ opacity: 0.8 }}>
+                      {a.address}
+                    </div>
+
+                    <div className='miniNote'>
+                      {a.placeId ? "Place ID saved" : "No Place ID"}
+                    </div>
+                  </div>
+
+                  <div
                     style={{
-                      padding: 12,
-                      borderBottom: "1px solid rgba(0,0,0,0.06)",
-                      fontFamily: "monospace",
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      justifyContent: "flex-end",
                     }}
                   >
-                    {a.iata}
-                  </td>
-                  <td
-                    style={{
-                      padding: 12,
-                      borderBottom: "1px solid rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    {a.address}
-                  </td>
-                  <td
-                    style={{
-                      padding: 12,
-                      borderBottom: "1px solid rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    {a.active ? "Yes" : "No"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <Link
+                      className='tab tabActive'
+                      href={`/admin/airports/${a.id}`}
+                    >
+                      Edit
+                    </Link>
+
+                    <form action={toggleAction}>
+                      <button type='submit' className='tab'>
+                        {a.active ? "Disable" : "Enable"}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>

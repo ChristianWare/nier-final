@@ -1,11 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 type ActionResult = { success?: string; error?: string };
+
+type InitialAirport = {
+  name?: string;
+  iata?: string;
+  address?: string;
+  placeId?: string;
+  sortOrder?: number;
+  active?: boolean;
+  lat?: string;
+  lng?: string;
+};
 
 declare global {
   interface Window {
@@ -13,24 +24,23 @@ declare global {
   }
 }
 
-const loadGoogleMaps = (browserKey: string) => {
+function loadGooglePlaces(browserKey: string) {
   return new Promise<void>((resolve, reject) => {
     if (window.google?.maps?.places) return resolve();
 
     const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-google-maps="1"]'
+      'script[data-google-places="1"]'
     );
-
     if (existing) {
       existing.addEventListener("load", () => resolve());
       existing.addEventListener("error", () =>
-        reject(new Error("Failed to load Google Maps"))
+        reject(new Error("Failed to load Google Places"))
       );
       return;
     }
 
     const script = document.createElement("script");
-    script.dataset.googleMaps = "1";
+    script.dataset.googlePlaces = "1";
     script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
       browserKey
     )}&libraries=places`;
@@ -38,30 +48,28 @@ const loadGoogleMaps = (browserKey: string) => {
     script.defer = true;
 
     script.onload = () => resolve();
-    script.onerror = () =>
-      reject(new Error("Failed to load Google Maps script"));
+    script.onerror = () => reject(new Error("Failed to load Google Places"));
     document.head.appendChild(script);
   });
-};
+}
 
 export default function AirportForm({
   action,
+  initial,
+  submitLabel = "Create",
 }: {
   action: (formData: FormData) => Promise<ActionResult>;
+  initial?: InitialAirport;
+  submitLabel?: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  // ✅ We keep these controlled so we can auto-fill placeId when selecting a suggestion
-  const [address, setAddress] = useState("");
-  const [placeId, setPlaceId] = useState("");
-
-  // ✅ Uncontrolled ref for Google Autocomplete binding (best reliability)
   const addressRef = useRef<HTMLInputElement | null>(null);
-  const acRef = useRef<any>(null);
-  const acElRef = useRef<HTMLInputElement | null>(null);
+  const placeIdRef = useRef<HTMLInputElement | null>(null);
+  const latRef = useRef<HTMLInputElement | null>(null);
+  const lngRef = useRef<HTMLInputElement | null>(null);
 
-  // ✅ Init Places Autocomplete for Address
   useEffect(() => {
     const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
     if (!browserKey) return;
@@ -70,50 +78,35 @@ export default function AirportForm({
 
     (async () => {
       try {
-        await loadGoogleMaps(browserKey);
+        await loadGooglePlaces(browserKey);
         if (cancelled) return;
 
         const google = window.google;
         const el = addressRef.current;
         if (!google?.maps?.places || !el) return;
 
-        // already attached to this exact input
-        if (acRef.current && acElRef.current === el) return;
-
-        // if re-attaching, clear listeners
-        if (acRef.current) {
-          try {
-            google.maps.event.clearInstanceListeners(acRef.current);
-          } catch {}
-          acRef.current = null;
-        }
-
-        acElRef.current = el;
-
         const ac = new google.maps.places.Autocomplete(el, {
-          fields: ["place_id", "formatted_address", "geometry", "name"],
+          fields: ["place_id", "formatted_address", "geometry"],
           componentRestrictions: { country: "us" },
         });
 
-        acRef.current = ac;
-
         ac.addListener("place_changed", () => {
           const place = ac.getPlace();
-          const formatted = place?.formatted_address ?? "";
-          const pid = place?.place_id ?? "";
+          const loc = place?.geometry?.location;
 
-          if (!formatted) return;
-
-          // ✅ write to the input (uncontrolled)
-          el.value = formatted;
-
-          // ✅ sync state (so hidden/controlled values match)
-          setAddress(formatted);
-          setPlaceId(pid);
+          if (place?.formatted_address) {
+            el.value = place.formatted_address;
+          }
+          if (place?.place_id && placeIdRef.current) {
+            placeIdRef.current.value = place.place_id;
+          }
+          if (loc && latRef.current && lngRef.current) {
+            latRef.current.value = String(loc.lat());
+            lngRef.current.value = String(loc.lng());
+          }
         });
-      } catch (e: any) {
-        // Don't hard-fail the form if maps fails; just no autocomplete
-        console.warn("Places autocomplete failed:", e?.message ?? e);
+      } catch {
+        // silent: still allow manual address entry
       }
     })();
 
@@ -127,13 +120,7 @@ export default function AirportForm({
       className='box'
       onSubmit={(e) => {
         e.preventDefault();
-
-        const form = e.currentTarget;
-        const formData = new FormData(form);
-
-        // ✅ Ensure latest address + placeId are submitted even if user typed manually
-        formData.set("address", addressRef.current?.value ?? address ?? "");
-        formData.set("placeId", placeId ?? "");
+        const formData = new FormData(e.currentTarget);
 
         startTransition(() => {
           void (async () => {
@@ -144,7 +131,7 @@ export default function AirportForm({
               return;
             }
 
-            toast.success("Airport added");
+            toast.success(res?.success || "Saved");
             router.push("/admin/airports");
             router.refresh();
           })();
@@ -159,6 +146,7 @@ export default function AirportForm({
           className='inputBorder'
           disabled={isPending}
           placeholder='Phoenix Sky Harbor'
+          defaultValue={initial?.name ?? ""}
         />
       </div>
 
@@ -169,10 +157,7 @@ export default function AirportForm({
           className='inputBorder'
           disabled={isPending}
           placeholder='PHX'
-          onChange={(e) => {
-            // optional: normalize as they type
-            e.currentTarget.value = e.currentTarget.value.toUpperCase();
-          }}
+          defaultValue={initial?.iata ?? ""}
         />
         <div className='miniNote'>
           Use the 3-letter IATA code (PHX, LAX, etc.).
@@ -181,47 +166,45 @@ export default function AirportForm({
 
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>Address</label>
-        {/* ✅ UNCONTROLLED input for Places dropdown reliability */}
         <input
           ref={addressRef}
           name='address'
           className='inputBorder'
           disabled={isPending}
-          placeholder='Start typing an address…'
+          placeholder='3400 E Sky Harbor Blvd, Phoenix, AZ...'
+          defaultValue={initial?.address ?? ""}
           autoComplete='off'
-          onInput={(e) => {
-            // Keep state in sync when user types manually
-            const v = String(e.currentTarget.value ?? "");
-            setAddress(v);
-            // clear stale placeId once they start typing again
-            setPlaceId("");
-          }}
         />
         <div className='miniNote'>
-          Start typing and pick a suggestion to auto-fill. (If suggestions
-          appear but seem “behind” the UI, add{" "}
-          <code>.pac-container &#123; z-index: 999999 !important; &#125;</code>{" "}
-          to global CSS.)
+          Start typing and select the suggested address.
         </div>
       </div>
 
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>Google Place ID (optional)</label>
         <input
+          ref={placeIdRef}
           name='placeId'
           className='inputBorder'
           disabled={isPending}
-          placeholder='Auto-filled when you pick an address'
-          value={placeId}
-          onChange={(e) => setPlaceId(e.target.value)}
+          placeholder='Auto-fills when you select an address'
+          defaultValue={initial?.placeId ?? ""}
         />
-        <div className='miniNote'>
-          Place ID is a stable identifier from Google for this location. It
-          helps you re-hydrate the exact place later (even if the formatted
-          address changes). Selecting an autocomplete suggestion will fill it
-          automatically.
-        </div>
       </div>
+
+      {/* Optional lat/lng storage if your model supports it */}
+      <input
+        ref={latRef}
+        name='lat'
+        type='hidden'
+        defaultValue={initial?.lat ?? ""}
+      />
+      <input
+        ref={lngRef}
+        name='lng'
+        type='hidden'
+        defaultValue={initial?.lng ?? ""}
+      />
 
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>Sort order</label>
@@ -230,7 +213,7 @@ export default function AirportForm({
           type='number'
           step='1'
           inputMode='numeric'
-          defaultValue='0'
+          defaultValue={String(initial?.sortOrder ?? 0)}
           className='inputBorder'
           disabled={isPending}
         />
@@ -240,14 +223,14 @@ export default function AirportForm({
         <input
           type='checkbox'
           name='active'
-          defaultChecked
+          defaultChecked={initial?.active ?? true}
           disabled={isPending}
         />
         <span className='emptyTitle'>Active</span>
       </label>
 
       <button className='primaryBtn' disabled={isPending} type='submit'>
-        {isPending ? "Creating..." : "Create"}
+        {isPending ? "Saving..." : submitLabel}
       </button>
     </form>
   );
