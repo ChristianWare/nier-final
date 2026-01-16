@@ -366,20 +366,6 @@ export default function RoutePicker({
     <div style={{ display: "grid", gap: 10 }}>
       {/* ✅ distance/duration stays above map */}
       <div className={styles.infoItemContainer}>
-        {/* <div className={styles.infoItem}>
-          <div className='emptyTitleSmall'>Distance</div>
-          <div style={{ fontSize: 18 }}>
-            {displayMiles == null ? "—" : `${displayMiles} mi`}
-          </div>
-        </div>
-
-        <div className={styles.infoItem}>
-          <div className='emptyTitleSmall'>Duration</div>
-          <div style={{ fontSize: 18 }}>
-            {displayMinutes == null ? "—" : `${displayMinutes} min`}
-          </div>
-        </div> */}
-
         {loadingRoute && <div style={{ opacity: 0.7 }}>Calculating…</div>}
         {error && <div style={{ color: "crimson", fontSize: 14 }}>{error}</div>}
       </div>
@@ -395,6 +381,20 @@ export default function RoutePicker({
           background: "white",
         }}
       />
+      <div className={styles.infoItem}>
+        <div className='emptyTitleSmall'>Distance</div>
+        <div className='subheading'>
+          {" "}
+          {displayMiles == null ? "—" : `${displayMiles} mi`}
+        </div>
+      </div>
+
+      <div className={styles.infoItem}>
+        <div className='emptyTitleSmall'>Duration</div>
+        <div className='subheading'>
+          {displayMinutes == null ? "—" : `${displayMinutes} min`}
+        </div>
+      </div>
     </div>
   );
 }

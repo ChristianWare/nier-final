@@ -72,6 +72,7 @@
 
 .btn:hover {
   background: #f7f7f7;
+  color: var(--black);
 }
 
 .primary {
@@ -126,13 +127,12 @@
 }
 
 .dowCell {
-  color: var(--tan);
-  background-color: var(--darkBrown);
+  background-color: var(--lightGray);
   padding: 8px;
   text-align: center;
   font-family: var(--interTight);
   font-weight: 600;
-  border-radius: 8px 8px 0 0;
+  border-radius: 5px;
 }
 
 .gridDays {
@@ -145,18 +145,20 @@
 .dayCell {
   border: 2px solid var(--stroke);
   border-radius: 5px;
-  background: var(--tan);
   min-height: 52px;
   padding: 10px;
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
   cursor: pointer;
-  transition: transform 0.08s ease, background 0.12s ease;
+  transition:
+    transform 0.08s ease,
+    background 0.12s ease;
 }
 
 .dayCell:hover {
   background: #fff;
+  color: var(--black) !important;
 }
 
 .dayCell:active {
@@ -168,6 +170,10 @@
   font-weight: 800;
   color: #222;
   font-size: 14px;
+}
+
+.dayCell:hover .dayNum {
+  color: var(--black);
 }
 
 .dayCellOther {
@@ -187,12 +193,11 @@
 }
 
 .selected {
-  background: #111;
-  border-color: #111;
+  background: var(--black);
 }
 
 .selected .dayNum {
-  color: #fff;
+  color: var(--cream);
 }
 
 .pastDay {
@@ -359,9 +364,27 @@
   opacity: 0.85;
 }
 
+.pinnedChip {
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: 5px;
+  border: 2px solid #111;
+  background: #111;
+  color: #fff;
+  cursor: pointer;
+  font-family: var(--interTight);
+  font-weight: 900;
+  text-align: center;
+  line-height: 1;
+}
+
+.pinnedChip:active {
+  transform: translateY(1px);
+}
+
 .colList {
   border: 2px solid var(--stroke);
-  border-radius: 12px;
+  border-radius: 10px;
   background: #fff;
   overflow: auto;
   max-height: 240px;
@@ -373,7 +396,7 @@
 
 .colItem {
   padding: 10px 10px;
-  border-radius: 10px;
+  border-radius: 5px;
   border: 2px solid var(--stroke);
   background: var(--tan);
   cursor: pointer;
@@ -394,7 +417,7 @@
   justify-content: space-between;
   gap: 10px;
   border: 2px solid var(--stroke);
-  border-radius: 12px;
+  border-radius: 7px;
   background: #fff;
   padding: 10px 12px;
 }
@@ -419,7 +442,7 @@
 
 .footerBtn {
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 7px;
   border: 2px solid var(--stroke);
   background: #fff;
   cursor: pointer;

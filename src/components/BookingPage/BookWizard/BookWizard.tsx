@@ -260,13 +260,15 @@ export default function BookingWizard({
         <div className={styles.content}>
           <div className={styles.left}>
             <Stepper step={step} />
-            <RoutePicker
-              value={route}
-              onChange={setRoute}
-              pickupInputRef={pickupInputRef}
-              dropoffInputRef={dropoffInputRef}
-              inputsKey={step}
-            />
+            <div className={styles.routePickerContainer}>
+              <RoutePicker
+                value={route}
+                onChange={setRoute}
+                pickupInputRef={pickupInputRef}
+                dropoffInputRef={dropoffInputRef}
+                inputsKey={step}
+              />
+            </div>
           </div>
 
           <div className={styles.right}>
@@ -338,7 +340,7 @@ export default function BookingWizard({
                     </div>
                   </Grid2>
 
-                  <div style={{ display: "grid", gap: 10 }}>
+                  <div className={styles.pickupDropoffContainer}>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>Pickup</label>
                       <input
@@ -347,11 +349,11 @@ export default function BookingWizard({
                         autoComplete='off'
                         className='input emptySmall'
                       />
-                      {route?.pickup?.address ? (
+                      {/* {route?.pickup?.address ? (
                         <div style={{ fontSize: 12, opacity: 0.75 }}>
                           Selected: {route.pickup.address}
                         </div>
-                      ) : null}
+                      ) : null} */}
                     </div>
 
                     <div style={{ display: "grid", gap: 8 }}>
@@ -362,11 +364,11 @@ export default function BookingWizard({
                         autoComplete='off'
                         className='input emptySmall'
                       />
-                      {route?.dropoff?.address ? (
+                      {/* {route?.dropoff?.address ? (
                         <div style={{ fontSize: 12, opacity: 0.75 }}>
                           Selected: {route.dropoff.address}
                         </div>
-                      ) : null}
+                      ) : null} */}
                     </div>
                   </div>
 
@@ -390,14 +392,7 @@ export default function BookingWizard({
                     </div>
                   ) : null}
 
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 10,
-                    }}
-                  >
-                    <div />
+                  <div>
                     <div className={styles.btnContainer}>
                       <button
                         type='button'
@@ -466,10 +461,10 @@ export default function BookingWizard({
                           style={{
                             textAlign: "left",
                             padding: 14,
-                            borderRadius: 14,
+                            borderRadius: 7,
                             border: isSelected
                               ? "2px solid rgba(0,0,0,0.6)"
-                              : "1px solid rgba(0,0,0,0.12)",
+                              : "1px solid rgba(0,0,0,0.25)",
                             background: "white",
                             cursor: "pointer",
                             display: "grid",
@@ -483,8 +478,8 @@ export default function BookingWizard({
                               gap: 12,
                             }}
                           >
-                            <div style={{ fontWeight: 700 }}>{v.name}</div>
-                            <div style={{ fontWeight: 700 }}>
+                            <div className="emptyTitle">{v.name}</div>
+                            <div className="emptyTitleSmall">
                               ${centsToUsd(rowEstimateCents)}
                             </div>
                           </div>

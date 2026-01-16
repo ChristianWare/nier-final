@@ -3,7 +3,7 @@
 "use client";
 
 import styles from "./BookingDateTimePicker.module.css";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const TZ = process.env.NEXT_PUBLIC_SALON_TZ ?? "America/Phoenix";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -116,6 +116,37 @@ export default function BookingDateTimePicker({
   const [draftMinute, setDraftMinute] = useState<number>(0);
   const [draftMeridiem, setDraftMeridiem] = useState<"AM" | "PM">("AM");
 
+  const hourListRef = useRef<HTMLDivElement | null>(null);
+  const minuteListRef = useRef<HTMLDivElement | null>(null);
+  const meridiemListRef = useRef<HTMLDivElement | null>(null);
+
+  function scrollToSelected(
+    which: "hour" | "minute" | "meridiem",
+    behavior: ScrollBehavior = "smooth"
+  ) {
+    const ref =
+      which === "hour"
+        ? hourListRef
+        : which === "minute"
+          ? minuteListRef
+          : meridiemListRef;
+
+    const value =
+      which === "hour"
+        ? String(draftHour)
+        : which === "minute"
+          ? String(draftMinute)
+          : draftMeridiem;
+
+    const root = ref.current;
+    if (!root) return;
+
+    const el = root.querySelector<HTMLElement>(`[data-value="${value}"]`);
+    if (!el) return;
+
+    el.scrollIntoView({ block: "center", inline: "nearest", behavior });
+  }
+
   useEffect(() => {
     if (!isTimeOpen) return;
 
@@ -135,6 +166,16 @@ export default function BookingDateTimePicker({
       body.style.touchAction = prevTouchAction;
     };
   }, [isTimeOpen]);
+
+  useEffect(() => {
+    if (!isTimeOpen) return;
+    const id = requestAnimationFrame(() => {
+      scrollToSelected("hour", "auto");
+      scrollToSelected("minute", "auto");
+      scrollToSelected("meridiem", "auto");
+    });
+    return () => cancelAnimationFrame(id);
+  }, [isTimeOpen, draftHour, draftMinute, draftMeridiem]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -416,17 +457,30 @@ export default function BookingDateTimePicker({
             <div className={styles.timeColumns}>
               <div className={styles.timeCol}>
                 <div className={styles.colLabel}>Hour</div>
+                <button
+                  type='button'
+                  className={styles.pinnedChip}
+                  onClick={() => scrollToSelected("hour")}
+                  aria-label={`Selected hour ${draftHour}`}
+                >
+                  {draftHour}
+                </button>
                 <div
                   className={styles.colList}
                   role='listbox'
                   aria-label='Hour'
+                  ref={hourListRef}
                 >
                   {hourOptions.map((h) => (
                     <button
                       key={h}
                       type='button'
+                      data-value={h}
                       className={`${styles.colItem} ${draftHour === h ? styles.colItemActive : ""}`}
-                      onClick={() => setDraftHour(h)}
+                      onClick={() => {
+                        setDraftHour(h);
+                        requestAnimationFrame(() => scrollToSelected("hour"));
+                      }}
                       role='option'
                       aria-selected={draftHour === h}
                     >
@@ -438,17 +492,30 @@ export default function BookingDateTimePicker({
 
               <div className={styles.timeCol}>
                 <div className={styles.colLabel}>Minute</div>
+                <button
+                  type='button'
+                  className={styles.pinnedChip}
+                  onClick={() => scrollToSelected("minute")}
+                  aria-label={`Selected minute ${pad2(draftMinute)}`}
+                >
+                  {pad2(draftMinute)}
+                </button>
                 <div
                   className={styles.colList}
                   role='listbox'
                   aria-label='Minute'
+                  ref={minuteListRef}
                 >
                   {minuteOptions.map((m) => (
                     <button
                       key={m}
                       type='button'
+                      data-value={m}
                       className={`${styles.colItem} ${draftMinute === m ? styles.colItemActive : ""}`}
-                      onClick={() => setDraftMinute(m)}
+                      onClick={() => {
+                        setDraftMinute(m);
+                        requestAnimationFrame(() => scrollToSelected("minute"));
+                      }}
                       role='option'
                       aria-selected={draftMinute === m}
                     >
@@ -460,17 +527,32 @@ export default function BookingDateTimePicker({
 
               <div className={styles.timeCol}>
                 <div className={styles.colLabel}>AM/PM</div>
+                <button
+                  type='button'
+                  className={styles.pinnedChip}
+                  onClick={() => scrollToSelected("meridiem")}
+                  aria-label={`Selected meridiem ${draftMeridiem}`}
+                >
+                  {draftMeridiem}
+                </button>
                 <div
                   className={styles.colList}
                   role='listbox'
                   aria-label='AM/PM'
+                  ref={meridiemListRef}
                 >
                   {(["AM", "PM"] as const).map((v) => (
                     <button
                       key={v}
                       type='button'
+                      data-value={v}
                       className={`${styles.colItem} ${draftMeridiem === v ? styles.colItemActive : ""}`}
-                      onClick={() => setDraftMeridiem(v)}
+                      onClick={() => {
+                        setDraftMeridiem(v);
+                        requestAnimationFrame(() =>
+                          scrollToSelected("meridiem")
+                        );
+                      }}
                       role='option'
                       aria-selected={draftMeridiem === v}
                     >
