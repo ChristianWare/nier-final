@@ -18,6 +18,12 @@
   z-index: 10;
 }
 
+.contentBox {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 3rem;
+}
+
 .summaryCard {
   padding: 0.9rem;
   border-radius: 14px;
@@ -87,5 +93,16 @@
 @media screen and (max-width: 1068px) {
   .content {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .left {
+    position: static;
+    top: auto;
   }
 }

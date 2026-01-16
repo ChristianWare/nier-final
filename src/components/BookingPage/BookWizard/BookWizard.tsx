@@ -272,7 +272,7 @@ export default function BookingWizard({
           <div className={styles.right}>
             <div className={styles.wizard}>
               {step === 1 ? (
-                <div style={{ display: "grid", gap: 14 }}>
+                <div className={styles.contentBox}>
                   <h2 className='underline'>Trip details</h2>
                   <p className='subheading'>
                     Please provide the details for your trip below
