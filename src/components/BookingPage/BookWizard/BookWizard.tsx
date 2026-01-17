@@ -2,10 +2,11 @@
 "use client";
 
 import styles from "./BookingWizard.module.css";
-import { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {
+  RoutePickerPlace,
   RoutePickerValue,
 } from "@/components/BookingPage/RoutePicker/RoutePicker";
 import { createBookingRequest } from "../../../../actions/bookings/createBookingRequest";
@@ -25,7 +26,7 @@ type AirportDTO = {
   iata: string;
   address: string;
   placeId: string | null;
-  lat: any | null; // Prisma Decimal at runtime
+  lat: any | null; // already converted to number in BookPage, but keep flexible
   lng: any | null;
 };
 
@@ -34,6 +35,7 @@ type ServiceTypeDTO = {
   name: string;
   slug: string;
   pricingStrategy: PricingStrategy;
+
   minFareCents: number;
   baseFeeCents: number;
   perMileCents: number;
@@ -54,6 +56,7 @@ type VehicleDTO = {
   luggageCapacity: number;
   imageUrl: string | null;
   minHours: number;
+
   baseFareCents: number;
   perMileCents: number;
   perMinuteCents: number;
@@ -118,9 +121,9 @@ function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
-function decimalToNumber(v: any) {
+function toNumber(v: any): number | null {
   if (v == null) return null;
-  const n = Number(v);
+  const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? n : null;
 }
 
@@ -149,9 +152,8 @@ export default function BookingWizard({
     [vehicles]
   );
 
-  const [serviceTypeId, setServiceTypeId] = useState<string>(
-    services[0]?.id ?? ""
-  );
+  // ✅ 1) Start with no service selected
+  const [serviceTypeId, setServiceTypeId] = useState<string>("");
 
   const [pickupAtDate, setPickupAtDate] = useState<string>("");
   const [pickupAtTime, setPickupAtTime] = useState<string>("");
@@ -171,14 +173,13 @@ export default function BookingWizard({
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
 
-  // ✅ airport selections
   const [pickupAirportId, setPickupAirportId] = useState<string>("");
   const [dropoffAirportId, setDropoffAirportId] = useState<string>("");
 
-  const selectedService = useMemo(
-    () => services.find((s) => s.id === serviceTypeId) ?? null,
-    [services, serviceTypeId]
-  );
+  const selectedService = useMemo(() => {
+    if (!serviceTypeId) return null;
+    return services.find((s) => s.id === serviceTypeId) ?? null;
+  }, [services, serviceTypeId]);
 
   const selectedVehicle = useMemo(
     () => vehicleOptions.find((v) => v.id === vehicleId) ?? null,
@@ -189,37 +190,57 @@ export default function BookingWizard({
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
 
-  // Reset airport picks when service changes
-  // useEffect(() => {
-  //   setPickupAirportId("");
-  //   setDropoffAirportId("");
-  // }, [serviceTypeId]);
-
   function applyAirportToRoute(side: "pickup" | "dropoff", airportId: string) {
     const a = serviceAirports.find((x) => x.id === airportId) ?? null;
 
+    if (!a) {
+      setRoute((prev) => {
+        const prevPickup = prev?.pickup ?? null;
+        const prevDropoff = prev?.dropoff ?? null;
+
+        const next: RoutePickerValue = {
+          pickup: side === "pickup" ? null : prevPickup,
+          dropoff: side === "dropoff" ? null : prevDropoff,
+          miles: null,
+          minutes: null,
+          distanceMiles: null,
+          durationMinutes: null,
+        };
+
+        if (!next.pickup && !next.dropoff) return null;
+        return next;
+      });
+      return;
+    }
+
+    const lat = toNumber(a.lat);
+    const lng = toNumber(a.lng);
+
+    if (lat == null || lng == null) {
+      toast.error(
+        "That airport is missing coordinates. Edit the airport and choose an address suggestion so we can save its location."
+      );
+      return;
+    }
+
+    const place: RoutePickerPlace = {
+      address: a.address,
+      placeId: a.placeId ?? a.id, // stable fallback
+      location: { lat, lng },
+    };
+
     setRoute((prev) => {
-      const next: any = { ...(prev ?? {}) };
+      const prevPickup = prev?.pickup ?? null;
+      const prevDropoff = prev?.dropoff ?? null;
 
-      if (!a) {
-        delete next[side];
-        next.miles = null;
-        next.minutes = null;
-        return Object.keys(next).length ? next : null;
-      }
-
-      const lat = decimalToNumber(a.lat);
-      const lng = decimalToNumber(a.lng);
-
-      next[side] = {
-        address: a.address,
-        placeId: a.placeId ?? null,
-        location: lat != null && lng != null ? { lat, lng } : (null as any),
+      const next: RoutePickerValue = {
+        pickup: side === "pickup" ? place : prevPickup,
+        dropoff: side === "dropoff" ? place : prevDropoff,
+        miles: null,
+        minutes: null,
+        distanceMiles: null,
+        durationMinutes: null,
       };
-
-      // force recalculation downstream (RoutePicker usually recomputes)
-      next.miles = null;
-      next.minutes = null;
 
       return next;
     });
@@ -259,12 +280,11 @@ export default function BookingWizard({
     if (!selectedService) return false;
     if (!pickupAtDate || !pickupAtTime) return false;
 
-    // ✅ Option 4: airport service must have airports configured
+    // airport service must have airports configured
     if (selectedService.airportLeg !== "NONE" && serviceAirports.length === 0) {
       return false;
     }
 
-    // Require airport selection if needed
     if (usesPickupAirport && !pickupAirportId) return false;
     if (usesDropoffAirport && !dropoffAirportId) return false;
 
@@ -338,24 +358,30 @@ export default function BookingWizard({
       const dropoff = route.dropoff;
 
       const res = await createBookingRequest({
-        serviceTypeId,
+        serviceTypeId: selectedService.id,
         vehicleId,
         pickupAt: pickupAtIso,
         passengers,
         luggage,
+
         pickupAddress: pickup.address,
         pickupPlaceId: pickup.placeId ?? null,
         pickupLat: pickup.location?.lat ?? null,
         pickupLng: pickup.location?.lng ?? null,
+
         dropoffAddress: dropoff.address,
         dropoffPlaceId: dropoff.placeId ?? null,
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
+
         distanceMiles: route.miles ?? null,
         durationMinutes: route.minutes ?? null,
+
         hoursRequested:
           selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
+
         specialRequests: specialRequests || null,
+
         guestName: isAuthed ? null : guestName.trim(),
         guestEmail: isAuthed ? null : guestEmail.trim().toLowerCase(),
         guestPhone: isAuthed ? null : guestPhone.trim(),
@@ -390,6 +416,12 @@ export default function BookingWizard({
     }
   }
 
+  const inputsKey = `${step}-${serviceTypeId || "none"}-${
+    usesPickupAirport ? "P" : ""
+  }${usesDropoffAirport ? "D" : ""}`;
+
+  const hasNoServices = services.length === 0;
+
   return (
     <section className={styles.container}>
       <LayoutWrapper>
@@ -402,7 +434,7 @@ export default function BookingWizard({
                 onChange={setRoute}
                 pickupInputRef={pickupInputRef}
                 dropoffInputRef={dropoffInputRef}
-                inputsKey={step}
+                inputsKey={inputsKey}
               />
             </div>
           </div>
@@ -416,6 +448,16 @@ export default function BookingWizard({
                     Please provide the details for your trip below
                   </p>
 
+                  {hasNoServices ? (
+                    <div
+                      className='miniNote'
+                      style={{ color: "rgba(180,0,0,0.8)" }}
+                    >
+                      No services are available yet. An admin needs to create at
+                      least one service before bookings can be requested.
+                    </div>
+                  ) : null}
+
                   <div style={{ display: "grid", gap: 8 }}>
                     <label className='cardTitle h5'>Service</label>
                     <select
@@ -423,28 +465,25 @@ export default function BookingWizard({
                       onChange={(e) => {
                         const next = e.target.value;
 
-                        // ✅ reset airport picks here (no effect)
+                        // reset airports + route when service changes
                         setPickupAirportId("");
                         setDropoffAirportId("");
-
-                        // ✅ reset route to avoid stale endpoints
                         setRoute(null);
+
+                        // also reset vehicle selection for safety
+                        setVehicleId("");
 
                         setServiceTypeId(next);
 
                         const svc = services.find((s) => s.id === next);
                         if (svc?.pricingStrategy === "HOURLY") {
-                          setHoursRequested((prev) =>
-                            Math.max(
-                              prev || 2,
-                              selectedVehicle?.minHours ?? 0,
-                              2
-                            )
-                          );
+                          setHoursRequested((prev) => Math.max(prev || 2, 2));
                         }
                       }}
                       className='input emptySmall'
+                      disabled={hasNoServices}
                     >
+                      <option value=''>Select a service...</option>
                       {services.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.name}
@@ -453,8 +492,9 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  {/* Option 4 fallback notice */}
-                  {selectedService?.airportLeg !== "NONE" &&
+                  {/* ✅ 2) Only show this AFTER selecting a service */}
+                  {selectedService &&
+                  selectedService.airportLeg !== "NONE" &&
                   serviceAirports.length === 0 ? (
                     <div
                       className='miniNote'
@@ -513,6 +553,7 @@ export default function BookingWizard({
                             applyAirportToRoute("pickup", id);
                           }}
                           className='input emptySmall'
+                          // ✅ 3) Do NOT disable (this was the “ghosted” issue)
                         >
                           <option value=''>Select an airport...</option>
                           {serviceAirports.map((a) => (
@@ -529,22 +570,6 @@ export default function BookingWizard({
                           className='input emptySmall'
                         />
                       )}
-
-                      {/* keep ref mounted for RoutePicker even when dropdown is used */}
-                      {usesPickupAirport ? (
-                        <input
-                          ref={pickupInputRef}
-                          style={{
-                            position: "absolute",
-                            width: 1,
-                            height: 1,
-                            opacity: 0,
-                            pointerEvents: "none",
-                          }}
-                          tabIndex={-1}
-                          aria-hidden='true'
-                        />
-                      ) : null}
                     </div>
 
                     {/* DROPOFF */}
@@ -562,6 +587,7 @@ export default function BookingWizard({
                             applyAirportToRoute("dropoff", id);
                           }}
                           className='input emptySmall'
+                          // ✅ 3) Do NOT disable (this was the “ghosted” issue)
                         >
                           <option value=''>Select an airport...</option>
                           {serviceAirports.map((a) => (
@@ -578,21 +604,6 @@ export default function BookingWizard({
                           className='input emptySmall'
                         />
                       )}
-
-                      {usesDropoffAirport ? (
-                        <input
-                          ref={dropoffInputRef}
-                          style={{
-                            position: "absolute",
-                            width: 1,
-                            height: 1,
-                            opacity: 0,
-                            pointerEvents: "none",
-                          }}
-                          tabIndex={-1}
-                          aria-hidden='true'
-                        />
-                      ) : null}
                     </div>
                   </div>
 
@@ -623,20 +634,19 @@ export default function BookingWizard({
                         onClick={() => {
                           if (!canGoStep2()) {
                             toast.error(
-                              selectedService?.airportLeg !== "NONE" &&
-                                serviceAirports.length === 0
-                                ? "This airport service isn’t configured yet."
-                                : "Please complete service, date/time, and route."
+                              !selectedService
+                                ? "Please select a service."
+                                : selectedService.airportLeg !== "NONE" &&
+                                    serviceAirports.length === 0
+                                  ? "This airport service isn’t configured yet."
+                                  : "Please complete service, date/time, and route."
                             );
                             return;
                           }
                           setStep(2);
                         }}
                         className='primaryBtn'
-                        disabled={
-                          selectedService?.airportLeg !== "NONE" &&
-                          serviceAirports.length === 0
-                        }
+                        disabled={hasNoServices || !selectedService}
                       >
                         Next
                       </button>
@@ -644,9 +654,6 @@ export default function BookingWizard({
                   </div>
                 </div>
               ) : null}
-
-              {/* steps 2 + 3 unchanged from your version */}
-              {/* ... keep your existing Step 2 and Step 3 code exactly as-is ... */}
 
               {step === 2 ? (
                 <div style={{ display: "grid", gap: 14 }}>

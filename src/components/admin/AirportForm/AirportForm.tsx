@@ -11,11 +11,11 @@ type InitialAirport = {
   name?: string;
   iata?: string;
   address?: string;
-  placeId?: string;
+  placeId?: string | null;
   sortOrder?: number;
   active?: boolean;
-  lat?: string;
-  lng?: string;
+  lat?: string | number | null;
+  lng?: string | number | null;
 };
 
 declare global {
@@ -51,6 +51,11 @@ function loadGooglePlaces(browserKey: string) {
     script.onerror = () => reject(new Error("Failed to load Google Places"));
     document.head.appendChild(script);
   });
+}
+
+function toStr(v: any) {
+  if (v == null) return "";
+  return String(v);
 }
 
 export default function AirportForm({
@@ -106,7 +111,7 @@ export default function AirportForm({
           }
         });
       } catch {
-        // silent: still allow manual address entry
+        // silent: still allow manual entry, but server action will require coords
       }
     })();
 
@@ -121,6 +126,18 @@ export default function AirportForm({
       onSubmit={(e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+
+        const address = String(formData.get("address") ?? "").trim();
+        const lat = String(formData.get("lat") ?? "").trim();
+        const lng = String(formData.get("lng") ?? "").trim();
+
+        // ✅ If they typed an address but didn't pick a suggestion, stop here.
+        if (address && (!lat || !lng)) {
+          toast.error(
+            "Please select an address suggestion so we can capture coordinates."
+          );
+          return;
+        }
 
         startTransition(() => {
           void (async () => {
@@ -176,34 +193,34 @@ export default function AirportForm({
           autoComplete='off'
         />
         <div className='miniNote'>
-          Start typing and select the suggested address.
+          Start typing and select the suggested address (required).
         </div>
       </div>
 
       <div style={{ display: "grid", gap: 6 }}>
-        <label className='cardTitle h5'>Google Place ID (optional)</label>
+        <label className='cardTitle h5'>Google Place ID</label>
         <input
           ref={placeIdRef}
           name='placeId'
           className='inputBorder'
-          disabled={isPending}
+          disabled
           placeholder='Auto-fills when you select an address'
-          defaultValue={initial?.placeId ?? ""}
+          defaultValue={toStr(initial?.placeId ?? "")}
         />
       </div>
 
-      {/* Optional lat/lng storage if your model supports it */}
+      {/* ✅ Saved for routing/maps */}
       <input
         ref={latRef}
         name='lat'
         type='hidden'
-        defaultValue={initial?.lat ?? ""}
+        defaultValue={toStr(initial?.lat ?? "")}
       />
       <input
         ref={lngRef}
         name='lng'
         type='hidden'
-        defaultValue={initial?.lng ?? ""}
+        defaultValue={toStr(initial?.lng ?? "")}
       />
 
       <div style={{ display: "grid", gap: 6 }}>

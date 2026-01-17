@@ -2,7 +2,7 @@
 "use client";
 
 import styles from "./RoutePicker.module.css";
-import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 
 type LatLng = { lat: number; lng: number };
 
@@ -105,12 +105,16 @@ export default function RoutePicker({
     latestValueRef.current = value;
   }, [value]);
 
-  const pickup: RoutePickerPlace | null = value?.pickup ?? null;
-  const dropoff: RoutePickerPlace | null = value?.dropoff ?? null;
+  const pickup = value?.pickup ?? null;
+  const dropoff = value?.dropoff ?? null;
 
-  const canRoute = useMemo(() => !!pickup && !!dropoff, [pickup, dropoff]);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _canRoute = canRoute; // (kept only if you want to use it later; otherwise delete both lines)
+  // ✅ primitive “keys” so deps are stable + ESLint is happy
+  const pickupKey = pickup
+    ? `${pickup.placeId}|${pickup.location.lat}|${pickup.location.lng}`
+    : "";
+  const dropoffKey = dropoff
+    ? `${dropoff.placeId}|${dropoff.location.lat}|${dropoff.location.lng}`
+    : "";
 
   // Init maps + autocomplete
   useEffect(() => {
@@ -159,13 +163,15 @@ export default function RoutePicker({
 
             onChange({
               pickup: {
-                placeId: place.place_id,
-                address: place.formatted_address,
+                placeId: String(place.place_id), // ✅ always string
+                address: String(place.formatted_address),
                 location: { lat: loc.lat(), lng: loc.lng() },
               },
               dropoff: latest?.dropoff ?? null,
+
               miles: latest?.miles ?? null,
               minutes: latest?.minutes ?? null,
+
               distanceMiles: latest?.distanceMiles ?? null,
               durationMinutes: latest?.durationMinutes ?? null,
             });
@@ -194,12 +200,14 @@ export default function RoutePicker({
             onChange({
               pickup: latest?.pickup ?? null,
               dropoff: {
-                placeId: place.place_id,
-                address: place.formatted_address,
+                placeId: String(place.place_id), // ✅ always string
+                address: String(place.formatted_address),
                 location: { lat: loc.lat(), lng: loc.lng() },
               },
+
               miles: latest?.miles ?? null,
               minutes: latest?.minutes ?? null,
+
               distanceMiles: latest?.distanceMiles ?? null,
               durationMinutes: latest?.durationMinutes ?? null,
             });
@@ -214,25 +222,6 @@ export default function RoutePicker({
       cancelled = true;
     };
   }, [browserKey, onChange, pickupRef, dropoffRef, inputsKey]);
-
-  // ✅ Sync input text when pickup/dropoff set programmatically (airport dropdown)
-  useEffect(() => {
-    const el = pickupRef.current;
-    if (!el) return;
-    if (document.activeElement === el) return;
-
-    const next = pickup?.address ?? "";
-    if (el.value !== next) el.value = next;
-  }, [pickup, pickupRef, inputsKey]);
-
-  useEffect(() => {
-    const el = dropoffRef.current;
-    if (!el) return;
-    if (document.activeElement === el) return;
-
-    const next = dropoff?.address ?? "";
-    if (el.value !== next) el.value = next;
-  }, [dropoff, dropoffRef, inputsKey]);
 
   // Markers + bounds
   useEffect(() => {
@@ -267,12 +256,13 @@ export default function RoutePicker({
       bounds.extend(dropoff.location);
       map.fitBounds(bounds, 70);
     }
-  }, [pickup, dropoff]);
+  }, [pickupKey, dropoffKey, pickup, dropoff]);
 
   // Route compute + polyline draw
   useEffect(() => {
     const google = window.google;
 
+    // If missing either side, clear route + notify upstream
     if (!pickup || !dropoff) {
       if (routePolyline.current) {
         routePolyline.current.setMap(null);
@@ -361,7 +351,8 @@ export default function RoutePicker({
     return () => {
       cancelled = true;
     };
-  }, [pickup, dropoff, onChange]);
+    // ✅ stable deps: only rerun when actual endpoints change
+  }, [pickupKey, dropoffKey, pickup, dropoff, onChange]);
 
   const displayMiles = value?.miles ?? value?.distanceMiles ?? null;
   const displayMinutes = value?.minutes ?? value?.durationMinutes ?? null;

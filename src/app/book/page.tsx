@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
 import BookingWizard from "@/components/BookingPage/BookWizard/BookWizard";
 import BookingPageIntro from "@/components/BookingPage/BookingPageIntro/BookingPageIntro";
@@ -7,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function BookPage() {
-  const serviceTypes = await db.serviceType.findMany({
+  const serviceTypesRaw = await db.serviceType.findMany({
     where: { active: true },
     orderBy: { sortOrder: "asc" },
     select: {
@@ -23,10 +24,16 @@ export default async function BookPage() {
       perMinuteCents: true,
       perHourCents: true,
 
-      // ✅ airport behavior + airports
+      active: true,
+      sortOrder: true,
+
+      // ✅ airport behavior
       airportLeg: true,
       airports: {
-        where: { active: true },
+        where: {
+          active: true,
+          // ✅ DO NOT filter out lat/lng here
+        },
         orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
         select: {
           id: true,
@@ -38,12 +45,18 @@ export default async function BookPage() {
           lng: true,
         },
       },
-
-      // include these so types match
-      active: true,
-      sortOrder: true,
     },
   });
+
+  // ✅ Convert Decimal -> number so props are safe for Client Components
+  const serviceTypes = serviceTypesRaw.map((s) => ({
+    ...s,
+    airports: (s.airports ?? []).map((a) => ({
+      ...a,
+      lat: a.lat == null ? null : Number(a.lat),
+      lng: a.lng == null ? null : Number(a.lng),
+    })),
+  }));
 
   const vehicles = await db.vehicle.findMany({
     where: { active: true },
@@ -56,10 +69,8 @@ export default async function BookPage() {
       luggageCapacity: true,
       imageUrl: true,
 
-      // REQUIRED for hourly minHours logic
       minHours: true,
 
-      // pricing
       baseFareCents: true,
       perMileCents: true,
       perMinuteCents: true,
@@ -74,7 +85,10 @@ export default async function BookPage() {
     <main>
       <Nav background='white' />
       <BookingPageIntro />
-      <BookingWizard serviceTypes={serviceTypes} vehicles={vehicles} />
+      <BookingWizard
+        serviceTypes={serviceTypes as any}
+        vehicles={vehicles as any}
+      />
     </main>
   );
 }

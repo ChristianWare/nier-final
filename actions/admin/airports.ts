@@ -4,6 +4,7 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
+import { Prisma } from "@prisma/client";
 
 type ActionResult = { success?: string; error?: string };
 type AppRole = "USER" | "ADMIN" | "DRIVER";
@@ -48,15 +49,30 @@ function normIata(v: string) {
   return v.trim().toUpperCase();
 }
 
+function decimalFromString(s: string) {
+  const n = Number(s);
+  if (!Number.isFinite(n)) return null;
+  // store as Decimal safely
+  return new Prisma.Decimal(String(n));
+}
+
+function getTrimmed(formData: FormData, key: string) {
+  return String(formData.get(key) ?? "").trim();
+}
+
 export async function createAirport(formData: FormData): Promise<ActionResult> {
   try {
     await requireAdmin();
 
-    const name = String(formData.get("name") ?? "").trim();
-    const iata = normIata(String(formData.get("iata") ?? ""));
-    const address = String(formData.get("address") ?? "").trim();
-    const placeIdRaw = String(formData.get("placeId") ?? "").trim();
+    const name = getTrimmed(formData, "name");
+    const iata = normIata(getTrimmed(formData, "iata"));
+    const address = getTrimmed(formData, "address");
+
+    const placeIdRaw = getTrimmed(formData, "placeId");
     const placeId = placeIdRaw ? placeIdRaw : null;
+
+    const latStr = getTrimmed(formData, "lat");
+    const lngStr = getTrimmed(formData, "lng");
 
     const sortOrder = intFromForm(formData.get("sortOrder"));
     const active = formData.get("active") === "on";
@@ -66,11 +82,31 @@ export async function createAirport(formData: FormData): Promise<ActionResult> {
       return { error: "IATA code must be 3 letters." };
     if (!address) return { error: "Address is required." };
 
+    // ✅ For airports, coords are required for routing/maps
+    const lat = latStr ? decimalFromString(latStr) : null;
+    const lng = lngStr ? decimalFromString(lngStr) : null;
+
+    if (!lat || !lng) {
+      return {
+        error:
+          "Please select an address suggestion so we can capture coordinates (lat/lng).",
+      };
+    }
+
     const existing = await db.airport.findUnique({ where: { iata } });
     if (existing) return { error: "That IATA code is already in use." };
 
     await db.airport.create({
-      data: { name, iata, address, placeId, sortOrder, active },
+      data: {
+        name,
+        iata,
+        address,
+        placeId,
+        lat,
+        lng,
+        sortOrder,
+        active,
+      },
     });
 
     revalidatePath("/admin/airports");
@@ -87,11 +123,15 @@ export async function updateAirport(
   try {
     await requireAdmin();
 
-    const name = String(formData.get("name") ?? "").trim();
-    const iata = normIata(String(formData.get("iata") ?? ""));
-    const address = String(formData.get("address") ?? "").trim();
-    const placeIdRaw = String(formData.get("placeId") ?? "").trim();
+    const name = getTrimmed(formData, "name");
+    const iata = normIata(getTrimmed(formData, "iata"));
+    const address = getTrimmed(formData, "address");
+
+    const placeIdRaw = getTrimmed(formData, "placeId");
     const placeId = placeIdRaw ? placeIdRaw : null;
+
+    const latStr = getTrimmed(formData, "lat");
+    const lngStr = getTrimmed(formData, "lng");
 
     const sortOrder = intFromForm(formData.get("sortOrder"));
     const active = formData.get("active") === "on";
@@ -106,9 +146,46 @@ export async function updateAirport(
       return { error: "That IATA code is already in use." };
     }
 
+    // ✅ Don’t wipe coords if the edit form didn’t change them
+    // Only update lat/lng if the form actually has values.
+    const updateLatLng = Boolean(latStr || lngStr);
+
+    if (updateLatLng) {
+      if (!latStr || !lngStr) {
+        return {
+          error:
+            "Please select an address suggestion so we can capture coordinates (lat/lng).",
+        };
+      }
+    }
+
+    const data: any = {
+      name,
+      iata,
+      address,
+      placeId,
+      sortOrder,
+      active,
+    };
+
+    if (updateLatLng) {
+      const lat = decimalFromString(latStr);
+      const lng = decimalFromString(lngStr);
+
+      if (!lat || !lng) {
+        return {
+          error:
+            "Invalid coordinates captured. Please re-select the address suggestion.",
+        };
+      }
+
+      data.lat = lat;
+      data.lng = lng;
+    }
+
     await db.airport.update({
       where: { id: airportId },
-      data: { name, iata, address, placeId, sortOrder, active },
+      data,
     });
 
     revalidatePath("/admin/airports");
