@@ -20,6 +20,8 @@ import AdminRecentBookingRequests, {
 } from "@/components/admin/AdminRecentBookingRequests/AdminRecentBookingRequests";
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
+import AdminFinanceSnapshot from "@/components/admin/AdminFinanceSnapshot/AdminFinanceSnapshot";
+import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -117,6 +119,7 @@ export default async function AdminHome() {
     recentAssignments,
     recentPaymentsReceived,
     recentPaymentLinks,
+    finance,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -402,6 +405,7 @@ export default async function AdminHome() {
         },
       },
     }),
+    getAdminFinanceSnapshot(now),
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
@@ -597,6 +601,7 @@ export default async function AdminHome() {
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
+      <AdminFinanceSnapshot {...finance} />
 
       <AdminAlerts alerts={alerts} />
 
