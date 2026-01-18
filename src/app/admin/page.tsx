@@ -18,14 +18,14 @@ import AdminActivityFeed, {
 import AdminRecentBookingRequests, {
   RecentBookingRequestItem,
 } from "@/components/admin/AdminRecentBookingRequests/AdminRecentBookingRequests";
+import AdminFinanceSnapshot from "@/components/admin/AdminFinanceSnapshot/AdminFinanceSnapshot";
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
-import AdminFinanceSnapshot from "@/components/admin/AdminFinanceSnapshot/AdminFinanceSnapshot";
-import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const PHX_TZ = "America/Phoenix";
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
 function startOfDayPhoenix(dateUtc: Date) {
@@ -40,6 +40,40 @@ function startOfDayPhoenix(dateUtc: Date) {
   const startUtcMs = startLocalMs - PHX_OFFSET_MS;
 
   return new Date(startUtcMs);
+}
+
+function startOfMonthPhoenix(dateUtc: Date) {
+  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+
+  const y = phx.getUTCFullYear();
+  const m = phx.getUTCMonth();
+
+  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
+  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
+
+  return new Date(startUtcMs);
+}
+
+function startOfNextMonthPhoenix(monthStartUtc: Date) {
+  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+
+  const y = phx.getUTCFullYear();
+  const m = phx.getUTCMonth();
+
+  const nextStartLocalMs = Date.UTC(y, m + 1, 1, 0, 0, 0);
+  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
+
+  return new Date(nextStartUtcMs);
+}
+
+function formatMonthLabelPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    year: "numeric",
+    timeZone: PHX_TZ,
+  }).format(dateUtc);
 }
 
 function shortAddress(address: string) {
@@ -65,6 +99,131 @@ function statusLabel(status: string) {
   return status.replaceAll("_", " ").toLowerCase();
 }
 
+/**
+ * Finance helpers
+ * - Tries to use `amountCents` (common) via aggregate.
+ * - If your schema uses a different field, update the _sum/_avg keys below.
+ */
+async function safeCapturedAgg({
+  from,
+  to,
+}: {
+  from: Date;
+  to: Date;
+}): Promise<{ sumCents: number; count: number; avgCents: number }> {
+  try {
+    const agg = await (db.payment as any).aggregate({
+      where: { paidAt: { gte: from, lt: to } },
+      _sum: { amountCents: true },
+      _avg: { amountCents: true },
+      _count: { _all: true },
+    });
+
+    const sumCents = Number(agg?._sum?.amountCents ?? 0);
+    const count = Number(agg?._count?._all ?? 0);
+    const avgCents = Number(agg?._avg?.amountCents ?? 0);
+
+    return { sumCents, count, avgCents };
+  } catch {
+    // Fallback (works even if aggregate fields differ): fetch rows & sum a few common keys.
+    const rows = await db.payment.findMany({
+      where: { paidAt: { gte: from, lt: to } },
+    });
+
+    const sumCents = (rows as any[]).reduce((sum, p) => {
+      const v =
+        p.amountCents ??
+        p.totalCents ??
+        p.totalAmountCents ??
+        p.amountDueCents ??
+        0;
+      return sum + Number(v || 0);
+    }, 0);
+
+    const count = rows.length;
+    const avgCents = count > 0 ? Math.round(sumCents / count) : 0;
+
+    return { sumCents, count, avgCents };
+  }
+}
+
+/**
+ * Refunds are optional (depending on your schema).
+ * If you don't track refunds yet, this safely returns 0s.
+ *
+ * Update these fields to match your schema if/when you add refunds:
+ * - refundedAt
+ * - refundedCents (or refundCents / refundAmountCents)
+ */
+async function safeRefundAgg({
+  from,
+  to,
+}: {
+  from: Date;
+  to: Date;
+}): Promise<{ sumCents: number; count: number }> {
+  try {
+    const agg = await (db.payment as any).aggregate({
+      where: {
+        refundedAt: { gte: from, lt: to },
+      },
+      _sum: { refundedCents: true },
+      _count: { _all: true },
+    });
+
+    const sumCents = Number(agg?._sum?.refundedCents ?? 0);
+    const count = Number(agg?._count?._all ?? 0);
+
+    return { sumCents, count };
+  } catch {
+    return { sumCents: 0, count: 0 };
+  }
+}
+
+/**
+ * Pending payment estimate:
+ * - looks for unpaid Payment rows tied to PENDING_PAYMENT bookings
+ * - requires Payment.booking relation (you already use it in selects)
+ * - requires an amount field (typically amountCents)
+ */
+async function safePendingPaymentEstimate(): Promise<{
+  sumCents: number;
+}> {
+  try {
+    const agg = await (db.payment as any).aggregate({
+      where: {
+        paidAt: null,
+        stripeCheckoutSessionId: { not: null },
+        booking: { status: "PENDING_PAYMENT" },
+      },
+      _sum: { amountCents: true },
+    });
+
+    return { sumCents: Number(agg?._sum?.amountCents ?? 0) };
+  } catch {
+    // Fallback: fetch and sum common amount keys
+    const rows = await (db.payment as any).findMany({
+      where: {
+        paidAt: null,
+        stripeCheckoutSessionId: { not: null },
+        booking: { status: "PENDING_PAYMENT" },
+      },
+    });
+
+    const sumCents = (rows as any[]).reduce((sum, p) => {
+      const v =
+        p.amountCents ??
+        p.totalCents ??
+        p.totalAmountCents ??
+        p.amountDueCents ??
+        0;
+      return sum + Number(v || 0);
+    }, 0);
+
+    return { sumCents };
+  }
+}
+
 export default async function AdminHome() {
   const now = new Date();
 
@@ -76,6 +235,8 @@ export default async function AdminHome() {
   const next12h = new Date(now.getTime() + 12 * 60 * 60 * 1000);
   const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+
+  const verifiedCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
   const cancelledLike = [
     "CANCELLED",
@@ -119,7 +280,9 @@ export default async function AdminHome() {
     recentAssignments,
     recentPaymentsReceived,
     recentPaymentLinks,
-    finance,
+
+    newVerifiedUsersCount,
+    latestVerifiedUser,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -322,14 +485,11 @@ export default async function AdminHome() {
         pickupAddress: true,
         dropoffAddress: true,
         specialRequests: true,
-
         userId: true,
         user: { select: { name: true, email: true, emailVerified: true } },
-
         guestName: true,
         guestEmail: true,
         guestPhone: true,
-
         serviceType: { select: { name: true, airportLeg: true } },
         vehicle: { select: { name: true } },
       },
@@ -405,17 +565,30 @@ export default async function AdminHome() {
         },
       },
     }),
-    getAdminFinanceSnapshot(now),
+
+    db.user.count({
+      where: {
+        emailVerified: { not: null, gte: verifiedCutoff },
+      },
+    }),
+
+    db.user.findFirst({
+      where: {
+        emailVerified: { not: null, gte: verifiedCutoff },
+      },
+      orderBy: [{ emailVerified: "desc" }],
+      select: { name: true, email: true, emailVerified: true },
+    }),
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
 
   const setupAlerts = await getBookingWizardSetupAlerts();
 
-  const operationalAlerts: AlertItem[] = [];
+  const alerts: AlertItem[] = [];
 
   if (unassignedWithin24hCount > 0) {
-    operationalAlerts.push({
+    alerts.push({
       id: "unassigned-24h",
       severity: unassignedWithin24hCount >= 3 ? "danger" : "warning",
       message: `${unassignedWithin24hCount} booking(s) are unassigned within 24 hours`,
@@ -425,7 +598,7 @@ export default async function AdminHome() {
   }
 
   if (pendingPaymentWithin12hCount > 0) {
-    operationalAlerts.push({
+    alerts.push({
       id: "pending-payment-12h",
       severity: pendingPaymentWithin12hCount >= 2 ? "danger" : "warning",
       message: `${pendingPaymentWithin12hCount} booking(s) pending payment within 12 hours`,
@@ -434,7 +607,22 @@ export default async function AdminHome() {
     });
   }
 
-  const alerts: AlertItem[] = [...setupAlerts, ...operationalAlerts];
+  if (newVerifiedUsersCount > 0) {
+    const who =
+      latestVerifiedUser?.name?.trim() ||
+      latestVerifiedUser?.email ||
+      "a new user";
+
+    alerts.push({
+      id: "new-verified-users",
+      severity: newVerifiedUsersCount >= 10 ? "warning" : "info",
+      message: `${newVerifiedUsersCount} new verified user(s) in the last 24 hours (latest: ${who})`,
+      href: "/admin/users",
+      ctaLabel: "View users",
+    });
+  }
+
+  alerts.unshift(...setupAlerts);
 
   const recentBookingRequests: RecentBookingRequestItem[] =
     recentBookingRequestsRaw.map((b: any) => {
@@ -468,7 +656,7 @@ export default async function AdminHome() {
     });
 
   const assignedActiveUnitIdsToday = new Set(
-    assignedActiveUnitsToday.map((u: any) => u.id),
+    (assignedActiveUnitsToday as any[]).map((u) => u.id),
   );
   const availableUnitsToday = Math.max(
     0,
@@ -521,9 +709,7 @@ export default async function AdminHome() {
   for (const e of recentStatusEvents as any[]) {
     const cust = customerLabel(e.booking?.user);
     const by = actorLabel(e.createdBy);
-    const route = `${shortAddress(e.booking.pickupAddress)} → ${shortAddress(
-      e.booking.dropoffAddress,
-    )}`;
+    const route = `${shortAddress(e.booking.pickupAddress)} → ${shortAddress(e.booking.dropoffAddress)}`;
 
     let title = `Booking status updated: ${statusLabel(e.status)}`;
     if (e.status === "PENDING_PAYMENT")
@@ -547,9 +733,7 @@ export default async function AdminHome() {
     const unitName = a.vehicleUnit?.name
       ? ` • Unit: ${a.vehicleUnit.name}`
       : "";
-    const route = `${shortAddress(a.booking.pickupAddress)} → ${shortAddress(
-      a.booking.dropoffAddress,
-    )}`;
+    const route = `${shortAddress(a.booking.pickupAddress)} → ${shortAddress(a.booking.dropoffAddress)}`;
 
     activity.push({
       kind: "ASSIGNMENT",
@@ -562,9 +746,7 @@ export default async function AdminHome() {
 
   for (const p of recentPaymentsReceived as any[]) {
     const cust = customerLabel(p.booking?.user);
-    const route = `${shortAddress(p.booking.pickupAddress)} → ${shortAddress(
-      p.booking.dropoffAddress,
-    )}`;
+    const route = `${shortAddress(p.booking.pickupAddress)} → ${shortAddress(p.booking.dropoffAddress)}`;
 
     activity.push({
       kind: "PAYMENT_RECEIVED",
@@ -577,9 +759,7 @@ export default async function AdminHome() {
 
   for (const pl of recentPaymentLinks as any[]) {
     const cust = customerLabel(pl.booking?.user);
-    const route = `${shortAddress(pl.booking.pickupAddress)} → ${shortAddress(
-      pl.booking.dropoffAddress,
-    )}`;
+    const route = `${shortAddress(pl.booking.pickupAddress)} → ${shortAddress(pl.booking.dropoffAddress)}`;
 
     activity.push({
       kind: "PAYMENT_LINK_SENT",
@@ -594,6 +774,47 @@ export default async function AdminHome() {
     .sort((a, b) => b.at.getTime() - a.at.getTime())
     .slice(0, 10);
 
+  /**
+   * FINANCE SNAPSHOT DATA
+   */
+  const monthStart = startOfMonthPhoenix(now);
+  const nextMonthStart = startOfNextMonthPhoenix(monthStart);
+  const prevMonthStart = startOfMonthPhoenix(
+    new Date(monthStart.getTime() - 1),
+  );
+
+  const monthLabel = formatMonthLabelPhoenix(now);
+
+  const [
+    capturedThisMonth,
+    capturedToday,
+    capturedPrevMonth,
+    refundsThisMonth,
+    refundsPrevMonth,
+    pendingEstimate,
+  ] = await Promise.all([
+    safeCapturedAgg({ from: monthStart, to: nextMonthStart }),
+    safeCapturedAgg({ from: todayStart, to: tomorrowStart }),
+    safeCapturedAgg({ from: prevMonthStart, to: monthStart }),
+    safeRefundAgg({ from: monthStart, to: nextMonthStart }),
+    safeRefundAgg({ from: prevMonthStart, to: monthStart }),
+    safePendingPaymentEstimate(),
+  ]);
+
+  const netMonthCents = Math.max(
+    0,
+    capturedThisMonth.sumCents - refundsThisMonth.sumCents,
+  );
+  const netPrevCents = Math.max(
+    0,
+    capturedPrevMonth.sumCents - refundsPrevMonth.sumCents,
+  );
+
+  const monthOverMonthPct =
+    netPrevCents > 0
+      ? ((netMonthCents - netPrevCents) / netPrevCents) * 100
+      : null;
+
   return (
     <section className={styles.content}>
       <AdminPageIntro
@@ -601,13 +822,26 @@ export default async function AdminHome() {
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
-      <AdminFinanceSnapshot {...finance} />
 
       <AdminAlerts alerts={alerts} />
 
+      <AdminFinanceSnapshot
+        monthLabel={monthLabel}
+        currency='USD'
+        capturedMonthCents={capturedThisMonth.sumCents}
+        capturedTodayCents={capturedToday.sumCents}
+        paidCountMonth={capturedThisMonth.count}
+        avgOrderValueMonthCents={capturedThisMonth.avgCents}
+        refundsMonthCents={refundsThisMonth.sumCents}
+        refundCountMonth={refundsThisMonth.count}
+        pendingPaymentCount={pendingPayment}
+        pendingPaymentAmountCents={pendingEstimate.sumCents}
+        monthOverMonthPct={monthOverMonthPct}
+      />
+
       <AdminRecentBookingRequests
         items={recentBookingRequests}
-        timeZone='America/Phoenix'
+        timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
 
@@ -624,7 +858,7 @@ export default async function AdminHome() {
         }}
         earliestUpcomingPickupAt={earliestUpcoming?.pickupAt ?? null}
         tripsNext3Hours={tripsNext3Hours}
-        timeZone='America/Phoenix'
+        timeZone={PHX_TZ}
       />
 
       <AdminDriverSnapshot
@@ -640,7 +874,7 @@ export default async function AdminHome() {
         byCategory={byCategory}
       />
 
-      <AdminActivityFeed items={activityTop10} timeZone='America/Phoenix' />
+      <AdminActivityFeed items={activityTop10} timeZone={PHX_TZ} />
 
       <AdminUrgentQueue
         unassignedSoon={unassignedSoon as unknown as UrgentBookingItem[]}
@@ -648,7 +882,7 @@ export default async function AdminHome() {
           pendingPaymentSoon as unknown as UrgentBookingItem[]
         }
         stuckReview={stuckReview as unknown as UrgentBookingItem[]}
-        timeZone='America/Phoenix'
+        timeZone={PHX_TZ}
       />
     </section>
   );
