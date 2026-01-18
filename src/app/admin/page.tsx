@@ -22,6 +22,7 @@ import AdminRecentBookingRequests, {
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 

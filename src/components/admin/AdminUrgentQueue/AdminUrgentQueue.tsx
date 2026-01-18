@@ -36,14 +36,12 @@ export default function AdminUrgentQueue({
   return (
     <section className={styles.container} aria-label='Urgent queue'>
       <header className={styles.header}>
-        <h2 className={`cardTitle h4`}>Urgent</h2>
+        <h2 className='cardTitle h4'>Urgent</h2>
         <div className={styles.meta}>
           {total === 0 ? (
             "All clear"
           ) : (
-            <>
-              <BadgeCount value={total} max={99} hideIfZero />
-            </>
+            <BadgeCount value={total} max={99} hideIfZero />
           )}
         </div>
       </header>
@@ -69,6 +67,7 @@ export default function AdminUrgentQueue({
           emptyText='No bookings stuck in review.'
           items={stuckReview}
           timeZone={timeZone}
+          variant='tripDetails'
         />
       </div>
     </section>
@@ -81,12 +80,14 @@ function UrgentSection({
   emptyText,
   items,
   timeZone,
+  variant = "default",
 }: {
   title: string;
   subtitle?: string;
   emptyText: string;
   items: UrgentBookingItem[];
   timeZone: string;
+  variant?: "default" | "tripDetails";
 }) {
   return (
     <div className={styles.card}>
@@ -95,11 +96,16 @@ function UrgentSection({
         <div className='countPill'>{items.length}</div>
         {subtitle ? <div className='miniNote'>{subtitle}</div> : null}
       </div>
+
       {items.length === 0 ? (
         <div className='emptySmall'>{emptyText}</div>
       ) : (
         <ul className={styles.list}>
           {items.map((b) => {
+            if (variant === "tripDetails") {
+              return <TripDetailsRow key={b.id} b={b} timeZone={timeZone} />;
+            }
+
             const customer =
               b.user?.name?.trim() ||
               b.user?.email ||
@@ -121,9 +127,9 @@ function UrgentSection({
                       <div className='emptyTitle underline'>
                         Date <span className={styles.rel}>({rel})</span>
                       </div>
-
                       <span className='emptySmall'>{pickupWhen}</span>
                     </div>
+
                     <div className={styles.box}>
                       <div className='emptyTitle underline'>Client</div>
                       <span className='emptySmall'>{customer}</span>
@@ -135,6 +141,7 @@ function UrgentSection({
                         <span className='emptySmall'>{b.serviceType.name}</span>
                       </div>
                     ) : null}
+
                     {b.assignment?.driver?.name ||
                     b.assignment?.driver?.email ? (
                       <div className={styles.box}>
@@ -151,10 +158,12 @@ function UrgentSection({
                         <span className='emptySmall'>Unassigned</span>
                       </div>
                     )}
+
                     <div className={styles.box}>
                       <div className='emptyTitle underline'>Pickup</div>
                       <div className='emptySmall'>{pickupShort}</div>
                     </div>
+
                     <div className={styles.box}>
                       <div className='emptyTitle underline'>Drop off</div>
                       <div className='emptySmall'>{dropoffShort}</div>
@@ -172,6 +181,104 @@ function UrgentSection({
           })}
         </ul>
       )}
+    </div>
+  );
+}
+
+function TripDetailsRow({
+  b,
+  timeZone,
+}: {
+  b: UrgentBookingItem;
+  timeZone: string;
+}) {
+  const customer =
+    b.user?.name?.trim() ||
+    b.user?.email ||
+    b.guestName?.trim() ||
+    b.guestEmail ||
+    "Guest";
+
+  const customerType = b.user ? "Account" : "Guest";
+
+  const pickupShort = shortAddress(b.pickupAddress);
+  const dropoffShort = shortAddress(b.dropoffAddress);
+
+  const pickupWhen = formatDateTime(b.pickupAt, timeZone);
+  const pickupRel = relativeToNow(b.pickupAt);
+
+  const createdWhen = formatDateTime(b.createdAt, timeZone);
+  const createdRel = relativeToNow(b.createdAt);
+
+  const driver =
+    b.assignment?.driver?.name?.trim() ||
+    b.assignment?.driver?.email ||
+    "Unassigned";
+
+  const routeLine = `${pickupShort} → ${dropoffShort}`;
+
+  return (
+    <li className={styles.tripRow}>
+      <div className={styles.tripLeft}>
+        <div className={styles.tripTop}>
+          <div className={styles.tripBadges}>
+            <StatusPill status={b.status} />
+            <span className="pill">{customerType}</span>
+          </div>
+
+          <div className={styles.tripActions}>
+            <Link className='primaryBtn' href={`/admin/bookings/${b.id}`}>
+              Review
+            </Link>
+          </div>
+        </div>
+
+        <div className={styles.tripMain}>
+          <div className={styles.tripHeadline}>
+            <div className='emptyTitle underline'>
+              Pickup <span className={styles.rel}>({pickupRel})</span>
+            </div>
+            <div className='emptySmall'>{pickupWhen}</div>
+          </div>
+
+          <div className={styles.tripRoute}>
+            <div className='emptyTitle underline'>Trip</div>
+            <div className={styles.routeValue}>{routeLine}</div>
+          </div>
+
+          <div className={styles.tripDetails}>
+            <Detail label='Client' value={customer} />
+            <Detail
+              label='Service'
+              value={b.serviceType?.name ? b.serviceType.name : "—"}
+            />
+            <Detail label='Assigned to' value={driver} />
+            <Detail label='Created' value={`${createdWhen} (${createdRel})`} />
+            <Detail label='Pickup' value={pickupShort} />
+            <Detail label='Drop off' value={dropoffShort} />
+          </div>
+
+          {!b.user ? (
+            <div className={styles.tripGuestMeta}>
+              {b.guestEmail ? (
+                <div className='miniNote'>Email: {b.guestEmail}</div>
+              ) : null}
+              {b.guestPhone ? (
+                <div className='miniNote'>Phone: {b.guestPhone}</div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </li>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: string }) {
+  return (
+    <div className={styles.detail}>
+      <div className='emptyTitleSmall'>{label}</div>
+      <div className='emptySmall'>{value}</div>
     </div>
   );
 }

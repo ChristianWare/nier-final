@@ -11,16 +11,11 @@
   gap: 1rem;
 }
 
-.title {
-  margin: 0;
-  color: var(--accent);
-}
-
 .meta {
   font-size: 1.3rem;
   opacity: 0.75;
-  /* background-color: red; */
 }
+
 
 .grid {
   display: grid;
@@ -32,7 +27,6 @@
   border: 1px solid var(--stroke);
   border-radius: 10px;
   padding: 1.5rem;
-  /* display: grid; */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -49,17 +43,6 @@
   width: 100%;
 }
 
-.cardTitle {
-  font-weight: 700;
-  font-size: 1.4rem;
-}
-
-.cardSubtitle {
-  font-size: 1.2rem;
-  opacity: 0.7;
-  margin-top: 0.2rem;
-}
-
 .countPill {
   min-width: 2.4rem;
   height: 2.4rem;
@@ -71,12 +54,6 @@
   padding: 0 0.7rem;
   font-size: 1.2rem;
   font-weight: 700;
-}
-
-.empty {
-  font-size: 1.3rem;
-  opacity: 0.75;
-  padding: 0.6rem 0;
 }
 
 .list {
@@ -107,30 +84,9 @@
   width: 100%;
 }
 
-.rowTop {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  align-items: center;
-}
-
-.time {
-  font-weight: 700;
-  font-size: 1.3rem;
-}
-
 .rel {
   font-size: 1.2rem;
   opacity: 0.75;
-}
-
-.statusPill {
-  font-size: 1.1rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  background: var(--stroke);
-  color: var(--black);
-  text-transform: capitalize;
 }
 
 .rowMiddle {
@@ -147,28 +103,103 @@
   flex-direction: column;
   gap: 1rem;
 }
+
 .rowRight {
   display: grid;
   width: 100%;
 }
 
-.reviewBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.7rem 1rem;
-  border-radius: 8px;
+.tripRow {
+  background: var(--lightGrayii);
   border: 1px solid var(--stroke);
-  background: var(--black);
-  color: var(--cream);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 1.2rem;
-  white-space: nowrap;
+  border-radius: 10px;
+  padding: 1.5rem;
+  width: 100%;
+  display: grid;
+  gap: 1.2rem;
 }
 
-.reviewBtn:hover {
-  background: var(--black400);
+.tripLeft {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.tripTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tripBadges {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.customerType {
+  font-size: 1.1rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--black);
+}
+
+.tripActions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.tripMain {
+  display: grid;
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.tripHeadline {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.tripRoute {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.routeValue {
+  font-size: 1.3rem;
+  opacity: 0.9;
+}
+
+.tripDetails {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  width: 100%;
+}
+
+.detail {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: white;
+}
+
+.tripGuestMeta {
+  display: grid;
+  gap: 0.4rem;
+}
+
+@media screen and (min-width: 900px) {
+  .tripDetails {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media screen and (max-width: 1100px) {

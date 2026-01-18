@@ -434,6 +434,7 @@ select:focus {
   font-size: 1.4rem;
   line-height: 1;
   font-weight: 700;
+  text-transform: uppercase;
 }
 
 .pillGood {
