@@ -1,11 +1,21 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { slugify } from "@/lib/slugify";
 
 export type ActionResult = { success?: string; error?: string };
+
+type AirportDTO = {
+  id: string;
+  name: string;
+  iata: string;
+  address: string;
+};
+
+type AirportLegUI = "NONE" | "PICKUP" | "DROPOFF";
 
 type ServiceTypeDTO = {
   id: string;
@@ -19,10 +29,13 @@ type ServiceTypeDTO = {
   perHourCents: number;
   sortOrder: number;
   active: boolean;
+  airportLeg: AirportLegUI;
+  airportIds: string[];
 };
 
 type Props = {
   service: ServiceTypeDTO;
+  airports: AirportDTO[];
   onUpdate: (formData: FormData) => Promise<ActionResult>;
   onDelete: () => Promise<ActionResult>;
 };
@@ -33,6 +46,7 @@ function centsToDollarsInput(cents: number) {
 
 export default function EditServiceForm({
   service,
+  airports,
   onUpdate,
   onDelete,
 }: Props) {
@@ -45,12 +59,36 @@ export default function EditServiceForm({
 
   const suggestedSlug = useMemo(() => slugify(name || ""), [name]);
 
+  const [airportLeg, setAirportLeg] = useState<AirportLegUI>(
+    service.airportLeg ?? "NONE",
+  );
+  const [selectedAirportIds, setSelectedAirportIds] = useState<string[]>(
+    Array.isArray(service.airportIds) ? service.airportIds : [],
+  );
+
+  const showAirportConfig = airportLeg !== "NONE";
+
+  function toggleAirport(id: string) {
+    setSelectedAirportIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
   return (
     <div style={{ display: "grid", gap: 14 }}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
+
+          if (showAirportConfig && selectedAirportIds.length === 0) {
+            toast.error("Select at least one airport for an airport service.");
+            return;
+          }
+
           const formData = new FormData(e.currentTarget);
+
+          formData.set("airportLeg", airportLeg);
+          selectedAirportIds.forEach((id) => formData.append("airportIds", id));
 
           startTransition(async () => {
             const res = await onUpdate(formData);
@@ -117,6 +155,124 @@ export default function EditServiceForm({
             </div>
           </div>
         </Field>
+
+        <Field
+          label='Service kind'
+          hint='Choose “Standard” unless pickup or dropoff should be selected from an airport list.'
+        >
+          <select
+            name='airportLeg'
+            value={airportLeg}
+            onChange={(e) => {
+              const next = e.target.value as AirportLegUI;
+              setAirportLeg(next);
+              if (next === "NONE") setSelectedAirportIds([]);
+            }}
+            style={inputStyle}
+            disabled={isPending}
+          >
+            <option value='NONE'>Standard (no airport dropdown)</option>
+            <option value='PICKUP'>
+              Airport pickup (pickup is an airport)
+            </option>
+            <option value='DROPOFF'>
+              Airport dropoff (dropoff is an airport)
+            </option>
+          </select>
+        </Field>
+
+        {showAirportConfig ? (
+          <Field
+            label='Airports for this service'
+            hint='These airports will appear as a dropdown in the BookingWizard.'
+          >
+            <div style={airportBoxStyle}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 10,
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                }}
+              >
+                <div style={{ fontSize: 12, opacity: 0.75 }}>
+                  Airports are managed in <strong>Admin → Airports</strong>.
+                </div>
+
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <Link href='/admin/airports' style={chipLinkStyle}>
+                    Manage airports
+                  </Link>
+                  <Link href='/admin/airports/new' style={chipLinkMutedStyle}>
+                    Add airport
+                  </Link>
+                </div>
+              </div>
+
+              {airports.length === 0 ? (
+                <div style={{ paddingTop: 10 }}>
+                  <div style={{ fontWeight: 700, fontSize: 13 }}>
+                    No airports yet
+                  </div>
+                  <p style={{ margin: "6px 0 0", fontSize: 12, opacity: 0.75 }}>
+                    Add airports first, then come back and select them here.
+                  </p>
+                </div>
+              ) : (
+                <div style={airportListStyle}>
+                  {airports.map((a) => {
+                    const checked = selectedAirportIds.includes(a.id);
+                    return (
+                      <label key={a.id} style={airportRowStyle}>
+                        <input
+                          type='checkbox'
+                          checked={checked}
+                          onChange={() => toggleAirport(a.id)}
+                          disabled={isPending}
+                        />
+                        <div style={{ display: "grid", gap: 2 }}>
+                          <div style={{ fontWeight: 700, fontSize: 13 }}>
+                            {a.name}{" "}
+                            <span
+                              style={{ fontFamily: "monospace", opacity: 0.7 }}
+                            >
+                              ({a.iata})
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 12, opacity: 0.75 }}>
+                            {a.address}
+                          </div>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <button
+                  type='button'
+                  style={smallBtnStyle}
+                  disabled={isPending || airports.length === 0}
+                  onClick={() =>
+                    setSelectedAirportIds(airports.map((a) => a.id))
+                  }
+                >
+                  Select all
+                </button>
+                <button
+                  type='button'
+                  style={smallBtnStyle}
+                  disabled={isPending}
+                  onClick={() => setSelectedAirportIds([])}
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </Field>
+        ) : null}
 
         <Select
           label='Pricing strategy'
@@ -254,7 +410,13 @@ export default function EditServiceForm({
 
 function Grid2({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: 10,
+      }}
+    >
       {children}
     </div>
   );
@@ -330,4 +492,47 @@ const smallBtnStyle: React.CSSProperties = {
   border: "1px solid rgba(0,0,0,0.2)",
   cursor: "pointer",
   background: "transparent",
+};
+
+const airportBoxStyle: React.CSSProperties = {
+  border: "1px solid rgba(0,0,0,0.12)",
+  borderRadius: 12,
+  padding: 12,
+  display: "grid",
+  gap: 12,
+  background: "rgba(0,0,0,0.02)",
+};
+
+const airportListStyle: React.CSSProperties = {
+  display: "grid",
+  gap: 10,
+  maxHeight: 260,
+  overflow: "auto",
+  padding: 10,
+  borderRadius: 10,
+  border: "1px solid rgba(0,0,0,0.10)",
+  background: "rgba(255,255,255,0.6)",
+};
+
+const airportRowStyle: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "16px 1fr",
+  gap: 10,
+  alignItems: "start",
+};
+
+const chipLinkStyle: React.CSSProperties = {
+  fontSize: 12,
+  padding: "6px 10px",
+  borderRadius: 999,
+  border: "1px solid rgba(0,0,0,0.18)",
+  textDecoration: "none",
+  color: "inherit",
+  fontWeight: 700,
+};
+
+const chipLinkMutedStyle: React.CSSProperties = {
+  ...chipLinkStyle,
+  fontWeight: 600,
+  opacity: 0.8,
 };

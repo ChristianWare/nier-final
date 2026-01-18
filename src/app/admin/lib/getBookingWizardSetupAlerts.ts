@@ -3,12 +3,11 @@ import { db } from "@/lib/db";
 import type { AlertItem } from "@/components/admin/AdminAlerts/AdminAlerts";
 
 export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
-  const setup: AlertItem[] = [];
+  const alerts: AlertItem[] = [];
 
-  // Google Maps key is required for Places autocomplete + routing
   const mapsKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
   if (!mapsKey) {
-    setup.push({
+    alerts.push({
       id: "setup-maps-key",
       severity: "danger",
       message:
@@ -36,7 +35,6 @@ export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
         OR: [{ lat: null }, { lng: null }],
       },
     }),
-    // Airport services that have ZERO usable airports assigned
     db.serviceType.count({
       where: {
         active: true,
@@ -52,9 +50,8 @@ export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
     }),
   ]);
 
-  // --- Booking Wizard prerequisites ---
   if (activeServicesCount === 0) {
-    setup.push({
+    alerts.push({
       id: "setup-no-services",
       severity: "danger",
       message:
@@ -65,7 +62,7 @@ export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
   }
 
   if (activeVehiclesCount === 0) {
-    setup.push({
+    alerts.push({
       id: "setup-no-vehicles",
       severity: "danger",
       message:
@@ -75,9 +72,8 @@ export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
     });
   }
 
-  // Dispatch readiness (not required to submit a request, but required to operate)
   if (driverCount === 0) {
-    setup.push({
+    alerts.push({
       id: "setup-no-drivers",
       severity: "warning",
       message:
@@ -87,9 +83,8 @@ export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
     });
   }
 
-  // --- Airport readiness (only becomes blocking if you have airport services enabled) ---
   if (airportCount === 0) {
-    setup.push({
+    alerts.push({
       id: "setup-no-airports",
       severity: "info",
       message:
@@ -100,7 +95,7 @@ export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
   }
 
   if (airportsMissingCoordsCount > 0) {
-    setup.push({
+    alerts.push({
       id: "setup-airports-missing-coords",
       severity: "warning",
       message: `${airportsMissingCoordsCount} airport(s) are missing coordinates (lat/lng). Edit each airport and select an address suggestion so we can save its location.`,
@@ -110,7 +105,7 @@ export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
   }
 
   if (airportServicesMissingAirportsCount > 0) {
-    setup.push({
+    alerts.push({
       id: "setup-airport-services-missing-airports",
       severity: "danger",
       message: `${airportServicesMissingAirportsCount} airport service(s) have no usable airports assigned. Assign airports (with coordinates) to each airport service.`,
@@ -119,5 +114,5 @@ export async function getBookingWizardSetupAlerts(): Promise<AlertItem[]> {
     });
   }
 
-  return setup;
+  return alerts;
 }

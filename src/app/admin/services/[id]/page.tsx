@@ -11,6 +11,14 @@ import EditServiceForm, { type ActionResult } from "./EditServiceForm";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type AirportLegUI = "NONE" | "PICKUP" | "DROPOFF";
+
+function normalizeAirportLeg(v: unknown): AirportLegUI {
+  if (v === "PICKUP") return "PICKUP";
+  if (v === "DROPOFF") return "DROPOFF";
+  return "NONE";
+}
+
 export default async function EditServicePage({
   params,
 }: {
@@ -18,11 +26,56 @@ export default async function EditServicePage({
 }) {
   const { id } = await params;
 
-  const service = await db.serviceType.findUnique({
-    where: { id },
-  });
+  const [serviceRaw, airportsRaw] = await Promise.all([
+    db.serviceType.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        pricingStrategy: true,
+        minFareCents: true,
+        baseFeeCents: true,
+        perMileCents: true,
+        perMinuteCents: true,
+        perHourCents: true,
+        sortOrder: true,
+        active: true,
+        airportLeg: true,
+        airports: { select: { id: true } },
+      },
+    }),
+    db.airport.findMany({
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: { id: true, name: true, iata: true, address: true },
+      take: 500,
+    }),
+  ]);
 
-  if (!service) notFound();
+  if (!serviceRaw) notFound();
+
+  const service = {
+    id: serviceRaw.id,
+    name: serviceRaw.name,
+    slug: serviceRaw.slug,
+    pricingStrategy: serviceRaw.pricingStrategy,
+    minFareCents: serviceRaw.minFareCents,
+    baseFeeCents: serviceRaw.baseFeeCents,
+    perMileCents: serviceRaw.perMileCents,
+    perMinuteCents: serviceRaw.perMinuteCents,
+    perHourCents: serviceRaw.perHourCents,
+    sortOrder: serviceRaw.sortOrder,
+    active: serviceRaw.active,
+    airportLeg: normalizeAirportLeg(serviceRaw.airportLeg),
+    airportIds: (serviceRaw.airports ?? []).map((a) => a.id),
+  };
+
+  const airports = airportsRaw.map((a) => ({
+    id: a.id,
+    name: a.name,
+    iata: a.iata,
+    address: a.address,
+  }));
 
   async function updateAction(formData: FormData): Promise<ActionResult> {
     "use server";
@@ -63,6 +116,7 @@ export default async function EditServicePage({
 
       <EditServiceForm
         service={service}
+        airports={airports}
         onUpdate={updateAction}
         onDelete={deleteAction}
       />

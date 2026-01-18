@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./AdminStyles.module.css";
 import AdminPageIntro from "@/components/admin/AdminPageIntro/AdminPageIntro";
-// import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
 import AdminAlerts, {
   AlertItem,
 } from "@/components/admin/AdminAlerts/AdminAlerts";
@@ -22,11 +21,10 @@ import AdminRecentBookingRequests, {
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000; // America/Phoenix is UTC-7 year-round
+const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
 function startOfDayPhoenix(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
@@ -89,16 +87,13 @@ export default async function AdminHome() {
     pendingPayment,
     confirmed,
 
-    // Alerts counts
     unassignedWithin24hCount,
     pendingPaymentWithin12hCount,
 
-    // Urgent buckets
     unassignedSoon,
     pendingPaymentSoon,
     stuckReview,
 
-    // Schedule snapshot
     todayTotal,
     todayConfirmed,
     todayUnassigned,
@@ -108,20 +103,16 @@ export default async function AdminHome() {
     tripsNext3Hours,
     earliestUpcoming,
 
-    // Driver readiness
     activeDrivers,
     driversAssignedTodayDistinct,
 
-    // Vehicle readiness
     activeUnits,
     inactiveUnits,
     activeUnitsByCategory,
     assignedActiveUnitsToday,
 
-    // ✅ Recent booking requests (for your new component)
     recentBookingRequestsRaw,
 
-    // Activity feed sources
     recentStatusEvents,
     recentAssignments,
     recentPaymentsReceived,
@@ -131,7 +122,6 @@ export default async function AdminHome() {
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
     db.booking.count({ where: { status: "CONFIRMED" } }),
 
-    // Alerts: unassigned within 24h
     db.booking.count({
       where: {
         pickupAt: { gte: now, lt: next24h },
@@ -140,7 +130,6 @@ export default async function AdminHome() {
       },
     }),
 
-    // Alerts: pending payment within 12h
     db.booking.count({
       where: {
         status: "PENDING_PAYMENT",
@@ -148,7 +137,6 @@ export default async function AdminHome() {
       },
     }),
 
-    // A) Unassigned + pickup within 24h (top items)
     db.booking.findMany({
       where: {
         pickupAt: { gte: now, lt: next24h },
@@ -165,16 +153,16 @@ export default async function AdminHome() {
         pickupAddress: true,
         dropoffAddress: true,
         user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        guestPhone: true,
         serviceType: { select: { name: true } },
         assignment: {
-          select: {
-            driver: { select: { name: true, email: true } },
-          },
+          select: { driver: { select: { name: true, email: true } } },
         },
       },
     }),
 
-    // B) Pending payment + pickup within 24h (top items)
     db.booking.findMany({
       where: {
         status: "PENDING_PAYMENT",
@@ -190,16 +178,16 @@ export default async function AdminHome() {
         pickupAddress: true,
         dropoffAddress: true,
         user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        guestPhone: true,
         serviceType: { select: { name: true } },
         assignment: {
-          select: {
-            driver: { select: { name: true, email: true } },
-          },
+          select: { driver: { select: { name: true, email: true } } },
         },
       },
     }),
 
-    // C) Pending review older than 2 hours (and still upcoming) (top items)
     db.booking.findMany({
       where: {
         status: "PENDING_REVIEW",
@@ -216,18 +204,16 @@ export default async function AdminHome() {
         pickupAddress: true,
         dropoffAddress: true,
         user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        guestPhone: true,
         serviceType: { select: { name: true } },
         assignment: {
-          select: {
-            driver: { select: { name: true, email: true } },
-          },
+          select: { driver: { select: { name: true, email: true } } },
         },
       },
     }),
 
-    // -------------------------
-    // Schedule snapshot: TODAY
-    // -------------------------
     db.booking.count({
       where: {
         pickupAt: { gte: todayStart, lt: tomorrowStart },
@@ -248,9 +234,6 @@ export default async function AdminHome() {
       },
     }),
 
-    // -------------------------
-    // Schedule snapshot: TOMORROW
-    // -------------------------
     db.booking.count({
       where: {
         pickupAt: { gte: tomorrowStart, lt: dayAfterStart },
@@ -271,7 +254,6 @@ export default async function AdminHome() {
       },
     }),
 
-    // Trips in next 3 hours
     db.booking.count({
       where: {
         pickupAt: { gte: now, lt: next3h },
@@ -279,7 +261,6 @@ export default async function AdminHome() {
       },
     }),
 
-    // Earliest upcoming pickup time
     db.booking.findFirst({
       where: {
         pickupAt: { gte: now },
@@ -289,9 +270,6 @@ export default async function AdminHome() {
       select: { pickupAt: true },
     }),
 
-    // -------------------------
-    // Driver readiness
-    // -------------------------
     db.user.count({ where: { roles: { has: "DRIVER" } } }),
     db.assignment.findMany({
       where: {
@@ -304,9 +282,6 @@ export default async function AdminHome() {
       distinct: ["driverId"],
     }),
 
-    // -------------------------
-    // Vehicle readiness
-    // -------------------------
     db.vehicleUnit.count({ where: { active: true } }),
     db.vehicleUnit.count({ where: { active: false } }),
     db.vehicleUnit.groupBy({
@@ -330,9 +305,6 @@ export default async function AdminHome() {
       distinct: ["id"],
     }),
 
-    // -------------------------
-    // ✅ Recent booking requests (triage list)
-    // -------------------------
     db.booking.findMany({
       where: {
         status: { in: ["PENDING_REVIEW", "PENDING_PAYMENT"] as any },
@@ -349,9 +321,7 @@ export default async function AdminHome() {
         specialRequests: true,
 
         userId: true,
-        user: {
-          select: { name: true, email: true, emailVerified: true },
-        },
+        user: { select: { name: true, email: true, emailVerified: true } },
 
         guestName: true,
         guestEmail: true,
@@ -362,9 +332,6 @@ export default async function AdminHome() {
       },
     }),
 
-    // -------------------------
-    // Recent activity sources
-    // -------------------------
     db.bookingStatusEvent.findMany({
       orderBy: [{ createdAt: "desc" }],
       take: 10,
@@ -439,14 +406,12 @@ export default async function AdminHome() {
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
 
-  // ✅ Setup checklist alerts (your “readiness” items)
   const setupAlerts = await getBookingWizardSetupAlerts();
 
-  // ✅ Live operational alerts (time-sensitive dispatch items)
-  const alerts: AlertItem[] = [];
+  const operationalAlerts: AlertItem[] = [];
 
   if (unassignedWithin24hCount > 0) {
-    alerts.push({
+    operationalAlerts.push({
       id: "unassigned-24h",
       severity: unassignedWithin24hCount >= 3 ? "danger" : "warning",
       message: `${unassignedWithin24hCount} booking(s) are unassigned within 24 hours`,
@@ -456,7 +421,7 @@ export default async function AdminHome() {
   }
 
   if (pendingPaymentWithin12hCount > 0) {
-    alerts.push({
+    operationalAlerts.push({
       id: "pending-payment-12h",
       severity: pendingPaymentWithin12hCount >= 2 ? "danger" : "warning",
       message: `${pendingPaymentWithin12hCount} booking(s) pending payment within 12 hours`,
@@ -465,9 +430,8 @@ export default async function AdminHome() {
     });
   }
 
-  // -------------------------
-  // ✅ Recent booking requests mapping (safe for Client Component)
-  // -------------------------
+  const alerts: AlertItem[] = [...setupAlerts, ...operationalAlerts];
+
   const recentBookingRequests: RecentBookingRequestItem[] =
     recentBookingRequestsRaw.map((b: any) => {
       const isAccount = Boolean(b.userId);
@@ -499,7 +463,6 @@ export default async function AdminHome() {
       };
     });
 
-  // Vehicle readiness calculations
   const assignedActiveUnitIdsToday = new Set(
     assignedActiveUnitsToday.map((u: any) => u.id),
   );
@@ -508,7 +471,6 @@ export default async function AdminHome() {
     activeUnits - assignedActiveUnitIdsToday.size,
   );
 
-  // By-category readiness
   const assignedByCategory = new Map<string, number>();
   for (const u of assignedActiveUnitsToday as any[]) {
     const key = u.categoryId ?? "unassigned";
@@ -550,7 +512,6 @@ export default async function AdminHome() {
     .sort((a, b) => b.activeUnits - a.activeUnits)
     .slice(0, 8);
 
-  // Activity feed merge
   const activity: AdminActivityItem[] = [];
 
   for (const e of recentStatusEvents as any[]) {
@@ -637,10 +598,8 @@ export default async function AdminHome() {
         confirmed={confirmed}
       />
 
-      {/* ✅ Setup checklist + live alerts */}
-      <AdminAlerts alerts={alerts} setup={setupAlerts} />
+      <AdminAlerts alerts={alerts} />
 
-      {/* ✅ Recent booking requests */}
       <AdminRecentBookingRequests
         items={recentBookingRequests}
         timeZone='America/Phoenix'
