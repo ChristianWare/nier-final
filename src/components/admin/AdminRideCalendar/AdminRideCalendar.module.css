@@ -1,0 +1,282 @@
+.wrap {
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 3rem;
+}
+
+.header {
+  display: grid;
+  gap: 12px;
+}
+
+.topRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.controlsRow {
+  display: grid;
+  gap: 10px;
+}
+
+.controlsDesktop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.controlsMobile {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.monthLabel {
+  font-weight: 700;
+  font-family: var(--interTight);
+}
+
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--tan);
+  color: #333;
+  border: 1px solid var(--stroke);
+  cursor: pointer;
+  text-decoration: none;
+  appearance: none;
+  line-height: 1;
+  font-family: var(--interTight);
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: #f7f7f7;
+  color: var(--black);
+}
+
+.primary {
+  background: #111;
+  color: #fff;
+}
+
+.primary:hover {
+  background: #000;
+}
+
+.iconBtn {
+  width: 42px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--tan);
+  color: #222;
+  border: 1px solid var(--stroke);
+  cursor: pointer;
+  font-family: var(--interTight);
+  font-size: 22px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+}
+
+.iconBtn:active {
+  transform: translateY(1px);
+}
+
+.monthPicker {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: #fff;
+  font-family: var(--interTight);
+  line-height: 1;
+}
+
+.todayBtn {
+  padding: 10px 12px;
+}
+
+.gridHead {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  padding: 10px 10px 0 10px;
+  background: var(--tan);
+}
+
+.dowCell {
+  background-color: var(--lightGray);
+  padding: 8px;
+  text-align: center;
+  font-family: var(--interTight);
+  font-weight: 600;
+  border-radius: 5px;
+}
+
+.gridDays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  padding: 10px;
+}
+
+.dayCell {
+  position: relative;
+  border: 2px solid var(--stroke);
+  border-radius: 5px;
+  min-height: 52px;
+  padding: 10px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.12s ease;
+  background: var(--tan);
+}
+
+.dayCell:hover {
+  background: #fff;
+  color: var(--black) !important;
+}
+
+.dayCell:active {
+  transform: translateY(1px);
+}
+
+.dayNum {
+  font-family: var(--interTight);
+  font-weight: 800;
+  color: #222;
+  font-size: 14px;
+}
+
+.dayCell:hover .dayNum {
+  color: var(--black);
+}
+
+.dayCellOther {
+  background: #f2f4f7;
+  border-color: #e5e7eb;
+}
+
+.dayCellOther .dayNum {
+  color: #6b7280;
+}
+
+.today {
+  background: #eaf8ee;
+  border-color: #bfe8cc;
+  outline: 2px solid #4e94ec33;
+  outline-offset: 0;
+}
+
+.countPill {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  border: 2px solid #111;
+  display: grid;
+  place-items: center;
+  font-family: var(--interTight);
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.mobileLegend {
+  display: none;
+  gap: 10px;
+  padding: 0 10px 10px 10px;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--interTight);
+  font-size: 12px;
+  color: #333;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.legendToday {
+  background: #eaf8ee;
+  border-color: #bfe8cc;
+}
+
+.legendHas {
+  background: #111;
+  border-color: #111;
+}
+
+@media screen and (max-width: 568px) {
+  .topRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controlsDesktop {
+    display: none;
+  }
+
+  .controlsMobile {
+    display: flex;
+  }
+
+  .gridHead {
+    display: none;
+  }
+
+  .gridDays {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .dayCell {
+    min-height: 44px;
+    padding: 8px;
+    border-radius: 5px;
+  }
+
+  .dayNum {
+    font-size: 13px;
+  }
+
+  .mobileLegend {
+    display: flex;
+  }
+}
+
+@media screen and (max-width: 380px) {
+  .iconBtn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .dayCell {
+    min-height: 40px;
+    padding: 7px;
+  }
+}

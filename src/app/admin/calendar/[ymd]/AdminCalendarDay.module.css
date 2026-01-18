@@ -1,0 +1,84 @@
+.wrap {
+  display: grid;
+  gap: 14px;
+}
+
+.card {
+  border: 2px solid var(--stroke);
+  border-radius: 12px;
+  background: #fff;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.titleBlock {
+  display: grid;
+  gap: 4px;
+}
+
+.badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--stroke);
+  background: var(--tan);
+  font-family: var(--interTight);
+  font-weight: 900;
+  font-size: 12px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.badge_good {
+  background: #eaf8ee;
+  border-color: #bfe8cc;
+  color: #0f5132;
+}
+
+.badge_warn {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+.badge_neutral {
+  background: #f2f4f7;
+  border-color: #e5e7eb;
+  color: #374151;
+}
+
+.row {
+  display: grid;
+  gap: 6px;
+}
+
+.metaLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.mono {
+  font-family: var(--interTight);
+  font-weight: 900;
+}
+
+.link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
