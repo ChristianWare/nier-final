@@ -7,6 +7,7 @@ import {
   startOfNextMonthPhoenix,
   ymdInPhoenix,
 } from "../lib/phxDates";
+import AdminBlackoutDatesSection from "@/components/admin/AdminBlackoutDates/AdminBlackoutDatesSection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,6 +73,7 @@ export default async function AdminCalendarPage(props: {
       <div className='miniNote' style={{ marginTop: 10 }}>
         Time zone: {PHX_TZ}
       </div>
+      <AdminBlackoutDatesSection />
     </section>
   );
 }

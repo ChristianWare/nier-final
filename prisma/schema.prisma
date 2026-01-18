@@ -63,7 +63,9 @@ enum AddonType {
   OTHER
 }
 
-/** ✅ NEW: airport behavior for service types */
+/**
+ * ✅ NEW: airport behavior for service types
+ */
 enum AirportLeg {
   NONE
   PICKUP
@@ -223,7 +225,9 @@ model VehicleUnit {
   @@index([active])
 }
 
-/** ✅ NEW: Airports live here (addresses belong to airports, not services) */
+/**
+ * ✅ NEW: Airports live here (addresses belong to airports, not services)
+ */
 model Airport {
   id      String @id @default(cuid())
   name    String
@@ -436,4 +440,11 @@ model BookingStatusEvent {
   @@index([bookingId])
   @@index([status])
   @@index([createdAt])
+}
+
+model BlackoutDate {
+  id        String   @id @default(cuid())
+  ymd       String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
 }
