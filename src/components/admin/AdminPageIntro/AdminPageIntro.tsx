@@ -4,6 +4,7 @@
 import styles from "./AdminPageIntro.module.css";
 import { useSession } from "next-auth/react";
 import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
+import AdminQuickActions from "../AdminQuickActions/AdminQuickActions";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -34,9 +35,14 @@ export default function AdminPageIntro({
     <section className={styles.container}>
       <div className={styles.content}>
         <div className={styles.top}>
-          <h1 className={`${styles.heading} h2`}>
+          <h1 className={`heading undeline h2`}>
             Welcome {displayName}! (Admin)
           </h1>
+        </div>
+        <AdminQuickActions />
+
+        <div className={`cardTitle h4`} style={{ marginTop: "7rem" }}>
+          Key Performance Indicators
         </div>
 
         <div className={styles.kpiGrid}>

@@ -1,0 +1,219 @@
+.container {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: white;
+}
+
+.header {
+  display: grid;
+  gap: 12px;
+}
+
+.titleRow {
+  display: grid;
+  gap: 10px;
+}
+
+.kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  opacity: 0.8;
+  font-size: 12px;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 1rem;
+}
+
+.kpi {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.02);
+  font-weight: 700;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 999px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tabActive {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.left {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+}
+/* 
+.topLine {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 10px;
+} */
+
+.badgeContainer {
+  margin-bottom: 2rem;
+}
+
+.infoBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.pickup {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.rel {
+  opacity: 0.7;
+}
+
+.service {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.route {
+  font-size: 14px;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 900px;
+}
+
+.customerLine {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.customerText {
+  opacity: 0.9;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+}
+
+/* badges + pills */
+.badge {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: normal;
+  width: fit-content;
+}
+
+.badge_neutral {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.badge_warning {
+  background: rgba(255, 200, 9, 0.2);
+  border-color: rgba(255, 200, 9, 0.55);
+}
+
+.badge_danger {
+  background: rgba(180, 0, 0, 0.12);
+  border-color: rgba(180, 0, 0, 0.35);
+}
+
+.badge_good {
+  background: rgba(0, 140, 80, 0.12);
+  border-color: rgba(0, 140, 80, 0.28);
+}
+
+.pill {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.pillGuest {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pillAccount {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pillGood {
+  background: rgba(0, 140, 80, 0.12);
+  border-color: rgba(0, 140, 80, 0.28);
+}
+
+.pillWarn {
+  background: rgba(255, 200, 9, 0.2);
+  border-color: rgba(255, 200, 9, 0.55);
+}
+
+.pillInfo {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+@media screen and (max-width: 1068px) {
+  .list {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}

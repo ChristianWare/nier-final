@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./AdminStyles.module.css";
 import AdminPageIntro from "@/components/admin/AdminPageIntro/AdminPageIntro";
-import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
+// import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
 import AdminAlerts, {
   AlertItem,
 } from "@/components/admin/AdminAlerts/AdminAlerts";
@@ -16,7 +16,11 @@ import AdminVehicleSnapshot, {
 import AdminActivityFeed, {
   AdminActivityItem,
 } from "@/components/admin/AdminActivityFeed/AdminActivityFeed";
+import AdminRecentBookingRequests, {
+  RecentBookingRequestItem,
+} from "@/components/admin/AdminRecentBookingRequests/AdminRecentBookingRequests";
 import { db } from "@/lib/db";
+import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,14 +47,14 @@ function shortAddress(address: string) {
 }
 
 function actorLabel(
-  user: { name: string | null; email: string } | null | undefined
+  user: { name: string | null; email: string } | null | undefined,
 ) {
   if (!user) return "System";
   return user.name?.trim() || user.email;
 }
 
 function customerLabel(
-  user: { name: string | null; email: string } | null | undefined
+  user: { name: string | null; email: string } | null | undefined,
 ) {
   if (!user) return "Customer";
   return user.name?.trim() || user.email;
@@ -112,6 +116,9 @@ export default async function AdminHome() {
     inactiveUnits,
     activeUnitsByCategory,
     assignedActiveUnitsToday,
+
+    // ✅ Recent booking requests (for your new component)
+    recentBookingRequestsRaw,
 
     // Activity feed sources
     recentStatusEvents,
@@ -284,7 +291,7 @@ export default async function AdminHome() {
     // -------------------------
     // Driver readiness
     // -------------------------
-db.user.count({ where: { roles: { has: "DRIVER" } } }),
+    db.user.count({ where: { roles: { has: "DRIVER" } } }),
     db.assignment.findMany({
       where: {
         booking: {
@@ -320,6 +327,38 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
       },
       select: { id: true, categoryId: true },
       distinct: ["id"],
+    }),
+
+    // -------------------------
+    // ✅ Recent booking requests (triage list)
+    // -------------------------
+    db.booking.findMany({
+      where: {
+        status: { in: ["PENDING_REVIEW", "PENDING_PAYMENT"] as any },
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 25,
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        specialRequests: true,
+
+        userId: true,
+        user: {
+          select: { name: true, email: true, emailVerified: true },
+        },
+
+        guestName: true,
+        guestEmail: true,
+        guestPhone: true,
+
+        serviceType: { select: { name: true, airportLeg: true } },
+        vehicle: { select: { name: true } },
+      },
     }),
 
     // -------------------------
@@ -399,7 +438,10 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
 
-  // Alerts build
+  // ✅ Setup checklist alerts (your “readiness” items)
+  const setupAlerts = await getBookingWizardSetupAlerts();
+
+  // ✅ Live operational alerts (time-sensitive dispatch items)
   const alerts: AlertItem[] = [];
 
   if (unassignedWithin24hCount > 0) {
@@ -422,33 +464,57 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
     });
   }
 
-  if (activeDrivers === 0) {
-    alerts.push({
-      id: "no-drivers",
-      severity: "danger",
-      message: "0 active drivers — add drivers before dispatching",
-      href: "/admin/drivers",
-      ctaLabel: "Add driver",
+  // -------------------------
+  // ✅ Recent booking requests mapping (safe for Client Component)
+  // -------------------------
+  const recentBookingRequests: RecentBookingRequestItem[] =
+    recentBookingRequestsRaw.map((b: any) => {
+      const isAccount = Boolean(b.userId);
+
+      return {
+        id: b.id,
+        status: b.status,
+        createdAtIso: new Date(b.createdAt).toISOString(),
+        pickupAtIso: new Date(b.pickupAt).toISOString(),
+        pickupAddress: b.pickupAddress,
+        dropoffAddress: b.dropoffAddress,
+        serviceName: b.serviceType?.name ?? "—",
+        vehicleName: b.vehicle?.name ?? null,
+        airportLeg: (b.serviceType?.airportLeg ?? "NONE") as any,
+        specialRequests: b.specialRequests ?? null,
+        customer: isAccount
+          ? {
+              kind: "account",
+              name: (b.user?.name ?? "").trim() || b.user?.email || "Account",
+              email: b.user?.email ?? null,
+              verified: Boolean(b.user?.emailVerified),
+            }
+          : {
+              kind: "guest",
+              name: (b.guestName ?? "").trim() || "Guest",
+              email: b.guestEmail ?? null,
+              phone: b.guestPhone ?? null,
+            },
+      };
     });
-  }
 
   // Vehicle readiness calculations
   const assignedActiveUnitIdsToday = new Set(
-    assignedActiveUnitsToday.map((u) => u.id)
+    assignedActiveUnitsToday.map((u: any) => u.id),
   );
   const availableUnitsToday = Math.max(
     0,
-    activeUnits - assignedActiveUnitIdsToday.size
+    activeUnits - assignedActiveUnitIdsToday.size,
   );
 
   // By-category readiness
   const assignedByCategory = new Map<string, number>();
-  for (const u of assignedActiveUnitsToday) {
+  for (const u of assignedActiveUnitsToday as any[]) {
     const key = u.categoryId ?? "unassigned";
     assignedByCategory.set(key, (assignedByCategory.get(key) ?? 0) + 1);
   }
 
-  const categoryIds = activeUnitsByCategory
+  const categoryIds = (activeUnitsByCategory as any[])
     .map((g) => g.categoryId)
     .filter((x): x is string => typeof x === "string");
 
@@ -461,7 +527,9 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
 
   const categoryNameById = new Map(categoryRows.map((c) => [c.id, c.name]));
 
-  const byCategory: VehicleCategoryReadiness[] = activeUnitsByCategory
+  const byCategory: VehicleCategoryReadiness[] = (
+    activeUnitsByCategory as any[]
+  )
     .map((g) => {
       const key = g.categoryId ?? "unassigned";
       const activeCount = g._count._all;
@@ -484,10 +552,12 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
   // Activity feed merge
   const activity: AdminActivityItem[] = [];
 
-  for (const e of recentStatusEvents) {
+  for (const e of recentStatusEvents as any[]) {
     const cust = customerLabel(e.booking?.user);
     const by = actorLabel(e.createdBy);
-    const route = `${shortAddress(e.booking.pickupAddress)} → ${shortAddress(e.booking.dropoffAddress)}`;
+    const route = `${shortAddress(e.booking.pickupAddress)} → ${shortAddress(
+      e.booking.dropoffAddress,
+    )}`;
 
     let title = `Booking status updated: ${statusLabel(e.status)}`;
     if (e.status === "PENDING_PAYMENT")
@@ -504,14 +574,16 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
     });
   }
 
-  for (const a of recentAssignments) {
+  for (const a of recentAssignments as any[]) {
     const cust = customerLabel(a.booking?.user);
     const by = actorLabel(a.assignedBy);
     const driver = actorLabel(a.driver);
     const unitName = a.vehicleUnit?.name
       ? ` • Unit: ${a.vehicleUnit.name}`
       : "";
-    const route = `${shortAddress(a.booking.pickupAddress)} → ${shortAddress(a.booking.dropoffAddress)}`;
+    const route = `${shortAddress(a.booking.pickupAddress)} → ${shortAddress(
+      a.booking.dropoffAddress,
+    )}`;
 
     activity.push({
       kind: "ASSIGNMENT",
@@ -522,9 +594,11 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
     });
   }
 
-  for (const p of recentPaymentsReceived) {
+  for (const p of recentPaymentsReceived as any[]) {
     const cust = customerLabel(p.booking?.user);
-    const route = `${shortAddress(p.booking.pickupAddress)} → ${shortAddress(p.booking.dropoffAddress)}`;
+    const route = `${shortAddress(p.booking.pickupAddress)} → ${shortAddress(
+      p.booking.dropoffAddress,
+    )}`;
 
     activity.push({
       kind: "PAYMENT_RECEIVED",
@@ -535,9 +609,11 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
     });
   }
 
-  for (const pl of recentPaymentLinks) {
+  for (const pl of recentPaymentLinks as any[]) {
     const cust = customerLabel(pl.booking?.user);
-    const route = `${shortAddress(pl.booking.pickupAddress)} → ${shortAddress(pl.booking.dropoffAddress)}`;
+    const route = `${shortAddress(pl.booking.pickupAddress)} → ${shortAddress(
+      pl.booking.dropoffAddress,
+    )}`;
 
     activity.push({
       kind: "PAYMENT_LINK_SENT",
@@ -560,9 +636,15 @@ db.user.count({ where: { roles: { has: "DRIVER" } } }),
         confirmed={confirmed}
       />
 
-      <AdminQuickActions />
+      {/* ✅ Setup checklist + live alerts */}
+      <AdminAlerts alerts={alerts} setup={setupAlerts} />
 
-      <AdminAlerts alerts={alerts} />
+      {/* ✅ Recent booking requests */}
+      <AdminRecentBookingRequests
+        items={recentBookingRequests}
+        timeZone='America/Phoenix'
+        bookingHrefBase='/admin/bookings'
+      />
 
       <AdminScheduleSnapshot
         today={{

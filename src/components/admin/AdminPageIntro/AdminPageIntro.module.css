@@ -11,9 +11,10 @@
 .kpiGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-gap: 2rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--stroke);
+  grid-gap: 1rem;
+  /* margin-top: 7rem; */
+  /* padding-top: 1rem; */
+  /* border-top: 2px solid var(--stroke); */
 }
 
 @media screen and (max-width: 968px) {
