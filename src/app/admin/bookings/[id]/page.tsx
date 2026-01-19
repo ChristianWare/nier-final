@@ -112,6 +112,14 @@ export default async function AdminBookingDetailPage({
     take: 300,
   });
 
+  const customerName =
+    booking.user?.name?.trim() || booking.guestName?.trim() || "—";
+  const customerEmail = booking.user?.email || booking.guestEmail || "—";
+  const customerPhone = booking.guestPhone?.trim() || "—";
+  const customerLine = booking.user
+    ? `${customerName} (${customerEmail})`
+    : `${customerName} (${customerEmail})${booking.guestPhone ? ` • ${customerPhone}` : ""}`;
+
   return (
     <section className='container'>
       <header className='header'>
@@ -124,10 +132,7 @@ export default async function AdminBookingDetailPage({
       </header>
 
       <Card title='Trip'>
-        <KeyVal
-          k='Customer'
-          v={`${booking.user.name ?? "—"} (${booking.user.email})`}
-        />
+        <KeyVal k='Customer' v={customerLine} />
         <KeyVal k='Service' v={booking.serviceType.name} />
         <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
         <KeyVal k='Pickup at' v={booking.pickupAt.toLocaleString()} />

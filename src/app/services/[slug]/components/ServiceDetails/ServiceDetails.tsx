@@ -63,7 +63,7 @@ function SectionList({
   const ListTag = ordered ? "ol" : "ul";
   return (
     <section className={styles.section}>
-      <h3 className={`${styles.subHeading}`}>{title}</h3>
+      <h3 className={`cardTitle h5 bgWhite`}>{title}</h3>
       <ListTag className={styles.list}>
         {items.map((item, i) => (
           <li key={i} className={styles.listItem}>

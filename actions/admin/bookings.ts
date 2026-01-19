@@ -10,7 +10,6 @@ import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
 function getActorId(session: any) {
-  // Prefer canonical id, fallback to userId for migration safety
   return (
     (session?.user?.id as string | undefined) ??
     (session?.user?.userId as string | undefined)
@@ -32,6 +31,18 @@ async function requireAdmin() {
   }
 
   return { session, actorId, roles };
+}
+
+function errMsg(e: any) {
+  if (!e) return "Unknown error";
+  if (typeof e === "string") return e;
+  if (e instanceof Error) return e.message;
+  if (typeof e === "object" && typeof e.message === "string") return e.message;
+  try {
+    return JSON.stringify(e);
+  } catch {
+    return "Unknown error";
+  }
 }
 
 const ApprovePricingSchema = z.object({
@@ -154,34 +165,90 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     include: { user: true, serviceType: true, vehicle: true, payment: true },
   });
   if (!booking) return { error: "Booking not found." };
-  if (!booking.user?.email) return { error: "Booking user email missing." };
 
-  if (!booking.totalCents || booking.totalCents <= 0) {
+  const b = booking;
+
+  if (b.status === "CANCELLED" || b.status === "NO_SHOW") {
+    return { error: "This booking is cancelled/no-show. Don’t send payment." };
+  }
+
+  const recipientEmail = (b.user?.email ?? b.guestEmail ?? "")
+    .trim()
+    .toLowerCase();
+  const recipientName = (b.user?.name ?? b.guestName ?? "").trim() || null;
+
+  if (!recipientEmail) return { error: "Customer email missing." };
+
+  if (!b.totalCents || b.totalCents <= 0) {
     return { error: "Set a total price before sending payment link." };
   }
 
   const APP_URL = process.env.APP_URL || "http://localhost:3000";
-  const successUrl = `${APP_URL}/dashboard?paid=1&bookingId=${booking.id}`;
-  const cancelUrl = `${APP_URL}/dashboard?cancelled=1&bookingId=${booking.id}`;
+  const successUrl = `${APP_URL}/dashboard?paid=1&bookingId=${b.id}`;
+  const cancelUrl = `${APP_URL}/dashboard?cancelled=1&bookingId=${b.id}`;
+
+  const now = Date.now();
+  const reuseWindowMs = 23 * 60 * 60 * 1000;
+
+  const existing = b.payment;
+
+  const canReuse =
+    existing?.status === "PENDING" &&
+    Boolean(existing.checkoutUrl) &&
+    Boolean(existing.stripeCheckoutSessionId) &&
+    existing.amountTotalCents === (b.totalCents ?? 0) &&
+    (existing.currency ?? "usd") === (b.currency ?? "usd") &&
+    now - new Date(existing.updatedAt).getTime() < reuseWindowMs;
+
+  const maybeSetPendingPayment =
+    b.status === "DRAFT" || b.status === "PENDING_REVIEW";
+
+  async function emailIt(url: string) {
+    await sendPaymentLinkEmail({
+      to: recipientEmail,
+      name: recipientName,
+      pickupAtISO: b.pickupAt.toISOString(),
+      pickupAddress: b.pickupAddress,
+      dropoffAddress: b.dropoffAddress,
+      totalCents: b.totalCents,
+      currency: b.currency,
+      payUrl: url,
+      bookingId: b.id,
+    });
+  }
+
+  if (canReuse && existing?.checkoutUrl) {
+    try {
+      await emailIt(existing.checkoutUrl);
+      return { success: true, reused: true, checkoutUrl: existing.checkoutUrl };
+    } catch (e) {
+      console.error("sendPaymentLinkEmail failed (reuse)", e);
+      return {
+        error:
+          "Payment link created, but the email failed to send. Copy the checkout URL from this page and send it manually.",
+        checkoutUrl: existing.checkoutUrl,
+      };
+    }
+  }
 
   const stripeSession = await stripe.checkout.sessions.create({
     mode: "payment",
-    customer_email: booking.user.email,
+    customer_email: recipientEmail,
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: {
-      bookingId: booking.id,
-      userId: booking.userId,
+      bookingId: b.id,
+      ...(b.userId ? { userId: b.userId } : {}),
     },
     line_items: [
       {
         quantity: 1,
         price_data: {
-          currency: booking.currency ?? "usd",
-          unit_amount: booking.totalCents,
+          currency: b.currency ?? "usd",
+          unit_amount: b.totalCents,
           product_data: {
-            name: `${booking.serviceType.name} — Nier Transportation`,
-            description: `${booking.pickupAddress} → ${booking.dropoffAddress}`,
+            name: `${b.serviceType.name} — Nier Transportation`,
+            description: `${b.pickupAddress} → ${b.dropoffAddress}`,
           },
         },
       },
@@ -192,51 +259,62 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     return { error: "Stripe did not return a checkout URL." };
   }
 
-  await db.$transaction([
+  const tx: any[] = [];
+
+  tx.push(
     db.payment.upsert({
-      where: { bookingId: booking.id },
+      where: { bookingId: b.id },
       update: {
         status: "PENDING",
         stripeCheckoutSessionId: stripeSession.id,
-        amountSubtotalCents: booking.subtotalCents,
-        amountTotalCents: booking.totalCents,
-        currency: booking.currency,
+        amountSubtotalCents: b.subtotalCents,
+        amountTotalCents: b.totalCents,
+        currency: b.currency,
         checkoutUrl: stripeSession.url,
       },
       create: {
-        bookingId: booking.id,
+        bookingId: b.id,
         status: "PENDING",
         stripeCheckoutSessionId: stripeSession.id,
-        amountSubtotalCents: booking.subtotalCents,
-        amountTotalCents: booking.totalCents,
-        currency: booking.currency,
+        amountSubtotalCents: b.subtotalCents,
+        amountTotalCents: b.totalCents,
+        currency: b.currency,
         checkoutUrl: stripeSession.url,
       },
     }),
-    db.booking.update({
-      where: { id: booking.id },
-      data: { status: "PENDING_PAYMENT" },
-    }),
-    db.bookingStatusEvent.create({
-      data: {
-        bookingId: booking.id,
-        status: "PENDING_PAYMENT",
-        createdById: actorId,
-      },
-    }),
-  ]);
+  );
 
-  await sendPaymentLinkEmail({
-    to: booking.user.email,
-    name: booking.user.name,
-    pickupAtISO: booking.pickupAt.toISOString(),
-    pickupAddress: booking.pickupAddress,
-    dropoffAddress: booking.dropoffAddress,
-    totalCents: booking.totalCents,
-    currency: booking.currency,
-    payUrl: stripeSession.url,
-    bookingId: booking.id,
-  });
+  if (maybeSetPendingPayment) {
+    tx.push(
+      db.booking.update({
+        where: { id: b.id },
+        data: { status: "PENDING_PAYMENT" },
+      }),
+    );
+    tx.push(
+      db.bookingStatusEvent.create({
+        data: {
+          bookingId: b.id,
+          status: "PENDING_PAYMENT",
+          createdById: actorId,
+        },
+      }),
+    );
+  }
 
-  return { success: true };
+  await db.$transaction(tx);
+
+  try {
+    await emailIt(stripeSession.url);
+  } catch (e) {
+    console.error("sendPaymentLinkEmail failed (new)", e);
+    return {
+      error:
+        "Payment link created, but the email failed to send. Copy the checkout URL from this page and send it manually.",
+      checkoutUrl: stripeSession.url,
+      debug: errMsg(e),
+    };
+  }
+
+  return { success: true, reused: false, checkoutUrl: stripeSession.url };
 }

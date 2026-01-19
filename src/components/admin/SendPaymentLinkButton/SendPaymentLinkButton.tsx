@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useTransition } from "react";
@@ -15,26 +16,39 @@ export default function SendPaymentLinkButton({
 
   return (
     <form
-    style={{ marginTop: "1rem" }}
+      style={{ marginTop: "1rem" }}
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData();
         fd.set("bookingId", bookingId);
 
         startTransition(() => {
-          createPaymentLinkAndEmail(fd).then((res) => {
-            if (res?.error) return toast.error(res.error);
-            toast.success("Payment link emailed");
+          createPaymentLinkAndEmail(fd).then(async (res) => {
+            if (res?.error) {
+              toast.error(res.error);
+
+              const url = (res as any)?.checkoutUrl as string | undefined;
+              if (url && typeof navigator !== "undefined") {
+                try {
+                  await navigator.clipboard.writeText(url);
+                  toast.success("Checkout URL copied to clipboard");
+                } catch {}
+              }
+
+              router.refresh();
+              return;
+            }
+
+            const reused = Boolean((res as any)?.reused);
+            toast.success(
+              reused ? "Payment link re-sent" : "Payment link emailed",
+            );
             router.refresh();
           });
         });
       }}
     >
-      <button
-        disabled={isPending}
-        type='submit'
-        className='primaryBtn'
-      >
+      <button disabled={isPending} type='submit' className='primaryBtn'>
         {isPending ? "Sending..." : "Email payment link"}
       </button>
     </form>

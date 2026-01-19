@@ -34,7 +34,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
             )}
 
             <article className={styles.section}>
-              <h3 className={`${styles.subHeading} h5`}>Amenities</h3>
+              <h3 className={`cardTitle h5`}>Amenities</h3>
               <ul>
                 {(vehicle.amenities ?? []).map((a) => (
                   <li key={a}>
@@ -44,7 +44,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
               </ul>
             </article>
             <article className={styles.section}>
-              <h3 className={`${styles.subHeading} h5`}>
+              <h3 className={`cardTitle h5`}>
                 Safety & Driver Tech
               </h3>
               <ul>
@@ -57,7 +57,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
               </ul>
             </article>
             <article className={styles.section}>
-              <h3 className={`${styles.subHeading} h5`}>Specs</h3>
+              <h3 className={`cardTitle h5`}>Specs</h3>
               <ul>
                 {vehicle.specs?.drivetrain && (
                   <li>
@@ -87,7 +87,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
             </article>
             {vehicle.features?.length ? (
               <article className={styles.section}>
-                <h3 className={`${styles.subHeading} h5`}>Highlights</h3>
+                <h3 className={`cardTitle h5`}>Highlights</h3>
                 <ul>
                   {vehicle.features.map((f) => (
                     <li key={f}>
@@ -101,7 +101,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
             ) : null}
             {vehicle.rateRules && (
               <article className={styles.section}>
-                <h3 className={`${styles.subHeading} h5`}>
+                <h3 className={`cardTitle h5`}>
                   Rates & Booking Rules
                 </h3>
                 <ul>
@@ -154,7 +154,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
             )}
             {vehicle.policy && (
               <article className={styles.section}>
-                <h3 className={`${styles.subHeading} h5`}>Policies</h3>
+                <h3 className={`cardTitle h5`}>Policies</h3>
                 <p>{vehicle.policy.summary}</p>
                 <ul>
                   {(vehicle.policy.details ?? []).map((d, i) => (
