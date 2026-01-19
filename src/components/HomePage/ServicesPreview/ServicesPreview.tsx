@@ -64,7 +64,7 @@ export default function ServicesPreview() {
                     <div className={styles.idBox}>
                       <span className={styles.id}>{x.id}</span>
                     </div>
-                    <h3 className={`${styles.title} h5`}>{x.title}</h3>
+                    <h3 className={`cardTitle h5 bgWhite`}>{x.title}</h3>
                   </div>
                   <p className={styles.desc}>{x.copy}</p>
                 </div>
