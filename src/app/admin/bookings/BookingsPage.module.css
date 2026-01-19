@@ -133,79 +133,91 @@
   pointer-events: none;
 }
 
-.list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-}
-
-.card {
+.tableCard {
   background: var(--white);
-  border-radius: 12px;
-  padding: 14px;
   border: 1px solid var(--stroke);
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
   width: 100%;
-  position: relative;
+  border-collapse: collapse;
+  min-width: 980px;
 }
 
-.cardOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-.cardContent {
-  position: relative;
+.thead {
+  position: sticky;
+  top: 0;
+  background: var(--white);
   z-index: 2;
-  display: grid;
-  gap: 3rem;
 }
 
-.cardTop {
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.td {
+  padding: 12px 14px;
+  vertical-align: top;
+}
+
+.tdRight {
+  text-align: right;
+}
+
+.rowLink {
+  text-decoration: none;
+  color: var(--black);
+  font-weight: 900;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+}
+
+.pickupCell {
   display: grid;
-  grid-template-columns: 1fr;
-  grid-gap: 1rem;
-  width: 100%;
+  gap: 8px;
+}
+
+.pickupMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .badgesRow {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: flex-start;
   align-items: center;
 }
 
-.tripMeta {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 1rem;
-  width: 100%;
-}
-
-.row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1rem;
-}
-
-.emptyTitleLocal {
-  border-bottom: 1px solid var(--stroke);
-  width: 100%;
-  padding-bottom: 0.5rem;
-}
-
-.pickupStrong {
-  font-weight: 900;
-}
-
 .pill {
-  margin-left: 10px;
   font-size: 12px;
   padding: 4px 8px;
   border-radius: 999px;
@@ -218,38 +230,23 @@
   white-space: nowrap;
 }
 
-.routeTop {
-  font-size: 1.15rem;
-  opacity: 0.9;
-}
-
-.routeBottom {
-  font-size: 1.15rem;
-  opacity: 0.7;
-  margin-top: 0.2rem;
-}
-
-.personBlock {
+.cellStack {
   display: grid;
-  gap: 0.2rem;
+  gap: 0.25rem;
 }
 
-.personName {
+.cellStrong {
   font-weight: 900;
 }
 
-.personEmail {
+.cellSub {
   font-size: 1.15rem;
   opacity: 0.7;
-  margin-top: 0.2rem;
 }
 
-.btnRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-items: center;
+.totalCell {
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 .empty {
@@ -280,8 +277,128 @@
   margin-top: 1rem;
 }
 
-@media screen and (max-width: 1268px) {
-  .list {
-    grid-template-columns: repeat(1, 1fr);
+@media screen and (max-width: 768px) {
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+  }
+
+  .tr:hover {
+    background: var(--white);
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 900;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .tdRight {
+    text-align: left;
+  }
+
+  .totalCell {
+    font-size: 1.35rem;
+    white-space: normal;
+  }
+
+  .pickupMeta {
+    gap: 8px;
+  }
+
+  .badgesRow {
+    gap: 8px;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .meta {
+    font-size: 1.15rem;
+  }
+
+  .tabRow {
+    gap: 0.45rem;
+  }
+
+  .tab {
+    font-size: 1.1rem;
+    padding: 0.6rem 0.85rem;
+  }
+
+  .chip {
+    font-size: 1.05rem;
+    padding: 0.55rem 0.8rem;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .paginationRight {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pageBtn {
+    font-size: 1.05rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .td::before {
+    font-size: 1rem;
+  }
+
+  .cellSub {
+    font-size: 1.05rem;
+  }
+
+  .pill {
+    font-size: 11px;
+    padding: 4px 7px;
   }
 }

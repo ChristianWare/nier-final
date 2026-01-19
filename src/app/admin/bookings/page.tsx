@@ -62,11 +62,6 @@ function formatPhoenix(d: Date) {
   }).format(d);
 }
 
-function shortAddress(address: string) {
-  if (!address) return "—";
-  return address.split(",")[0]?.trim() || address;
-}
-
 function formatMoneyFromCents(cents: number) {
   const dollars = cents / 100;
   return new Intl.NumberFormat("en-US", {
@@ -303,7 +298,7 @@ export default async function AdminBookingsPage({
           <div className={styles.meta}>
             <strong>{totalCount}</strong> total
             {totalCount > 0 ? (
-              <span className='emptySmall'>
+              <span className={styles.metaSep}>
                 • Page <strong className='emptyTitleSmall'>{safePage}</strong>{" "}
                 of <strong className='emptyTitleSmall'>{totalPages}</strong>
               </span>
@@ -343,132 +338,105 @@ export default async function AdminBookingsPage({
           </div>
         </div>
       ) : (
-        <div className={styles.list}>
-          {bookings.map((b) => {
-            const href = `/admin/bookings/${b.id}`;
-            const eta = formatEta(b.pickupAt, now);
-            const total = formatMoneyFromCents(b.totalCents ?? 0);
-            const payStatus = b.payment?.status ?? null;
+        <div className={styles.tableCard}>
+          <table className={styles.table}>
+            <thead className={styles.thead}>
+              <tr className={styles.trHead}>
+                <th className={styles.th}>Pickup</th>
+                <th className={styles.th}>Customer</th>
+                <th className={styles.th}>Service</th>
+                <th className={styles.th}>Vehicle</th>
+                <th className={styles.th}>Driver</th>
+                <th className={`${styles.th} ${styles.thRight}`}>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map((b) => {
+                const href = `/admin/bookings/${b.id}`;
+                const eta = formatEta(b.pickupAt, now);
+                const total = formatMoneyFromCents(b.totalCents ?? 0);
+                const payStatus = b.payment?.status ?? null;
 
-            const driverName = b.assignment?.driver?.name?.trim() || "—";
-            const driverEmail = b.assignment?.driver?.email ?? "";
+                const customerName = b.user?.name?.trim() || "Guest ";
+                const customerEmail = b.user?.email ?? "";
 
-            const customerName = b.user?.name?.trim() || "—";
-            const customerEmail = b.user?.email ?? "";
+                const driverName = b.assignment?.driver?.name?.trim() || "";
+                const driverEmail = b.assignment?.driver?.email ?? "";
 
-            return (
-              <article key={b.id} className={styles.card}>
-                <Link
-                  className={styles.cardOverlay}
-                  href={href}
-                  aria-label='Open booking'
-                />
-
-                <div className={styles.cardContent}>
-                  <header className={styles.cardTop}>
-                    <h2 className={`cardTitle h4`}>Booking</h2>
-                    <div className={styles.badgesRow}>
-                      <span className={`badge badge_${badgeTone(b.status)}`}>
-                        {statusLabel(b.status)}
-                      </span>
-                      <span className={`badge badge_${paymentTone(payStatus)}`}>
-                        {paymentLabel(payStatus)}
-                      </span>
-                    </div>
-                  </header>
-
-                  <div className={styles.tripMeta}>
-                    <div className={styles.row}>
-                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                        Pickup
-                      </div>
-                      <div className='emptySmall'>
-                        {/* <span className={styles.pickupStrong}> */}
+                return (
+                  <tr key={b.id} className={styles.tr}>
+                    <td className={styles.td} data-label='Pickup'>
+                      <div className={styles.pickupCell}>
+                        <Link href={href} className={styles.rowLink}>
                           {formatPhoenix(b.pickupAt)}
-                        {/* </span> */}
-                        <span className={styles.pill}>{eta}</span>
-                      </div>
-                    </div>
-
-                    <div className={styles.row}>
-                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                        Customer
-                      </div>
-                      <div className='emptySmall'>
-                        <div className="emptySmall">{customerName}</div>
-                        <div className={styles.personEmail}>
-                          {customerEmail}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={styles.row}>
-                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                        Service
-                      </div>
-                      <div className='emptySmall'>
-                        {b.serviceType?.name ?? "—"}
-                      </div>
-                    </div>
-
-                    <div className={styles.row}>
-                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                        Route
-                      </div>
-                      <div className='emptySmall'>
-                        <div className={styles.routeTop}>
-                          {shortAddress(b.pickupAddress)}
-                        </div>
-                        <div className={styles.routeBottom}>
-                          → {shortAddress(b.dropoffAddress)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className={styles.row}>
-                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                        Vehicle
-                      </div>
-                      <div className='emptySmall'>{b.vehicle?.name ?? "—"}</div>
-                    </div>
-
-                    <div className={styles.row}>
-                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                        Driver
-                      </div>
-                      <div className='emptySmall'>
-                        {b.assignment?.driver ? (
-                          <div className={styles.personBlock}>
-                            <div className={styles.personName}>
-                              {driverName}
-                            </div>
-                            <div className={styles.personEmail}>
-                              {driverEmail}
-                            </div>
+                        </Link>
+                        <div className={styles.pickupMeta}>
+                          <span className={styles.pill}>{eta}</span>
+                          <div className={styles.badgesRow}>
+                            <span
+                              className={`badge badge_${badgeTone(b.status)}`}
+                            >
+                              {statusLabel(b.status)}
+                            </span>
+                            <span
+                              className={`badge badge_${paymentTone(payStatus)}`}
+                            >
+                              {paymentLabel(payStatus)}
+                            </span>
                           </div>
-                        ) : (
-                          "Unassigned"
-                        )}
+                        </div>
                       </div>
-                    </div>
+                    </td>
 
-                    <div className={styles.row}>
-                      <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                        Total
+                    <td className={styles.td} data-label='Customer'>
+                      <div className={styles.cellStack}>
+                        <Link href={href} className={styles.rowLink}>
+                          {customerName}
+                        </Link>
+                        <div className={styles.cellSub}>{customerEmail}</div>
                       </div>
-                      <div className='val'>{total}</div>
-                    </div>
-                  </div>
+                    </td>
 
-                  <div className={styles.btnRow}>
-                    <Link className='primaryBtn' href={href}>
-                      Review booking →
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
+                    <td className={styles.td} data-label='Service'>
+                      <div className={styles.cellStack}>
+                        <div className={styles.cellStrong}>
+                          {b.serviceType?.name ?? "—"}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className={styles.td} data-label='Vehicle'>
+                      <div className={styles.cellStack}>
+                        <div className={styles.cellStrong}>
+                          {b.vehicle?.name ?? "—"}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className={styles.td} data-label='Driver'>
+                      {b.assignment?.driver ? (
+                        <div className={styles.cellStack}>
+                          <div className={styles.cellStrong}>
+                            {driverName || "—"}
+                          </div>
+                          <div className={styles.cellSub}>{driverEmail}</div>
+                        </div>
+                      ) : (
+                        <div className={styles.cellSub}>Unassigned</div>
+                      )}
+                    </td>
+
+                    <td
+                      className={`${styles.td} ${styles.tdRight}`}
+                      data-label='Total'
+                    >
+                      <div className={styles.totalCell}>{total}</div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
