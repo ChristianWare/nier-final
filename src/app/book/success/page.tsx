@@ -11,13 +11,12 @@ import { homeQuestions } from "@/lib/data";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default function BookSuccessPage({
-  searchParams,
-}: {
-  searchParams?: { id?: string; t?: string };
+export default async function BookSuccessPage(props: {
+  searchParams?: Promise<{ id?: string; t?: string }>;
 }) {
-  const id = searchParams?.id ?? null;
-  const t = searchParams?.t ?? null;
+  const sp = (await props.searchParams) ?? {};
+  const id = sp.id ?? null;
+  const t = sp.t ?? null;
 
   const trackHref = t ? `/book/track?t=${encodeURIComponent(t)}` : null;
   const nextTrack = trackHref ? `?next=${encodeURIComponent(trackHref)}` : "";

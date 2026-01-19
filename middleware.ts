@@ -39,6 +39,10 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
   const { nextUrl } = req;
   const pathname = nextUrl.pathname;
 
+  // ✅ Stripe must be able to POST here with NO auth/middleware interference
+  if (pathname === "/api/stripe/webhook") return NextResponse.next();
+
+  // NextAuth internal routes
   if (pathname.startsWith("/api/auth")) return NextResponse.next();
 
   const authPages = new Set(["/login", "/register", "/password-email"]);
@@ -55,8 +59,7 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
   const authedOnly =
     isSettings || isAdminArea || isDriverDashboard || isUserDashboard;
 
-  // ✅ More reliable than !!req.auth in some edge cases
-  const isLoggedIn = Boolean(req.auth?.user);
+  const isLoggedIn = Boolean((req as any).auth?.user);
 
   // Logged-in users should not see auth pages
   if (isLoggedIn && authPages.has(pathname)) {
@@ -70,17 +73,17 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
     return NextResponse.redirect(url);
   }
 
-  // ✅ Admin area requires ADMIN
+  // Admin area requires ADMIN
   if (isAdminArea && !hasAnyRole(req, ["ADMIN"])) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 
-  // ✅ Driver dashboard allows DRIVER or ADMIN
+  // Driver dashboard allows DRIVER or ADMIN
   if (isDriverDashboard && !hasAnyRole(req, ["DRIVER", "ADMIN"])) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 
-  // ✅ User dashboard allows USER or ADMIN
+  // User dashboard allows USER or ADMIN
   if (isUserDashboard && !hasAnyRole(req, ["USER", "ADMIN"])) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
@@ -90,7 +93,7 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
 
 export const config = {
   matcher: [
-    "/((?!_next|.*\\.(?:css|js(?!on)|mjs|map|jpg|jpeg|png|gif|svg|ico|webp|ttf|woff2?|txt|xml|webmanifest|pdf|zip)).*)",
-    "/(api|trpc)(.*)",
+    // ✅ Exclude Stripe webhook explicitly (and all static assets)
+    "/((?!api/stripe/webhook|_next|.*\\.(?:css|js(?!on)|mjs|map|jpg|jpeg|png|gif|svg|ico|webp|ttf|woff2?|txt|xml|webmanifest|pdf|zip)).*)",
   ],
 };
