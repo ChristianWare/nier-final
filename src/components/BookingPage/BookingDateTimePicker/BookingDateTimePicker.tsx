@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import styles from "./BookingDateTimePicker.module.css";
@@ -7,20 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 const TZ = process.env.NEXT_PUBLIC_SALON_TZ ?? "America/Phoenix";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
 
 function startOfMonth(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -58,11 +43,15 @@ function parseYmdToLocalDate(ymd: string) {
   if (!y || !m || !d) return null;
   return new Date(y, m - 1, d);
 }
+function monthKey(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
-
 function parseTime24(time: string) {
   const fallback = { h24: 9, m: 0 };
   if (!time) return fallback;
@@ -73,18 +62,15 @@ function parseTime24(time: string) {
     m: Math.min(59, Math.max(0, mm)),
   };
 }
-
 function to12h(h24: number) {
   const meridiem = h24 >= 12 ? "PM" : "AM";
   const h12 = ((h24 + 11) % 12) + 1;
   return { h12, meridiem };
 }
-
 function to24h(h12: number, meridiem: "AM" | "PM") {
   const base = h12 % 12;
   return meridiem === "PM" ? base + 12 : base;
 }
-
 function formatTimeLabel(time: string) {
   const { h24, m } = parseTime24(time);
   const { h12, meridiem } = to12h(h24);
@@ -97,19 +83,28 @@ export default function BookingDateTimePicker({
   onChangeDate,
   onChangeTime,
   disablePast = true,
+  blockedDates = [],
+  onVisibleMonthChange,
 }: {
   date: string;
   time: string;
   onChangeDate: (v: string) => void;
   onChangeTime: (v: string) => void;
   disablePast?: boolean;
+  blockedDates?: string[];
+  onVisibleMonthChange?: (month: string) => void;
 }) {
   const todayYMD = useMemo(() => ymdInTz(new Date()), []);
+  const blockedSet = useMemo(() => new Set(blockedDates ?? []), [blockedDates]);
 
   const [monthDate, setMonthDate] = useState(() => {
     const parsed = date ? parseYmdToLocalDate(date) : null;
     return startOfMonth(parsed ?? new Date());
   });
+
+  useEffect(() => {
+    onVisibleMonthChange?.(monthKey(monthDate));
+  }, [monthDate, onVisibleMonthChange]);
 
   const [isTimeOpen, setIsTimeOpen] = useState(false);
   const [draftHour, setDraftHour] = useState<number>(9);
@@ -122,7 +117,7 @@ export default function BookingDateTimePicker({
 
   function scrollToSelected(
     which: "hour" | "minute" | "meridiem",
-    behavior: ScrollBehavior = "smooth"
+    behavior: ScrollBehavior = "smooth",
   ) {
     const ref =
       which === "hour"
@@ -228,7 +223,9 @@ export default function BookingDateTimePicker({
 
   function pickDay(d: Date) {
     const key = ymdInTz(d);
-    if (disablePast && key < todayYMD) return;
+    const isPast = disablePast ? key < todayYMD : false;
+    const isBlocked = blockedSet.has(key);
+    if (isPast || isBlocked) return;
 
     if (
       d.getMonth() !== monthDate.getMonth() ||
@@ -272,11 +269,11 @@ export default function BookingDateTimePicker({
 
   const hourOptions = useMemo(
     () => Array.from({ length: 12 }, (_, i) => i + 1),
-    []
+    [],
   );
   const minuteOptions = useMemo(
     () => Array.from({ length: 12 }, (_, i) => i * 5),
-    []
+    [],
   );
 
   return (
@@ -357,6 +354,8 @@ export default function BookingDateTimePicker({
           const isToday = key === todayYMD;
           const isSelected = Boolean(date) && key === date;
           const isPast = disablePast ? key < todayYMD : false;
+          const isBlocked = blockedSet.has(key);
+          const disabled = isPast || isBlocked;
 
           return (
             <button
@@ -365,8 +364,8 @@ export default function BookingDateTimePicker({
               onClick={() => pickDay(d)}
               className={`${styles.dayCell} ${isOtherMonth ? styles.dayCellOther : ""} ${
                 isToday ? styles.today : ""
-              } ${isSelected ? styles.selected : ""} ${isPast ? styles.pastDay : ""}`}
-              disabled={isPast}
+              } ${isSelected ? styles.selected : ""} ${disabled ? styles.pastDay : ""}`}
+              disabled={disabled}
               aria-label={key}
             >
               <span className={styles.dayNum}>{d.getDate()}</span>
@@ -527,14 +526,6 @@ export default function BookingDateTimePicker({
 
               <div className={styles.timeCol}>
                 <div className={styles.colLabel}>AM/PM</div>
-                {/* <button
-                  type='button'
-                  className={styles.pinnedChip}
-                  onClick={() => scrollToSelected("meridiem")}
-                  aria-label={`Selected meridiem ${draftMeridiem}`}
-                >
-                  {draftMeridiem}
-                </button> */}
                 <div
                   className={styles.colList}
                   role='listbox'
@@ -550,7 +541,7 @@ export default function BookingDateTimePicker({
                       onClick={() => {
                         setDraftMeridiem(v);
                         requestAnimationFrame(() =>
-                          scrollToSelected("meridiem")
+                          scrollToSelected("meridiem"),
                         );
                       }}
                       role='option'

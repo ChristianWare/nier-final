@@ -36,6 +36,17 @@ type CreateBookingRequestInput = {
   guestPhone?: string | null;
 };
 
+const PHX_TZ = "America/Phoenix";
+
+function ymdInPhoenix(d: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: PHX_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
 function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
@@ -54,6 +65,16 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       return { error: "Please enter a valid email address." as const };
     if (!guestPhone)
       return { error: "Please enter your phone number." as const };
+  }
+
+  const pickupAtDate = new Date(input.pickupAt);
+  const ymd = ymdInPhoenix(pickupAtDate);
+
+  const isBlackout = await db.blackoutDate.findUnique({ where: { ymd } });
+  if (isBlackout) {
+    return {
+      error: "That date is unavailable. Please choose another day." as const,
+    };
   }
 
   const service = await db.serviceType.findUnique({
@@ -105,7 +126,7 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
 
       status: BookingStatus.PENDING_REVIEW,
 
-      pickupAt: new Date(input.pickupAt),
+      pickupAt: pickupAtDate,
       passengers: input.passengers,
       luggage: input.luggage,
 

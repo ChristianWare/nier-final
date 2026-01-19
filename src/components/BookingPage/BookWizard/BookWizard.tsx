@@ -14,7 +14,7 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Grid2 from "../Grid2/Grid2";
 import Stepper from "../Stepper/Stepper";
 import SummaryRow from "../SummaryRow/SummaryRow";
-import BookingDateTimePicker from "@/components/BookingPage/BookingDateTimePicker/BookingDateTimePicker";
+import BookingDateTimeWithBlackouts from "@/components/BookingPage/BookingDateTimeWithBlackouts/BookingDateTimeWithBlackouts";
 import { useSession } from "next-auth/react";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
@@ -506,7 +506,7 @@ export default function BookingWizard({
                     </div>
                   ) : null}
 
-                  <BookingDateTimePicker
+                  <BookingDateTimeWithBlackouts
                     date={pickupAtDate}
                     time={pickupAtTime}
                     onChangeDate={setPickupAtDate}
@@ -639,7 +639,7 @@ export default function BookingWizard({
                                 : selectedService.airportLeg !== "NONE" &&
                                     serviceAirports.length === 0
                                   ? "This airport service isn’t configured yet."
-                                  : "Please complete service, date/time, and route."
+                                  : "Please complete service, date/time, and route.",
                             );
                             return;
                           }
@@ -683,7 +683,7 @@ export default function BookingWizard({
                         selectedService?.pricingStrategy === "HOURLY"
                           ? Math.max(
                               Math.ceil(hoursRequested || 0),
-                              Math.ceil(v.minHours || 0)
+                              Math.ceil(v.minHours || 0),
                             )
                           : null;
 
@@ -695,7 +695,7 @@ export default function BookingWizard({
                             setVehicleId(v.id);
                             if (selectedService?.pricingStrategy === "HOURLY") {
                               setHoursRequested((prev) =>
-                                Math.max(prev || 1, v.minHours || 0)
+                                Math.max(prev || 1, v.minHours || 0),
                               );
                             }
                           }}
