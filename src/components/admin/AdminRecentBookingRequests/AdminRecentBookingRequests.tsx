@@ -38,8 +38,8 @@ export type RecentBookingRequestItem = {
 
 type Props = {
   items: RecentBookingRequestItem[];
-  timeZone: string; // e.g. "America/Phoenix"
-  bookingHrefBase?: string; // defaults to "/admin/bookings"
+  timeZone: string;
+  bookingHrefBase?: string;
 };
 
 type Bucket = "review" | "payment" | "all";
@@ -50,11 +50,10 @@ function shortAddress(address: string) {
   return address.split(",")[0]?.trim() || address;
 }
 
-function formatPickup(iso: string, timeZone: string) {
+function formatAt(iso: string, timeZone: string) {
   const d = new Date(iso);
-
-  // “Today / Tomorrow” label in the given timezone
   const now = new Date();
+
   const dayFmt = new Intl.DateTimeFormat("en-US", {
     timeZone,
     year: "numeric",
@@ -63,10 +62,7 @@ function formatPickup(iso: string, timeZone: string) {
   });
 
   const todayKey = dayFmt.format(now);
-  const pickupKey = dayFmt.format(d);
-
-  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const tomorrowKey = dayFmt.format(tomorrow);
+  const dKey = dayFmt.format(d);
 
   const time = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -81,14 +77,8 @@ function formatPickup(iso: string, timeZone: string) {
     day: "numeric",
   }).format(d);
 
-  const prefix =
-    pickupKey === todayKey
-      ? "Today"
-      : pickupKey === tomorrowKey
-        ? "Tomorrow"
-        : date;
+  const prefix = dKey === todayKey ? "Today" : date;
 
-  // simple relative label
   const diffMs = d.getTime() - now.getTime();
   const diffMin = Math.round(diffMs / 60000);
   const rel =
@@ -103,8 +93,14 @@ function formatPickup(iso: string, timeZone: string) {
   return { label: `${prefix} • ${time}`, rel };
 }
 
-function statusLabel(s: string) {
-  return s.replaceAll("_", " ").toLowerCase();
+function prettyStatus(s: string) {
+  if (s === "PENDING_REVIEW") return "Pending review";
+  if (s === "PENDING_PAYMENT") return "Payment due";
+  const parts = String(s).split("_").filter(Boolean);
+  if (!parts.length) return String(s);
+  return parts
+    .map((p) => p.slice(0, 1).toUpperCase() + p.slice(1).toLowerCase())
+    .join(" ");
 }
 
 function statusTone(s: string): "neutral" | "warning" | "danger" | "good" {
@@ -127,26 +123,22 @@ export default function AdminRecentBookingRequests({
     const accounts = total - guests;
     const review = items.filter((x) => x.status === "PENDING_REVIEW").length;
     const pay = items.filter((x) => x.status === "PENDING_PAYMENT").length;
-
     return { total, guests, accounts, review, pay };
   }, [items]);
 
   const filtered = useMemo(() => {
     let list = items.slice();
 
-    // bucket
     if (bucket === "review")
       list = list.filter((x) => x.status === "PENDING_REVIEW");
     if (bucket === "payment")
       list = list.filter((x) => x.status === "PENDING_PAYMENT");
 
-    // customer filter
     if (customerFilter === "guests")
       list = list.filter((x) => x.customer.kind === "guest");
     if (customerFilter === "accounts")
       list = list.filter((x) => x.customer.kind === "account");
 
-    // priority-ish sort: review first, then payment, then created desc (within bucket this is stable)
     list.sort((a, b) => {
       const aw =
         a.status === "PENDING_REVIEW"
@@ -247,75 +239,113 @@ export default function AdminRecentBookingRequests({
       {filtered.length === 0 ? (
         <div className='emptySmall'>No items match your filters.</div>
       ) : (
-        <ul className={styles.list}>
-          {filtered.map((b) => {
-            const pickup = formatPickup(b.pickupAtIso, timeZone);
-            const route = `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`;
-            const tone = statusTone(b.status);
+        <div className={styles.tableCard}>
+          <table className={styles.table}>
+            <thead className={styles.thead}>
+              <tr className={styles.trHead}>
+                <th className={styles.th}>Status</th>
+                <th className={styles.th}>Created</th>
+                <th className={styles.th}>Pickup</th>
+                <th className={styles.th}>Client</th>
+                <th className={styles.th}>Service</th>
+                <th className={styles.th}>Vehicle</th>
+                <th className={styles.th}>Route</th>
+                <th className={`${styles.th} ${styles.thRight}`}></th>
+              </tr>
+            </thead>
 
-            const customerLine =
-              b.customer.kind === "guest"
-                ? `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}${
-                    b.customer.phone ? ` • ${b.customer.phone}` : ""
-                  }`
-                : `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}`;
+            <tbody>
+              {filtered.map((b) => {
+                const created = formatAt(b.createdAtIso, timeZone);
+                const pickup = formatAt(b.pickupAtIso, timeZone);
+                const tone = statusTone(b.status);
 
-            const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}`;
+                const route = `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`;
+                const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}`;
 
-            const primaryCta =
-              b.status === "PENDING_REVIEW"
-                ? "Review"
-                : b.status === "PENDING_PAYMENT"
-                  ? "Collect payment"
-                  : "View";
+                const customerLine =
+                  b.customer.kind === "guest"
+                    ? `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}${
+                        b.customer.phone ? ` • ${b.customer.phone}` : ""
+                      }`
+                    : `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}`;
 
-            return (
-              <li key={b.id} className={styles.row}>
-                <div className={styles.left}>
-                  <div className={styles.badgeContainer}>
-                    <span
-                      className={`${styles.badge} ${styles[`badge_${tone}`]}`}
+                const primaryCta =
+                  b.status === "PENDING_REVIEW"
+                    ? "Review"
+                    : b.status === "PENDING_PAYMENT"
+                      ? "Collect payment"
+                      : "View";
+
+                return (
+                  <tr key={b.id} className={styles.tr}>
+                    <td className={styles.td} data-label='Status'>
+                      <span
+                        className={`${styles.badge} ${styles[`badge_${tone}`]}`}
+                      >
+                        {prettyStatus(b.status)}
+                      </span>
+                    </td>
+
+                    <td className={styles.td} data-label='Created'>
+                      <div className={styles.cellStack}>
+                        <Link href={href} className={styles.rowLink}>
+                          {created.label}
+                        </Link>
+                        <div className={styles.cellMeta}>
+                          <span className={styles.pill}>{created.rel}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className={styles.td} data-label='Pickup'>
+                      <div className={styles.cellStack}>
+                        <Link href={href} className={styles.rowLink}>
+                          {pickup.label}
+                        </Link>
+                        <div className={styles.cellMeta}>
+                          <span className={styles.pill}>{pickup.rel}</span>
+                        </div>
+                      </div>
+                    </td>
+
+                    <td className={styles.td} data-label='Client'>
+                      <div className={styles.cellStack}>
+                        <Link href={href} className={styles.rowLink}>
+                          {b.customer.kind === "guest" ? "Guest" : "Account"}
+                        </Link>
+                        <div className={styles.cellSub}>{customerLine}</div>
+                      </div>
+                    </td>
+
+                    <td className={styles.td} data-label='Service'>
+                      <div className={styles.cellStrong}>{b.serviceName}</div>
+                    </td>
+
+                    <td className={styles.td} data-label='Vehicle'>
+                      <div className={styles.cellStrong}>
+                        {b.vehicleName ?? "—"}
+                      </div>
+                    </td>
+
+                    <td className={styles.td} data-label='Route'>
+                      <div className={styles.route}>{route}</div>
+                    </td>
+
+                    <td
+                      className={`${styles.td} ${styles.tdRight}`}
+                      data-label='Action'
                     >
-                      {statusLabel(b.status)}
-                    </span>
-                  </div>
-                  {/* <div className={styles.topLine}> */}
-                  <div className={styles.infoBox}>
-                    <span className='emptyTitle underline'>
-                      {pickup.label}{" "}
-                    </span>
-                    <span className={styles.rel}>({pickup.rel})</span>
-                  </div>
-
-                  <div className={styles.infoBox}>
-                    <span className='emptyTitle underline'>Service</span>
-                    <span className={styles.rel}>{b.serviceName}</span>
-                  </div>
-                  <div className={styles.infoBox}>
-                    <span className='emptyTitle underline'>Vehicle</span>
-                    <span className={styles.rel}>
-                      {b.vehicleName ? ` ${b.vehicleName}` : ""}
-                    </span>
-                  </div>
-                  <div className={styles.infoBox}>
-                    <span className='emptyTitle underline'>Route</span>
-                    <span className={styles.rel}>{route}</span>
-                  </div>
-                  <div className={styles.infoBox}>
-                    <span className='emptyTitle underline'>Client</span>
-                    <span className={styles.rel}>{customerLine}</span>
-                  </div>
-                </div>
-
-                <div className={styles.right}>
-                  <Link className='primaryBtn' href={href}>
-                    {primaryCta}
-                  </Link>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                      <Link className='primaryBtn' href={href}>
+                        {primaryCta}
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   );

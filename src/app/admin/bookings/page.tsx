@@ -71,8 +71,8 @@ function formatMoneyFromCents(cents: number) {
   }).format(dollars);
 }
 
-function formatEta(pickupAt: Date, now: Date) {
-  const diffMs = pickupAt.getTime() - now.getTime();
+function formatEta(at: Date, now: Date) {
+  const diffMs = at.getTime() - now.getTime();
   const absMs = Math.abs(diffMs);
 
   const mins = Math.round(absMs / (60 * 1000));
@@ -196,7 +196,7 @@ export default async function AdminBookingsPage({
 }) {
   const sp = await searchParams;
 
-  const status = (sp.status ?? "PENDING_REVIEW") as StatusFilter;
+  const status = (sp.status ?? "ALL") as StatusFilter;
   const range = (sp.range ?? "all") as RangeFilter;
   const unassigned = sp.unassigned === "1";
   const paid = sp.paid === "1";
@@ -239,9 +239,13 @@ export default async function AdminBookingsPage({
   const orderBy: Prisma.BookingOrderByWithRelationInput[] =
     stuck || status === "PENDING_REVIEW"
       ? [{ createdAt: Prisma.SortOrder.asc }]
-      : status === "COMPLETED" || status === "CANCELLED" || status === "NO_SHOW"
+      : status === "ALL"
         ? [{ pickupAt: Prisma.SortOrder.desc }]
-        : [{ pickupAt: Prisma.SortOrder.asc }];
+        : status === "COMPLETED" ||
+            status === "CANCELLED" ||
+            status === "NO_SHOW"
+          ? [{ pickupAt: Prisma.SortOrder.desc }]
+          : [{ pickupAt: Prisma.SortOrder.asc }];
 
   const totalCount = await db.booking.count({ where });
 
@@ -342,6 +346,7 @@ export default async function AdminBookingsPage({
           <table className={styles.table}>
             <thead className={styles.thead}>
               <tr className={styles.trHead}>
+                <th className={styles.th}>Created</th>
                 <th className={styles.th}>Pickup</th>
                 <th className={styles.th}>Customer</th>
                 <th className={styles.th}>Service</th>
@@ -353,11 +358,12 @@ export default async function AdminBookingsPage({
             <tbody>
               {bookings.map((b) => {
                 const href = `/admin/bookings/${b.id}`;
-                const eta = formatEta(b.pickupAt, now);
+                const pickupEta = formatEta(b.pickupAt, now);
+                const createdAgo = formatEta(b.createdAt, now);
                 const total = formatMoneyFromCents(b.totalCents ?? 0);
                 const payStatus = b.payment?.status ?? null;
 
-                const customerName = b.user?.name?.trim() || "Guest ";
+                const customerName = b.user?.name?.trim() || "Guest";
                 const customerEmail = b.user?.email ?? "";
 
                 const driverName = b.assignment?.driver?.name?.trim() || "";
@@ -365,13 +371,24 @@ export default async function AdminBookingsPage({
 
                 return (
                   <tr key={b.id} className={styles.tr}>
+                    <td className={styles.td} data-label='Created'>
+                      <div className={styles.pickupCell}>
+                        <Link href={href} className={styles.rowLink}>
+                          {formatPhoenix(b.createdAt)}
+                        </Link>
+                        <div className={styles.pickupMeta}>
+                          <span className={styles.pill}>{createdAgo}</span>
+                        </div>
+                      </div>
+                    </td>
+
                     <td className={styles.td} data-label='Pickup'>
                       <div className={styles.pickupCell}>
                         <Link href={href} className={styles.rowLink}>
                           {formatPhoenix(b.pickupAt)}
                         </Link>
                         <div className={styles.pickupMeta}>
-                          <span className={styles.pill}>{eta}</span>
+                          <span className={styles.pill}>{pickupEta}</span>
                           <div className={styles.badgesRow}>
                             <span
                               className={`badge badge_${badgeTone(b.status)}`}

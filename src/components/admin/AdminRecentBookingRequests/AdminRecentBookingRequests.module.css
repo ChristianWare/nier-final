@@ -55,6 +55,7 @@
   padding: 8px 12px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 800;
 }
 
 .tabActive {
@@ -62,95 +63,103 @@
   border-color: rgba(0, 0, 0, 0.25);
 }
 
-.list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.tableCard {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1120px;
+}
+
+.thead {
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 2;
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.td {
+  padding: 12px 14px;
+  vertical-align: top;
+}
+
+.tdRight {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rowLink {
+  text-decoration: none;
+  color: var(--black);
+  font-weight: 900;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+}
+
+.cellStack {
   display: grid;
-  gap: 10px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
 }
 
-.row {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 2rem;
-  padding: 2rem;
-  border-radius: 10px;
-  border: 1px solid rgba(0, 0, 0, 0.5);
-  background: rgba(0, 0, 0, 0.01);
+.cellStrong {
+  font-weight: 900;
 }
 
-.left {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 2rem;
-}
-/* 
-.topLine {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 10px;
-} */
-
-.badgeContainer {
-  margin-bottom: 2rem;
-}
-
-.infoBox {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1rem;
-}
-
-.pickup {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.rel {
+.cellSub {
+  font-size: 1.15rem;
   opacity: 0.7;
+  line-height: 1.25;
 }
 
-.service {
-  font-size: 12px;
-  opacity: 0.8;
+.cellMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .route {
-  font-size: 14px;
+  font-size: 1.15rem;
   opacity: 0.9;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 900px;
+  max-width: 520px;
 }
 
-.customerLine {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-  font-size: 12px;
-  opacity: 0.85;
-}
-
-.customerText {
-  opacity: 0.9;
-}
-
-.right {
-  display: flex;
-  align-items: center;
-}
-
-/* badges + pills */
 .badge {
   font-size: 12px;
   border-radius: 999px;
@@ -158,9 +167,10 @@
   border: 1px solid rgba(0, 0, 0, 0.12);
   background: rgba(0, 0, 0, 0.03);
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: normal;
   width: fit-content;
+  white-space: nowrap;
 }
 
 .badge_neutral {
@@ -188,32 +198,105 @@
   padding: 4px 8px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: rgba(0, 0, 0, 0.02);
+  white-space: nowrap;
 }
 
-.pillGuest {
-  background: rgba(0, 0, 0, 0.04);
+@media screen and (max-width: 768px) {
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+  }
+
+  .tr:hover {
+    background: var(--white);
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 900;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .tdRight {
+    text-align: left;
+  }
+
+  .route {
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.25;
+  }
 }
 
-.pillAccount {
-  background: rgba(0, 0, 0, 0.04);
-}
+@media screen and (max-width: 568px) {
+  .tab {
+    font-size: 13px;
+    padding: 7px 10px;
+  }
 
-.pillGood {
-  background: rgba(0, 140, 80, 0.12);
-  border-color: rgba(0, 140, 80, 0.28);
-}
+  .kpis {
+    gap: 8px;
+  }
 
-.pillWarn {
-  background: rgba(255, 200, 9, 0.2);
-  border-color: rgba(255, 200, 9, 0.55);
-}
+  .kpi {
+    padding: 6px 9px;
+  }
 
-.pillInfo {
-  background: rgba(0, 0, 0, 0.04);
-}
+  .td::before {
+    font-size: 1rem;
+  }
 
-@media screen and (max-width: 1068px) {
-  .list {
-    grid-template-columns: repeat(1, 1fr);
+  .cellSub {
+    font-size: 1.05rem;
+  }
+
+  .pill {
+    font-size: 11px;
+    padding: 4px 7px;
   }
 }
