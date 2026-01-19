@@ -29,7 +29,6 @@ function hasAnyRole(req: any, allowed: AppRole[]) {
 }
 
 function roleHome(req: any) {
-  // roles-only home routing
   if (hasAnyRole(req, ["ADMIN"])) return "/admin";
   if (hasAnyRole(req, ["DRIVER"])) return "/driver-dashboard";
   return "/dashboard";
@@ -42,7 +41,7 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
   // ✅ Stripe must be able to POST here with NO auth/middleware interference
   if (pathname === "/api/stripe/webhook") return NextResponse.next();
 
-  // NextAuth internal routes
+  // ✅ NextAuth internal routes
   if (pathname.startsWith("/api/auth")) return NextResponse.next();
 
   const authPages = new Set(["/login", "/register", "/password-email"]);
@@ -93,7 +92,7 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
 
 export const config = {
   matcher: [
-    // ✅ Exclude Stripe webhook explicitly (and all static assets)
+    // ✅ exclude Stripe webhook + all static assets
     "/((?!api/stripe/webhook|_next|.*\\.(?:css|js(?!on)|mjs|map|jpg|jpeg|png|gif|svg|ico|webp|ttf|woff2?|txt|xml|webmanifest|pdf|zip)).*)",
   ],
 };
