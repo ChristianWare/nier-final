@@ -370,9 +370,10 @@ export default function RoutePicker({
           width: "100%",
           height: 520,
           borderRadius: 14,
-          border: "1px solid rgba(0,0,0,0.12)",
+          border: "3px solid #bfe8cc",
           overflow: "hidden",
           background: "white",
+          outline: "2px solid #4e94ec33",
         }}
       />
 

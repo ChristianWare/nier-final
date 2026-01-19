@@ -3,13 +3,7 @@
 "use client";
 
 import styles from "./AdminNewBookingWizard.module.css";
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {
@@ -21,7 +15,7 @@ import Stepper from "@/components/BookingPage/Stepper/Stepper";
 import Grid2 from "@/components/BookingPage/Grid2/Grid2";
 import SummaryRow from "@/components/BookingPage/SummaryRow/SummaryRow";
 import { adminCreateBooking } from "../../../../actions/bookings/adminCreateBooking";
-import { adminSearchUsers} from '../../../../actions/admin/users/adminSearchUsers'
+import { adminSearchUsers } from "../../../../actions/admin/users/adminSearchUsers";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";

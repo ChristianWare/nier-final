@@ -2,7 +2,7 @@
 "use client";
 
 import styles from "./BookingWizard.module.css";
-import React, { useMemo, useRef, useState } from "react";
+import  { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {

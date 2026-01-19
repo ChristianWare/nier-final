@@ -20,7 +20,8 @@
 
 .routePickerContainer {
   background-color: var(--cream);
-  padding: 2rem;
+  padding: 1rem;
+  padding-top: 0rem;
   border-radius: 20px;
 }
 
