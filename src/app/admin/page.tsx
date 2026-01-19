@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./AdminStyles.module.css";
 import AdminPageIntro from "@/components/admin/AdminPageIntro/AdminPageIntro";
@@ -21,12 +22,16 @@ import AdminRecentBookingRequests, {
 import AdminFinanceSnapshot from "@/components/admin/AdminFinanceSnapshot/AdminFinanceSnapshot";
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
+import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const PHX_TZ = "America/Phoenix";
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
+
+const snap = await getAdminFinanceSnapshot(new Date());
+
 
 function startOfDayPhoenix(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
@@ -825,19 +830,7 @@ export default async function AdminHome() {
 
       <AdminAlerts alerts={alerts} />
 
-      <AdminFinanceSnapshot
-        monthLabel={monthLabel}
-        currency='USD'
-        capturedMonthCents={capturedThisMonth.sumCents}
-        capturedTodayCents={capturedToday.sumCents}
-        paidCountMonth={capturedThisMonth.count}
-        avgOrderValueMonthCents={capturedThisMonth.avgCents}
-        refundsMonthCents={refundsThisMonth.sumCents}
-        refundCountMonth={refundsThisMonth.count}
-        pendingPaymentCount={pendingPayment}
-        pendingPaymentAmountCents={pendingEstimate.sumCents}
-        monthOverMonthPct={monthOverMonthPct}
-      />
+      <AdminFinanceSnapshot {...snap} currency='USD' />
 
       <AdminRecentBookingRequests
         items={recentBookingRequests}

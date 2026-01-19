@@ -231,29 +231,40 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     }
   }
 
+  const email = booking.user?.email ?? booking.guestEmail ?? null;
+  if (!email) return { error: "Booking email missing." };
+
   const stripeSession = await stripe.checkout.sessions.create({
     mode: "payment",
-    customer_email: recipientEmail,
+    customer_email: email,
+    client_reference_id: booking.id,
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: {
-      bookingId: b.id,
-      ...(b.userId ? { userId: b.userId } : {}),
+      bookingId: booking.id,
+      userId: booking.userId ?? "",
+    },
+    payment_intent_data: {
+      metadata: {
+        bookingId: booking.id,
+        userId: booking.userId ?? "",
+      },
     },
     line_items: [
       {
         quantity: 1,
         price_data: {
-          currency: b.currency ?? "usd",
-          unit_amount: b.totalCents,
+          currency: booking.currency ?? "usd",
+          unit_amount: booking.totalCents,
           product_data: {
-            name: `${b.serviceType.name} — Nier Transportation`,
-            description: `${b.pickupAddress} → ${b.dropoffAddress}`,
+            name: `${booking.serviceType.name} — Nier Transportation`,
+            description: `${booking.pickupAddress} → ${booking.dropoffAddress}`,
           },
         },
       },
     ],
   });
+
 
   if (!stripeSession.url) {
     return { error: "Stripe did not return a checkout URL." };
