@@ -62,10 +62,12 @@ function addDaysUTCNoon(date: Date, n: number) {
 export default function AdminRideCalendar({
   initialMonth,
   countsByYmd,
+  blackoutsByYmd,
   todayYmd,
 }: {
   initialMonth: string;
   countsByYmd: Record<string, number>;
+  blackoutsByYmd: Record<string, boolean>;
   todayYmd: string;
 }) {
   const router = useRouter();
@@ -225,6 +227,7 @@ export default function AdminRideCalendar({
           const isOtherMonth = d.getUTCMonth() !== monthDate.getUTCMonth();
           const isToday = ymd === todayYmd;
           const count = countsByYmd[ymd] ?? 0;
+          const isBlackout = Boolean(blackoutsByYmd?.[ymd]);
 
           return (
             <button
@@ -233,10 +236,19 @@ export default function AdminRideCalendar({
               onClick={() => openDay(ymd)}
               className={`${styles.dayCell} ${
                 isOtherMonth ? styles.dayCellOther : ""
-              } ${isToday ? styles.today : ""}`}
+              } ${isToday ? styles.today : ""} ${
+                isBlackout ? styles.blackout : ""
+              }`}
               aria-label={ymd}
             >
               <span className={styles.dayNum}>{d.getUTCDate()}</span>
+
+              {isBlackout ? (
+                <span className={styles.blackoutBadge} aria-hidden='true'>
+                  ⛔
+                </span>
+              ) : null}
+
               {count > 0 ? (
                 <span className={styles.countPill}>{count}</span>
               ) : null}
@@ -253,6 +265,10 @@ export default function AdminRideCalendar({
         <div className={styles.legendItem}>
           <span className={`${styles.legendDot} ${styles.legendHas}`} />
           <span>Has rides</span>
+        </div>
+        <div className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.legendBlackout}`} />
+          <span>Blackout</span>
         </div>
       </div>
     </div>

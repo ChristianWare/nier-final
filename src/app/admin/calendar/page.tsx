@@ -25,6 +25,13 @@ function monthKey(d: Date) {
   return `${y}-${m}`;
 }
 
+function ymdFromUtcDate(d: Date) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export default async function AdminCalendarPage(props: {
   searchParams: Promise<{ month?: string }>;
 }) {
@@ -41,18 +48,35 @@ export default async function AdminCalendarPage(props: {
 
   const excluded = ["CANCELLED", "NO_SHOW", "REFUNDED"] as const;
 
-  const rows = await db.booking.findMany({
-    where: {
-      pickupAt: { gte: monthStart, lt: nextMonthStart },
-      NOT: { status: { in: excluded as any } },
-    },
-    select: { pickupAt: true },
-  });
+  const [rides, blackouts] = await Promise.all([
+    db.booking.findMany({
+      where: {
+        pickupAt: { gte: monthStart, lt: nextMonthStart },
+        NOT: { status: { in: excluded as any } },
+      },
+      select: { pickupAt: true },
+    }),
+
+    db.blackoutDate.findMany({
+      where: {
+        ymd: {
+          gte: ymdFromUtcDate(monthStart),
+          lt: ymdFromUtcDate(nextMonthStart),
+        },
+      },
+      select: { ymd: true },
+    }),
+  ]);
 
   const countsByYmd: Record<string, number> = {};
-  for (const r of rows) {
+  for (const r of rides) {
     const key = ymdInPhoenix(r.pickupAt);
     countsByYmd[key] = (countsByYmd[key] ?? 0) + 1;
+  }
+
+  const blackoutsByYmd: Record<string, boolean> = {};
+  for (const b of blackouts) {
+    blackoutsByYmd[b.ymd] = true;
   }
 
   return (
@@ -67,12 +91,14 @@ export default async function AdminCalendarPage(props: {
       <AdminRideCalendar
         initialMonth={monthKey(baseMonth)}
         countsByYmd={countsByYmd}
+        blackoutsByYmd={blackoutsByYmd}
         todayYmd={ymdInPhoenix(now)}
       />
 
       <div className='miniNote' style={{ marginTop: 10 }}>
         Time zone: {PHX_TZ}
       </div>
+
       <AdminBlackoutDatesSection />
     </section>
   );
