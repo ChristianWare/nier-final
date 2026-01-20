@@ -172,6 +172,14 @@
   top: 2px;
 }
 
+.optionalIcon {
+  color: inherit;
+  position: relative;
+  top: 2px;
+  width: 2rem;
+  height: 2rem;
+}
+
 .transparent {
   color: var(--white) !important;
   background-color: #ffffff1a;

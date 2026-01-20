@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
 import { db } from "@/lib/db";
@@ -19,6 +20,15 @@ function formatMoney(cents: number, currency = "USD") {
     currency,
     maximumFractionDigits: 0,
   }).format(n);
+}
+
+function formatDateShortPhx(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  }).format(date);
 }
 
 function formatDateTimePhx(date: Date) {
@@ -54,10 +64,20 @@ function shortAddress(address: string) {
   return address.split(",")[0]?.trim() || address;
 }
 
+function shortId(id: string | null | undefined, n = 7) {
+  if (!id) return "—";
+  if (id.length <= n) return id;
+  return `${id.slice(0, n)}…`;
+}
+
 function toPhoenixParts(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
   const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
+  return {
+    y: phx.getUTCFullYear(),
+    m: phx.getUTCMonth(),
+    d: phx.getUTCDate(),
+  };
 }
 
 function startOfDayPhoenix(dateUtc: Date) {
@@ -150,6 +170,25 @@ function buildHref(
   return qs ? `${basePath}?${qs}` : basePath;
 }
 
+function monthLabelFromNum(mm: string) {
+  const n = Number(mm);
+  const labels = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+  return labels[n - 1] ?? mm;
+}
+
 async function capturedAgg(from: Date, to: Date) {
   const agg = await db.payment.aggregate({
     where: { paidAt: { gte: from, lt: to } },
@@ -181,6 +220,55 @@ async function refundAgg(from: Date, to: Date) {
   };
 }
 
+function resolveMonthYear({
+  view,
+  searchParams,
+  now,
+}: {
+  view: ViewMode;
+  searchParams?: Record<string, string | string[] | undefined>;
+  now: Date;
+}) {
+  const currentKey = monthKeyFromDatePhoenix(now);
+  const currentYear = currentKey.slice(0, 4);
+  const currentMonth = currentKey.slice(5, 7);
+
+  const legacyKey =
+    typeof searchParams?.month === "string" &&
+    monthStartFromKeyPhoenix(searchParams.month)
+      ? searchParams.month
+      : null;
+
+  const yearParam =
+    typeof searchParams?.year === "string" ? searchParams.year : null;
+  const monthParam =
+    typeof searchParams?.month === "string" ? searchParams.month : null;
+
+  if (view !== "month") {
+    return {
+      year: currentYear,
+      month: currentMonth,
+      key: currentKey,
+    };
+  }
+
+  if (legacyKey) {
+    return {
+      year: legacyKey.slice(0, 4),
+      month: legacyKey.slice(5, 7),
+      key: legacyKey,
+    };
+  }
+
+  const y = yearParam && /^\d{4}$/.test(yearParam) ? yearParam : currentYear;
+  const m =
+    monthParam && /^(0[1-9]|1[0-2])$/.test(monthParam)
+      ? monthParam
+      : currentMonth;
+
+  return { year: y, month: m, key: `${y}-${m}` };
+}
+
 export default async function EarningsPage({
   searchParams,
 }: {
@@ -192,14 +280,6 @@ export default async function EarningsPage({
   );
 
   const currentMonthStart = startOfMonthPhoenix(now);
-  const currentMonthKey = monthKeyFromDatePhoenix(now);
-
-  const monthParam =
-    typeof searchParams?.month === "string" ? searchParams.month : undefined;
-  const resolvedMonthKey =
-    monthParam && monthStartFromKeyPhoenix(monthParam)
-      ? monthParam
-      : currentMonthKey;
 
   const rangeFromParam =
     typeof searchParams?.from === "string" ? searchParams.from : null;
@@ -211,6 +291,9 @@ export default async function EarningsPage({
     new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
   );
 
+  const resolvedMY = resolveMonthYear({ view, searchParams, now });
+  const resolvedMonthKey = resolvedMY.key;
+
   let fromUtc = currentMonthStart;
   let toUtc = addMonthsPhoenix(currentMonthStart, 1);
   let rangeLabel = formatMonthLabelPhoenix(currentMonthStart);
@@ -219,7 +302,7 @@ export default async function EarningsPage({
     const ms = monthStartFromKeyPhoenix(resolvedMonthKey) ?? currentMonthStart;
     fromUtc = ms;
     toUtc = addMonthsPhoenix(ms, 1);
-    rangeLabel = formatMonthLabelPhoenix(ms);
+    rangeLabel = `${monthLabelFromNum(resolvedMY.month)} ${resolvedMY.year}`;
   }
 
   if (view === "ytd") {
@@ -257,6 +340,45 @@ export default async function EarningsPage({
     rangeLabel = "All time";
   }
 
+  const [earliestPaid, latestPaid] = await Promise.all([
+    db.payment.findFirst({
+      where: { paidAt: { not: null } },
+      orderBy: { paidAt: "asc" },
+      select: { paidAt: true },
+    }),
+    db.payment.findFirst({
+      where: { paidAt: { not: null } },
+      orderBy: { paidAt: "desc" },
+      select: { paidAt: true },
+    }),
+  ]);
+
+  const earliestYear = earliestPaid?.paidAt
+    ? toPhoenixParts(earliestPaid.paidAt).y
+    : toPhoenixParts(now).y;
+  const latestYear = latestPaid?.paidAt
+    ? toPhoenixParts(latestPaid.paidAt).y
+    : toPhoenixParts(now).y;
+
+  const years = Array.from({
+    length: Math.max(1, latestYear - earliestYear + 1),
+  }).map((_, i) => String(latestYear - i));
+
+  const monthOptions = [
+    { v: "01", label: "Jan" },
+    { v: "02", label: "Feb" },
+    { v: "03", label: "Mar" },
+    { v: "04", label: "Apr" },
+    { v: "05", label: "May" },
+    { v: "06", label: "Jun" },
+    { v: "07", label: "Jul" },
+    { v: "08", label: "Aug" },
+    { v: "09", label: "Sep" },
+    { v: "10", label: "Oct" },
+    { v: "11", label: "Nov" },
+    { v: "12", label: "Dec" },
+  ];
+
   const currency = "USD";
 
   const [captured, refunded, payments] = await Promise.all([
@@ -292,11 +414,11 @@ export default async function EarningsPage({
   const netCents = Math.max(0, captured.sumCents - refunded.sumCents);
 
   const monthMenuStarts = Array.from({ length: 12 }).map((_, i) =>
-    addMonthsPhoenix(currentMonthStart, -i),
+    addMonthsPhoenix(startOfMonthPhoenix(now), -i),
   );
   const oldestMonthStart =
-    monthMenuStarts[monthMenuStarts.length - 1] ?? currentMonthStart;
-  const nextAfterCurrent = addMonthsPhoenix(currentMonthStart, 1);
+    monthMenuStarts[monthMenuStarts.length - 1] ?? startOfMonthPhoenix(now);
+  const nextAfterCurrent = addMonthsPhoenix(startOfMonthPhoenix(now), 1);
 
   const last12Rows = await db.payment.findMany({
     where: { paidAt: { gte: oldestMonthStart, lt: nextAfterCurrent } },
@@ -326,7 +448,8 @@ export default async function EarningsPage({
 
   const exportHref = buildHref("/admin/earnings/export", {
     view,
-    month: view === "month" ? resolvedMonthKey : undefined,
+    year: view === "month" ? resolvedMY.year : undefined,
+    month: view === "month" ? resolvedMY.month : undefined,
     from: view === "range" ? (rangeFromParam ?? defaultFrom) : undefined,
     to: view === "range" ? (rangeToParam ?? defaultTo) : undefined,
   });
@@ -334,61 +457,104 @@ export default async function EarningsPage({
   return (
     <section className={`${base.content} ${styles.container}`}>
       <header className='header'>
-        <div className={styles.headerTop}>
-          <div>
-            <h1 className='heading h2'>Earnings</h1>
-            <p className='subheading'>
-              View captured revenue, refunds, and net totals by month, range,
-              year-to-date, or all time.
-            </p>
-          </div>
+        <h1 className='heading h2'>Earnings</h1>
 
+        <div className={styles.earningsTop}>
+          <p className='subheading'>
+            View captured revenue, refunds, and net totals by month, range,
+            year-to-date, or all time.
+          </p>
           <div className={styles.headerActions}>
             <Button
               href={exportHref}
               text='Download CSV'
               btnType='black'
-              arrow
+              downloadIcon
             />
           </div>
         </div>
 
-        <div className={styles.tabs}>
-          <Link
-            href={buildHref("/admin/earnings", {
-              view: "month",
-              month: resolvedMonthKey,
-            })}
-            className={`${styles.tab} ${view === "month" ? styles.tabActive : ""}`}
-          >
-            By month
-          </Link>
-          <Link
-            href={buildHref("/admin/earnings", { view: "ytd" })}
-            className={`${styles.tab} ${view === "ytd" ? styles.tabActive : ""}`}
-          >
-            Year to date
-          </Link>
-          <Link
-            href={buildHref("/admin/earnings", { view: "all" })}
-            className={`${styles.tab} ${view === "all" ? styles.tabActive : ""}`}
-          >
-            All time
-          </Link>
-          <Link
-            href={buildHref("/admin/earnings", {
-              view: "range",
-              from: rangeFromParam ?? defaultFrom,
-              to: rangeToParam ?? defaultTo,
-            })}
-            className={`${styles.tab} ${view === "range" ? styles.tabActive : ""}`}
-          >
-            Date range
-          </Link>
+        <div className={styles.tabsRow}>
+          <div className='tabs'>
+            <Link
+              href={buildHref("/admin/earnings", {
+                view: "month",
+                year: resolvedMY.year,
+                month: resolvedMY.month,
+              })}
+              className={`tab ${view === "month" ? "tabActive" : ""}`}
+            >
+              By month
+            </Link>
+            <Link
+              href={buildHref("/admin/earnings", { view: "ytd" })}
+              className={`tab ${view === "ytd" ? "tabActive" : ""}`}
+            >
+              Year to date
+            </Link>
+            <Link
+              href={buildHref("/admin/earnings", { view: "all" })}
+              className={`tab ${view === "all" ? "tabActive" : ""}`}
+            >
+              All time
+            </Link>
+            <Link
+              href={buildHref("/admin/earnings", {
+                view: "range",
+                from: rangeFromParam ?? defaultFrom,
+                to: rangeToParam ?? defaultTo,
+              })}
+              className={`tab ${view === "range" ? "tabActive" : ""}`}
+            >
+              Date range
+            </Link>
+          </div>
+
           <div className={styles.rangePill}>
             <span className='miniNote'>{rangeLabel}</span>
           </div>
         </div>
+
+        {view === "month" ? (
+          <form
+            className={styles.monthYearForm}
+            action='/admin/earnings'
+            method='get'
+          >
+            <input type='hidden' name='view' value='month' />
+            <label className={styles.selectField}>
+              <span className='miniNote'>Month</span>
+              <select
+                className={styles.select}
+                name='month'
+                defaultValue={resolvedMY.month}
+              >
+                {monthOptions.map((m) => (
+                  <option key={m.v} value={m.v}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={styles.selectField}>
+              <span className='miniNote'>Year</span>
+              <select
+                className={styles.select}
+                name='year'
+                defaultValue={resolvedMY.year}
+              >
+                {years.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className={styles.applyBtn} type='submit'>
+              Apply
+            </button>
+          </form>
+        ) : null}
 
         {view === "range" ? (
           <form
@@ -450,7 +616,7 @@ export default async function EarningsPage({
       <div className={styles.twoCol}>
         <section className={styles.card}>
           <div className={styles.cardHeader}>
-            <div>
+            <div className={styles.cardHeaderLeft}>
               <div className='cardTitle h4'>Monthly breakdown</div>
               <div className='miniNote'>Last 12 months</div>
             </div>
@@ -475,6 +641,8 @@ export default async function EarningsPage({
               <tbody>
                 {monthSummary.map((m) => {
                   const active = view === "month" && m.key === resolvedMonthKey;
+                  const y = m.key.slice(0, 4);
+                  const mo = m.key.slice(5, 7);
                   return (
                     <tr key={m.key} className={active ? styles.rowActive : ""}>
                       <td>
@@ -482,7 +650,8 @@ export default async function EarningsPage({
                           className={styles.rowLink}
                           href={buildHref("/admin/earnings", {
                             view: "month",
-                            month: m.key,
+                            year: y,
+                            month: mo,
                           })}
                         >
                           {m.label}
@@ -507,14 +676,14 @@ export default async function EarningsPage({
               href={exportHref}
               text='Download CSV for current view'
               btnType='black'
-              arrow
+              downloadIcon
             />
           </div>
         </section>
 
         <section className={styles.card}>
           <div className={styles.cardHeader}>
-            <div>
+            <div className={styles.cardHeaderLeft}>
               <div className='cardTitle h4'>Payments</div>
               <div className='miniNote'>
                 Most recent 250 for selected period
@@ -552,21 +721,21 @@ export default async function EarningsPage({
                       (b?.user?.name?.trim() || b?.user?.email || "").trim() ||
                       (b?.guestName?.trim() || b?.guestEmail || "").trim() ||
                       "Customer";
-                    const route = b
-                      ? `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`
-                      : "—";
+
                     const bookingHref = b?.id
                       ? buildHref("/admin/bookings", { bookingId: b.id })
                       : "/admin/bookings";
+
+                    const bookingId = b?.id ?? p.bookingId ?? null;
+
                     return (
                       <tr key={p.id}>
-                        <td>{paidAt ? formatDateTimePhx(paidAt) : "—"}</td>
+                        <td>{paidAt ? formatDateShortPhx(paidAt) : "—"}</td>
                         <td>
                           <Link className={styles.rowLink} href={bookingHref}>
                             <div className={styles.bookingId}>
-                              {b?.id ?? p.bookingId ?? "—"}
+                              {shortId(bookingId, 7)}
                             </div>
-                            <div className='miniNote'>{route}</div>
                           </Link>
                         </td>
                         <td>
@@ -595,7 +764,7 @@ export default async function EarningsPage({
               href={exportHref}
               text='Download CSV'
               btnType='black'
-              arrow
+              downloadIcon
             />
           </div>
         </section>

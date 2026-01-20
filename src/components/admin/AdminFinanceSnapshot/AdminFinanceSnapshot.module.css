@@ -16,7 +16,7 @@
   font-size: 2.5rem;
   font-weight: 800;
   color: var(--darkGreen);
-  background: #16a34a4d;
+  background: var(--lightGreen);
   padding: 1rem;
   border-radius: 5px;
 }
@@ -85,9 +85,8 @@
 }
 
 .tone_good {
-  /* background: rgba(29, 191, 116, 0.08); */
   color: var(--darkGreen);
-  background: #16a34a4d;
+  background: var(--lightGreen);
 }
 
 .grid .tone_good :global(.miniNote) {

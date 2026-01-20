@@ -88,6 +88,19 @@ function csvEscape(v: string) {
   return needs ? `"${s}"` : s;
 }
 
+function resolveMonthKeyFromParams(url: URL) {
+  const legacy = url.searchParams.get("month");
+  const year = url.searchParams.get("year");
+  const month = url.searchParams.get("month");
+
+  if (legacy && monthStartFromKeyPhoenix(legacy)) return legacy;
+
+  const y = year && /^\d{4}$/.test(year) ? year : null;
+  const m = month && /^(0[1-9]|1[0-2])$/.test(month) ? month : null;
+  if (y && m) return `${y}-${m}`;
+  return null;
+}
+
 export async function GET(req: Request) {
   const session = await auth();
   const roles = session?.user?.roles ?? [];
@@ -102,7 +115,7 @@ export async function GET(req: Request) {
   const now = new Date();
 
   const currentMonthStart = startOfMonthPhoenix(now);
-  const monthParam = url.searchParams.get("month");
+
   const rangeFromParam = url.searchParams.get("from");
   const rangeToParam = url.searchParams.get("to");
 
@@ -111,11 +124,12 @@ export async function GET(req: Request) {
   let filename = "earnings.csv";
 
   if (view === "month") {
-    const ms = monthParam ? monthStartFromKeyPhoenix(monthParam) : null;
+    const key = resolveMonthKeyFromParams(url);
+    const ms = key ? monthStartFromKeyPhoenix(key) : null;
     const start = ms ?? currentMonthStart;
     fromUtc = start;
     toUtc = addMonthsPhoenix(start, 1);
-    filename = `earnings_${monthParam ?? "month"}.csv`;
+    filename = `earnings_${key ?? "month"}.csv`;
   }
 
   if (view === "ytd") {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import styles from "./Button.module.css";
 import Arrow from "../icons/Arrow/Arrow";
 import Plus from "../icons/Plus/Plus";
+import DownloadIcon from "../DownloadIcon/DownloadIcon";
 
 interface Props {
   href?: string;
@@ -13,6 +14,7 @@ interface Props {
   children?: ReactNode;
   arrow?: boolean;
   plus?: boolean;
+  downloadIcon?: boolean;
   type?: "button" | "submit" | "reset";
   as?: "auto" | "button" | "span";
   onClick?: MouseEventHandler<HTMLButtonElement>;
@@ -27,6 +29,7 @@ export default function Button({
   children,
   arrow,
   plus,
+  downloadIcon,
   type = "button",
   as = "auto",
   onClick,
@@ -44,7 +47,12 @@ export default function Button({
       )}
       {plus && (
         <div className={styles.plusContainer}>
-          <Plus className={styles.arrow} />
+          <Plus className={styles.optionalIcon} />
+        </div>
+      )}
+      {downloadIcon && (
+        <div className={styles.plusContainer}>
+          <DownloadIcon className={styles.optionalIcon} />
         </div>
       )}
     </>

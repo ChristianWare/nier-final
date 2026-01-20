@@ -156,7 +156,7 @@ function MetricCard({
         <div className='emptyTitle underline'>{label}</div>
       </div>
 
-      <div className={styles.cardValue}>{value}</div>
+      <div className="emptyTitleSmall">{value}</div>
 
       {sub ? (
         <div className='miniNote'>{sub}</div>

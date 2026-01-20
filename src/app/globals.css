@@ -13,6 +13,7 @@
   --strokeii: #a7a6a2;
   --blue: #2563eb;
   --green: rgb(22, 163, 74);
+  --lightGreen: #16a34a4d;
   --darkGreen: #0b7547;
   --red: #dc2626;
   --darkRed: #8b1a1a;
@@ -374,7 +375,7 @@ select:focus {
   letter-spacing: -0.5px;
 }
 
-.emptySmall {
+.emptySmall, th {
   opacity: 0.75;
   font-size: 14px;
   letter-spacing: -0.09px;
@@ -590,7 +591,6 @@ select:focus {
 .pac-container {
   z-index: 999999 !important;
 }
-
 
 .bgWhite {
   background-color: var(--white);
