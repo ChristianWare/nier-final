@@ -1,3 +1,4 @@
+import Button from "@/components/shared/Button/Button";
 import styles from "./AdminFinanceSnapshot.module.css";
 
 export type AdminFinanceSnapshotProps = {
@@ -28,10 +29,10 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(n);
 }
 
-function formatPct(v: number) {
-  const sign = v > 0 ? "+" : "";
-  return `${sign}${Math.round(v)}%`;
-}
+// function formatPct(v: number) {
+//   const sign = v > 0 ? "+" : "";
+//   return `${sign}${Math.round(v)}%`;
+// }
 
 export default function AdminFinanceSnapshot({
   monthLabel,
@@ -49,18 +50,16 @@ export default function AdminFinanceSnapshot({
   pendingPaymentCount,
   pendingPaymentAmountCents,
 
-  monthOverMonthPct,
+  // monthOverMonthPct,
 }: AdminFinanceSnapshotProps) {
   const netMonthCents = Math.max(0, capturedMonthCents - refundsMonthCents);
 
   return (
     <section className={styles.container} aria-label='Finance snapshot'>
-      <header className={styles.header}>
-        <div className={styles.titleBlock}>
-          <h2 className='cardTitle h4'>Finance</h2>
-          <div className='miniNote'>{monthLabel}</div>
-        </div>
+      <header className='header'>
+        <h2 className='cardTitle h4'>{monthLabel} - Earnings</h2>
 
+        {/* 
         <div className={styles.headerRight}>
           <div className={styles.bigValue}>
             {formatMoney(netMonthCents, currency)}
@@ -81,7 +80,7 @@ export default function AdminFinanceSnapshot({
               </span>
             ) : null}
           </div>
-        </div>
+        </div> */}
       </header>
 
       <div className={styles.grid}>
@@ -124,8 +123,16 @@ export default function AdminFinanceSnapshot({
         <MetricCard
           label='Net (month)'
           value={formatMoney(netMonthCents, currency)}
-          sub='Captured - refunds'
+          sub='Captured minus refunded'
           tone='good'
+        />
+      </div>
+      <div className={styles.btnContainer}>
+        <Button
+          href='/admin/earnings'
+          text='See all earnings'
+          btnType='black'
+          arrow
         />
       </div>
     </section>

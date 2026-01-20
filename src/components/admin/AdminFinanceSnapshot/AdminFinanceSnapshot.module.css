@@ -4,29 +4,21 @@
   margin-top: 2rem;
 }
 
-.header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1.2rem;
-  flex-wrap: wrap;
-}
-
-.titleBlock {
-  display: grid;
-  gap: 0.4rem;
-}
-
 .headerRight {
-  display: grid;
-  justify-items: end;
-  gap: 0.3rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 3rem;
+  width: 100%;
 }
 
 .bigValue {
-  font-size: 2.2rem;
+  font-size: 2.5rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  color: var(--darkGreen);
+  background: #16a34a4d;
+  padding: 1rem;
+  border-radius: 5px;
 }
 
 .bigSub {
@@ -68,7 +60,7 @@
 
 .card {
   border: 1px solid var(--stroke);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 1.2rem;
   display: grid;
   gap: 0.7rem;
@@ -93,11 +85,22 @@
 }
 
 .tone_good {
-  background: rgba(29, 191, 116, 0.08);
+  /* background: rgba(29, 191, 116, 0.08); */
+  color: var(--darkGreen);
+  background: #16a34a4d;
+}
+
+.grid .tone_good :global(.miniNote) {
+  color: var(--darkGreen);
 }
 
 .tone_warn {
   background: rgba(255, 200, 9, 0.12);
+}
+
+.btnContainer {
+  display: flex;
+  width: fit-content;
 }
 
 @media screen and (max-width: 1100px) {
