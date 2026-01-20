@@ -5,6 +5,7 @@ import { auth } from "../../auth";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import { BookingStatus } from "@prisma/client";
 import { randomUUID } from "crypto";
+import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
 type CreateBookingRequestInput = {
   serviceTypeId: string;
@@ -152,6 +153,11 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       totalCents: quote.totalCents,
     },
     select: { id: true, guestClaimToken: true },
+  });
+
+  await queueAdminNotificationsForBookingEvent({
+    event: "BOOKING_REQUESTED",
+    bookingId: booking.id,
   });
 
   return {

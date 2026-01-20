@@ -1,16 +1,22 @@
-import styles from "./AdminSettingsPage.module.css";
+import { getMyAdminNotificationSettings} from "../../../../actions/admin/notificationSettings";
+import AdminNotificationSettingsForm from "@/components/admin/AdminNotificationSettingsForm/AdminNotificationSettingsForm";
 
-export default function AdminSettingsPage() {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export default async function AdminSettingsPage() {
+  const initial = await getMyAdminNotificationSettings();
+
   return (
-    <section className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={`${styles.heading} h2`}>Settings</h1>
-        <p className={styles.subcopy}>
-          Manage admin preferences and system settings here.
+    <section className='container'>
+      <header className='header'>
+        <h1 className='heading h2'>Admin settings</h1>
+        <p className='subheading'>
+          Control which booking events trigger admin alerts via email and SMS.
         </p>
       </header>
 
-      <div className={styles.card}>Coming soon.</div>
+      <AdminNotificationSettingsForm initial={initial} />
     </section>
   );
 }

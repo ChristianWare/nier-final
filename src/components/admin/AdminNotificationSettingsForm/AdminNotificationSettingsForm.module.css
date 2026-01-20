@@ -1,0 +1,84 @@
+.form {
+  display: grid;
+  gap: 18px;
+}
+
+.section {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.channelRow {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 10px;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.table {
+  display: grid;
+  gap: 10px;
+}
+
+.headerRow {
+  display: grid;
+  grid-template-columns: 1fr 90px 90px;
+  gap: 10px;
+  font-size: 12px;
+  opacity: 0.75;
+  padding: 0 4px;
+}
+
+.group {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0,0,0,0.10);
+}
+
+.groupTitle {
+  font-size: 12px;
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 90px 90px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(0,0,0,0.10);
+  border-radius: 10px;
+}
+
+.colEvent {
+  font-size: 13px;
+}
+
+.colCheck {
+  display: flex;
+  justify-content: center;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}

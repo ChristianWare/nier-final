@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { stripe } from "@/lib/stripe";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
+import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -147,6 +148,12 @@ export async function assignBooking(formData: FormData) {
     }),
   ]);
 
+  // ✅ moved INSIDE the function (bookingId is in scope here)
+  await queueAdminNotificationsForBookingEvent({
+    event: "DRIVER_ASSIGNED",
+    bookingId,
+  });
+
   return { success: true };
 }
 
@@ -217,9 +224,17 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     });
   }
 
+  // ✅ REUSE path
   if (canReuse && existing?.checkoutUrl) {
     try {
       await emailIt(existing.checkoutUrl);
+
+      // ✅ moved INSIDE the function (b.id is in scope here)
+      await queueAdminNotificationsForBookingEvent({
+        event: "PAYMENT_LINK_SENT",
+        bookingId: b.id,
+      });
+
       return { success: true, reused: true, checkoutUrl: existing.checkoutUrl };
     } catch (e) {
       console.error("sendPaymentLinkEmail failed (reuse)", e);
@@ -264,7 +279,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
       },
     ],
   });
-
 
   if (!stripeSession.url) {
     return { error: "Stripe did not return a checkout URL." };
@@ -326,6 +340,12 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
       debug: errMsg(e),
     };
   }
+
+  // ✅ moved INSIDE the function (b.id is in scope here)
+  await queueAdminNotificationsForBookingEvent({
+    event: "PAYMENT_LINK_SENT",
+    bookingId: b.id,
+  });
 
   return { success: true, reused: false, checkoutUrl: stripeSession.url };
 }
