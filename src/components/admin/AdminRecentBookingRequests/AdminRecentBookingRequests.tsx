@@ -185,21 +185,21 @@ export default function AdminRecentBookingRequests({
           >
             <button
               type='button'
-              className={`${styles.tab} ${bucket === "review" ? styles.tabActive : ""}`}
+              className={`tab ${bucket === "review" ? "tabActive" : ""}`}
               onClick={() => setBucket("review")}
             >
               Needs review
             </button>
             <button
               type='button'
-              className={`${styles.tab} ${bucket === "payment" ? styles.tabActive : ""}`}
+              className={`tab ${bucket === "payment" ? "tabActive" : ""}`}
               onClick={() => setBucket("payment")}
             >
               Awaiting payment
             </button>
             <button
               type='button'
-              className={`${styles.tab} ${bucket === "all" ? styles.tabActive : ""}`}
+              className={`tab ${bucket === "all" ? "tabActive" : ""}`}
               onClick={() => setBucket("all")}
             >
               All
@@ -213,21 +213,21 @@ export default function AdminRecentBookingRequests({
           >
             <button
               type='button'
-              className={`${styles.tab} ${customerFilter === "all" ? styles.tabActive : ""}`}
+              className={`tab ${customerFilter === "all" ? "tabActive" : ""}`}
               onClick={() => setCustomerFilter("all")}
             >
               All
             </button>
             <button
               type='button'
-              className={`${styles.tab} ${customerFilter === "guests" ? styles.tabActive : ""}`}
+              className={`tab ${customerFilter === "guests" ? "tabActive" : ""}`}
               onClick={() => setCustomerFilter("guests")}
             >
               Guests
             </button>
             <button
               type='button'
-              className={`${styles.tab} ${customerFilter === "accounts" ? styles.tabActive : ""}`}
+              className={`tab ${customerFilter === "accounts" ? "tabActive" : ""}`}
               onClick={() => setCustomerFilter("accounts")}
             >
               Accounts

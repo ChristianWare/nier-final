@@ -311,6 +311,7 @@ select:focus {
   align-items: center;
   gap: 0.6rem;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .tabActive {
