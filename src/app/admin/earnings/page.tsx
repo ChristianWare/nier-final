@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import base from "../AdminStyles.module.css";
 import styles from "./AdminEarningsPage.module.css";
 import EarningsControls from "./EarningsControls";
+import EarningsChart from "./EarningsChart";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,6 +57,14 @@ function formatMonthLabelPhoenix(dateUtc: Date) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     year: "numeric",
+    timeZone: PHX_TZ,
+  }).format(dateUtc);
+}
+
+function formatMonthTickPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    year: "2-digit",
     timeZone: PHX_TZ,
   }).format(dateUtc);
 }
@@ -222,17 +231,15 @@ function resolveMonthYear({
   const monthParam =
     typeof searchParams?.month === "string" ? searchParams.month : null;
 
-  if (view !== "month") {
+  if (view !== "month")
     return { year: currentYear, month: currentMonth, key: currentKey };
-  }
 
-  if (legacyKey) {
+  if (legacyKey)
     return {
       year: legacyKey.slice(0, 4),
       month: legacyKey.slice(5, 7),
       key: legacyKey,
     };
-  }
 
   const y = yearParam && /^\d{4}$/.test(yearParam) ? yearParam : currentYear;
   const m =
@@ -394,31 +401,73 @@ export default async function EarningsPage({
     monthMenuStarts[monthMenuStarts.length - 1] ?? startOfMonthPhoenix(now);
   const nextAfterCurrent = addMonthsPhoenix(startOfMonthPhoenix(now), 1);
 
-  const last12Rows = await db.payment.findMany({
-    where: { paidAt: { gte: oldestMonthStart, lt: nextAfterCurrent } },
-    select: { paidAt: true, amountTotalCents: true },
-  });
+  const [last12CapturedRows, last12RefundRows] = await Promise.all([
+    db.payment.findMany({
+      where: { paidAt: { gte: oldestMonthStart, lt: nextAfterCurrent } },
+      select: { paidAt: true, amountTotalCents: true },
+    }),
+    db.payment.findMany({
+      where: {
+        status: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] },
+        updatedAt: { gte: oldestMonthStart, lt: nextAfterCurrent },
+      },
+      select: { updatedAt: true, amountTotalCents: true },
+    }),
+  ]);
 
-  const bucket = new Map<string, { sumCents: number; count: number }>();
-  for (const r of last12Rows) {
+  const capturedBucket = new Map<string, { sumCents: number; count: number }>();
+  for (const r of last12CapturedRows) {
     if (!r.paidAt) continue;
     const key = monthKeyFromDatePhoenix(r.paidAt);
-    const prev = bucket.get(key) ?? { sumCents: 0, count: 0 };
-    bucket.set(key, {
+    const prev = capturedBucket.get(key) ?? { sumCents: 0, count: 0 };
+    capturedBucket.set(key, {
       sumCents: prev.sumCents + (r.amountTotalCents ?? 0),
       count: prev.count + 1,
     });
+  }
+
+  const refundBucket = new Map<string, number>();
+  for (const r of last12RefundRows) {
+    const key = monthKeyFromDatePhoenix(r.updatedAt);
+    refundBucket.set(
+      key,
+      (refundBucket.get(key) ?? 0) + (r.amountTotalCents ?? 0),
+    );
   }
 
   const monthSummary = monthMenuStarts
     .map((ms) => {
       const key = monthKeyFromDatePhoenix(ms);
       const label = formatMonthLabelPhoenix(ms);
-      const v = bucket.get(key) ?? { sumCents: 0, count: 0 };
+      const tick = formatMonthTickPhoenix(ms);
+      const v = capturedBucket.get(key) ?? { sumCents: 0, count: 0 };
       const avgCents = v.count > 0 ? Math.round(v.sumCents / v.count) : 0;
-      return { key, label, sumCents: v.sumCents, count: v.count, avgCents };
+      return {
+        key,
+        label,
+        tick,
+        sumCents: v.sumCents,
+        count: v.count,
+        avgCents,
+      };
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
+
+  const chartData = [...monthSummary]
+    .sort((a, b) => (a.key < b.key ? -1 : 1))
+    .map((m) => {
+      const refund = refundBucket.get(m.key) ?? 0;
+      const net = Math.max(0, m.sumCents - refund);
+      return {
+        key: m.key,
+        tick: m.tick,
+        label: m.label,
+        capturedCents: m.sumCents,
+        refundedCents: refund,
+        netCents: net,
+        count: m.count,
+      };
+    });
 
   const exportHref = buildHref("/admin/earnings/export", {
     view,
@@ -486,6 +535,16 @@ export default async function EarningsPage({
           tone='good'
         />
       </div>
+
+      <section className={`${styles.card} ${styles.chartCard}`}>
+        <div className={styles.cardHeader}>
+          <div className='cardTitle h4'>Revenue trend</div>
+          <div className='miniNote'>Last 12 months</div>
+        </div>
+        <div className={styles.chartWrap}>
+          <EarningsChart data={chartData} currency={currency} />
+        </div>
+      </section>
 
       <div className={styles.twoCol}>
         <section className={styles.card}>
