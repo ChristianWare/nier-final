@@ -100,8 +100,9 @@ model User {
 
   statusEventsCreated BookingStatusEvent[] @relation("StatusEventsCreated")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
+  adminNotificationSettings AdminNotificationSettings?
 }
 
 model Account {
@@ -447,4 +448,76 @@ model BlackoutDate {
   ymd       String   @unique
   reason    String?
   createdAt DateTime @default(now())
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+}
+
+enum NotificationEventType {
+  BOOKING_REQUESTED
+  PAYMENT_LINK_SENT
+  PAYMENT_RECEIVED
+  DRIVER_ASSIGNED
+  DRIVER_EN_ROUTE
+  DRIVER_ARRIVED
+  DRIVER_PICKED_UP
+  TRIP_COMPLETED
+  BOOKING_CANCELLED
+}
+
+enum NotificationJobStatus {
+  PENDING
+  SENDING
+  SENT
+  FAILED
+}
+
+model AdminNotificationSettings {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emailEnabled Boolean @default(true)
+  smsEnabled   Boolean @default(false)
+
+  // optional overrides; if empty, we fall back to the admin user's email.
+  emailTo String?
+  // must be E.164 for Twilio, e.g. +16025551234
+  smsTo   String?
+
+  // Which events should send via each channel
+  emailEvents NotificationEventType[] @default([])
+  smsEvents   NotificationEventType[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model NotificationJob {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  status    NotificationJobStatus @default(PENDING)
+  attempts  Int                   @default(0)
+  lastError String?
+  sentAt    DateTime?
+
+  // delivery
+  channel NotificationChannel
+  event   NotificationEventType
+  to      String
+  subject String?
+  body    String
+
+  // context
+  bookingId String?
+  userId    String?
+
+  // idempotency
+  dedupeKey String @unique
+
+  payload Json?
 }
