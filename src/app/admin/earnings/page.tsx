@@ -4,6 +4,7 @@ import Button from "@/components/shared/Button/Button";
 import { db } from "@/lib/db";
 import base from "../AdminStyles.module.css";
 import styles from "./AdminEarningsPage.module.css";
+import EarningsControls from "./EarningsControls";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,11 +74,7 @@ function shortId(id: string | null | undefined, n = 7) {
 function toPhoenixParts(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
   const phx = new Date(phxLocalMs);
-  return {
-    y: phx.getUTCFullYear(),
-    m: phx.getUTCMonth(),
-    d: phx.getUTCDate(),
-  };
+  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
 }
 
 function startOfDayPhoenix(dateUtc: Date) {
@@ -170,25 +167,6 @@ function buildHref(
   return qs ? `${basePath}?${qs}` : basePath;
 }
 
-function monthLabelFromNum(mm: string) {
-  const n = Number(mm);
-  const labels = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-  return labels[n - 1] ?? mm;
-}
-
 async function capturedAgg(from: Date, to: Date) {
   const agg = await db.payment.aggregate({
     where: { paidAt: { gte: from, lt: to } },
@@ -245,11 +223,7 @@ function resolveMonthYear({
     typeof searchParams?.month === "string" ? searchParams.month : null;
 
   if (view !== "month") {
-    return {
-      year: currentYear,
-      month: currentMonth,
-      key: currentKey,
-    };
+    return { year: currentYear, month: currentMonth, key: currentKey };
   }
 
   if (legacyKey) {
@@ -302,7 +276,7 @@ export default async function EarningsPage({
     const ms = monthStartFromKeyPhoenix(resolvedMonthKey) ?? currentMonthStart;
     fromUtc = ms;
     toUtc = addMonthsPhoenix(ms, 1);
-    rangeLabel = `${monthLabelFromNum(resolvedMY.month)} ${resolvedMY.year}`;
+    rangeLabel = formatMonthLabelPhoenix(ms);
   }
 
   if (view === "ytd") {
@@ -474,118 +448,18 @@ export default async function EarningsPage({
           </div>
         </div>
 
-        <div className={styles.tabsRow}>
-          <div className='tabs'>
-            <Link
-              href={buildHref("/admin/earnings", {
-                view: "month",
-                year: resolvedMY.year,
-                month: resolvedMY.month,
-              })}
-              className={`tab ${view === "month" ? "tabActive" : ""}`}
-            >
-              By month
-            </Link>
-            <Link
-              href={buildHref("/admin/earnings", { view: "ytd" })}
-              className={`tab ${view === "ytd" ? "tabActive" : ""}`}
-            >
-              Year to date
-            </Link>
-            <Link
-              href={buildHref("/admin/earnings", { view: "all" })}
-              className={`tab ${view === "all" ? "tabActive" : ""}`}
-            >
-              All time
-            </Link>
-            <Link
-              href={buildHref("/admin/earnings", {
-                view: "range",
-                from: rangeFromParam ?? defaultFrom,
-                to: rangeToParam ?? defaultTo,
-              })}
-              className={`tab ${view === "range" ? "tabActive" : ""}`}
-            >
-              Date range
-            </Link>
-          </div>
-
-          <div className={styles.rangePill}>
-            <span className='miniNote'>{rangeLabel}</span>
-          </div>
-        </div>
-
-        {view === "month" ? (
-          <form
-            className={styles.monthYearForm}
-            action='/admin/earnings'
-            method='get'
-          >
-            <input type='hidden' name='view' value='month' />
-            <label className={styles.selectField}>
-              <span className='miniNote'>Month</span>
-              <select
-                className={styles.select}
-                name='month'
-                defaultValue={resolvedMY.month}
-              >
-                {monthOptions.map((m) => (
-                  <option key={m.v} value={m.v}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className={styles.selectField}>
-              <span className='miniNote'>Year</span>
-              <select
-                className={styles.select}
-                name='year'
-                defaultValue={resolvedMY.year}
-              >
-                {years.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button className={styles.applyBtn} type='submit'>
-              Apply
-            </button>
-          </form>
-        ) : null}
-
-        {view === "range" ? (
-          <form
-            className={styles.rangeForm}
-            action='/admin/earnings'
-            method='get'
-          >
-            <input type='hidden' name='view' value='range' />
-            <label className={styles.rangeField}>
-              <span className='miniNote'>From</span>
-              <input
-                className={styles.rangeInput}
-                type='date'
-                name='from'
-                defaultValue={rangeFromParam ?? defaultFrom}
-              />
-            </label>
-            <label className={styles.rangeField}>
-              <span className='miniNote'>To</span>
-              <input
-                className={styles.rangeInput}
-                type='date'
-                name='to'
-                defaultValue={rangeToParam ?? defaultTo}
-              />
-            </label>
-            <button className={styles.rangeSubmit} type='submit'>
-              Apply
-            </button>
-          </form>
-        ) : null}
+        <EarningsControls
+          years={years}
+          monthOptions={monthOptions}
+          defaultFrom={defaultFrom}
+          defaultTo={defaultTo}
+          initialView={view}
+          initialYear={resolvedMY.year}
+          initialMonth={resolvedMY.month}
+          initialFrom={rangeFromParam ?? defaultFrom}
+          initialTo={rangeToParam ?? defaultTo}
+          rangeLabel={rangeLabel}
+        />
       </header>
 
       <div className={styles.kpiGrid}>
@@ -616,16 +490,14 @@ export default async function EarningsPage({
       <div className={styles.twoCol}>
         <section className={styles.card}>
           <div className={styles.cardHeader}>
-            <div className={styles.cardHeaderLeft}>
-              <div className='cardTitle h4'>Monthly breakdown</div>
-              <div className='miniNote'>Last 12 months</div>
-            </div>
-            {view === "month" ? (
-              <div className={styles.cardHeaderRight}>
-                <span className='miniNote'>Selected</span>
-                <span className={styles.selectedMonth}>{resolvedMonthKey}</span>
-              </div>
-            ) : null}
+            <div className='cardTitle h4'>Monthly breakdown</div>
+            <div className='miniNote'>Last 12 months</div>
+          </div>
+          <div className={styles.cardHeaderRight}>
+            <span className='miniNote'>Selected</span>
+            <span className={styles.selectedMonth}>
+              {view === "month" ? resolvedMonthKey : "—"}
+            </span>
           </div>
 
           <div className={styles.monthTableWrap}>
@@ -683,16 +555,12 @@ export default async function EarningsPage({
 
         <section className={styles.card}>
           <div className={styles.cardHeader}>
-            <div className={styles.cardHeaderLeft}>
-              <div className='cardTitle h4'>Payments</div>
-              <div className='miniNote'>
-                Most recent 250 for selected period
-              </div>
-            </div>
-            <div className={styles.cardHeaderRight}>
-              <span className='miniNote'>Phoenix time</span>
-              <span className={styles.tzPill}>{PHX_TZ}</span>
-            </div>
+            <div className='cardTitle h4'>Payments</div>
+            <div className='miniNote'>Most recent 250 for selected period</div>
+          </div>
+          <div className={styles.cardHeaderRight}>
+            <span className='miniNote'>Phoenix time</span>
+            <span className={styles.tzPill}>{PHX_TZ}</span>
           </div>
 
           {payments.length === 0 ? (
@@ -725,7 +593,6 @@ export default async function EarningsPage({
                     const bookingHref = b?.id
                       ? buildHref("/admin/bookings", { bookingId: b.id })
                       : "/admin/bookings";
-
                     const bookingId = b?.id ?? p.bookingId ?? null;
 
                     return (
