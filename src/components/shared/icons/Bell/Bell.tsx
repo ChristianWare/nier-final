@@ -4,16 +4,16 @@ import { SVGProps } from "react";
 export default function Bell(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
+      xmlns='http://www.w3.org/2000/svg'
+      width='24'
+      height='24'
       viewBox='0 0 24 24'
-      width='1em'
-      height='1em'
       fill='none'
       stroke='currentColor'
       strokeWidth={2}
       strokeLinecap='round'
       strokeLinejoin='round'
-      className='lucide lucide-bell-icon'
-      xmlns='http://www.w3.org/2000/svg'
+      className='lucide lucide-circle-check-icon lucide-circle-check'
       {...props}
     >
       <path d='M10.268 21a2 2 0 0 0 3.464 0' />

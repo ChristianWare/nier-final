@@ -18,9 +18,11 @@ import Cog from "@/components/shared/icons/Cog/Cog";
 import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
 import Plane from "@/components/shared/icons/Plane/Plane";
+import Money from "@/components/shared/icons/Money/Money";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
+  { title: "Earnings", href: "/admin/earnings", icon: <Money /> },
   { title: "Bookings", href: "/admin/bookings", icon: <Calendar /> },
   { title: "Services", href: "/admin/services", icon: <Bell /> },
   {
