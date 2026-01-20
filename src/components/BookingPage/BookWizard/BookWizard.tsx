@@ -2,7 +2,7 @@
 "use client";
 
 import styles from "./BookingWizard.module.css";
-import  { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {
@@ -26,7 +26,7 @@ type AirportDTO = {
   iata: string;
   address: string;
   placeId: string | null;
-  lat: any | null; // already converted to number in BookPage, but keep flexible
+  lat: any | null;
   lng: any | null;
 };
 
@@ -103,7 +103,7 @@ function estimateTotalCents(args: {
     const minHours = vehicle?.minHours ?? 0;
     const billedHours = Math.max(
       Math.ceil(hoursRequested || 0),
-      Math.ceil(minHours || 0)
+      Math.ceil(minHours || 0),
     );
     const raw = base + billedHours * perHour;
     return Math.max(service.minFareCents, raw);
@@ -144,15 +144,15 @@ export default function BookingWizard({
 
   const services = useMemo<ServiceTypeDTO[]>(
     () => serviceTypes ?? [],
-    [serviceTypes]
+    [serviceTypes],
   );
 
   const vehicleOptions = useMemo<VehicleDTO[]>(
     () => vehicles ?? [],
-    [vehicles]
+    [vehicles],
   );
 
-  // ✅ 1) Start with no service selected
+  // ✅ start with no service selected
   const [serviceTypeId, setServiceTypeId] = useState<string>("");
 
   const [pickupAtDate, setPickupAtDate] = useState<string>("");
@@ -183,7 +183,7 @@ export default function BookingWizard({
 
   const selectedVehicle = useMemo(
     () => vehicleOptions.find((v) => v.id === vehicleId) ?? null,
-    [vehicleOptions, vehicleId]
+    [vehicleOptions, vehicleId],
   );
 
   const serviceAirports = selectedService?.airports ?? [];
@@ -218,14 +218,14 @@ export default function BookingWizard({
 
     if (lat == null || lng == null) {
       toast.error(
-        "That airport is missing coordinates. Edit the airport and choose an address suggestion so we can save its location."
+        "That airport is missing coordinates. Edit the airport and choose an address suggestion so we can save its location.",
       );
       return;
     }
 
     const place: RoutePickerPlace = {
       address: a.address,
-      placeId: a.placeId ?? a.id, // stable fallback
+      placeId: a.placeId ?? a.id,
       location: { lat, lng },
     };
 
@@ -280,7 +280,6 @@ export default function BookingWizard({
     if (!selectedService) return false;
     if (!pickupAtDate || !pickupAtTime) return false;
 
-    // airport service must have airports configured
     if (selectedService.airportLeg !== "NONE" && serviceAirports.length === 0) {
       return false;
     }
@@ -299,6 +298,21 @@ export default function BookingWizard({
     return true;
   }
 
+  // ✅ UX FIX: scroll wizard to top whenever step changes
+  const wizardTopRef = useRef<HTMLDivElement | null>(null);
+  const didMountRef = useRef(false);
+
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    wizardTopRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [step]);
+
   async function handleSubmit() {
     if (submitting || submitted) return;
 
@@ -309,7 +323,7 @@ export default function BookingWizard({
 
     if (selectedService.airportLeg !== "NONE" && serviceAirports.length === 0) {
       toast.error(
-        "This airport service is not configured yet. Please choose a different service or contact support."
+        "This airport service is not configured yet. Please choose a different service or contact support.",
       );
       return;
     }
@@ -348,7 +362,7 @@ export default function BookingWizard({
     }
 
     const pickupAtIso = new Date(
-      `${pickupAtDate}T${pickupAtTime}:00`
+      `${pickupAtDate}T${pickupAtTime}:00`,
     ).toISOString();
 
     setSubmitting(true);
@@ -404,7 +418,7 @@ export default function BookingWizard({
       const href = bookingId
         ? claimToken
           ? `/book/success?id=${encodeURIComponent(
-              String(bookingId)
+              String(bookingId),
             )}&t=${encodeURIComponent(String(claimToken))}`
           : `/book/success?id=${encodeURIComponent(String(bookingId))}`
         : "/book/success";
@@ -440,9 +454,12 @@ export default function BookingWizard({
           </div>
 
           <div className={styles.right}>
+            {/* scroll anchor (with scroll-margin-top in CSS) */}
+            <div ref={wizardTopRef} className={styles.wizardTop} />
+
             <div className={styles.wizard}>
               {step === 1 ? (
-                <div className={styles.contentBox}>
+                <div className={`${styles.contentBox} ${styles.stepPane}`}>
                   <h2 className='underline'>Trip details</h2>
                   <p className='subheading'>
                     Please provide the details for your trip below
@@ -465,12 +482,9 @@ export default function BookingWizard({
                       onChange={(e) => {
                         const next = e.target.value;
 
-                        // reset airports + route when service changes
                         setPickupAirportId("");
                         setDropoffAirportId("");
                         setRoute(null);
-
-                        // also reset vehicle selection for safety
                         setVehicleId("");
 
                         setServiceTypeId(next);
@@ -492,7 +506,6 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  {/* ✅ 2) Only show this AFTER selecting a service */}
                   {selectedService &&
                   selectedService.airportLeg !== "NONE" &&
                   serviceAirports.length === 0 ? (
@@ -538,7 +551,6 @@ export default function BookingWizard({
                   </Grid2>
 
                   <div className={styles.pickupDropoffContainer}>
-                    {/* PICKUP */}
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>
                         {usesPickupAirport ? "Pickup airport" : "Pickup"}
@@ -553,7 +565,6 @@ export default function BookingWizard({
                             applyAirportToRoute("pickup", id);
                           }}
                           className='input emptySmall'
-                          // ✅ 3) Do NOT disable (this was the “ghosted” issue)
                         >
                           <option value=''>Select an airport...</option>
                           {serviceAirports.map((a) => (
@@ -572,7 +583,6 @@ export default function BookingWizard({
                       )}
                     </div>
 
-                    {/* DROPOFF */}
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>
                         {usesDropoffAirport ? "Dropoff airport" : "Dropoff"}
@@ -587,7 +597,6 @@ export default function BookingWizard({
                             applyAirportToRoute("dropoff", id);
                           }}
                           className='input emptySmall'
-                          // ✅ 3) Do NOT disable (this was the “ghosted” issue)
                         >
                           <option value=''>Select an airport...</option>
                           {serviceAirports.map((a) => (
@@ -656,7 +665,10 @@ export default function BookingWizard({
               ) : null}
 
               {step === 2 ? (
-                <div style={{ display: "grid", gap: 14 }}>
+                <div
+                  className={styles.stepPane}
+                  style={{ display: "grid", gap: 14 }}
+                >
                   <h2 className='underline'>Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
 
@@ -779,7 +791,10 @@ export default function BookingWizard({
               ) : null}
 
               {step === 3 ? (
-                <div style={{ display: "grid", gap: 30 }}>
+                <div
+                  className={styles.stepPane}
+                  style={{ display: "grid", gap: 30 }}
+                >
                   <h2 className='underline'>Confirm</h2>
                   <p className='subheading'>Overview</p>
 

@@ -2,6 +2,7 @@
   display: grid;
   grid-template-columns: 2fr 4fr;
   grid-gap: 2rem;
+  align-items: start; /* ✅ keeps both columns top-aligned */
 }
 
 .left {
@@ -15,18 +16,48 @@
   z-index: 10;
 }
 
+.right {
+  align-self: start; /* ✅ important for consistent top positioning */
+}
+
 .routePickerContainer {
   background-color: var(--cream);
   padding: 1rem;
   padding-top: 0rem;
   border-radius: 20px;
-
 }
 
 .contentBox {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   grid-gap: 3rem;
+}
+
+/* ✅ scroll target offset (so scrollIntoView doesn't hide behind sticky nav) */
+.wizardTop {
+  scroll-margin-top: 110px;
+}
+
+/* ✅ step fade-in */
+.stepPane {
+  animation: stepFadeIn 220ms ease-out both;
+}
+
+@keyframes stepFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepPane {
+    animation: none;
+  }
 }
 
 .summaryCard {
