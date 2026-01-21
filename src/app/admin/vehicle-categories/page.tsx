@@ -1,8 +1,7 @@
 import styles from "./AdminVehicleCategoriesPage.module.css";
-import Link from "next/link";
 import { db } from "@/lib/db";
-import { toggleVehicleCategory } from "../../../../actions/admin/vehicleCategories";
 import Button from "@/components/shared/Button/Button";
+import VehicleCategoryActionsClient from "./VehicleCategoryActionsClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,25 +42,11 @@ export default async function AdminVehicleCategoriesPage() {
                 <Td label='Luggage'>{c.luggageCapacity}</Td>
                 <Td label='Active'>{c.active ? "Yes" : "No"}</Td>
                 <Td label='Actions'>
-                  <div className={styles.actions}>
-                    <Link
-                      href={`/admin/vehicle-categories/${c.id}`}
-                      className={styles.editLink}
-                    >
-                      Edit
-                    </Link>
-
-                    <form
-                      action={async () => {
-                        "use server";
-                        await toggleVehicleCategory(c.id, !c.active);
-                      }}
-                    >
-                      <button type='submit' className='dangerBtn'>
-                        {c.active ? "Disable" : "Enable"}
-                      </button>
-                    </form>
-                  </div>
+                  <VehicleCategoryActionsClient
+                    id={c.id}
+                    active={c.active}
+                    editHref={`/admin/vehicle-categories/${c.id}`}
+                  />
                 </Td>
               </tr>
             ))}
@@ -73,7 +58,7 @@ export default async function AdminVehicleCategoriesPage() {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className={`${styles.th} emptyTitleSmall`}>{children}</th>;
+  return <th className={`${styles.th}`}>{children}</th>;
 }
 
 function Td({
@@ -86,7 +71,7 @@ function Td({
   label?: string;
 }) {
   return (
-    <td className={`${styles.td} ${className}`} data-label={label}>
+    <td className={`${styles.td} cellStrong ${className}`} data-label={label}>
       {children}
     </td>
   );
