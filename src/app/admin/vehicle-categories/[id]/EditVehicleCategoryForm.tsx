@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import styles from "./EditVehicleCategoryPage.module.css";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import React, { useTransition } from "react";
 import toast from "react-hot-toast";
 import { updateVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
 
@@ -51,155 +52,162 @@ export default function EditVehicleCategoryForm({
           })();
         });
       }}
-      style={{ display: "grid", gap: 10 }}
+      className={styles.form}
     >
       <Grid2>
-        <Field
-          label='Name'
-          name='name'
-          defaultValue={category.name}
-          disabled={isPending}
-        />
-        <Field
-          label='Image URL (optional)'
-          name='imageUrl'
-          defaultValue={category.imageUrl ?? ""}
-          disabled={isPending}
-        />
+        <Field label='Name'>
+          <input
+            name='name'
+            defaultValue={category.name}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        {/* <Field label='Image URL (optional)'>
+          <input
+            name='imageUrl'
+            defaultValue={category.imageUrl ?? ""}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field> */}
       </Grid2>
 
-      <Field
-        label='Description (optional)'
-        name='description'
-        defaultValue={category.description ?? ""}
-        disabled={isPending}
-      />
+      {/* <Field label='Description (optional)'>
+        <input
+          name='description'
+          defaultValue={category.description ?? ""}
+          className='inputBorder'
+          disabled={isPending}
+        />
+      </Field> */}
 
       <Grid3>
-        <Field
-          label='Capacity (pax)'
-          name='capacity'
-          defaultValue={String(category.capacity)}
-          disabled={isPending}
-        />
-        <Field
-          label='Luggage capacity'
-          name='luggageCapacity'
-          defaultValue={String(category.luggageCapacity)}
-          disabled={isPending}
-        />
-        <Field
-          label='Sort order'
-          name='sortOrder'
-          defaultValue={String(category.sortOrder)}
-          disabled={isPending}
-        />
+        <Field label='Capacity (pax)'>
+          <input
+            name='capacity'
+            defaultValue={String(category.capacity)}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Luggage capacity'>
+          <input
+            name='luggageCapacity'
+            defaultValue={String(category.luggageCapacity)}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Sort order'>
+          <input
+            name='sortOrder'
+            defaultValue={String(category.sortOrder)}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
       </Grid3>
 
-      <Field
-        label='Min hours (HOURLY)'
-        name='minHours'
-        defaultValue={String(category.minHours ?? 0)}
-        disabled={isPending}
-      />
+      <Field label='Min hours (HOURLY)'>
+        <input
+          name='minHours'
+          defaultValue={String(category.minHours ?? 0)}
+          className='inputBorder'
+          disabled={isPending}
+        />
+      </Field>
 
-      <h3 style={{ margin: "10px 0 0", fontSize: 14, opacity: 0.85 }}>
-        Pricing (cents)
-      </h3>
+      <div style={{ display: "grid", gap: 6 }}>
+        <label className='cardTitle h5'>Pricing (cents)</label>
+        <div className='miniNote' style={{ marginTop: -2 }}>
+          Enter values in cents (example: 15000 = $150.00).
+        </div>
+      </div>
 
       <Grid2>
-        <Field
-          label='Base fare'
-          name='baseFareCents'
-          defaultValue={String(category.baseFareCents)}
-          disabled={isPending}
-        />
-        <Field
-          label='Per mile'
-          name='perMileCents'
-          defaultValue={String(category.perMileCents)}
-          disabled={isPending}
-        />
-        <Field
-          label='Per minute'
-          name='perMinuteCents'
-          defaultValue={String(category.perMinuteCents)}
-          disabled={isPending}
-        />
-        <Field
-          label='Per hour'
-          name='perHourCents'
-          defaultValue={String(category.perHourCents)}
-          disabled={isPending}
-        />
+        <Field label='Base fare'>
+          <input
+            name='baseFareCents'
+            defaultValue={String(category.baseFareCents)}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Per mile'>
+          <input
+            name='perMileCents'
+            defaultValue={String(category.perMileCents)}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Per minute'>
+          <input
+            name='perMinuteCents'
+            defaultValue={String(category.perMinuteCents)}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Per hour'>
+          <input
+            name='perHourCents'
+            defaultValue={String(category.perHourCents)}
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
       </Grid2>
 
-      <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <label className={styles.labelinputcheckbox}>
         <input
           type='checkbox'
           name='active'
           defaultChecked={category.active}
           disabled={isPending}
+          className={styles.labelinputcheckbox}
         />
-        Active
+        <span className='emptyTitle'>Active</span>
       </label>
 
-      <button type='submit' style={btnStyle} disabled={isPending}>
-        {isPending ? "Saving..." : "Save changes"}
-      </button>
+      <div className={styles.btnContainer}>
+        <button type='submit' className='primaryBtn' disabled={isPending}>
+          {isPending ? "Saving..." : "Save changes"}
+        </button>
+      </div>
     </form>
   );
 }
 
-const btnStyle: React.CSSProperties = {
-  padding: "0.8rem 1rem",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.2)",
-  cursor: "pointer",
-  justifySelf: "start",
-};
-
 function Grid2({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-      {children}
-    </div>
-  );
+  return <div className={styles.grid2}>{children}</div>;
 }
+
 function Grid3({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}
-    >
-      {children}
-    </div>
-  );
+  return <div className={styles.grid3}>{children}</div>;
 }
 
 function Field({
   label,
-  name,
-  defaultValue,
-  disabled,
+  hint,
+  children,
 }: {
   label: string;
-  name: string;
-  defaultValue: string;
-  disabled?: boolean;
+  hint?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <label style={{ fontSize: 12, opacity: 0.8 }}>{label}</label>
-      <input
-        name={name}
-        defaultValue={defaultValue}
-        disabled={disabled}
-        style={{
-          padding: "0.75rem",
-          borderRadius: 10,
-          border: "1px solid rgba(0,0,0,0.15)",
-        }}
-      />
+      <label className='cardTitle h5'>{label}</label>
+      {children}
+      {hint ? <div className='miniNote'>{hint}</div> : null}
     </div>
   );
 }

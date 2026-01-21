@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { updateVehicleUnit } from "../../../../../actions/admin/vehicleUnits";
 import EditVehicleUnitForm from "./EditVehicleUnitForm";
+import styles from "./EditVehicleUnitForm.module.css";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,10 +46,12 @@ export default async function EditVehicleUnitPage({
 
   return (
     <section style={{ display: "grid", gap: 14, maxWidth: 760 }}>
-      <header style={{ display: "flex", justifyContent: "space-between" }}>
-        <h1 style={{ margin: 0, fontSize: 22 }}>Edit vehicle (unit)</h1>
-        <Link href='/admin/vehicles'>Back</Link>
-      </header>
+      <div className={styles.header}>
+        <h1 className={`${styles.heading} h2`}>Edit vehicle (unit)</h1>
+        <Link href='/admin/vehicles' className='backBtn'>
+          Back
+        </Link>
+      </div>
 
       <EditVehicleUnitForm
         unit={unitForForm}

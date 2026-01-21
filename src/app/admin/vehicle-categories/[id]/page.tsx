@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import EditVehicleCategoryForm from "./EditVehicleCategoryForm";
 import styles from "./EditVehicleCategoryPage.module.css";
+import Link from "next/link";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,10 +28,13 @@ export default async function EditVehicleCategoryPage({
 
   return (
     <section className={styles.container}>
-      <div className={styles.content}>
+      <div className={styles.header}>
         <h1 className={`${styles.heading} h2`}>Edit vehicle category</h1>
-        <EditVehicleCategoryForm category={category} />
+        <Link href='/admin/vehicle-categories' className='backBtn'>
+          Back
+        </Link>
       </div>
+      <EditVehicleCategoryForm category={category} />
     </section>
   );
 }

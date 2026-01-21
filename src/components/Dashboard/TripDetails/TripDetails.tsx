@@ -166,7 +166,7 @@ export default function TripDetails({
     <section className='container' aria-label='Trip details'>
       <header className='header'>
         <h1 className='heading h2'>Trip details</h1>
-        <Link className={styles.backLink} href='/dashboard/trips'>
+        <Link className='backBtn' href='/dashboard/trips'>
           ← Back to trips
         </Link>
       </header>

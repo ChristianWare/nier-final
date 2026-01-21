@@ -2,6 +2,7 @@ import styles from "./NewVehiclePage.module.css";
 import { db } from "@/lib/db";
 import { createVehicleUnit } from "../../../../../actions/admin/vehicleUnits";
 import NewVehicleUnitForm from "./NewVehicleUnitForm";
+import Link from "next/link";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,6 +22,9 @@ export default async function NewVehiclePage() {
   return (
     <section className={styles.header}>
       <h1 className={`${styles.heading} h2`}>New Vehicle</h1>
+      <Link href='/admin/vehicles' className='backBtn'>
+        Back
+      </Link>
       <NewVehicleUnitForm action={action} categories={categories} />
     </section>
   );

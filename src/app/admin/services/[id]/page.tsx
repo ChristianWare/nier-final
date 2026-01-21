@@ -6,7 +6,9 @@ import {
   updateService,
   deleteService,
 } from "../../../../../actions/admin/services";
-import EditServiceForm, { type ActionResult } from "@/components/admin/EditServiceForm/EditServiceForm"; 
+import EditServiceForm, {
+  type ActionResult,
+} from "@/components/admin/EditServiceForm/EditServiceForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -103,12 +105,12 @@ export default async function EditServicePage({
         <div className={styles.titleBlock}>
           <h1 className={`${styles.heading} h2`}>Edit service</h1>
           <div className={styles.meta}>
-            <span className={styles.mono}>{service.id}</span>
+            {/* <span className={styles.mono}>{service.id}</span> */}
           </div>
         </div>
 
         <div className={styles.headerActions}>
-          <Link href='/admin/services' className={styles.backLink}>
+          <Link href='/admin/services' className='backBtn'>
             Back
           </Link>
         </div>

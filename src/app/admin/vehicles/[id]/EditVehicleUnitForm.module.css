@@ -14,23 +14,10 @@
   width: 100%;
 }
 
-
 .form {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   grid-gap: 5rem;
-}
-
-.grid2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 2rem;
-}
-
-.grid3 {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-gap: 2rem;
 }
 
 .labelinputcheckbox {
@@ -54,14 +41,6 @@
 }
 
 @media screen and (max-width: 768px) {
-  .grid2 {
-    grid-template-columns: 1fr;
-  }
-
-  .grid3 {
-    grid-template-columns: 1fr;
-  }
-
   .btnContainer {
     display: grid;
     grid-template-columns: repeat(1, 1fr);

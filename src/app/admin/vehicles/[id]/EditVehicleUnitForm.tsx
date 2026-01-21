@@ -1,8 +1,9 @@
 "use client";
 
 import type { ActionResult } from "@/lib/actionResult";
+import styles from "./EditVehicleUnitForm.module.css";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import React, { useTransition } from "react";
 import toast from "react-hot-toast";
 
 export default function EditVehicleUnitForm({
@@ -25,6 +26,7 @@ export default function EditVehicleUnitForm({
 
   return (
     <form
+      className={styles.form}
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -47,13 +49,12 @@ export default function EditVehicleUnitForm({
           })();
         });
       }}
-      style={{ display: "grid", gap: 10 }}
     >
       <Field label='Name'>
         <input
           name='name'
           defaultValue={unit.name}
-          style={inputStyle}
+          className='inputBorder'
           disabled={isPending}
         />
       </Field>
@@ -62,7 +63,7 @@ export default function EditVehicleUnitForm({
         <input
           name='plate'
           defaultValue={unit.plate}
-          style={inputStyle}
+          className='inputBorder'
           disabled={isPending}
         />
       </Field>
@@ -71,7 +72,7 @@ export default function EditVehicleUnitForm({
         <select
           name='categoryId'
           defaultValue={unit.categoryId}
-          style={inputStyle}
+          className='inputBorder'
           disabled={isPending}
         >
           <option value=''>Unassigned</option>
@@ -83,48 +84,40 @@ export default function EditVehicleUnitForm({
         </select>
       </Field>
 
-      <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <label className={styles.labelinputcheckbox}>
         <input
           type='checkbox'
           name='active'
           defaultChecked={unit.active}
           disabled={isPending}
+          className={styles.labelinputcheckbox}
         />
-        Active
+        <span className='emptyTitle'>Active</span>
       </label>
 
-      <button type='submit' style={btnStyle} disabled={isPending}>
-        {isPending ? "Saving..." : "Save changes"}
-      </button>
+      <div className={styles.btnContainer}>
+        <button type='submit' className='primaryBtn' disabled={isPending}>
+          {isPending ? "Saving..." : "Save changes"}
+        </button>
+      </div>
     </form>
   );
 }
 
 function Field({
   label,
+  hint,
   children,
 }: {
   label: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <label style={{ fontSize: 12, opacity: 0.8 }}>{label}</label>
+      <label className='cardTitle h5'>{label}</label>
       {children}
+      {hint ? <div className='miniNote'>{hint}</div> : null}
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  padding: "0.75rem",
-  borderRadius: 10,
-  border: "1px solid rgba(0,0,0,0.15)",
-};
-
-const btnStyle: React.CSSProperties = {
-  padding: "0.8rem 1rem",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.2)",
-  cursor: "pointer",
-  justifySelf: "start",
-};

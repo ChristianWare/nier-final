@@ -18,8 +18,8 @@
   --darkGreen: #0b7547;
   --red: #dc2626;
   --darkRed: #8b1a1a;
-  --yellow: #FFCA44;
-  --lightYellow: #FFF8D9;;
+  --yellow: #ffca44;
+  --lightYellow: #fff8d9;
   --darkYellow: #745000;
   --stickyTop: 20vh;
   --cardGap: 1rem;
@@ -563,6 +563,11 @@ th {
   background: var(--lightGreen);
   color: var(--darkGreen);
   border: 1px solid rgba(22, 163, 74, 0.28);
+}
+
+.backBtn {
+  color: var(--blue);
+  text-decoration: underline;
 }
 
 .redBorder {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createService } from "../../../../../actions/admin/services";
 import NewServiceForm from "./NewServiceForm";
 import { db } from "@/lib/db";
@@ -15,6 +16,9 @@ export default async function NewServicePage() {
   return (
     <section style={{ display: "grid", gap: 20 }}>
       <h1 className='heading h2'>New service</h1>
+      <Link href='/admin/services' className='backBtn'>
+        Back
+      </Link>
       <NewServiceForm action={createService} airports={airports} />
     </section>
   );
