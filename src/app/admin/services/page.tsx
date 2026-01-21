@@ -1,8 +1,7 @@
 import styles from "./ServicesPage.module.css";
-import Link from "next/link";
 import { db } from "@/lib/db";
-import { toggleService } from "../../../../actions/admin/services";
 import Button from "@/components/shared/Button/Button";
+import ServiceActionsClient from "./ServiceActionsClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -45,25 +44,11 @@ export default async function AdminServicesPage() {
                 <Td label='Strategy'>{s.pricingStrategy}</Td>
                 <Td label='Active'>{s.active ? "Yes" : "No"}</Td>
                 <Td label='Actions'>
-                  <div className={styles.actions}>
-                    <Link
-                      href={`/admin/services/${s.id}`}
-                      className={styles.editLink}
-                    >
-                      Edit
-                    </Link>
-
-                    <form
-                      action={async () => {
-                        "use server";
-                        await toggleService(s.id);
-                      }}
-                    >
-                      <button type='submit' className='dangerBtn'>
-                        {s.active ? "Disable" : "Enable"}
-                      </button>
-                    </form>
-                  </div>
+                  <ServiceActionsClient
+                    id={s.id}
+                    active={s.active}
+                    editHref={`/admin/services/${s.id}`}
+                  />
                 </Td>
               </tr>
             ))}
@@ -75,7 +60,7 @@ export default async function AdminServicesPage() {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className={`${styles.th} emptyTitleSmall`}>{children}</th>;
+  return <th className={styles.th}>{children}</th>;
 }
 
 function Td({
@@ -88,7 +73,7 @@ function Td({
   label?: string;
 }) {
   return (
-    <td className={`${styles.td} ${className}`} data-label={label}>
+    <td className={`${styles.td} cellStrong ${className}`} data-label={label}>
       {children}
     </td>
   );

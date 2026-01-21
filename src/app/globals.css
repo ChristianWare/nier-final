@@ -375,7 +375,8 @@ select:focus {
   letter-spacing: -0.5px;
 }
 
-.emptySmall, th {
+.emptySmall,
+th {
   opacity: 0.75;
   font-size: 14px;
   letter-spacing: -0.09px;
@@ -501,7 +502,8 @@ select:focus {
 .primaryBtn,
 .secondaryBtn,
 .tertiaryBtn,
-.dangerBtn {
+.dangerBtn,
+.goodBtn {
   text-decoration: none;
   border-radius: 5px;
   padding: 0.9rem 1rem;
@@ -516,11 +518,17 @@ select:focus {
   white-space: nowrap;
   border: 1px solid var(--stroke);
   cursor: pointer;
+  transition: all 0.2s ease-in;
 }
 
 .primaryBtn {
   background: var(--black);
   color: var(--white);
+  border-color: var(--black);
+}
+
+.primaryBtn:hover {
+  background: var(--black400);
   border-color: var(--black);
 }
 
@@ -543,6 +551,16 @@ select:focus {
   background: var(--darkRed);
   color: var(--cream);
   border: 1px solid rgba(255, 0, 0, 0.28);
+}
+
+.dangerBtn:hover {
+  background: var(--accent600);
+}
+
+.goodBtn {
+  background: var(--lightGreen);
+  color: var(--darkGreen);
+  border: 1px solid rgba(22, 163, 74, 0.28);
 }
 
 .redBorder {
@@ -598,4 +616,9 @@ select:focus {
 
 .bgWhite {
   background-color: var(--white);
+}
+
+.cellStrong {
+  letter-spacing: -0.01em;
+  font-weight: 600;
 }

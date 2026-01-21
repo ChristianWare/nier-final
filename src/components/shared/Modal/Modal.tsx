@@ -2,7 +2,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, MouseEvent } from "react";
-import Close from "../icons/Close/Close";
+// import Close from "../icons/Close/Close";
 import styles from "./Modal.module.css";
 
 interface Props {
@@ -78,7 +78,7 @@ export default function Modal({ isOpen, onClose, children }: Props) {
           className={styles.closeBtn}
           aria-label='Close modal'
         >
-          <Close className={styles.icon} />
+          {/* <Close className={styles.icon} /> */}
         </button>
         <div className={styles.body}>{children}</div>
       </div>

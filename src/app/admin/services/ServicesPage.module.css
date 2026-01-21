@@ -20,7 +20,7 @@
 
 .tableCard {
   border: 1px solid var(--stroke);
-  border-radius: 14px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -39,8 +39,6 @@
 
 .th {
   padding: 12px 14px;
-  font-size: 12px;
-  opacity: 0.7;
 }
 
 .td {
@@ -55,6 +53,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  justify-content: space-between;
 }
 
 .toggleBtn {
@@ -69,6 +68,23 @@
 .newServiceLink,
 .editLink {
   text-decoration: underline;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.modalActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 5rem;
 }
 
 @media screen and (max-width: 1068px) {
