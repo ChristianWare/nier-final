@@ -149,7 +149,7 @@
 
 .cellStack {
   display: grid;
-  gap: 0.35rem;
+  gap: 1rem;
 }
 
 .cellStrong {

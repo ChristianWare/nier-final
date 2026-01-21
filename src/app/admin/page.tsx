@@ -777,7 +777,7 @@ export default async function AdminHome() {
 
   const activityTop10 = activity
     .sort((a, b) => b.at.getTime() - a.at.getTime())
-    .slice(0, 10);
+    .slice(0, 5);
 
   /**
    * FINANCE SNAPSHOT DATA
