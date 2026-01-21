@@ -125,14 +125,14 @@ function RoleTabs({ active }: { active: RoleFilter }) {
           x.value === "ALL" ? "/admin/users" : `/admin/users?role=${x.value}`;
 
         return (
-            <Link
-              key={x.value}
-              href={href}
-              prefetch
-              className={`tab ${isActive ? "tabActive" : ""}`}
-            >
-              {x.label}
-            </Link>
+          <Link
+            key={x.value}
+            href={href}
+            prefetch
+            className={`tab ${isActive ? "tabActive" : ""}`}
+          >
+            {x.label}
+          </Link>
         );
       })}
     </div>
@@ -140,7 +140,7 @@ function RoleTabs({ active }: { active: RoleFilter }) {
 }
 
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className={`${styles.th} emptyTitleSmall`}>{children}</th>;
+  return <th className={`${styles.th}`}>{children}</th>;
 }
 
 function Td({
@@ -153,7 +153,7 @@ function Td({
   label?: string;
 }) {
   return (
-    <td className={`${styles.td} ${className}`} data-label={label}>
+    <td className={`${styles.td} ${className} cellStrong`} data-label={label}>
       {children}
     </td>
   );

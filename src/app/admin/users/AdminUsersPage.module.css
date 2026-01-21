@@ -29,7 +29,7 @@
   text-decoration: none;
   padding: 8px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--stroke);
   background: transparent;
   color: inherit;
   font-size: 13px;
@@ -40,8 +40,8 @@
 }
 
 .tableCard {
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 14px;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -55,13 +55,14 @@
 }
 
 .tr {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--stroke);
 }
 
 .th {
   padding: 12px 14px;
-  font-size: 12px;
-  opacity: 0.7;
+  opacity: 0.75;
+  letter-spacing: -0.09px;
+  font-size: 14px;
 }
 
 .td {

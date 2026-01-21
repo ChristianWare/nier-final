@@ -2,11 +2,10 @@
 import styles from "./BookingsPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { Prisma, BookingStatus, PaymentStatus } from "@prisma/client";
+import { Prisma, BookingStatus } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
 import CustomRangeFormClient from "./CustomRangeFormClient";
 import SearchFormClient from "./SearchFormClient";
-
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -216,42 +215,11 @@ function badgeTone(status: BookingStatus): BadgeTone {
   return "neutral";
 }
 
-function paymentLabel(status: PaymentStatus | null | undefined) {
-  if (!status) return "—";
-  switch (status) {
-    case "PAID":
-      return "Paid";
-    case "PENDING":
-      return "Pending";
-    case "FAILED":
-      return "Failed";
-    case "REFUNDED":
-      return "Refunded";
-    case "PARTIALLY_REFUNDED":
-      return "Partially refunded";
-    case "NONE":
-    default:
-      return "Not paid";
-  }
-}
-
-function paymentTone(status: PaymentStatus | null | undefined): BadgeTone {
-  if (!status) return "neutral";
-  if (status === "PAID") return "good";
-  if (status === "PENDING") return "warn";
-  if (status === "FAILED") return "bad";
-  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
-    return "neutral";
-  if (status === "NONE") return "neutral";
-  return "neutral";
-}
-
 type BookingRow = Prisma.BookingGetPayload<{
   include: {
     user: { select: { name: true; email: true } };
     serviceType: { select: { name: true } };
     vehicle: { select: { name: true } };
-    payment: { select: { status: true } };
     assignment: {
       include: { driver: { select: { name: true; email: true } } };
     };
@@ -367,10 +335,6 @@ function buildWhere(args: {
           {
             user: { is: { email: { contains: needle, mode: "insensitive" } } },
           },
-
-          // Uncomment if these exist in your schema:
-          // { serviceType: { is: { name: { contains: needle, mode: "insensitive" } } } },
-          // { assignment: { is: { driver: { is: { name: { contains: needle, mode: "insensitive" } } } } } },
         ],
       },
     ];
@@ -395,7 +359,6 @@ export default async function AdminBookingsPage({
   const page = clampPage(sp.page);
 
   const q = (sp.q ?? "").trim();
-
   const now = new Date();
 
   const defaultFrom = ymdForInputPhoenix(now);
@@ -439,7 +402,6 @@ export default async function AdminBookingsPage({
       user: { select: { name: true, email: true } },
       serviceType: { select: { name: true } },
       vehicle: { select: { name: true } },
-      payment: { select: { status: true } },
       assignment: {
         include: { driver: { select: { name: true, email: true } } },
       },
@@ -506,7 +468,6 @@ export default async function AdminBookingsPage({
     StatusFilter,
     number
   >;
-
   const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
     RangeFilter,
     number
@@ -631,6 +592,7 @@ export default async function AdminBookingsPage({
                 <tr className={styles.trHead}>
                   <th className={styles.th}>Created</th>
                   <th className={styles.th}>Pickup</th>
+                  <th className={styles.th}>Status</th>
                   <th className={styles.th}>Customer</th>
                   <th className={styles.th}>Service</th>
                   <th className={styles.th}>Vehicle</th>
@@ -638,13 +600,13 @@ export default async function AdminBookingsPage({
                   <th className={`${styles.th} ${styles.thRight}`}>Total</th>
                 </tr>
               </thead>
+
               <tbody>
                 {bookings.map((b) => {
                   const href = `/admin/bookings/${b.id}`;
                   const pickupEta = formatEta(b.pickupAt, now);
                   const createdAgo = formatEta(b.createdAt, now);
                   const total = formatMoneyFromCents(b.totalCents ?? 0);
-                  const payStatus = b.payment?.status ?? null;
 
                   const customerName = b.user?.name?.trim() || "Guest";
                   const customerEmail = b.user?.email ?? "";
@@ -654,19 +616,18 @@ export default async function AdminBookingsPage({
 
                   return (
                     <tr key={b.id} className={styles.tr}>
+                      {/* Created */}
                       <td
                         className={styles.td}
                         data-label='Created'
                         style={{ position: "relative" }}
                       >
-                        {/* clickable overlay for this cell */}
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
                           aria-label='Open booking'
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
-
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
                             {formatPhoenix(b.createdAt)}
@@ -677,6 +638,7 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
+                      {/* Pickup */}
                       <td
                         className={styles.td}
                         data-label='Pickup'
@@ -689,29 +651,39 @@ export default async function AdminBookingsPage({
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
-
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
                             {formatPhoenix(b.pickupAt)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{pickupEta}</span>
-                            <div className={styles.badgesRow}>
-                              <span
-                                className={`badge badge_${badgeTone(b.status)}`}
-                              >
-                                {statusLabel(b.status)}
-                              </span>
-                              <span
-                                className={`badge badge_${paymentTone(payStatus)}`}
-                              >
-                                {paymentLabel(payStatus)}
-                              </span>
-                            </div>
                           </div>
                         </div>
                       </td>
 
+                      {/* Status (single, most recent/current booking status only) */}
+                      <td
+                        className={styles.td}
+                        data-label='Status'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.pickupMeta}>
+                          <span
+                            className={`badge badge_${badgeTone(b.status)}`}
+                          >
+                            {statusLabel(b.status)}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Customer */}
                       <td
                         className={styles.td}
                         data-label='Customer'
@@ -724,7 +696,6 @@ export default async function AdminBookingsPage({
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
-
                         <div className={styles.cellStack}>
                           <Link href={href} className={styles.rowLink}>
                             {customerName}
@@ -733,6 +704,7 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
+                      {/* Service */}
                       <td
                         className={styles.td}
                         data-label='Service'
@@ -745,7 +717,6 @@ export default async function AdminBookingsPage({
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
-
                         <div className={styles.cellStack}>
                           <div className={styles.cellStrong}>
                             {b.serviceType?.name ?? "—"}
@@ -753,6 +724,7 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
+                      {/* Vehicle */}
                       <td
                         className={styles.td}
                         data-label='Vehicle'
@@ -765,7 +737,6 @@ export default async function AdminBookingsPage({
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
-
                         <div className={styles.cellStack}>
                           <div className={styles.cellStrong}>
                             {b.vehicle?.name ?? "—"}
@@ -773,6 +744,7 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
+                      {/* Driver */}
                       <td
                         className={styles.td}
                         data-label='Driver'
@@ -785,7 +757,6 @@ export default async function AdminBookingsPage({
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
-
                         {b.assignment?.driver ? (
                           <div className={styles.cellStack}>
                             <div className={styles.cellStrong}>
@@ -798,6 +769,7 @@ export default async function AdminBookingsPage({
                         )}
                       </td>
 
+                      {/* Total */}
                       <td
                         className={`${styles.td} ${styles.tdRight}`}
                         data-label='Total'
@@ -810,7 +782,6 @@ export default async function AdminBookingsPage({
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
-
                         <div className={styles.totalCell}>{total}</div>
                       </td>
                     </tr>
@@ -894,7 +865,7 @@ function RangeTabs({
       {items.map((x) => {
         const href = buildHref("/admin/bookings", {
           ...current,
-          range: x.value === "month" ? undefined : x.value, // default is month
+          range: x.value === "month" ? undefined : x.value,
           from: x.value === "range" ? (current.from ?? undefined) : undefined,
           to: x.value === "range" ? (current.to ?? undefined) : undefined,
           page: undefined,
