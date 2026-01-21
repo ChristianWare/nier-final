@@ -1,3 +1,4 @@
+import styles from "./NewVehiclePage.module.css";
 import { db } from "@/lib/db";
 import { createVehicleUnit } from "../../../../../actions/admin/vehicleUnits";
 import NewVehicleUnitForm from "./NewVehicleUnitForm";
@@ -18,8 +19,8 @@ export default async function NewVehiclePage() {
   }
 
   return (
-    <section style={{ display: "grid", gap: 14, maxWidth: 760 }}>
-      <h1 style={{ margin: 0, fontSize: 22 }}>New vehicle</h1>
+    <section className={styles.header}>
+      <h1 className={`${styles.heading} h2`}>New Vehicle</h1>
       <NewVehicleUnitForm action={action} categories={categories} />
     </section>
   );

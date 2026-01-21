@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export default function NewVehicleCategoryPage() {
   return (
     <section className={styles.container}>
-      <div className={styles.content}>
+      <div className={styles.header}>
         <h1 className={`${styles.heading} h2`}>New vehicle category</h1>
         <NewVehicleCategoryForm />
       </div>

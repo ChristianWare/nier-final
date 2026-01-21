@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import styles from "./NewVehicleCategoryPage.module.css";
+import React, { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
 import toast from "react-hot-toast";
 import { createVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
 
@@ -30,151 +32,157 @@ export default function NewVehicleCategoryForm() {
           })();
         });
       }}
-      style={{ display: "grid", gap: 10 }}
+      className={styles.form}
     >
       <Grid2>
-        <Field label='Name' name='name' defaultValue='' disabled={isPending} />
-        <Field
-          label='Image URL (optional)'
-          name='imageUrl'
-          defaultValue=''
-          disabled={isPending}
-        />
+        <Field label='Name'>
+          <input
+            name='name'
+            defaultValue=''
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Image URL (optional)'>
+          <input
+            name='imageUrl'
+            defaultValue=''
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
       </Grid2>
 
-      <Field
-        label='Description (optional)'
-        name='description'
-        defaultValue=''
-        disabled={isPending}
-      />
+      <Field label='Description (optional)'>
+        <input
+          name='description'
+          defaultValue=''
+          className='inputBorder'
+          disabled={isPending}
+        />
+      </Field>
 
       <Grid3>
-        <Field
-          label='Capacity (pax)'
-          name='capacity'
-          defaultValue='7'
-          disabled={isPending}
-        />
-        <Field
-          label='Luggage capacity'
-          name='luggageCapacity'
-          defaultValue='6'
-          disabled={isPending}
-        />
-        <Field
-          label='Sort order'
-          name='sortOrder'
-          defaultValue='0'
-          disabled={isPending}
-        />
+        <Field label='Capacity (pax)'>
+          <input
+            name='capacity'
+            defaultValue='7'
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Luggage capacity'>
+          <input
+            name='luggageCapacity'
+            defaultValue='6'
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Sort order'>
+          <input
+            name='sortOrder'
+            defaultValue='0'
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
       </Grid3>
 
-      {/* ✅ NEW */}
-      <Field
-        label='Min hours (HOURLY)'
-        name='minHours'
-        defaultValue='0'
-        disabled={isPending}
-      />
+      <Field label='Min hours (HOURLY)'>
+        <input
+          name='minHours'
+          defaultValue='0'
+          className='inputBorder'
+          disabled={isPending}
+        />
+      </Field>
 
-      <h3 style={{ margin: "10px 0 0", fontSize: 14, opacity: 0.85 }}>
-        Pricing (cents)
-      </h3>
+      <div className={styles.sectionTitle}>Pricing (cents)</div>
 
       <Grid2>
-        <Field
-          label='Base fare'
-          name='baseFareCents'
-          defaultValue='0'
-          disabled={isPending}
-        />
-        <Field
-          label='Per mile'
-          name='perMileCents'
-          defaultValue='0'
-          disabled={isPending}
-        />
-        <Field
-          label='Per minute'
-          name='perMinuteCents'
-          defaultValue='0'
-          disabled={isPending}
-        />
-        <Field
-          label='Per hour'
-          name='perHourCents'
-          defaultValue='0'
-          disabled={isPending}
-        />
+        <Field label='Base fare'>
+          <input
+            name='baseFareCents'
+            defaultValue='0'
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Per mile'>
+          <input
+            name='perMileCents'
+            defaultValue='0'
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Per minute'>
+          <input
+            name='perMinuteCents'
+            defaultValue='0'
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Per hour'>
+          <input
+            name='perHourCents'
+            defaultValue='0'
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
       </Grid2>
 
-      <label style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <label className={styles.labelinputcheckbox}>
         <input
           type='checkbox'
           name='active'
           defaultChecked
           disabled={isPending}
+          className={styles.labelinputcheckbox}
         />
-        Active
+        <span className='emptyTitle'>Active</span>
       </label>
 
-      <button type='submit' style={btnStyle} disabled={isPending}>
-        {isPending ? "Creating..." : "Create"}
-      </button>
+      <div className={styles.btnContainer}>
+        <button type='submit' className='primaryBtn' disabled={isPending}>
+          {isPending ? "Creating..." : "Create"}
+        </button>
+      </div>
     </form>
   );
 }
 
-const btnStyle: React.CSSProperties = {
-  padding: "0.8rem 1rem",
-  borderRadius: 12,
-  border: "1px solid rgba(0,0,0,0.2)",
-  cursor: "pointer",
-  justifySelf: "start",
-};
-
 function Grid2({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-      {children}
-    </div>
-  );
+  return <div className={styles.grid2}>{children}</div>;
 }
+
 function Grid3({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}
-    >
-      {children}
-    </div>
-  );
+  return <div className={styles.grid3}>{children}</div>;
 }
 
 function Field({
   label,
-  name,
-  defaultValue,
-  disabled,
+  hint,
+  children,
 }: {
   label: string;
-  name: string;
-  defaultValue: string;
-  disabled?: boolean;
+  hint?: string;
+  children: React.ReactNode;
 }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <label style={{ fontSize: 12, opacity: 0.8 }}>{label}</label>
-      <input
-        name={name}
-        defaultValue={defaultValue}
-        disabled={disabled}
-        style={{
-          padding: "0.75rem",
-          borderRadius: 10,
-          border: "1px solid rgba(0,0,0,0.15)",
-        }}
-      />
+      <label className='cardTitle h5'>{label}</label>
+      {children}
+      {hint ? <div className='miniNote'>{hint}</div> : null}
     </div>
   );
 }

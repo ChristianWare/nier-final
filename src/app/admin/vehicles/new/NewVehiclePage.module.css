@@ -1,0 +1,13 @@
+.header {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+  width: 100%;
+  margin-bottom: 3rem;
+}
+
+.heading {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  width: 100%;
+}
