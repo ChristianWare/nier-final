@@ -22,18 +22,21 @@
 
 .card {
   border: 1px solid var(--stroke);
-  border-radius: 14px;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1rem;
+  border-radius: 10px;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
+  width: 100%;
 }
 
-.cardTitle {
+/* .cardTitle {
   font-weight: 800;
   margin-bottom: 10px;
+} */
+
+.cardTop {
+  margin-bottom: 1rem;
 }
 
 .keyVal {
@@ -41,7 +44,14 @@
   grid-template-columns: 180px 1fr;
   gap: 10px;
   padding: 6px 0;
+  border-bottom: 1px solid var(--stroke);
 }
+
+.keyVal:last-child {
+  border-bottom: none;
+}
+
+
 
 .key {
   font-size: 12px;
@@ -83,7 +93,12 @@
 }
 
 .eventItem {
-  margin-bottom: 6px;
+  border-bottom: 1px solid var(--stroke);
+  padding-bottom: .5rem;
+}
+
+.eventItem:last-child {
+  border-bottom: none;
 }
 
 .eventStatus {
@@ -125,4 +140,113 @@
   font-size: 12px;
   opacity: 0.7;
   white-space: nowrap;
+}
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.modalActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 5rem;
+}
+
+/* Danger zone */
+.dangerCard {
+  border: 1px solid rgba(255, 0, 0, 0.18);
+  background: rgba(255, 0, 0, 0.03);
+}
+
+.dangerTop {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dangerCopy {
+  margin: 0;
+  opacity: 0.85;
+}
+
+.dangerActions {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+.dangerNote {
+  font-size: 1.1rem;
+  opacity: 0.75;
+}
+
+/* Modal layout (you requested these) */
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.modalActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 5rem;
+}
+
+/* Confirmation UI inside modal */
+.modalSubnote {
+  display: inline-block;
+  margin-top: 0.6rem;
+  opacity: 0.8;
+}
+
+.confirmBlock {
+  display: grid;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.confirmLabel {
+  font-weight: 900;
+  opacity: 0.7;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 1.05rem;
+}
+
+.confirmInput {
+  width: 100%;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.confirmCheckboxRow {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  font-size: 1.15rem;
+  opacity: 0.9;
+}
+
+.confirmCheckboxRow input {
+  transform: translateY(1px);
+}
+
+.btnContainer {
+  display: flex;
 }

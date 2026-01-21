@@ -1,11 +1,13 @@
 import styles from "./AdminBookingDetailPage.module.css";
+import type { ReactNode } from "react";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import ApprovePriceForm from "@/components/admin/ApprovePriceForm/ApprovePriceForm";
 import AssignBookingForm from "@/components/admin/AssignBookingForm/AssignBookingForm";
 import SendPaymentLinkButton from "@/components/admin/SendPaymentLinkButton/SendPaymentLinkButton";
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, Role } from "@prisma/client";
 import Link from "next/link";
+import DeleteBookingDangerZoneClient from "./DeleteBookingDangerZoneClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -70,6 +72,11 @@ function formatDateTime(d: Date) {
   }).format(d);
 }
 
+function fmtPersonLine(p: { name: string | null; email: string }) {
+  const n = (p.name ?? "").trim();
+  return n ? `${n} (${p.email})` : p.email;
+}
+
 export default async function AdminBookingDetailPage({
   params,
 }: {
@@ -95,6 +102,15 @@ export default async function AdminBookingDetailPage({
   });
 
   if (!booking) return notFound();
+
+  // Earliest status event = best hint for who created the booking (admin/user/guest)
+  const createdEvent = await db.bookingStatusEvent.findFirst({
+    where: { bookingId: booking.id },
+    orderBy: { createdAt: "asc" },
+    include: {
+      createdBy: { select: { id: true, name: true, email: true, roles: true } },
+    },
+  });
 
   const drivers = await db.user.findMany({
     where: { roles: { has: "DRIVER" } },
@@ -123,12 +139,40 @@ export default async function AdminBookingDetailPage({
         booking.guestPhone ? ` • ${customerPhone}` : ""
       }`;
 
+  // Created meta (when + who: Admin/User/Guest)
+  const createdAtLabel = formatDateTime(booking.createdAt);
+
+  const actor = createdEvent?.createdBy ?? null;
+
+  let createdByDisplay = "Guest checkout";
+
+  if (actor?.roles?.includes(Role.ADMIN)) {
+    createdByDisplay = `Admin • ${fmtPersonLine(actor)}`;
+  } else if (actor) {
+    createdByDisplay = `User account • ${fmtPersonLine(actor)}`;
+  } else if (booking.user) {
+    createdByDisplay = `User account • ${fmtPersonLine({
+      name: booking.user.name ?? null,
+      email: booking.user.email,
+    })}`;
+  } else {
+    const gName = (booking.guestName ?? "").trim() || "Guest";
+    const gEmail = (booking.guestEmail ?? "").trim();
+    const gPhone = (booking.guestPhone ?? "").trim();
+
+    const parts = [
+      "Guest checkout",
+      gEmail ? `${gName} (${gEmail})` : gName,
+      gPhone ? gPhone : null,
+    ].filter(Boolean);
+
+    createdByDisplay = parts.join(" • ");
+  }
+
   /**
-   * ✅ Display fix:
+   * Display fix:
    * If Stripe says PAID, and your statusEvents contain a duplicate "CONFIRMED",
    * we treat the *most recent* CONFIRMED event as "Payment received".
-   *
-   * This is purely a UI label fix so the timeline matches what the payment section shows.
    */
   const isPaid = booking.payment?.status === "PAID";
   const mostRecentConfirmedEventId = isPaid
@@ -147,6 +191,9 @@ export default async function AdminBookingDetailPage({
       </header>
 
       <Card title='Trip'>
+        <KeyVal k='Created' v={createdAtLabel} />
+        <KeyVal k='Created by' v={createdByDisplay} />
+
         <KeyVal k='Customer' v={customerLine} />
         <KeyVal k='Service' v={booking.serviceType.name} />
         <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
@@ -252,20 +299,19 @@ export default async function AdminBookingDetailPage({
           </ul>
         )}
       </Card>
+
+      {/* ✅ NEW: Danger Zone */}
+      <DeleteBookingDangerZoneClient bookingId={booking.id} />
     </section>
   );
 }
 
-function Card({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className={styles.card}>
-      <div className='cardTitle h4'>{title}</div>
+      <div className={styles.cardTop}>
+        <div className='cardTitle h4'>{title}</div>
+      </div>
       {children}
     </div>
   );
@@ -274,8 +320,8 @@ function Card({
 function KeyVal({ k, v }: { k: string; v: string }) {
   return (
     <div className={styles.keyVal}>
-      <div className='emptyTitleSmall'>{k}</div>
-      <div className='val'>{v}</div>
+      <div className='emptyTitle'>{k}</div>
+      <p className='paragraph'>{v}</p>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 import styles from "./BookingsPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { Prisma, BookingStatus } from "@prisma/client";
+import { Prisma, BookingStatus, Role } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
 import CustomRangeFormClient from "./CustomRangeFormClient";
 import SearchFormClient from "./SearchFormClient";
@@ -215,6 +215,13 @@ function badgeTone(status: BookingStatus): BadgeTone {
   return "neutral";
 }
 
+function fmtPersonLine(p: { name?: string | null; email?: string | null }) {
+  const name = (p.name ?? "").trim();
+  const email = (p.email ?? "").trim();
+  if (name && email) return `${name} • ${email}`;
+  return name || email || "";
+}
+
 type BookingRow = Prisma.BookingGetPayload<{
   include: {
     user: { select: { name: true; email: true } };
@@ -223,6 +230,14 @@ type BookingRow = Prisma.BookingGetPayload<{
     payment: { select: { status: true } };
     assignment: {
       include: { driver: { select: { name: true; email: true } } };
+    };
+    // ✅ for "Created by" column (earliest status event)
+    statusEvents: {
+      take: 1;
+      orderBy: { createdAt: "asc" };
+      include: {
+        createdBy: { select: { name: true; email: true; roles: true } };
+      };
     };
   };
 }>;
@@ -406,6 +421,13 @@ export default async function AdminBookingsPage({
       payment: { select: { status: true } },
       assignment: {
         include: { driver: { select: { name: true, email: true } } },
+      },
+      statusEvents: {
+        orderBy: { createdAt: "asc" },
+        take: 1,
+        include: {
+          createdBy: { select: { name: true, email: true, roles: true } },
+        },
       },
     },
     orderBy,
@@ -593,6 +615,7 @@ export default async function AdminBookingsPage({
               <thead className={styles.thead}>
                 <tr className={styles.trHead}>
                   <th className={styles.th}>Created</th>
+                  <th className={styles.th}>Created by</th>
                   <th className={styles.th}>Pickup</th>
                   <th className={styles.th}>Status</th>
                   <th className={styles.th}>Customer</th>
@@ -629,6 +652,39 @@ export default async function AdminBookingsPage({
                       ? "good"
                       : badgeTone(b.status);
 
+                  // ✅ Created by (same logic as detail page, using earliest status event)
+                  const createdEvent = b.statusEvents?.[0] ?? null;
+                  const actor = createdEvent?.createdBy ?? null;
+
+                  let createdByTop = "Guest checkout";
+                  let createdBySub = "";
+
+                  if (actor?.roles?.includes(Role.ADMIN)) {
+                    createdByTop = "Admin";
+                    createdBySub = fmtPersonLine(actor);
+                  } else if (actor) {
+                    createdByTop = "User account";
+                    createdBySub = fmtPersonLine(actor);
+                  } else if (b.user) {
+                    createdByTop = "User account";
+                    createdBySub = fmtPersonLine({
+                      name: b.user.name,
+                      email: b.user.email,
+                    });
+                  } else {
+                    createdByTop = "Guest checkout";
+                    const gName = (b.guestName ?? "").trim() || "Guest";
+                    const gEmail = (b.guestEmail ?? "").trim();
+                    const gPhone = (b.guestPhone ?? "").trim();
+
+                    const parts = [
+                      gEmail ? `${gName} • ${gEmail}` : gName,
+                      gPhone ? gPhone : null,
+                    ].filter(Boolean);
+
+                    createdBySub = parts.join(" • ");
+                  }
+
                   return (
                     <tr key={b.id} className={styles.tr}>
                       {/* Created */}
@@ -650,6 +706,29 @@ export default async function AdminBookingsPage({
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{createdAgo}</span>
                           </div>
+                        </div>
+                      </td>
+
+                      {/* ✅ Created by */}
+                      <td
+                        className={styles.td}
+                        data-label='Created by'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.cellStack}>
+                          <div className={styles.cellStrong}>
+                            {createdByTop}
+                          </div>
+                          {createdBySub ? (
+                            <div className={styles.cellSub}>{createdBySub}</div>
+                          ) : null}
                         </div>
                       </td>
 
@@ -676,7 +755,7 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
-                      {/* Status (single, most recent/current booking status only) */}
+                      {/* Status */}
                       <td
                         className={styles.td}
                         data-label='Status'
@@ -994,22 +1073,22 @@ function Pagination({
   // Builds: 1 … 4 5 [6] 7 8 … 20
   function getPageItems() {
     const items: Array<number | "…"> = [];
-    const windowSize = 2; // pages shown on each side of current
+    const windowSize = 2;
 
-    explainPush(1);
+    push(1);
 
     const start = Math.max(2, page - windowSize);
     const end = Math.min(totalPages - 1, page + windowSize);
 
     if (start > 2) items.push("…");
-    for (let p = start; p <= end; p++) explainPush(p);
+    for (let p = start; p <= end; p++) push(p);
     if (end < totalPages - 1) items.push("…");
 
-    if (totalPages > 1) explainPush(totalPages);
+    if (totalPages > 1) push(totalPages);
 
     return items;
 
-    function explainPush(p: number) {
+    function push(p: number) {
       items.push(p);
     }
   }
@@ -1035,7 +1114,6 @@ function Pagination({
           </span>
         )}
 
-        {/* Page numbers */}
         {pageItems.map((x, idx) => {
           if (x === "…") {
             return (
@@ -1083,4 +1161,3 @@ function Pagination({
     </div>
   );
 }
-

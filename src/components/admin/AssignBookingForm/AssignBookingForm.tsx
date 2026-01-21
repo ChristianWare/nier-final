@@ -40,7 +40,7 @@ export default function AssignBookingForm({
       }}
     >
       <div className={styles.group}>
-        <label className='emptyTitleSmall'>Driver</label>
+        <label className='emptyTitle'>Driver</label>
         <select
           name='driverId'
           defaultValue={currentDriverId ?? ""}
@@ -59,7 +59,7 @@ export default function AssignBookingForm({
       </div>
 
       <div className={styles.groupTight}>
-        <label className='emptyTitleSmall'>Vehicle unit (optional)</label>
+        <label className='emptyTitle'>Vehicle unit (optional)</label>
         <select
           name='vehicleUnitId'
           defaultValue={currentVehicleUnitId ?? ""}
@@ -75,10 +75,11 @@ export default function AssignBookingForm({
           ))}
         </select>
       </div>
-
-      <button disabled={isPending} className='primaryBtn' type='submit'>
-        {isPending ? "Saving..." : "Assign"}
-      </button>
+      <div className={styles.btnContainer}>
+        <button disabled={isPending} className='primaryBtn' type='submit'>
+          {isPending ? "Saving..." : "Assign"}
+        </button>
+      </div>
     </form>
   );
 }

@@ -73,9 +73,11 @@ export default function ApprovePriceForm({
         />
       </Grid2>
 
-      <button disabled={isPending} className='primaryBtn' type='submit'>
-        {isPending ? "Saving..." : "Approve & Set Price"}
-      </button>
+      <div className={styles.btnContainer}>
+        <button disabled={isPending} className='primaryBtn' type='submit'>
+          {isPending ? "Saving..." : "Approve & Set Price"}
+        </button>
+      </div>
     </form>
   );
 }
@@ -97,7 +99,7 @@ function Field({
 }) {
   return (
     <div className={styles.field}>
-      <label className='emptyTitleSmall'>{label}</label>
+      <label className='emptyTitle'>{label}</label>
       <input
         name={name}
         defaultValue={defaultValue}
