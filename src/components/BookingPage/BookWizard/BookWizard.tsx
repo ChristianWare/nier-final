@@ -787,7 +787,7 @@ export default function BookingWizard({
                           Boolean(errors.pickupAtTime),
                       )}
                     >
-                      Pickup date
+                      Pickup date & time
                     </label>
 
                     <BookingDateTimeWithBlackouts

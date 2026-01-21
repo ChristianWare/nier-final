@@ -104,6 +104,13 @@
   gap: 12px;
 }
 
+.stepNumberComplete {
+  background-color: var(--accent);
+  color: var(--cream);
+  border-color: transparent;
+}
+
+
 @media screen and (max-width: 1068px) {
   .content {
     grid-template-columns: 1fr 1fr;
