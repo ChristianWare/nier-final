@@ -6,10 +6,15 @@ import { auth } from "../../auth";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import { BookingStatus } from "@prisma/client";
 
-type AdminCreateBookingStatus =
-  | "PENDING_REVIEW"
-  | "PENDING_PAYMENT"
-  | "CONFIRMED";
+// ✅ Allowed statuses for admin-created bookings
+const ADMIN_CREATE_STATUSES = [
+  "DRAFT",
+  "PENDING_REVIEW",
+  "PENDING_PAYMENT",
+  "CONFIRMED",
+] as const;
+
+export type AdminCreateBookingStatus = (typeof ADMIN_CREATE_STATUSES)[number];
 
 type AdminCreateBookingInput = {
   serviceTypeId: string;
@@ -36,11 +41,15 @@ type AdminCreateBookingInput = {
 
   specialRequests?: string | null;
 
+  // ✅ optional incoming status
   status?: AdminCreateBookingStatus;
 
   customerKind: "account" | "guest";
   customerUserId?: string | null;
+
+  // note: for "account", we’ll override this with the user’s email for safety
   customerEmail: string;
+
   customerName?: string | null;
   customerPhone?: string | null;
 };
@@ -60,6 +69,10 @@ function ymdInPhoenix(d: Date) {
   }).format(d);
 }
 
+function isAllowedStatus(v: any): v is AdminCreateBookingStatus {
+  return ADMIN_CREATE_STATUSES.includes(v);
+}
+
 export async function adminCreateBooking(input: AdminCreateBookingInput) {
   const session = await auth();
 
@@ -69,14 +82,29 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
 
   if (!session || !isAdmin) return { error: "Unauthorized" as const };
 
+  // --- basic validation ---
+  if (!input.serviceTypeId) return { error: "Missing service." as const };
+
+  if (!input.pickupAddress?.trim())
+    return { error: "Missing pickup address." as const };
+  if (!input.dropoffAddress?.trim())
+    return { error: "Missing dropoff address." as const };
+
+  if (!Number.isFinite(input.passengers) || input.passengers < 1)
+    return { error: "Passengers must be at least 1." as const };
+  if (!Number.isFinite(input.luggage) || input.luggage < 0)
+    return { error: "Luggage cannot be negative." as const };
+
   const pickupAtDate = new Date(input.pickupAt);
   if (!Number.isFinite(pickupAtDate.getTime()))
     return { error: "Invalid pickup time." as const };
 
+  // --- blackout check ---
   const ymd = ymdInPhoenix(pickupAtDate);
   const blackout = await db.blackoutDate.findUnique({ where: { ymd } });
   if (blackout) return { error: "That date is blacked out." as const };
 
+  // --- service / vehicle ---
   const service = await db.serviceType.findUnique({
     where: { id: input.serviceTypeId },
   });
@@ -91,16 +119,20 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     return { error: "Vehicle not available" as const };
   }
 
-  const status: AdminCreateBookingStatus = input.status ?? "PENDING_REVIEW";
+  // ✅ status (runtime guard + default)
+  if (input.status != null && !isAllowedStatus(input.status)) {
+    return { error: "Invalid status." as const };
+  }
+  const status: AdminCreateBookingStatus = input.status ?? "DRAFT";
 
-  const email = (input.customerEmail ?? "").trim().toLowerCase();
-  if (!email || !isValidEmail(email))
-    return { error: "Enter a valid customer email." as const };
-
+  // --- customer ---
   let userId: string | null = null;
   let guestName: string | null = null;
   let guestEmail: string | null = null;
   let guestPhone: string | null = null;
+
+  // we will finalize `email` depending on customerKind
+  let email = (input.customerEmail ?? "").trim().toLowerCase();
 
   if (input.customerKind === "account") {
     const id = (input.customerUserId ?? "").trim();
@@ -108,12 +140,22 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
 
     const u = await db.user.findUnique({
       where: { id },
-      select: { id: true, email: true },
+      select: { id: true, email: true, name: true },
     });
 
     if (!u) return { error: "Selected user not found." as const };
+
     userId = u.id;
+
+    // ✅ override with canonical email from DB (more reliable)
+    email = (u.email ?? "").trim().toLowerCase();
+    if (!email || !isValidEmail(email))
+      return { error: "Selected user has an invalid email." as const };
   } else {
+    email = (input.customerEmail ?? "").trim().toLowerCase();
+    if (!email || !isValidEmail(email))
+      return { error: "Enter a valid customer email." as const };
+
     const n = (input.customerName ?? "").trim();
     const p = (input.customerPhone ?? "").trim();
 
@@ -125,6 +167,7 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     guestPhone = p;
   }
 
+  // --- quote ---
   const quote = calcQuoteCents({
     pricingStrategy: service.pricingStrategy,
     distanceMiles: input.distanceMiles ?? null,
@@ -155,6 +198,7 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
       serviceTypeId: service.id,
       vehicleId: vehicle?.id ?? null,
 
+      // ✅ allowed subset cast to Prisma enum
       status: status as BookingStatus,
 
       pickupAt: pickupAtDate,

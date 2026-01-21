@@ -5,17 +5,24 @@
 .content {
   display: grid;
   grid-template-columns: 2fr 4fr;
-  gap: 2rem;
+  grid-gap: 2rem;
+  align-items: start; /* ✅ match customer wizard */
 }
 
 .left {
   display: grid;
-  gap: 2rem;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
   height: fit-content;
   position: sticky;
   top: 80px;
   align-self: start;
   z-index: 10;
+}
+
+.right {
+  align-self: start; /* ✅ match customer wizard */
+  display: grid;
 }
 
 .routePickerContainer {
@@ -25,10 +32,6 @@
   border-radius: 20px;
 }
 
-.right {
-  display: grid;
-}
-
 .wizard {
   display: grid;
   gap: 14px;
@@ -36,13 +39,41 @@
 
 .contentBox {
   display: grid;
-  gap: 3rem;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 3rem;
+}
+
+/* ✅ scroll target offset (so scrollIntoView doesn't hide behind sticky nav) */
+.wizardTop {
+  scroll-margin-top: 110px;
+}
+
+/* ✅ step fade-in (identical behavior) */
+.stepPane {
+  animation: stepFadeIn 220ms ease-out both;
+}
+
+@keyframes stepFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepPane {
+    animation: none;
+  }
 }
 
 .pickupDropoffContainer {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: 3rem;
+  grid-gap: 3rem;
 }
 
 .btnRow {
@@ -72,7 +103,8 @@
   gap: 12px;
 }
 
-@media screen and (max-width: 1268px) {
+/* ✅ match customer breakpoint */
+@media screen and (max-width: 1068px) {
   .content {
     grid-template-columns: 1fr 1fr;
   }

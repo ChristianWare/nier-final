@@ -23,67 +23,84 @@ function addDays(d: Date, n: number) {
 }
 
 export default async function AdminNewBookingPage() {
-  const [serviceTypes, vehicles, blackoutRows] = await Promise.all([
-    db.serviceType.findMany({
-      where: { active: true },
-      orderBy: [{ sortOrder: "asc" }],
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        pricingStrategy: true,
-        minFareCents: true,
-        baseFeeCents: true,
-        perMileCents: true,
-        perMinuteCents: true,
-        perHourCents: true,
-        active: true,
-        sortOrder: true,
-        airportLeg: true,
-        airports: {
-          select: {
-            id: true,
-            name: true,
-            iata: true,
-            address: true,
-            placeId: true,
-            lat: true,
-            lng: true,
+  const [serviceTypes, vehicles, blackoutRows, drivers, vehicleUnits] =
+    await Promise.all([
+      db.serviceType.findMany({
+        where: { active: true },
+        orderBy: [{ sortOrder: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          pricingStrategy: true,
+          minFareCents: true,
+          baseFeeCents: true,
+          perMileCents: true,
+          perMinuteCents: true,
+          perHourCents: true,
+          active: true,
+          sortOrder: true,
+          airportLeg: true,
+          airports: {
+            select: {
+              id: true,
+              name: true,
+              iata: true,
+              address: true,
+              placeId: true,
+              lat: true,
+              lng: true,
+            },
           },
         },
-      },
-    }),
+      }),
 
-    db.vehicle.findMany({
-      where: { active: true },
-      orderBy: [{ sortOrder: "asc" }],
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        capacity: true,
-        luggageCapacity: true,
-        imageUrl: true,
-        minHours: true,
-        baseFareCents: true,
-        perMileCents: true,
-        perMinuteCents: true,
-        perHourCents: true,
-        active: true,
-        sortOrder: true,
-      },
-    }),
-
-    db.blackoutDate.findMany({
-      where: {
-        ymd: {
-          gte: ymdInPhoenix(new Date()),
-          lt: ymdInPhoenix(addDays(new Date(), 365)),
+      db.vehicle.findMany({
+        where: { active: true },
+        orderBy: [{ sortOrder: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          capacity: true,
+          luggageCapacity: true,
+          imageUrl: true,
+          minHours: true,
+          baseFareCents: true,
+          perMileCents: true,
+          perMinuteCents: true,
+          perHourCents: true,
+          active: true,
+          sortOrder: true,
         },
-      },
-      select: { ymd: true },
-    }),
-  ]);
+      }),
+
+      db.blackoutDate.findMany({
+        where: {
+          ymd: {
+            gte: ymdInPhoenix(new Date()),
+            lt: ymdInPhoenix(addDays(new Date(), 365)),
+          },
+        },
+        select: { ymd: true },
+      }),
+
+      // ✅ drivers for step 4
+      db.user.findMany({
+        where: { roles: { has: "DRIVER" } },
+        select: { id: true, name: true, email: true },
+        orderBy: { createdAt: "desc" },
+        take: 300,
+      }),
+
+      // ✅ vehicle units for step 4 (filter client-side by categoryId)
+      db.vehicleUnit.findMany({
+        where: { active: true },
+        select: { id: true, name: true, plate: true, categoryId: true },
+        orderBy: { name: "asc" },
+        take: 500,
+      }),
+    ]);
 
   const blackoutsByYmd: Record<string, boolean> = {};
   for (const b of blackoutRows) blackoutsByYmd[b.ymd] = true;
@@ -101,6 +118,8 @@ export default async function AdminNewBookingPage() {
         serviceTypes={serviceTypes as any}
         vehicles={vehicles as any}
         blackoutsByYmd={blackoutsByYmd}
+        drivers={drivers as any}
+        vehicleUnits={vehicleUnits as any}
       />
     </section>
   );
