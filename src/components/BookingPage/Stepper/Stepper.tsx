@@ -4,43 +4,33 @@ export type WizardStep = 1 | 2 | 3;
 
 export default function Stepper({ step }: { step: WizardStep }) {
   const items = [
-    {
-      n: 1 as const,
-      label: "Trip",
-      copy: "Details for your trip",
-    },
-    {
-      n: 2 as const,
-      label: "Vehicle",
-      copy: "Choose a vehicle category",
-    },
-    {
-      n: 3 as const,
-      label: "Confirm",
-      copy: "Overview",
-    },
+    { n: 1 as const, label: "Trip", copy: "Details for your trip" },
+    { n: 2 as const, label: "Vehicle", copy: "Choose a vehicle category" },
+    { n: 3 as const, label: "Confirm", copy: "Overview" },
   ];
 
   return (
     <div className={styles.container}>
       {items.map((it, idx) => {
         const isActive = step === it.n;
+        const isComplete = it.n < step;
         const isLast = idx === items.length - 1;
+
+        const numberClass = [
+          styles.stepNumber,
+          isActive
+            ? styles.stepNumberActive
+            : isComplete
+              ? styles.stepNumberComplete
+              : styles.stepNumberInactive,
+        ].join(" ");
 
         return (
           <div key={it.n} className={styles.step}>
             <div className={styles.stepDetails}>
               <div className={styles.left}>
                 <div className={styles.marker}>
-                  <span
-                    className={`${styles.stepNumber} ${
-                      isActive
-                        ? styles.stepNumberActive
-                        : styles.stepNumberInactive
-                    }`}
-                  >
-                    {it.n}
-                  </span>
+                  <span className={numberClass}>{it.n}</span>
                   {!isLast ? <span className={styles.connector} /> : null}
                 </div>
               </div>
