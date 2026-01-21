@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // src/components/admin/AdminNewBookingWizard/AdminNewBookingWizard.tsx
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -34,6 +35,7 @@ import { adminSearchUsers } from "../../../../actions/admin/users/adminSearchUse
 
 import { adminGetBookingWizardData } from "../../../../actions/bookings/adminGetBookingWizardData";
 import { adminCreateManualPaymentIntent } from "../../../../actions/bookings/adminCreateManualPaymentIntent";
+import { adminUpdateBookingStatus } from "../../../../actions/bookings/adminUpdateBookingStatus";
 
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -88,8 +90,8 @@ type VehicleDTO = {
   sortOrder: number;
 };
 
-// ✅ NEW step order:
-// 1 Trip → 2 Vehicle → 3 Assign → 4 Price → 5 Confirm → 6 Payment
+// ✅ New admin step order:
+// 1 Trip → 2 Vehicle → 3 Price → 4 Assign (+ status) → 5 Confirm → 6 Payment
 type AdminWizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 type UserLite = {
@@ -119,6 +121,10 @@ type WizardBookingData = {
   assignmentDriverId: string | null;
   assignmentVehicleUnitId: string | null;
 };
+
+function cx(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
 
 function centsToUsd(cents: number) {
   return (cents / 100).toFixed(2);
@@ -215,6 +221,21 @@ function estimateTotalCents(args: {
   return Math.max(service.minFareCents, raw);
 }
 
+function statusLabel(s: AdminCreateBookingStatus) {
+  switch (s) {
+    case "PENDING_REVIEW":
+      return "Pending review";
+    case "PENDING_PAYMENT":
+      return "Pending payment";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "DRAFT":
+      return "Draft";
+    default:
+      return String(s);
+  }
+}
+
 export default function AdminNewBookingWizard({
   serviceTypes,
   vehicles,
@@ -233,6 +254,7 @@ export default function AdminNewBookingWizard({
 
   const [step, setStep] = useState<AdminWizardStep>(1);
 
+  // booking created right before Price step
   const [bookingId, setBookingId] = useState<string>("");
   const [bookingData, setBookingData] = useState<WizardBookingData | null>(
     null,
@@ -269,8 +291,14 @@ export default function AdminNewBookingWizard({
   const [pickupAirportId, setPickupAirportId] = useState<string>("");
   const [dropoffAirportId, setDropoffAirportId] = useState<string>("");
 
+  // ✅ Status is chosen on Assign step (no Draft option shown)
   const [bookingStatus, setBookingStatus] =
-    useState<AdminCreateBookingStatus>("DRAFT");
+    useState<AdminCreateBookingStatus>("PENDING_REVIEW");
+  const [statusSaving, setStatusSaving] = useState(false);
+
+  // validation attempt flags
+  const [attemptTripNext, setAttemptTripNext] = useState(false);
+  const [attemptVehicleNext, setAttemptVehicleNext] = useState(false);
 
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
@@ -286,9 +314,9 @@ export default function AdminNewBookingWizard({
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
 
+  // scroll-to-top on step change
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
-
   useEffect(() => {
     if (!didMountRef.current) {
       didMountRef.current = true;
@@ -306,6 +334,7 @@ export default function AdminNewBookingWizard({
     if (bookingData) setBookingData(null);
   }, [bookingId, bookingData]);
 
+  // customerKind switching behavior
   useEffect(() => {
     if (customerKind === "guest") {
       setSelectedUser(null);
@@ -323,9 +352,9 @@ export default function AdminNewBookingWizard({
         setCustomerName((selectedUser.name ?? "").trim());
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerKind, selectedUser]);
 
+  // user search
   useEffect(() => {
     if (customerKind !== "account") return;
     if (selectedUser) return;
@@ -473,37 +502,90 @@ export default function AdminNewBookingWizard({
     setUserResults([]);
   }
 
-  function canGoStep2() {
-    if (!selectedService) return false;
-    if (!pickupAtDate || !pickupAtTime) return false;
-    if (blackoutsByYmd[pickupAtDate]) return false;
+  function computeTripErrors() {
+    const e = {
+      attachUser: false,
+      guestEmail: false,
+      guestName: false,
+      guestPhone: false,
 
-    if (selectedService.airportLeg !== "NONE" && serviceAirports.length === 0) {
-      return false;
-    }
+      service: false,
+      dateTime: false,
 
-    if (usesPickupAirport && !pickupAirportId) return false;
-    if (usesDropoffAirport && !dropoffAirportId) return false;
+      pickup: false,
+      dropoff: false,
 
-    if (!route?.pickup || !route?.dropoff) return false;
+      pickupAirport: false,
+      dropoffAirport: false,
+
+      airportNotConfigured: false,
+    };
 
     if (customerKind === "account") {
-      if (!selectedUser) return false;
-      return true;
+      if (!selectedUser) e.attachUser = true;
+    } else {
+      const email = customerEmail.trim().toLowerCase();
+      if (!email || !isValidEmail(email)) e.guestEmail = true;
+      if (!customerName.trim()) e.guestName = true;
+      if (!customerPhone.trim()) e.guestPhone = true;
     }
 
-    const email = customerEmail.trim().toLowerCase();
-    if (!email || !isValidEmail(email)) return false;
-    if (!customerName.trim()) return false;
-    if (!customerPhone.trim()) return false;
+    if (!selectedService) e.service = true;
 
-    return true;
+    const hasDateTime = Boolean(pickupAtDate) && Boolean(pickupAtTime);
+    const dateBlocked = pickupAtDate && blackoutsByYmd[pickupAtDate];
+    if (!hasDateTime || dateBlocked) e.dateTime = true;
+
+    if (selectedService) {
+      if (
+        selectedService.airportLeg !== "NONE" &&
+        serviceAirports.length === 0
+      ) {
+        e.airportNotConfigured = true;
+        e.service = true;
+      }
+      if (usesPickupAirport && !pickupAirportId) e.pickupAirport = true;
+      if (usesDropoffAirport && !dropoffAirportId) e.dropoffAirport = true;
+    }
+
+    if (!route?.pickup) e.pickup = true;
+    if (!route?.dropoff) e.dropoff = true;
+
+    return e;
   }
 
-  function canGoStep2Vehicle() {
-    if (!selectedService) return false;
-    if (!vehicleId) return false;
-    return true;
+  function computeVehicleErrors() {
+    return { vehicle: !vehicleId };
+  }
+
+  const tripErrors = useMemo(() => {
+    return attemptTripNext ? computeTripErrors() : ({} as any);
+  }, [
+    attemptTripNext,
+    customerKind,
+    selectedUser,
+    customerEmail,
+    customerName,
+    customerPhone,
+    selectedService,
+    pickupAtDate,
+    pickupAtTime,
+    route,
+    pickupAirportId,
+    dropoffAirportId,
+    usesPickupAirport,
+    usesDropoffAirport,
+    serviceAirports.length,
+    blackoutsByYmd,
+  ]);
+
+  const vehicleErrors = useMemo(() => {
+    return attemptVehicleNext ? computeVehicleErrors() : ({} as any);
+  }, [attemptVehicleNext, vehicleId]);
+
+  function tripIsValid() {
+    const e = computeTripErrors();
+    return !Object.values(e).some(Boolean);
   }
 
   async function refreshBookingData(id: string) {
@@ -525,24 +607,31 @@ export default function AdminNewBookingWizard({
   async function ensureBookingCreated(): Promise<string | null> {
     if (bookingId) return bookingId;
 
-    if (!selectedService) {
-      toast.error("Please select a service.");
+    // if trip is invalid, bounce back to step 1 with highlights
+    if (!tripIsValid()) {
+      setAttemptTripNext(true);
+      toast.error("Please complete all required fields.");
+      setStep(1);
       return null;
     }
+
+    if (!selectedService) {
+      setAttemptTripNext(true);
+      toast.error("Please complete all required fields.");
+      setStep(1);
+      return null;
+    }
+
     if (!vehicleId) {
+      setAttemptVehicleNext(true);
       toast.error("Please choose a vehicle category.");
       return null;
     }
-    if (!pickupAtDate || !pickupAtTime) {
-      toast.error("Please choose date and time.");
-      return null;
-    }
+
     if (blackoutsByYmd[pickupAtDate]) {
+      setAttemptTripNext(true);
       toast.error("That date is blacked out.");
-      return null;
-    }
-    if (!route?.pickup || !route?.dropoff) {
-      toast.error("Please select pickup and dropoff.");
+      setStep(1);
       return null;
     }
 
@@ -551,23 +640,24 @@ export default function AdminNewBookingWizard({
 
     if (customerKind === "account") {
       if (!selectedUser) {
-        toast.error("Please select an existing user.");
+        setAttemptTripNext(true);
+        toast.error("Please complete all required fields.");
+        setStep(1);
         return null;
       }
       customerUserId = selectedUser.id;
       email = selectedUser.email.trim().toLowerCase();
     } else {
       email = customerEmail.trim().toLowerCase();
-      if (!email || !isValidEmail(email)) {
-        toast.error("Enter a valid customer email.");
-        return null;
-      }
-      if (!customerName.trim()) {
-        toast.error("Enter the guest name.");
-        return null;
-      }
-      if (!customerPhone.trim()) {
-        toast.error("Enter the guest phone.");
+      if (
+        !email ||
+        !isValidEmail(email) ||
+        !customerName.trim() ||
+        !customerPhone.trim()
+      ) {
+        setAttemptTripNext(true);
+        toast.error("Please complete all required fields.");
+        setStep(1);
         return null;
       }
     }
@@ -577,8 +667,8 @@ export default function AdminNewBookingWizard({
     ).toISOString();
 
     try {
-      const pickup = route.pickup;
-      const dropoff = route.dropoff;
+      const pickup = route!.pickup!;
+      const dropoff = route!.dropoff!;
 
       const res = await adminCreateBooking({
         serviceTypeId,
@@ -597,13 +687,14 @@ export default function AdminNewBookingWizard({
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
 
-        distanceMiles: route.miles ?? null,
-        durationMinutes: route.minutes ?? null,
+        distanceMiles: route?.miles ?? null,
+        durationMinutes: route?.minutes ?? null,
 
         hoursRequested:
           selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
         specialRequests: specialRequests || null,
 
+        // default to current status (chosen later on Assign step, but starts as PENDING_REVIEW)
         status: bookingStatus,
 
         customerKind,
@@ -643,6 +734,18 @@ export default function AdminNewBookingWizard({
     return (vehicleUnits ?? []).filter((u) => u.categoryId === vehicleId);
   }, [vehicleUnits, vehicleId]);
 
+  const assignedDriver = useMemo(() => {
+    const id = bookingData?.assignmentDriverId ?? null;
+    if (!id) return null;
+    return (drivers ?? []).find((d) => d.id === id) ?? null;
+  }, [bookingData?.assignmentDriverId, drivers]);
+
+  const assignedUnit = useMemo(() => {
+    const id = bookingData?.assignmentVehicleUnitId ?? null;
+    if (!id) return null;
+    return (vehicleUnits ?? []).find((u) => u.id === id) ?? null;
+  }, [bookingData?.assignmentVehicleUnitId, vehicleUnits]);
+
   const handleRouteChange = useCallback(
     (v: RoutePickerValue | null) => {
       setRoute((prev) => {
@@ -666,6 +769,45 @@ export default function AdminNewBookingWizard({
     },
     [resetCreatedBooking],
   );
+
+  async function saveStatus(next: AdminCreateBookingStatus) {
+    setBookingStatus(next);
+
+    if (!bookingId) return;
+
+    setStatusSaving(true);
+    try {
+      const res = await adminUpdateBookingStatus({
+        bookingId,
+        status: next,
+      });
+      if ((res as any)?.error) {
+        toast.error((res as any).error);
+        return;
+      }
+      toast.success("Status updated.");
+      await refreshBookingData(bookingId);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to update status.");
+    } finally {
+      setStatusSaving(false);
+    }
+  }
+
+  const STATUS_OPTIONS: Array<{
+    value: AdminCreateBookingStatus;
+    label: string;
+  }> = [
+    {
+      value: "PENDING_REVIEW" as AdminCreateBookingStatus,
+      label: "Pending review",
+    },
+    {
+      value: "PENDING_PAYMENT" as AdminCreateBookingStatus,
+      label: "Pending payment",
+    },
+    { value: "CONFIRMED" as AdminCreateBookingStatus, label: "Confirmed" },
+  ];
 
   return (
     <section className={styles.container}>
@@ -692,7 +834,9 @@ export default function AdminNewBookingWizard({
             {step === 1 ? (
               <div className={`${styles.contentBox} ${styles.stepPane}`}>
                 <h2 className='underline'>Trip details</h2>
-                <p className='subheading'>Customer, date/time, and route.</p>
+                <p className='subheading'>
+                  Customer, service, date/time, and route.
+                </p>
 
                 <div style={{ display: "grid", gap: 10 }}>
                   <label className='cardTitle h5'>Customer type</label>
@@ -711,7 +855,14 @@ export default function AdminNewBookingWizard({
 
                 {customerKind === "account" ? (
                   <div style={{ display: "grid", gap: 10 }}>
-                    <label className='cardTitle h5'>Attach to user</label>
+                    <label
+                      className={cx(
+                        "cardTitle h5",
+                        tripErrors.attachUser && "redBorder",
+                      )}
+                    >
+                      Attach to user
+                    </label>
 
                     {selectedUser ? (
                       <div
@@ -823,7 +974,14 @@ export default function AdminNewBookingWizard({
                   <>
                     <Grid2>
                       <div style={{ display: "grid", gap: 8 }}>
-                        <label className='cardTitle h5'>Customer email</label>
+                        <label
+                          className={cx(
+                            "cardTitle h5",
+                            tripErrors.guestEmail && "redBorder",
+                          )}
+                        >
+                          Customer email
+                        </label>
                         <input
                           className='input emptySmall'
                           value={customerEmail}
@@ -837,7 +995,14 @@ export default function AdminNewBookingWizard({
                       </div>
 
                       <div style={{ display: "grid", gap: 8 }}>
-                        <label className='cardTitle h5'>Customer name</label>
+                        <label
+                          className={cx(
+                            "cardTitle h5",
+                            tripErrors.guestName && "redBorder",
+                          )}
+                        >
+                          Customer name
+                        </label>
                         <input
                           className='input emptySmall'
                           value={customerName}
@@ -851,7 +1016,14 @@ export default function AdminNewBookingWizard({
                     </Grid2>
 
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Customer phone</label>
+                      <label
+                        className={cx(
+                          "cardTitle h5",
+                          tripErrors.guestPhone && "redBorder",
+                        )}
+                      >
+                        Customer phone
+                      </label>
                       <input
                         className='input emptySmall'
                         value={customerPhone}
@@ -867,7 +1039,15 @@ export default function AdminNewBookingWizard({
                 )}
 
                 <div style={{ display: "grid", gap: 8 }}>
-                  <label className='cardTitle h5'>Service</label>
+                  <label
+                    className={cx(
+                      "cardTitle h5",
+                      (tripErrors.service || tripErrors.airportNotConfigured) &&
+                        "redBorder",
+                    )}
+                  >
+                    Service
+                  </label>
                   <select
                     value={serviceTypeId}
                     onChange={(e) => {
@@ -897,25 +1077,28 @@ export default function AdminNewBookingWizard({
                   </select>
                 </div>
 
-                <div style={{ display: "grid", gap: 8 }}>
-                  <label className='cardTitle h5'>Initial status</label>
-                  <select
-                    value={bookingStatus}
-                    onChange={(e) => {
-                      resetCreatedBooking();
-                      setBookingStatus(
-                        e.target.value as AdminCreateBookingStatus,
-                      );
-                    }}
-                    className='input emptySmall'
+                {attemptTripNext &&
+                selectedService &&
+                selectedService.airportLeg !== "NONE" &&
+                serviceAirports.length === 0 ? (
+                  <div
+                    className='miniNote'
+                    style={{ color: "rgba(180,0,0,0.85)" }}
                   >
-                    <option value='DRAFT'>Draft (internal)</option>
-                    <option value='PENDING_REVIEW'>Pending review</option>
-                    <option value='PENDING_PAYMENT'>Pending payment</option>
-                    <option value='CONFIRMED'>Confirmed</option>
-                  </select>
-                </div>
+                    This airport service isn’t configured yet (no airports
+                    assigned). Choose a different service or assign airports
+                    first.
+                  </div>
+                ) : null}
 
+                <label
+                  className={cx(
+                    "cardTitle h5",
+                    tripErrors.dateTime && "redBorder",
+                  )}
+                >
+                  PickupPickup date & time
+                </label>
                 <BookingDateTimePicker
                   date={pickupAtDate}
                   time={pickupAtTime}
@@ -958,7 +1141,14 @@ export default function AdminNewBookingWizard({
 
                 <div className={styles.pickupDropoffContainer}>
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label className='cardTitle h5'>
+                    <label
+                      className={cx(
+                        "cardTitle h5",
+                        (usesPickupAirport
+                          ? tripErrors.pickupAirport
+                          : tripErrors.pickup) && "redBorder",
+                      )}
+                    >
                       {usesPickupAirport ? "Pickup airport" : "Pickup"}
                     </label>
 
@@ -991,7 +1181,14 @@ export default function AdminNewBookingWizard({
                   </div>
 
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label className='cardTitle h5'>
+                    <label
+                      className={cx(
+                        "cardTitle h5",
+                        (usesDropoffAirport
+                          ? tripErrors.dropoffAirport
+                          : tripErrors.dropoff) && "redBorder",
+                      )}
+                    >
                       {usesDropoffAirport ? "Dropoff airport" : "Dropoff"}
                     </label>
 
@@ -1047,12 +1244,16 @@ export default function AdminNewBookingWizard({
                     className='primaryBtn'
                     disabled={isPending}
                     onClick={() => {
-                      if (!canGoStep2()) {
-                        toast.error(
-                          "Please complete customer, service, date/time, and route.",
-                        );
+                      setAttemptTripNext(true);
+
+                      const errs = computeTripErrors();
+                      const hasErr = Object.values(errs).some(Boolean);
+
+                      if (hasErr) {
+                        toast.error("Please complete all required fields.");
                         return;
                       }
+
                       setStep(2);
                     }}
                   >
@@ -1069,7 +1270,18 @@ export default function AdminNewBookingWizard({
                 style={{ display: "grid", gap: 14 }}
               >
                 <h2 className='underline'>Choose a vehicle</h2>
-                <p className='subheading'>Choose a vehicle category</p>
+                <p className='subheading'>
+                  Choose a vehicle category, then create the booking.
+                </p>
+
+                <label
+                  className={cx(
+                    "cardTitle h5",
+                    vehicleErrors.vehicle && "redBorder",
+                  )}
+                >
+                  Vehicle category
+                </label>
 
                 <div style={{ display: "grid", gap: 10 }}>
                   {vehicles.map((v) => {
@@ -1175,7 +1387,16 @@ export default function AdminNewBookingWizard({
                     className='primaryBtn'
                     disabled={isPending}
                     onClick={() => {
-                      if (!canGoStep2Vehicle()) {
+                      // ensure trip still valid (route picker can change)
+                      if (!tripIsValid()) {
+                        setAttemptTripNext(true);
+                        toast.error("Please complete all required fields.");
+                        setStep(1);
+                        return;
+                      }
+
+                      setAttemptVehicleNext(true);
+                      if (!vehicleId) {
                         toast.error("Please choose a vehicle category.");
                         return;
                       }
@@ -1193,40 +1414,33 @@ export default function AdminNewBookingWizard({
               </div>
             ) : null}
 
-            {/* STEP 3: Assign */}
+            {/* STEP 3: Price */}
             {step === 3 ? (
               <div
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
-                <h2 className='underline'>Assign driver</h2>
-                <p className='subheading'>Assign (allowed before payment).</p>
+                <h2 className='underline'>Approve price</h2>
+                <p className='subheading'>Approve & price the booking.</p>
 
                 {!bookingId ? (
                   <div
                     className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
-                    Booking ID missing. Go back and re-create the booking.
-                  </div>
-                ) : drivers.length === 0 ? (
-                  <div className='miniNote'>
-                    No drivers yet. Create users and assign DRIVER role in{" "}
-                    <a className='inlineLink' href='/admin/users'>
-                      Users
-                    </a>
-                    .
+                    Booking missing. Go back and re-create it.
                   </div>
                 ) : (
                   <div className='box'>
-                    <AssignBookingForm
+                    <ApprovePriceForm
                       bookingId={bookingId}
-                      drivers={drivers as any}
-                      vehicleUnits={filteredVehicleUnits as any}
-                      currentDriverId={bookingData?.assignmentDriverId ?? null}
-                      currentVehicleUnitId={
-                        bookingData?.assignmentVehicleUnitId ?? null
+                      currency={bookingData?.currency ?? "USD"}
+                      subtotalCents={
+                        bookingData?.subtotalCents ?? estimateCents
                       }
+                      feesCents={bookingData?.feesCents ?? 0}
+                      taxesCents={bookingData?.taxesCents ?? 0}
+                      totalCents={bookingData?.totalCents ?? estimateCents}
                     />
 
                     <div
@@ -1285,14 +1499,16 @@ export default function AdminNewBookingWizard({
               </div>
             ) : null}
 
-            {/* STEP 4: Price */}
+            {/* STEP 4: Assign (+ status AFTER assign UI) */}
             {step === 4 ? (
               <div
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
-                <h2 className='underline'>Approve price</h2>
-                <p className='subheading'>Approve & price the booking.</p>
+                <h2 className='underline'>Assign</h2>
+                <p className='subheading'>
+                  Assign driver / vehicle unit, then set initial status.
+                </p>
 
                 {!bookingId ? (
                   <div
@@ -1301,18 +1517,45 @@ export default function AdminNewBookingWizard({
                   >
                     Booking missing. Go back and create it.
                   </div>
+                ) : drivers.length === 0 ? (
+                  <div className='miniNote'>
+                    No drivers yet. Create users and assign DRIVER role in{" "}
+                    <a className='inlineLink' href='/admin/users'>
+                      Users
+                    </a>
+                    .
+                  </div>
                 ) : (
                   <div className='box'>
-                    <ApprovePriceForm
+                    <AssignBookingForm
                       bookingId={bookingId}
-                      currency={bookingData?.currency ?? "USD"}
-                      subtotalCents={
-                        bookingData?.subtotalCents ?? estimateCents
+                      drivers={drivers as any}
+                      vehicleUnits={filteredVehicleUnits as any}
+                      currentDriverId={bookingData?.assignmentDriverId ?? null}
+                      currentVehicleUnitId={
+                        bookingData?.assignmentVehicleUnitId ?? null
                       }
-                      feesCents={bookingData?.feesCents ?? 0}
-                      taxesCents={bookingData?.taxesCents ?? 0}
-                      totalCents={bookingData?.totalCents ?? estimateCents}
                     />
+
+                    <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+                      <label className='cardTitle h5'>Initial status</label>
+                      <select
+                        className='input emptySmall'
+                        value={bookingStatus}
+                        onChange={(e) => saveStatus(e.target.value as any)}
+                        disabled={!bookingId || statusSaving}
+                      >
+                        {STATUS_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>
+                            {o.label}
+                          </option>
+                        ))}
+                      </select>
+                      <div className='miniNote'>
+                        Current: <strong>{statusLabel(bookingStatus)}</strong>
+                        {statusSaving ? " • Saving…" : ""}
+                      </div>
+                    </div>
 
                     <div
                       style={{
@@ -1370,7 +1613,7 @@ export default function AdminNewBookingWizard({
               </div>
             ) : null}
 
-            {/* STEP 5: Confirm (right before payment) */}
+            {/* STEP 5: Confirm */}
             {step === 5 ? (
               <div
                 className={`${styles.stepPane}`}
@@ -1389,6 +1632,11 @@ export default function AdminNewBookingWizard({
                 ) : (
                   <div className='box'>
                     <SummaryRow label='Booking ID' value={bookingId} strong />
+
+                    <SummaryRow
+                      label='Status'
+                      value={statusLabel(bookingStatus)}
+                    />
 
                     <SummaryRow label='Customer type' value={customerKind} />
                     {customerKind === "account" ? (
@@ -1425,6 +1673,7 @@ export default function AdminNewBookingWizard({
                       label='Vehicle category'
                       value={selectedVehicle?.name ?? "—"}
                     />
+
                     <SummaryRow
                       label='Pickup time'
                       value={
@@ -1456,9 +1705,38 @@ export default function AdminNewBookingWizard({
                     ) : null}
 
                     <SummaryRow
+                      label='Subtotal'
+                      value={`$${centsToUsd(bookingData?.subtotalCents ?? estimateCents)}`}
+                    />
+                    <SummaryRow
+                      label='Fees'
+                      value={`$${centsToUsd(bookingData?.feesCents ?? 0)}`}
+                    />
+                    <SummaryRow
+                      label='Taxes'
+                      value={`$${centsToUsd(bookingData?.taxesCents ?? 0)}`}
+                    />
+                    <SummaryRow
                       label='Total'
                       value={`$${centsToUsd(bookingData?.totalCents ?? estimateCents)}`}
                       strong
+                    />
+
+                    <SummaryRow
+                      label='Assigned driver'
+                      value={
+                        assignedDriver
+                          ? `${(assignedDriver.name ?? "").trim() || "Unnamed"} • ${assignedDriver.email}`
+                          : "—"
+                      }
+                    />
+                    <SummaryRow
+                      label='Vehicle unit'
+                      value={
+                        assignedUnit
+                          ? `${assignedUnit.name}${assignedUnit.plate ? ` • ${assignedUnit.plate}` : ""}`
+                          : "—"
+                      }
                     />
 
                     {specialRequests?.trim() ? (
@@ -1624,10 +1902,14 @@ export default function AdminNewBookingWizard({
 
 function AdminBookingStepper({ step }: { step: AdminWizardStep }) {
   const items = [
-    { n: 1 as const, label: "Trip", copy: "Customer, date/time, route" },
-    { n: 2 as const, label: "Vehicle", copy: "Choose a vehicle category" },
-    { n: 3 as const, label: "Assign", copy: "Assign driver / vehicle unit" },
-    { n: 4 as const, label: "Price", copy: "Approve totals" },
+    {
+      n: 1 as const,
+      label: "Trip",
+      copy: "Customer, service, date/time, route",
+    },
+    { n: 2 as const, label: "Vehicle", copy: "Vehicle category + notes" },
+    { n: 3 as const, label: "Price", copy: "Approve totals" },
+    { n: 4 as const, label: "Assign", copy: "Driver / unit + status" },
     { n: 5 as const, label: "Confirm", copy: "Final review" },
     { n: 6 as const, label: "Payment", copy: "Send link or take card" },
   ];

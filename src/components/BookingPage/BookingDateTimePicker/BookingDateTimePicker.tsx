@@ -1,4 +1,3 @@
-
 "use client";
 
 import styles from "./BookingDateTimePicker.module.css";
@@ -197,8 +196,8 @@ export default function BookingDateTimePicker({
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
-        <div className={styles.topRow}>
-          {/* <label className='cardTitle h5'>Date</label> */}
+        <div className={`${styles.topRow} underline`}>
+          <label className='h5 bgWhite'>Date</label>
         </div>
 
         <div className={styles.controlsRow}>
@@ -310,7 +309,7 @@ export default function BookingDateTimePicker({
       </div>
 
       <div className={styles.timeBlock}>
-        <label className='cardTitle h5'>Time</label>
+        <label className='h5 bgWhite underline'>Time</label>
 
         <div
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}

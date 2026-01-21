@@ -98,7 +98,7 @@ export default async function AdminNewBookingPage() {
         select: { ymd: true },
       }),
 
-      // ✅ Drivers for Step 4 (Assign)
+      // ✅ Drivers for Assign step
       db.user.findMany({
         where: { roles: { has: "DRIVER" } },
         select: { id: true, name: true, email: true },
@@ -106,15 +106,14 @@ export default async function AdminNewBookingPage() {
         take: 300,
       }),
 
-      // ✅ Vehicle units for Step 4 (Assign)
-      // We fetch all active units and filter client-side once the admin picks a vehicle category.
+      // ✅ Vehicle units for Assign step
       db.vehicleUnit.findMany({
         where: { active: true },
         select: {
           id: true,
           name: true,
           plate: true,
-          categoryId: true, // so the client can filter by selected vehicleId
+          categoryId: true,
         },
         orderBy: { name: "asc" },
         take: 500,
