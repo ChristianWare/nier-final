@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 const PHX_TZ = "America/Phoenix";
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
-type ViewMode = "month" | "ytd" | "all" | "range";
+type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
 type SP = Record<string, string | string[] | undefined>;
 
 function spGet(sp: SP, key: string) {
@@ -24,8 +24,17 @@ function spGet(sp: SP, key: string) {
 }
 
 function cleanView(v: string | null | undefined): ViewMode {
-  if (v === "month" || v === "ytd" || v === "all" || v === "range") return v;
-  return "month";
+  // legacy support
+  if (v === "month") return "daily";
+  if (
+    v === "daily" ||
+    v === "monthly" ||
+    v === "ytd" ||
+    v === "all" ||
+    v === "range"
+  )
+    return v;
+  return "daily";
 }
 
 function formatMoney(cents: number, currency = "USD") {
@@ -246,7 +255,7 @@ function resolveMonthYear({
   const legacyKey =
     rawMonth && monthStartFromKeyPhoenix(rawMonth) ? rawMonth : null;
 
-  if (view !== "month")
+  if (view !== "daily")
     return { year: currentYear, month: currentMonth, key: currentKey };
 
   if (legacyKey) {
@@ -544,15 +553,25 @@ export default async function EarningsPage({
   const resolvedMY = resolveMonthYear({ view, sp, now });
   const resolvedMonthKey = resolvedMY.key;
 
+  // Defaults (will be overwritten per-view)
   let fromUtc = currentMonthStart;
   let toUtc = addMonthsPhoenix(currentMonthStart, 1);
   let rangeLabel = formatMonthLabelPhoenix(currentMonthStart);
 
-  if (view === "month") {
+  if (view === "daily") {
     const ms = monthStartFromKeyPhoenix(resolvedMonthKey) ?? currentMonthStart;
     fromUtc = ms;
     toUtc = addMonthsPhoenix(ms, 1);
     rangeLabel = formatMonthLabelPhoenix(ms);
+  }
+
+  // Monthly = last 12 months (including current month)
+  if (view === "monthly") {
+    const oldest = addMonthsPhoenix(currentMonthStart, -11);
+    const nextAfterCurrent = addMonthsPhoenix(currentMonthStart, 1);
+    fromUtc = oldest;
+    toUtc = nextAfterCurrent;
+    rangeLabel = "Last 12 months";
   }
 
   if (view === "ytd") {
@@ -659,13 +678,14 @@ export default async function EarningsPage({
         },
       },
     }),
-    view === "month"
+    view === "daily"
       ? chartAggDaily(fromUtc, toUtc)
       : chartAggMonthly(fromUtc, toUtc),
   ]);
 
   const netCents = Math.max(0, captured.sumCents - refunded.sumCents);
 
+  // Used for the "Last 12 months" table (also aligns with Monthly tab)
   const monthMenuStarts = Array.from({ length: 12 }).map((_, i) =>
     addMonthsPhoenix(startOfMonthPhoenix(now), -i),
   );
@@ -699,15 +719,36 @@ export default async function EarningsPage({
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
 
+  // Keep export route compatible:
+  // - daily -> export view=month
+  // - monthly -> export view=range (last 12 months)
+  const monthlyFromForExport = ymdForInputPhoenix(oldestMonthStart);
+  const monthlyToForExport = ymdForInputPhoenix(
+    new Date(nextAfterCurrent.getTime() - 1),
+  );
+
+  const exportView: "month" | "ytd" | "all" | "range" =
+    view === "daily" ? "month" : view === "monthly" ? "range" : view;
+
   const exportHref = buildHref("/admin/earnings/export", {
-    view,
-    year: view === "month" ? resolvedMY.year : undefined,
-    month: view === "month" ? resolvedMY.month : undefined,
-    from: view === "range" ? (rangeFromParam ?? defaultFrom) : undefined,
-    to: view === "range" ? (rangeToParam ?? defaultTo) : undefined,
+    view: exportView,
+    year: exportView === "month" ? resolvedMY.year : undefined,
+    month: exportView === "month" ? resolvedMY.month : undefined,
+    from:
+      exportView === "range"
+        ? view === "monthly"
+          ? monthlyFromForExport
+          : (rangeFromParam ?? defaultFrom)
+        : undefined,
+    to:
+      exportView === "range"
+        ? view === "monthly"
+          ? monthlyToForExport
+          : (rangeToParam ?? defaultTo)
+        : undefined,
   });
 
-  const chartTitle = view === "month" ? "Daily earnings" : "Monthly earnings";
+  const chartTitle = view === "daily" ? "Daily earnings" : "Monthly earnings";
   const chartSub = rangeLabel;
 
   return (
@@ -788,7 +829,7 @@ export default async function EarningsPage({
           <div className={styles.cardHeaderRight}>
             <span className='miniNote'>Selected</span>
             <span className={styles.selectedMonth}>
-              {view === "month" ? resolvedMonthKey : "—"}
+              {view === "daily" ? resolvedMonthKey : "—"}
             </span>
           </div>
 
@@ -804,7 +845,7 @@ export default async function EarningsPage({
               </thead>
               <tbody>
                 {monthSummary.map((m) => {
-                  const active = view === "month" && m.key === resolvedMonthKey;
+                  const active = view === "daily" && m.key === resolvedMonthKey;
                   const y = m.key.slice(0, 4);
                   const mo = m.key.slice(5, 7);
                   return (
@@ -813,7 +854,7 @@ export default async function EarningsPage({
                         <Link
                           className={styles.rowLink}
                           href={buildHref("/admin/earnings", {
-                            view: "month",
+                            view: "daily",
                             year: y,
                             month: mo,
                           })}
@@ -892,10 +933,7 @@ export default async function EarningsPage({
                         <td>{paidAt ? formatDateShortPhx(paidAt) : "—"}</td>
                         <td>
                           <Link className={styles.rowLink} href={bookingHref}>
-                            <div
-                              className={styles.bookingId}
-                              style={{ textDecoration: "underline" }}
-                            >
+                            <div className={styles.bookingId}>
                               {shortId(bookingId, 7)}
                             </div>
                           </Link>

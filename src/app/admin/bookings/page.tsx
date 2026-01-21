@@ -485,13 +485,13 @@ function StatusTabs({
         });
         const isActive = s === active;
         return (
-          <Link
+            <Link
             key={s}
             href={href}
-            className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
-          >
+            className={`tab ${isActive ? "tabActive" : ""}`}
+            >
             {s}
-          </Link>
+            </Link>
         );
       })}
     </div>

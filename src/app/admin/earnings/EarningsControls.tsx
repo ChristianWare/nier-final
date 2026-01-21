@@ -5,11 +5,20 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition, type FormEvent } from "react";
 import styles from "./AdminEarningsPage.module.css";
 
-type ViewMode = "month" | "ytd" | "all" | "range";
+type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
 
 function cleanView(v: string | null): ViewMode {
-  if (v === "month" || v === "ytd" || v === "all" || v === "range") return v;
-  return "month";
+  // legacy support: old URLs used view=month
+  if (v === "month") return "daily";
+  if (
+    v === "daily" ||
+    v === "monthly" ||
+    v === "ytd" ||
+    v === "all" ||
+    v === "range"
+  )
+    return v;
+  return "daily";
 }
 
 function isYear(v: string | null) {
@@ -32,6 +41,7 @@ function getMonthYearFromParams(
   const rawYear = sp.get("year");
   const rawMonth = sp.get("month");
 
+  // legacy: month=YYYY-MM
   if (isMonthKey(rawMonth)) {
     return { year: rawMonth!.slice(0, 4), month: rawMonth!.slice(5, 7) };
   }
@@ -94,7 +104,8 @@ export default function EarningsControls({
     const next = new URLSearchParams(spKey);
     next.set("view", nextView);
 
-    if (nextView === "month") {
+    // DAILY = uses month/year selectors
+    if (nextView === "daily") {
       next.delete("from");
       next.delete("to");
       next.set("year", urlMonthYear.year);
@@ -103,6 +114,7 @@ export default function EarningsControls({
       return;
     }
 
+    // RANGE = uses from/to selectors
     if (nextView === "range") {
       next.delete("year");
       next.delete("month");
@@ -112,6 +124,7 @@ export default function EarningsControls({
       return;
     }
 
+    // MONTHLY / YTD / ALL = no extra params
     next.delete("year");
     next.delete("month");
     next.delete("from");
@@ -119,14 +132,14 @@ export default function EarningsControls({
     nav(next);
   }
 
-  function onApplyMonth(e: FormEvent<HTMLFormElement>) {
+  function onApplyDaily(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const year = String(fd.get("year") ?? "").trim();
     const month = String(fd.get("month") ?? "").trim();
 
     const next = new URLSearchParams(spKey);
-    next.set("view", "month");
+    next.set("view", "daily");
     next.delete("from");
     next.delete("to");
 
@@ -158,11 +171,20 @@ export default function EarningsControls({
       <div className={styles.tabs}>
         <button
           type='button'
-          className={`tab ${activeView === "month" ? "tabActive" : ""}`}
-          onClick={() => setView("month")}
+          className={`tab ${activeView === "daily" ? "tabActive" : ""}`}
+          onClick={() => setView("daily")}
           disabled={isPending}
         >
-          By month
+          Daily
+        </button>
+
+        <button
+          type='button'
+          className={`tab ${activeView === "monthly" ? "tabActive" : ""}`}
+          onClick={() => setView("monthly")}
+          disabled={isPending}
+        >
+          Monthly
         </button>
 
         <button
@@ -197,11 +219,11 @@ export default function EarningsControls({
         </div>
       </div>
 
-      {activeView === "month" ? (
+      {activeView === "daily" ? (
         <form
-          key={`month-${urlMonthYear.year}-${urlMonthYear.month}`}
+          key={`daily-${urlMonthYear.year}-${urlMonthYear.month}`}
           className={styles.rangeForm}
-          onSubmit={onApplyMonth}
+          onSubmit={onApplyDaily}
         >
           <label className={styles.rangeField}>
             <span className='miniNote'>Month</span>
