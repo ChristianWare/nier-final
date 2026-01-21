@@ -6,7 +6,7 @@ import {
   updateService,
   deleteService,
 } from "../../../../../actions/admin/services";
-import EditServiceForm, { type ActionResult } from "./EditServiceForm";
+import EditServiceForm, { type ActionResult } from "@/components/admin/EditServiceForm/EditServiceForm"; 
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
