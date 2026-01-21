@@ -205,37 +205,6 @@ function buildHref(
   return qs ? `${basePath}?${qs}` : basePath;
 }
 
-async function capturedAgg(from: Date, to: Date) {
-  const agg = await db.payment.aggregate({
-    where: { paidAt: { gte: from, lt: to } },
-    _sum: { amountTotalCents: true },
-    _avg: { amountTotalCents: true },
-    _count: { _all: true },
-  });
-
-  return {
-    sumCents: agg._sum.amountTotalCents ?? 0,
-    avgCents: Math.round(agg._avg.amountTotalCents ?? 0),
-    count: agg._count._all ?? 0,
-  };
-}
-
-async function refundAgg(from: Date, to: Date) {
-  const agg = await db.payment.aggregate({
-    where: {
-      status: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] },
-      updatedAt: { gte: from, lt: to },
-    },
-    _sum: { amountTotalCents: true },
-    _count: { _all: true },
-  });
-
-  return {
-    sumCents: agg._sum.amountTotalCents ?? 0,
-    count: agg._count._all ?? 0,
-  };
-}
-
 function resolveMonthYear({
   view,
   sp,
@@ -308,6 +277,53 @@ function yearTick(y: string) {
   return y.slice(2);
 }
 
+/**
+ * ✅ KPI totals derived from the SAME dataset as the chart.
+ * This guarantees KPIs always match the active tab + chart period.
+ */
+function kpisFromChartData(
+  rows: {
+    capturedCents: number;
+    refundedCents: number;
+    netCents: number;
+    count: number;
+    refundedCount?: number;
+  }[],
+) {
+  let capturedSum = 0;
+  let refundedSum = 0;
+  let netSum = 0;
+  let payCount = 0;
+  let refundCount = 0;
+
+  for (const r of rows) {
+    capturedSum += Number(r.capturedCents || 0);
+    refundedSum += Number(r.refundedCents || 0);
+    netSum += Number(r.netCents || 0);
+    payCount += Number(r.count || 0);
+    refundCount += Number(r.refundedCount || 0);
+  }
+
+  const avgCents = payCount > 0 ? Math.round(capturedSum / payCount) : 0;
+
+  return {
+    capturedSumCents: capturedSum,
+    refundedSumCents: refundedSum,
+    netSumCents: netSum,
+    payCount,
+    refundCount,
+    avgCents,
+  };
+}
+
+function chartHeadingFromData(view: ViewMode, data: { key: string }[]) {
+  if (view === "daily") return "Daily earnings";
+  const k = data?.[0]?.key ?? "";
+  if (/^\d{4}-Q[1-4]$/.test(k)) return "Quarterly earnings";
+  if (/^\d{4}$/.test(k)) return "Yearly earnings";
+  return "Monthly earnings";
+}
+
 async function chartAggDaily(fromUtc: Date, toUtc: Date) {
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
@@ -323,7 +339,8 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum
+      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COUNT(*) as count
     FROM "Payment"
     WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
       AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
@@ -337,10 +354,10 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
     cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
   }
 
-  const ref = new Map<string, number>();
+  const ref = new Map<string, { sumCents: number; count: number }>();
   for (const r of refundRows) {
     const k = String(r.key);
-    ref.set(k, Number(r.sum || 0));
+    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
   }
 
   const points: {
@@ -351,6 +368,7 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
     refundedCents: number;
     netCents: number;
     count: number;
+    refundedCount: number;
   }[] = [];
 
   for (
@@ -360,17 +378,20 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
   ) {
     const ymd = ymdForInputPhoenix(d);
     const c = cap.get(ymd) ?? { sumCents: 0, count: 0 };
-    const r = ref.get(ymd) ?? 0;
-    const n = Math.max(0, c.sumCents - r);
+    const r = ref.get(ymd) ?? { sumCents: 0, count: 0 };
+
+    // ✅ allow negative net so totals + chart always stay mathematically consistent
+    const n = c.sumCents - r.sumCents;
 
     points.push({
       key: ymd,
       tick: formatDayTickPhoenix(d),
       label: formatDayLabelPhoenix(d),
       capturedCents: c.sumCents,
-      refundedCents: r,
+      refundedCents: r.sumCents,
       netCents: n,
       count: c.count,
+      refundedCount: r.count,
     });
   }
 
@@ -392,7 +413,8 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('month', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum
+      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COUNT(*) as count
     FROM "Payment"
     WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
       AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
@@ -406,10 +428,10 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
     cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
   }
 
-  const ref = new Map<string, number>();
+  const ref = new Map<string, { sumCents: number; count: number }>();
   for (const r of refundRows) {
     const k = String(r.key);
-    ref.set(k, Number(r.sum || 0));
+    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
   }
 
   const months: string[] = [];
@@ -421,24 +443,28 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
     months.push(monthKeyFromDatePhoenix(ms));
   }
 
+  // monthly points
   if (months.length <= 36) {
     return months.map((k) => {
       const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
       const c = cap.get(k) ?? { sumCents: 0, count: 0 };
-      const r = ref.get(k) ?? 0;
-      const n = Math.max(0, c.sumCents - r);
+      const r = ref.get(k) ?? { sumCents: 0, count: 0 };
+      const n = c.sumCents - r.sumCents;
+
       return {
         key: k,
         tick: formatMonthTickPhoenix(ms),
         label: formatMonthLabelPhoenix(ms),
         capturedCents: c.sumCents,
-        refundedCents: r,
+        refundedCents: r.sumCents,
         netCents: n,
         count: c.count,
+        refundedCount: r.count,
       };
     });
   }
 
+  // quarter keys
   const qKeys: string[] = [];
   const seenQ = new Set<string>();
   for (const mk of months) {
@@ -450,14 +476,15 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
   }
   qKeys.sort((a, b) => (a < b ? -1 : 1));
 
+  // quarter points
   if (qKeys.length <= 36) {
     const qCap = new Map<string, { sumCents: number; count: number }>();
-    const qRef = new Map<string, number>();
+    const qRef = new Map<string, { sumCents: number; count: number }>();
 
     for (const mk of months) {
       const qk = quarterKeyFromMonthKey(mk);
       const c = cap.get(mk) ?? { sumCents: 0, count: 0 };
-      const r = ref.get(mk) ?? 0;
+      const r = ref.get(mk) ?? { sumCents: 0, count: 0 };
 
       const pc = qCap.get(qk) ?? { sumCents: 0, count: 0 };
       qCap.set(qk, {
@@ -465,27 +492,34 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
         count: pc.count + c.count,
       });
 
-      qRef.set(qk, (qRef.get(qk) ?? 0) + r);
+      const pr = qRef.get(qk) ?? { sumCents: 0, count: 0 };
+      qRef.set(qk, {
+        sumCents: pr.sumCents + r.sumCents,
+        count: pr.count + r.count,
+      });
     }
 
     return qKeys.map((qk) => {
       const qs =
         quarterStartFromQuarterKeyPhoenix(qk) ?? startOfMonthPhoenix(fromUtc);
       const c = qCap.get(qk) ?? { sumCents: 0, count: 0 };
-      const r = qRef.get(qk) ?? 0;
-      const n = Math.max(0, c.sumCents - r);
+      const r = qRef.get(qk) ?? { sumCents: 0, count: 0 };
+      const n = c.sumCents - r.sumCents;
+
       return {
         key: qk,
         tick: quarterTick(qk),
         label: quarterLabel(qk),
         capturedCents: c.sumCents,
-        refundedCents: r,
+        refundedCents: r.sumCents,
         netCents: n,
         count: c.count,
+        refundedCount: r.count,
       };
     });
   }
 
+  // yearly keys
   const years: string[] = [];
   const seenY = new Set<string>();
   for (const mk of months) {
@@ -498,12 +532,12 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
   years.sort((a, b) => (a < b ? -1 : 1));
 
   const yCap = new Map<string, { sumCents: number; count: number }>();
-  const yRef = new Map<string, number>();
+  const yRef = new Map<string, { sumCents: number; count: number }>();
 
   for (const mk of months) {
     const y = mk.slice(0, 4);
     const c = cap.get(mk) ?? { sumCents: 0, count: 0 };
-    const r = ref.get(mk) ?? 0;
+    const r = ref.get(mk) ?? { sumCents: 0, count: 0 };
 
     const pc = yCap.get(y) ?? { sumCents: 0, count: 0 };
     yCap.set(y, {
@@ -511,21 +545,27 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
       count: pc.count + c.count,
     });
 
-    yRef.set(y, (yRef.get(y) ?? 0) + r);
+    const pr = yRef.get(y) ?? { sumCents: 0, count: 0 };
+    yRef.set(y, {
+      sumCents: pr.sumCents + r.sumCents,
+      count: pr.count + r.count,
+    });
   }
 
   return years.map((y) => {
     const c = yCap.get(y) ?? { sumCents: 0, count: 0 };
-    const r = yRef.get(y) ?? 0;
-    const n = Math.max(0, c.sumCents - r);
+    const r = yRef.get(y) ?? { sumCents: 0, count: 0 };
+    const n = c.sumCents - r.sumCents;
+
     return {
       key: y,
       tick: yearTick(y),
       label: y,
       capturedCents: c.sumCents,
-      refundedCents: r,
+      refundedCents: r.sumCents,
       netCents: n,
       count: c.count,
+      refundedCount: r.count,
     };
   });
 }
@@ -552,6 +592,20 @@ export default async function EarningsPage({
 
   const resolvedMY = resolveMonthYear({ view, sp, now });
   const resolvedMonthKey = resolvedMY.key;
+
+  // Fetch earliest/latest once, and reuse (also needed for "All time" + year dropdown)
+  const [earliestPaid, latestPaid] = await Promise.all([
+    db.payment.findFirst({
+      where: { paidAt: { not: null } },
+      orderBy: { paidAt: "asc" },
+      select: { paidAt: true },
+    }),
+    db.payment.findFirst({
+      where: { paidAt: { not: null } },
+      orderBy: { paidAt: "desc" },
+      select: { paidAt: true },
+    }),
+  ]);
 
   // Defaults (will be overwritten per-view)
   let fromUtc = currentMonthStart;
@@ -596,31 +650,12 @@ export default async function EarningsPage({
   }
 
   if (view === "all") {
-    const earliest = await db.payment.findFirst({
-      where: { paidAt: { not: null } },
-      orderBy: { paidAt: "asc" },
-      select: { paidAt: true },
-    });
-
-    fromUtc = earliest?.paidAt
-      ? startOfDayPhoenix(earliest.paidAt)
+    fromUtc = earliestPaid?.paidAt
+      ? startOfDayPhoenix(earliestPaid.paidAt)
       : new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
     toUtc = new Date(startOfDayPhoenix(now).getTime() + 24 * 60 * 60 * 1000);
     rangeLabel = "All time";
   }
-
-  const [earliestPaid, latestPaid] = await Promise.all([
-    db.payment.findFirst({
-      where: { paidAt: { not: null } },
-      orderBy: { paidAt: "asc" },
-      select: { paidAt: true },
-    }),
-    db.payment.findFirst({
-      where: { paidAt: { not: null } },
-      orderBy: { paidAt: "desc" },
-      select: { paidAt: true },
-    }),
-  ]);
 
   const earliestYear = earliestPaid?.paidAt
     ? toPhoenixParts(earliestPaid.paidAt).y
@@ -650,9 +685,7 @@ export default async function EarningsPage({
 
   const currency = "USD";
 
-  const [captured, refunded, payments, chartData] = await Promise.all([
-    capturedAgg(fromUtc, toUtc),
-    refundAgg(fromUtc, toUtc),
+  const [payments, chartData] = await Promise.all([
     db.payment.findMany({
       where: { paidAt: { gte: fromUtc, lt: toUtc } },
       orderBy: { paidAt: "desc" },
@@ -683,7 +716,9 @@ export default async function EarningsPage({
       : chartAggMonthly(fromUtc, toUtc),
   ]);
 
-  const netCents = Math.max(0, captured.sumCents - refunded.sumCents);
+  // ✅ KPIs derived from chartData (always matches chart + tab)
+  const kpi = kpisFromChartData(chartData);
+  const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
 
   // Used for the "Last 12 months" table (also aligns with Monthly tab)
   const monthMenuStarts = Array.from({ length: 12 }).map((_, i) =>
@@ -748,7 +783,7 @@ export default async function EarningsPage({
         : undefined,
   });
 
-  const chartTitle = view === "daily" ? "Daily earnings" : "Monthly earnings";
+  const chartTitle = chartHeadingFromData(view, chartData);
   const chartSub = rangeLabel;
 
   return (
@@ -788,25 +823,25 @@ export default async function EarningsPage({
       <div className={styles.kpiGrid}>
         <KpiCard
           label='Captured'
-          value={formatMoney(captured.sumCents, currency)}
-          sub={`${captured.count} payment${captured.count === 1 ? "" : "s"}`}
+          value={formatMoney(kpi.capturedSumCents, currency)}
+          sub={`${kpi.payCount} payment${kpi.payCount === 1 ? "" : "s"}`}
         />
         <KpiCard
           label='Avg order value'
-          value={formatMoney(captured.avgCents, currency)}
-          sub='Selected period'
+          value={formatMoney(kpi.avgCents, currency)}
+          sub='Current chart range'
         />
         <KpiCard
           label='Refunded'
-          value={formatMoney(refunded.sumCents, currency)}
-          sub={`${refunded.count} refund${refunded.count === 1 ? "" : "s"}`}
+          value={formatMoney(kpi.refundedSumCents, currency)}
+          sub={`${kpi.refundCount} refund${kpi.refundCount === 1 ? "" : "s"}`}
           tone='warn'
         />
         <KpiCard
           label='Net'
-          value={formatMoney(netCents, currency)}
+          value={formatMoney(kpi.netSumCents, currency)}
           sub='Captured minus refunded'
-          tone='good'
+          tone={netTone}
         />
       </div>
 

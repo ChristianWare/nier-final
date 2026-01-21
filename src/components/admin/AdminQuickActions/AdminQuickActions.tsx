@@ -24,9 +24,9 @@ const ACTIONS: QuickAction[] = [
     description: "Add an individual vehicle",
   },
   {
-    label: "Add driver",
-    href: "/admin/drivers",
-    description: "Manage drivers",
+    label: "View Calendar",
+    href: "/admin/calendar",
+    description: "See schedule",
   },
   {
     label: "Today’s schedule",

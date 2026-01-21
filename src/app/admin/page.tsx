@@ -30,9 +30,6 @@ export const dynamic = "force-dynamic";
 const PHX_TZ = "America/Phoenix";
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
-const snap = await getAdminFinanceSnapshot(new Date());
-
-
 function startOfDayPhoenix(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
   const phx = new Date(phxLocalMs);
@@ -820,6 +817,8 @@ export default async function AdminHome() {
       ? ((netMonthCents - netPrevCents) / netPrevCents) * 100
       : null;
 
+  const snap = await getAdminFinanceSnapshot(now);
+
   return (
     <section className={styles.content}>
       <AdminPageIntro
@@ -830,7 +829,6 @@ export default async function AdminHome() {
       <AdminFinanceSnapshot {...snap} currency='USD' />
 
       <AdminAlerts alerts={alerts} />
-
 
       <AdminRecentBookingRequests
         items={recentBookingRequests}

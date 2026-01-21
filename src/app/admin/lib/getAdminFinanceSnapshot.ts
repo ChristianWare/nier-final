@@ -52,38 +52,40 @@ function monthLabelPhoenix(dateUtc: Date) {
   }).format(dateUtc);
 }
 
-function monthTickPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    year: "2-digit",
-  }).format(dateUtc);
-}
-
-function monthShortLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    year: "numeric",
-  }).format(dateUtc);
-}
-
-function monthKeyFromDatePhoenix(dateUtc: Date) {
+function dayKeyFromDatePhoenix(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
   const phx = new Date(phxLocalMs);
   const y = phx.getUTCFullYear();
   const m = phx.getUTCMonth() + 1;
-  return `${y}-${String(m).padStart(2, "0")}`;
+  const d = phx.getUTCDate();
+  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+function dayTickPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "2-digit",
+    day: "2-digit",
+  }).format(dateUtc);
+}
+
+function dayLabelPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(dateUtc);
 }
 
 export type AdminFinanceSnapshotChartPoint = {
-  key: string;
-  tick: string;
-  label: string;
+  key: string; // YYYY-MM-DD (Phoenix)
+  tick: string; // MM/DD
+  label: string; // "Jan 21, 2026"
   capturedCents: number;
   refundedCents: number;
   netCents: number;
-  count: number;
+  count: number; // payments count
 };
 
 export type AdminFinanceSnapshotData = {
@@ -107,33 +109,39 @@ export type AdminFinanceSnapshotData = {
   chartData: AdminFinanceSnapshotChartPoint[];
 };
 
-async function getLast12MonthsChart(
+/**
+ * ✅ Daily chart points for Month-to-Date (Phoenix time).
+ * Produces one point per day from month start → today (inclusive), filling gaps with zeros.
+ */
+async function getMonthToDateDailyChart(
   now: Date,
 ): Promise<AdminFinanceSnapshotChartPoint[]> {
-  const currentMonthStart = startOfMonthPhoenix(now);
-  const nextAfterCurrent = addMonthsPhoenixStart(currentMonthStart, 1);
-  const oldestMonthStart = addMonthsPhoenixStart(currentMonthStart, -11);
+  const monthStart = startOfMonthPhoenix(now);
+  const todayStart = startOfDayPhoenix(now);
+  const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+  const fromUtc = monthStart;
+  const toUtc = tomorrowStart;
 
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('month', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      to_char(date_trunc('day', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
     WHERE "status" = 'PAID'
-      AND "paidAt" >= ${oldestMonthStart} AND "paidAt" < ${nextAfterCurrent}
+      AND "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
     GROUP BY 1
     ORDER BY 1 ASC
   `) as any[];
 
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('month', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
-      COUNT(*) as count
+      to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+      COALESCE(SUM("amountTotalCents"), 0) as sum
     FROM "Payment"
     WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
-      AND "updatedAt" >= ${oldestMonthStart} AND "updatedAt" < ${nextAfterCurrent}
+      AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
     GROUP BY 1
     ORDER BY 1 ASC
   `) as any[];
@@ -144,28 +152,33 @@ async function getLast12MonthsChart(
     cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
   }
 
-  const ref = new Map<string, { sumCents: number; count: number }>();
+  const ref = new Map<string, number>();
   for (const r of refundRows) {
     const k = String(r.key);
-    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+    ref.set(k, Number(r.sum || 0));
   }
 
   const points: AdminFinanceSnapshotChartPoint[] = [];
 
-  for (let i = 0; i < 12; i++) {
-    const ms = addMonthsPhoenixStart(oldestMonthStart, i);
-    const key = monthKeyFromDatePhoenix(ms);
+  for (
+    let d = new Date(fromUtc.getTime());
+    d.getTime() < toUtc.getTime();
+    d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
+  ) {
+    const key = dayKeyFromDatePhoenix(d);
 
     const c = cap.get(key) ?? { sumCents: 0, count: 0 };
-    const r = ref.get(key) ?? { sumCents: 0, count: 0 };
-    const net = Math.max(0, c.sumCents - r.sumCents);
+    const r = ref.get(key) ?? 0;
+
+    // keep prior behavior: don't show negative net in the snapshot mini-chart
+    const net = Math.max(0, c.sumCents - r);
 
     points.push({
       key,
-      tick: monthTickPhoenix(ms),
-      label: monthShortLabelPhoenix(ms),
+      tick: dayTickPhoenix(d),
+      label: dayLabelPhoenix(d),
       capturedCents: c.sumCents,
-      refundedCents: r.sumCents,
+      refundedCents: r,
       netCents: net,
       count: c.count,
     });
@@ -237,7 +250,8 @@ export async function getAdminFinanceSnapshot(
       _count: { _all: true },
     }),
 
-    getLast12MonthsChart(now),
+    // ✅ daily (month-to-date) chart instead of last-12-months monthly chart
+    getMonthToDateDailyChart(now),
   ]);
 
   const capturedMonthCents = Number(paidMonthAgg._sum.amountTotalCents ?? 0);

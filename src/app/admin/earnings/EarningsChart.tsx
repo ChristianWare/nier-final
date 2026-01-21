@@ -10,6 +10,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ReferenceLine,
+  Cell,
+  Rectangle,
 } from "recharts";
 import styles from "./AdminEarningsPage.module.css";
 
@@ -21,6 +24,26 @@ function formatMoney(cents: number, currency = "USD") {
     maximumFractionDigits: 0,
   }).format(n);
 }
+
+const POS_RADIUS: [number, number, number, number] = [10, 10, 0, 0];
+const NEG_RADIUS: [number, number, number, number] = [0, 0, 10, 10];
+
+function NetBarShape(props: any) {
+  const { x, y, width, height, fill, payload } = props;
+  const v = Number(payload?.netCents ?? 0);
+
+  return (
+    <Rectangle
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
+      radius={v >= 0 ? POS_RADIUS : NEG_RADIUS}
+    />
+  );
+}
+
 
 export default function EarningsChart({
   data,
@@ -34,6 +57,7 @@ export default function EarningsChart({
     refundedCents: number;
     netCents: number;
     count: number;
+    refundedCount?: number;
   }[];
   currency: string;
 }) {
@@ -61,6 +85,10 @@ export default function EarningsChart({
             margin={{ top: 6, right: 10, bottom: 6, left: 10 }}
           >
             <CartesianGrid stroke='rgba(0,0,0,0.08)' vertical={false} />
+
+            {/* baseline for negative net */}
+            <ReferenceLine y={0} stroke='rgba(0,0,0,0.12)' />
+
             <XAxis
               dataKey='tick'
               tickLine={false}
@@ -108,15 +136,28 @@ export default function EarningsChart({
                         {row.count ?? 0}
                       </span>
                     </div>
+                    {typeof row.refundedCount === "number" ? (
+                      <div className={styles.tooltipRow}>
+                        <span className='miniNote'>Refunds</span>
+                        <span className={styles.tooltipVal}>
+                          {row.refundedCount ?? 0}
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
                 );
               }}
             />
-            <Bar
-              dataKey='netCents'
-              fill='var(--lightGreen)'
-              radius={[10, 10, 0, 0]}
-            />
+
+            <Bar dataKey='netCents' shape={<NetBarShape />}>
+              {data.map((d, i) => (
+                <Cell
+                  key={`${d.key}-${i}`}
+                  fill={d.netCents < 0 ? "var(--red)" : "var(--lightGreen)"}
+                />
+              ))}
+            </Bar>
+
             <Line
               type='monotone'
               dataKey='capturedCents'

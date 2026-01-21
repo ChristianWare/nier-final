@@ -3,9 +3,9 @@ import styles from "./AdminFinanceSnapshot.module.css";
 import AdminFinanceMiniChart from "./AdminFinanceMiniChart";
 
 export type AdminFinanceSnapshotChartPoint = {
-  key: string;
-  tick: string;
-  label: string;
+  key: string; // YYYY-MM-DD (Phoenix)
+  tick: string; // MM/DD
+  label: string; // e.g. "Jan 21, 2026"
   capturedCents: number;
   refundedCents: number;
   netCents: number;
@@ -65,14 +65,14 @@ export default function AdminFinanceSnapshot({
   return (
     <section className={styles.container} aria-label='Finance snapshot'>
       <header className='header'>
-        <h2 className='cardTitle h4'>{monthLabel} - Earnings</h2>
+        <h2 className='cardTitle h4'>{monthLabel} - Daily Earnings</h2>
       </header>
 
       {Array.isArray(chartData) && chartData.length > 0 ? (
         <div className={styles.chartWrap}>
           <div className={styles.chartHeader}>
-            <div className='emptyTitle underline'>Last 12 months</div>
-            <div className='miniNote'>Net with captured & refunded</div>
+            <div className='emptyTitle underline'>Month to date</div>
+            <div className='miniNote'>Daily net with captured & refunded</div>
           </div>
           <AdminFinanceMiniChart data={chartData} currency={currency} />
         </div>
