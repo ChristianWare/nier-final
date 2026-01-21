@@ -148,9 +148,11 @@
   pointer-events: none;
 }
 
+/* ✅ FIX: remove vertical scroll cap; keep horizontal scroll */
 .tableWrap {
-  overflow: auto;
-  max-height: 520px;
+  overflow-x: auto;
+  overflow-y: visible;
+  max-height: none;
 }
 
 .tableCard {
@@ -167,9 +169,8 @@
   min-width: 1120px;
 }
 
+/* (Optional) you can keep this; without a vertical scroll container it won’t “stick” the same way */
 .thead {
-  position: sticky;
-  top: 0;
   background: var(--white);
   z-index: 2;
 }
@@ -189,6 +190,8 @@
   padding: 10px 12px;
   border-bottom: 1px solid var(--stroke);
   vertical-align: top;
+  position: relative;
+  z-index: 2;
 }
 
 .thRight {
@@ -197,10 +200,17 @@
 
 .tr {
   border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: all 0.3s ease-in;
+  position: relative;
 }
 
 .tr:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
 }
 
 .tdRight {
@@ -305,30 +315,17 @@
   gap: 1rem;
 }
 
-.tr {
-  border-bottom: 1px solid var(--stroke);
-  cursor: pointer;
-  transition: all 0.3s ease-in;
-  position: relative;
-}
-
-.tr:hover {
-  background: var(--lightGray);
-}
-
-.tr:focus-within {
-  background: var(--lightGray);
-}
-
 .rowStretchedLink {
   position: absolute;
   inset: 0;
   z-index: 1;
 }
 
-.td {
-  position: relative;
-  z-index: 2;
+.pageBtnActive {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  pointer-events: none;
 }
 
 

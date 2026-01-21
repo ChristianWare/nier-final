@@ -44,7 +44,7 @@ type SearchParams = {
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 
 function toPhoenixParts(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
@@ -981,18 +981,40 @@ function Pagination({
   const hasPrev = page > 1;
   const hasNext = page < totalPages;
 
-  const prevPage = page - 1;
-  const nextPage = page + 1;
-
   const prevHref = buildHref("/admin/bookings", {
     ...current,
-    page: prevPage > 1 ? String(prevPage) : undefined,
+    page: page - 1 > 1 ? String(page - 1) : undefined,
   });
 
   const nextHref = buildHref("/admin/bookings", {
     ...current,
-    page: String(nextPage),
+    page: String(page + 1),
   });
+
+  // Builds: 1 … 4 5 [6] 7 8 … 20
+  function getPageItems() {
+    const items: Array<number | "…"> = [];
+    const windowSize = 2; // pages shown on each side of current
+
+    explainPush(1);
+
+    const start = Math.max(2, page - windowSize);
+    const end = Math.min(totalPages - 1, page + windowSize);
+
+    if (start > 2) items.push("…");
+    for (let p = start; p <= end; p++) explainPush(p);
+    if (end < totalPages - 1) items.push("…");
+
+    if (totalPages > 1) explainPush(totalPages);
+
+    return items;
+
+    function explainPush(p: number) {
+      items.push(p);
+    }
+  }
+
+  const pageItems = getPageItems();
 
   return (
     <div className={styles.pagination}>
@@ -1001,6 +1023,7 @@ function Pagination({
           Page <strong>{page}</strong> of <strong>{totalPages}</strong>
         </span>
       </div>
+
       <div className={styles.paginationRight}>
         {hasPrev ? (
           <Link className={styles.pageBtn} href={prevHref}>
@@ -1011,6 +1034,41 @@ function Pagination({
             Prev
           </span>
         )}
+
+        {/* Page numbers */}
+        {pageItems.map((x, idx) => {
+          if (x === "…") {
+            return (
+              <span
+                key={`dots-${idx}`}
+                className={`${styles.pageBtn} ${styles.pageBtnDisabled}`}
+                aria-hidden='true'
+              >
+                …
+              </span>
+            );
+          }
+
+          const href = buildHref("/admin/bookings", {
+            ...current,
+            page: x > 1 ? String(x) : undefined,
+          });
+
+          const isActive = x === page;
+
+          return isActive ? (
+            <span
+              key={x}
+              className={`${styles.pageBtn} ${styles.pageBtnActive}`}
+            >
+              {x}
+            </span>
+          ) : (
+            <Link key={x} className={styles.pageBtn} href={href}>
+              {x}
+            </Link>
+          );
+        })}
 
         {hasNext ? (
           <Link className={styles.pageBtn} href={nextHref}>
@@ -1025,3 +1083,4 @@ function Pagination({
     </div>
   );
 }
+
