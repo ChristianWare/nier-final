@@ -220,6 +220,7 @@ type BookingRow = Prisma.BookingGetPayload<{
     user: { select: { name: true; email: true } };
     serviceType: { select: { name: true } };
     vehicle: { select: { name: true } };
+    payment: { select: { status: true } };
     assignment: {
       include: { driver: { select: { name: true; email: true } } };
     };
@@ -402,6 +403,7 @@ export default async function AdminBookingsPage({
       user: { select: { name: true, email: true } },
       serviceType: { select: { name: true } },
       vehicle: { select: { name: true } },
+      payment: { select: { status: true } },
       assignment: {
         include: { driver: { select: { name: true, email: true } } },
       },
@@ -613,6 +615,19 @@ export default async function AdminBookingsPage({
 
                   const driverName = b.assignment?.driver?.name?.trim() || "";
                   const driverEmail = b.assignment?.driver?.email ?? "";
+                  const payStatus = b.payment?.status ?? null;
+
+                  const statusDisplay =
+                    payStatus === "PAID" &&
+                    (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
+                      ? "Payment received"
+                      : statusLabel(b.status);
+
+                  const statusTone =
+                    payStatus === "PAID" &&
+                    (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
+                      ? "good"
+                      : badgeTone(b.status);
 
                   return (
                     <tr key={b.id} className={styles.tr}>
@@ -675,10 +690,8 @@ export default async function AdminBookingsPage({
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
                         <div className={styles.pickupMeta}>
-                          <span
-                            className={`badge badge_${badgeTone(b.status)}`}
-                          >
-                            {statusLabel(b.status)}
+                          <span className={`badge badge_${statusTone}`}>
+                            {statusDisplay}
                           </span>
                         </div>
                       </td>

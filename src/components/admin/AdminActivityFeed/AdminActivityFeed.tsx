@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import Button from "@/components/shared/Button/Button";
 import styles from "./AdminActivityFeed.module.css";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -337,6 +338,14 @@ export default function AdminActivityFeed({
           })}
         </ul>
       )}
+       <div className={styles.btnContainer}>
+              <Button
+                href='/admin/activity'
+                text='See all activity'
+                btnType='black'
+                arrow
+              />
+            </div>
     </section>
   );
 }

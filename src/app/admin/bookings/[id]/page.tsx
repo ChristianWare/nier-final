@@ -5,6 +5,7 @@ import ApprovePriceForm from "@/components/admin/ApprovePriceForm/ApprovePriceFo
 import AssignBookingForm from "@/components/admin/AssignBookingForm/AssignBookingForm";
 import SendPaymentLinkButton from "@/components/admin/SendPaymentLinkButton/SendPaymentLinkButton";
 import { BookingStatus } from "@prisma/client";
+import Link from "next/link";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -118,7 +119,21 @@ export default async function AdminBookingDetailPage({
   const customerPhone = booking.guestPhone?.trim() || "—";
   const customerLine = booking.user
     ? `${customerName} (${customerEmail})`
-    : `${customerName} (${customerEmail})${booking.guestPhone ? ` • ${customerPhone}` : ""}`;
+    : `${customerName} (${customerEmail})${
+        booking.guestPhone ? ` • ${customerPhone}` : ""
+      }`;
+
+  /**
+   * ✅ Display fix:
+   * If Stripe says PAID, and your statusEvents contain a duplicate "CONFIRMED",
+   * we treat the *most recent* CONFIRMED event as "Payment received".
+   *
+   * This is purely a UI label fix so the timeline matches what the payment section shows.
+   */
+  const isPaid = booking.payment?.status === "PAID";
+  const mostRecentConfirmedEventId = isPaid
+    ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
+    : null;
 
   return (
     <section className='container'>
@@ -192,21 +207,38 @@ export default async function AdminBookingDetailPage({
           <SendPaymentLinkButton bookingId={booking.id} />
           {booking.payment?.checkoutUrl ? (
             <div className={styles.checkoutUrl}>
-              Latest checkout URL: {booking.payment.checkoutUrl}
+              Latest checkout URL: <br />
+              <Link
+                href={booking.payment.checkoutUrl}
+                className='backBtn emptyTitleSmall'
+                style={{ marginTop: "1rem", display: "inline-block" }}
+                target='_blank'
+                rel='noopener noreferrer'
+              >
+                Payment Link
+              </Link>
             </div>
           ) : null}
         </div>
       </Card>
 
-      {/* ✅ Updated: friendly label + badge tone, similar to AdminActivityFeed */}
       <Card title='Status events'>
         {booking.statusEvents.length === 0 ? (
           <div className={styles.muted}>No events yet.</div>
         ) : (
           <ul className={styles.eventsList}>
             {booking.statusEvents.map((e) => {
-              const tone = badgeTone(e.status as BookingStatus);
-              const label = statusLabel(e.status as BookingStatus);
+              const isPaidConfirmed =
+                Boolean(mostRecentConfirmedEventId) &&
+                e.id === mostRecentConfirmedEventId;
+
+              const tone: BadgeTone = isPaidConfirmed
+                ? "good"
+                : badgeTone(e.status as BookingStatus);
+
+              const label = isPaidConfirmed
+                ? "Payment received"
+                : statusLabel(e.status as BookingStatus);
 
               return (
                 <li key={e.id} className={styles.eventItem}>
