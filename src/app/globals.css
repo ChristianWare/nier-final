@@ -12,12 +12,14 @@
   --stroke: #d8d6d2;
   --strokeii: #a7a6a2;
   --blue: #2563eb;
+  --lightBlue: #2563eb33;
   --green: rgb(22, 163, 74);
   --lightGreen: #16a34a4d;
   --darkGreen: #0b7547;
   --red: #dc2626;
   --darkRed: #8b1a1a;
-  --yellow: #facc15;
+  --yellow: #FFCA44;
+  --lightYellow: #FFF8D9;;
   --darkYellow: #745000;
   --stickyTop: 20vh;
   --cardGap: 1rem;
@@ -565,6 +567,10 @@ th {
 
 .redBorder {
   border: 1px solid var(--accent);
+}
+
+.yellowBorder {
+  border: 1px solid var(--yellow);
 }
 
 .underline {

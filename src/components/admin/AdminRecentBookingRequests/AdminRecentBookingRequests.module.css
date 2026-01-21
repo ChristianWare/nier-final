@@ -4,7 +4,7 @@
   padding: 18px;
   border-radius: 14px;
   border: 1px solid rgba(0, 0, 0, 0.12);
-  background: white;
+  background: var(--white);
 }
 
 .header {
@@ -103,15 +103,34 @@
 
 .tr {
   border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: all 0.3s ease-in;
+  position: relative;
 }
 
 .tr:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
 }
 
 .td {
   padding: 12px 14px;
   vertical-align: top;
+  position: relative;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cellInner {
+  position: relative;
+  z-index: 2;
 }
 
 .tdRight {
@@ -120,9 +139,8 @@
 }
 
 .rowLink {
-  text-decoration: none;
-  color: var(--black);
-  font-weight: 900;
+  letter-spacing: -.01em;
+    font-weight: 600;
 }
 
 .rowLink:hover {

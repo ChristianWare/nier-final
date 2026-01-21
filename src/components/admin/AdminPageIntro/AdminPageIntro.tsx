@@ -3,7 +3,7 @@
 
 import styles from "./AdminPageIntro.module.css";
 import { useSession } from "next-auth/react";
-import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
+// import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
 import AdminQuickActions from "../AdminQuickActions/AdminQuickActions";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
@@ -14,11 +14,13 @@ export type AdminPageIntroProps = {
   confirmed: number;
 };
 
-export default function AdminPageIntro({
-  pendingReview,
-  pendingPayment,
-  confirmed,
-}: AdminPageIntroProps) {
+export default function AdminPageIntro(
+  {
+    // pendingReview,
+    // pendingPayment,
+    // confirmed,
+  }: AdminPageIntroProps,
+) {
   const { data: session } = useSession();
 
   const roles: AppRole[] = Array.isArray((session?.user as any)?.roles)
@@ -41,7 +43,7 @@ export default function AdminPageIntro({
         </div>
         <AdminQuickActions />
 
-        <div className={`cardTitle h4`} style={{ marginTop: "7rem" }}>
+        {/* <div className={`cardTitle h4`} style={{ marginTop: "7rem" }}>
           Key Performance Indicators
         </div>
 
@@ -49,7 +51,7 @@ export default function AdminPageIntro({
           <AdminKPICard title='Pending review' value={pendingReview} />
           <AdminKPICard title='Pending payment' value={pendingPayment} />
           <AdminKPICard title='Confirmed' value={confirmed} />
-        </div>
+        </div> */}
       </div>
     </section>
   );

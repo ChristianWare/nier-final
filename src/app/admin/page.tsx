@@ -827,10 +827,10 @@ export default async function AdminHome() {
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
+      <AdminFinanceSnapshot {...snap} currency='USD' />
 
       <AdminAlerts alerts={alerts} />
 
-      <AdminFinanceSnapshot {...snap} currency='USD' />
 
       <AdminRecentBookingRequests
         items={recentBookingRequests}

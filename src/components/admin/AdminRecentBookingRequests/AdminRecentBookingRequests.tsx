@@ -54,43 +54,24 @@ function formatAt(iso: string, timeZone: string) {
   const d = new Date(iso);
   const now = new Date();
 
-  const dayFmt = new Intl.DateTimeFormat("en-US", {
+  const label = new Intl.DateTimeFormat("en-US", {
     timeZone,
-    year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  });
-
-  const todayKey = dayFmt.format(now);
-  const dKey = dayFmt.format(d);
-
-  const time = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hour: "numeric",
-    minute: "2-digit",
+    year: "numeric",
   }).format(d);
-
-  const date = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(d);
-
-  const prefix = dKey === todayKey ? "Today" : date;
 
   const diffMs = d.getTime() - now.getTime();
-  const diffMin = Math.round(diffMs / 60000);
-  const rel =
-    diffMin >= 0
-      ? diffMin < 60
-        ? `in ${diffMin}m`
-        : `in ${Math.round(diffMin / 60)}h`
-      : diffMin > -60
-        ? `${Math.abs(diffMin)}m ago`
-        : `${Math.abs(Math.round(diffMin / 60))}h ago`;
+  const absMs = Math.abs(diffMs);
 
-  return { label: `${prefix} • ${time}`, rel };
+  const mins = Math.round(absMs / (60 * 1000));
+  const hours = Math.round(absMs / (60 * 60 * 1000));
+  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
+
+  const short = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
+  const rel = diffMs >= 0 ? `in ${short}` : `${short} ago`;
+
+  return { label, rel };
 }
 
 function prettyStatus(s: string) {
@@ -114,7 +95,7 @@ export default function AdminRecentBookingRequests({
   timeZone,
   bookingHrefBase = "/admin/bookings",
 }: Props) {
-  const [bucket, setBucket] = useState<Bucket>("review");
+  const [bucket, setBucket] = useState<Bucket>("all");
   const [customerFilter, setCustomerFilter] = useState<CustomerFilter>("all");
 
   const counts = useMemo(() => {
@@ -166,7 +147,11 @@ export default function AdminRecentBookingRequests({
     <section className={styles.container} aria-label='Recent booking requests'>
       <header className={styles.header}>
         <div className={styles.titleRow}>
-          <h2 className='cardTitle h4'>Recent booking requests</h2>
+          <h2
+            className={`cardTitle h4 ${counts.total >= 1 ? "yellowBorder" : ""}`}
+          >
+            Recent booking requests
+          </h2>
 
           <div className={styles.kpis}>
             <span className={styles.kpi}>Total: {counts.total}</span>
@@ -280,15 +265,31 @@ export default function AdminRecentBookingRequests({
                 return (
                   <tr key={b.id} className={styles.tr}>
                     <td className={styles.td} data-label='Status'>
-                      <span
-                        className={`${styles.badge} ${styles[`badge_${tone}`]}`}
-                      >
-                        {prettyStatus(b.status)}
-                      </span>
+                      <Link
+                        href={href}
+                        className={styles.rowStretchedLink}
+                        aria-hidden='true'
+                        tabIndex={-1}
+                      />
+                      <div className={styles.cellInner}>
+                        <span
+                          className={`${styles.badge} ${styles[`badge_${tone}`]}`}
+                        >
+                          {prettyStatus(b.status)}
+                        </span>
+                      </div>
                     </td>
 
                     <td className={styles.td} data-label='Created'>
-                      <div className={styles.cellStack}>
+                      <Link
+                        href={href}
+                        className={styles.rowStretchedLink}
+                        aria-hidden='true'
+                        tabIndex={-1}
+                      />
+                      <div
+                        className={`${styles.cellStack} ${styles.cellInner}`}
+                      >
                         <Link href={href} className={styles.rowLink}>
                           {created.label}
                         </Link>
@@ -299,7 +300,15 @@ export default function AdminRecentBookingRequests({
                     </td>
 
                     <td className={styles.td} data-label='Pickup'>
-                      <div className={styles.cellStack}>
+                      <Link
+                        href={href}
+                        className={styles.rowStretchedLink}
+                        aria-hidden='true'
+                        tabIndex={-1}
+                      />
+                      <div
+                        className={`${styles.cellStack} ${styles.cellInner}`}
+                      >
                         <Link href={href} className={styles.rowLink}>
                           {pickup.label}
                         </Link>
@@ -310,7 +319,15 @@ export default function AdminRecentBookingRequests({
                     </td>
 
                     <td className={styles.td} data-label='Client'>
-                      <div className={styles.cellStack}>
+                      <Link
+                        href={href}
+                        className={styles.rowStretchedLink}
+                        aria-hidden='true'
+                        tabIndex={-1}
+                      />
+                      <div
+                        className={`${styles.cellStack} ${styles.cellInner}`}
+                      >
                         <Link href={href} className={styles.rowLink}>
                           {b.customer.kind === "guest" ? "Guest" : "Account"}
                         </Link>
@@ -319,17 +336,41 @@ export default function AdminRecentBookingRequests({
                     </td>
 
                     <td className={styles.td} data-label='Service'>
-                      <div className={styles.cellStrong}>{b.serviceName}</div>
+                      <Link
+                        href={href}
+                        className={styles.rowStretchedLink}
+                        aria-hidden='true'
+                        tabIndex={-1}
+                      />
+                      <div className={styles.cellInner}>
+                        <div className={styles.rowLink}>{b.serviceName}</div>
+                      </div>
                     </td>
 
                     <td className={styles.td} data-label='Vehicle'>
-                      <div className={styles.cellStrong}>
-                        {b.vehicleName ?? "—"}
+                      <Link
+                        href={href}
+                        className={styles.rowStretchedLink}
+                        aria-hidden='true'
+                        tabIndex={-1}
+                      />
+                      <div className={styles.cellInner}>
+                        <div className={styles.rowLink}>
+                          {b.vehicleName ?? "—"}
+                        </div>
                       </div>
                     </td>
 
                     <td className={styles.td} data-label='Route'>
-                      <div className={styles.route}>{route}</div>
+                      <Link
+                        href={href}
+                        className={styles.rowStretchedLink}
+                        aria-hidden='true'
+                        tabIndex={-1}
+                      />
+                      <div className={styles.cellInner}>
+                        <div className={styles.route}>{route}</div>
+                      </div>
                     </td>
 
                     <td
