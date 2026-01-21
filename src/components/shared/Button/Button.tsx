@@ -4,6 +4,7 @@ import styles from "./Button.module.css";
 import Arrow from "../icons/Arrow/Arrow";
 import Plus from "../icons/Plus/Plus";
 import DownloadIcon from "../DownloadIcon/DownloadIcon";
+import Close from "../icons/Close/Close";
 
 interface Props {
   href?: string;
@@ -15,6 +16,7 @@ interface Props {
   arrow?: boolean;
   plus?: boolean;
   downloadIcon?: boolean;
+  closeIcon?: boolean;
   type?: "button" | "submit" | "reset";
   as?: "auto" | "button" | "span";
   onClick?: MouseEventHandler<HTMLButtonElement>;
@@ -28,6 +30,7 @@ export default function Button({
   disabled,
   children,
   arrow,
+  closeIcon,
   plus,
   downloadIcon,
   type = "button",
@@ -53,6 +56,11 @@ export default function Button({
       {downloadIcon && (
         <div className={styles.plusContainer}>
           <DownloadIcon className={styles.optionalIcon} />
+        </div>
+      )}
+      {closeIcon && (
+        <div className={styles.plusContainer}>
+          <Close className={styles.optionalIcon} />
         </div>
       )}
     </>

@@ -298,7 +298,40 @@
   margin-top: 1rem;
 }
 
-/* Mobile cards */
+.searchRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.tr {
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: all 0.3s ease-in;
+  position: relative;
+}
+
+.tr:hover {
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.td {
+  position: relative;
+  z-index: 2;
+}
+
+
 @media screen and (max-width: 768px) {
   .tableCard {
     border: 0;

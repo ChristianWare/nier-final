@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { Prisma, BookingStatus, PaymentStatus } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
 import CustomRangeFormClient from "./CustomRangeFormClient";
+import SearchFormClient from "./SearchFormClient";
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,13 +30,14 @@ type RangeFilter = (typeof RANGES)[number];
 type SearchParams = {
   status?: StatusFilter;
   range?: RangeFilter;
+  q?: string;
 
   unassigned?: "1";
   paid?: "1";
   stuck?: "1";
 
-  from?: string;
-  to?: string;
+  from?: string; // YYYY-MM-DD
+  to?: string; // YYYY-MM-DD
 
   page?: string;
 };
@@ -122,7 +125,6 @@ function formatPhoenix(d: Date) {
     year: "numeric",
   }).format(d);
 }
-
 
 function formatMoneyFromCents(cents: number) {
   const dollars = cents / 100;
@@ -273,11 +275,14 @@ function buildWhere(args: {
   stuck: boolean;
   fromYmd: string;
   toYmd: string;
+  q?: string;
 }) {
-  const { now, status, range, unassigned, paid, stuck, fromYmd, toYmd } = args;
+  const { now, status, range, unassigned, paid, stuck, fromYmd, toYmd, q } =
+    args;
 
   const where: Prisma.BookingWhereInput = {};
 
+  // ---- Time window ----
   const todayStart = startOfDayPhoenix(now);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
@@ -307,8 +312,10 @@ function buildWhere(args: {
     let fromUtc = f ? startOfDayFromYMDPhoenix(f) : todayStart;
     const toUtc0 = t ? startOfDayFromYMDPhoenix(t) : todayStart;
 
+    // inclusive end-date => +1 day exclusive bound
     let toUtc = new Date(toUtc0.getTime() + 24 * 60 * 60 * 1000);
 
+    // guard inverted ranges
     if (toUtc.getTime() < fromUtc.getTime()) {
       const tmp = fromUtc;
       fromUtc = toUtc0;
@@ -320,16 +327,53 @@ function buildWhere(args: {
 
   if (pickupAtFilter) where.pickupAt = pickupAtFilter;
 
+  // ---- Status ----
   if (status !== "ALL") where.status = status as BookingStatus;
 
+  // ---- Toggles ----
   if (unassigned) where.assignment = { is: null };
   if (paid) where.payment = { is: { status: "PAID" } };
 
+  // ---- Stuck review ----
   if (stuck) {
     const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
     where.status = "PENDING_REVIEW";
     where.createdAt = { lt: stuckCutoff };
     where.pickupAt = { gte: now };
+  }
+
+  // ---- Search ----
+  const needle = (q ?? "").trim();
+  if (needle) {
+    const existingAnd = Array.isArray(where.AND)
+      ? where.AND
+      : where.AND
+        ? [where.AND]
+        : [];
+
+    where.AND = [
+      ...existingAnd,
+      {
+        OR: [
+          { id: { contains: needle, mode: "insensitive" } },
+          { guestName: { contains: needle, mode: "insensitive" } },
+          { guestEmail: { contains: needle, mode: "insensitive" } },
+          { guestPhone: { contains: needle, mode: "insensitive" } },
+          { pickupAddress: { contains: needle, mode: "insensitive" } },
+          { dropoffAddress: { contains: needle, mode: "insensitive" } },
+
+          // user relation (optional)
+          { user: { is: { name: { contains: needle, mode: "insensitive" } } } },
+          {
+            user: { is: { email: { contains: needle, mode: "insensitive" } } },
+          },
+
+          // Uncomment if these exist in your schema:
+          // { serviceType: { is: { name: { contains: needle, mode: "insensitive" } } } },
+          // { assignment: { is: { driver: { is: { name: { contains: needle, mode: "insensitive" } } } } } },
+        ],
+      },
+    ];
   }
 
   return where;
@@ -350,6 +394,8 @@ export default async function AdminBookingsPage({
   const stuck = sp.stuck === "1";
   const page = clampPage(sp.page);
 
+  const q = (sp.q ?? "").trim();
+
   const now = new Date();
 
   const defaultFrom = ymdForInputPhoenix(now);
@@ -367,6 +413,7 @@ export default async function AdminBookingsPage({
     stuck,
     fromYmd,
     toYmd,
+    q,
   });
 
   const orderBy: Prisma.BookingOrderByWithRelationInput[] =
@@ -402,6 +449,7 @@ export default async function AdminBookingsPage({
     take: PAGE_SIZE,
   });
 
+  // ---- Counts for tabs (respects current q by default) ----
   async function countFor(next: {
     status?: StatusFilter;
     range?: RangeFilter;
@@ -410,6 +458,7 @@ export default async function AdminBookingsPage({
     stuck?: boolean;
     fromYmd?: string;
     toYmd?: string;
+    q?: string;
   }) {
     const w = buildWhere({
       now,
@@ -421,6 +470,7 @@ export default async function AdminBookingsPage({
       stuck: typeof next.stuck === "boolean" ? next.stuck : stuck,
       fromYmd: next.fromYmd ?? fromYmd,
       toYmd: next.toYmd ?? toYmd,
+      q: next.q ?? q,
     });
     return db.booking.count({ where: w });
   }
@@ -436,39 +486,42 @@ export default async function AdminBookingsPage({
       STATUSES.map(async (s) => {
         const c =
           s === "ALL"
-            ? await countFor({ status: "ALL" })
-            : await countFor({ status: s });
+            ? await countFor({ status: "ALL", q })
+            : await countFor({ status: s, q });
         return [s, c] as const;
       }),
     ),
     Promise.all(
       RANGES.map(async (r) => {
-        const c = await countFor({ range: r });
+        const c = await countFor({ range: r, q });
         return [r, c] as const;
       }),
     ),
-    countFor({ unassigned: true }),
-    countFor({ paid: true }),
-    countFor({ stuck: true }),
+    countFor({ unassigned: true, q }),
+    countFor({ paid: true, q }),
+    countFor({ stuck: true, q }),
   ]);
 
   const statusCounts = Object.fromEntries(statusCountsArr) as Record<
     StatusFilter,
     number
   >;
+
   const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
     RangeFilter,
     number
   >;
 
+  // Params used in links/forms
   const baseParams: Record<string, string | undefined> = {
     status: status === "ALL" ? "ALL" : status,
-    range: range === "month" ? undefined : range,
+    range: range === "month" ? undefined : range, // keep URLs clean; default is month
     unassigned: unassigned ? "1" : undefined,
     paid: paid ? "1" : undefined,
     stuck: stuck ? "1" : undefined,
     from: range === "range" ? fromYmd : undefined,
     to: range === "range" ? toYmd : undefined,
+    q: q.length ? q : undefined,
   };
 
   const pageParams: Record<string, string | undefined> = {
@@ -494,7 +547,7 @@ export default async function AdminBookingsPage({
           </div>
 
           <div className={styles.meta}>
-            <strong style={{ fontSize: "1.4rem", }}>{totalCount}</strong> total
+            <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong> total
             {totalCount > 0 ? (
               <span className={styles.metaSep}>
                 • Page <strong className='emptyTitleSmall'>{safePage}</strong>{" "}
@@ -542,6 +595,8 @@ export default async function AdminBookingsPage({
             />
           </div>
         </div>
+
+        <SearchFormClient current={baseParams} defaultValue={q} />
 
         <Pagination
           totalCount={totalCount}
@@ -599,7 +654,19 @@ export default async function AdminBookingsPage({
 
                   return (
                     <tr key={b.id} className={styles.tr}>
-                      <td className={styles.td} data-label='Created'>
+                      <td
+                        className={styles.td}
+                        data-label='Created'
+                        style={{ position: "relative" }}
+                      >
+                        {/* clickable overlay for this cell */}
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-label='Open booking'
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
                             {formatPhoenix(b.createdAt)}
@@ -610,7 +677,19 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
-                      <td className={styles.td} data-label='Pickup'>
+                      <td
+                        className={styles.td}
+                        data-label='Pickup'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
                             {formatPhoenix(b.pickupAt)}
@@ -633,7 +712,19 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
-                      <td className={styles.td} data-label='Customer'>
+                      <td
+                        className={styles.td}
+                        data-label='Customer'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+
                         <div className={styles.cellStack}>
                           <Link href={href} className={styles.rowLink}>
                             {customerName}
@@ -642,7 +733,19 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
-                      <td className={styles.td} data-label='Service'>
+                      <td
+                        className={styles.td}
+                        data-label='Service'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+
                         <div className={styles.cellStack}>
                           <div className={styles.cellStrong}>
                             {b.serviceType?.name ?? "—"}
@@ -650,7 +753,19 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
-                      <td className={styles.td} data-label='Vehicle'>
+                      <td
+                        className={styles.td}
+                        data-label='Vehicle'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+
                         <div className={styles.cellStack}>
                           <div className={styles.cellStrong}>
                             {b.vehicle?.name ?? "—"}
@@ -658,7 +773,19 @@ export default async function AdminBookingsPage({
                         </div>
                       </td>
 
-                      <td className={styles.td} data-label='Driver'>
+                      <td
+                        className={styles.td}
+                        data-label='Driver'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+
                         {b.assignment?.driver ? (
                           <div className={styles.cellStack}>
                             <div className={styles.cellStrong}>
@@ -674,7 +801,16 @@ export default async function AdminBookingsPage({
                       <td
                         className={`${styles.td} ${styles.tdRight}`}
                         data-label='Total'
+                        style={{ position: "relative" }}
                       >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+
                         <div className={styles.totalCell}>{total}</div>
                       </td>
                     </tr>
@@ -715,6 +851,7 @@ function StatusTabs({
           page: undefined,
         });
         const isActive = s === active;
+
         return (
           <Link
             key={s}
@@ -757,12 +894,13 @@ function RangeTabs({
       {items.map((x) => {
         const href = buildHref("/admin/bookings", {
           ...current,
-          range: x.value === "month" ? undefined : x.value,
+          range: x.value === "month" ? undefined : x.value, // default is month
           from: x.value === "range" ? (current.from ?? undefined) : undefined,
           to: x.value === "range" ? (current.to ?? undefined) : undefined,
           page: undefined,
         });
         const isActive = x.value === active;
+
         return (
           <Link
             key={x.value}
