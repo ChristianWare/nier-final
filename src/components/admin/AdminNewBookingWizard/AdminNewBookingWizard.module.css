@@ -1,3 +1,5 @@
+/* src/components/admin/AdminNewBookingWizard/AdminNewBookingWizard.module.css */
+
 .container {
   display: grid;
 }
@@ -6,7 +8,7 @@
   display: grid;
   grid-template-columns: 2fr 4fr;
   grid-gap: 2rem;
-  align-items: start; /* ✅ match customer wizard */
+  align-items: start;
 }
 
 .left {
@@ -21,7 +23,7 @@
 }
 
 .right {
-  align-self: start; /* ✅ match customer wizard */
+  align-self: start;
   display: grid;
 }
 
@@ -30,6 +32,10 @@
   padding: 1rem;
   padding-top: 0rem;
   border-radius: 20px;
+}
+
+.wizardTop {
+  scroll-margin-top: 110px;
 }
 
 .wizard {
@@ -43,12 +49,7 @@
   grid-gap: 3rem;
 }
 
-/* ✅ scroll target offset (so scrollIntoView doesn't hide behind sticky nav) */
-.wizardTop {
-  scroll-margin-top: 110px;
-}
-
-/* ✅ step fade-in (identical behavior) */
+/* ✅ step fade-in */
 .stepPane {
   animation: stepFadeIn 220ms ease-out both;
 }
@@ -103,7 +104,6 @@
   gap: 12px;
 }
 
-/* ✅ match customer breakpoint */
 @media screen and (max-width: 1068px) {
   .content {
     grid-template-columns: 1fr 1fr;

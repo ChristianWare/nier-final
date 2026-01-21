@@ -1,10 +1,19 @@
+// src/components/admin/AdminNewBookingWizard/AdminNewBookingWizard.tsx
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import styles from "./AdminNewBookingWizard.module.css";
 import stepperStyles from "@/components/BookingPage/Stepper/Stepper.module.css";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  type ChangeEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {
@@ -15,19 +24,17 @@ import BookingDateTimePicker from "@/components/BookingPage/BookingDateTimePicke
 import Grid2 from "@/components/BookingPage/Grid2/Grid2";
 import SummaryRow from "@/components/BookingPage/SummaryRow/SummaryRow";
 
-// ✅ reuse your existing “approve” page building blocks
 import AssignBookingForm from "@/components/admin/AssignBookingForm/AssignBookingForm";
 import ApprovePriceForm from "@/components/admin/ApprovePriceForm/ApprovePriceForm";
 import SendPaymentLinkButton from "@/components/admin/SendPaymentLinkButton/SendPaymentLinkButton";
 
 import { adminCreateBooking } from "../../../../actions/bookings/adminCreateBooking";
+import type { AdminCreateBookingStatus } from "../../../../actions/bookings/adminCreateBooking";
 import { adminSearchUsers } from "../../../../actions/admin/users/adminSearchUsers";
 
-// ✅ new small helper actions (code below)
 import { adminGetBookingWizardData } from "../../../../actions/bookings/adminGetBookingWizardData";
 import { adminCreateManualPaymentIntent } from "../../../../actions/bookings/adminCreateManualPaymentIntent";
 
-// ✅ Stripe Elements (manual card payment)
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -81,15 +88,9 @@ type VehicleDTO = {
   sortOrder: number;
 };
 
+// ✅ NEW step order:
+// 1 Trip → 2 Vehicle → 3 Assign → 4 Price → 5 Confirm → 6 Payment
 type AdminWizardStep = 1 | 2 | 3 | 4 | 5 | 6;
-
-// ✅ allow draft for internal “build it out” flow
-type AdminBookingStatus =
-  | "DRAFT"
-  | "PENDING_REVIEW"
-  | "PENDING_PAYMENT"
-  | "CONFIRMED";
-
 
 type UserLite = {
   id: string;
@@ -131,6 +132,39 @@ function toNumber(v: any): number | null {
   if (v == null) return null;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? n : null;
+}
+
+function normPlace(p: RoutePickerPlace | null | undefined) {
+  if (!p) return null;
+  return {
+    address: String(p.address ?? ""),
+    placeId: p.placeId ? String(p.placeId) : null,
+    lat: toNumber(p.location?.lat ?? null),
+    lng: toNumber(p.location?.lng ?? null),
+  };
+}
+
+function routeEquals(a: RoutePickerValue | null, b: RoutePickerValue | null) {
+  if (a === b) return true;
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+
+  const ap = normPlace(a.pickup);
+  const ad = normPlace(a.dropoff);
+  const bp = normPlace(b.pickup);
+  const bd = normPlace(b.dropoff);
+
+  const milesA = toNumber(a.miles ?? a.distanceMiles ?? null);
+  const minsA = toNumber(a.minutes ?? a.durationMinutes ?? null);
+  const milesB = toNumber(b.miles ?? b.distanceMiles ?? null);
+  const minsB = toNumber(b.minutes ?? b.durationMinutes ?? null);
+
+  return (
+    JSON.stringify(ap) === JSON.stringify(bp) &&
+    JSON.stringify(ad) === JSON.stringify(bd) &&
+    milesA === milesB &&
+    minsA === minsB
+  );
 }
 
 function estimateTotalCents(args: {
@@ -199,7 +233,6 @@ export default function AdminNewBookingWizard({
 
   const [step, setStep] = useState<AdminWizardStep>(1);
 
-  // ✅ booking record created at step 3, then steps 4-6 operate on it
   const [bookingId, setBookingId] = useState<string>("");
   const [bookingData, setBookingData] = useState<WizardBookingData | null>(
     null,
@@ -237,7 +270,7 @@ export default function AdminNewBookingWizard({
   const [dropoffAirportId, setDropoffAirportId] = useState<string>("");
 
   const [bookingStatus, setBookingStatus] =
-    useState<AdminBookingStatus>("DRAFT");
+    useState<AdminCreateBookingStatus>("DRAFT");
 
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
@@ -253,7 +286,6 @@ export default function AdminNewBookingWizard({
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
 
-  // ✅ match customer wizard: scroll to top on step change (skip first render)
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
 
@@ -268,12 +300,11 @@ export default function AdminNewBookingWizard({
     });
   }, [step]);
 
-  // ✅ if you change upstream inputs after a booking is created, we drop the created bookingId
-  function resetCreatedBooking() {
-    if (!bookingId) return;
-    setBookingId("");
-    setBookingData(null);
-  }
+  const resetCreatedBooking = useCallback(() => {
+    if (!bookingId && !bookingData) return;
+    if (bookingId) setBookingId("");
+    if (bookingData) setBookingData(null);
+  }, [bookingId, bookingData]);
 
   useEffect(() => {
     if (customerKind === "guest") {
@@ -314,7 +345,7 @@ export default function AdminNewBookingWizard({
         const res = await adminSearchUsers({ query: q });
         if (!alive) return;
         setUserResults((res?.users ?? []) as UserLite[]);
-      } catch (e: any) {
+      } catch {
         if (!alive) return;
         setUserResults([]);
       } finally {
@@ -469,7 +500,7 @@ export default function AdminNewBookingWizard({
     return true;
   }
 
-  function canGoStep3() {
+  function canGoStep2Vehicle() {
     if (!selectedService) return false;
     if (!vehicleId) return false;
     return true;
@@ -604,12 +635,37 @@ export default function AdminNewBookingWizard({
     }
   }
 
-  const inputsKey = `${step}-${serviceTypeId || "none"}-${customerKind}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}`;
+  // ✅ IMPORTANT: do NOT include `step` here (it remounts RoutePicker and nukes your bookingId)
+  const inputsKey = `${serviceTypeId || "none"}-${customerKind}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}-${pickupAirportId || ""}-${dropoffAirportId || ""}`;
 
   const filteredVehicleUnits = useMemo(() => {
     if (!vehicleId) return [];
     return (vehicleUnits ?? []).filter((u) => u.categoryId === vehicleId);
   }, [vehicleUnits, vehicleId]);
+
+  const handleRouteChange = useCallback(
+    (v: RoutePickerValue | null) => {
+      setRoute((prev) => {
+        if (routeEquals(prev, v)) return prev;
+
+        // only reset created booking if one exists
+        if (bookingId) {
+          setBookingId("");
+          setBookingData(null);
+        }
+        return v;
+      });
+    },
+    [bookingId],
+  );
+
+  const handleUserQueryChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      resetCreatedBooking();
+      setUserQuery(e.target.value);
+    },
+    [resetCreatedBooking],
+  );
 
   return (
     <section className={styles.container}>
@@ -620,10 +676,7 @@ export default function AdminNewBookingWizard({
           <div className={styles.routePickerContainer}>
             <RoutePicker
               value={route}
-              onChange={(v) => {
-                resetCreatedBooking();
-                setRoute(v);
-              }}
+              onChange={handleRouteChange}
               pickupInputRef={pickupInputRef}
               dropoffInputRef={dropoffInputRef}
               inputsKey={inputsKey}
@@ -632,11 +685,10 @@ export default function AdminNewBookingWizard({
         </div>
 
         <div className={styles.right}>
-          {/* ✅ scroll anchor (matches customer BookingWizard) */}
           <div ref={wizardTopRef} className={styles.wizardTop} />
 
           <div className={styles.wizard}>
-            {/* STEP 1 */}
+            {/* STEP 1: Trip */}
             {step === 1 ? (
               <div className={`${styles.contentBox} ${styles.stepPane}`}>
                 <h2 className='underline'>Trip details</h2>
@@ -700,10 +752,7 @@ export default function AdminNewBookingWizard({
                         <input
                           className='input emptySmall'
                           value={userQuery}
-                          onChange={(e) => {
-                            resetCreatedBooking();
-                            setUserQuery(e.target.value);
-                          }}
+                          onChange={handleUserQueryChange}
                           placeholder='Search by email or name…'
                           autoComplete='off'
                         />
@@ -854,7 +903,9 @@ export default function AdminNewBookingWizard({
                     value={bookingStatus}
                     onChange={(e) => {
                       resetCreatedBooking();
-                      setBookingStatus(e.target.value as AdminBookingStatus);
+                      setBookingStatus(
+                        e.target.value as AdminCreateBookingStatus,
+                      );
                     }}
                     className='input emptySmall'
                   >
@@ -863,23 +914,7 @@ export default function AdminNewBookingWizard({
                     <option value='PENDING_PAYMENT'>Pending payment</option>
                     <option value='CONFIRMED'>Confirmed</option>
                   </select>
-                  <div className='miniNote'>
-                    Tip: “Draft” is best when you’re going to assign/price/pay
-                    in steps 4–6.
-                  </div>
                 </div>
-
-                {selectedService &&
-                selectedService.airportLeg !== "NONE" &&
-                serviceAirports.length === 0 ? (
-                  <div
-                    className='miniNote'
-                    style={{ color: "rgba(180,0,0,0.8)" }}
-                  >
-                    This airport service isn’t configured yet (no airports
-                    assigned).
-                  </div>
-                ) : null}
 
                 <BookingDateTimePicker
                   date={pickupAtDate}
@@ -1003,10 +1038,6 @@ export default function AdminNewBookingWizard({
                       }}
                       className='input emptySmall'
                     />
-                    <div style={{ fontSize: 12, opacity: 0.7 }}>
-                      Vehicle minimum applies after you choose a vehicle
-                      category.
-                    </div>
                   </div>
                 ) : null}
 
@@ -1031,7 +1062,7 @@ export default function AdminNewBookingWizard({
               </div>
             ) : null}
 
-            {/* STEP 2 */}
+            {/* STEP 2: Vehicle + Special requests */}
             {step === 2 ? (
               <div
                 className={`${styles.stepPane}`}
@@ -1114,139 +1145,6 @@ export default function AdminNewBookingWizard({
                   })}
                 </div>
 
-                <div className={styles.actionsBetween}>
-                  <button
-                    type='button'
-                    className='secondaryBtn'
-                    onClick={() => setStep(1)}
-                  >
-                    Back
-                  </button>
-
-                  <button
-                    type='button'
-                    className='primaryBtn'
-                    onClick={() => {
-                      if (!canGoStep3()) {
-                        toast.error("Please choose a vehicle category.");
-                        return;
-                      }
-                      setStep(3);
-                    }}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            ) : null}
-
-            {/* STEP 3 */}
-            {step === 3 ? (
-              <div
-                className={`${styles.stepPane}`}
-                style={{ display: "grid", gap: 30 }}
-              >
-                <h2 className='underline'>Confirm</h2>
-                <p className='subheading'>Overview</p>
-
-                <div className='box'>
-                  <SummaryRow label='Customer type' value={customerKind} />
-
-                  {customerKind === "account" ? (
-                    <>
-                      <SummaryRow
-                        label='User'
-                        value={
-                          selectedUser
-                            ? `${(selectedUser.name ?? "").trim() || "Unnamed"} • ${selectedUser.email}`
-                            : "—"
-                        }
-                      />
-                      <SummaryRow
-                        label='Email verification'
-                        value={
-                          selectedUser?.emailVerified
-                            ? "Verified"
-                            : "Not verified"
-                        }
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <SummaryRow
-                        label='Customer email'
-                        value={customerEmail || "—"}
-                      />
-                      <SummaryRow
-                        label='Customer name'
-                        value={customerName || "—"}
-                      />
-                      <SummaryRow
-                        label='Customer phone'
-                        value={customerPhone || "—"}
-                      />
-                    </>
-                  )}
-
-                  <SummaryRow
-                    label='Service'
-                    value={selectedService?.name ?? "—"}
-                  />
-                  <SummaryRow
-                    label='Pickup time'
-                    value={
-                      pickupAtDate && pickupAtTime
-                        ? `${pickupAtDate} @ ${pickupAtTime}`
-                        : "—"
-                    }
-                  />
-                  <SummaryRow label='Passengers' value={String(passengers)} />
-                  <SummaryRow label='Luggage' value={String(luggage)} />
-                  <SummaryRow
-                    label='Pickup'
-                    value={route?.pickup?.address ?? "—"}
-                  />
-                  <SummaryRow
-                    label='Dropoff'
-                    value={route?.dropoff?.address ?? "—"}
-                  />
-
-                  {selectedService?.pricingStrategy === "HOURLY" ? (
-                    <>
-                      <SummaryRow
-                        label='Hours requested'
-                        value={String(hoursRequested)}
-                      />
-                      <SummaryRow
-                        label='Billable hours (min applied)'
-                        value={String(billableHours ?? hoursRequested)}
-                      />
-                    </>
-                  ) : null}
-
-                  <SummaryRow
-                    label='Estimate'
-                    value={`$${centsToUsd(estimateCents)}`}
-                    strong
-                  />
-
-                  {blackoutsByYmd[pickupAtDate] ? (
-                    <div
-                      className='miniNote'
-                      style={{ color: "rgba(180,0,0,0.85)" }}
-                    >
-                      This date is blacked out. Please go back and choose
-                      another day.
-                    </div>
-                  ) : null}
-
-                  {bookingId ? (
-                    <div className='miniNote'>
-                      Booking created: <strong>{bookingId}</strong>
-                    </div>
-                  ) : null}
-                </div>
-
                 <div style={{ display: "grid", gap: 8 }}>
                   <div className='cardTitle h5'>
                     Special requests (optional)
@@ -1267,8 +1165,7 @@ export default function AdminNewBookingWizard({
                   <button
                     type='button'
                     className='secondaryBtn'
-                    onClick={() => setStep(2)}
-                    disabled={isPending}
+                    onClick={() => setStep(1)}
                   >
                     Back
                   </button>
@@ -1278,25 +1175,26 @@ export default function AdminNewBookingWizard({
                     className='primaryBtn'
                     disabled={isPending}
                     onClick={() => {
+                      if (!canGoStep2Vehicle()) {
+                        toast.error("Please choose a vehicle category.");
+                        return;
+                      }
+
                       startTransition(async () => {
                         const id = await ensureBookingCreated();
                         if (!id) return;
-                        setStep(4);
+                        setStep(3);
                       });
                     }}
                   >
-                    {isPending
-                      ? "Creating..."
-                      : bookingId
-                        ? "Continue"
-                        : "Create booking"}
+                    {isPending ? "Creating..." : "Next"}
                   </button>
                 </div>
               </div>
             ) : null}
 
-            {/* STEP 4 */}
-            {step === 4 ? (
+            {/* STEP 3: Assign */}
+            {step === 3 ? (
               <div
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
@@ -1309,7 +1207,7 @@ export default function AdminNewBookingWizard({
                     className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
-                    Create the booking in Step 3 first.
+                    Booking ID missing. Go back and re-create the booking.
                   </div>
                 ) : drivers.length === 0 ? (
                   <div className='miniNote'>
@@ -1365,7 +1263,7 @@ export default function AdminNewBookingWizard({
                   <button
                     type='button'
                     className='secondaryBtn'
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(2)}
                   >
                     Back
                   </button>
@@ -1375,10 +1273,10 @@ export default function AdminNewBookingWizard({
                     className='primaryBtn'
                     onClick={() => {
                       if (!bookingId) {
-                        toast.error("Create the booking in Step 3 first.");
+                        toast.error("Booking missing. Go back and create it.");
                         return;
                       }
-                      setStep(5);
+                      setStep(4);
                     }}
                   >
                     Next
@@ -1387,8 +1285,8 @@ export default function AdminNewBookingWizard({
               </div>
             ) : null}
 
-            {/* STEP 5 */}
-            {step === 5 ? (
+            {/* STEP 4: Price */}
+            {step === 4 ? (
               <div
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
@@ -1401,7 +1299,7 @@ export default function AdminNewBookingWizard({
                     className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
-                    Create the booking in Step 3 first.
+                    Booking missing. Go back and create it.
                   </div>
                 ) : (
                   <div className='box'>
@@ -1450,7 +1348,7 @@ export default function AdminNewBookingWizard({
                   <button
                     type='button'
                     className='secondaryBtn'
-                    onClick={() => setStep(4)}
+                    onClick={() => setStep(3)}
                   >
                     Back
                   </button>
@@ -1460,10 +1358,10 @@ export default function AdminNewBookingWizard({
                     className='primaryBtn'
                     onClick={() => {
                       if (!bookingId) {
-                        toast.error("Create the booking in Step 3 first.");
+                        toast.error("Booking missing. Go back and create it.");
                         return;
                       }
-                      setStep(6);
+                      setStep(5);
                     }}
                   >
                     Next
@@ -1472,7 +1370,131 @@ export default function AdminNewBookingWizard({
               </div>
             ) : null}
 
-            {/* STEP 6 */}
+            {/* STEP 5: Confirm (right before payment) */}
+            {step === 5 ? (
+              <div
+                className={`${styles.stepPane}`}
+                style={{ display: "grid", gap: 18 }}
+              >
+                <h2 className='underline'>Confirm</h2>
+                <p className='subheading'>Final review before payment.</p>
+
+                {!bookingId ? (
+                  <div
+                    className='miniNote'
+                    style={{ color: "rgba(180,0,0,0.85)" }}
+                  >
+                    Booking missing. Go back and create it.
+                  </div>
+                ) : (
+                  <div className='box'>
+                    <SummaryRow label='Booking ID' value={bookingId} strong />
+
+                    <SummaryRow label='Customer type' value={customerKind} />
+                    {customerKind === "account" ? (
+                      <SummaryRow
+                        label='User'
+                        value={
+                          selectedUser
+                            ? `${(selectedUser.name ?? "").trim() || "Unnamed"} • ${selectedUser.email}`
+                            : "—"
+                        }
+                      />
+                    ) : (
+                      <>
+                        <SummaryRow
+                          label='Customer email'
+                          value={customerEmail || "—"}
+                        />
+                        <SummaryRow
+                          label='Customer name'
+                          value={customerName || "—"}
+                        />
+                        <SummaryRow
+                          label='Customer phone'
+                          value={customerPhone || "—"}
+                        />
+                      </>
+                    )}
+
+                    <SummaryRow
+                      label='Service'
+                      value={selectedService?.name ?? "—"}
+                    />
+                    <SummaryRow
+                      label='Vehicle category'
+                      value={selectedVehicle?.name ?? "—"}
+                    />
+                    <SummaryRow
+                      label='Pickup time'
+                      value={
+                        pickupAtDate && pickupAtTime
+                          ? `${pickupAtDate} @ ${pickupAtTime}`
+                          : "—"
+                      }
+                    />
+                    <SummaryRow
+                      label='Pickup'
+                      value={route?.pickup?.address ?? "—"}
+                    />
+                    <SummaryRow
+                      label='Dropoff'
+                      value={route?.dropoff?.address ?? "—"}
+                    />
+
+                    {selectedService?.pricingStrategy === "HOURLY" ? (
+                      <>
+                        <SummaryRow
+                          label='Hours requested'
+                          value={String(hoursRequested)}
+                        />
+                        <SummaryRow
+                          label='Billable hours'
+                          value={String(billableHours ?? hoursRequested)}
+                        />
+                      </>
+                    ) : null}
+
+                    <SummaryRow
+                      label='Total'
+                      value={`$${centsToUsd(bookingData?.totalCents ?? estimateCents)}`}
+                      strong
+                    />
+
+                    {specialRequests?.trim() ? (
+                      <SummaryRow
+                        label='Special requests'
+                        value={specialRequests.trim()}
+                      />
+                    ) : null}
+                  </div>
+                )}
+
+                <div className={styles.actionsBetween}>
+                  <button
+                    type='button'
+                    className='secondaryBtn'
+                    onClick={() => setStep(4)}
+                  >
+                    Back
+                  </button>
+
+                  <button
+                    type='button'
+                    className='primaryBtn'
+                    onClick={() => {
+                      if (!bookingId) return;
+                      setStep(6);
+                    }}
+                    disabled={!bookingId}
+                  >
+                    Proceed to payment
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {/* STEP 6: Payment */}
             {step === 6 ? (
               <div
                 className={`${styles.stepPane}`}
@@ -1488,7 +1510,7 @@ export default function AdminNewBookingWizard({
                     className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
-                    Create the booking in Step 3 first.
+                    Booking missing. Go back and create it.
                   </div>
                 ) : (
                   <>
@@ -1600,16 +1622,13 @@ export default function AdminNewBookingWizard({
   );
 }
 
-/** ✅ 6-step stepper that reuses the Booking wizard styling */
-// type AdminWizardStep = 1 | 2 | 3 | 4 | 5 | 6;
-
 function AdminBookingStepper({ step }: { step: AdminWizardStep }) {
   const items = [
     { n: 1 as const, label: "Trip", copy: "Customer, date/time, route" },
     { n: 2 as const, label: "Vehicle", copy: "Choose a vehicle category" },
-    { n: 3 as const, label: "Confirm", copy: "Create booking draft" },
-    { n: 4 as const, label: "Assign", copy: "Assign driver / vehicle unit" },
-    { n: 5 as const, label: "Price", copy: "Approve totals" },
+    { n: 3 as const, label: "Assign", copy: "Assign driver / vehicle unit" },
+    { n: 4 as const, label: "Price", copy: "Approve totals" },
+    { n: 5 as const, label: "Confirm", copy: "Final review" },
     { n: 6 as const, label: "Payment", copy: "Send link or take card" },
   ];
 
@@ -1620,10 +1639,6 @@ function AdminBookingStepper({ step }: { step: AdminWizardStep }) {
         const isActive = step === it.n;
         const isDone = step > it.n;
 
-        // ✅ match your existing Stepper look:
-        // - current step = active
-        // - previous steps = also active (progress feels right)
-        // - future steps = inactive
         const toneClass =
           isActive || isDone
             ? stepperStyles.stepNumberActive
@@ -1637,7 +1652,6 @@ function AdminBookingStepper({ step }: { step: AdminWizardStep }) {
                   <span className={`${stepperStyles.stepNumber} ${toneClass}`}>
                     {it.n}
                   </span>
-
                   {!isLast ? (
                     <span className={stepperStyles.connector} />
                   ) : null}
@@ -1656,8 +1670,6 @@ function AdminBookingStepper({ step }: { step: AdminWizardStep }) {
   );
 }
 
-
-/** ✅ Stripe Elements block (manual card payment) */
 const stripePromise = (() => {
   const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   return pk ? loadStripe(pk) : null;
@@ -1754,10 +1766,7 @@ function ManualPaymentInner({
     try {
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
-        confirmParams: {
-          // no hard redirect; only if required
-          return_url: window.location.href,
-        },
+        confirmParams: { return_url: window.location.href },
         redirect: "if_required",
       });
 
