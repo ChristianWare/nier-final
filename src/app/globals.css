@@ -317,7 +317,7 @@ select:focus {
 
 .tabActive {
   background: var(--black);
-  color: var(--white);
+  color: var(--white) !important;
   border-color: var(--black);
 }
 
@@ -566,6 +566,10 @@ select:focus {
   font-size: 1.2rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.countPillWhiteText {
+  color: var(--white);
 }
 
 .input {

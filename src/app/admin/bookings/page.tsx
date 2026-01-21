@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./BookingsPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { Prisma, BookingStatus, PaymentStatus } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
+import CustomRangeFormClient from "./CustomRangeFormClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ const STATUSES = [
   "ALL",
 ] as const;
 
-const RANGES = ["today", "tomorrow", "next24", "next7", "all"] as const;
+const RANGES = ["month", "year", "today", "next24", "next7", "range"] as const;
 
 type StatusFilter = (typeof STATUSES)[number];
 type RangeFilter = (typeof RANGES)[number];
@@ -27,9 +28,14 @@ type RangeFilter = (typeof RANGES)[number];
 type SearchParams = {
   status?: StatusFilter;
   range?: RangeFilter;
+
   unassigned?: "1";
   paid?: "1";
   stuck?: "1";
+
+  from?: string;
+  to?: string;
+
   page?: string;
 };
 
@@ -38,29 +44,85 @@ type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 const PAGE_SIZE = 50;
 
-function startOfDayPhoenix(dateUtc: Date) {
+function toPhoenixParts(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
   const phx = new Date(phxLocalMs);
+  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
+}
 
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const d = phx.getUTCDate();
-
+function startOfDayPhoenix(dateUtc: Date) {
+  const { y, m, d } = toPhoenixParts(dateUtc);
   const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
   const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
   return new Date(startUtcMs);
+}
+
+function startOfMonthPhoenix(dateUtc: Date) {
+  const { y, m } = toPhoenixParts(dateUtc);
+  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
+  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
+  return new Date(startUtcMs);
+}
+
+function startOfYearPhoenix(dateUtc: Date) {
+  const { y } = toPhoenixParts(dateUtc);
+  const startLocalMs = Date.UTC(y, 0, 1, 0, 0, 0);
+  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
+  return new Date(startUtcMs);
+}
+
+function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
+  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+  const y = phx.getUTCFullYear();
+  const m = phx.getUTCMonth();
+  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
+  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
+  return new Date(nextStartUtcMs);
+}
+
+function startOfNextYearPhoenix(yearStartUtc: Date) {
+  const phxLocalMs = yearStartUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+  const y = phx.getUTCFullYear();
+  const nextStartLocalMs = Date.UTC(y + 1, 0, 1, 0, 0, 0);
+  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
+  return new Date(nextStartUtcMs);
+}
+
+function parseYMD(s: string | null | undefined) {
+  if (!s) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+  if (!match) return null;
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  const d = Number(match[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d))
+    return null;
+  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+  return { y, m, d };
+}
+
+function startOfDayFromYMDPhoenix(ymd: { y: number; m: number; d: number }) {
+  const startLocalMs = Date.UTC(ymd.y, ymd.m - 1, ymd.d, 0, 0, 0);
+  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
+  return new Date(startUtcMs);
+}
+
+function ymdForInputPhoenix(dateUtc: Date) {
+  const { y, m, d } = toPhoenixParts(dateUtc);
+  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
 function formatPhoenix(d: Date) {
   return new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Phoenix",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
   }).format(d);
 }
+
 
 function formatMoneyFromCents(cents: number) {
   const dollars = cents / 100;
@@ -85,11 +147,16 @@ function formatEta(at: Date, now: Date) {
   return `${label} ago`;
 }
 
-function buildHref(base: string, params: Record<string, string | undefined>) {
+function buildHref(
+  base: string,
+  params: Record<string, string | undefined | null>,
+) {
   const usp = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (!v) continue;
-    usp.set(k, v);
+    const s = String(v).trim();
+    if (!s) continue;
+    usp.set(k, s);
   }
   const qs = usp.toString();
   return qs ? `${base}?${qs}` : base;
@@ -189,6 +256,85 @@ type BookingRow = Prisma.BookingGetPayload<{
   };
 }>;
 
+function safeStatus(v: any): StatusFilter {
+  return STATUSES.includes(v) ? v : "ALL";
+}
+
+function safeRange(v: any): RangeFilter {
+  return RANGES.includes(v) ? v : "month";
+}
+
+function buildWhere(args: {
+  now: Date;
+  status: StatusFilter;
+  range: RangeFilter;
+  unassigned: boolean;
+  paid: boolean;
+  stuck: boolean;
+  fromYmd: string;
+  toYmd: string;
+}) {
+  const { now, status, range, unassigned, paid, stuck, fromYmd, toYmd } = args;
+
+  const where: Prisma.BookingWhereInput = {};
+
+  const todayStart = startOfDayPhoenix(now);
+  const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+  const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  const monthStart = startOfMonthPhoenix(now);
+  const nextMonthStart = addMonthsPhoenix(monthStart, 1);
+
+  const yearStart = startOfYearPhoenix(now);
+  const nextYearStart = startOfNextYearPhoenix(yearStart);
+
+  let pickupAtFilter: Prisma.DateTimeFilter | undefined;
+
+  if (range === "today")
+    pickupAtFilter = { gte: todayStart, lt: tomorrowStart };
+  if (range === "next24") pickupAtFilter = { gte: now, lt: next24h };
+  if (range === "next7") pickupAtFilter = { gte: now, lt: next7d };
+  if (range === "month")
+    pickupAtFilter = { gte: monthStart, lt: nextMonthStart };
+  if (range === "year") pickupAtFilter = { gte: yearStart, lt: nextYearStart };
+
+  if (range === "range") {
+    const f = parseYMD(fromYmd);
+    const t = parseYMD(toYmd);
+
+    let fromUtc = f ? startOfDayFromYMDPhoenix(f) : todayStart;
+    const toUtc0 = t ? startOfDayFromYMDPhoenix(t) : todayStart;
+
+    let toUtc = new Date(toUtc0.getTime() + 24 * 60 * 60 * 1000);
+
+    if (toUtc.getTime() < fromUtc.getTime()) {
+      const tmp = fromUtc;
+      fromUtc = toUtc0;
+      toUtc = new Date(tmp.getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    pickupAtFilter = { gte: fromUtc, lt: toUtc };
+  }
+
+  if (pickupAtFilter) where.pickupAt = pickupAtFilter;
+
+  if (status !== "ALL") where.status = status as BookingStatus;
+
+  if (unassigned) where.assignment = { is: null };
+  if (paid) where.payment = { is: { status: "PAID" } };
+
+  if (stuck) {
+    const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+    where.status = "PENDING_REVIEW";
+    where.createdAt = { lt: stuckCutoff };
+    where.pickupAt = { gte: now };
+  }
+
+  return where;
+}
+
 export default async function AdminBookingsPage({
   searchParams,
 }: {
@@ -196,45 +342,32 @@ export default async function AdminBookingsPage({
 }) {
   const sp = await searchParams;
 
-  const status = (sp.status ?? "ALL") as StatusFilter;
-  const range = (sp.range ?? "all") as RangeFilter;
+  const status = safeStatus(sp.status) as StatusFilter;
+  const range = safeRange(sp.range) as RangeFilter;
+
   const unassigned = sp.unassigned === "1";
   const paid = sp.paid === "1";
   const stuck = sp.stuck === "1";
   const page = clampPage(sp.page);
 
   const now = new Date();
-  const todayStart = startOfDayPhoenix(now);
-  const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-  const dayAfterStart = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000);
 
-  const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+  const defaultFrom = ymdForInputPhoenix(now);
+  const defaultTo = ymdForInputPhoenix(now);
 
-  const pickupAtFilter: Prisma.DateTimeFilter | undefined =
-    range === "today"
-      ? { gte: todayStart, lt: tomorrowStart }
-      : range === "tomorrow"
-        ? { gte: tomorrowStart, lt: dayAfterStart }
-        : range === "next24"
-          ? { gte: now, lt: next24h }
-          : range === "next7"
-            ? { gte: now, lt: next7d }
-            : undefined;
+  const fromYmd = sp.from ?? defaultFrom;
+  const toYmd = sp.to ?? defaultTo;
 
-  const where: Prisma.BookingWhereInput = {};
-
-  if (status !== "ALL") where.status = status as BookingStatus;
-  if (pickupAtFilter) where.pickupAt = pickupAtFilter;
-  if (unassigned) where.assignment = { is: null };
-  if (paid) where.payment = { is: { status: "PAID" } };
-
-  if (stuck) {
-    where.status = "PENDING_REVIEW";
-    where.createdAt = { lt: stuckCutoff };
-    where.pickupAt = { gte: now };
-  }
+  const where = buildWhere({
+    now,
+    status,
+    range,
+    unassigned,
+    paid,
+    stuck,
+    fromYmd,
+    toYmd,
+  });
 
   const orderBy: Prisma.BookingOrderByWithRelationInput[] =
     stuck || status === "PENDING_REVIEW"
@@ -269,12 +402,73 @@ export default async function AdminBookingsPage({
     take: PAGE_SIZE,
   });
 
+  async function countFor(next: {
+    status?: StatusFilter;
+    range?: RangeFilter;
+    unassigned?: boolean;
+    paid?: boolean;
+    stuck?: boolean;
+    fromYmd?: string;
+    toYmd?: string;
+  }) {
+    const w = buildWhere({
+      now,
+      status: next.status ?? status,
+      range: next.range ?? range,
+      unassigned:
+        typeof next.unassigned === "boolean" ? next.unassigned : unassigned,
+      paid: typeof next.paid === "boolean" ? next.paid : paid,
+      stuck: typeof next.stuck === "boolean" ? next.stuck : stuck,
+      fromYmd: next.fromYmd ?? fromYmd,
+      toYmd: next.toYmd ?? toYmd,
+    });
+    return db.booking.count({ where: w });
+  }
+
+  const [
+    statusCountsArr,
+    rangeCountsArr,
+    unassignedCount,
+    paidCount,
+    stuckCount,
+  ] = await Promise.all([
+    Promise.all(
+      STATUSES.map(async (s) => {
+        const c =
+          s === "ALL"
+            ? await countFor({ status: "ALL" })
+            : await countFor({ status: s });
+        return [s, c] as const;
+      }),
+    ),
+    Promise.all(
+      RANGES.map(async (r) => {
+        const c = await countFor({ range: r });
+        return [r, c] as const;
+      }),
+    ),
+    countFor({ unassigned: true }),
+    countFor({ paid: true }),
+    countFor({ stuck: true }),
+  ]);
+
+  const statusCounts = Object.fromEntries(statusCountsArr) as Record<
+    StatusFilter,
+    number
+  >;
+  const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
+    RangeFilter,
+    number
+  >;
+
   const baseParams: Record<string, string | undefined> = {
     status: status === "ALL" ? "ALL" : status,
-    range: range === "all" ? undefined : range,
+    range: range === "month" ? undefined : range,
     unassigned: unassigned ? "1" : undefined,
     paid: paid ? "1" : undefined,
     stuck: stuck ? "1" : undefined,
+    from: range === "range" ? fromYmd : undefined,
+    to: range === "range" ? toYmd : undefined,
   };
 
   const pageParams: Record<string, string | undefined> = {
@@ -300,7 +494,7 @@ export default async function AdminBookingsPage({
           </div>
 
           <div className={styles.meta}>
-            <strong>{totalCount}</strong> total
+            <strong style={{ fontSize: "1.4rem", }}>{totalCount}</strong> total
             {totalCount > 0 ? (
               <span className={styles.metaSep}>
                 • Page <strong className='emptyTitleSmall'>{safePage}</strong>{" "}
@@ -311,9 +505,42 @@ export default async function AdminBookingsPage({
         </div>
 
         <div className={styles.filters}>
-          <StatusTabs active={status} current={baseParams} />
-          <RangeTabs active={range} current={baseParams} />
-          <ToggleChips current={baseParams} />
+          <div className={styles.filterGroup}>
+            <div className={styles.filterTitle}>Time</div>
+            <RangeTabs
+              active={range}
+              current={baseParams}
+              counts={rangeCounts}
+            />
+            {range === "range" ? (
+              <CustomRangeFormClient
+                current={baseParams}
+                defaultFrom={defaultFrom}
+                defaultTo={defaultTo}
+              />
+            ) : null}
+          </div>
+
+          <div className={styles.filterGroup}>
+            <div className={styles.filterTitle}>Status</div>
+            <StatusTabs
+              active={status}
+              current={baseParams}
+              counts={statusCounts}
+            />
+          </div>
+
+          <div className={styles.filterGroup}>
+            <div className={styles.filterTitle}>Quick filters</div>
+            <ToggleChips
+              current={baseParams}
+              counts={{
+                unassigned: unassignedCount,
+                paid: paidCount,
+                stuck: stuckCount,
+              }}
+            />
+          </div>
         </div>
 
         <Pagination
@@ -343,117 +570,119 @@ export default async function AdminBookingsPage({
         </div>
       ) : (
         <div className={styles.tableCard}>
-          <table className={styles.table}>
-            <thead className={styles.thead}>
-              <tr className={styles.trHead}>
-                <th className={styles.th}>Created</th>
-                <th className={styles.th}>Pickup</th>
-                <th className={styles.th}>Customer</th>
-                <th className={styles.th}>Service</th>
-                <th className={styles.th}>Vehicle</th>
-                <th className={styles.th}>Driver</th>
-                <th className={`${styles.th} ${styles.thRight}`}>Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bookings.map((b) => {
-                const href = `/admin/bookings/${b.id}`;
-                const pickupEta = formatEta(b.pickupAt, now);
-                const createdAgo = formatEta(b.createdAt, now);
-                const total = formatMoneyFromCents(b.totalCents ?? 0);
-                const payStatus = b.payment?.status ?? null;
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead className={styles.thead}>
+                <tr className={styles.trHead}>
+                  <th className={styles.th}>Created</th>
+                  <th className={styles.th}>Pickup</th>
+                  <th className={styles.th}>Customer</th>
+                  <th className={styles.th}>Service</th>
+                  <th className={styles.th}>Vehicle</th>
+                  <th className={styles.th}>Driver</th>
+                  <th className={`${styles.th} ${styles.thRight}`}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {bookings.map((b) => {
+                  const href = `/admin/bookings/${b.id}`;
+                  const pickupEta = formatEta(b.pickupAt, now);
+                  const createdAgo = formatEta(b.createdAt, now);
+                  const total = formatMoneyFromCents(b.totalCents ?? 0);
+                  const payStatus = b.payment?.status ?? null;
 
-                const customerName = b.user?.name?.trim() || "Guest";
-                const customerEmail = b.user?.email ?? "";
+                  const customerName = b.user?.name?.trim() || "Guest";
+                  const customerEmail = b.user?.email ?? "";
 
-                const driverName = b.assignment?.driver?.name?.trim() || "";
-                const driverEmail = b.assignment?.driver?.email ?? "";
+                  const driverName = b.assignment?.driver?.name?.trim() || "";
+                  const driverEmail = b.assignment?.driver?.email ?? "";
 
-                return (
-                  <tr key={b.id} className={styles.tr}>
-                    <td className={styles.td} data-label='Created'>
-                      <div className={styles.pickupCell}>
-                        <Link href={href} className={styles.rowLink}>
-                          {formatPhoenix(b.createdAt)}
-                        </Link>
-                        <div className={styles.pickupMeta}>
-                          <span className={styles.pill}>{createdAgo}</span>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Pickup'>
-                      <div className={styles.pickupCell}>
-                        <Link href={href} className={styles.rowLink}>
-                          {formatPhoenix(b.pickupAt)}
-                        </Link>
-                        <div className={styles.pickupMeta}>
-                          <span className={styles.pill}>{pickupEta}</span>
-                          <div className={styles.badgesRow}>
-                            <span
-                              className={`badge badge_${badgeTone(b.status)}`}
-                            >
-                              {statusLabel(b.status)}
-                            </span>
-                            <span
-                              className={`badge badge_${paymentTone(payStatus)}`}
-                            >
-                              {paymentLabel(payStatus)}
-                            </span>
+                  return (
+                    <tr key={b.id} className={styles.tr}>
+                      <td className={styles.td} data-label='Created'>
+                        <div className={styles.pickupCell}>
+                          <Link href={href} className={styles.rowLink}>
+                            {formatPhoenix(b.createdAt)}
+                          </Link>
+                          <div className={styles.pickupMeta}>
+                            <span className={styles.pill}>{createdAgo}</span>
                           </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className={styles.td} data-label='Customer'>
-                      <div className={styles.cellStack}>
-                        <Link href={href} className={styles.rowLink}>
-                          {customerName}
-                        </Link>
-                        <div className={styles.cellSub}>{customerEmail}</div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Service'>
-                      <div className={styles.cellStack}>
-                        <div className={styles.cellStrong}>
-                          {b.serviceType?.name ?? "—"}
+                      <td className={styles.td} data-label='Pickup'>
+                        <div className={styles.pickupCell}>
+                          <Link href={href} className={styles.rowLink}>
+                            {formatPhoenix(b.pickupAt)}
+                          </Link>
+                          <div className={styles.pickupMeta}>
+                            <span className={styles.pill}>{pickupEta}</span>
+                            <div className={styles.badgesRow}>
+                              <span
+                                className={`badge badge_${badgeTone(b.status)}`}
+                              >
+                                {statusLabel(b.status)}
+                              </span>
+                              <span
+                                className={`badge badge_${paymentTone(payStatus)}`}
+                              >
+                                {paymentLabel(payStatus)}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className={styles.td} data-label='Vehicle'>
-                      <div className={styles.cellStack}>
-                        <div className={styles.cellStrong}>
-                          {b.vehicle?.name ?? "—"}
+                      <td className={styles.td} data-label='Customer'>
+                        <div className={styles.cellStack}>
+                          <Link href={href} className={styles.rowLink}>
+                            {customerName}
+                          </Link>
+                          <div className={styles.cellSub}>{customerEmail}</div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className={styles.td} data-label='Driver'>
-                      {b.assignment?.driver ? (
+                      <td className={styles.td} data-label='Service'>
                         <div className={styles.cellStack}>
                           <div className={styles.cellStrong}>
-                            {driverName || "—"}
+                            {b.serviceType?.name ?? "—"}
                           </div>
-                          <div className={styles.cellSub}>{driverEmail}</div>
                         </div>
-                      ) : (
-                        <div className={styles.cellSub}>Unassigned</div>
-                      )}
-                    </td>
+                      </td>
 
-                    <td
-                      className={`${styles.td} ${styles.tdRight}`}
-                      data-label='Total'
-                    >
-                      <div className={styles.totalCell}>{total}</div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td className={styles.td} data-label='Vehicle'>
+                        <div className={styles.cellStack}>
+                          <div className={styles.cellStrong}>
+                            {b.vehicle?.name ?? "—"}
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className={styles.td} data-label='Driver'>
+                        {b.assignment?.driver ? (
+                          <div className={styles.cellStack}>
+                            <div className={styles.cellStrong}>
+                              {driverName || "—"}
+                            </div>
+                            <div className={styles.cellSub}>{driverEmail}</div>
+                          </div>
+                        ) : (
+                          <div className={styles.cellSub}>Unassigned</div>
+                        )}
+                      </td>
+
+                      <td
+                        className={`${styles.td} ${styles.tdRight}`}
+                        data-label='Total'
+                      >
+                        <div className={styles.totalCell}>{total}</div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -470,9 +699,11 @@ export default async function AdminBookingsPage({
 function StatusTabs({
   active,
   current,
+  counts,
 }: {
   active: StatusFilter;
   current: Record<string, string | undefined>;
+  counts: Record<StatusFilter, number>;
 }) {
   return (
     <div className={styles.tabRow}>
@@ -485,13 +716,18 @@ function StatusTabs({
         });
         const isActive = s === active;
         return (
-            <Link
+          <Link
             key={s}
             href={href}
             className={`tab ${isActive ? "tabActive" : ""}`}
-            >
+          >
             {s}
-            </Link>
+            <span
+              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
+            >
+              {counts[s] ?? 0}
+            </span>
+          </Link>
         );
       })}
     </div>
@@ -501,16 +737,19 @@ function StatusTabs({
 function RangeTabs({
   active,
   current,
+  counts,
 }: {
   active: RangeFilter;
   current: Record<string, string | undefined>;
+  counts: Record<RangeFilter, number>;
 }) {
   const items: { label: string; value: RangeFilter }[] = [
-    { label: "All time", value: "all" },
+    { label: "Current month", value: "month" },
+    { label: "Current year", value: "year" },
     { label: "Today", value: "today" },
-    { label: "Tomorrow", value: "tomorrow" },
     { label: "Next 24h", value: "next24" },
     { label: "Next 7d", value: "next7" },
+    { label: "Custom range", value: "range" },
   ];
 
   return (
@@ -518,7 +757,9 @@ function RangeTabs({
       {items.map((x) => {
         const href = buildHref("/admin/bookings", {
           ...current,
-          range: x.value === "all" ? undefined : x.value,
+          range: x.value === "month" ? undefined : x.value,
+          from: x.value === "range" ? (current.from ?? undefined) : undefined,
+          to: x.value === "range" ? (current.to ?? undefined) : undefined,
           page: undefined,
         });
         const isActive = x.value === active;
@@ -526,9 +767,14 @@ function RangeTabs({
           <Link
             key={x.value}
             href={href}
-            className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
+            className={`tab ${isActive ? "tabActive" : ""}`}
           >
             {x.label}
+            <span
+              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
+            >
+              {counts[x.value] ?? 0}
+            </span>
           </Link>
         );
       })}
@@ -538,8 +784,10 @@ function RangeTabs({
 
 function ToggleChips({
   current,
+  counts,
 }: {
   current: Record<string, string | undefined>;
+  counts: { unassigned: number; paid: number; stuck: number };
 }) {
   const unassignedOn = current.unassigned === "1";
   const paidOn = current.paid === "1";
@@ -565,24 +813,31 @@ function ToggleChips({
   });
 
   return (
-    <div className={styles.chipRow}>
+    <div className={styles.tabRow}>
       <Link
-        className={`${styles.chip} ${unassignedOn ? styles.chipOn : ""}`}
+        className={`tab ${unassignedOn ? "tabActive" : ""}`}
         href={unassignedHref}
       >
         Unassigned
+        <span
+          className={`countPill ${unassignedOn ? "countPillWhiteText" : ""}`}
+        >
+          {counts.unassigned ?? 0}
+        </span>
       </Link>
-      <Link
-        className={`${styles.chip} ${paidOn ? styles.chipOn : ""}`}
-        href={paidHref}
-      >
+
+      <Link className={`tab ${paidOn ? "tabActive" : ""}`} href={paidHref}>
         Paid only
+        <span className={`countPill ${paidOn ? "countPillWhiteText" : ""}`}>
+          {counts.paid ?? 0}
+        </span>
       </Link>
-      <Link
-        className={`${styles.chip} ${stuckOn ? styles.chipOn : ""}`}
-        href={stuckHref}
-      >
+
+      <Link className={`tab ${stuckOn ? "tabActive" : ""}`} href={stuckHref}>
         Stuck review
+        <span className={`countPill ${stuckOn ? "countPillWhiteText" : ""}`}>
+          {counts.stuck ?? 0}
+        </span>
       </Link>
     </div>
   );

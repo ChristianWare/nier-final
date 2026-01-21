@@ -41,7 +41,20 @@
 
 .filters {
   display: grid;
-  gap: 0.8rem;
+  gap: 1.2rem;
+}
+
+.filterGroup {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.filterTitle {
+  font-size: 1.05rem;
+  font-weight: 900;
+  opacity: 0.6;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .tabRow {
@@ -50,46 +63,48 @@
   flex-wrap: wrap;
 }
 
-.tab {
-  text-decoration: none;
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
-  border: 1px solid var(--stroke);
-  background: transparent;
-  color: var(--black);
-  font-size: 1.25rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.tabActive {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.chipRow {
+/* Custom range */
+.rangeForm {
   display: flex;
-  gap: 0.6rem;
+  align-items: flex-end;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.chip {
-  text-decoration: none;
-  padding: 0.6rem 0.9rem;
-  border-radius: 999px;
+.rangeField {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.rangeInput {
   border: 1px solid var(--stroke);
   background: var(--white);
-  color: var(--black);
-  font-size: 1.2rem;
-  font-weight: 800;
-  white-space: nowrap;
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 900;
 }
 
-.chipOn {
-  background: var(--accent);
-  color: var(--white);
-  border-color: transparent;
+.rangeSubmit {
+  border: 1px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  padding: 0.65rem 0.95rem;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
 }
 
+.rangeSubmit:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.rangeSubmit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Pagination */
 .pagination {
   display: flex;
   align-items: center;
@@ -133,11 +148,17 @@
   pointer-events: none;
 }
 
+.tableWrap {
+  overflow: auto;
+  max-height: 520px;
+}
+
 .tableCard {
-  background: var(--white);
+  border-radius: 10px;
   border: 1px solid var(--stroke);
-  border-radius: 12px;
-  overflow-x: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .table {
@@ -159,12 +180,15 @@
 
 .th {
   text-align: left;
-  padding: 12px 14px;
-  font-size: 1.1rem;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  opacity: 0.85;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
   white-space: nowrap;
+}
+
+.td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: top;
 }
 
 .thRight {
@@ -179,19 +203,15 @@
   background: rgba(0, 0, 0, 0.02);
 }
 
-.td {
-  padding: 12px 14px;
-  vertical-align: top;
-}
-
 .tdRight {
   text-align: right;
 }
 
 .rowLink {
   text-decoration: none;
-  color: var(--black);
-  font-weight: 900;
+  display: inline-block;
+  letter-spacing: -0.01em;
+  font-weight: 600;
 }
 
 .rowLink:hover {
@@ -236,7 +256,8 @@
 }
 
 .cellStrong {
-  font-weight: 900;
+  letter-spacing: -0.01em;
+  font-weight: 600;
 }
 
 .cellSub {
@@ -277,11 +298,13 @@
   margin-top: 1rem;
 }
 
+/* Mobile cards */
 @media screen and (max-width: 768px) {
   .tableCard {
     border: 0;
     background: transparent;
     overflow: visible;
+    max-height: none;
   }
 
   .table {
@@ -363,16 +386,6 @@
     gap: 0.45rem;
   }
 
-  .tab {
-    font-size: 1.1rem;
-    padding: 0.6rem 0.85rem;
-  }
-
-  .chip {
-    font-size: 1.05rem;
-    padding: 0.55rem 0.8rem;
-  }
-
   .pagination {
     flex-direction: column;
     align-items: flex-start;
@@ -400,5 +413,13 @@
   .pill {
     font-size: 11px;
     padding: 4px 7px;
+  }
+
+  .rangeInput {
+    font-size: 1.05rem;
+  }
+
+  .rangeSubmit {
+    font-size: 1.05rem;
   }
 }
