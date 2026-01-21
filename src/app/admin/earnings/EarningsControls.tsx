@@ -2,7 +2,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useTransition } from "react";
+import { useTransition, type FormEvent } from "react";
 import styles from "./AdminEarningsPage.module.css";
 
 type ViewMode = "month" | "ytd" | "all" | "range";
@@ -70,27 +70,28 @@ export default function EarningsControls({
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const activeView = useMemo(() => cleanView(sp.get("view")), [sp]);
+  const spKey = sp.toString();
+  const activeView = cleanView(sp.get("view"));
 
-  const urlMonthYear = useMemo(() => {
-    const usp = new URLSearchParams(sp.toString());
-    return getMonthYearFromParams(usp, initialYear, initialMonth);
-  }, [sp, initialYear, initialMonth]);
+  const urlMonthYear = getMonthYearFromParams(
+    new URLSearchParams(spKey),
+    initialYear,
+    initialMonth,
+  );
 
-  const urlRange = useMemo(() => {
-    const from = sp.get("from") ?? initialFrom ?? defaultFrom;
-    const to = sp.get("to") ?? initialTo ?? defaultTo;
-    return { from, to };
-  }, [sp, initialFrom, initialTo, defaultFrom, defaultTo]);
+  const urlRange = {
+    from: sp.get("from") ?? initialFrom ?? defaultFrom,
+    to: sp.get("to") ?? initialTo ?? defaultTo,
+  };
 
-  function push(next: URLSearchParams) {
+  function nav(next: URLSearchParams) {
     const qs = next.toString();
     const href = qs ? `${pathname}?${qs}` : pathname;
-    startTransition(() => router.push(href));
+    startTransition(() => router.replace(href, { scroll: false }));
   }
 
   function setView(nextView: ViewMode) {
-    const next = new URLSearchParams(sp.toString());
+    const next = new URLSearchParams(spKey);
     next.set("view", nextView);
 
     if (nextView === "month") {
@@ -98,7 +99,7 @@ export default function EarningsControls({
       next.delete("to");
       next.set("year", urlMonthYear.year);
       next.set("month", urlMonthYear.month);
-      push(next);
+      nav(next);
       return;
     }
 
@@ -107,7 +108,7 @@ export default function EarningsControls({
       next.delete("month");
       next.set("from", urlRange.from || defaultFrom);
       next.set("to", urlRange.to || defaultTo);
-      push(next);
+      nav(next);
       return;
     }
 
@@ -115,16 +116,16 @@ export default function EarningsControls({
     next.delete("month");
     next.delete("from");
     next.delete("to");
-    push(next);
+    nav(next);
   }
 
-  function onApplyMonth(e: React.FormEvent<HTMLFormElement>) {
+  function onApplyMonth(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const year = String(fd.get("year") ?? "").trim();
     const month = String(fd.get("month") ?? "").trim();
 
-    const next = new URLSearchParams(sp.toString());
+    const next = new URLSearchParams(spKey);
     next.set("view", "month");
     next.delete("from");
     next.delete("to");
@@ -132,16 +133,16 @@ export default function EarningsControls({
     next.set("year", isYear(year) ? year : urlMonthYear.year);
     next.set("month", isMonth(month) ? month : urlMonthYear.month);
 
-    push(next);
+    nav(next);
   }
 
-  function onApplyRange(e: React.FormEvent<HTMLFormElement>) {
+  function onApplyRange(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const from = String(fd.get("from") ?? "").trim();
     const to = String(fd.get("to") ?? "").trim();
 
-    const next = new URLSearchParams(sp.toString());
+    const next = new URLSearchParams(spKey);
     next.set("view", "range");
     next.delete("year");
     next.delete("month");
@@ -149,7 +150,7 @@ export default function EarningsControls({
     next.set("from", from || defaultFrom);
     next.set("to", to || defaultTo);
 
-    push(next);
+    nav(next);
   }
 
   return (
@@ -191,9 +192,9 @@ export default function EarningsControls({
           Date range
         </button>
 
-        {/* <div className={styles.rangePill}>
+        <div className={styles.rangePill}>
           <span className='miniNote'>{rangeLabel}</span>
-        </div> */}
+        </div>
       </div>
 
       {activeView === "month" ? (

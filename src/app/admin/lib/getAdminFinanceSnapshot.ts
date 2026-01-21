@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
 
+const PHX_TZ = "America/Phoenix";
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
 function startOfDayPhoenix(dateUtc: Date) {
@@ -45,11 +46,45 @@ function addMonthsPhoenixStart(monthStartUtc: Date, months: number) {
 
 function monthLabelPhoenix(dateUtc: Date) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone: PHX_TZ,
     month: "long",
     year: "numeric",
   }).format(dateUtc);
 }
+
+function monthTickPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "short",
+    year: "2-digit",
+  }).format(dateUtc);
+}
+
+function monthShortLabelPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "short",
+    year: "numeric",
+  }).format(dateUtc);
+}
+
+function monthKeyFromDatePhoenix(dateUtc: Date) {
+  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+  const y = phx.getUTCFullYear();
+  const m = phx.getUTCMonth() + 1;
+  return `${y}-${String(m).padStart(2, "0")}`;
+}
+
+export type AdminFinanceSnapshotChartPoint = {
+  key: string;
+  tick: string;
+  label: string;
+  capturedCents: number;
+  refundedCents: number;
+  netCents: number;
+  count: number;
+};
 
 export type AdminFinanceSnapshotData = {
   monthLabel: string;
@@ -68,7 +103,76 @@ export type AdminFinanceSnapshotData = {
   pendingPaymentAmountCents: number;
 
   monthOverMonthPct: number | null;
+
+  chartData: AdminFinanceSnapshotChartPoint[];
 };
+
+async function getLast12MonthsChart(
+  now: Date,
+): Promise<AdminFinanceSnapshotChartPoint[]> {
+  const currentMonthStart = startOfMonthPhoenix(now);
+  const nextAfterCurrent = addMonthsPhoenixStart(currentMonthStart, 1);
+  const oldestMonthStart = addMonthsPhoenixStart(currentMonthStart, -11);
+
+  const capturedRows = (await db.$queryRaw<any[]>`
+    SELECT
+      to_char(date_trunc('month', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COUNT(*) as count
+    FROM "Payment"
+    WHERE "status" = 'PAID'
+      AND "paidAt" >= ${oldestMonthStart} AND "paidAt" < ${nextAfterCurrent}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `) as any[];
+
+  const refundRows = (await db.$queryRaw<any[]>`
+    SELECT
+      to_char(date_trunc('month', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COUNT(*) as count
+    FROM "Payment"
+    WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
+      AND "updatedAt" >= ${oldestMonthStart} AND "updatedAt" < ${nextAfterCurrent}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `) as any[];
+
+  const cap = new Map<string, { sumCents: number; count: number }>();
+  for (const r of capturedRows) {
+    const k = String(r.key);
+    cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+  }
+
+  const ref = new Map<string, { sumCents: number; count: number }>();
+  for (const r of refundRows) {
+    const k = String(r.key);
+    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+  }
+
+  const points: AdminFinanceSnapshotChartPoint[] = [];
+
+  for (let i = 0; i < 12; i++) {
+    const ms = addMonthsPhoenixStart(oldestMonthStart, i);
+    const key = monthKeyFromDatePhoenix(ms);
+
+    const c = cap.get(key) ?? { sumCents: 0, count: 0 };
+    const r = ref.get(key) ?? { sumCents: 0, count: 0 };
+    const net = Math.max(0, c.sumCents - r.sumCents);
+
+    points.push({
+      key,
+      tick: monthTickPhoenix(ms),
+      label: monthShortLabelPhoenix(ms),
+      capturedCents: c.sumCents,
+      refundedCents: r.sumCents,
+      netCents: net,
+      count: c.count,
+    });
+  }
+
+  return points;
+}
 
 export async function getAdminFinanceSnapshot(
   now: Date,
@@ -84,10 +188,9 @@ export async function getAdminFinanceSnapshot(
     paidMonthAgg,
     paidTodayAgg,
     paidPrevMonthAgg,
-
     refundsMonthAgg,
-
     pendingBookingAgg,
+    chartData,
   ] = await Promise.all([
     db.payment.aggregate({
       where: {
@@ -133,6 +236,8 @@ export async function getAdminFinanceSnapshot(
       _sum: { totalCents: true },
       _count: { _all: true },
     }),
+
+    getLast12MonthsChart(now),
   ]);
 
   const capturedMonthCents = Number(paidMonthAgg._sum.amountTotalCents ?? 0);
@@ -174,5 +279,7 @@ export async function getAdminFinanceSnapshot(
     pendingPaymentAmountCents,
 
     monthOverMonthPct,
+
+    chartData,
   };
 }

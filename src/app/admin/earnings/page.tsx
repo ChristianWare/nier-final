@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
 import { db } from "@/lib/db";
@@ -14,6 +15,18 @@ const PHX_TZ = "America/Phoenix";
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
 type ViewMode = "month" | "ytd" | "all" | "range";
+type SP = Record<string, string | string[] | undefined>;
+
+function spGet(sp: SP, key: string) {
+  const v = sp[key];
+  if (Array.isArray(v)) return v[0] ?? null;
+  return typeof v === "string" ? v : null;
+}
+
+function cleanView(v: string | null | undefined): ViewMode {
+  if (v === "month" || v === "ytd" || v === "all" || v === "range") return v;
+  return "month";
+}
 
 function formatMoney(cents: number, currency = "USD") {
   const n = (cents || 0) / 100;
@@ -69,9 +82,21 @@ function formatMonthTickPhoenix(dateUtc: Date) {
   }).format(dateUtc);
 }
 
-function shortAddress(address: string) {
-  if (!address) return "";
-  return address.split(",")[0]?.trim() || address;
+function formatDayLabelPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(dateUtc);
+}
+
+function formatDayTickPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "2-digit",
+    day: "2-digit",
+  }).format(dateUtc);
 }
 
 function shortId(id: string | null | undefined, n = 7) {
@@ -159,11 +184,6 @@ function ymdForInputPhoenix(dateUtc: Date) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-function cleanView(v: string | undefined): ViewMode {
-  if (v === "month" || v === "ytd" || v === "all" || v === "range") return v;
-  return "month";
-}
-
 function buildHref(
   basePath: string,
   params: Record<string, string | undefined | null>,
@@ -209,70 +229,319 @@ async function refundAgg(from: Date, to: Date) {
 
 function resolveMonthYear({
   view,
-  searchParams,
+  sp,
   now,
 }: {
   view: ViewMode;
-  searchParams?: Record<string, string | string[] | undefined>;
+  sp: SP;
   now: Date;
 }) {
   const currentKey = monthKeyFromDatePhoenix(now);
   const currentYear = currentKey.slice(0, 4);
   const currentMonth = currentKey.slice(5, 7);
 
-  const legacyKey =
-    typeof searchParams?.month === "string" &&
-    monthStartFromKeyPhoenix(searchParams.month)
-      ? searchParams.month
-      : null;
+  const rawMonth = spGet(sp, "month");
+  const rawYear = spGet(sp, "year");
 
-  const yearParam =
-    typeof searchParams?.year === "string" ? searchParams.year : null;
-  const monthParam =
-    typeof searchParams?.month === "string" ? searchParams.month : null;
+  const legacyKey =
+    rawMonth && monthStartFromKeyPhoenix(rawMonth) ? rawMonth : null;
 
   if (view !== "month")
     return { year: currentYear, month: currentMonth, key: currentKey };
 
-  if (legacyKey)
+  if (legacyKey) {
     return {
       year: legacyKey.slice(0, 4),
       month: legacyKey.slice(5, 7),
       key: legacyKey,
     };
+  }
 
-  const y = yearParam && /^\d{4}$/.test(yearParam) ? yearParam : currentYear;
+  const y = rawYear && /^\d{4}$/.test(rawYear) ? rawYear : currentYear;
   const m =
-    monthParam && /^(0[1-9]|1[0-2])$/.test(monthParam)
-      ? monthParam
-      : currentMonth;
+    rawMonth && /^(0[1-9]|1[0-2])$/.test(rawMonth) ? rawMonth : currentMonth;
 
   return { year: y, month: m, key: `${y}-${m}` };
+}
+
+function quarterKeyFromMonthKey(monthKey: string) {
+  const y = Number(monthKey.slice(0, 4));
+  const m = Number(monthKey.slice(5, 7));
+  const q = Math.floor((m - 1) / 3) + 1;
+  return `${y}-Q${q}`;
+}
+
+function quarterStartFromQuarterKeyPhoenix(key: string) {
+  const match = /^(\d{4})-Q([1-4])$/.exec(key.trim());
+  if (!match) return null;
+  const y = Number(match[1]);
+  const q = Number(match[2]);
+  const startMonth = (q - 1) * 3 + 1;
+  const startLocalMs = Date.UTC(y, startMonth - 1, 1, 0, 0, 0);
+  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
+  return new Date(startUtcMs);
+}
+
+function quarterTick(key: string) {
+  const match = /^(\d{4})-Q([1-4])$/.exec(key.trim());
+  if (!match) return key;
+  const yy = match[1].slice(2);
+  return `Q${match[2]} ${yy}`;
+}
+
+function quarterLabel(key: string) {
+  const match = /^(\d{4})-Q([1-4])$/.exec(key.trim());
+  if (!match) return key;
+  return `Q${match[2]} ${match[1]}`;
+}
+
+function yearTick(y: string) {
+  return y.slice(2);
+}
+
+async function chartAggDaily(fromUtc: Date, toUtc: Date) {
+  const capturedRows = (await db.$queryRaw<any[]>`
+    SELECT
+      to_char(date_trunc('day', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COUNT(*) as count
+    FROM "Payment"
+    WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `) as any[];
+
+  const refundRows = (await db.$queryRaw<any[]>`
+    SELECT
+      to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+      COALESCE(SUM("amountTotalCents"), 0) as sum
+    FROM "Payment"
+    WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
+      AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `) as any[];
+
+  const cap = new Map<string, { sumCents: number; count: number }>();
+  for (const r of capturedRows) {
+    const k = String(r.key);
+    cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+  }
+
+  const ref = new Map<string, number>();
+  for (const r of refundRows) {
+    const k = String(r.key);
+    ref.set(k, Number(r.sum || 0));
+  }
+
+  const points: {
+    key: string;
+    tick: string;
+    label: string;
+    capturedCents: number;
+    refundedCents: number;
+    netCents: number;
+    count: number;
+  }[] = [];
+
+  for (
+    let d = new Date(fromUtc.getTime());
+    d.getTime() < toUtc.getTime();
+    d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
+  ) {
+    const ymd = ymdForInputPhoenix(d);
+    const c = cap.get(ymd) ?? { sumCents: 0, count: 0 };
+    const r = ref.get(ymd) ?? 0;
+    const n = Math.max(0, c.sumCents - r);
+
+    points.push({
+      key: ymd,
+      tick: formatDayTickPhoenix(d),
+      label: formatDayLabelPhoenix(d),
+      capturedCents: c.sumCents,
+      refundedCents: r,
+      netCents: n,
+      count: c.count,
+    });
+  }
+
+  return points;
+}
+
+async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
+  const capturedRows = (await db.$queryRaw<any[]>`
+    SELECT
+      to_char(date_trunc('month', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COUNT(*) as count
+    FROM "Payment"
+    WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `) as any[];
+
+  const refundRows = (await db.$queryRaw<any[]>`
+    SELECT
+      to_char(date_trunc('month', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      COALESCE(SUM("amountTotalCents"), 0) as sum
+    FROM "Payment"
+    WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
+      AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `) as any[];
+
+  const cap = new Map<string, { sumCents: number; count: number }>();
+  for (const r of capturedRows) {
+    const k = String(r.key);
+    cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+  }
+
+  const ref = new Map<string, number>();
+  for (const r of refundRows) {
+    const k = String(r.key);
+    ref.set(k, Number(r.sum || 0));
+  }
+
+  const months: string[] = [];
+  for (
+    let ms = startOfMonthPhoenix(fromUtc);
+    ms.getTime() < toUtc.getTime();
+    ms = addMonthsPhoenix(ms, 1)
+  ) {
+    months.push(monthKeyFromDatePhoenix(ms));
+  }
+
+  if (months.length <= 36) {
+    return months.map((k) => {
+      const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
+      const c = cap.get(k) ?? { sumCents: 0, count: 0 };
+      const r = ref.get(k) ?? 0;
+      const n = Math.max(0, c.sumCents - r);
+      return {
+        key: k,
+        tick: formatMonthTickPhoenix(ms),
+        label: formatMonthLabelPhoenix(ms),
+        capturedCents: c.sumCents,
+        refundedCents: r,
+        netCents: n,
+        count: c.count,
+      };
+    });
+  }
+
+  const qKeys: string[] = [];
+  const seenQ = new Set<string>();
+  for (const mk of months) {
+    const qk = quarterKeyFromMonthKey(mk);
+    if (!seenQ.has(qk)) {
+      seenQ.add(qk);
+      qKeys.push(qk);
+    }
+  }
+  qKeys.sort((a, b) => (a < b ? -1 : 1));
+
+  if (qKeys.length <= 36) {
+    const qCap = new Map<string, { sumCents: number; count: number }>();
+    const qRef = new Map<string, number>();
+
+    for (const mk of months) {
+      const qk = quarterKeyFromMonthKey(mk);
+      const c = cap.get(mk) ?? { sumCents: 0, count: 0 };
+      const r = ref.get(mk) ?? 0;
+
+      const pc = qCap.get(qk) ?? { sumCents: 0, count: 0 };
+      qCap.set(qk, {
+        sumCents: pc.sumCents + c.sumCents,
+        count: pc.count + c.count,
+      });
+
+      qRef.set(qk, (qRef.get(qk) ?? 0) + r);
+    }
+
+    return qKeys.map((qk) => {
+      const qs =
+        quarterStartFromQuarterKeyPhoenix(qk) ?? startOfMonthPhoenix(fromUtc);
+      const c = qCap.get(qk) ?? { sumCents: 0, count: 0 };
+      const r = qRef.get(qk) ?? 0;
+      const n = Math.max(0, c.sumCents - r);
+      return {
+        key: qk,
+        tick: quarterTick(qk),
+        label: quarterLabel(qk),
+        capturedCents: c.sumCents,
+        refundedCents: r,
+        netCents: n,
+        count: c.count,
+      };
+    });
+  }
+
+  const years: string[] = [];
+  const seenY = new Set<string>();
+  for (const mk of months) {
+    const y = mk.slice(0, 4);
+    if (!seenY.has(y)) {
+      seenY.add(y);
+      years.push(y);
+    }
+  }
+  years.sort((a, b) => (a < b ? -1 : 1));
+
+  const yCap = new Map<string, { sumCents: number; count: number }>();
+  const yRef = new Map<string, number>();
+
+  for (const mk of months) {
+    const y = mk.slice(0, 4);
+    const c = cap.get(mk) ?? { sumCents: 0, count: 0 };
+    const r = ref.get(mk) ?? 0;
+
+    const pc = yCap.get(y) ?? { sumCents: 0, count: 0 };
+    yCap.set(y, {
+      sumCents: pc.sumCents + c.sumCents,
+      count: pc.count + c.count,
+    });
+
+    yRef.set(y, (yRef.get(y) ?? 0) + r);
+  }
+
+  return years.map((y) => {
+    const c = yCap.get(y) ?? { sumCents: 0, count: 0 };
+    const r = yRef.get(y) ?? 0;
+    const n = Math.max(0, c.sumCents - r);
+    return {
+      key: y,
+      tick: yearTick(y),
+      label: y,
+      capturedCents: c.sumCents,
+      refundedCents: r,
+      netCents: n,
+      count: c.count,
+    };
+  });
 }
 
 export default async function EarningsPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams?: SP | Promise<SP>;
 }) {
+  const sp = (await Promise.resolve(searchParams ?? {})) as SP;
+
   const now = new Date();
-  const view = cleanView(
-    typeof searchParams?.view === "string" ? searchParams.view : undefined,
-  );
+  const view = cleanView(spGet(sp, "view"));
 
   const currentMonthStart = startOfMonthPhoenix(now);
 
-  const rangeFromParam =
-    typeof searchParams?.from === "string" ? searchParams.from : null;
-  const rangeToParam =
-    typeof searchParams?.to === "string" ? searchParams.to : null;
+  const rangeFromParam = spGet(sp, "from");
+  const rangeToParam = spGet(sp, "to");
 
   const defaultTo = ymdForInputPhoenix(now);
   const defaultFrom = ymdForInputPhoenix(
     new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
   );
 
-  const resolvedMY = resolveMonthYear({ view, searchParams, now });
+  const resolvedMY = resolveMonthYear({ view, sp, now });
   const resolvedMonthKey = resolvedMY.key;
 
   let fromUtc = currentMonthStart;
@@ -362,7 +631,7 @@ export default async function EarningsPage({
 
   const currency = "USD";
 
-  const [captured, refunded, payments] = await Promise.all([
+  const [captured, refunded, payments, chartData] = await Promise.all([
     capturedAgg(fromUtc, toUtc),
     refundAgg(fromUtc, toUtc),
     db.payment.findMany({
@@ -390,6 +659,9 @@ export default async function EarningsPage({
         },
       },
     }),
+    view === "month"
+      ? chartAggDaily(fromUtc, toUtc)
+      : chartAggMonthly(fromUtc, toUtc),
   ]);
 
   const netCents = Math.max(0, captured.sumCents - refunded.sumCents);
@@ -401,73 +673,31 @@ export default async function EarningsPage({
     monthMenuStarts[monthMenuStarts.length - 1] ?? startOfMonthPhoenix(now);
   const nextAfterCurrent = addMonthsPhoenix(startOfMonthPhoenix(now), 1);
 
-  const [last12CapturedRows, last12RefundRows] = await Promise.all([
-    db.payment.findMany({
-      where: { paidAt: { gte: oldestMonthStart, lt: nextAfterCurrent } },
-      select: { paidAt: true, amountTotalCents: true },
-    }),
-    db.payment.findMany({
-      where: {
-        status: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] },
-        updatedAt: { gte: oldestMonthStart, lt: nextAfterCurrent },
-      },
-      select: { updatedAt: true, amountTotalCents: true },
-    }),
-  ]);
+  const last12CapturedRows = await db.payment.findMany({
+    where: { paidAt: { gte: oldestMonthStart, lt: nextAfterCurrent } },
+    select: { paidAt: true, amountTotalCents: true },
+  });
 
-  const capturedBucket = new Map<string, { sumCents: number; count: number }>();
+  const bucket = new Map<string, { sumCents: number; count: number }>();
   for (const r of last12CapturedRows) {
     if (!r.paidAt) continue;
     const key = monthKeyFromDatePhoenix(r.paidAt);
-    const prev = capturedBucket.get(key) ?? { sumCents: 0, count: 0 };
-    capturedBucket.set(key, {
+    const prev = bucket.get(key) ?? { sumCents: 0, count: 0 };
+    bucket.set(key, {
       sumCents: prev.sumCents + (r.amountTotalCents ?? 0),
       count: prev.count + 1,
     });
-  }
-
-  const refundBucket = new Map<string, number>();
-  for (const r of last12RefundRows) {
-    const key = monthKeyFromDatePhoenix(r.updatedAt);
-    refundBucket.set(
-      key,
-      (refundBucket.get(key) ?? 0) + (r.amountTotalCents ?? 0),
-    );
   }
 
   const monthSummary = monthMenuStarts
     .map((ms) => {
       const key = monthKeyFromDatePhoenix(ms);
       const label = formatMonthLabelPhoenix(ms);
-      const tick = formatMonthTickPhoenix(ms);
-      const v = capturedBucket.get(key) ?? { sumCents: 0, count: 0 };
+      const v = bucket.get(key) ?? { sumCents: 0, count: 0 };
       const avgCents = v.count > 0 ? Math.round(v.sumCents / v.count) : 0;
-      return {
-        key,
-        label,
-        tick,
-        sumCents: v.sumCents,
-        count: v.count,
-        avgCents,
-      };
+      return { key, label, sumCents: v.sumCents, count: v.count, avgCents };
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
-
-  const chartData = [...monthSummary]
-    .sort((a, b) => (a.key < b.key ? -1 : 1))
-    .map((m) => {
-      const refund = refundBucket.get(m.key) ?? 0;
-      const net = Math.max(0, m.sumCents - refund);
-      return {
-        key: m.key,
-        tick: m.tick,
-        label: m.label,
-        capturedCents: m.sumCents,
-        refundedCents: refund,
-        netCents: net,
-        count: m.count,
-      };
-    });
 
   const exportHref = buildHref("/admin/earnings/export", {
     view,
@@ -476,6 +706,9 @@ export default async function EarningsPage({
     from: view === "range" ? (rangeFromParam ?? defaultFrom) : undefined,
     to: view === "range" ? (rangeToParam ?? defaultTo) : undefined,
   });
+
+  const chartTitle = view === "month" ? "Daily earnings" : "Monthly earnings";
+  const chartSub = rangeLabel;
 
   return (
     <section className={`${base.content} ${styles.container}`}>
@@ -538,8 +771,8 @@ export default async function EarningsPage({
 
       <section className={`${styles.card} ${styles.chartCard}`}>
         <div className={styles.cardHeader}>
-          <div className='cardTitle h4'>Revenue trend</div>
-          <div className='miniNote'>Last 12 months</div>
+          <div className='cardTitle h4'>{chartTitle}</div>
+          <div className='miniNote'>{chartSub}</div>
         </div>
         <div className={styles.chartWrap}>
           <EarningsChart data={chartData} currency={currency} />
@@ -659,7 +892,10 @@ export default async function EarningsPage({
                         <td>{paidAt ? formatDateShortPhx(paidAt) : "—"}</td>
                         <td>
                           <Link className={styles.rowLink} href={bookingHref}>
-                            <div className={styles.bookingId}>
+                            <div
+                              className={styles.bookingId}
+                              style={{ textDecoration: "underline" }}
+                            >
                               {shortId(bookingId, 7)}
                             </div>
                           </Link>

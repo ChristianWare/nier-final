@@ -1,5 +1,16 @@
 import Button from "@/components/shared/Button/Button";
 import styles from "./AdminFinanceSnapshot.module.css";
+import AdminFinanceMiniChart from "./AdminFinanceMiniChart";
+
+export type AdminFinanceSnapshotChartPoint = {
+  key: string;
+  tick: string;
+  label: string;
+  capturedCents: number;
+  refundedCents: number;
+  netCents: number;
+  count: number;
+};
 
 export type AdminFinanceSnapshotProps = {
   monthLabel: string;
@@ -18,6 +29,8 @@ export type AdminFinanceSnapshotProps = {
   pendingPaymentAmountCents: number;
 
   monthOverMonthPct: number | null;
+
+  chartData?: AdminFinanceSnapshotChartPoint[];
 };
 
 function formatMoney(cents: number, currency = "USD") {
@@ -28,11 +41,6 @@ function formatMoney(cents: number, currency = "USD") {
     maximumFractionDigits: 0,
   }).format(n);
 }
-
-// function formatPct(v: number) {
-//   const sign = v > 0 ? "+" : "";
-//   return `${sign}${Math.round(v)}%`;
-// }
 
 export default function AdminFinanceSnapshot({
   monthLabel,
@@ -50,7 +58,7 @@ export default function AdminFinanceSnapshot({
   pendingPaymentCount,
   pendingPaymentAmountCents,
 
-  // monthOverMonthPct,
+  chartData,
 }: AdminFinanceSnapshotProps) {
   const netMonthCents = Math.max(0, capturedMonthCents - refundsMonthCents);
 
@@ -58,30 +66,17 @@ export default function AdminFinanceSnapshot({
     <section className={styles.container} aria-label='Finance snapshot'>
       <header className='header'>
         <h2 className='cardTitle h4'>{monthLabel} - Earnings</h2>
-
-        {/* 
-        <div className={styles.headerRight}>
-          <div className={styles.bigValue}>
-            {formatMoney(netMonthCents, currency)}
-          </div>
-          <div className={styles.bigSub}>
-            <span className='miniNote'>Net this month</span>
-            {typeof monthOverMonthPct === "number" ? (
-              <span
-                className={`${styles.delta} ${
-                  monthOverMonthPct > 0
-                    ? styles.deltaUp
-                    : monthOverMonthPct < 0
-                      ? styles.deltaDown
-                      : styles.deltaFlat
-                }`}
-              >
-                {formatPct(monthOverMonthPct)}
-              </span>
-            ) : null}
-          </div>
-        </div> */}
       </header>
+
+      {Array.isArray(chartData) && chartData.length > 0 ? (
+        <div className={styles.chartWrap}>
+          <div className={styles.chartHeader}>
+            <div className='emptyTitle underline'>Last 12 months</div>
+            <div className='miniNote'>Net with captured & refunded</div>
+          </div>
+          <AdminFinanceMiniChart data={chartData} currency={currency} />
+        </div>
+      ) : null}
 
       <div className={styles.grid}>
         <MetricCard
@@ -127,6 +122,7 @@ export default function AdminFinanceSnapshot({
           tone='good'
         />
       </div>
+
       <div className={styles.btnContainer}>
         <Button
           href='/admin/earnings'
@@ -156,7 +152,7 @@ function MetricCard({
         <div className='emptyTitle underline'>{label}</div>
       </div>
 
-      <div className="emptyTitleSmall">{value}</div>
+      <div className='emptyTitleSmall'>{value}</div>
 
       {sub ? (
         <div className='miniNote'>{sub}</div>
