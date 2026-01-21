@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/incompatible-library */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -16,6 +17,8 @@ import Stepper from "../Stepper/Stepper";
 import SummaryRow from "../SummaryRow/SummaryRow";
 import BookingDateTimeWithBlackouts from "@/components/BookingPage/BookingDateTimeWithBlackouts/BookingDateTimeWithBlackouts";
 import { useSession } from "next-auth/react";
+
+import { Controller, useForm } from "react-hook-form";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -63,6 +66,31 @@ type VehicleDTO = {
   perHourCents: number;
   active: boolean;
   sortOrder: number;
+};
+
+type FormValues = {
+  serviceTypeId: string;
+
+  pickupAtDate: string;
+  pickupAtTime: string;
+
+  passengers: number;
+  luggage: number;
+
+  pickupAirportId: string;
+  dropoffAirportId: string;
+
+  hoursRequested: number;
+
+  route: RoutePickerValue | null;
+
+  vehicleId: string;
+
+  specialRequests: string;
+
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
 };
 
 function centsToUsd(cents: number) {
@@ -127,6 +155,39 @@ function toNumber(v: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function normPlace(p: RoutePickerPlace | null | undefined) {
+  if (!p) return null;
+  return {
+    address: String(p.address ?? ""),
+    placeId: p.placeId ? String(p.placeId) : null,
+    lat: toNumber(p.location?.lat ?? null),
+    lng: toNumber(p.location?.lng ?? null),
+  };
+}
+
+function routeEquals(a: RoutePickerValue | null, b: RoutePickerValue | null) {
+  if (a === b) return true;
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+
+  const ap = normPlace(a.pickup);
+  const ad = normPlace(a.dropoff);
+  const bp = normPlace(b.pickup);
+  const bd = normPlace(b.dropoff);
+
+  const milesA = toNumber(a.miles ?? a.distanceMiles ?? null);
+  const minsA = toNumber(a.minutes ?? a.durationMinutes ?? null);
+  const milesB = toNumber(b.miles ?? b.distanceMiles ?? null);
+  const minsB = toNumber(b.minutes ?? b.durationMinutes ?? null);
+
+  return (
+    JSON.stringify(ap) === JSON.stringify(bp) &&
+    JSON.stringify(ad) === JSON.stringify(bd) &&
+    milesA === milesB &&
+    minsA === minsB
+  );
+}
+
 export default function BookingWizard({
   serviceTypes,
   vehicles,
@@ -152,29 +213,64 @@ export default function BookingWizard({
     [vehicles],
   );
 
-  // ✅ start with no service selected
-  const [serviceTypeId, setServiceTypeId] = useState<string>("");
-
-  const [pickupAtDate, setPickupAtDate] = useState<string>("");
-  const [pickupAtTime, setPickupAtTime] = useState<string>("");
-  const [passengers, setPassengers] = useState<number>(1);
-  const [luggage, setLuggage] = useState<number>(0);
-
-  const [route, setRoute] = useState<RoutePickerValue | null>(null);
+  const hasNoServices = services.length === 0;
 
   const pickupInputRef = useRef<HTMLInputElement | null>(null);
   const dropoffInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [hoursRequested, setHoursRequested] = useState<number>(2);
-  const [vehicleId, setVehicleId] = useState<string>("");
-  const [specialRequests, setSpecialRequests] = useState<string>("");
+  const {
+    control,
+    register,
+    watch,
+    setValue,
+    getValues,
+    getFieldState,
+    clearErrors,
+    trigger,
+    formState: { errors },
+  } = useForm<FormValues>({
+    mode: "onTouched",
+    defaultValues: {
+      serviceTypeId: "",
 
-  const [guestName, setGuestName] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
-  const [guestPhone, setGuestPhone] = useState("");
+      pickupAtDate: "",
+      pickupAtTime: "",
 
-  const [pickupAirportId, setPickupAirportId] = useState<string>("");
-  const [dropoffAirportId, setDropoffAirportId] = useState<string>("");
+      passengers: 1,
+      luggage: 0,
+
+      pickupAirportId: "",
+      dropoffAirportId: "",
+
+      hoursRequested: 2,
+
+      route: null,
+
+      vehicleId: "",
+
+      specialRequests: "",
+
+      guestName: "",
+      guestEmail: "",
+      guestPhone: "",
+    },
+  });
+
+  const serviceTypeId = watch("serviceTypeId");
+  const pickupAtDate = watch("pickupAtDate");
+  const pickupAtTime = watch("pickupAtTime");
+  const passengers = watch("passengers");
+  const luggage = watch("luggage");
+  const hoursRequested = watch("hoursRequested");
+  const route = watch("route");
+  const vehicleId = watch("vehicleId");
+
+  const guestName = watch("guestName");
+  const guestEmail = watch("guestEmail");
+  const guestPhone = watch("guestPhone");
+
+  const pickupAirportId = watch("pickupAirportId");
+  const dropoffAirportId = watch("dropoffAirportId");
 
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
@@ -190,61 +286,88 @@ export default function BookingWizard({
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
 
-  function applyAirportToRoute(side: "pickup" | "dropoff", airportId: string) {
-    const a = serviceAirports.find((x) => x.id === airportId) ?? null;
+  // ✅ Register validation rules (IMPORTANT: these rules exist even if you don’t render inputs)
+  useEffect(() => {
+    register("serviceTypeId", { required: "Please select a service." });
 
-    if (!a) {
-      setRoute((prev) => {
-        const prevPickup = prev?.pickup ?? null;
-        const prevDropoff = prev?.dropoff ?? null;
+    register("pickupAtDate", { required: "Please choose a pickup date." });
+    register("pickupAtTime", { required: "Please choose a pickup time." });
 
-        const next: RoutePickerValue = {
-          pickup: side === "pickup" ? null : prevPickup,
-          dropoff: side === "dropoff" ? null : prevDropoff,
-          miles: null,
-          minutes: null,
-          distanceMiles: null,
-          durationMinutes: null,
-        };
-
-        if (!next.pickup && !next.dropoff) return null;
-        return next;
-      });
-      return;
-    }
-
-    const lat = toNumber(a.lat);
-    const lng = toNumber(a.lng);
-
-    if (lat == null || lng == null) {
-      toast.error(
-        "That airport is missing coordinates. Edit the airport and choose an address suggestion so we can save its location.",
-      );
-      return;
-    }
-
-    const place: RoutePickerPlace = {
-      address: a.address,
-      placeId: a.placeId ?? a.id,
-      location: { lat, lng },
-    };
-
-    setRoute((prev) => {
-      const prevPickup = prev?.pickup ?? null;
-      const prevDropoff = prev?.dropoff ?? null;
-
-      const next: RoutePickerValue = {
-        pickup: side === "pickup" ? place : prevPickup,
-        dropoff: side === "dropoff" ? place : prevDropoff,
-        miles: null,
-        minutes: null,
-        distanceMiles: null,
-        durationMinutes: null,
-      };
-
-      return next;
+    register("passengers", {
+      valueAsNumber: true,
+      required: "Passengers is required.",
+      min: { value: 1, message: "Passengers must be at least 1." },
     });
-  }
+
+    register("luggage", {
+      valueAsNumber: true,
+      required: "Luggage is required.",
+      min: { value: 0, message: "Luggage cannot be negative." },
+    });
+
+    register("pickupAirportId", {
+      validate: (v) =>
+        usesPickupAirport
+          ? v
+            ? true
+            : "Please choose a pickup airport."
+          : true,
+    });
+
+    register("dropoffAirportId", {
+      validate: (v) =>
+        usesDropoffAirport
+          ? v
+            ? true
+            : "Please choose a dropoff airport."
+          : true,
+    });
+
+    register("hoursRequested", {
+      valueAsNumber: true,
+      validate: (v) => {
+        if (selectedService?.pricingStrategy !== "HOURLY") return true;
+        if (!Number.isFinite(v)) return "Please enter hours.";
+        if (v < 1) return "Hours must be at least 1.";
+        return true;
+      },
+    });
+
+    register("vehicleId", { required: "Please choose a vehicle category." });
+
+    register("guestName", {
+      validate: (v) =>
+        isAuthed ? true : v.trim() ? true : "Please enter your name.",
+    });
+
+    register("guestEmail", {
+      validate: (v) => {
+        if (isAuthed) return true;
+        const e = v.trim().toLowerCase();
+        if (!e) return "Please enter your email address.";
+        if (!isValidEmail(e)) return "Please enter a valid email address.";
+        return true;
+      },
+    });
+
+    register("guestPhone", {
+      validate: (v) =>
+        isAuthed ? true : v.trim() ? true : "Please enter your phone number.",
+    });
+  }, [
+    register,
+    usesPickupAirport,
+    usesDropoffAirport,
+    selectedService?.pricingStrategy,
+    isAuthed,
+  ]);
+
+  // ✅ Route validation via Controller
+  // NOTE: We set redBorder on Pickup/Dropoff labels when route is invalid AND that side is missing.
+  const pickupLabelRed =
+    Boolean(errors.route) && !route?.pickup && !usesPickupAirport;
+  const dropoffLabelRed =
+    Boolean(errors.route) && !route?.dropoff && !usesDropoffAirport;
 
   const minHours =
     selectedService?.pricingStrategy === "HOURLY"
@@ -276,29 +399,7 @@ export default function BookingWizard({
     hoursRequested,
   ]);
 
-  function canGoStep2() {
-    if (!selectedService) return false;
-    if (!pickupAtDate || !pickupAtTime) return false;
-
-    if (selectedService.airportLeg !== "NONE" && serviceAirports.length === 0) {
-      return false;
-    }
-
-    if (usesPickupAirport && !pickupAirportId) return false;
-    if (usesDropoffAirport && !dropoffAirportId) return false;
-
-    if (!route?.pickup || !route?.dropoff) return false;
-
-    return true;
-  }
-
-  function canGoStep3() {
-    if (!selectedService) return false;
-    if (!vehicleId) return false;
-    return true;
-  }
-
-  // ✅ UX FIX: scroll wizard to top whenever step changes
+  // ✅ scroll wizard to top whenever step changes
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
 
@@ -313,70 +414,195 @@ export default function BookingWizard({
     });
   }, [step]);
 
-  async function handleSubmit() {
-    if (submitting || submitted) return;
+  function labelCx(hasError: boolean) {
+    return `cardTitle h5${hasError ? " redBorder" : ""}`;
+  }
 
-    if (!selectedService) {
-      toast.error("Please select a service.");
+  function firstErrorMessage(): string {
+    const order: (keyof FormValues)[] = [
+      "serviceTypeId",
+      "pickupAtDate",
+      "pickupAtTime",
+      "pickupAirportId",
+      "dropoffAirportId",
+      "route",
+      "passengers",
+      "luggage",
+      "hoursRequested",
+      "vehicleId",
+      "guestName",
+      "guestEmail",
+      "guestPhone",
+    ];
+
+    for (const k of order) {
+      const err = (errors as any)?.[k];
+      if (err?.message) return String(err.message);
+    }
+    return "Please fix the highlighted fields.";
+  }
+
+  function applyAirportToRoute(side: "pickup" | "dropoff", airportId: string) {
+    const a = serviceAirports.find((x) => x.id === airportId) ?? null;
+
+    if (!a) {
+      const prev = getValues("route");
+      const prevPickup = prev?.pickup ?? null;
+      const prevDropoff = prev?.dropoff ?? null;
+
+      const next: RoutePickerValue = {
+        pickup: side === "pickup" ? null : prevPickup,
+        dropoff: side === "dropoff" ? null : prevDropoff,
+        miles: null,
+        minutes: null,
+        distanceMiles: null,
+        durationMinutes: null,
+      };
+
+      setValue("route", next.pickup || next.dropoff ? next : null, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
       return;
     }
 
-    if (selectedService.airportLeg !== "NONE" && serviceAirports.length === 0) {
+    const lat = toNumber(a.lat);
+    const lng = toNumber(a.lng);
+
+    if (lat == null || lng == null) {
       toast.error(
-        "This airport service is not configured yet. Please choose a different service or contact support.",
+        "That airport is missing coordinates. Edit the airport and choose an address suggestion so we can save its location.",
       );
       return;
     }
 
-    if (usesPickupAirport && !pickupAirportId) {
-      toast.error("Please choose a pickup airport.");
-      return;
-    }
-    if (usesDropoffAirport && !dropoffAirportId) {
-      toast.error("Please choose a dropoff airport.");
+    const place: RoutePickerPlace = {
+      address: a.address,
+      placeId: a.placeId ?? a.id,
+      location: { lat, lng },
+    };
+
+    const prev = getValues("route");
+    const prevPickup = prev?.pickup ?? null;
+    const prevDropoff = prev?.dropoff ?? null;
+
+    const next: RoutePickerValue = {
+      pickup: side === "pickup" ? place : prevPickup,
+      dropoff: side === "dropoff" ? place : prevDropoff,
+      miles: null,
+      minutes: null,
+      distanceMiles: null,
+      durationMinutes: null,
+    };
+
+    setValue("route", next, { shouldDirty: true, shouldValidate: true });
+  }
+
+  async function goStep2() {
+    // allow click ALWAYS, and validate to show red labels
+    if (
+      selectedService &&
+      selectedService.airportLeg !== "NONE" &&
+      serviceAirports.length === 0
+    ) {
+      toast.error(
+        "This airport service isn’t configured yet (no airports assigned).",
+      );
       return;
     }
 
-    if (!route?.pickup || !route?.dropoff) {
+    const fields: (keyof FormValues)[] = [
+      "serviceTypeId",
+      "pickupAtDate",
+      "pickupAtTime",
+      "passengers",
+      "luggage",
+      "route",
+    ];
+
+    if (usesPickupAirport) fields.push("pickupAirportId");
+    if (usesDropoffAirport) fields.push("dropoffAirportId");
+    if (selectedService?.pricingStrategy === "HOURLY")
+      fields.push("hoursRequested");
+
+    const ok = await trigger(fields, { shouldFocus: false });
+    if (!ok) {
+      toast.error(firstErrorMessageFrom(fields));
+      return;
+    }
+
+    setStep(2);
+  }
+
+  async function goStep3() {
+    const ok = await trigger(["vehicleId"], { shouldFocus: false });
+    if (!ok) {
+      toast.error(firstErrorMessage());
+      return;
+    }
+    setStep(3);
+  }
+
+  async function handleSubmit() {
+    if (submitting || submitted) return;
+
+    if (
+      selectedService &&
+      selectedService.airportLeg !== "NONE" &&
+      serviceAirports.length === 0
+    ) {
+      toast.error("This airport service isn’t configured yet.");
+      return;
+    }
+
+    const fields: (keyof FormValues)[] = [
+      "serviceTypeId",
+      "pickupAtDate",
+      "pickupAtTime",
+      "passengers",
+      "luggage",
+      "route",
+      "vehicleId",
+    ];
+
+    if (usesPickupAirport) fields.push("pickupAirportId");
+    if (usesDropoffAirport) fields.push("dropoffAirportId");
+    if (selectedService?.pricingStrategy === "HOURLY")
+      fields.push("hoursRequested");
+    if (!isAuthed) fields.push("guestName", "guestEmail", "guestPhone");
+
+    const ok = await trigger(fields, { shouldFocus: false });
+    if (!ok) {
+      toast.error(firstErrorMessage());
+      return;
+    }
+
+    const v = getValues();
+    if (!selectedService) {
+      toast.error("Please select a service.");
+      return;
+    }
+    if (!v.route?.pickup || !v.route?.dropoff) {
       toast.error("Please select pickup and dropoff.");
       return;
     }
-    if (!pickupAtDate || !pickupAtTime) {
-      toast.error("Please choose date and time.");
-      return;
-    }
-    if (!vehicleId) {
-      toast.error("Please choose a vehicle category.");
-      return;
-    }
-
-    if (!isAuthed) {
-      const n = guestName.trim();
-      const e = guestEmail.trim().toLowerCase();
-      const p = guestPhone.trim();
-
-      if (!n) return toast.error("Please enter your name.");
-      if (!e || !isValidEmail(e))
-        return toast.error("Please enter a valid email address.");
-      if (!p) return toast.error("Please enter your phone number.");
-    }
 
     const pickupAtIso = new Date(
-      `${pickupAtDate}T${pickupAtTime}:00`,
+      `${v.pickupAtDate}T${v.pickupAtTime}:00`,
     ).toISOString();
 
     setSubmitting(true);
 
     try {
-      const pickup = route.pickup;
-      const dropoff = route.dropoff;
+      const pickup = v.route.pickup;
+      const dropoff = v.route.dropoff;
 
       const res = await createBookingRequest({
         serviceTypeId: selectedService.id,
-        vehicleId,
+        vehicleId: v.vehicleId,
         pickupAt: pickupAtIso,
-        passengers,
-        luggage,
+        passengers: v.passengers,
+        luggage: v.luggage,
 
         pickupAddress: pickup.address,
         pickupPlaceId: pickup.placeId ?? null,
@@ -388,17 +614,19 @@ export default function BookingWizard({
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
 
-        distanceMiles: route.miles ?? null,
-        durationMinutes: route.minutes ?? null,
+        distanceMiles: v.route.miles ?? null,
+        durationMinutes: v.route.minutes ?? null,
 
         hoursRequested:
-          selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
+          selectedService.pricingStrategy === "HOURLY"
+            ? v.hoursRequested
+            : null,
 
-        specialRequests: specialRequests || null,
+        specialRequests: v.specialRequests || null,
 
-        guestName: isAuthed ? null : guestName.trim(),
-        guestEmail: isAuthed ? null : guestEmail.trim().toLowerCase(),
-        guestPhone: isAuthed ? null : guestPhone.trim(),
+        guestName: isAuthed ? null : v.guestName.trim(),
+        guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
+        guestPhone: isAuthed ? null : v.guestPhone.trim(),
       });
 
       const data = res as any;
@@ -417,9 +645,9 @@ export default function BookingWizard({
 
       const href = bookingId
         ? claimToken
-          ? `/book/success?id=${encodeURIComponent(
-              String(bookingId),
-            )}&t=${encodeURIComponent(String(claimToken))}`
+          ? `/book/success?id=${encodeURIComponent(String(bookingId))}&t=${encodeURIComponent(
+              String(claimToken),
+            )}`
           : `/book/success?id=${encodeURIComponent(String(bookingId))}`
         : "/book/success";
 
@@ -434,7 +662,13 @@ export default function BookingWizard({
     usesPickupAirport ? "P" : ""
   }${usesDropoffAirport ? "D" : ""}`;
 
-  const hasNoServices = services.length === 0;
+  function firstErrorMessageFrom(fields: (keyof FormValues)[]) {
+    for (const k of fields) {
+      const st = getFieldState(k as any); // RHF internal state (fresh)
+      if (st.error?.message) return String(st.error.message);
+    }
+    return "Please complete the highlighted fields.";
+  }
 
   return (
     <section className={styles.container}>
@@ -443,21 +677,39 @@ export default function BookingWizard({
           <div className={styles.left}>
             <Stepper step={step} />
             <div className={styles.routePickerContainer}>
-              <RoutePicker
-                value={route}
-                onChange={setRoute}
-                pickupInputRef={pickupInputRef}
-                dropoffInputRef={dropoffInputRef}
-                inputsKey={inputsKey}
+              <Controller
+                name='route'
+                control={control}
+                rules={{
+                  validate: (v) => {
+                    if (!v?.pickup || !v?.dropoff)
+                      return "Please select pickup and dropoff.";
+                    return true;
+                  },
+                }}
+                render={({ field }) => (
+                  <RoutePicker
+                    value={field.value}
+                    onChange={(next) => {
+                      const prev = getValues("route");
+                      if (routeEquals(prev, next)) return;
+                      field.onChange(next);
+                      clearErrors("route");
+                    }}
+                    pickupInputRef={pickupInputRef}
+                    dropoffInputRef={dropoffInputRef}
+                    inputsKey={inputsKey}
+                  />
+                )}
               />
             </div>
           </div>
 
           <div className={styles.right}>
-            {/* scroll anchor (with scroll-margin-top in CSS) */}
             <div ref={wizardTopRef} className={styles.wizardTop} />
 
             <div className={styles.wizard}>
+              {/* STEP 1 */}
               {step === 1 ? (
                 <div className={`${styles.contentBox} ${styles.stepPane}`}>
                   <h2 className='underline'>Trip details</h2>
@@ -476,22 +728,43 @@ export default function BookingWizard({
                   ) : null}
 
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label className='cardTitle h5'>Service</label>
+                    <label className={labelCx(Boolean(errors.serviceTypeId))}>
+                      Service
+                    </label>
+
                     <select
                       value={serviceTypeId}
                       onChange={(e) => {
                         const next = e.target.value;
 
-                        setPickupAirportId("");
-                        setDropoffAirportId("");
-                        setRoute(null);
-                        setVehicleId("");
+                        setValue("pickupAirportId", "", { shouldDirty: true });
+                        setValue("dropoffAirportId", "", { shouldDirty: true });
+                        setValue("route", null, { shouldDirty: true });
+                        setValue("vehicleId", "", { shouldDirty: true });
 
-                        setServiceTypeId(next);
+                        setValue("serviceTypeId", next, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+
+                        clearErrors([
+                          "serviceTypeId",
+                          "pickupAirportId",
+                          "dropoffAirportId",
+                          "route",
+                          "vehicleId",
+                        ]);
 
                         const svc = services.find((s) => s.id === next);
                         if (svc?.pricingStrategy === "HOURLY") {
-                          setHoursRequested((prev) => Math.max(prev || 2, 2));
+                          setValue(
+                            "hoursRequested",
+                            Math.max(getValues("hoursRequested") || 2, 2),
+                            {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            },
+                          );
                         }
                       }}
                       className='input emptySmall'
@@ -506,45 +779,72 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  {selectedService &&
-                  selectedService.airportLeg !== "NONE" &&
-                  serviceAirports.length === 0 ? (
-                    <div
-                      className='miniNote'
-                      style={{ color: "rgba(180,0,0,0.8)" }}
+                  {/* ✅ Add a label that can go red for date/time */}
+                  <div style={{ display: "grid", gap: 8 }}>
+                    <label
+                      className={labelCx(
+                        Boolean(errors.pickupAtDate) ||
+                          Boolean(errors.pickupAtTime),
+                      )}
                     >
-                      This airport service isn’t configured yet (no airports
-                      assigned). Please choose another service or contact
-                      support.
-                    </div>
-                  ) : null}
+                      Pickup date
+                    </label>
 
-                  <BookingDateTimeWithBlackouts
-                    date={pickupAtDate}
-                    time={pickupAtTime}
-                    onChangeDate={setPickupAtDate}
-                    onChangeTime={setPickupAtTime}
-                  />
+                    <BookingDateTimeWithBlackouts
+                      date={pickupAtDate}
+                      time={pickupAtTime}
+                      onChangeDate={(d) => {
+                        setValue("pickupAtDate", d, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors("pickupAtDate");
+                      }}
+                      onChangeTime={(t) => {
+                        setValue("pickupAtTime", t, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors("pickupAtTime");
+                      }}
+                    />
+                  </div>
 
                   <Grid2>
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Passengers</label>
+                      <label className={labelCx(Boolean(errors.passengers))}>
+                        Passengers
+                      </label>
                       <input
                         type='number'
                         min={1}
                         value={passengers}
-                        onChange={(e) => setPassengers(Number(e.target.value))}
+                        onChange={(e) => {
+                          setValue("passengers", Number(e.target.value), {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          clearErrors("passengers");
+                        }}
                         className='input emptySmall'
                       />
                     </div>
 
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Luggage</label>
+                      <label className={labelCx(Boolean(errors.luggage))}>
+                        Luggage
+                      </label>
                       <input
                         type='number'
                         min={0}
                         value={luggage}
-                        onChange={(e) => setLuggage(Number(e.target.value))}
+                        onChange={(e) => {
+                          setValue("luggage", Number(e.target.value), {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          clearErrors("luggage");
+                        }}
                         className='input emptySmall'
                       />
                     </div>
@@ -552,7 +852,17 @@ export default function BookingWizard({
 
                   <div className={styles.pickupDropoffContainer}>
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>
+                      <label
+                        className={`cardTitle h5${
+                          usesPickupAirport
+                            ? errors.pickupAirportId
+                              ? " redBorder"
+                              : ""
+                            : pickupLabelRed
+                              ? " redBorder"
+                              : ""
+                        }`}
+                      >
                         {usesPickupAirport ? "Pickup airport" : "Pickup"}
                       </label>
 
@@ -561,7 +871,11 @@ export default function BookingWizard({
                           value={pickupAirportId}
                           onChange={(e) => {
                             const id = e.target.value;
-                            setPickupAirportId(id);
+                            setValue("pickupAirportId", id, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            clearErrors("pickupAirportId");
                             applyAirportToRoute("pickup", id);
                           }}
                           className='input emptySmall'
@@ -584,7 +898,17 @@ export default function BookingWizard({
                     </div>
 
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>
+                      <label
+                        className={`cardTitle h5${
+                          usesDropoffAirport
+                            ? errors.dropoffAirportId
+                              ? " redBorder"
+                              : ""
+                            : dropoffLabelRed
+                              ? " redBorder"
+                              : ""
+                        }`}
+                      >
                         {usesDropoffAirport ? "Dropoff airport" : "Dropoff"}
                       </label>
 
@@ -593,7 +917,11 @@ export default function BookingWizard({
                           value={dropoffAirportId}
                           onChange={(e) => {
                             const id = e.target.value;
-                            setDropoffAirportId(id);
+                            setValue("dropoffAirportId", id, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            clearErrors("dropoffAirportId");
                             applyAirportToRoute("dropoff", id);
                           }}
                           className='input emptySmall'
@@ -618,15 +946,23 @@ export default function BookingWizard({
 
                   {selectedService?.pricingStrategy === "HOURLY" ? (
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Hours</label>
+                      <label
+                        className={labelCx(Boolean(errors.hoursRequested))}
+                      >
+                        Hours
+                      </label>
                       <input
                         type='number'
                         min={1}
                         step={1}
                         value={hoursRequested}
-                        onChange={(e) =>
-                          setHoursRequested(Number(e.target.value))
-                        }
+                        onChange={(e) => {
+                          setValue("hoursRequested", Number(e.target.value), {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          clearErrors("hoursRequested");
+                        }}
                         className='input emptySmall'
                       />
                       <div style={{ fontSize: 12, opacity: 0.7 }}>
@@ -640,22 +976,9 @@ export default function BookingWizard({
                     <div className={styles.btnContainer}>
                       <button
                         type='button'
-                        onClick={() => {
-                          if (!canGoStep2()) {
-                            toast.error(
-                              !selectedService
-                                ? "Please select a service."
-                                : selectedService.airportLeg !== "NONE" &&
-                                    serviceAirports.length === 0
-                                  ? "This airport service isn’t configured yet."
-                                  : "Please complete service, date/time, and route.",
-                            );
-                            return;
-                          }
-                          setStep(2);
-                        }}
+                        onClick={goStep2}
                         className='primaryBtn'
-                        disabled={hasNoServices || !selectedService}
+                        disabled={hasNoServices} // ✅ ONLY disabled if literally no services exist
                       >
                         Next
                       </button>
@@ -664,6 +987,7 @@ export default function BookingWizard({
                 </div>
               ) : null}
 
+              {/* STEP 2 */}
               {step === 2 ? (
                 <div
                   className={styles.stepPane}
@@ -671,6 +995,11 @@ export default function BookingWizard({
                 >
                   <h2 className='underline'>Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
+
+                  {/* ✅ label that goes red if vehicle missing */}
+                  <label className={labelCx(Boolean(errors.vehicleId))}>
+                    Vehicle category
+                  </label>
 
                   <div style={{ display: "grid", gap: 10 }}>
                     {vehicleOptions.map((v) => {
@@ -704,10 +1033,17 @@ export default function BookingWizard({
                           key={v.id}
                           type='button'
                           onClick={() => {
-                            setVehicleId(v.id);
+                            setValue("vehicleId", v.id, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            clearErrors("vehicleId");
+
                             if (selectedService?.pricingStrategy === "HOURLY") {
-                              setHoursRequested((prev) =>
-                                Math.max(prev || 1, v.minHours || 0),
+                              setValue(
+                                "hoursRequested",
+                                Math.max(hoursRequested || 1, v.minHours || 0),
+                                { shouldDirty: true, shouldValidate: true },
                               );
                             }
                           }}
@@ -775,13 +1111,7 @@ export default function BookingWizard({
 
                     <button
                       type='button'
-                      onClick={() => {
-                        if (!canGoStep3()) {
-                          toast.error("Please choose a vehicle category.");
-                          return;
-                        }
-                        setStep(3);
-                      }}
+                      onClick={goStep3}
                       className='primaryBtn'
                     >
                       Next
@@ -790,6 +1120,7 @@ export default function BookingWizard({
                 </div>
               ) : null}
 
+              {/* STEP 3 */}
               {step === 3 ? (
                 <div
                   className={styles.stepPane}
@@ -849,10 +1180,18 @@ export default function BookingWizard({
                   {!isAuthed ? (
                     <div style={{ display: "grid", gap: 10 }}>
                       <div style={{ display: "grid", gap: 20 }}>
-                        <div className='cardTitle h5'>Full name</div>
+                        <label className={labelCx(Boolean(errors.guestName))}>
+                          Full name
+                        </label>
                         <input
                           value={guestName}
-                          onChange={(e) => setGuestName(e.target.value)}
+                          onChange={(e) => {
+                            setValue("guestName", e.target.value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            clearErrors("guestName");
+                          }}
                           className='input subheading'
                           placeholder='Your name'
                         />
@@ -860,10 +1199,20 @@ export default function BookingWizard({
 
                       <Grid2>
                         <div style={{ display: "grid", gap: 10 }}>
-                          <div className='cardTitle h5'>Email</div>
+                          <label
+                            className={labelCx(Boolean(errors.guestEmail))}
+                          >
+                            Email
+                          </label>
                           <input
                             value={guestEmail}
-                            onChange={(e) => setGuestEmail(e.target.value)}
+                            onChange={(e) => {
+                              setValue("guestEmail", e.target.value, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              clearErrors("guestEmail");
+                            }}
                             className='input subheading'
                             placeholder='you@email.com'
                             inputMode='email'
@@ -871,24 +1220,26 @@ export default function BookingWizard({
                         </div>
 
                         <div style={{ display: "grid", gap: 6 }}>
-                          <div className='cardTitle h5'>Phone</div>
+                          <label
+                            className={labelCx(Boolean(errors.guestPhone))}
+                          >
+                            Phone
+                          </label>
                           <input
                             value={guestPhone}
-                            onChange={(e) => setGuestPhone(e.target.value)}
+                            onChange={(e) => {
+                              setValue("guestPhone", e.target.value, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              clearErrors("guestPhone");
+                            }}
                             className='input subheading'
                             placeholder='(602) 555-1234'
                             inputMode='tel'
                           />
                         </div>
                       </Grid2>
-
-                      <div
-                        className='emptyTitleSmall'
-                        style={{ color: "rgba(0, 0, 0, 0.7)" }}
-                      >
-                        We’ll use this email to send updates and your payment
-                        link after approval.
-                      </div>
                     </div>
                   ) : null}
 
@@ -897,8 +1248,12 @@ export default function BookingWizard({
                       Special requests (optional)
                     </div>
                     <textarea
-                      value={specialRequests}
-                      onChange={(e) => setSpecialRequests(e.target.value)}
+                      value={watch("specialRequests")}
+                      onChange={(e) =>
+                        setValue("specialRequests", e.target.value, {
+                          shouldDirty: true,
+                        })
+                      }
                       className='input subheading'
                       style={{ minHeight: 90 }}
                       placeholder='Child seat, wheelchair needs, extra stops, meet & greet...'
