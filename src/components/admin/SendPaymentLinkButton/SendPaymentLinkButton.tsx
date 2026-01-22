@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { createPaymentLinkAndEmail } from "../../../../actions/admin/bookings";
+import Button from "@/components/shared/Button/Button";
 
 export default function SendPaymentLinkButton({
   bookingId,
@@ -48,9 +49,13 @@ export default function SendPaymentLinkButton({
         });
       }}
     >
-      <button disabled={isPending} type='submit' className='primaryBtn'>
-        {isPending ? "Sending..." : "Email payment link"}
-      </button>
+      <Button
+        disabled={isPending}
+        type='submit'
+        text={isPending ? "Sending..." : "Email payment link"}
+        btnType='gray'
+        email
+      />
     </form>
   );
 }

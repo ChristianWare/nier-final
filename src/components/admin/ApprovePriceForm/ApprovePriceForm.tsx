@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { approveBookingAndSetPrice } from "../../../../actions/admin/bookings";
+import Button from "@/components/shared/Button/Button";
 
 export default function ApprovePriceForm({
   bookingId,
@@ -74,9 +75,13 @@ export default function ApprovePriceForm({
       </Grid2>
 
       <div className={styles.btnContainer}>
-        <button disabled={isPending} className='primaryBtn' type='submit'>
-          {isPending ? "Saving..." : "Approve & Set Price"}
-        </button>
+        <Button
+          disabled={isPending}
+          type='submit'
+          text={isPending ? "Saving..." : "Approve & Set Price"}
+          btnType='black'
+          arrow
+        />
       </div>
     </form>
   );

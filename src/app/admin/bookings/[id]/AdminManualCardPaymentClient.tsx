@@ -2,7 +2,6 @@
 "use client";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import styles from "./AdminBookingDetailPage.module.css";
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -16,6 +15,7 @@ import {
 } from "@stripe/react-stripe-js";
 
 import { adminCreateManualPaymentIntent } from "../../../../../actions/bookings/adminCreateManualPaymentIntent";
+import Button from "@/components/shared/Button/Button";
 
 // function centsToUsd(cents: number) {
 //   return (cents / 100).toFixed(2);
@@ -51,17 +51,25 @@ export default function AdminManualCardPaymentClient({
 
   if (isPaid) {
     return (
-      <button
-        type='button'
-        className='primaryBtn'
+      // <button
+      //   type='button'
+      //   className='primaryBtn'
+      //   disabled
+      //   style={{
+      //     background: "rgba(0,160,80,0.95)",
+      //     borderColor: "rgba(0,160,80,0.95)",
+      //   }}
+      // >
+      //   Payment successful
+      // </button>
+      <Button
         disabled
-        style={{
-          background: "rgba(0,160,80,0.95)",
-          borderColor: "rgba(0,160,80,0.95)",
-        }}
-      >
-        Payment successful
-      </button>
+        type='button'
+        text='Payment successful'
+        btnType='green'
+        checkIcon
+        onClick={start}
+      />
     );
   }
 
@@ -89,16 +97,24 @@ export default function AdminManualCardPaymentClient({
 
   if (!clientSecret) {
     return (
-      <div className={styles.btnContainer}>
-        <button
-          type='button'
-          className='goodBtnii'
-          onClick={start}
-          disabled={creating}
-        >
-          {creating ? "Starting..." : `Take card payment`}
-        </button>
-      </div>
+      // <div className={styles.btnContainer}>
+      //   <button
+      //     type='button'
+      //     className='goodBtnii'
+      //     onClick={start}
+      //     disabled={creating}
+      //   >
+      //     {creating ? "Starting..." : `Take card payment`}
+      //   </button>
+      // </div>
+      <Button
+        disabled={creating}
+        type='button'
+        text={creating ? "Starting..." : "Take card payment"}
+        btnType='green'
+        arrow
+        onClick={start}
+      />
     );
   }
 

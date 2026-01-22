@@ -5,6 +5,7 @@ import { useTransition, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { assignBooking } from "../../../../actions/admin/bookings";
+import Button from "@/components/shared/Button/Button";
 
 function centsToDollars(cents: number | null | undefined): string {
   if (cents == null) return "";
@@ -123,9 +124,16 @@ export default function AssignBookingForm({
       </div>
 
       <div className={styles.btnContainer}>
-        <button disabled={isPending} className='primaryBtn' type='submit'>
+        {/* <button disabled={isPending} className='primaryBtn' type='submit'>
           {isPending ? "Saving..." : "Assign + Pay Driver"}
-        </button>
+        </button> */}
+        <Button
+          disabled={isPending}
+          type='submit'
+          text={isPending ? "Saving..." : "Assign + Pay Driver"}
+          btnType='black'
+          arrow
+        />
       </div>
     </form>
   );

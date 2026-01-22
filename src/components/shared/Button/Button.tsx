@@ -6,6 +6,7 @@ import Plus from "../icons/Plus/Plus";
 import DownloadIcon from "../DownloadIcon/DownloadIcon";
 import Close from "../icons/Close/Close";
 import Check from "../icons/Check/Check";
+import Email from "../icons/Email/Email";
 
 interface Props {
   href?: string;
@@ -16,6 +17,7 @@ interface Props {
   children?: ReactNode;
   arrow?: boolean;
   plus?: boolean;
+  email?: boolean;
   downloadIcon?: boolean;
   closeIcon?: boolean;
   checkIcon?: boolean;
@@ -34,6 +36,7 @@ export default function Button({
   arrow,
   closeIcon,
   plus,
+  email,
   checkIcon,
   downloadIcon,
   type = "button",
@@ -69,6 +72,11 @@ export default function Button({
       {checkIcon && (
         <div className={styles.plusContainer}>
           <Check className={styles.optionalIcon} />
+        </div>
+      )}
+      {email && (
+        <div className={styles.plusContainer}>
+          <Email className={styles.optionalIcon} />
         </div>
       )}
     </>
