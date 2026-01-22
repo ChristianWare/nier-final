@@ -1,0 +1,570 @@
+/* AdminReportsPage.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ============================================ */
+/* HEADER */
+/* ============================================ */
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ============================================ */
+/* CONTROLS */
+/* ============================================ */
+
+.controlsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tab {
+  padding: 0.625rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.tab:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tabActive {
+  background: var(--black);
+  border-color: var(--black);
+  color: #fff;
+}
+
+.tabActive:hover:not(:disabled) {
+  background: var(--black);
+  border-color: var(--black);
+}
+
+.rangePill {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.filterForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.filterLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.filterSelect,
+.filterInput {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 14px;
+  color: #111827;
+}
+
+.filterSelect:focus,
+.filterInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filterSubmit {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.92);
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.filterSubmit:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.filterSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================ */
+/* SECTIONS */
+/* ============================================ */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.02em;
+}
+
+.sectionBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ============================================ */
+/* KPI GRID */
+/* ============================================ */
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kpiCard {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kpiLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--black);
+  text-decoration: underline;
+}
+
+.kpiValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.kpiSub {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.tone_neutral {
+  border: 1px solid var(--stroke);
+}
+
+.tone_good {
+  color: var(--darkGreen);
+  background: var(--lightGreen);
+  border: 1px solid var(--stroke);
+}
+
+.tone_good .kpiValue {
+  color: var(--darkGreen);
+}
+
+.tone_warn {
+  color: var(--darkYellow);
+  background: rgba(255, 200, 9, 0.25);
+  border: 1px solid var(--stroke);
+}
+
+.tone_warn .kpiValue {
+  color: var(--darkYellow);
+}
+
+/* ============================================ */
+/* CHARTS */
+/* ============================================ */
+
+.chartsRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+.chartCard {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chartCardLarge {
+  grid-column: 1 / -1;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.chartHeader {
+  padding: 1rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.25rem;
+}
+
+.chartTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: -0.01em;
+}
+
+.chartBody {
+  padding: 14px;
+  touch-action: pan-y;
+}
+
+.chartBodyPie {
+  padding: 14px;
+  touch-action: pan-y;
+}
+
+/* ============================================ */
+/* REVENUE CHART */
+/* ============================================ */
+
+.revenueChartInner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.swatch[data-tone="net"] {
+  background: var(--lightGreen);
+}
+
+.swatch[data-tone="captured"] {
+  background: var(--black);
+}
+
+.swatch[data-tone="refunded"] {
+  background: var(--red);
+}
+
+.revenueChartCanvas {
+  width: 100%;
+  height: 280px;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  padding: 10px;
+  touch-action: pan-y;
+}
+
+/* ============================================ */
+/* PIE CHARTS */
+/* ============================================ */
+
+.pieChartWrapper {
+  width: 100%;
+  min-height: 280px;
+  touch-action: pan-y;
+}
+
+/* Allow scrolling when hovering over charts */
+.pieChartWrapper :global(.recharts-wrapper),
+.revenueChartCanvas :global(.recharts-wrapper) {
+  touch-action: pan-y !important;
+}
+
+.pieChartWrapper :global(.recharts-surface),
+.revenueChartCanvas :global(.recharts-surface) {
+  touch-action: pan-y !important;
+}
+
+.emptyChart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.legendText {
+  color: #374151;
+  font-size: 13px;
+}
+
+.legendPct {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* ============================================ */
+/* TABLES */
+/* ============================================ */
+
+.tableWrap {
+  overflow: auto;
+  max-height: 520px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: top;
+  font-size: 14px;
+}
+
+.right {
+  text-align: right;
+}
+
+.driverName {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--black);
+}
+
+.emptyState {
+  padding: 22px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.rateBadgeGood,
+.rateBadgeWarn,
+.rateBadgeBad {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.rateBadgeGood {
+  background: var(--lightGreen);
+  color: var(--darkGreen);
+}
+
+.rateBadgeWarn {
+  background: rgba(255, 200, 9, 0.25);
+  color: var(--darkYellow);
+}
+
+.rateBadgeBad {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+/* ============================================ */
+/* TOOLTIP */
+/* ============================================ */
+
+.tooltip {
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px 12px;
+  min-width: 200px;
+  display: grid;
+  gap: 8px;
+}
+
+.tooltipTitle {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+
+.tooltipGrid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 12px;
+}
+
+.tooltipLabel {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.tooltipValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  text-align: right;
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+@media screen and (max-width: 1268px) {
+  .kpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    gap: 0.5rem;
+  }
+
+  .tab {
+    padding: 0.5rem 0.75rem;
+    font-size: 13px;
+  }
+
+  .filterForm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filterField {
+    min-width: 100%;
+  }
+
+  .filterSubmit {
+    width: 100%;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .kpiValue {
+    font-size: 24px;
+  }
+
+  .chartHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}
