@@ -99,6 +99,8 @@ model User {
   assignedByAdmin   Assignment[] @relation("AssignedByAdmin")
 
   statusEventsCreated BookingStatusEvent[] @relation("StatusEventsCreated")
+  // ✅ NEW: Notes created by this user
+  bookingNotesCreated BookingNote[]        @relation("BookingNotesCreated")
 
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
@@ -328,6 +330,13 @@ model Booking {
   specialRequests String? @db.Text
   internalNotes   String? @db.Text
 
+  // ✅ NEW: Flight information
+  flightAirline     String?
+  flightNumber      String?
+  flightScheduledAt DateTime? // Scheduled arrival/departure time
+  flightTerminal    String?
+  flightGate        String?
+
   // Pricing totals (in cents)
   currency      String @default("usd")
   subtotalCents Int    @default(0)
@@ -340,6 +349,9 @@ model Booking {
   payment      Payment?
   assignment   Assignment?
   statusEvents BookingStatusEvent[]
+
+  // ✅ NEW: Admin notes
+  notes BookingNote[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -356,6 +368,26 @@ model Booking {
   @@index([vehicleId])
   @@index([status])
   @@index([pickupAt])
+}
+
+/**
+ * ✅ NEW: Internal notes/comments for bookings
+ */
+model BookingNote {
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  content String @db.Text
+
+  createdById String?
+  createdBy   User?   @relation("BookingNotesCreated", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([bookingId])
+  @@index([createdAt])
 }
 
 model BookingAddon {
@@ -403,20 +435,20 @@ model Payment {
 }
 
 model Assignment {
-  id String @id @default(cuid())
-  bookingId String @unique
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  id        String  @id @default(cuid())
+  bookingId String  @unique
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   // Assign a DRIVER user
   driverId String
-  driver User @relation("DriverAssignments", fields: [driverId], references: [id], onDelete: Cascade)
+  driver   User   @relation("DriverAssignments", fields: [driverId], references: [id], onDelete: Cascade)
 
   // ✅ Optional: assign a specific vehicle unit too (recommended for dispatch)
   vehicleUnitId String?
-  vehicleUnit VehicleUnit? @relation(fields: [vehicleUnitId], references: [id], onDelete: SetNull)
+  vehicleUnit   VehicleUnit? @relation(fields: [vehicleUnitId], references: [id], onDelete: SetNull)
 
   assignedById String?
-  assignedBy User? @relation("AssignedByAdmin", fields: [assignedById], references: [id], onDelete: SetNull)
+  assignedBy   User?   @relation("AssignedByAdmin", fields: [assignedById], references: [id], onDelete: SetNull)
 
   // ✅ NEW: Add this line - Amount to pay the driver (in cents)
   driverPaymentCents Int?
@@ -523,4 +555,3 @@ model NotificationJob {
 
   payload Json?
 }
-

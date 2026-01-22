@@ -10,11 +10,15 @@ import { BookingStatus, Role } from "@prisma/client";
 import Link from "next/link";
 import DeleteBookingDangerZoneClient from "./DeleteBookingDangerZoneClient";
 import AdminManualCardPaymentClient from "./AdminManualCardPaymentClient";
+import QuickActionsClient from "./QuickActionsClient";
+import BookingNotesClient from "./BookingNotesClient";
+import EditTripDetailsClient from "./EditTripDetailsClient";
+import DuplicateBookingClient from "./DuplicateBookingClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// --- shared-ish label helpers (matches the spirit of AdminActivityFeed kindLabel) ---
+// --- shared-ish label helpers ---
 function statusLabel(status: BookingStatus) {
   switch (status) {
     case "PENDING_REVIEW":
@@ -74,6 +78,16 @@ function formatDateTime(d: Date) {
   }).format(d);
 }
 
+function formatDateTimeLocal(d: Date) {
+  // Format for datetime-local input: YYYY-MM-DDTHH:mm
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 function fmtPersonLine(p: { name: string | null; email: string }) {
   const n = (p.name ?? "").trim();
   return n ? `${n} (${p.email})` : p.email;
@@ -87,6 +101,34 @@ function formatMoney(cents: number | null | undefined, currency = "USD") {
     currency,
     maximumFractionDigits: 2,
   }).format(n);
+}
+
+// Helper to determine who triggered a status event
+function getEventActorLabel(
+  actor: { name: string | null; email: string; roles: Role[] } | null,
+  status: string,
+): string {
+  if (status === "CONFIRMED" && !actor) {
+    return "System (payment received)";
+  }
+
+  if (!actor) {
+    return "System";
+  }
+
+  const isAdmin = actor.roles?.includes(Role.ADMIN);
+  const isDriver = actor.roles?.includes(Role.DRIVER);
+  const name = actor.name?.trim() || actor.email;
+
+  if (isAdmin) {
+    return `Admin: ${name}`;
+  }
+
+  if (isDriver) {
+    return `Driver: ${name}`;
+  }
+
+  return `User: ${name}`;
 }
 
 export default async function AdminBookingDetailPage({
@@ -109,13 +151,28 @@ export default async function AdminBookingDetailPage({
           vehicleUnit: { select: { id: true, name: true, plate: true } },
         },
       },
-      statusEvents: { orderBy: { createdAt: "desc" }, take: 50 },
+      statusEvents: {
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        include: {
+          createdBy: {
+            select: { id: true, name: true, email: true, roles: true },
+          },
+        },
+      },
+      // ✅ NEW: Include notes
+      notes: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          createdBy: { select: { name: true, email: true } },
+        },
+      },
     },
   });
 
   if (!booking) return notFound();
 
-  // Earliest status event = best hint for who created the booking (admin/user/guest)
+  // Earliest status event for "created by"
   const createdEvent = await db.bookingStatusEvent.findFirst({
     where: { bookingId: booking.id },
     orderBy: { createdAt: "asc" },
@@ -141,19 +198,29 @@ export default async function AdminBookingDetailPage({
     take: 300,
   });
 
+  // ✅ NEW: Get customer's booking count for history link
+  const customerEmail = booking.user?.email || booking.guestEmail;
+  let customerBookingCount = 0;
+  if (customerEmail) {
+    customerBookingCount = await db.booking.count({
+      where: {
+        OR: [{ user: { email: customerEmail } }, { guestEmail: customerEmail }],
+        id: { not: booking.id }, // Exclude current booking
+      },
+    });
+  }
+
   const customerName =
     booking.user?.name?.trim() || booking.guestName?.trim() || "—";
-  const customerEmail = booking.user?.email || booking.guestEmail || "—";
+  const customerEmailDisplay = booking.user?.email || booking.guestEmail || "—";
   const customerPhone = booking.guestPhone?.trim() || "—";
   const customerLine = booking.user
-    ? `${customerName} (${customerEmail})`
-    : `${customerName} (${customerEmail})${
+    ? `${customerName} (${customerEmailDisplay})`
+    : `${customerName} (${customerEmailDisplay})${
         booking.guestPhone ? ` • ${customerPhone}` : ""
       }`;
 
-  // Created meta (when + who: Admin/User/Guest)
   const createdAtLabel = formatDateTime(booking.createdAt);
-
   const actor = createdEvent?.createdBy ?? null;
 
   let createdByDisplay = "Guest checkout";
@@ -181,15 +248,55 @@ export default async function AdminBookingDetailPage({
     createdByDisplay = parts.join(" • ");
   }
 
-  /**
-   * Display fix:
-   * If Stripe says PAID, and your statusEvents contain a duplicate "CONFIRMED",
-   * we treat the *most recent* CONFIRMED event as "Payment received".
-   */
   const isPaid = booking.payment?.status === "PAID";
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
     : null;
+
+  // Current status display
+  const currentStatus = booking.status as BookingStatus;
+  const currentStatusIsPaidConfirmed =
+    isPaid &&
+    (currentStatus === "CONFIRMED" || currentStatus === "PENDING_PAYMENT");
+  const currentStatusLabel = currentStatusIsPaidConfirmed
+    ? "Payment received"
+    : statusLabel(currentStatus);
+  const currentStatusTone: BadgeTone = currentStatusIsPaidConfirmed
+    ? "good"
+    : badgeTone(currentStatus);
+
+  // ✅ Prepare data for EditTripDetailsClient
+  const tripEditData = {
+    pickupAt: formatDateTimeLocal(booking.pickupAt),
+    pickupAddress: booking.pickupAddress,
+    dropoffAddress: booking.dropoffAddress,
+    passengers: booking.passengers,
+    luggage: booking.luggage,
+    specialRequests: booking.specialRequests,
+    flightAirline: booking.flightAirline,
+    flightNumber: booking.flightNumber,
+    flightScheduledAt: booking.flightScheduledAt
+      ? formatDateTimeLocal(booking.flightScheduledAt)
+      : null,
+    flightTerminal: booking.flightTerminal,
+    flightGate: booking.flightGate,
+  };
+
+  // ✅ Prepare notes for client
+  const notesForClient = booking.notes.map((n) => ({
+    id: n.id,
+    content: n.content,
+    createdAt: n.createdAt.toISOString(),
+    createdBy: n.createdBy,
+  }));
+
+  // ✅ Check if booking has flight info
+  const hasFlightInfo =
+    booking.flightAirline ||
+    booking.flightNumber ||
+    booking.flightScheduledAt ||
+    booking.flightTerminal ||
+    booking.flightGate;
 
   return (
     <section className='container'>
@@ -199,17 +306,53 @@ export default async function AdminBookingDetailPage({
         <div className={styles.box}>
           <div className='emptyTitle'>Booking ID:</div>
           <p className='emptySmall'>{booking.id}</p>
+
+          {/* Current status badge */}
+          <div style={{ marginTop: 12 }}>
+            <div className='emptyTitle'>Current Status:</div>
+            <div style={{ marginTop: 6 }}>
+              <span className={`badge badge_${currentStatusTone}`}>
+                {currentStatusLabel}
+              </span>
+            </div>
+          </div>
         </div>
+
+        {/* ✅ NEW: Quick Actions at the top */}
+        <Card title='Quick Actions'>
+          <QuickActionsClient
+            bookingId={booking.id}
+            currentStatus={currentStatus}
+          />
+          <div className={styles.quickActionsDivider} />
+          <DuplicateBookingClient bookingId={booking.id} />
+        </Card>
       </header>
 
       <Card title='Trip'>
         <KeyVal k='Created' v={createdAtLabel} />
         <KeyVal k='Created by' v={createdByDisplay} />
 
-        <KeyVal k='Customer' v={customerLine} />
+        {/* ✅ NEW: Customer with history link */}
+        <div className={styles.keyVal}>
+          <div className='emptyTitle'>Customer</div>
+          <div>
+            <p className='subheading'>{customerLine}</p>
+            {customerBookingCount > 0 && customerEmail && (
+              <Link
+                href={`/admin/bookings?q=${encodeURIComponent(customerEmail)}`}
+                className={styles.historyLink}
+              >
+                View {customerBookingCount} other booking
+                {customerBookingCount !== 1 ? "s" : ""} from this customer →
+              </Link>
+            )}
+          </div>
+        </div>
+
         <KeyVal k='Service' v={booking.serviceType.name} />
         <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
-        <KeyVal k='Pickup at' v={booking.pickupAt.toLocaleString()} />
+        <KeyVal k='Pickup at' v={formatDateTime(booking.pickupAt)} />
         <KeyVal k='Pickup' v={booking.pickupAddress} />
         <KeyVal k='Dropoff' v={booking.dropoffAddress} />
         <KeyVal
@@ -225,6 +368,46 @@ export default async function AdminBookingDetailPage({
         {booking.specialRequests ? (
           <KeyVal k='Special requests' v={booking.specialRequests} />
         ) : null}
+
+        {/* ✅ NEW: Flight Information */}
+        {hasFlightInfo && (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.flightSection}>
+              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                Flight Information
+              </div>
+              {booking.flightAirline && (
+                <KeyVal k='Airline' v={booking.flightAirline} />
+              )}
+              {booking.flightNumber && (
+                <KeyVal k='Flight Number' v={booking.flightNumber} />
+              )}
+              {booking.flightScheduledAt && (
+                <KeyVal
+                  k='Scheduled Time'
+                  v={formatDateTime(booking.flightScheduledAt)}
+                />
+              )}
+              {booking.flightTerminal && (
+                <KeyVal k='Terminal' v={booking.flightTerminal} />
+              )}
+              {booking.flightGate && <KeyVal k='Gate' v={booking.flightGate} />}
+            </div>
+          </>
+        )}
+
+        {/* ✅ NEW: Edit Trip Details */}
+        <div className={styles.sectionDivider} />
+        <EditTripDetailsClient
+          bookingId={booking.id}
+          initialData={tripEditData}
+        />
+      </Card>
+
+      {/* ✅ NEW: Notes/Comments section */}
+      <Card title='Internal Notes'>
+        <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
       </Card>
 
       <Card title='Approve & price'>
@@ -242,9 +425,9 @@ export default async function AdminBookingDetailPage({
         {drivers.length === 0 ? (
           <div className={styles.muted}>
             No drivers yet. Create users and assign DRIVER role in{" "}
-            <a className={styles.inlineLink} href='/admin/users'>
+            <Link className={styles.inlineLink} href='/admin/users'>
               Users
-            </a>
+            </Link>
             .
           </div>
         ) : (
@@ -260,7 +443,6 @@ export default async function AdminBookingDetailPage({
               }
             />
 
-            {/* ✅ Display current assignment details */}
             {booking.assignment ? (
               <div
                 className={styles.assignmentInfo}
@@ -327,7 +509,6 @@ export default async function AdminBookingDetailPage({
             </div>
           ) : null}
 
-          {/* ✅ Manual card payment */}
           <div style={{ marginTop: 18 }}>
             <div className='cardTitle h5'>Take card payment (manual)</div>
             <div className='miniNote' style={{ marginTop: 6 }}>
@@ -347,7 +528,7 @@ export default async function AdminBookingDetailPage({
         </div>
       </Card>
 
-      <Card title='Status events'>
+      <Card title='Status timeline'>
         {booking.statusEvents.length === 0 ? (
           <div className={styles.muted}>No events yet.</div>
         ) : (
@@ -365,10 +546,13 @@ export default async function AdminBookingDetailPage({
                 ? "Payment received"
                 : statusLabel(e.status as BookingStatus);
 
+              const actorLabel = getEventActorLabel(e.createdBy, e.status);
+
               return (
                 <li key={e.id} className={styles.eventItem}>
                   <div className={styles.eventLeft}>
                     <span className={`badge badge_${tone}`}>{label}</span>
+                    <span className={styles.eventActor}>{actorLabel}</span>
                   </div>
                   <p className='val'>{formatDateTime(new Date(e.createdAt))}</p>
                 </li>
@@ -378,7 +562,7 @@ export default async function AdminBookingDetailPage({
         )}
       </Card>
 
-      {/* ✅ Danger Zone */}
+      {/* Danger Zone */}
       <DeleteBookingDangerZoneClient bookingId={booking.id} />
     </section>
   );

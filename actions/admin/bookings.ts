@@ -7,6 +7,7 @@ import { auth } from "../../auth";
 import { stripe } from "@/lib/stripe";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
+import { revalidatePath } from "next/cache";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -352,4 +353,298 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   });
 
   return { success: true, reused: false, checkoutUrl: stripeSession.url };
+}
+
+// =============================================================================
+// ✅ NEW: Quick Status Actions
+// =============================================================================
+
+const QuickStatusSchema = z.object({
+  bookingId: z.string().min(1),
+  status: z.enum([
+    "COMPLETED",
+    "CANCELLED",
+    "NO_SHOW",
+    "EN_ROUTE",
+    "ARRIVED",
+    "IN_PROGRESS",
+  ]),
+});
+
+export async function updateBookingStatus(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const parsed = QuickStatusSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid status data." };
+
+  const { bookingId, status } = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    select: { id: true, status: true },
+  });
+  if (!booking) return { error: "Booking not found." };
+
+  // Prevent changing status of already finalized bookings (optional guard)
+  const finalStatuses = ["REFUNDED", "PARTIALLY_REFUNDED"];
+  if (finalStatuses.includes(booking.status)) {
+    return { error: "Cannot change status of a refunded booking." };
+  }
+
+  await db.$transaction([
+    db.booking.update({
+      where: { id: bookingId },
+      data: { status },
+    }),
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status,
+        createdById: actorId,
+      },
+    }),
+  ]);
+
+  // Queue notifications for relevant events
+  if (status === "CANCELLED") {
+    await queueAdminNotificationsForBookingEvent({
+      event: "BOOKING_CANCELLED",
+      bookingId,
+    });
+  } else if (status === "COMPLETED") {
+    await queueAdminNotificationsForBookingEvent({
+      event: "TRIP_COMPLETED",
+      bookingId,
+    });
+  } else if (status === "EN_ROUTE") {
+    await queueAdminNotificationsForBookingEvent({
+      event: "DRIVER_EN_ROUTE",
+      bookingId,
+    });
+  } else if (status === "ARRIVED") {
+    await queueAdminNotificationsForBookingEvent({
+      event: "DRIVER_ARRIVED",
+      bookingId,
+    });
+  } else if (status === "IN_PROGRESS") {
+    await queueAdminNotificationsForBookingEvent({
+      event: "DRIVER_PICKED_UP",
+      bookingId,
+    });
+  }
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+
+  return { success: true };
+}
+
+// =============================================================================
+// ✅ NEW: Booking Notes
+// =============================================================================
+
+const AddNoteSchema = z.object({
+  bookingId: z.string().min(1),
+  content: z.string().min(1, "Note cannot be empty").max(5000),
+});
+
+export async function addBookingNote(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const parsed = AddNoteSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid note data." };
+
+  const { bookingId, content } = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    select: { id: true },
+  });
+  if (!booking) return { error: "Booking not found." };
+
+  await db.bookingNote.create({
+    data: {
+      bookingId,
+      content: content.trim(),
+      createdById: actorId,
+    },
+  });
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+
+  return { success: true };
+}
+
+const DeleteNoteSchema = z.object({
+  noteId: z.string().min(1),
+  bookingId: z.string().min(1),
+});
+
+export async function deleteBookingNote(formData: FormData) {
+  await requireAdmin();
+
+  const parsed = DeleteNoteSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid request." };
+
+  const { noteId, bookingId } = parsed.data;
+
+  await db.bookingNote.delete({
+    where: { id: noteId },
+  });
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+
+  return { success: true };
+}
+
+// =============================================================================
+// ✅ NEW: Edit Trip Details
+// =============================================================================
+
+const EditTripSchema = z.object({
+  bookingId: z.string().min(1),
+  pickupAt: z.string().min(1),
+  pickupAddress: z.string().min(1),
+  dropoffAddress: z.string().min(1),
+  passengers: z.coerce.number().int().min(1).max(100),
+  luggage: z.coerce.number().int().min(0).max(100),
+  specialRequests: z.string().optional().nullable(),
+  // Flight info
+  flightAirline: z.string().optional().nullable(),
+  flightNumber: z.string().optional().nullable(),
+  flightScheduledAt: z.string().optional().nullable(),
+  flightTerminal: z.string().optional().nullable(),
+  flightGate: z.string().optional().nullable(),
+});
+
+export async function updateTripDetails(formData: FormData) {
+  await requireAdmin();
+
+  const parsed = EditTripSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    console.error("Edit trip validation failed:", parsed.error);
+    return { error: "Invalid trip data." };
+  }
+
+  const {
+    bookingId,
+    pickupAt,
+    pickupAddress,
+    dropoffAddress,
+    passengers,
+    luggage,
+    specialRequests,
+    flightAirline,
+    flightNumber,
+    flightScheduledAt,
+    flightTerminal,
+    flightGate,
+  } = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    select: { id: true },
+  });
+  if (!booking) return { error: "Booking not found." };
+
+  await db.booking.update({
+    where: { id: bookingId },
+    data: {
+      pickupAt: new Date(pickupAt),
+      pickupAddress,
+      dropoffAddress,
+      passengers,
+      luggage,
+      specialRequests: specialRequests || null,
+      flightAirline: flightAirline || null,
+      flightNumber: flightNumber || null,
+      flightScheduledAt: flightScheduledAt ? new Date(flightScheduledAt) : null,
+      flightTerminal: flightTerminal || null,
+      flightGate: flightGate || null,
+    },
+  });
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+
+  return { success: true };
+}
+
+// =============================================================================
+// ✅ NEW: Duplicate Booking
+// =============================================================================
+
+export async function duplicateBooking(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const bookingId = formData.get("bookingId") as string;
+  if (!bookingId) return { error: "Missing booking ID." };
+
+  const original = await db.booking.findUnique({
+    where: { id: bookingId },
+    include: { addons: true },
+  });
+  if (!original) return { error: "Booking not found." };
+
+  // Create a new booking with same details but fresh status
+  const newBooking = await db.booking.create({
+    data: {
+      userId: original.userId,
+      serviceTypeId: original.serviceTypeId,
+      vehicleId: original.vehicleId,
+      status: "PENDING_REVIEW",
+      pickupAt: original.pickupAt,
+      passengers: original.passengers,
+      luggage: original.luggage,
+      hoursRequested: original.hoursRequested,
+      pickupAddress: original.pickupAddress,
+      pickupPlaceId: original.pickupPlaceId,
+      pickupLat: original.pickupLat,
+      pickupLng: original.pickupLng,
+      dropoffAddress: original.dropoffAddress,
+      dropoffPlaceId: original.dropoffPlaceId,
+      dropoffLat: original.dropoffLat,
+      dropoffLng: original.dropoffLng,
+      distanceMiles: original.distanceMiles,
+      durationMinutes: original.durationMinutes,
+      specialRequests: original.specialRequests,
+      flightAirline: original.flightAirline,
+      flightNumber: original.flightNumber,
+      flightScheduledAt: original.flightScheduledAt,
+      flightTerminal: original.flightTerminal,
+      flightGate: original.flightGate,
+      currency: original.currency,
+      subtotalCents: original.subtotalCents,
+      feesCents: original.feesCents,
+      taxesCents: original.taxesCents,
+      totalCents: original.totalCents,
+      guestName: original.guestName,
+      guestEmail: original.guestEmail,
+      guestPhone: original.guestPhone,
+    },
+  });
+
+  // Create initial status event
+  await db.bookingStatusEvent.create({
+    data: {
+      bookingId: newBooking.id,
+      status: "PENDING_REVIEW",
+      createdById: actorId,
+    },
+  });
+
+  // Copy addons
+  if (original.addons.length > 0) {
+    await db.bookingAddon.createMany({
+      data: original.addons.map((addon) => ({
+        bookingId: newBooking.id,
+        type: addon.type,
+        label: addon.label,
+        quantity: addon.quantity,
+        unitPriceCents: addon.unitPriceCents,
+        totalPriceCents: addon.totalPriceCents,
+        notes: addon.notes,
+      })),
+    });
+  }
+
+  return { success: true, newBookingId: newBooking.id };
 }

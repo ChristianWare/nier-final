@@ -30,11 +30,6 @@
   width: 100%;
 }
 
-/* .cardTitle {
-  font-weight: 800;
-  margin-bottom: 10px;
-} */
-
 .cardTop {
   margin-bottom: 1rem;
 }
@@ -50,8 +45,6 @@
 .keyVal:last-child {
   border-bottom: none;
 }
-
-
 
 .key {
   font-size: 12px;
@@ -88,29 +81,6 @@
 }
 
 .eventsList {
-  margin: 0;
-  padding-left: 18px;
-}
-
-.eventItem {
-  border-bottom: 1px solid var(--stroke);
-  padding-bottom: .5rem;
-}
-
-.eventItem:last-child {
-  border-bottom: none;
-}
-
-.eventStatus {
-  font-weight: 700;
-}
-
-.eventTime {
-  opacity: 0.7;
-  font-size: 12px;
-}
-
-.eventsList {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -126,12 +96,20 @@
   justify-content: flex-start;
   width: 100%;
   gap: 1rem;
+  border-bottom: 1px solid var(--stroke);
+  padding-bottom: 0.5rem;
+}
+
+.eventItem:last-child {
+  border-bottom: none;
 }
 
 .eventLeft {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 10px;
   min-width: 0;
 }
@@ -140,6 +118,11 @@
   font-size: 12px;
   opacity: 0.7;
   white-space: nowrap;
+}
+
+.eventActor {
+  font-weight: 700;
+  letter-spacing: normal;
 }
 
 .modalContent {
@@ -186,25 +169,7 @@
   opacity: 0.75;
 }
 
-/* Modal layout (you requested these) */
-.modalContent {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 2rem;
-}
-
-.modalActions {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-top: 5rem;
-}
-
-/* Confirmation UI inside modal */
+/* Modal layout */
 .modalSubnote {
   display: inline-block;
   margin-top: 0.6rem;
@@ -250,4 +215,304 @@
 .btnContainer {
   display: flex;
   margin-top: 1rem;
+}
+
+/* =============================================================================
+   ✅ NEW: Quick Actions
+   ============================================================================= */
+
+.quickActions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.quickActionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.quickActionsFinalized {
+  padding: 1rem 0;
+}
+
+.quickActionsDivider {
+  height: 1px;
+  background: var(--stroke);
+  margin: 1rem 0;
+}
+
+/* =============================================================================
+   ✅ NEW: Notes Section
+   ============================================================================= */
+
+.notesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.noteForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.noteTextarea {
+  width: 100%;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-size: 1.1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.noteTextarea:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+.noteFormActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.notesList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.noteItem {
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.noteHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 1rem;
+}
+
+.noteAuthor {
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+}
+
+.noteTime {
+  font-size: 1.4rem;
+  opacity: 0.6;
+}
+
+.noteContent {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  color: var(--paragraph);
+  margin: 2rem 0rem;
+}
+
+.noteDeleteBtn {
+  margin-top: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+}
+
+.noteDeleteBtn:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+/* =============================================================================
+   ✅ NEW: Edit Trip Details
+   ============================================================================= */
+
+.editTripToggle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.editTripForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+  border: 1px solid var(--stroke);
+  padding: 2rem;
+  border-radius: 10px;
+}
+
+.editFormSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.editFormTitle {
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin-bottom: 0.25rem;
+}
+
+.editFormRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.editFormRowDouble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.editLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  letter-spacing: normal;
+  /* font-size: 1.05rem;
+  font-weight: 600;
+  opacity: 0.8; */
+}
+
+.editInput {
+  width: 100%;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  font-size: 1.1rem;
+  font-family: inherit;
+}
+
+.editInput:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+.editTextarea {
+  width: 100%;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  font-size: 1.1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.editTextarea:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+.editFormActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+  padding-top: 0.5rem;
+}
+
+/* =============================================================================
+   ✅ NEW: Flight Info Section
+   ============================================================================= */
+
+.flightSection {
+  padding-top: 0.5rem;
+}
+
+.sectionDivider {
+  height: 1px;
+  background: var(--stroke);
+  margin: 1rem 0;
+}
+
+/* =============================================================================
+   ✅ NEW: Customer History Link
+   ============================================================================= */
+
+.historyLink {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: 1.6rem;
+  color: var(--blue);
+  border-bottom: 1px solid var(--blue);
+  padding-bottom: 0.3rem;
+}
+
+/* =============================================================================
+   ✅ NEW: Duplicate Booking
+   ============================================================================= */
+
+.duplicateSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* =============================================================================
+   ✅ NEW: Error & Success States
+   ============================================================================= */
+
+.errorText {
+  color: #c00;
+  font-size: 1rem;
+  margin: 0.5rem 0 0;
+}
+
+.successText {
+  color: #080;
+  font-size: 1rem;
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media screen and (max-width: 768px) {
+  .keyVal {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .editFormRowDouble {
+    grid-template-columns: 1fr;
+  }
+
+  .quickActionsRow {
+    flex-direction: column;
+  }
+
+  .quickActionsRow > * {
+    width: 100%;
+  }
+
+  .noteHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
 }

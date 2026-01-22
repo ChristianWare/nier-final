@@ -39,7 +39,7 @@
   */
   -webkit-tap-highlight-color: transparent;
   font-family: var(--inter);
-  overscroll-behavior: none;
+  /* overscroll-behavior: none; */
 }
 
 html {
@@ -504,6 +504,7 @@ th {
 .primaryBtn,
 .secondaryBtn,
 .tertiaryBtn,
+.warningBtn,
 .dangerBtn,
 .goodBtn,
 .goodBtnii {
@@ -554,6 +555,12 @@ th {
   background: var(--darkRed);
   color: var(--cream);
   border: 1px solid rgba(255, 0, 0, 0.28);
+}
+
+.warningBtn {
+  background: var(--yellow);
+  color: var(--darkYellow);
+  border: 1px solid var(--darkYellow);
 }
 
 .dangerBtn:hover {
@@ -629,6 +636,7 @@ th {
   border-radius: 5px;
   border: 1px solid var(--stroke);
   background: white;
+  color: var(--paragraph);
 }
 
 .box {

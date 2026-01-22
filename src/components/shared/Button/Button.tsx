@@ -5,6 +5,7 @@ import Arrow from "../icons/Arrow/Arrow";
 import Plus from "../icons/Plus/Plus";
 import DownloadIcon from "../DownloadIcon/DownloadIcon";
 import Close from "../icons/Close/Close";
+import Check from "../icons/Check/Check";
 
 interface Props {
   href?: string;
@@ -17,6 +18,7 @@ interface Props {
   plus?: boolean;
   downloadIcon?: boolean;
   closeIcon?: boolean;
+  checkIcon?: boolean;
   type?: "button" | "submit" | "reset";
   as?: "auto" | "button" | "span";
   onClick?: MouseEventHandler<HTMLButtonElement>;
@@ -32,6 +34,7 @@ export default function Button({
   arrow,
   closeIcon,
   plus,
+  checkIcon,
   downloadIcon,
   type = "button",
   as = "auto",
@@ -61,6 +64,11 @@ export default function Button({
       {closeIcon && (
         <div className={styles.plusContainer}>
           <Close className={styles.optionalIcon} />
+        </div>
+      )}
+      {checkIcon && (
+        <div className={styles.plusContainer}>
+          <Check className={styles.optionalIcon} />
         </div>
       )}
     </>

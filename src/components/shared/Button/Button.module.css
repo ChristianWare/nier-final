@@ -124,6 +124,21 @@
   color: var(--accent);
 }
 
+.green,
+.green:link,
+.green:visited {
+  background-color: var(--green);
+  color: var(--white);
+  border: 1px solid var(--darkGreen);
+  display: flex;
+  justify-content: space-between;
+  padding-right: 1rem;
+}
+
+.green:hover {
+  background-color: var(--darkGreen);
+}
+
 .lightRed,
 .lightRed:link,
 .lightRed:visited {
