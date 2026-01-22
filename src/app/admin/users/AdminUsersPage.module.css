@@ -1,136 +1,363 @@
 .container {
   display: grid;
-  gap: 14px;
+  gap: 1.4rem;
 }
 
 .header {
   display: grid;
-  gap: 6px;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 3rem;
 }
 
-.heading {
+.headerTop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.top {
   padding-bottom: 1rem;
   border-bottom: 2px solid var(--stroke);
   width: 100%;
 }
 
-.subcopy {
+.heading {
   margin: 0;
-  opacity: 0.75;
 }
 
-.tabs {
+.headerActions {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 0.8rem;
   flex-wrap: wrap;
 }
 
-.tab {
-  text-decoration: none;
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--stroke);
-  background: transparent;
-  color: inherit;
-  font-size: 13px;
+.meta {
+  font-size: 1.25rem;
+  opacity: 0.75;
 }
 
-.tabActive {
-  background: rgba(0, 0, 0, 0.06);
+.metaSep {
+  margin-left: 0.6rem;
+}
+
+.filters {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.filterGroup {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.filterTitle {
+  font-size: 1.05rem;
+  font-weight: 900;
+  opacity: 0.6;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tabRow {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+.paginationLeft {
+  display: flex;
+  align-items: center;
+}
+
+.paginationMeta {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.paginationRight {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.pageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  color: var(--black);
+  text-decoration: none;
+  font-weight: 900;
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
+.pageBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pageBtnDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.pageBtnActive {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  pointer-events: none;
+}
+
+/* Table */
+.tableWrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-height: none;
 }
 
 .tableCard {
-  border: 1px solid var(--stroke);
   border-radius: 10px;
+  border: 1px solid var(--stroke);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 900px;
 }
 
-.theadRow {
-  text-align: left;
+.thead {
+  background: var(--white);
+  z-index: 2;
 }
 
-.tr {
-  border-top: 1px solid var(--stroke);
+.trHead {
+  border-bottom: 1px solid var(--stroke);
 }
 
 .th {
-  padding: 12px 14px;
-  opacity: 0.75;
-  letter-spacing: -0.09px;
-  font-size: 14px;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  white-space: nowrap;
+  font-size: 1.2rem;
+  font-weight: 700;
+  opacity: 0.7;
 }
 
 .td {
-  padding: 12px 14px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: top;
+  position: relative;
+  z-index: 2;
 }
 
-.emailCell {
-  opacity: 0.8;
+.tr {
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: all 0.3s ease-in;
+  position: relative;
 }
 
-.emptyCell {
-  padding: 14px;
+.tr:hover {
+  background: var(--lightGray);
 }
 
-.emptyText {
+.tr:focus-within {
+  background: var(--lightGray);
+}
+
+.rowLink {
+  text-decoration: none;
+  display: inline-block;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cellStack {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cellStrong {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.cellSub {
+  font-size: 1.15rem;
+  opacity: 0.7;
+}
+
+.pickupMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badgesRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pill {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.empty {
+  padding: 14px 2px;
+  display: grid;
+  gap: 8px;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emptyCopy {
+  margin: 0;
   opacity: 0.75;
 }
 
-@media screen and (max-width: 1068px) {
+@media screen and (max-width: 768px) {
   .tableCard {
+    border: 0;
+    background: transparent;
     overflow: visible;
+    max-height: none;
   }
 
   .table {
-    display: block;
+    min-width: 0;
+    border-collapse: separate;
   }
 
-  .table thead {
+  .thead {
     display: none;
   }
 
-  .table tbody {
-    display: grid;
-    gap: 12px;
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
   }
 
   .tr {
-    display: block;
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--stroke);
     border-radius: 12px;
-    padding: 14px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+  }
+
+  .tr:hover {
     background: var(--white);
   }
 
   .td {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
     padding: 10px 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   }
 
-  .tr .td:first-of-type {
-    border-top: none;
-    padding-top: 0;
-  }
-
-  .tr .td:last-of-type {
+  .td:last-child {
+    border-bottom: 0;
     padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
   }
 
   .td::before {
     content: attr(data-label);
-    font-size: 12px;
-    opacity: 0.7;
-    font-weight: 800;
-    min-width: 110px;
-    padding-right: 10px;
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 900;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .meta {
+    font-size: 1.15rem;
+  }
+
+  .tabRow {
+    gap: 0.45rem;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .paginationRight {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pageBtn {
+    font-size: 1.05rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .td::before {
+    font-size: 1rem;
+  }
+
+  .cellSub {
+    font-size: 1.05rem;
+  }
+
+  .pill {
+    font-size: 11px;
+    padding: 4px 7px;
   }
 }
