@@ -338,14 +338,14 @@ export default function AdminActivityFeed({
           })}
         </ul>
       )}
-       <div className={styles.btnContainer}>
+       {/* <div className={styles.btnContainer}>
               <Button
                 href='/admin/activity'
                 text='See all activity'
                 btnType='black'
                 arrow
               />
-            </div>
+            </div> */}
     </section>
   );
 }
