@@ -48,7 +48,7 @@ export default function DeleteBookingDangerZoneClient({
     <div className={`${styles.card} ${styles.dangerCard}`}>
       <div className={styles.dangerTop}>
         <div className='cardTitle h4'>Danger zone</div>
-        <p className={styles.dangerCopy}>
+        <p className='subheading'>
           Permanently delete this booking and all related records (payment,
           assignment, status events, add-ons).{" "}
           <strong>This can’t be undone.</strong>
@@ -61,7 +61,7 @@ export default function DeleteBookingDangerZoneClient({
             Delete booking
           </button>
         </div>
-        <div className={styles.dangerNote}>
+        <div className='emptySmall colorRed fw700 uppercase'>
           This is permanent. There is no recovery after deletion.
         </div>
       </div>

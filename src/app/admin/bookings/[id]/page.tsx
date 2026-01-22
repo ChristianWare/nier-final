@@ -227,6 +227,17 @@ export default async function AdminBookingDetailPage({
         ) : null}
       </Card>
 
+      <Card title='Approve & price'>
+        <ApprovePriceForm
+          bookingId={booking.id}
+          currency={booking.currency}
+          subtotalCents={booking.subtotalCents}
+          feesCents={booking.feesCents}
+          taxesCents={booking.taxesCents}
+          totalCents={booking.totalCents}
+        />
+      </Card>
+
       <Card title='Assign (allowed before payment)'>
         {drivers.length === 0 ? (
           <div className={styles.muted}>
@@ -291,17 +302,6 @@ export default async function AdminBookingDetailPage({
             ) : null}
           </>
         )}
-      </Card>
-
-      <Card title='Approve & price'>
-        <ApprovePriceForm
-          bookingId={booking.id}
-          currency={booking.currency}
-          subtotalCents={booking.subtotalCents}
-          feesCents={booking.feesCents}
-          taxesCents={booking.taxesCents}
-          totalCents={booking.totalCents}
-        />
       </Card>
 
       <Card title='Payment'>
@@ -399,7 +399,7 @@ function KeyVal({ k, v }: { k: string; v: string }) {
   return (
     <div className={styles.keyVal}>
       <div className='emptyTitle'>{k}</div>
-      <p className='paragraph'>{v}</p>
+      <p className='subheading'>{v}</p>
     </div>
   );
 }

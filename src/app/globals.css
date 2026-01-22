@@ -647,3 +647,15 @@ th {
   font-weight: 700;
   line-height: 1.1;
 }
+
+.colorRed {
+  color: var(--accent600);
+}
+
+.fw700 {
+  font-weight: 700;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
