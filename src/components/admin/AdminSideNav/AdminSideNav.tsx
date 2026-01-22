@@ -6,7 +6,7 @@ import Calendar from "@/components/shared/icons/Calendar/Calendar";
 import House from "@/components/shared/icons/House/House";
 import Bell from "@/components/shared/icons/Bell/Bell";
 import Users from "@/components/shared/icons/Users/Users";
-import Wheel from "@/components/shared/icons/Wheel/Wheel";
+// import Wheel from "@/components/shared/icons/Wheel/Wheel";
 import Car from "@/components/shared/icons/Car/Car";
 import Listing from "@/components/shared/icons/Listing/Listing";
 import { useState } from "react";
@@ -33,7 +33,7 @@ const NAV_ITEMS = [
   },
   { title: "Vehicles", href: "/admin/vehicles", icon: <Car /> },
   { title: "Users", href: "/admin/users", icon: <Users /> },
-  { title: "Drivers", href: "/admin/drivers", icon: <Wheel /> },
+  // { title: "Drivers", href: "/admin/drivers", icon: <Wheel /> },
   { title: "Airports", href: "/admin/airports", icon: <Plane /> },
   { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
   { title: "Activity", href: "/admin/activity", icon: <Clock /> },
