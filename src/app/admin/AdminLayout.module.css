@@ -16,12 +16,12 @@
   width: 100%;
 }
 
-.AdminSideNavContainer {
+/* .AdminSideNavContainer {
   position: sticky;
   top: 80px;
   align-self: start;
   z-index: 10;
-}
+} */
 
 .right {
   width: 100%;
