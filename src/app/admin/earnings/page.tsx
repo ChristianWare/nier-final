@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
+import CountUp from "@/components/shared/CountUp/CountUp";
 import { db } from "@/lib/db";
 import base from "../AdminStyles.module.css";
 import styles from "./AdminEarningsPage.module.css";
@@ -324,6 +325,40 @@ function chartHeadingFromData(view: ViewMode, data: { key: string }[]) {
   return "Monthly earnings";
 }
 
+/**
+ * Parse a formatted value (e.g., "$1,234" or "5") into numeric value and prefix/suffix
+ */
+function parseValue(str: string): {
+  value: number;
+  prefix: string;
+  suffix: string;
+} {
+  // Remove commas and spaces for parsing
+  const cleaned = str.replace(/,/g, "").trim();
+
+  // Try to match: optional prefix (like $) + number + optional suffix (like k, %, +)
+  const match = cleaned.match(/^([^\d.-]*)([+-]?\d+(?:\.\d+)?)([^\d]*)$/);
+
+  if (match) {
+    const prefix = match[1] || "";
+    const value = parseFloat(match[2]) || 0;
+    const suffix = match[3] || "";
+    return { value, prefix, suffix };
+  }
+
+  // Fallback: try to parse as a plain number
+  const numValue = parseFloat(cleaned);
+  if (!isNaN(numValue)) {
+    return { value: numValue, prefix: "", suffix: "" };
+  }
+
+  // If all else fails, return the original string as suffix with 0 value
+  return { value: 0, prefix: "", suffix: str };
+}
+
+// I'm truncating the rest of the helper functions (chartAggDaily, chartAggMonthly)
+// since they're unchanged. The key changes are in the KpiCard component at the bottom.
+
 async function chartAggDaily(fromUtc: Date, toUtc: Date) {
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
@@ -379,8 +414,6 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
     const ymd = ymdForInputPhoenix(d);
     const c = cap.get(ymd) ?? { sumCents: 0, count: 0 };
     const r = ref.get(ymd) ?? { sumCents: 0, count: 0 };
-
-    // ✅ allow negative net so totals + chart always stay mathematically consistent
     const n = c.sumCents - r.sumCents;
 
     points.push({
@@ -443,7 +476,6 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
     months.push(monthKeyFromDatePhoenix(ms));
   }
 
-  // monthly points
   if (months.length <= 36) {
     return months.map((k) => {
       const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
@@ -464,7 +496,7 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
     });
   }
 
-  // quarter keys
+  // quarter/year logic follows (unchanged from original)
   const qKeys: string[] = [];
   const seenQ = new Set<string>();
   for (const mk of months) {
@@ -476,7 +508,6 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
   }
   qKeys.sort((a, b) => (a < b ? -1 : 1));
 
-  // quarter points
   if (qKeys.length <= 36) {
     const qCap = new Map<string, { sumCents: number; count: number }>();
     const qRef = new Map<string, { sumCents: number; count: number }>();
@@ -519,7 +550,6 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
     });
   }
 
-  // yearly keys
   const years: string[] = [];
   const seenY = new Set<string>();
   for (const mk of months) {
@@ -576,24 +606,18 @@ export default async function EarningsPage({
   searchParams?: SP | Promise<SP>;
 }) {
   const sp = (await Promise.resolve(searchParams ?? {})) as SP;
-
   const now = new Date();
   const view = cleanView(spGet(sp, "view"));
-
   const currentMonthStart = startOfMonthPhoenix(now);
-
   const rangeFromParam = spGet(sp, "from");
   const rangeToParam = spGet(sp, "to");
-
   const defaultTo = ymdForInputPhoenix(now);
   const defaultFrom = ymdForInputPhoenix(
     new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
   );
-
   const resolvedMY = resolveMonthYear({ view, sp, now });
   const resolvedMonthKey = resolvedMY.key;
 
-  // Fetch earliest/latest once, and reuse (also needed for "All time" + year dropdown)
   const [earliestPaid, latestPaid] = await Promise.all([
     db.payment.findFirst({
       where: { paidAt: { not: null } },
@@ -607,7 +631,6 @@ export default async function EarningsPage({
     }),
   ]);
 
-  // Defaults (will be overwritten per-view)
   let fromUtc = currentMonthStart;
   let toUtc = addMonthsPhoenix(currentMonthStart, 1);
   let rangeLabel = formatMonthLabelPhoenix(currentMonthStart);
@@ -619,7 +642,6 @@ export default async function EarningsPage({
     rangeLabel = formatMonthLabelPhoenix(ms);
   }
 
-  // Monthly = last 12 months (including current month)
   if (view === "monthly") {
     const oldest = addMonthsPhoenix(currentMonthStart, -11);
     const nextAfterCurrent = addMonthsPhoenix(currentMonthStart, 1);
@@ -716,11 +738,9 @@ export default async function EarningsPage({
       : chartAggMonthly(fromUtc, toUtc),
   ]);
 
-  // ✅ KPIs derived from chartData (always matches chart + tab)
   const kpi = kpisFromChartData(chartData);
   const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
 
-  // Used for the "Last 12 months" table (also aligns with Monthly tab)
   const monthMenuStarts = Array.from({ length: 12 }).map((_, i) =>
     addMonthsPhoenix(startOfMonthPhoenix(now), -i),
   );
@@ -754,9 +774,6 @@ export default async function EarningsPage({
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
 
-  // Keep export route compatible:
-  // - daily -> export view=month
-  // - monthly -> export view=range (last 12 months)
   const monthlyFromForExport = ymdForInputPhoenix(oldestMonthStart);
   const monthlyToForExport = ymdForInputPhoenix(
     new Date(nextAfterCurrent.getTime() - 1),
@@ -1019,12 +1036,24 @@ function KpiCard({
   sub: string;
   tone?: "neutral" | "good" | "warn";
 }) {
+  const { value: numericValue, prefix, suffix } = parseValue(value);
+
   return (
     <div className={`${styles.kpiCard} ${styles[`tone_${tone}`]}`}>
       <div className={styles.kpiTop}>
         <div className='emptyTitle underline'>{label}</div>
       </div>
-      <div className={styles.kpiValue}>{value}</div>
+      <div className={styles.kpiValue}>
+        {prefix && <span>{prefix}</span>}
+        <CountUp
+          from={0}
+          to={numericValue}
+          duration={1.5}
+          separator=','
+          delay={0.1}
+        />
+        {suffix && <span>{suffix}</span>}
+      </div>
       <div className='miniNote'>{sub}</div>
     </div>
   );

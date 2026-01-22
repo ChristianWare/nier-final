@@ -1,4 +1,7 @@
+"use client";
+
 import Button from "@/components/shared/Button/Button";
+import CountUp from "@/components/shared/CountUp/CountUp";
 import styles from "./AdminFinanceSnapshot.module.css";
 import AdminFinanceMiniChart from "./AdminFinanceMiniChart";
 
@@ -40,6 +43,37 @@ function formatMoney(cents: number, currency = "USD") {
     currency,
     maximumFractionDigits: 0,
   }).format(n);
+}
+
+/**
+ * Parse a formatted value (e.g., "$1,234" or "5") into numeric value and prefix/suffix
+ */
+function parseValue(str: string): {
+  value: number;
+  prefix: string;
+  suffix: string;
+} {
+  // Remove commas and spaces for parsing
+  const cleaned = str.replace(/,/g, "").trim();
+
+  // Try to match: optional prefix (like $) + number + optional suffix (like k, %, +)
+  const match = cleaned.match(/^([^\d.-]*)([+-]?\d+(?:\.\d+)?)([^\d]*)$/);
+
+  if (match) {
+    const prefix = match[1] || "";
+    const value = parseFloat(match[2]) || 0;
+    const suffix = match[3] || "";
+    return { value, prefix, suffix };
+  }
+
+  // Fallback: try to parse as a plain number
+  const numValue = parseFloat(cleaned);
+  if (!isNaN(numValue)) {
+    return { value: numValue, prefix: "", suffix: "" };
+  }
+
+  // If all else fails, return the original string as suffix with 0 value
+  return { value: 0, prefix: "", suffix: str };
 }
 
 export default function AdminFinanceSnapshot({
@@ -146,13 +180,25 @@ function MetricCard({
   sub?: string;
   tone?: "neutral" | "good" | "warn";
 }) {
+  const { value: numericValue, prefix, suffix } = parseValue(value);
+
   return (
     <div className={`${styles.card} ${styles[`tone_${tone}`]}`}>
       <div className={styles.cardTop}>
         <div className='emptyTitle underline'>{label}</div>
       </div>
 
-      <div className='emptyTitleSmall'>{value}</div>
+      <div className='kpiValue'>
+        {prefix && <span>{prefix}</span>}
+        <CountUp
+          from={0}
+          to={numericValue}
+          duration={1.5}
+          separator=','
+          delay={0.1}
+        />
+        {suffix && <span>{suffix}</span>}
+      </div>
 
       {sub ? (
         <div className='miniNote'>{sub}</div>
