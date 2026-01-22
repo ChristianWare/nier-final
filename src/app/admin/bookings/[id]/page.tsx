@@ -1,3 +1,4 @@
+// src/app/admin/bookings/[id]/page.tsx (or wherever this file lives)
 import styles from "./AdminBookingDetailPage.module.css";
 import type { ReactNode } from "react";
 import { db } from "@/lib/db";
@@ -8,6 +9,7 @@ import SendPaymentLinkButton from "@/components/admin/SendPaymentLinkButton/Send
 import { BookingStatus, Role } from "@prisma/client";
 import Link from "next/link";
 import DeleteBookingDangerZoneClient from "./DeleteBookingDangerZoneClient";
+import AdminManualCardPaymentClient from "./AdminManualCardPaymentClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -246,12 +248,14 @@ export default async function AdminBookingDetailPage({
         />
       </Card>
 
-      <Card title='Payment link'>
+      <Card title='Payment'>
         <div className={styles.paymentBlock}>
           <div className={styles.paymentStatus}>
             Payment status: <strong>{booking.payment?.status ?? "NONE"}</strong>
           </div>
+
           <SendPaymentLinkButton bookingId={booking.id} />
+
           {booking.payment?.checkoutUrl ? (
             <div className={styles.checkoutUrl}>
               Latest checkout URL: <br />
@@ -266,6 +270,24 @@ export default async function AdminBookingDetailPage({
               </Link>
             </div>
           ) : null}
+
+          {/* ✅ NEW: Manual card payment (card-only, no Affirm/Klarna/etc) */}
+          <div style={{ marginTop: 18 }}>
+            <div className='cardTitle h5'>Take card payment (manual)</div>
+            <div className='miniNote' style={{ marginTop: 6 }}>
+              Card-only checkout. After success, the button turns green and says
+              “Payment successful”.
+            </div>
+
+            <div style={{ marginTop: 10 }}>
+              <AdminManualCardPaymentClient
+                bookingId={booking.id}
+                amountCents={booking.totalCents}
+                currency={booking.currency}
+                isPaid={isPaid}
+              />
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -300,7 +322,7 @@ export default async function AdminBookingDetailPage({
         )}
       </Card>
 
-      {/* ✅ NEW: Danger Zone */}
+      {/* ✅ Danger Zone */}
       <DeleteBookingDangerZoneClient bookingId={booking.id} />
     </section>
   );

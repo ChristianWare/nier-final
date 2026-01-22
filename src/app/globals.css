@@ -505,7 +505,8 @@ th {
 .secondaryBtn,
 .tertiaryBtn,
 .dangerBtn,
-.goodBtn {
+.goodBtn,
+.goodBtnii {
   text-decoration: none;
   border-radius: 5px;
   padding: 0.9rem 1rem;
@@ -562,6 +563,12 @@ th {
 .goodBtn {
   background: var(--lightGreen);
   color: var(--darkGreen);
+  border: 1px solid rgba(22, 163, 74, 0.28);
+}
+
+.goodBtnii {
+  background: var(--green);
+  color: var(--white);
   border: 1px solid rgba(22, 163, 74, 0.28);
 }
 

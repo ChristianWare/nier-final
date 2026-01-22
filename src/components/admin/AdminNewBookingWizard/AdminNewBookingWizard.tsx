@@ -1,4 +1,3 @@
-
 /* eslint-disable react-hooks/exhaustive-deps */
 // src/components/admin/AdminNewBookingWizard/AdminNewBookingWizard.tsx
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -914,23 +913,23 @@ export default function AdminNewBookingWizard({
             {/* STEP 1: Trip */}
             {step === 1 ? (
               <div className={`${styles.contentBox} ${styles.stepPane}`}>
-                <h2 className="underline">Trip details</h2>
-                <p className="subheading">
+                <h2 className='underline'>Trip details</h2>
+                <p className='subheading'>
                   Customer, service, date/time, and route.
                 </p>
 
                 <div style={{ display: "grid", gap: 10 }}>
-                  <label className="cardTitle h5">Customer type</label>
+                  <label className='cardTitle h5'>Customer type</label>
                   <select
-                    className="input emptySmall"
+                    className='input emptySmall'
                     value={customerKind}
                     onChange={(e) => {
                       resetCreatedBooking();
                       setCustomerKind(e.target.value as any);
                     }}
                   >
-                    <option value="account">Account (existing user)</option>
-                    <option value="guest">Guest (no account)</option>
+                    <option value='account'>Account (existing user)</option>
+                    <option value='guest'>Guest (no account)</option>
                   </select>
                 </div>
 
@@ -956,10 +955,10 @@ export default function AdminNewBookingWizard({
                           gap: 6,
                         }}
                       >
-                        <div className="emptyTitle">
+                        <div className='emptyTitle'>
                           {(selectedUser.name ?? "").trim() || "Unnamed user"}
                         </div>
-                        <div className="miniNote">{selectedUser.email}</div>
+                        <div className='miniNote'>{selectedUser.email}</div>
                         <div
                           style={{ display: "flex", gap: 10, flexWrap: "wrap" }}
                         >
@@ -971,8 +970,8 @@ export default function AdminNewBookingWizard({
                               : "Not verified"}
                           </span>
                           <button
-                            type="button"
-                            className="secondaryBtn"
+                            type='button'
+                            className='secondaryBtn'
                             onClick={clearSelectedUser}
                           >
                             Change user
@@ -982,21 +981,21 @@ export default function AdminNewBookingWizard({
                     ) : (
                       <div style={{ display: "grid", gap: 8 }}>
                         <input
-                          className="input emptySmall"
+                          className='input emptySmall'
                           value={userQuery}
                           onChange={handleUserQueryChange}
-                          placeholder="Search by email or name…"
-                          autoComplete="off"
+                          placeholder='Search by email or name…'
+                          autoComplete='off'
                         />
 
                         {userSearching ? (
-                          <div className="miniNote">Searching…</div>
+                          <div className='miniNote'>Searching…</div>
                         ) : null}
 
                         {userQuery.trim().length >= 2 &&
                         !userSearching &&
                         userResults.length === 0 ? (
-                          <div className="miniNote">No users found.</div>
+                          <div className='miniNote'>No users found.</div>
                         ) : null}
 
                         {userResults.length > 0 ? (
@@ -1011,7 +1010,7 @@ export default function AdminNewBookingWizard({
                             {userResults.map((u) => (
                               <button
                                 key={u.id}
-                                type="button"
+                                type='button'
                                 onClick={() => selectUser(u)}
                                 style={{
                                   width: "100%",
@@ -1022,14 +1021,13 @@ export default function AdminNewBookingWizard({
                                   border: "none",
                                   background: "white",
                                   cursor: "pointer",
-                                  borderBottom:
-                                    "1px solid rgba(0,0,0,0.08)",
+                                  borderBottom: "1px solid rgba(0,0,0,0.08)",
                                 }}
                               >
-                                <div className="emptyTitle">
+                                <div className='emptyTitle'>
                                   {(u.name ?? "").trim() || "Unnamed user"}
                                 </div>
-                                <div className="miniNote">{u.email}</div>
+                                <div className='miniNote'>{u.email}</div>
                                 <div
                                   style={{
                                     display: "flex",
@@ -1065,14 +1063,14 @@ export default function AdminNewBookingWizard({
                           Customer email
                         </label>
                         <input
-                          className="input emptySmall"
+                          className='input emptySmall'
                           value={customerEmail}
                           onChange={(e) => {
                             resetCreatedBooking();
                             setCustomerEmail(e.target.value);
                           }}
-                          placeholder="customer@email.com"
-                          inputMode="email"
+                          placeholder='customer@email.com'
+                          inputMode='email'
                         />
                       </div>
 
@@ -1086,13 +1084,13 @@ export default function AdminNewBookingWizard({
                           Customer name
                         </label>
                         <input
-                          className="input emptySmall"
+                          className='input emptySmall'
                           value={customerName}
                           onChange={(e) => {
                             resetCreatedBooking();
                             setCustomerName(e.target.value);
                           }}
-                          placeholder="Required for guest"
+                          placeholder='Required for guest'
                         />
                       </div>
                     </Grid2>
@@ -1107,14 +1105,14 @@ export default function AdminNewBookingWizard({
                         Customer phone
                       </label>
                       <input
-                        className="input emptySmall"
+                        className='input emptySmall'
                         value={customerPhone}
                         onChange={(e) => {
                           resetCreatedBooking();
                           setCustomerPhone(e.target.value);
                         }}
-                        placeholder="(602) 555-1234"
-                        inputMode="tel"
+                        placeholder='(602) 555-1234'
+                        inputMode='tel'
                       />
                     </div>
                   </>
@@ -1148,9 +1146,9 @@ export default function AdminNewBookingWizard({
                         setHoursRequested((prev) => Math.max(prev || 2, 2));
                       }
                     }}
-                    className="input emptySmall"
+                    className='input emptySmall'
                   >
-                    <option value="">Select a service...</option>
+                    <option value=''>Select a service...</option>
                     {serviceTypes.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.name}
@@ -1164,7 +1162,7 @@ export default function AdminNewBookingWizard({
                 selectedService.airportLeg !== "NONE" &&
                 serviceAirports.length === 0 ? (
                   <div
-                    className="miniNote"
+                    className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
                     This airport service isn’t configured yet (no airports
@@ -1193,30 +1191,30 @@ export default function AdminNewBookingWizard({
 
                 <Grid2>
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label className="cardTitle h5">Passengers</label>
+                    <label className='cardTitle h5'>Passengers</label>
                     <input
-                      type="number"
+                      type='number'
                       min={1}
                       value={passengers}
                       onChange={(e) => {
                         resetCreatedBooking();
                         setPassengers(Number(e.target.value));
                       }}
-                      className="input emptySmall"
+                      className='input emptySmall'
                     />
                   </div>
 
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label className="cardTitle h5">Luggage</label>
+                    <label className='cardTitle h5'>Luggage</label>
                     <input
-                      type="number"
+                      type='number'
                       min={0}
                       value={luggage}
                       onChange={(e) => {
                         resetCreatedBooking();
                         setLuggage(Number(e.target.value));
                       }}
-                      className="input emptySmall"
+                      className='input emptySmall'
                     />
                   </div>
                 </Grid2>
@@ -1243,9 +1241,9 @@ export default function AdminNewBookingWizard({
                           setPickupAirportId(id);
                           applyAirportToRoute("pickup", id);
                         }}
-                        className="input emptySmall"
+                        className='input emptySmall'
                       >
-                        <option value="">Select an airport...</option>
+                        <option value=''>Select an airport...</option>
                         {serviceAirports.map((a) => (
                           <option key={a.id} value={a.id}>
                             {a.name} ({a.iata})
@@ -1255,9 +1253,9 @@ export default function AdminNewBookingWizard({
                     ) : (
                       <input
                         ref={pickupInputRef}
-                        placeholder="Enter pickup address"
-                        autoComplete="off"
-                        className="input emptySmall"
+                        placeholder='Enter pickup address'
+                        autoComplete='off'
+                        className='input emptySmall'
                       />
                     )}
                   </div>
@@ -1283,9 +1281,9 @@ export default function AdminNewBookingWizard({
                           setDropoffAirportId(id);
                           applyAirportToRoute("dropoff", id);
                         }}
-                        className="input emptySmall"
+                        className='input emptySmall'
                       >
-                        <option value="">Select an airport...</option>
+                        <option value=''>Select an airport...</option>
                         {serviceAirports.map((a) => (
                           <option key={a.id} value={a.id}>
                             {a.name} ({a.iata})
@@ -1295,9 +1293,9 @@ export default function AdminNewBookingWizard({
                     ) : (
                       <input
                         ref={dropoffInputRef}
-                        placeholder="Enter dropoff address"
-                        autoComplete="off"
-                        className="input emptySmall"
+                        placeholder='Enter dropoff address'
+                        autoComplete='off'
+                        className='input emptySmall'
                       />
                     )}
                   </div>
@@ -1305,9 +1303,9 @@ export default function AdminNewBookingWizard({
 
                 {selectedService?.pricingStrategy === "HOURLY" ? (
                   <div style={{ display: "grid", gap: 8 }}>
-                    <label className="cardTitle h5">Hours</label>
+                    <label className='cardTitle h5'>Hours</label>
                     <input
-                      type="number"
+                      type='number'
                       min={1}
                       step={1}
                       value={hoursRequested}
@@ -1315,15 +1313,15 @@ export default function AdminNewBookingWizard({
                         resetCreatedBooking();
                         setHoursRequested(Number(e.target.value));
                       }}
-                      className="input emptySmall"
+                      className='input emptySmall'
                     />
                   </div>
                 ) : null}
 
                 <div className={styles.btnRow}>
                   <button
-                    type="button"
-                    className="primaryBtn"
+                    type='button'
+                    className='primaryBtn'
                     disabled={isPending}
                     onClick={() => {
                       setAttemptTripNext(true);
@@ -1351,8 +1349,8 @@ export default function AdminNewBookingWizard({
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 14 }}
               >
-                <h2 className="underline">Choose a vehicle</h2>
-                <p className="subheading">
+                <h2 className='underline'>Choose a vehicle</h2>
+                <p className='subheading'>
                   Choose a vehicle category, then create the booking.
                 </p>
 
@@ -1395,7 +1393,7 @@ export default function AdminNewBookingWizard({
                     return (
                       <button
                         key={v.id}
-                        type="button"
+                        type='button'
                         onClick={() => {
                           resetCreatedBooking();
                           setVehicleId(v.id);
@@ -1413,13 +1411,13 @@ export default function AdminNewBookingWizard({
                         }}
                       >
                         <div className={styles.vehicleTop}>
-                          <div className="emptyTitle">{v.name}</div>
-                          <div className="emptyTitleSmall">
+                          <div className='emptyTitle'>{v.name}</div>
+                          <div className='emptyTitleSmall'>
                             ${centsToUsd(rowEstimateCents)}
                           </div>
                         </div>
 
-                        <div className="val">
+                        <div className='val'>
                           Capacity: {v.capacity} • Luggage: {v.luggageCapacity}
                           {rowMinHours !== null
                             ? ` • Min hours: ${rowMinHours}`
@@ -1440,7 +1438,7 @@ export default function AdminNewBookingWizard({
                 </div>
 
                 <div style={{ display: "grid", gap: 8 }}>
-                  <div className="cardTitle h5">
+                  <div className='cardTitle h5'>
                     Special requests (optional)
                   </div>
                   <textarea
@@ -1449,24 +1447,24 @@ export default function AdminNewBookingWizard({
                       resetCreatedBooking();
                       setSpecialRequests(e.target.value);
                     }}
-                    className="input subheading"
+                    className='input subheading'
                     style={{ minHeight: 90 }}
-                    placeholder="Child seat, wheelchair needs, extra stops, meet & greet..."
+                    placeholder='Child seat, wheelchair needs, extra stops, meet & greet...'
                   />
                 </div>
 
                 <div className={styles.actionsBetween}>
                   <button
-                    type="button"
-                    className="secondaryBtn"
+                    type='button'
+                    className='secondaryBtn'
                     onClick={() => setStep(1)}
                   >
                     Back
                   </button>
 
                   <button
-                    type="button"
-                    className="primaryBtn"
+                    type='button'
+                    className='primaryBtn'
                     disabled={isPending}
                     onClick={() => {
                       // ensure trip still valid (route picker can change)
@@ -1502,18 +1500,18 @@ export default function AdminNewBookingWizard({
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
-                <h2 className="underline">Approve price</h2>
-                <p className="subheading">Approve & price the booking.</p>
+                <h2 className='underline'>Approve price</h2>
+                <p className='subheading'>Approve & price the booking.</p>
 
                 {!bookingId ? (
                   <div
-                    className="miniNote"
+                    className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
                     Booking missing. Go back and re-create it.
                   </div>
                 ) : (
-                  <div className="box">
+                  <div className='box'>
                     <ApprovePriceForm
                       bookingId={bookingId}
                       currency={bookingData?.currency ?? "USD"}
@@ -1534,8 +1532,8 @@ export default function AdminNewBookingWizard({
                       }}
                     >
                       <button
-                        type="button"
-                        className="secondaryBtn"
+                        type='button'
+                        className='secondaryBtn'
                         onClick={() => refreshBookingData(bookingId)}
                         disabled={bookingDataLoading}
                       >
@@ -1543,8 +1541,8 @@ export default function AdminNewBookingWizard({
                       </button>
 
                       <button
-                        type="button"
-                        className="secondaryBtn"
+                        type='button'
+                        className='secondaryBtn'
                         onClick={() =>
                           router.push(`/admin/bookings/${bookingId}`)
                         }
@@ -1557,16 +1555,16 @@ export default function AdminNewBookingWizard({
 
                 <div className={styles.actionsBetween}>
                   <button
-                    type="button"
-                    className="secondaryBtn"
+                    type='button'
+                    className='secondaryBtn'
                     onClick={() => setStep(2)}
                   >
                     Back
                   </button>
 
                   <button
-                    type="button"
-                    className="primaryBtn"
+                    type='button'
+                    className='primaryBtn'
                     onClick={() => {
                       if (!bookingId) {
                         toast.error("Booking missing. Go back and create it.");
@@ -1587,28 +1585,28 @@ export default function AdminNewBookingWizard({
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
-                <h2 className="underline">Assign</h2>
-                <p className="subheading">
+                <h2 className='underline'>Assign</h2>
+                <p className='subheading'>
                   Assign driver / vehicle unit, then set initial status.
                 </p>
 
                 {!bookingId ? (
                   <div
-                    className="miniNote"
+                    className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
                     Booking missing. Go back and create it.
                   </div>
                 ) : drivers.length === 0 ? (
-                  <div className="miniNote">
+                  <div className='miniNote'>
                     No drivers yet. Create users and assign DRIVER role in{" "}
-                    <a className="inlineLink" href="/admin/users">
+                    <a className='inlineLink' href='/admin/users'>
                       Users
                     </a>
                     .
                   </div>
                 ) : (
-                  <div className="box">
+                  <div className='box'>
                     <AssignBookingForm
                       bookingId={bookingId}
                       drivers={drivers as any}
@@ -1618,9 +1616,9 @@ export default function AdminNewBookingWizard({
                     />
 
                     <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-                      <label className="cardTitle h5">Initial status</label>
+                      <label className='cardTitle h5'>Initial status</label>
                       <select
-                        className="input emptySmall"
+                        className='input emptySmall'
                         value={bookingStatus}
                         onChange={(e) => saveStatus(e.target.value as any)}
                         disabled={!bookingId || statusSaving}
@@ -1631,7 +1629,7 @@ export default function AdminNewBookingWizard({
                           </option>
                         ))}
                       </select>
-                      <div className="miniNote">
+                      <div className='miniNote'>
                         Current: <strong>{statusLabel(bookingStatus)}</strong>
                         {statusSaving ? " • Saving…" : ""}
                       </div>
@@ -1646,8 +1644,8 @@ export default function AdminNewBookingWizard({
                       }}
                     >
                       <button
-                        type="button"
-                        className="secondaryBtn"
+                        type='button'
+                        className='secondaryBtn'
                         onClick={() => refreshBookingData(bookingId)}
                         disabled={bookingDataLoading}
                       >
@@ -1655,8 +1653,8 @@ export default function AdminNewBookingWizard({
                       </button>
 
                       <button
-                        type="button"
-                        className="secondaryBtn"
+                        type='button'
+                        className='secondaryBtn'
                         onClick={() =>
                           router.push(`/admin/bookings/${bookingId}`)
                         }
@@ -1669,8 +1667,8 @@ export default function AdminNewBookingWizard({
 
                 <div className={styles.actionsBetween}>
                   <button
-                    type="button"
-                    className="secondaryBtn"
+                    type='button'
+                    className='secondaryBtn'
                     onClick={() => setStep(3)}
                   >
                     Back
@@ -1678,8 +1676,8 @@ export default function AdminNewBookingWizard({
 
                   {/* ✅ Important: refresh bookingData BEFORE going to Confirm */}
                   <button
-                    type="button"
-                    className="primaryBtn"
+                    type='button'
+                    className='primaryBtn'
                     onClick={() => {
                       if (!bookingId) {
                         toast.error("Booking missing. Go back and create it.");
@@ -1704,29 +1702,29 @@ export default function AdminNewBookingWizard({
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
-                <h2 className="underline">Confirm</h2>
-                <p className="subheading">Final review before payment.</p>
+                <h2 className='underline'>Confirm</h2>
+                <p className='subheading'>Final review before payment.</p>
 
                 {!bookingId ? (
                   <div
-                    className="miniNote"
+                    className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
                     Booking missing. Go back and create it.
                   </div>
                 ) : (
-                  <div className="box">
-                    <SummaryRow label="Booking ID" value={bookingId} strong />
+                  <div className='box'>
+                    <SummaryRow label='Booking ID' value={bookingId} strong />
 
                     <SummaryRow
-                      label="Status"
+                      label='Status'
                       value={statusLabel(bookingStatus)}
                     />
 
-                    <SummaryRow label="Customer type" value={customerKind} />
+                    <SummaryRow label='Customer type' value={customerKind} />
                     {customerKind === "account" ? (
                       <SummaryRow
-                        label="User"
+                        label='User'
                         value={
                           selectedUser
                             ? `${(selectedUser.name ?? "").trim() || "Unnamed"} • ${selectedUser.email}`
@@ -1736,73 +1734,79 @@ export default function AdminNewBookingWizard({
                     ) : (
                       <>
                         <SummaryRow
-                          label="Customer email"
+                          label='Customer email'
                           value={customerEmail || "—"}
                         />
                         <SummaryRow
-                          label="Customer name"
+                          label='Customer name'
                           value={customerName || "—"}
                         />
                         <SummaryRow
-                          label="Customer phone"
+                          label='Customer phone'
                           value={customerPhone || "—"}
                         />
                       </>
                     )}
 
                     <SummaryRow
-                      label="Service"
+                      label='Service'
                       value={selectedService?.name ?? "—"}
                     />
                     <SummaryRow
-                      label="Vehicle category"
+                      label='Vehicle category'
                       value={selectedVehicle?.name ?? "—"}
                     />
 
                     <SummaryRow
-                      label="Pickup time"
+                      label='Pickup time'
                       value={
                         pickupAtDate && pickupAtTime
                           ? `${pickupAtDate} @ ${pickupAtTime}`
                           : "—"
                       }
                     />
-                    <SummaryRow label="Pickup" value={route?.pickup?.address ?? "—"} />
-                    <SummaryRow label="Dropoff" value={route?.dropoff?.address ?? "—"} />
+                    <SummaryRow
+                      label='Pickup'
+                      value={route?.pickup?.address ?? "—"}
+                    />
+                    <SummaryRow
+                      label='Dropoff'
+                      value={route?.dropoff?.address ?? "—"}
+                    />
 
                     {selectedService?.pricingStrategy === "HOURLY" ? (
                       <>
                         <SummaryRow
-                          label="Hours requested"
+                          label='Hours requested'
                           value={String(hoursRequested)}
                         />
                         <SummaryRow
-                          label="Billable hours"
+                          label='Billable hours'
                           value={String(billableHours ?? hoursRequested)}
                         />
                       </>
                     ) : null}
 
                     <SummaryRow
-                      label="Subtotal"
+                      label='Subtotal'
                       value={`$${centsToUsd(bookingData?.subtotalCents ?? estimateCents)}`}
                     />
                     <SummaryRow
-                      label="Fees"
+                      label='Fees'
                       value={`$${centsToUsd(bookingData?.feesCents ?? 0)}`}
                     />
                     <SummaryRow
-                      label="Taxes"
+                      label='Taxes'
                       value={`$${centsToUsd(bookingData?.taxesCents ?? 0)}`}
                     />
                     <SummaryRow
-                      label="Total"
+                      label='Total'
                       value={`$${centsToUsd(bookingData?.totalCents ?? estimateCents)}`}
                       strong
                     />
 
                     <SummaryRow
-                      label="Assigned driver"
+                      label='Assigned driver'
                       value={
                         assignedDriver
                           ? `${(assignedDriver.name ?? "").trim() || "Unnamed"}${assignedDriver.email ? ` • ${assignedDriver.email}` : ""}`
@@ -1812,7 +1816,7 @@ export default function AdminNewBookingWizard({
                       }
                     />
                     <SummaryRow
-                      label="Vehicle unit"
+                      label='Vehicle unit'
                       value={
                         assignedUnit
                           ? `${assignedUnit.name}${assignedUnit.plate ? ` • ${assignedUnit.plate}` : ""}`
@@ -1824,7 +1828,7 @@ export default function AdminNewBookingWizard({
 
                     {specialRequests?.trim() ? (
                       <SummaryRow
-                        label="Special requests"
+                        label='Special requests'
                         value={specialRequests.trim()}
                       />
                     ) : null}
@@ -1833,16 +1837,16 @@ export default function AdminNewBookingWizard({
 
                 <div className={styles.actionsBetween}>
                   <button
-                    type="button"
-                    className="secondaryBtn"
+                    type='button'
+                    className='secondaryBtn'
                     onClick={() => setStep(4)}
                   >
                     Back
                   </button>
 
                   <button
-                    type="button"
-                    className="primaryBtn"
+                    type='button'
+                    className='primaryBtn'
                     onClick={() => {
                       if (!bookingId) return;
 
@@ -1865,23 +1869,23 @@ export default function AdminNewBookingWizard({
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
-                <h2 className="underline">Payment</h2>
-                <p className="subheading">
+                <h2 className='underline'>Payment</h2>
+                <p className='subheading'>
                   Send a payment link or take a card payment.
                 </p>
 
                 {!bookingId ? (
                   <div
-                    className="miniNote"
+                    className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
                     Booking missing. Go back and create it.
                   </div>
                 ) : (
                   <>
-                    <div className="box">
+                    <div className='box'>
                       <div
-                        className="emptyTitleSmall"
+                        className='emptyTitleSmall'
                         style={{ marginBottom: 8 }}
                       >
                         Payment status:{" "}
@@ -1891,14 +1895,14 @@ export default function AdminNewBookingWizard({
                       <SendPaymentLinkButton bookingId={bookingId} />
 
                       {bookingData?.checkoutUrl ? (
-                        <div className="miniNote" style={{ marginTop: 12 }}>
+                        <div className='miniNote' style={{ marginTop: 12 }}>
                           Latest checkout URL:
                           <div style={{ marginTop: 8 }}>
                             <a
                               href={bookingData.checkoutUrl}
-                              className="backBtn emptyTitleSmall"
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              className='backBtn emptyTitleSmall'
+                              target='_blank'
+                              rel='noopener noreferrer'
                             >
                               Payment Link
                             </a>
@@ -1915,8 +1919,8 @@ export default function AdminNewBookingWizard({
                         }}
                       >
                         <button
-                          type="button"
-                          className="secondaryBtn"
+                          type='button'
+                          className='secondaryBtn'
                           onClick={() => refreshBookingData(bookingId)}
                           disabled={bookingDataLoading}
                         >
@@ -1924,8 +1928,8 @@ export default function AdminNewBookingWizard({
                         </button>
 
                         <button
-                          type="button"
-                          className="secondaryBtn"
+                          type='button'
+                          className='secondaryBtn'
                           onClick={() =>
                             router.push(`/admin/bookings/${bookingId}`)
                           }
@@ -1935,11 +1939,11 @@ export default function AdminNewBookingWizard({
                       </div>
                     </div>
 
-                    <div className="box">
-                      <div className="cardTitle h5">
+                    <div className='box'>
+                      <div className='cardTitle h5'>
                         Take card payment (manual)
                       </div>
-                      <div className="miniNote" style={{ marginTop: 6 }}>
+                      <div className='miniNote' style={{ marginTop: 6 }}>
                         Card-only checkout. After success, you’ll see a green
                         confirmation state.
                       </div>
@@ -1958,16 +1962,16 @@ export default function AdminNewBookingWizard({
 
                 <div className={styles.actionsBetween}>
                   <button
-                    type="button"
-                    className="secondaryBtn"
+                    type='button'
+                    className='secondaryBtn'
                     onClick={() => setStep(5)}
                   >
                     Back
                   </button>
 
                   <button
-                    type="button"
-                    className="primaryBtn"
+                    type='button'
+                    className='primaryBtn'
                     onClick={() => {
                       if (!bookingId) return;
                       router.push(`/admin/bookings/${bookingId}`);
@@ -2060,7 +2064,7 @@ function AdminManualCardPayment({
 
   if (!stripePromise) {
     return (
-      <div className="miniNote" style={{ color: "rgba(180,0,0,0.85)" }}>
+      <div className='miniNote' style={{ color: "rgba(180,0,0,0.85)" }}>
         Missing <code>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code>. Add it to
         enable manual payments.
       </div>
@@ -2092,14 +2096,12 @@ function AdminManualCardPayment({
   if (!clientSecret) {
     return (
       <button
-        type="button"
-        className="secondaryBtn"
+        type='button'
+        className='goodBtnii'
         onClick={start}
         disabled={creating}
       >
-        {creating
-          ? "Starting..."
-          : `Take card payment ($${centsToUsd(amountCents)})`}
+        {creating ? "Starting..." : `Take card payment `}
       </button>
     );
   }
@@ -2186,8 +2188,8 @@ function ManualPaymentInner({
       </div>
 
       <button
-        type="button"
-        className="primaryBtn"
+        type='button'
+        className='primaryBtn'
         onClick={pay}
         disabled={!stripe || !elements || submitting || paidSuccess}
         style={
@@ -2208,4 +2210,3 @@ function ManualPaymentInner({
     </div>
   );
 }
-
