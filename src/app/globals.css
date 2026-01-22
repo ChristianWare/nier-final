@@ -506,6 +506,7 @@ th {
 .tertiaryBtn,
 .warningBtn,
 .dangerBtn,
+.neutralBtn,
 .goodBtn,
 .goodBtnii {
   text-decoration: none;
@@ -561,6 +562,12 @@ th {
   background: var(--yellow);
   color: var(--darkYellow);
   border: 1px solid var(--darkYellow);
+}
+
+.neutralBtn {
+  background: var(--lightGray);
+  color: var(--black400);
+  border: 1px solid var(--stroke);
 }
 
 .dangerBtn:hover {

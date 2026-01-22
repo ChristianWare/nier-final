@@ -131,6 +131,28 @@ function getEventActorLabel(
   return `User: ${name}`;
 }
 
+// ✅ Helper for payment status display
+function getPaymentStatusDisplay(paymentStatus: string | null | undefined): {
+  label: string;
+  tone: BadgeTone;
+} {
+  switch (paymentStatus) {
+    case "PAID":
+      return { label: "Paid", tone: "good" };
+    case "PENDING":
+      return { label: "Pending", tone: "warn" };
+    case "FAILED":
+      return { label: "Failed", tone: "bad" };
+    case "REFUNDED":
+      return { label: "Refunded", tone: "neutral" };
+    case "PARTIALLY_REFUNDED":
+      return { label: "Partially Refunded", tone: "neutral" };
+    case "NONE":
+    default:
+      return { label: "Not Paid", tone: "bad" };
+  }
+}
+
 export default async function AdminBookingDetailPage({
   params,
 }: {
@@ -265,6 +287,9 @@ export default async function AdminBookingDetailPage({
     ? "good"
     : badgeTone(currentStatus);
 
+  // ✅ Payment status display
+  const paymentStatusDisplay = getPaymentStatusDisplay(booking.payment?.status);
+
   // ✅ Prepare data for EditTripDetailsClient
   const tripEditData = {
     pickupAt: formatDateTimeLocal(booking.pickupAt),
@@ -316,6 +341,26 @@ export default async function AdminBookingDetailPage({
               </span>
             </div>
           </div>
+
+          {/* ✅ NEW: Payment status */}
+          <div style={{ marginTop: 12 }}>
+            <div className='emptyTitle'>Payment:</div>
+            <div className={styles.paymentInfo}>
+              <span className={`badge badge_${paymentStatusDisplay.tone}`}>
+                {paymentStatusDisplay.label}
+              </span>
+              {booking.totalCents > 0 && (
+                <span className={styles.paymentAmount}>
+                  {formatMoney(booking.totalCents, booking.currency)}
+                </span>
+              )}
+              {booking.payment?.paidAt && (
+                <span className={styles.paymentDate}>
+                  on {formatDateTime(booking.payment.paidAt)}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ✅ NEW: Quick Actions at the top */}
@@ -323,6 +368,7 @@ export default async function AdminBookingDetailPage({
           <QuickActionsClient
             bookingId={booking.id}
             currentStatus={currentStatus}
+            pickupAt={booking.pickupAt.toISOString()}
           />
           <div className={styles.quickActionsDivider} />
           <DuplicateBookingClient bookingId={booking.id} />
