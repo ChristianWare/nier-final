@@ -104,18 +104,18 @@ export default function AdminNotificationSettingsForm({ initial }: Props) {
         <div className='cardTitle h4'>Event triggers</div>
         <div className={styles.table}>
           <div className={styles.headerRow}>
-            <div className={styles.colEvent}>Event</div>
-            <div className={styles.colCheck}>Email</div>
-            <div className={styles.colCheck}>SMS</div>
+            <div className='emptyTitleSmall'>Event</div>
+            <div className='emptyTitleSmall'>Email</div>
+            <div className='emptyTitleSmall'>SMS</div>
           </div>
 
           {Object.entries(groups).map(([groupName, items]) => (
             <div key={groupName} className={styles.group}>
-              <div className={styles.groupTitle}>{groupName}</div>
+              <div className='emptyTitle'>{groupName}</div>
 
               {items.map((it) => (
                 <div key={it.key} className={styles.row}>
-                  <div className={styles.colEvent}>{it.label}</div>
+                  <div className='subheading'>{it.label}</div>
 
                   <div className={styles.colCheck}>
                     <input

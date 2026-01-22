@@ -124,7 +124,7 @@ export default function AssignBookingForm({
 
       <div className={styles.btnContainer}>
         <button disabled={isPending} className='primaryBtn' type='submit'>
-          {isPending ? "Saving..." : "Assign"}
+          {isPending ? "Saving..." : "Assign + Pay Driver"}
         </button>
       </div>
     </form>
