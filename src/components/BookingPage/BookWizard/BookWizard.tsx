@@ -17,8 +17,9 @@ import Stepper from "../Stepper/Stepper";
 import SummaryRow from "../SummaryRow/SummaryRow";
 import BookingDateTimeWithBlackouts from "@/components/BookingPage/BookingDateTimeWithBlackouts/BookingDateTimeWithBlackouts";
 import { useSession } from "next-auth/react";
-
 import { Controller, useForm } from "react-hook-form";
+import { calcQuoteCents } from "@/lib/pricing/calcQuote";
+import { ServicePricingStrategy } from "@prisma/client";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -97,54 +98,6 @@ function centsToUsd(cents: number) {
   return (cents / 100).toFixed(2);
 }
 
-function estimateTotalCents(args: {
-  service: ServiceTypeDTO;
-  vehicle: VehicleDTO | null;
-  distanceMiles: number;
-  durationMinutes: number;
-  hoursRequested: number;
-}) {
-  const { service, vehicle, distanceMiles, durationMinutes, hoursRequested } =
-    args;
-
-  const base =
-    vehicle && vehicle.baseFareCents > 0
-      ? vehicle.baseFareCents
-      : service.baseFeeCents;
-
-  const perMile =
-    vehicle && vehicle.perMileCents > 0
-      ? vehicle.perMileCents
-      : service.perMileCents;
-
-  const perMinute =
-    vehicle && vehicle.perMinuteCents > 0
-      ? vehicle.perMinuteCents
-      : service.perMinuteCents;
-
-  const perHour =
-    vehicle && vehicle.perHourCents > 0
-      ? vehicle.perHourCents
-      : service.perHourCents;
-
-  if (service.pricingStrategy === "HOURLY") {
-    const minHours = vehicle?.minHours ?? 0;
-    const billedHours = Math.max(
-      Math.ceil(hoursRequested || 0),
-      Math.ceil(minHours || 0),
-    );
-    const raw = base + billedHours * perHour;
-    return Math.max(service.minFareCents, raw);
-  }
-
-  const raw =
-    base +
-    Math.round(distanceMiles * perMile) +
-    Math.round(durationMinutes * perMinute);
-
-  return Math.max(service.minFareCents, raw);
-}
-
 function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
@@ -186,6 +139,20 @@ function routeEquals(a: RoutePickerValue | null, b: RoutePickerValue | null) {
     milesA === milesB &&
     minsA === minsB
   );
+}
+
+function toStrategy(s: PricingStrategy): ServicePricingStrategy {
+  if (s === "POINT_TO_POINT") return ServicePricingStrategy.POINT_TO_POINT;
+  if (s === "HOURLY") return ServicePricingStrategy.HOURLY;
+  return ServicePricingStrategy.FLAT;
+}
+
+// ✅ IMPORTANT: RoutePicker may provide miles/minutes OR distanceMiles/durationMinutes
+function routeMiles(v: RoutePickerValue | null): number {
+  return Math.max(0, toNumber(v?.miles ?? v?.distanceMiles ?? null) ?? 0);
+}
+function routeMinutes(v: RoutePickerValue | null): number {
+  return Math.max(0, toNumber(v?.minutes ?? v?.durationMinutes ?? null) ?? 0);
 }
 
 export default function BookingWizard({
@@ -363,7 +330,6 @@ export default function BookingWizard({
   ]);
 
   // ✅ Route validation via Controller
-  // NOTE: We set redBorder on Pickup/Dropoff labels when route is invalid AND that side is missing.
   const pickupLabelRed =
     Boolean(errors.route) && !route?.pickup && !usesPickupAirport;
   const dropoffLabelRed =
@@ -379,18 +345,43 @@ export default function BookingWizard({
       ? Math.max(Math.ceil(hoursRequested || 0), Math.ceil(minHours || 0))
       : null;
 
-  const distanceMiles = Number(route?.miles ?? 0);
-  const durationMinutes = Number(route?.minutes ?? 0);
+  // ✅ FIX: read either miles/minutes OR distanceMiles/durationMinutes
+  const distanceMiles = routeMiles(route);
+  const durationMinutes = routeMinutes(route);
 
   const estimateCents = useMemo(() => {
     if (!selectedService) return 0;
-    return estimateTotalCents({
-      service: selectedService,
-      vehicle: selectedVehicle,
-      distanceMiles,
-      durationMinutes,
-      hoursRequested,
+
+    const quote = calcQuoteCents({
+      pricingStrategy: toStrategy(selectedService.pricingStrategy),
+
+      distanceMiles:
+        selectedService.pricingStrategy === "POINT_TO_POINT"
+          ? distanceMiles
+          : null,
+      durationMinutes:
+        selectedService.pricingStrategy === "POINT_TO_POINT"
+          ? durationMinutes
+          : null,
+
+      hoursRequested:
+        selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
+
+      vehicleMinHours: selectedVehicle?.minHours ?? 0,
+
+      serviceMinFareCents: selectedService.minFareCents,
+      serviceBaseFeeCents: selectedService.baseFeeCents,
+      servicePerMileCents: selectedService.perMileCents,
+      servicePerMinuteCents: selectedService.perMinuteCents,
+      servicePerHourCents: selectedService.perHourCents,
+
+      vehicleBaseFareCents: selectedVehicle?.baseFareCents ?? 0,
+      vehiclePerMileCents: selectedVehicle?.perMileCents ?? 0,
+      vehiclePerMinuteCents: selectedVehicle?.perMinuteCents ?? 0,
+      vehiclePerHourCents: selectedVehicle?.perHourCents ?? 0,
     });
+
+    return quote.totalCents;
   }, [
     selectedService,
     selectedVehicle,
@@ -499,7 +490,6 @@ export default function BookingWizard({
   }
 
   async function goStep2() {
-    // allow click ALWAYS, and validate to show red labels
     if (
       selectedService &&
       selectedService.airportLeg !== "NONE" &&
@@ -587,6 +577,17 @@ export default function BookingWizard({
       return;
     }
 
+    // ✅ extra safety: point-to-point MUST have miles > 0
+    if (selectedService.pricingStrategy === "POINT_TO_POINT") {
+      const miles = routeMiles(v.route);
+      if (!miles || miles <= 0) {
+        toast.error(
+          "Route estimate missing (miles). Please re-check pickup/dropoff.",
+        );
+        return;
+      }
+    }
+
     const pickupAtIso = new Date(
       `${v.pickupAtDate}T${v.pickupAtTime}:00`,
     ).toISOString();
@@ -614,8 +615,10 @@ export default function BookingWizard({
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
 
-        distanceMiles: v.route.miles ?? null,
-        durationMinutes: v.route.minutes ?? null,
+        distanceMiles: toNumber(v.route.miles ?? v.route.distanceMiles ?? null),
+        durationMinutes: toNumber(
+          v.route.minutes ?? v.route.durationMinutes ?? null,
+        ),
 
         hoursRequested:
           selectedService.pricingStrategy === "HOURLY"
@@ -664,7 +667,7 @@ export default function BookingWizard({
 
   function firstErrorMessageFrom(fields: (keyof FormValues)[]) {
     for (const k of fields) {
-      const st = getFieldState(k as any); // RHF internal state (fresh)
+      const st = getFieldState(k as any);
       if (st.error?.message) return String(st.error.message);
     }
     return "Please complete the highlighted fields.";
@@ -684,6 +687,17 @@ export default function BookingWizard({
                   validate: (v) => {
                     if (!v?.pickup || !v?.dropoff)
                       return "Please select pickup and dropoff.";
+
+                    // ✅ prevent “$55 everywhere” when miles aren’t present
+                    if (selectedService?.pricingStrategy === "POINT_TO_POINT") {
+                      const miles = toNumber(
+                        v.miles ?? v.distanceMiles ?? null,
+                      );
+                      if (!miles || miles <= 0) {
+                        return "Route estimate missing (miles). Please re-check the route.";
+                      }
+                    }
+
                     return true;
                   },
                 }}
@@ -779,7 +793,6 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  {/* ✅ Add a label that can go red for date/time */}
                   <div style={{ display: "grid", gap: 8 }}>
                     <label
                       className={labelCx(
@@ -978,7 +991,7 @@ export default function BookingWizard({
                         type='button'
                         onClick={goStep2}
                         className='primaryBtn'
-                        disabled={hasNoServices} // ✅ ONLY disabled if literally no services exist
+                        disabled={hasNoServices}
                       >
                         Next
                       </button>
@@ -996,7 +1009,6 @@ export default function BookingWizard({
                   <h2 className='underline'>Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
 
-                  {/* ✅ label that goes red if vehicle missing */}
                   <label className={labelCx(Boolean(errors.vehicleId))}>
                     Vehicle category
                   </label>
@@ -1005,15 +1017,45 @@ export default function BookingWizard({
                     {vehicleOptions.map((v) => {
                       const isSelected = v.id === vehicleId;
 
-                      const rowEstimateCents = selectedService
-                        ? estimateTotalCents({
-                            service: selectedService,
-                            vehicle: v,
-                            distanceMiles,
-                            durationMinutes,
-                            hoursRequested,
+                      const rowQuote = selectedService
+                        ? calcQuoteCents({
+                            pricingStrategy: toStrategy(
+                              selectedService.pricingStrategy,
+                            ),
+
+                            distanceMiles:
+                              selectedService.pricingStrategy ===
+                              "POINT_TO_POINT"
+                                ? distanceMiles
+                                : null,
+                            durationMinutes:
+                              selectedService.pricingStrategy ===
+                              "POINT_TO_POINT"
+                                ? durationMinutes
+                                : null,
+
+                            hoursRequested:
+                              selectedService.pricingStrategy === "HOURLY"
+                                ? hoursRequested
+                                : null,
+
+                            vehicleMinHours: v.minHours ?? 0,
+
+                            serviceMinFareCents: selectedService.minFareCents,
+                            serviceBaseFeeCents: selectedService.baseFeeCents,
+                            servicePerMileCents: selectedService.perMileCents,
+                            servicePerMinuteCents:
+                              selectedService.perMinuteCents,
+                            servicePerHourCents: selectedService.perHourCents,
+
+                            vehicleBaseFareCents: v.baseFareCents ?? 0,
+                            vehiclePerMileCents: v.perMileCents ?? 0,
+                            vehiclePerMinuteCents: v.perMinuteCents ?? 0,
+                            vehiclePerHourCents: v.perHourCents ?? 0,
                           })
-                        : 0;
+                        : null;
+
+                      const rowEstimateCents = rowQuote?.totalCents ?? 0;
 
                       const rowMinHours =
                         selectedService?.pricingStrategy === "HOURLY"

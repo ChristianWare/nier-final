@@ -1,92 +1,149 @@
-import type { ServicePricingStrategy } from "@prisma/client";
+/**
+ * Pricing calculation for booking quotes
+ * Location: lib/pricing/calcQuote.ts
+ */
 
-type PricingInputs = {
+import { ServicePricingStrategy } from "@prisma/client";
+
+export interface CalcQuoteInput {
   pricingStrategy: ServicePricingStrategy;
 
-  // route
-  distanceMiles?: number | null;
-  durationMinutes?: number | null;
+  // Trip details
+  distanceMiles: number | null;
+  durationMinutes: number | null;
+  hoursRequested: number | null;
 
-  // hourly
-  hoursRequested?: number | null;
-  vehicleMinHours?: number | null;
+  // Vehicle constraints
+  vehicleMinHours: number;
 
-  // service knobs (cents)
+  // Service pricing (in cents)
   serviceMinFareCents: number;
   serviceBaseFeeCents: number;
   servicePerMileCents: number;
   servicePerMinuteCents: number;
   servicePerHourCents: number;
 
-  // vehicle knobs (cents) (optional: allows “vehicle-specific pricing”)
-  vehicleBaseFareCents?: number | null;
-  vehiclePerMileCents?: number | null;
-  vehiclePerMinuteCents?: number | null;
-  vehiclePerHourCents?: number | null;
-};
+  // Vehicle pricing (in cents) - these ADD to service pricing
+  vehicleBaseFareCents: number;
+  vehiclePerMileCents: number;
+  vehiclePerMinuteCents: number;
+  vehiclePerHourCents: number;
+}
 
-export function calcQuoteCents(input: PricingInputs) {
-  const strategy = input.pricingStrategy;
+export interface CalcQuoteResult {
+  totalCents: number;
+  breakdown: {
+    baseChargeCents: number;
+    distanceChargeCents: number;
+    timeChargeCents: number;
+    subtotalCents: number;
+    minFareCents: number;
+    minFareApplied: boolean;
+  };
+}
 
-  const distanceMiles = Math.max(0, Number(input.distanceMiles ?? 0));
-  const durationMinutes = Math.max(0, Number(input.durationMinutes ?? 0));
+/**
+ * Calculate quote for a booking
+ *
+ * ✅ CRITICAL FIX: This properly applies minimum fare AFTER calculating base + distance/time charges
+ */
+export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
+  const {
+    pricingStrategy,
+    distanceMiles,
+    durationMinutes,
+    hoursRequested,
+    vehicleMinHours,
+    serviceMinFareCents,
+    serviceBaseFeeCents,
+    servicePerMileCents,
+    servicePerMinuteCents,
+    servicePerHourCents,
+    vehicleBaseFareCents,
+    vehiclePerMileCents,
+    vehiclePerMinuteCents,
+    vehiclePerHourCents,
+  } = input;
 
-  const serviceMin = input.serviceMinFareCents ?? 0;
+  // Combine service + vehicle pricing
+  const minFareCents = serviceMinFareCents;
+  const baseFeeCents = serviceBaseFeeCents + vehicleBaseFareCents;
+  const perMileCents = servicePerMileCents + vehiclePerMileCents;
+  const perMinuteCents = servicePerMinuteCents + vehiclePerMinuteCents;
+  const perHourCents = servicePerHourCents + vehiclePerHourCents;
 
-  // Prefer vehicle rates if set (>0), else fall back to service rates.
-  const base =
-    (input.vehicleBaseFareCents ?? 0) > 0
-      ? (input.vehicleBaseFareCents ?? 0)
-      : input.serviceBaseFeeCents;
+  let baseCharge = 0;
+  let distanceCharge = 0;
+  let timeCharge = 0;
 
-  const perMile =
-    (input.vehiclePerMileCents ?? 0) > 0
-      ? (input.vehiclePerMileCents ?? 0)
-      : input.servicePerMileCents;
+  switch (pricingStrategy) {
+    case ServicePricingStrategy.POINT_TO_POINT: {
+      // Base fee + (distance × per mile rate) + (time × per minute rate)
+      baseCharge = baseFeeCents;
 
-  const perMinute =
-    (input.vehiclePerMinuteCents ?? 0) > 0
-      ? (input.vehiclePerMinuteCents ?? 0)
-      : input.servicePerMinuteCents;
+      if (distanceMiles != null && distanceMiles > 0) {
+        distanceCharge = Math.round(distanceMiles * perMileCents);
+      }
 
-  const perHour =
-    (input.vehiclePerHourCents ?? 0) > 0
-      ? (input.vehiclePerHourCents ?? 0)
-      : input.servicePerHourCents;
+      if (durationMinutes != null && durationMinutes > 0) {
+        timeCharge = Math.round(durationMinutes * perMinuteCents);
+      }
 
-  if (strategy === "HOURLY") {
-    const requested = Math.max(
-      0,
-      Math.floor(Number(input.hoursRequested ?? 0))
-    );
-    const minHours = Math.max(
-      0,
-      Math.floor(Number(input.vehicleMinHours ?? 0))
-    );
-    const billedHours = Math.max(requested, minHours);
+      break;
+    }
 
-    const raw = base + billedHours * perHour;
-    const subtotalCents = Math.max(serviceMin, raw);
+    case ServicePricingStrategy.HOURLY: {
+      // Base fee + (billable hours × per hour rate)
+      baseCharge = baseFeeCents;
 
-    return {
-      subtotalCents,
-      totalCents: subtotalCents, // phase 1: no taxes/fees yet
-      billedHours,
-      requestedHours: requested,
-    };
+      const requestedHours = hoursRequested ?? 0;
+      const minHours = vehicleMinHours ?? 0;
+      const billableHours = Math.max(
+        Math.ceil(requestedHours),
+        Math.ceil(minHours),
+      );
+
+      if (billableHours > 0) {
+        timeCharge = Math.round(billableHours * perHourCents);
+      }
+
+      break;
+    }
+
+    case ServicePricingStrategy.FLAT: {
+      // Just the base fee (flat rate)
+      baseCharge = baseFeeCents;
+      break;
+    }
   }
 
-  // POINT_TO_POINT or FLAT (we’ll treat FLAT like point-to-point unless you want separate flat logic)
-  const raw =
-    base +
-    Math.round(distanceMiles * perMile) +
-    Math.round(durationMinutes * perMinute);
-  const subtotalCents = Math.max(serviceMin, raw);
+  // Calculate subtotal: base + distance + time
+  let subtotalCents = baseCharge + distanceCharge + timeCharge;
+
+  // ✅ CRITICAL: Apply minimum fare if calculated amount is less than minimum
+  // This is the key fix - min fare is applied AFTER calculating base + distance/time
+  let minFareApplied = false;
+  if (subtotalCents < minFareCents) {
+    subtotalCents = minFareCents;
+    minFareApplied = true;
+  }
 
   return {
-    subtotalCents,
     totalCents: subtotalCents,
-    billedHours: null,
-    requestedHours: null,
+    breakdown: {
+      baseChargeCents: baseCharge,
+      distanceChargeCents: distanceCharge,
+      timeChargeCents: timeCharge,
+      subtotalCents,
+      minFareCents,
+      minFareApplied,
+    },
   };
+}
+
+/**
+ * Format cents as dollar string
+ */
+export function formatCurrency(cents: number): string {
+  return `$${(cents / 100).toFixed(2)}`;
 }

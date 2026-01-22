@@ -45,6 +45,8 @@ import {
   useStripe,
 } from "@stripe/react-stripe-js";
 
+import { calcQuoteCents } from "@/lib/pricing/calcQuote";
+
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
 
@@ -175,52 +177,40 @@ function routeEquals(a: RoutePickerValue | null, b: RoutePickerValue | null) {
   );
 }
 
+// ✅ Now uses calcQuoteCents (single source of truth)
 function estimateTotalCents(args: {
   service: ServiceTypeDTO;
   vehicle: VehicleDTO | null;
-  distanceMiles: number;
-  durationMinutes: number;
-  hoursRequested: number;
+  distanceMiles: number | null;
+  durationMinutes: number | null;
+  hoursRequested: number | null;
 }) {
   const { service, vehicle, distanceMiles, durationMinutes, hoursRequested } =
     args;
 
-  const base =
-    vehicle && vehicle.baseFareCents > 0
-      ? vehicle.baseFareCents
-      : service.baseFeeCents;
+  const q = calcQuoteCents({
+    pricingStrategy: service.pricingStrategy as any,
 
-  const perMile =
-    vehicle && vehicle.perMileCents > 0
-      ? vehicle.perMileCents
-      : service.perMileCents;
+    distanceMiles,
+    durationMinutes,
+    hoursRequested:
+      service.pricingStrategy === "HOURLY" ? hoursRequested : null,
 
-  const perMinute =
-    vehicle && vehicle.perMinuteCents > 0
-      ? vehicle.perMinuteCents
-      : service.perMinuteCents;
+    vehicleMinHours: vehicle?.minHours ?? 0,
 
-  const perHour =
-    vehicle && vehicle.perHourCents > 0
-      ? vehicle.perHourCents
-      : service.perHourCents;
+    serviceMinFareCents: service.minFareCents,
+    serviceBaseFeeCents: service.baseFeeCents,
+    servicePerMileCents: service.perMileCents,
+    servicePerMinuteCents: service.perMinuteCents,
+    servicePerHourCents: service.perHourCents,
 
-  if (service.pricingStrategy === "HOURLY") {
-    const minHours = vehicle?.minHours ?? 0;
-    const billedHours = Math.max(
-      Math.ceil(hoursRequested || 0),
-      Math.ceil(minHours || 0),
-    );
-    const raw = base + billedHours * perHour;
-    return Math.max(service.minFareCents, raw);
-  }
+    vehicleBaseFareCents: vehicle?.baseFareCents ?? 0,
+    vehiclePerMileCents: vehicle?.perMileCents ?? 0,
+    vehiclePerMinuteCents: vehicle?.perMinuteCents ?? 0,
+    vehiclePerHourCents: vehicle?.perHourCents ?? 0,
+  });
 
-  const raw =
-    base +
-    Math.round(distanceMiles * perMile) +
-    Math.round(durationMinutes * perMinute);
-
-  return Math.max(service.minFareCents, raw);
+  return q.totalCents;
 }
 
 function statusLabel(s: AdminCreateBookingStatus) {
@@ -485,27 +475,35 @@ export default function AdminNewBookingWizard({
     });
   }
 
-  const minHours =
-    selectedService?.pricingStrategy === "HOURLY"
-      ? (selectedVehicle?.minHours ?? 0)
-      : 0;
+  // ✅ Robust miles/minutes
+  const distanceMiles = toNumber(route?.miles ?? (route as any)?.distanceMiles);
+  const durationMinutes = toNumber(
+    route?.minutes ?? (route as any)?.durationMinutes,
+  );
 
-  const billableHours =
-    selectedService?.pricingStrategy === "HOURLY"
-      ? Math.max(Math.ceil(hoursRequested || 0), Math.ceil(minHours || 0))
-      : null;
-
-  const distanceMiles = Number(route?.miles ?? 0);
-  const durationMinutes = Number(route?.minutes ?? 0);
-
-  const estimateCents = useMemo(() => {
-    if (!selectedService) return 0;
-    return estimateTotalCents({
-      service: selectedService,
-      vehicle: selectedVehicle,
+  // ✅ Quote for selected service/vehicle (also gives billed hours)
+  const selectedQuote = useMemo(() => {
+    if (!selectedService) return null;
+    return calcQuoteCents({
+      pricingStrategy: selectedService.pricingStrategy as any,
       distanceMiles,
       durationMinutes,
-      hoursRequested,
+      hoursRequested:
+        selectedService.pricingStrategy === "HOURLY"
+          ? toNumber(hoursRequested)
+          : null,
+      vehicleMinHours: selectedVehicle?.minHours ?? 0,
+
+      serviceMinFareCents: selectedService.minFareCents,
+      serviceBaseFeeCents: selectedService.baseFeeCents,
+      servicePerMileCents: selectedService.perMileCents,
+      servicePerMinuteCents: selectedService.perMinuteCents,
+      servicePerHourCents: selectedService.perHourCents,
+
+      vehicleBaseFareCents: selectedVehicle?.baseFareCents ?? 0,
+      vehiclePerMileCents: selectedVehicle?.perMileCents ?? 0,
+      vehiclePerMinuteCents: selectedVehicle?.perMinuteCents ?? 0,
+      vehiclePerHourCents: selectedVehicle?.perHourCents ?? 0,
     });
   }, [
     selectedService,
@@ -514,6 +512,13 @@ export default function AdminNewBookingWizard({
     durationMinutes,
     hoursRequested,
   ]);
+
+  const billableHours =
+    selectedService?.pricingStrategy === "HOURLY"
+      ? (selectedQuote?.billedHours ?? null)
+      : null;
+
+  const estimateCents = selectedQuote?.totalCents ?? 0;
 
   function pickDate(val: string) {
     resetCreatedBooking();
@@ -559,6 +564,9 @@ export default function AdminNewBookingWizard({
       dropoffAirport: false,
 
       airportNotConfigured: false,
+
+      // ✅ New: route distance missing for point-to-point
+      routeDistance: false,
     };
 
     if (customerKind === "account") {
@@ -586,6 +594,12 @@ export default function AdminNewBookingWizard({
       }
       if (usesPickupAirport && !pickupAirportId) e.pickupAirport = true;
       if (usesDropoffAirport && !dropoffAirportId) e.dropoffAirport = true;
+
+      // ✅ If point-to-point, miles must exist (>0)
+      if (selectedService.pricingStrategy === "POINT_TO_POINT") {
+        const miles = toNumber(route?.miles ?? (route as any)?.distanceMiles);
+        if (!miles || miles <= 0) e.routeDistance = true;
+      }
     }
 
     if (!route?.pickup) e.pickup = true;
@@ -674,6 +688,19 @@ export default function AdminNewBookingWizard({
       return null;
     }
 
+    // ✅ Guard for POINT_TO_POINT miles
+    if (selectedService.pricingStrategy === "POINT_TO_POINT") {
+      const miles = toNumber(route?.miles ?? (route as any)?.distanceMiles);
+      if (!miles || miles <= 0) {
+        setAttemptTripNext(true);
+        toast.error(
+          "Missing route distance. Please re-check the route estimate (miles) before creating the booking.",
+        );
+        setStep(1);
+        return null;
+      }
+    }
+
     if (!vehicleId) {
       setAttemptVehicleNext(true);
       toast.error("Please choose a vehicle category.");
@@ -739,11 +766,15 @@ export default function AdminNewBookingWizard({
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
 
-        distanceMiles: route?.miles ?? null,
-        durationMinutes: route?.minutes ?? null,
+        distanceMiles: toNumber(route?.miles ?? (route as any)?.distanceMiles),
+        durationMinutes: toNumber(
+          route?.minutes ?? (route as any)?.durationMinutes,
+        ),
 
         hoursRequested:
-          selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
+          selectedService.pricingStrategy === "HOURLY"
+            ? toNumber(hoursRequested)
+            : null,
         specialRequests: specialRequests || null,
 
         // default to current status (chosen later on Assign step, but starts as PENDING_REVIEW)
@@ -1143,7 +1174,9 @@ export default function AdminNewBookingWizard({
 
                       const svc = serviceTypes.find((s) => s.id === next);
                       if (svc?.pricingStrategy === "HOURLY") {
-                        setHoursRequested((prev) => Math.max(prev || 2, 2));
+                        setHoursRequested((prev) =>
+                          Math.max(Math.floor(prev || 2), 2),
+                        );
                       }
                     }}
                     className='input emptySmall'
@@ -1168,6 +1201,16 @@ export default function AdminNewBookingWizard({
                     This airport service isn’t configured yet (no airports
                     assigned). Choose a different service or assign airports
                     first.
+                  </div>
+                ) : null}
+
+                {attemptTripNext && tripErrors.routeDistance ? (
+                  <div
+                    className='miniNote'
+                    style={{ color: "rgba(180,0,0,0.85)" }}
+                  >
+                    Route estimate is missing distance (miles). Re-check the
+                    route picker selection.
                   </div>
                 ) : null}
 
@@ -1311,7 +1354,9 @@ export default function AdminNewBookingWizard({
                       value={hoursRequested}
                       onChange={(e) => {
                         resetCreatedBooking();
-                        setHoursRequested(Number(e.target.value));
+                        setHoursRequested(
+                          Math.max(1, Math.floor(Number(e.target.value) || 1)),
+                        );
                       }}
                       className='input emptySmall'
                     />
@@ -1367,15 +1412,32 @@ export default function AdminNewBookingWizard({
                   {vehicles.map((v) => {
                     const isSelected = v.id === vehicleId;
 
-                    const rowEstimateCents = selectedService
-                      ? estimateTotalCents({
-                          service: selectedService,
-                          vehicle: v,
+                    const rowQuote = selectedService
+                      ? calcQuoteCents({
+                          pricingStrategy:
+                            selectedService.pricingStrategy as any,
                           distanceMiles,
                           durationMinutes,
-                          hoursRequested,
+                          hoursRequested:
+                            selectedService.pricingStrategy === "HOURLY"
+                              ? toNumber(hoursRequested)
+                              : null,
+                          vehicleMinHours: v.minHours ?? 0,
+
+                          serviceMinFareCents: selectedService.minFareCents,
+                          serviceBaseFeeCents: selectedService.baseFeeCents,
+                          servicePerMileCents: selectedService.perMileCents,
+                          servicePerMinuteCents: selectedService.perMinuteCents,
+                          servicePerHourCents: selectedService.perHourCents,
+
+                          vehicleBaseFareCents: v.baseFareCents ?? 0,
+                          vehiclePerMileCents: v.perMileCents ?? 0,
+                          vehiclePerMinuteCents: v.perMinuteCents ?? 0,
+                          vehiclePerHourCents: v.perHourCents ?? 0,
                         })
-                      : 0;
+                      : null;
+
+                    const rowEstimateCents = rowQuote?.totalCents ?? 0;
 
                     const rowMinHours =
                       selectedService?.pricingStrategy === "HOURLY"
@@ -1384,10 +1446,7 @@ export default function AdminNewBookingWizard({
 
                     const rowBillable =
                       selectedService?.pricingStrategy === "HOURLY"
-                        ? Math.max(
-                            Math.ceil(hoursRequested || 0),
-                            Math.ceil(v.minHours || 0),
-                          )
+                        ? (rowQuote?.billedHours ?? null)
                         : null;
 
                     return (
@@ -1399,7 +1458,10 @@ export default function AdminNewBookingWizard({
                           setVehicleId(v.id);
                           if (selectedService?.pricingStrategy === "HOURLY") {
                             setHoursRequested((prev) =>
-                              Math.max(prev || 1, v.minHours || 0),
+                              Math.max(
+                                Math.floor(prev || 1),
+                                Math.floor(v.minHours || 0),
+                              ),
                             );
                           }
                         }}
@@ -1778,7 +1840,9 @@ export default function AdminNewBookingWizard({
                       <>
                         <SummaryRow
                           label='Hours requested'
-                          value={String(hoursRequested)}
+                          value={String(
+                            selectedQuote?.requestedHours ?? hoursRequested,
+                          )}
                         />
                         <SummaryRow
                           label='Billable hours'

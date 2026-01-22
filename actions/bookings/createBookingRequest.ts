@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
@@ -52,6 +52,13 @@ function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
+// ✅ Helps when client accidentally sends strings, NaN, etc.
+function numOrNull(v: unknown): number | null {
+  if (v == null) return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export async function createBookingRequest(input: CreateBookingRequestInput) {
   const session = await auth();
   const userId = (session?.user as { id?: string } | null)?.id ?? null;
@@ -92,11 +99,30 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     return { error: "Vehicle not available" as const };
   }
 
+  // ✅ Normalize numeric inputs (prevents NaN/string weirdness)
+  const distanceMiles = numOrNull(input.distanceMiles);
+  const durationMinutes = numOrNull(input.durationMinutes);
+  const hoursRequested = numOrNull(input.hoursRequested);
+
+  // ✅ IMPORTANT: if distance is missing, you will ALWAYS fall back to minFare.
+  // Better to fail fast so you fix the route-estimate pipeline.
+  if (
+    service.pricingStrategy === ServicePricingStrategy.POINT_TO_POINT &&
+    (!distanceMiles || distanceMiles <= 0)
+  ) {
+    return {
+      error:
+        "Missing route distance. Please re-check the route estimate (miles) before submitting.",
+    } as const;
+  }
+
   const quote = calcQuoteCents({
     pricingStrategy: service.pricingStrategy,
-    distanceMiles: input.distanceMiles ?? null,
-    durationMinutes: input.durationMinutes ?? null,
-    hoursRequested: input.hoursRequested ?? null,
+
+    distanceMiles,
+    durationMinutes,
+    hoursRequested,
+
     vehicleMinHours: vehicle?.minHours ?? 0,
 
     serviceMinFareCents: service.minFareCents,
@@ -141,10 +167,10 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       dropoffLat: input.dropoffLat ?? null,
       dropoffLng: input.dropoffLng ?? null,
 
-      distanceMiles: input.distanceMiles ?? null,
-      durationMinutes: input.durationMinutes ?? null,
+      distanceMiles,
+      durationMinutes,
 
-      hoursRequested: quote.requestedHours ?? input.hoursRequested ?? null,
+      hoursRequested: quote.requestedHours ?? hoursRequested ?? null,
       hoursBilled: quote.billedHours ?? null,
 
       specialRequests: input.specialRequests ?? null,
