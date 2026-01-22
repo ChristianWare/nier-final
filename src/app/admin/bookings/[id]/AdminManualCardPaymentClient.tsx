@@ -17,9 +17,14 @@ import {
 import { adminCreateManualPaymentIntent } from "../../../../../actions/bookings/adminCreateManualPaymentIntent";
 import Button from "@/components/shared/Button/Button";
 
-// function centsToUsd(cents: number) {
-//   return (cents / 100).toFixed(2);
-// }
+function formatMoney(cents: number, currency = "USD") {
+  const n = cents / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
 
 const stripePromise = (() => {
   const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -28,17 +33,24 @@ const stripePromise = (() => {
 
 export default function AdminManualCardPaymentClient({
   bookingId,
-  // amountCents,
+  amountCents,
   currency,
   isPaid,
+  amountPaidCents = 0,
 }: {
   bookingId: string;
   amountCents: number;
   currency: string;
   isPaid: boolean;
+  amountPaidCents?: number;
 }) {
   const [clientSecret, setClientSecret] = useState<string>("");
   const [creating, setCreating] = useState(false);
+
+  // Calculate balance due
+  const balanceDueCents = amountCents - amountPaidCents;
+  const hasBalanceDue = amountPaidCents > 0 && balanceDueCents > 0;
+  const isFullyPaid = isPaid && balanceDueCents <= 0;
 
   if (!stripePromise) {
     return (
@@ -49,26 +61,16 @@ export default function AdminManualCardPaymentClient({
     );
   }
 
-  if (isPaid) {
+  // Only show "Payment successful" if fully paid (no balance due)
+  if (isFullyPaid) {
     return (
-      // <button
-      //   type='button'
-      //   className='primaryBtn'
-      //   disabled
-      //   style={{
-      //     background: "rgba(0,160,80,0.95)",
-      //     borderColor: "rgba(0,160,80,0.95)",
-      //   }}
-      // >
-      //   Payment successful
-      // </button>
       <Button
         disabled
         type='button'
         text='Payment successful'
         btnType='green'
         checkIcon
-        onClick={start}
+        onClick={() => {}}
       />
     );
   }
@@ -96,25 +98,55 @@ export default function AdminManualCardPaymentClient({
   }
 
   if (!clientSecret) {
+    // Determine button text based on payment state
+    let buttonText = "Take card payment";
+    if (creating) {
+      buttonText = "Starting...";
+    } else if (hasBalanceDue) {
+      buttonText = `Take balance payment (${formatMoney(balanceDueCents, currency)})`;
+    } else if (amountCents > 0) {
+      buttonText = `Take card payment (${formatMoney(amountCents, currency)})`;
+    }
+
     return (
-      // <div className={styles.btnContainer}>
-      //   <button
-      //     type='button'
-      //     className='goodBtnii'
-      //     onClick={start}
-      //     disabled={creating}
-      //   >
-      //     {creating ? "Starting..." : `Take card payment`}
-      //   </button>
-      // </div>
-      <Button
-        disabled={creating}
-        type='button'
-        text={creating ? "Starting..." : "Take card payment"}
-        btnType='green'
-        arrow
-        onClick={start}
-      />
+      <div style={{ display: "flex", gap: 20 }}>
+        {/* Show balance info if applicable */}
+        {hasBalanceDue && (
+          <div
+            style={{
+              background: "#fef3c7",
+              border: "1px solid #f59e0b",
+              borderRadius: 8,
+              padding: "10px 14px",
+              fontSize: "0.9rem",
+              color: "#92400e",
+            }}
+          >
+            <strong>Balance Due:</strong>{" "}
+            {formatMoney(balanceDueCents, currency)}
+            <span
+              style={{
+                display: "block",
+                fontSize: "0.8rem",
+                marginTop: 2,
+                opacity: 0.85,
+              }}
+            >
+              (Paid: {formatMoney(amountPaidCents, currency)} of{" "}
+              {formatMoney(amountCents, currency)})
+            </span>
+          </div>
+        )}
+
+        <Button
+          disabled={creating || amountCents <= 0}
+          type='button'
+          text={buttonText}
+          btnType='green'
+          arrow
+          onClick={start}
+        />
+      </div>
     );
   }
 
@@ -126,16 +158,26 @@ export default function AdminManualCardPaymentClient({
         loader: "auto",
       }}
     >
-      <ManualPaymentInner clientSecret={clientSecret} currency={currency} />
+      <ManualPaymentInner
+        clientSecret={clientSecret}
+        currency={currency}
+        amountToCharge={hasBalanceDue ? balanceDueCents : amountCents}
+        isBalancePayment={hasBalanceDue}
+      />
     </Elements>
   );
 }
 
 function ManualPaymentInner({
   clientSecret,
+  currency,
+  amountToCharge,
+  isBalancePayment,
 }: {
   clientSecret: string;
   currency: string;
+  amountToCharge: number;
+  isBalancePayment: boolean;
 }) {
   const router = useRouter();
   const stripe = useStripe();
@@ -152,6 +194,15 @@ function ManualPaymentInner({
         }
       : undefined;
   }, [paidSuccess]);
+
+  function formatMoney(cents: number) {
+    const n = cents / 100;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 2,
+    }).format(n);
+  }
 
   async function pay() {
     if (!stripe || !elements) return;
@@ -176,7 +227,11 @@ function ManualPaymentInner({
 
       if (paymentIntent?.status === "succeeded") {
         setPaidSuccess(true);
-        toast.success("Payment succeeded.");
+        toast.success(
+          isBalancePayment
+            ? "Balance payment succeeded."
+            : "Payment succeeded.",
+        );
         router.refresh(); // ✅ updates Payment status on the server page
         return;
       }
@@ -189,8 +244,25 @@ function ManualPaymentInner({
     }
   }
 
+  // Determine button text
+  let chargeButtonText = `Charge card (${formatMoney(amountToCharge)})`;
+  if (paidSuccess) {
+    chargeButtonText = "Payment successful";
+  } else if (submitting) {
+    chargeButtonText = "Processing...";
+  } else if (isBalancePayment) {
+    chargeButtonText = `Charge balance (${formatMoney(amountToCharge)})`;
+  }
+
   return (
     <div style={{ display: "grid", gap: 10, marginTop: 10 }}>
+      {/* Show what we're charging */}
+      <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
+        {isBalancePayment
+          ? `Charging balance of ${formatMoney(amountToCharge)}`
+          : `Charging ${formatMoney(amountToCharge)}`}
+      </div>
+
       {/* ✅ Card-only fields (no Affirm / Klarna / etc) */}
       <div
         style={{
@@ -210,11 +282,7 @@ function ManualPaymentInner({
         disabled={!stripe || !elements || submitting || paidSuccess}
         style={btnStyle}
       >
-        {paidSuccess
-          ? "Payment successful"
-          : submitting
-            ? "Processing..."
-            : "Charge card"}
+        {chargeButtonText}
       </button>
     </div>
   );

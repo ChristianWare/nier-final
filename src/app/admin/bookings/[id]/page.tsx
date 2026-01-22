@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/admin/bookings/[id]/page.tsx
 import styles from "./AdminBookingDetailPage.module.css";
 import type { ReactNode } from "react";
@@ -14,6 +15,7 @@ import QuickActionsClient from "./QuickActionsClient";
 import BookingNotesClient from "./BookingNotesClient";
 import EditTripDetailsClient from "./EditTripDetailsClient";
 import DuplicateBookingClient from "./DuplicateBookingClient";
+import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -79,7 +81,6 @@ function formatDateTime(d: Date) {
 }
 
 function formatDateTimeLocal(d: Date) {
-  // Format for datetime-local input: YYYY-MM-DDTHH:mm
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -103,7 +104,6 @@ function formatMoney(cents: number | null | undefined, currency = "USD") {
   }).format(n);
 }
 
-// Helper to determine who triggered a status event
 function getEventActorLabel(
   actor: { name: string | null; email: string; roles: Role[] } | null,
   status: string,
@@ -131,26 +131,84 @@ function getEventActorLabel(
   return `User: ${name}`;
 }
 
-// ✅ Helper for payment status display
-function getPaymentStatusDisplay(paymentStatus: string | null | undefined): {
+// ✅ Updated payment status display with balance handling
+function getPaymentStatusDisplay(
+  paymentStatus: string | null | undefined,
+  totalCents: number,
+  amountPaidCents: number,
+): {
   label: string;
   tone: BadgeTone;
+  hasBalanceDue: boolean;
+  balanceDueCents: number;
 } {
+  const balanceDueCents = totalCents - amountPaidCents;
+  const hasBalanceDue = amountPaidCents > 0 && balanceDueCents > 0;
+
+  if (paymentStatus === "PAID") {
+    if (hasBalanceDue) {
+      return {
+        label: "Partial Payment",
+        tone: "warn",
+        hasBalanceDue: true,
+        balanceDueCents,
+      };
+    }
+    return {
+      label: "Paid",
+      tone: "good",
+      hasBalanceDue: false,
+      balanceDueCents: 0,
+    };
+  }
+
   switch (paymentStatus) {
-    case "PAID":
-      return { label: "Paid", tone: "good" };
     case "PENDING":
-      return { label: "Pending", tone: "warn" };
+      return {
+        label: "Pending",
+        tone: "warn",
+        hasBalanceDue: false,
+        balanceDueCents: 0,
+      };
     case "FAILED":
-      return { label: "Failed", tone: "bad" };
+      return {
+        label: "Failed",
+        tone: "bad",
+        hasBalanceDue: false,
+        balanceDueCents: 0,
+      };
     case "REFUNDED":
-      return { label: "Refunded", tone: "neutral" };
+      return {
+        label: "Refunded",
+        tone: "neutral",
+        hasBalanceDue: false,
+        balanceDueCents: 0,
+      };
     case "PARTIALLY_REFUNDED":
-      return { label: "Partially Refunded", tone: "neutral" };
+      return {
+        label: "Partially Refunded",
+        tone: "neutral",
+        hasBalanceDue: false,
+        balanceDueCents: 0,
+      };
     case "NONE":
     default:
-      return { label: "Not Paid", tone: "bad" };
+      return {
+        label: "Not Paid",
+        tone: "bad",
+        hasBalanceDue: false,
+        balanceDueCents: 0,
+      };
   }
+}
+
+// Helper to safely convert Decimal to number
+function decimalToNumber(val: any): number | null {
+  if (val == null) return null;
+  if (typeof val === "number") return val;
+  if (typeof val.toNumber === "function") return val.toNumber();
+  const n = Number(val);
+  return Number.isFinite(n) ? n : null;
 }
 
 export default async function AdminBookingDetailPage({
@@ -182,7 +240,6 @@ export default async function AdminBookingDetailPage({
           },
         },
       },
-      // ✅ NEW: Include notes
       notes: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -220,14 +277,13 @@ export default async function AdminBookingDetailPage({
     take: 300,
   });
 
-  // ✅ NEW: Get customer's booking count for history link
   const customerEmail = booking.user?.email || booking.guestEmail;
   let customerBookingCount = 0;
   if (customerEmail) {
     customerBookingCount = await db.booking.count({
       where: {
         OR: [{ user: { email: customerEmail } }, { guestEmail: customerEmail }],
-        id: { not: booking.id }, // Exclude current booking
+        id: { not: booking.id },
       },
     });
   }
@@ -271,6 +327,8 @@ export default async function AdminBookingDetailPage({
   }
 
   const isPaid = booking.payment?.status === "PAID";
+  const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
+
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
     : null;
@@ -287,14 +345,26 @@ export default async function AdminBookingDetailPage({
     ? "good"
     : badgeTone(currentStatus);
 
-  // ✅ Payment status display
-  const paymentStatusDisplay = getPaymentStatusDisplay(booking.payment?.status);
+  // ✅ Updated payment status display with balance handling
+  const paymentStatusDisplay = getPaymentStatusDisplay(
+    booking.payment?.status,
+    booking.totalCents,
+    amountPaidCents,
+  );
 
-  // ✅ Prepare data for EditTripDetailsClient
+  // ✅ Prepare data for EditTripDetailsClient (with route data)
   const tripEditData = {
     pickupAt: formatDateTimeLocal(booking.pickupAt),
     pickupAddress: booking.pickupAddress,
     dropoffAddress: booking.dropoffAddress,
+    pickupPlaceId: booking.pickupPlaceId,
+    dropoffPlaceId: booking.dropoffPlaceId,
+    pickupLat: decimalToNumber(booking.pickupLat),
+    pickupLng: decimalToNumber(booking.pickupLng),
+    dropoffLat: decimalToNumber(booking.dropoffLat),
+    dropoffLng: decimalToNumber(booking.dropoffLng),
+    distanceMiles: decimalToNumber(booking.distanceMiles),
+    durationMinutes: booking.durationMinutes,
     passengers: booking.passengers,
     luggage: booking.luggage,
     specialRequests: booking.specialRequests,
@@ -323,6 +393,13 @@ export default async function AdminBookingDetailPage({
     booking.flightTerminal ||
     booking.flightGate;
 
+  // ✅ Check if we have route coordinates for map display
+  const hasRouteCoordinates =
+    booking.pickupLat &&
+    booking.pickupLng &&
+    booking.dropoffLat &&
+    booking.dropoffLng;
+
   return (
     <section className='container'>
       <header className='header'>
@@ -342,7 +419,7 @@ export default async function AdminBookingDetailPage({
             </div>
           </div>
 
-          {/* ✅ NEW: Payment status */}
+          {/* ✅ Updated Payment status with balance display */}
           <div style={{ marginTop: 12 }}>
             <div className='emptyTitle'>Payment:</div>
             <div className={styles.paymentInfo}>
@@ -360,10 +437,25 @@ export default async function AdminBookingDetailPage({
                 </span>
               )}
             </div>
+
+            {/* ✅ Show balance due if applicable */}
+            {paymentStatusDisplay.hasBalanceDue && (
+              <div className={styles.balanceDueAlert}>
+                <strong>Balance Due:</strong>{" "}
+                {formatMoney(
+                  paymentStatusDisplay.balanceDueCents,
+                  booking.currency,
+                )}
+                <span className={styles.balanceDetail}>
+                  (Paid: {formatMoney(amountPaidCents, booking.currency)} of{" "}
+                  {formatMoney(booking.totalCents, booking.currency)})
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* ✅ NEW: Quick Actions at the top */}
+        {/* Quick Actions at the top */}
         <Card title='Quick Actions'>
           <QuickActionsClient
             bookingId={booking.id}
@@ -379,7 +471,7 @@ export default async function AdminBookingDetailPage({
         <KeyVal k='Created' v={createdAtLabel} />
         <KeyVal k='Created by' v={createdByDisplay} />
 
-        {/* ✅ NEW: Customer with history link */}
+        {/* Customer with history link */}
         <div className={styles.keyVal}>
           <div className='emptyTitle'>Customer</div>
           <div>
@@ -415,7 +507,27 @@ export default async function AdminBookingDetailPage({
           <KeyVal k='Special requests' v={booking.specialRequests} />
         ) : null}
 
-        {/* ✅ NEW: Flight Information */}
+        {/* ✅ Route Map Display */}
+        {hasRouteCoordinates && (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.routeMapSection}>
+              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                Route Map
+              </div>
+              <RouteMapDisplay
+                pickupLat={decimalToNumber(booking.pickupLat)!}
+                pickupLng={decimalToNumber(booking.pickupLng)!}
+                dropoffLat={decimalToNumber(booking.dropoffLat)!}
+                dropoffLng={decimalToNumber(booking.dropoffLng)!}
+                pickupAddress={booking.pickupAddress}
+                dropoffAddress={booking.dropoffAddress}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Flight Information */}
         {hasFlightInfo && (
           <>
             <div className={styles.sectionDivider} />
@@ -443,7 +555,7 @@ export default async function AdminBookingDetailPage({
           </>
         )}
 
-        {/* ✅ NEW: Edit Trip Details */}
+        {/* Edit Trip Details */}
         <div className={styles.sectionDivider} />
         <EditTripDetailsClient
           bookingId={booking.id}
@@ -451,7 +563,7 @@ export default async function AdminBookingDetailPage({
         />
       </Card>
 
-      {/* ✅ NEW: Notes/Comments section */}
+      {/* Notes/Comments section */}
       <Card title='Internal Notes'>
         <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
       </Card>
@@ -536,9 +648,20 @@ export default async function AdminBookingDetailPage({
         <div className={styles.paymentBlock}>
           <div className={styles.paymentStatus}>
             Payment status: <strong>{booking.payment?.status ?? "NONE"}</strong>
+            {amountPaidCents > 0 && (
+              <span style={{ marginLeft: 10 }}>
+                (Paid: {formatMoney(amountPaidCents, booking.currency)})
+              </span>
+            )}
           </div>
 
-          <SendPaymentLinkButton bookingId={booking.id} />
+          {/* ✅ Updated SendPaymentLinkButton with balance support */}
+          <SendPaymentLinkButton
+            bookingId={booking.id}
+            totalCents={booking.totalCents}
+            amountPaidCents={amountPaidCents}
+            currency={booking.currency}
+          />
 
           {booking.payment?.checkoutUrl ? (
             <div className={styles.checkoutUrl}>
@@ -568,6 +691,7 @@ export default async function AdminBookingDetailPage({
                 amountCents={booking.totalCents}
                 currency={booking.currency}
                 isPaid={isPaid}
+                amountPaidCents={amountPaidCents}
               />
             </div>
           </div>

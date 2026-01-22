@@ -425,6 +425,8 @@ model Payment {
 
   amountSubtotalCents Int    @default(0)
   amountTotalCents    Int    @default(0)
+  // ✅ NEW: Track how much has actually been paid (for partial/balance payments)
+  amountPaidCents     Int    @default(0)
   currency            String @default("usd")
 
   receiptUrl String?

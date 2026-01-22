@@ -1,4 +1,3 @@
-//actions/admin/bookings.ts 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
@@ -67,9 +66,30 @@ export async function approveBookingAndSetPrice(formData: FormData) {
 
   const booking = await db.booking.findUnique({
     where: { id: d.bookingId },
-    include: { user: true },
+    include: { user: true, payment: true },
   });
   if (!booking) return { error: "Booking not found." };
+
+  // Check if there's an existing payment
+  const existingPayment = booking.payment;
+  const amountPaidCents = existingPayment?.amountPaidCents ?? 0;
+  const isPaid = existingPayment?.status === "PAID";
+
+  // Determine the new status
+  let newStatus = booking.status;
+
+  // If not paid yet, set to PENDING_PAYMENT
+  if (
+    !isPaid &&
+    booking.status !== "CANCELLED" &&
+    booking.status !== "NO_SHOW"
+  ) {
+    newStatus = "PENDING_PAYMENT";
+  }
+
+  // If already paid but price increased, we have a balance due
+  // Keep current status but payment status will show partial
+  const hasBalanceDue = isPaid && d.totalCents > amountPaidCents;
 
   await db.$transaction([
     db.booking.update({
@@ -80,19 +100,42 @@ export async function approveBookingAndSetPrice(formData: FormData) {
         feesCents: d.feesCents,
         taxesCents: d.taxesCents,
         totalCents: d.totalCents,
-        status: "PENDING_PAYMENT",
+        status: newStatus,
       },
     }),
-    db.bookingStatusEvent.create({
-      data: {
-        bookingId: booking.id,
-        status: "PENDING_PAYMENT",
-        createdById: actorId,
-      },
-    }),
+    // Only create status event if status actually changed
+    ...(newStatus !== booking.status
+      ? [
+          db.bookingStatusEvent.create({
+            data: {
+              bookingId: booking.id,
+              status: newStatus,
+              createdById: actorId,
+            },
+          }),
+        ]
+      : []),
+    // If there's a balance due, update payment to reflect new total
+    ...(hasBalanceDue && existingPayment
+      ? [
+          db.payment.update({
+            where: { id: existingPayment.id },
+            data: {
+              amountTotalCents: d.totalCents,
+              // Keep amountPaidCents unchanged
+            },
+          }),
+        ]
+      : []),
   ]);
 
-  return { success: true };
+  revalidatePath(`/admin/bookings/${booking.id}`);
+
+  return {
+    success: true,
+    hasBalanceDue,
+    balanceDueCents: hasBalanceDue ? d.totalCents - amountPaidCents : 0,
+  };
 }
 
 const AssignSchema = z.object({
@@ -167,6 +210,7 @@ export async function assignBooking(formData: FormData) {
 
 const SendPaymentSchema = z.object({
   bookingId: z.string().min(1),
+  isBalancePayment: z.coerce.boolean().optional().default(false),
 });
 
 export async function createPaymentLinkAndEmail(formData: FormData) {
@@ -175,8 +219,10 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const parsed = SendPaymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid request." };
 
+  const { bookingId, isBalancePayment } = parsed.data;
+
   const booking = await db.booking.findUnique({
-    where: { id: parsed.data.bookingId },
+    where: { id: bookingId },
     include: { user: true, serviceType: true, vehicle: true, payment: true },
   });
   if (!booking) return { error: "Booking not found." };
@@ -198,6 +244,16 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     return { error: "Set a total price before sending payment link." };
   }
 
+  // Calculate the amount to charge
+  const amountPaidCents = b.payment?.amountPaidCents ?? 0;
+  const amountToCharge = isBalancePayment
+    ? b.totalCents - amountPaidCents
+    : b.totalCents;
+
+  if (amountToCharge <= 0) {
+    return { error: "No balance due. The booking is fully paid." };
+  }
+
   const APP_URL = process.env.APP_URL || "http://localhost:3000";
   const successUrl = `${APP_URL}/dashboard?paid=1&bookingId=${b.id}`;
   const cancelUrl = `${APP_URL}/dashboard?cancelled=1&bookingId=${b.id}`;
@@ -207,7 +263,9 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 
   const existing = b.payment;
 
+  // Only reuse if NOT a balance payment and amounts match
   const canReuse =
+    !isBalancePayment &&
     existing?.status === "PENDING" &&
     Boolean(existing.checkoutUrl) &&
     Boolean(existing.stripeCheckoutSessionId) &&
@@ -218,24 +276,26 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const maybeSetPendingPayment =
     b.status === "DRAFT" || b.status === "PENDING_REVIEW";
 
-  async function emailIt(url: string) {
+  async function emailIt(url: string, isBalance: boolean) {
+    // Note: If you want to customize the email for balance payments,
+    // you'll need to update your sendPaymentLinkEmail function to accept these params
     await sendPaymentLinkEmail({
       to: recipientEmail,
       name: recipientName,
       pickupAtISO: b.pickupAt.toISOString(),
       pickupAddress: b.pickupAddress,
       dropoffAddress: b.dropoffAddress,
-      totalCents: b.totalCents,
+      totalCents: isBalance ? amountToCharge : b.totalCents,
       currency: b.currency,
       payUrl: url,
       bookingId: b.id,
     });
   }
 
-  // ✅ REUSE path
+  // ✅ REUSE path (only for full payments)
   if (canReuse && existing?.checkoutUrl) {
     try {
-      await emailIt(existing.checkoutUrl);
+      await emailIt(existing.checkoutUrl, false);
 
       await queueAdminNotificationsForBookingEvent({
         event: "PAYMENT_LINK_SENT",
@@ -256,6 +316,15 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const email = booking.user?.email ?? booking.guestEmail ?? null;
   if (!email) return { error: "Booking email missing." };
 
+  // Create description based on payment type
+  const productName = isBalancePayment
+    ? `Balance Due — ${booking.serviceType.name} — Nier Transportation`
+    : `${booking.serviceType.name} — Nier Transportation`;
+
+  const productDescription = isBalancePayment
+    ? `Balance due for trip: ${booking.pickupAddress} → ${booking.dropoffAddress}`
+    : `${booking.pickupAddress} → ${booking.dropoffAddress}`;
+
   const stripeSession = await stripe.checkout.sessions.create({
     mode: "payment",
     customer_email: email,
@@ -265,11 +334,15 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     metadata: {
       bookingId: booking.id,
       userId: booking.userId ?? "",
+      isBalancePayment: isBalancePayment ? "true" : "false",
+      balanceAmount: amountToCharge.toString(),
     },
     payment_intent_data: {
       metadata: {
         bookingId: booking.id,
         userId: booking.userId ?? "",
+        isBalancePayment: isBalancePayment ? "true" : "false",
+        balanceAmount: amountToCharge.toString(),
       },
     },
     line_items: [
@@ -277,10 +350,10 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
         quantity: 1,
         price_data: {
           currency: booking.currency ?? "usd",
-          unit_amount: booking.totalCents,
+          unit_amount: amountToCharge,
           product_data: {
-            name: `${booking.serviceType.name} — Nier Transportation`,
-            description: `${booking.pickupAddress} → ${booking.dropoffAddress}`,
+            name: productName,
+            description: productDescription,
           },
         },
       },
@@ -293,30 +366,47 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 
   const tx: any[] = [];
 
-  tx.push(
-    db.payment.upsert({
-      where: { bookingId: b.id },
-      update: {
-        status: "PENDING",
-        stripeCheckoutSessionId: stripeSession.id,
-        amountSubtotalCents: b.subtotalCents,
-        amountTotalCents: b.totalCents,
-        currency: b.currency,
-        checkoutUrl: stripeSession.url,
-      },
-      create: {
-        bookingId: b.id,
-        status: "PENDING",
-        stripeCheckoutSessionId: stripeSession.id,
-        amountSubtotalCents: b.subtotalCents,
-        amountTotalCents: b.totalCents,
-        currency: b.currency,
-        checkoutUrl: stripeSession.url,
-      },
-    }),
-  );
+  // For balance payments, we update existing payment record
+  // For new payments, we create/update as before
+  if (isBalancePayment && existing) {
+    tx.push(
+      db.payment.update({
+        where: { id: existing.id },
+        data: {
+          // Keep existing paid amount, update checkout session for balance
+          stripeCheckoutSessionId: stripeSession.id,
+          checkoutUrl: stripeSession.url,
+          // Don't change status - it's already PAID
+        },
+      }),
+    );
+  } else {
+    tx.push(
+      db.payment.upsert({
+        where: { bookingId: b.id },
+        update: {
+          status: "PENDING",
+          stripeCheckoutSessionId: stripeSession.id,
+          amountSubtotalCents: b.subtotalCents,
+          amountTotalCents: b.totalCents,
+          currency: b.currency,
+          checkoutUrl: stripeSession.url,
+        },
+        create: {
+          bookingId: b.id,
+          status: "PENDING",
+          stripeCheckoutSessionId: stripeSession.id,
+          amountSubtotalCents: b.subtotalCents,
+          amountTotalCents: b.totalCents,
+          amountPaidCents: 0,
+          currency: b.currency,
+          checkoutUrl: stripeSession.url,
+        },
+      }),
+    );
+  }
 
-  if (maybeSetPendingPayment) {
+  if (maybeSetPendingPayment && !isBalancePayment) {
     tx.push(
       db.booking.update({
         where: { id: b.id },
@@ -337,7 +427,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   await db.$transaction(tx);
 
   try {
-    await emailIt(stripeSession.url);
+    await emailIt(stripeSession.url, isBalancePayment);
   } catch (e) {
     console.error("sendPaymentLinkEmail failed (new)", e);
     return {
@@ -353,7 +443,13 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     bookingId: b.id,
   });
 
-  return { success: true, reused: false, checkoutUrl: stripeSession.url };
+  return {
+    success: true,
+    reused: false,
+    checkoutUrl: stripeSession.url,
+    isBalancePayment,
+    amountCharged: amountToCharge,
+  };
 }
 
 // =============================================================================
@@ -498,7 +594,7 @@ export async function deleteBookingNote(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Edit Trip Details
+// ✅ UPDATED: Edit Trip Details (with route data)
 // =============================================================================
 
 const EditTripSchema = z.object({
@@ -506,6 +602,14 @@ const EditTripSchema = z.object({
   pickupAt: z.string().min(1),
   pickupAddress: z.string().min(1),
   dropoffAddress: z.string().min(1),
+  pickupPlaceId: z.string().optional().nullable(),
+  dropoffPlaceId: z.string().optional().nullable(),
+  pickupLat: z.coerce.number().optional().nullable(),
+  pickupLng: z.coerce.number().optional().nullable(),
+  dropoffLat: z.coerce.number().optional().nullable(),
+  dropoffLng: z.coerce.number().optional().nullable(),
+  distanceMiles: z.coerce.number().optional().nullable(),
+  durationMinutes: z.coerce.number().int().optional().nullable(),
   passengers: z.coerce.number().int().min(1).max(100),
   luggage: z.coerce.number().int().min(0).max(100),
   specialRequests: z.string().optional().nullable(),
@@ -520,7 +624,23 @@ const EditTripSchema = z.object({
 export async function updateTripDetails(formData: FormData) {
   await requireAdmin();
 
-  const parsed = EditTripSchema.safeParse(Object.fromEntries(formData));
+  // Convert empty strings to null for numeric fields
+  const rawData = Object.fromEntries(formData);
+  const processedData = {
+    ...rawData,
+    pickupLat: rawData.pickupLat === "" ? null : rawData.pickupLat,
+    pickupLng: rawData.pickupLng === "" ? null : rawData.pickupLng,
+    dropoffLat: rawData.dropoffLat === "" ? null : rawData.dropoffLat,
+    dropoffLng: rawData.dropoffLng === "" ? null : rawData.dropoffLng,
+    distanceMiles: rawData.distanceMiles === "" ? null : rawData.distanceMiles,
+    durationMinutes:
+      rawData.durationMinutes === "" ? null : rawData.durationMinutes,
+    pickupPlaceId: rawData.pickupPlaceId === "" ? null : rawData.pickupPlaceId,
+    dropoffPlaceId:
+      rawData.dropoffPlaceId === "" ? null : rawData.dropoffPlaceId,
+  };
+
+  const parsed = EditTripSchema.safeParse(processedData);
   if (!parsed.success) {
     console.error("Edit trip validation failed:", parsed.error);
     return { error: "Invalid trip data." };
@@ -531,6 +651,14 @@ export async function updateTripDetails(formData: FormData) {
     pickupAt,
     pickupAddress,
     dropoffAddress,
+    pickupPlaceId,
+    dropoffPlaceId,
+    pickupLat,
+    pickupLng,
+    dropoffLat,
+    dropoffLng,
+    distanceMiles,
+    durationMinutes,
     passengers,
     luggage,
     specialRequests,
@@ -553,6 +681,14 @@ export async function updateTripDetails(formData: FormData) {
       pickupAt: new Date(pickupAt),
       pickupAddress,
       dropoffAddress,
+      pickupPlaceId: pickupPlaceId || null,
+      dropoffPlaceId: dropoffPlaceId || null,
+      pickupLat: pickupLat ?? null,
+      pickupLng: pickupLng ?? null,
+      dropoffLat: dropoffLat ?? null,
+      dropoffLng: dropoffLng ?? null,
+      distanceMiles: distanceMiles ?? null,
+      durationMinutes: durationMinutes ?? null,
       passengers,
       luggage,
       specialRequests: specialRequests || null,

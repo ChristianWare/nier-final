@@ -18,6 +18,8 @@ async function finalizePaid(args: {
   receiptUrl: string | null;
   amountTotalCents: number | null;
   currency: string | null;
+  isBalancePayment?: boolean;
+  balanceAmount?: number | null;
 }) {
   const {
     bookingId,
@@ -26,6 +28,8 @@ async function finalizePaid(args: {
     receiptUrl,
     amountTotalCents,
     currency,
+    isBalancePayment = false,
+    balanceAmount,
   } = args;
 
   await db.$transaction(async (tx) => {
@@ -44,17 +48,48 @@ async function finalizePaid(args: {
 
     const existingPayment = await tx.payment.findUnique({
       where: { bookingId },
-      select: { status: true },
+      select: {
+        id: true,
+        status: true,
+        amountPaidCents: true,
+        amountTotalCents: true,
+      },
     });
 
-    const alreadyPaid = existingPayment?.status === "PAID";
+    const previouslyPaidCents = existingPayment?.amountPaidCents ?? 0;
 
-    const safeTotal =
-      typeof amountTotalCents === "number" && amountTotalCents > 0
-        ? amountTotalCents
-        : (booking.totalCents ?? 0);
+    // Calculate the new payment amount
+    let newPaymentAmount: number;
+    if (isBalancePayment && balanceAmount) {
+      // This is a balance payment - the balanceAmount is what was just charged
+      newPaymentAmount = balanceAmount;
+    } else if (typeof amountTotalCents === "number" && amountTotalCents > 0) {
+      // Regular payment - amountTotalCents is what Stripe charged
+      newPaymentAmount = amountTotalCents;
+    } else {
+      // Fallback to booking total
+      newPaymentAmount = booking.totalCents ?? 0;
+    }
+
+    // For balance payments, add to existing. For new payments, this is the total paid.
+    const totalPaidCents = isBalancePayment
+      ? previouslyPaidCents + newPaymentAmount
+      : newPaymentAmount;
 
     const safeCurrency = (currency ?? booking.currency ?? "usd").toLowerCase();
+
+    // Determine if fully paid
+    const isFullyPaid = totalPaidCents >= (booking.totalCents ?? 0);
+
+    console.log(
+      `✅ Payment recorded for booking ${bookingId}:`,
+      `Previous: $${(previouslyPaidCents / 100).toFixed(2)}`,
+      `New payment: $${(newPaymentAmount / 100).toFixed(2)}`,
+      `Total paid: $${(totalPaidCents / 100).toFixed(2)}`,
+      `Booking total: $${((booking.totalCents ?? 0) / 100).toFixed(2)}`,
+      `Fully paid: ${isFullyPaid}`,
+      `Is balance payment: ${isBalancePayment}`,
+    );
 
     await tx.payment.upsert({
       where: { bookingId },
@@ -64,7 +99,8 @@ async function finalizePaid(args: {
         stripePaymentIntentId: paymentIntentId ?? undefined,
         receiptUrl: receiptUrl ?? undefined,
         paidAt: new Date(),
-        amountTotalCents: safeTotal,
+        amountTotalCents: booking.totalCents ?? 0,
+        amountPaidCents: totalPaidCents,
         currency: safeCurrency,
       },
       create: {
@@ -75,17 +111,21 @@ async function finalizePaid(args: {
         receiptUrl: receiptUrl ?? undefined,
         paidAt: new Date(),
         amountSubtotalCents: booking.subtotalCents ?? 0,
-        amountTotalCents: safeTotal,
+        amountTotalCents: booking.totalCents ?? 0,
+        amountPaidCents: totalPaidCents,
         currency: safeCurrency,
       },
     });
 
+    // Only update booking status if this is the first payment or booking isn't in a terminal state
     const terminal: BookingStatus[] = ["CANCELLED", "NO_SHOW", "COMPLETED"];
-    const nextStatus: BookingStatus = terminal.includes(booking.status)
-      ? booking.status
-      : "CONFIRMED";
+    const shouldUpdateStatus =
+      !terminal.includes(booking.status) &&
+      (previouslyPaidCents === 0 || booking.status === "PENDING_PAYMENT");
 
-    if (!alreadyPaid || booking.status !== nextStatus) {
+    if (shouldUpdateStatus) {
+      const nextStatus: BookingStatus = "CONFIRMED";
+
       await tx.booking.update({
         where: { id: bookingId },
         data: { status: nextStatus },
@@ -103,6 +143,12 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
 
   let bookingId =
     str(incoming?.metadata?.bookingId) ?? str(incoming?.client_reference_id);
+
+  // Check for balance payment metadata
+  const isBalancePayment = incoming?.metadata?.isBalancePayment === "true";
+  const balanceAmount = incoming?.metadata?.balanceAmount
+    ? parseInt(incoming.metadata.balanceAmount, 10)
+    : null;
 
   // DB fallback by session id
   if (!bookingId && sessionId) {
@@ -126,7 +172,6 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
       const msg = e?.message ?? String(e);
       console.warn("⚠️ checkout.sessions.retrieve failed:", msg);
 
-      // Helpful hint: test/live mismatch is the #1 cause here
       if (sessionId.startsWith("cs_test_")) {
         console.warn(
           "⚠️ This is a TEST session (cs_test). If your STRIPE_SECRET_KEY is sk_live, retrieval will fail. Use sk_test locally.",
@@ -140,7 +185,7 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
     }
   }
 
-  return { bookingId, sessionId, fullSession };
+  return { bookingId, sessionId, fullSession, isBalancePayment, balanceAmount };
 }
 
 async function getReceiptUrlFromPaymentIntent(paymentIntentId: string | null) {
@@ -192,10 +237,24 @@ export async function POST(req: Request) {
     ) {
       const incoming = event.data.object as any;
 
-      const { bookingId, sessionId, fullSession } =
-        await resolveBookingIdFromCheckoutSession(incoming);
+      const {
+        bookingId,
+        sessionId,
+        fullSession,
+        isBalancePayment,
+        balanceAmount,
+      } = await resolveBookingIdFromCheckoutSession(incoming);
 
-      console.log("➡️ session.id:", sessionId, "bookingId:", bookingId);
+      console.log(
+        "➡️ session.id:",
+        sessionId,
+        "bookingId:",
+        bookingId,
+        "isBalancePayment:",
+        isBalancePayment,
+        "balanceAmount:",
+        balanceAmount,
+      );
 
       // Trigger events won't have bookingId; that's fine, just acknowledge.
       if (!bookingId) return NextResponse.json({ received: true });
@@ -226,6 +285,8 @@ export async function POST(req: Request) {
         receiptUrl,
         amountTotalCents,
         currency,
+        isBalancePayment,
+        balanceAmount,
       });
 
       return NextResponse.json({ received: true });
@@ -236,6 +297,10 @@ export async function POST(req: Request) {
       const paymentIntentId = str(pi?.id);
 
       let bookingId = str(pi?.metadata?.bookingId);
+      const isBalancePayment = pi?.metadata?.isBalancePayment === "true";
+      const balanceAmount = pi?.metadata?.balanceAmount
+        ? parseInt(pi.metadata.balanceAmount, 10)
+        : null;
 
       if (!bookingId && paymentIntentId) {
         const p = await db.payment.findUnique({
@@ -250,6 +315,10 @@ export async function POST(req: Request) {
         paymentIntentId,
         "bookingId:",
         bookingId,
+        "isBalancePayment:",
+        isBalancePayment,
+        "balanceAmount:",
+        balanceAmount,
       );
 
       if (!bookingId) return NextResponse.json({ received: true });
@@ -275,6 +344,8 @@ export async function POST(req: Request) {
         receiptUrl,
         amountTotalCents,
         currency,
+        isBalancePayment,
+        balanceAmount,
       });
 
       return NextResponse.json({ received: true });

@@ -2,14 +2,25 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateTripDetails } from "../../../../../actions/admin/bookings"; 
+import { updateTripDetails } from "../../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
 import styles from "./AdminBookingDetailPage.module.css";
+import RoutePickerAdmin, {
+  RouteData,
+} from "@/components/admin/Routepickeradmin/Routepickeradmin";
 
 type TripData = {
   pickupAt: string;
   pickupAddress: string;
   dropoffAddress: string;
+  pickupPlaceId: string | null;
+  dropoffPlaceId: string | null;
+  pickupLat: number | null;
+  pickupLng: number | null;
+  dropoffLat: number | null;
+  dropoffLng: number | null;
+  distanceMiles: number | null;
+  durationMinutes: number | null;
   passengers: number;
   luggage: number;
   specialRequests: string | null;
@@ -35,6 +46,28 @@ export default function EditTripDetailsClient({
 
   const [formData, setFormData] = useState<TripData>(initialData);
 
+  // Track route data separately for the RoutePickerAdmin
+  const [routeData, setRouteData] = useState<RouteData>({
+    pickup: {
+      address: initialData.pickupAddress,
+      placeId: initialData.pickupPlaceId,
+      location:
+        initialData.pickupLat && initialData.pickupLng
+          ? { lat: initialData.pickupLat, lng: initialData.pickupLng }
+          : null,
+    },
+    dropoff: {
+      address: initialData.dropoffAddress,
+      placeId: initialData.dropoffPlaceId,
+      location:
+        initialData.dropoffLat && initialData.dropoffLng
+          ? { lat: initialData.dropoffLat, lng: initialData.dropoffLng }
+          : null,
+    },
+    distanceMiles: initialData.distanceMiles,
+    durationMinutes: initialData.durationMinutes,
+  });
+
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
@@ -46,16 +79,48 @@ export default function EditTripDetailsClient({
     }));
   }
 
+  function handleRouteChange(data: RouteData) {
+    setRouteData(data);
+    // Update formData with new route info
+    setFormData((prev) => ({
+      ...prev,
+      pickupAddress: data.pickup.address,
+      pickupPlaceId: data.pickup.placeId,
+      pickupLat: data.pickup.location?.lat ?? null,
+      pickupLng: data.pickup.location?.lng ?? null,
+      dropoffAddress: data.dropoff.address,
+      dropoffPlaceId: data.dropoff.placeId,
+      dropoffLat: data.dropoff.location?.lat ?? null,
+      dropoffLng: data.dropoff.location?.lng ?? null,
+      distanceMiles: data.distanceMiles,
+      durationMinutes: data.durationMinutes,
+    }));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSuccess(false);
 
+    // Validate route data
+    if (!routeData.pickup.address || !routeData.dropoff.address) {
+      setError("Please enter both pickup and dropoff addresses.");
+      return;
+    }
+
     const fd = new FormData();
     fd.append("bookingId", bookingId);
     fd.append("pickupAt", formData.pickupAt);
-    fd.append("pickupAddress", formData.pickupAddress);
-    fd.append("dropoffAddress", formData.dropoffAddress);
+    fd.append("pickupAddress", routeData.pickup.address);
+    fd.append("dropoffAddress", routeData.dropoff.address);
+    fd.append("pickupPlaceId", routeData.pickup.placeId || "");
+    fd.append("dropoffPlaceId", routeData.dropoff.placeId || "");
+    fd.append("pickupLat", routeData.pickup.location?.lat?.toString() || "");
+    fd.append("pickupLng", routeData.pickup.location?.lng?.toString() || "");
+    fd.append("dropoffLat", routeData.dropoff.location?.lat?.toString() || "");
+    fd.append("dropoffLng", routeData.dropoff.location?.lng?.toString() || "");
+    fd.append("distanceMiles", routeData.distanceMiles?.toString() || "");
+    fd.append("durationMinutes", routeData.durationMinutes?.toString() || "");
     fd.append("passengers", String(formData.passengers));
     fd.append("luggage", String(formData.luggage));
     fd.append("specialRequests", formData.specialRequests || "");
@@ -79,6 +144,26 @@ export default function EditTripDetailsClient({
 
   function handleCancel() {
     setFormData(initialData);
+    setRouteData({
+      pickup: {
+        address: initialData.pickupAddress,
+        placeId: initialData.pickupPlaceId,
+        location:
+          initialData.pickupLat && initialData.pickupLng
+            ? { lat: initialData.pickupLat, lng: initialData.pickupLng }
+            : null,
+      },
+      dropoff: {
+        address: initialData.dropoffAddress,
+        placeId: initialData.dropoffPlaceId,
+        location:
+          initialData.dropoffLat && initialData.dropoffLng
+            ? { lat: initialData.dropoffLat, lng: initialData.dropoffLng }
+            : null,
+      },
+      distanceMiles: initialData.distanceMiles,
+      durationMinutes: initialData.durationMinutes,
+    });
     setIsEditing(false);
     setError(null);
   }
@@ -100,9 +185,9 @@ export default function EditTripDetailsClient({
   return (
     <form onSubmit={handleSubmit} className={styles.editTripForm}>
       <div className={styles.editFormSection}>
-        {/* <div className={styles.editFormTitle}> */}
         <div className='cardTitle h4'>Edit Trip Details</div>
-<br />
+        <br />
+
         <div className={styles.editFormRow}>
           <label className={`${styles.editLabel} emptyTitle`}>
             Pickup Date & Time
@@ -117,32 +202,22 @@ export default function EditTripDetailsClient({
           </label>
         </div>
 
+        {/* Route Picker with Map */}
         <div className={styles.editFormRow}>
-          <label className={`${styles.editLabel} emptyTitle`}>
-            Pickup Address
-            <input
-              type='text'
-              name='pickupAddress'
-              value={formData.pickupAddress}
-              onChange={handleChange}
-              className='inputBorder'
-              required
-            />
-          </label>
-        </div>
-
-        <div className={styles.editFormRow}>
-          <label className={`${styles.editLabel} emptyTitle`}>
-            Dropoff Address
-            <input
-              type='text'
-              name='dropoffAddress'
-              value={formData.dropoffAddress}
-              onChange={handleChange}
-              className='inputBorder'
-              required
-            />
-          </label>
+          <RoutePickerAdmin
+            pickupAddress={routeData.pickup.address}
+            dropoffAddress={routeData.dropoff.address}
+            pickupLat={routeData.pickup.location?.lat}
+            pickupLng={routeData.pickup.location?.lng}
+            dropoffLat={routeData.dropoff.location?.lat}
+            dropoffLng={routeData.dropoff.location?.lng}
+            pickupPlaceId={routeData.pickup.placeId}
+            dropoffPlaceId={routeData.dropoff.placeId}
+            distanceMiles={routeData.distanceMiles}
+            durationMinutes={routeData.durationMinutes}
+            onChange={handleRouteChange}
+            disabled={isPending}
+          />
         </div>
 
         <div className={styles.editFormRowDouble}>
@@ -265,7 +340,7 @@ export default function EditTripDetailsClient({
           type='submit'
           disabled={isPending}
           checkIcon
-          />
+        />
         <Button
           text='Cancel'
           btnType='gray'
