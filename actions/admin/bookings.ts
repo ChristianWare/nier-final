@@ -97,15 +97,20 @@ const AssignSchema = z.object({
   bookingId: z.string().min(1),
   driverId: z.string().min(1),
   vehicleUnitId: z.string().optional().nullable(),
+  driverPaymentCents: z.coerce.number().int().min(0).optional().nullable(),
 });
 
 export async function assignBooking(formData: FormData) {
   const { actorId } = await requireAdmin();
 
   const parsed = AssignSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: "Invalid assignment data." };
+  if (!parsed.success) {
+    console.error("Assignment validation failed:", parsed.error);
+    return { error: "Invalid assignment data." };
+  }
 
-  const { bookingId, driverId, vehicleUnitId } = parsed.data;
+  const { bookingId, driverId, vehicleUnitId, driverPaymentCents } =
+    parsed.data;
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
@@ -126,12 +131,14 @@ export async function assignBooking(formData: FormData) {
       update: {
         driverId,
         vehicleUnitId: vehicleUnitId || null,
+        driverPaymentCents: driverPaymentCents ?? null,
         assignedById: actorId,
       },
       create: {
         bookingId,
         driverId,
         vehicleUnitId: vehicleUnitId || null,
+        driverPaymentCents: driverPaymentCents ?? null,
         assignedById: actorId,
       },
     }),
@@ -148,7 +155,6 @@ export async function assignBooking(formData: FormData) {
     }),
   ]);
 
-  // ✅ moved INSIDE the function (bookingId is in scope here)
   await queueAdminNotificationsForBookingEvent({
     event: "DRIVER_ASSIGNED",
     bookingId,
@@ -176,7 +182,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const b = booking;
 
   if (b.status === "CANCELLED" || b.status === "NO_SHOW") {
-    return { error: "This booking is cancelled/no-show. Don’t send payment." };
+    return { error: "This booking is cancelled/no-show. Don't send payment." };
   }
 
   const recipientEmail = (b.user?.email ?? b.guestEmail ?? "")
@@ -229,7 +235,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     try {
       await emailIt(existing.checkoutUrl);
 
-      // ✅ moved INSIDE the function (b.id is in scope here)
       await queueAdminNotificationsForBookingEvent({
         event: "PAYMENT_LINK_SENT",
         bookingId: b.id,
@@ -341,7 +346,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     };
   }
 
-  // ✅ moved INSIDE the function (b.id is in scope here)
   await queueAdminNotificationsForBookingEvent({
     event: "PAYMENT_LINK_SENT",
     bookingId: b.id,

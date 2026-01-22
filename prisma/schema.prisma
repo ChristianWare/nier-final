@@ -404,20 +404,22 @@ model Payment {
 
 model Assignment {
   id String @id @default(cuid())
-
-  bookingId String  @unique
-  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  bookingId String @unique
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   // Assign a DRIVER user
   driverId String
-  driver   User   @relation("DriverAssignments", fields: [driverId], references: [id], onDelete: Cascade)
+  driver User @relation("DriverAssignments", fields: [driverId], references: [id], onDelete: Cascade)
 
   // ✅ Optional: assign a specific vehicle unit too (recommended for dispatch)
   vehicleUnitId String?
-  vehicleUnit   VehicleUnit? @relation(fields: [vehicleUnitId], references: [id], onDelete: SetNull)
+  vehicleUnit VehicleUnit? @relation(fields: [vehicleUnitId], references: [id], onDelete: SetNull)
 
   assignedById String?
-  assignedBy   User?   @relation("AssignedByAdmin", fields: [assignedById], references: [id], onDelete: SetNull)
+  assignedBy User? @relation("AssignedByAdmin", fields: [assignedById], references: [id], onDelete: SetNull)
+
+  // ✅ NEW: Add this line - Amount to pay the driver (in cents)
+  driverPaymentCents Int?
 
   assignedAt DateTime @default(now())
 
@@ -521,3 +523,4 @@ model NotificationJob {
 
   payload Json?
 }
+

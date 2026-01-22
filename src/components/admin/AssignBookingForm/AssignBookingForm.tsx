@@ -1,10 +1,23 @@
 "use client";
 
 import styles from "./AssignBookingForm.module.css";
-import { useTransition } from "react";
+import { useTransition, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { assignBooking } from "../../../../actions/admin/bookings";
+
+function centsToDollars(cents: number | null | undefined): string {
+  if (cents == null) return "";
+  return (cents / 100).toFixed(2);
+}
+
+function dollarsToCents(dollars: string): number | null {
+  const cleaned = dollars.trim();
+  if (!cleaned) return null;
+  const num = parseFloat(cleaned);
+  if (!Number.isFinite(num) || num < 0) return null;
+  return Math.round(num * 100);
+}
 
 export default function AssignBookingForm({
   bookingId,
@@ -12,15 +25,21 @@ export default function AssignBookingForm({
   vehicleUnits,
   currentDriverId,
   currentVehicleUnitId,
+  currentDriverPaymentCents,
 }: {
   bookingId: string;
   drivers: { id: string; name: string | null; email: string }[];
   vehicleUnits: { id: string; name: string; plate: string | null }[];
   currentDriverId?: string | null;
   currentVehicleUnitId?: string | null;
+  currentDriverPaymentCents?: number | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  const [driverPayment, setDriverPayment] = useState<string>(
+    centsToDollars(currentDriverPaymentCents),
+  );
 
   return (
     <form
@@ -29,6 +48,12 @@ export default function AssignBookingForm({
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
         fd.set("bookingId", bookingId);
+
+        // Convert driver payment to cents
+        const paymentCents = dollarsToCents(driverPayment);
+        if (paymentCents !== null) {
+          fd.set("driverPaymentCents", String(paymentCents));
+        }
 
         startTransition(() => {
           assignBooking(fd).then((res) => {
@@ -75,6 +100,28 @@ export default function AssignBookingForm({
           ))}
         </select>
       </div>
+
+      {/* ✅ NEW: Driver payment amount */}
+      <div className={styles.group}>
+        <label className='emptyTitle'>Driver payment (optional)</label>
+        <div className={styles.inputWrapper}>
+          <span className={styles.dollarSign}>$</span>
+          <input
+            type='number'
+            step='0.01'
+            min='0'
+            placeholder='0.00'
+            value={driverPayment}
+            onChange={(e) => setDriverPayment(e.target.value)}
+            disabled={isPending}
+            className={styles.input}
+          />
+        </div>
+        <div className='miniNote' style={{ marginTop: 4 }}>
+          Amount the driver will be paid for this trip
+        </div>
+      </div>
+
       <div className={styles.btnContainer}>
         <button disabled={isPending} className='primaryBtn' type='submit'>
           {isPending ? "Saving..." : "Assign"}

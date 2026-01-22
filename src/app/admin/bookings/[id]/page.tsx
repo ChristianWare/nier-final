@@ -1,4 +1,4 @@
-// src/app/admin/bookings/[id]/page.tsx (or wherever this file lives)
+// src/app/admin/bookings/[id]/page.tsx
 import styles from "./AdminBookingDetailPage.module.css";
 import type { ReactNode } from "react";
 import { db } from "@/lib/db";
@@ -77,6 +77,16 @@ function formatDateTime(d: Date) {
 function fmtPersonLine(p: { name: string | null; email: string }) {
   const n = (p.name ?? "").trim();
   return n ? `${n} (${p.email})` : p.email;
+}
+
+function formatMoney(cents: number | null | undefined, currency = "USD") {
+  if (cents == null) return "—";
+  const n = cents / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(n);
 }
 
 export default async function AdminBookingDetailPage({
@@ -227,13 +237,59 @@ export default async function AdminBookingDetailPage({
             .
           </div>
         ) : (
-          <AssignBookingForm
-            bookingId={booking.id}
-            drivers={drivers}
-            vehicleUnits={vehicleUnits}
-            currentDriverId={booking.assignment?.driverId ?? null}
-            currentVehicleUnitId={booking.assignment?.vehicleUnitId ?? null}
-          />
+          <>
+            <AssignBookingForm
+              bookingId={booking.id}
+              drivers={drivers}
+              vehicleUnits={vehicleUnits}
+              currentDriverId={booking.assignment?.driverId ?? null}
+              currentVehicleUnitId={booking.assignment?.vehicleUnitId ?? null}
+              currentDriverPaymentCents={
+                booking.assignment?.driverPaymentCents ?? null
+              }
+            />
+
+            {/* ✅ Display current assignment details */}
+            {booking.assignment ? (
+              <div
+                className={styles.assignmentInfo}
+                style={{
+                  marginTop: 20,
+                  paddingTop: 20,
+                  borderTop: "1px solid rgba(0,0,0,0.1)",
+                }}
+              >
+                <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                  Current assignment
+                </div>
+                <KeyVal
+                  k='Driver'
+                  v={`${booking.assignment.driver.name ?? "Driver"} (${
+                    booking.assignment.driver.email
+                  })`}
+                />
+                {booking.assignment.vehicleUnit ? (
+                  <KeyVal
+                    k='Vehicle'
+                    v={`${booking.assignment.vehicleUnit.name}${
+                      booking.assignment.vehicleUnit.plate
+                        ? ` (${booking.assignment.vehicleUnit.plate})`
+                        : ""
+                    }`}
+                  />
+                ) : null}
+                {booking.assignment.driverPaymentCents != null ? (
+                  <KeyVal
+                    k='Driver payment'
+                    v={formatMoney(
+                      booking.assignment.driverPaymentCents,
+                      booking.currency,
+                    )}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+          </>
         )}
       </Card>
 
@@ -271,12 +327,12 @@ export default async function AdminBookingDetailPage({
             </div>
           ) : null}
 
-          {/* ✅ NEW: Manual card payment (card-only, no Affirm/Klarna/etc) */}
+          {/* ✅ Manual card payment */}
           <div style={{ marginTop: 18 }}>
             <div className='cardTitle h5'>Take card payment (manual)</div>
             <div className='miniNote' style={{ marginTop: 6 }}>
               Card-only checkout. After success, the button turns green and says
-              “Payment successful”.
+              &ldquo;Payment successful&rdquo;.
             </div>
 
             <div style={{ marginTop: 10 }}>
