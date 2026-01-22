@@ -176,8 +176,10 @@
   border-radius: 999px;
   background: rgba(59, 130, 246, 0.1);
   color: #3b82f6;
-  font-size: 12px;
-  font-weight: 600;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: normal;
 }
 
 /* ============================================ */
@@ -290,12 +292,10 @@
 
 .chartBody {
   padding: 14px;
-  touch-action: pan-y;
 }
 
 .chartBodyPie {
   padding: 14px;
-  touch-action: pan-y;
 }
 
 /* ============================================ */
@@ -352,7 +352,6 @@
   background: rgba(255, 255, 255, 0.7);
   overflow: hidden;
   padding: 10px;
-  touch-action: pan-y;
 }
 
 /* ============================================ */
@@ -362,18 +361,31 @@
 .pieChartWrapper {
   width: 100%;
   min-height: 280px;
-  touch-action: pan-y;
 }
 
-/* Allow scrolling when hovering over charts */
+/* Fix: Allow mouse wheel scrolling over charts */
+.chartCard,
+.chartCardLarge,
+.chartBody,
+.chartBodyPie,
+.pieChartWrapper,
+.revenueChartCanvas {
+  overflow: visible;
+}
+
+/* Override Recharts capturing wheel events */
 .pieChartWrapper :global(.recharts-wrapper),
+.chartBody :global(.recharts-wrapper),
+.chartBodyPie :global(.recharts-wrapper),
 .revenueChartCanvas :global(.recharts-wrapper) {
-  touch-action: pan-y !important;
+  overflow: visible !important;
 }
 
-.pieChartWrapper :global(.recharts-surface),
-.revenueChartCanvas :global(.recharts-surface) {
-  touch-action: pan-y !important;
+.pieChartWrapper :global(.recharts-wrapper svg),
+.chartBody :global(.recharts-wrapper svg),
+.chartBodyPie :global(.recharts-wrapper svg),
+.revenueChartCanvas :global(.recharts-wrapper svg) {
+  overflow: visible !important;
 }
 
 .emptyChart {

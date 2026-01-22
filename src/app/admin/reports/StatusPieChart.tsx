@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -42,6 +44,21 @@ export default function StatusPieChart({
   isCurrency?: boolean;
   currency?: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Allow wheel events to propagate for page scrolling
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Don't prevent default - let the page scroll
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: true });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, []);
+
   const total = data.reduce(
     (sum, item) => sum + (Number(item[dataKey]) || 0),
     0,
@@ -67,7 +84,7 @@ export default function StatusPieChart({
   }
 
   return (
-    <div className={styles.pieChartWrapper}>
+    <div className={styles.pieChartWrapper} ref={containerRef}>
       <ResponsiveContainer width='100%' height={280}>
         <PieChart>
           <Pie

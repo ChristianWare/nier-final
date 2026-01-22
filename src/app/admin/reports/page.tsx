@@ -916,7 +916,7 @@ export default async function AdminReportsPage({
     const tUtc = new Date(tUtc0.getTime() + 24 * 60 * 60 * 1000);
     fromUtc = fUtc;
     toUtc = tUtc;
-    rangeLabel = `${formatDatePhx(fromUtc)} → ${formatDatePhx(new Date(toUtc.getTime() - 1))}`;
+    rangeLabel = `${formatDatePhx(fromUtc)} - ${formatDatePhx(new Date(toUtc.getTime() - 1))}`;
   }
 
   if (view === "all") {
@@ -1028,8 +1028,8 @@ export default async function AdminReportsPage({
       {/* REVENUE & FINANCIAL SECTION */}
       {/* ============================================ */}
       <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Revenue &amp; Financial</h2>
+        <div className="header">
+          <h2 className={`cardTitle h4`}>Revenue &amp; Financial</h2>
           <span className={styles.sectionBadge}>{rangeLabel}</span>
         </div>
 
@@ -1107,8 +1107,8 @@ export default async function AdminReportsPage({
       {/* OPERATIONAL METRICS SECTION */}
       {/* ============================================ */}
       <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Operational Metrics</h2>
+        <div className="header">
+          <h2 className={`cardTitle h4`}>Operational Metrics</h2>
           <span className={styles.sectionBadge}>{rangeLabel}</span>
         </div>
 
@@ -1205,8 +1205,8 @@ export default async function AdminReportsPage({
       {/* DRIVER PERFORMANCE SECTION */}
       {/* ============================================ */}
       <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className={styles.sectionTitle}>Driver Performance</h2>
+        <div className="header">
+          <h2 className={`cardTitle h4`}>Driver Performance</h2>
           <span className={styles.sectionBadge}>{rangeLabel}</span>
         </div>
 

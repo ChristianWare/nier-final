@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -33,6 +35,21 @@ export default function PeakTimesPieChart({
   data: DataItem[];
   colors?: string[];
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Allow wheel events to propagate for page scrolling
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Don't prevent default - let the page scroll
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: true });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, []);
+
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
   if (total === 0) {
@@ -44,7 +61,7 @@ export default function PeakTimesPieChart({
   }
 
   return (
-    <div className={styles.pieChartWrapper}>
+    <div className={styles.pieChartWrapper} ref={containerRef}>
       <ResponsiveContainer width='100%' height={280}>
         <PieChart>
           <Pie

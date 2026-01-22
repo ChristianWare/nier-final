@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useEffect, useRef } from "react";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -60,8 +62,23 @@ export default function RevenueChart({
   }[];
   currency: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Allow wheel events to propagate for page scrolling
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Don't prevent default - let the page scroll
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: true });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, []);
+
   return (
-    <div className={styles.revenueChartInner}>
+    <div className={styles.revenueChartInner} ref={containerRef}>
       <div className={styles.legend}>
         <div className={styles.legendItem}>
           <span className={styles.swatch} data-tone='net' />
