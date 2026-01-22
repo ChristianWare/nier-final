@@ -575,6 +575,15 @@ th {
 .backBtn {
   color: var(--blue);
   text-decoration: underline;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.backArrow {
+  transform: rotate(-90deg);
 }
 
 .redBorder {

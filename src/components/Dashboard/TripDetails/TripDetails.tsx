@@ -8,6 +8,7 @@ import {
 } from "@prisma/client";
 import { cancelTrip } from "../../../../actions/bookings/cancelTrips";
 import CancelTripButton from "../CancelTripButton/CancelTripButton";
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
 // import Modal from "@/components/shared/Modal/Modal";
 
 type BookingWithDetails = Prisma.BookingGetPayload<{
@@ -167,7 +168,7 @@ export default function TripDetails({
       <header className='header'>
         <h1 className='heading h2'>Trip details</h1>
         <Link className='backBtn' href='/dashboard/trips'>
-          ← Back to trips
+          <Arrow className='backArrow' /> Back
         </Link>
       </header>
       <span className={`badge badge_${badgeTone(booking.status)}`}>

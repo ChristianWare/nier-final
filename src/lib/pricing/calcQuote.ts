@@ -32,6 +32,9 @@ export interface CalcQuoteInput {
 
 export interface CalcQuoteResult {
   totalCents: number;
+  // ✅ NEW: Added for hourly bookings
+  requestedHours?: number;
+  billedHours?: number;
   breakdown: {
     baseChargeCents: number;
     distanceChargeCents: number;
@@ -75,6 +78,8 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
   let baseCharge = 0;
   let distanceCharge = 0;
   let timeCharge = 0;
+  let requestedHrs: number | undefined;
+  let billedHrs: number | undefined;
 
   switch (pricingStrategy) {
     case ServicePricingStrategy.POINT_TO_POINT: {
@@ -96,15 +101,16 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
       // Base fee + (billable hours × per hour rate)
       baseCharge = baseFeeCents;
 
-      const requestedHours = hoursRequested ?? 0;
+      const requested = hoursRequested ?? 0;
       const minHours = vehicleMinHours ?? 0;
-      const billableHours = Math.max(
-        Math.ceil(requestedHours),
-        Math.ceil(minHours),
-      );
+      const billable = Math.max(Math.ceil(requested), Math.ceil(minHours));
 
-      if (billableHours > 0) {
-        timeCharge = Math.round(billableHours * perHourCents);
+      // ✅ Store these for the result
+      requestedHrs = requested;
+      billedHrs = billable;
+
+      if (billable > 0) {
+        timeCharge = Math.round(billable * perHourCents);
       }
 
       break;
@@ -130,6 +136,8 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
 
   return {
     totalCents: subtotalCents,
+    requestedHours: requestedHrs,
+    billedHours: billedHrs,
     breakdown: {
       baseChargeCents: baseCharge,
       distanceChargeCents: distanceCharge,

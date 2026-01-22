@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { updateVehicleUnit } from "../../../../../actions/admin/vehicleUnits";
 import EditVehicleUnitForm from "./EditVehicleUnitForm";
 import styles from "./EditVehicleUnitForm.module.css";
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,7 +50,7 @@ export default async function EditVehicleUnitPage({
       <div className={styles.header}>
         <h1 className={`${styles.heading} h2`}>Edit vehicle (unit)</h1>
         <Link href='/admin/vehicles' className='backBtn'>
-          Back
+          <Arrow className='backArrow' /> Back
         </Link>
       </div>
 

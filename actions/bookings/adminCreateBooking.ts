@@ -47,7 +47,7 @@ type AdminCreateBookingInput = {
   customerKind: "account" | "guest";
   customerUserId?: string | null;
 
-  // note: for "account", we’ll override this with the user’s email for safety
+  // note: for "account", we'll override this with the user's email for safety
   customerEmail: string;
 
   customerName?: string | null;
@@ -223,7 +223,8 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
 
       specialRequests: input.specialRequests ?? null,
 
-      subtotalCents: quote.subtotalCents,
+      // ✅ FIX: Access subtotalCents from the breakdown object
+      subtotalCents: quote.breakdown.subtotalCents,
       totalCents: quote.totalCents,
     },
     select: { id: true },

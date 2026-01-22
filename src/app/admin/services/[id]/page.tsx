@@ -9,6 +9,7 @@ import {
 import EditServiceForm, {
   type ActionResult,
 } from "@/components/admin/EditServiceForm/EditServiceForm";
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -111,7 +112,7 @@ export default async function EditServicePage({
 
         <div className={styles.headerActions}>
           <Link href='/admin/services' className='backBtn'>
-            Back
+            <Arrow className='backArrow' /> Back
           </Link>
         </div>
       </header>

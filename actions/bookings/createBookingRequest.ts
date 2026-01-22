@@ -175,7 +175,8 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
 
       specialRequests: input.specialRequests ?? null,
 
-      subtotalCents: quote.subtotalCents,
+      // ✅ FIX: Access subtotalCents from the breakdown object
+      subtotalCents: quote.breakdown.subtotalCents,
       totalCents: quote.totalCents,
     },
     select: { id: true, guestClaimToken: true },
