@@ -100,9 +100,9 @@ export default function AdminSideNav({
               );
             })}
 
-            {/* <Link href='/dashboard' className={styles.dshbrdBtn}>
+            <Link href='/dashboard' className={styles.dshbrdBtn}>
               User Dashboard <Arrow className={styles.arrow} />
-            </Link> */}
+            </Link>
             <Link href='/driver-dashboard' className={styles.drvrDshbrdBtn}>
               Driver Dashboard <Arrow className={styles.arrow} />
             </Link>

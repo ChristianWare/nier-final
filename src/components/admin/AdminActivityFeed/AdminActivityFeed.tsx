@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import Button from "@/components/shared/Button/Button";
 import styles from "./AdminActivityFeed.module.css";
 import Link from "next/link";
 import { useMemo, useState } from "react";

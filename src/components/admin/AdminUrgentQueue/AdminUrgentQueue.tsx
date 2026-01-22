@@ -1,5 +1,5 @@
-import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import styles from "./AdminUrgentQueue.module.css";
+import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import Link from "next/link";
 
 export type UrgentBookingItem = {

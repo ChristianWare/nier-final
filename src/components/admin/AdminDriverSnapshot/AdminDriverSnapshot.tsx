@@ -18,7 +18,7 @@ export default function AdminDriverSnapshot({
 
   return (
     <section
-      className="container"
+      className={styles.container}
       aria-label='Driver readiness snapshot'
     >
       <header className="header">

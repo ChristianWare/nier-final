@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import styles from "./AdminReportsPage.module.css";
 import { db } from "@/lib/db";
 import base from "../AdminStyles.module.css";
-import styles from "./AdminReportsPage.module.css";
 import ReportsControls from "./Reportscontrols";
 import RevenueChart from "./Revenuechart";
 import StatusPieChart from "./StatusPieChart";
@@ -1028,7 +1028,7 @@ export default async function AdminReportsPage({
       {/* REVENUE & FINANCIAL SECTION */}
       {/* ============================================ */}
       <section className={styles.section}>
-        <div className="header">
+        <div className='header'>
           <h2 className={`cardTitle h4`}>Revenue &amp; Financial</h2>
           <span className={styles.sectionBadge}>{rangeLabel}</span>
         </div>
@@ -1061,8 +1061,8 @@ export default async function AdminReportsPage({
         <div className={styles.chartsRow}>
           <div className={styles.chartCardLarge}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>{revenueChartTitle}</h3>
-              <span className='miniNote'>{rangeLabel}</span>
+              <h3 className={`cardTitle h6`}>{revenueChartTitle}</h3>
+              <span className={styles.sectionBadge}>{rangeLabel}</span>
             </div>
             <div className={styles.chartBody}>
               <RevenueChart data={revenueChartData} currency={currency} />
@@ -1073,7 +1073,7 @@ export default async function AdminReportsPage({
         <div className={styles.chartsRow}>
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>Revenue by Service Type</h3>
+              <h3 className={`cardTitle h6`}>Revenue by Service Type</h3>
             </div>
             <div className={styles.chartBodyPie}>
               <StatusPieChart
@@ -1088,7 +1088,7 @@ export default async function AdminReportsPage({
 
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>Revenue by Vehicle</h3>
+              <h3 className={`cardTitle h6`}>Revenue by Vehicle</h3>
             </div>
             <div className={styles.chartBodyPie}>
               <StatusPieChart
@@ -1107,7 +1107,7 @@ export default async function AdminReportsPage({
       {/* OPERATIONAL METRICS SECTION */}
       {/* ============================================ */}
       <section className={styles.section}>
-        <div className="header">
+        <div className='header'>
           <h2 className={`cardTitle h4`}>Operational Metrics</h2>
           <span className={styles.sectionBadge}>{rangeLabel}</span>
         </div>
@@ -1141,7 +1141,7 @@ export default async function AdminReportsPage({
         <div className={styles.chartsRow}>
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>Bookings by Status</h3>
+              <h3 className={`cardTitle h6`}>Bookings by Status</h3>
               <span className='miniNote'>Distribution</span>
             </div>
             <div className={styles.chartBodyPie}>
@@ -1164,7 +1164,7 @@ export default async function AdminReportsPage({
 
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>Lead Time Distribution</h3>
+              <h3 className={`cardTitle h6`}>Lead Time Distribution</h3>
               <span className='miniNote'>
                 How far in advance customers book
               </span>
@@ -1178,7 +1178,7 @@ export default async function AdminReportsPage({
         <div className={styles.chartsRow}>
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>Peak Days</h3>
+              <h3 className={`cardTitle h6`}>Peak Days</h3>
               <span className='miniNote'>Busiest days of the week</span>
             </div>
             <div className={styles.chartBodyPie}>
@@ -1188,7 +1188,7 @@ export default async function AdminReportsPage({
 
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>Peak Hours</h3>
+              <h3 className={`cardTitle h6`}>Peak Hours</h3>
               <span className='miniNote'>Busiest times of day</span>
             </div>
             <div className={styles.chartBodyPie}>
@@ -1205,7 +1205,7 @@ export default async function AdminReportsPage({
       {/* DRIVER PERFORMANCE SECTION */}
       {/* ============================================ */}
       <section className={styles.section}>
-        <div className="header">
+        <div className='header'>
           <h2 className={`cardTitle h4`}>Driver Performance</h2>
           <span className={styles.sectionBadge}>{rangeLabel}</span>
         </div>
@@ -1251,7 +1251,7 @@ export default async function AdminReportsPage({
         <div className={styles.chartsRow}>
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>Trips by Driver</h3>
+              <h3 className={`cardTitle h6`}>Trips by Driver</h3>
               <span className='miniNote'>Top 10 drivers by trip count</span>
             </div>
             <div className={styles.chartBodyPie}>
@@ -1276,7 +1276,7 @@ export default async function AdminReportsPage({
 
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
-              <h3 className={styles.chartTitle}>Earnings by Driver</h3>
+              <h3 className={`cardTitle h6`}>Earnings by Driver</h3>
               <span className='miniNote'>Top 10 drivers by earnings</span>
             </div>
             <div className={styles.chartBodyPie}>
@@ -1305,7 +1305,7 @@ export default async function AdminReportsPage({
         {/* Driver Performance Table */}
         <div className={styles.chartCardLarge}>
           <div className={styles.chartHeader}>
-            <h3 className={styles.chartTitle}>Driver Leaderboard</h3>
+            <h3 className={`cardTitle h6`}>Driver Leaderboard</h3>
             <span className='miniNote'>Performance breakdown by driver</span>
           </div>
           <div className={styles.tableWrap}>
@@ -1392,7 +1392,7 @@ function KpiCard({
 
   return (
     <div className={`${styles.kpiCard} ${styles[`tone_${tone}`]}`}>
-      <div className={styles.kpiLabel}>{label}</div>
+      <div className='emptyTitle underline'>{label}</div>
       <div className={styles.kpiValue}>
         {prefix && <span>{prefix}</span>}
         <CountUp
