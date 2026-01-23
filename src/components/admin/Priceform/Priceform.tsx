@@ -224,14 +224,14 @@ function Field({
 }) {
   return (
     <div className={styles.field}>
-      <label className={styles.fieldLabel}>{label}</label>
+      <label className='emptyTitle'>{label}</label>
       <input
         name={name}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         disabled={disabled}
-        className={`${styles.input} ${highlight ? styles.inputHighlight : ""}`}
+        className={` inputBorder ${styles.input} ${highlight ? styles.inputHighlight : ""}`}
         inputMode='decimal'
       />
     </div>

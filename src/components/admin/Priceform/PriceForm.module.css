@@ -13,7 +13,7 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 1rem;
 }
 
 .fieldLabel {
@@ -26,13 +26,6 @@
 
 .input {
   width: 100%;
-  border: 1px solid var(--stroke);
-  background: var(--white);
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  font-size: 1.15rem;
-  font-weight: 600;
-  font-family: inherit;
 }
 
 .input:focus {
@@ -48,7 +41,6 @@
 .inputHighlight {
   background: #f0fdf4;
   border-color: #22c55e;
-  font-size: 1.25rem;
 }
 
 .inputHighlight:focus {

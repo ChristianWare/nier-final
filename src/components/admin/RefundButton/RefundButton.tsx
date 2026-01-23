@@ -1,11 +1,11 @@
 "use client";
 
+import styles from "./RefundButton.module.css";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { issueRefund } from "../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
-import styles from "./RefundButton.module.css";
 
 function formatMoney(cents: number, currency = "USD") {
   const n = cents / 100;
@@ -170,7 +170,7 @@ export default function RefundButton({
       {/* Refund Amount Input - Always visible when payment exists */}
       <div className={styles.refundForm}>
         <div className={styles.inputSection}>
-          <label className={styles.inputLabel}>Refund Amount</label>
+          <label className='emptyTitle'>Refund Amount</label>
           <div className={styles.inputWrapper}>
             <span className={styles.currencySymbol}>$</span>
             <input
@@ -182,18 +182,18 @@ export default function RefundButton({
                 setRefundAmount(val);
               }}
               placeholder='0.00'
-              className={styles.input}
+              className='inputBorder'
               disabled={isPending}
             />
           </div>
-          <span className={styles.maxNote}>
+          <span className='miniNote'>
             Max refundable: {formatMoney(netPaidCents, currency)}
           </span>
         </div>
 
         {/* Percentage Quick Buttons */}
         <div className={styles.percentageSection}>
-          <label className={styles.inputLabel}>Quick Select</label>
+          <label className='emptyTitle'>Quick Select</label>
           <div className={styles.percentageButtons}>
             {percentageAmounts.map(({ label, cents }) => (
               <button

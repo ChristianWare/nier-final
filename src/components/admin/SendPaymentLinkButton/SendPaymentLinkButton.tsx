@@ -98,9 +98,9 @@ export default function SendPaymentLinkButton({
           style={{
             background: "#d1fae5",
             border: "1px solid #10b981",
-            borderRadius: 8,
+            borderRadius: 5,
             padding: "12px 16px",
-            fontSize: "0.95rem",
+            fontSize: "1.4rem",
           }}
         >
           <div style={{ fontWeight: 700 }}>

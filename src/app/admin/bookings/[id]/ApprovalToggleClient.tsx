@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import styles from "./Approvaltoggleclient.module.css";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -9,7 +10,6 @@ import {
   approveBooking,
   unapproveBooking,
 } from "../../../../../actions/admin/bookings";
-import styles from "./Approvaltoggleclient.module.css";
 
 type Props = {
   bookingId: string;
@@ -124,7 +124,7 @@ export default function ApprovalToggleClient({
         )}
 
         {isApproved && isPaid && (
-          <p className={styles.hintLocked}>
+          <p className={`${styles.hintLocked} miniNote`}>
             This booking has been paid and cannot be unapproved.
           </p>
         )}

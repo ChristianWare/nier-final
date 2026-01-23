@@ -28,7 +28,7 @@ function statusLabel(status: BookingStatus) {
     case "PENDING_REVIEW":
       return "Pending review";
     case "PENDING_PAYMENT":
-      return "Payment due";
+      return "Approved (awaiting payment)";
     case "CONFIRMED":
       return "Confirmed";
     case "ASSIGNED":
@@ -59,7 +59,7 @@ function statusLabel(status: BookingStatus) {
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
 function badgeTone(status: BookingStatus): BadgeTone {
-  if (status === "PENDING_PAYMENT") return "warn";
+  if (status === "PENDING_PAYMENT") return "good"; // Changed to "good" since it's approved
   if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
   if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
   if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
@@ -500,7 +500,7 @@ export default async function AdminBookingDetailPage({
                   </span>
                 )}
                 {booking.payment?.paidAt && (
-                  <span className={styles.paymentDate}>
+                  <span className='miniNote'>
                     on {formatDateTime(booking.payment.paidAt)}
                   </span>
                 )}
@@ -593,7 +593,7 @@ export default async function AdminBookingDetailPage({
             {customerBookingCount > 0 && customerEmail && (
               <Link
                 href={`/admin/bookings?q=${encodeURIComponent(customerEmail)}`}
-                className={styles.historyLink}
+                className='backBtn' style={{ marginTop: "0.5rem", display: "inline-block" }}
               >
                 View {customerBookingCount} other booking
                 {customerBookingCount !== 1 ? "s" : ""} from this customer →
@@ -679,76 +679,6 @@ export default async function AdminBookingDetailPage({
         />
       </Card>
 
-      {/* Notes/Comments section */}
-      <Card title='Internal Notes'>
-        <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
-      </Card>
-
-      <Card title='Assign (allowed before payment)'>
-        {drivers.length === 0 ? (
-          <div className={styles.muted}>
-            No drivers yet. Create users and assign DRIVER role in{" "}
-            <Link className={styles.inlineLink} href='/admin/users'>
-              Users
-            </Link>
-            .
-          </div>
-        ) : (
-          <>
-            <AssignBookingForm
-              bookingId={booking.id}
-              drivers={drivers}
-              vehicleUnits={vehicleUnits}
-              currentDriverId={booking.assignment?.driverId ?? null}
-              currentVehicleUnitId={booking.assignment?.vehicleUnitId ?? null}
-              currentDriverPaymentCents={
-                booking.assignment?.driverPaymentCents ?? null
-              }
-            />
-
-            {booking.assignment ? (
-              <div
-                className={styles.assignmentInfo}
-                style={{
-                  marginTop: 20,
-                  paddingTop: 20,
-                  borderTop: "1px solid rgba(0,0,0,0.1)",
-                }}
-              >
-                <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                  Current assignment
-                </div>
-                <KeyVal
-                  k='Driver'
-                  v={`${booking.assignment.driver.name ?? "Driver"} (${
-                    booking.assignment.driver.email
-                  })`}
-                />
-                {booking.assignment.vehicleUnit ? (
-                  <KeyVal
-                    k='Vehicle'
-                    v={`${booking.assignment.vehicleUnit.name}${
-                      booking.assignment.vehicleUnit.plate
-                        ? ` (${booking.assignment.vehicleUnit.plate})`
-                        : ""
-                    }`}
-                  />
-                ) : null}
-                {booking.assignment.driverPaymentCents != null ? (
-                  <KeyVal
-                    k='Driver payment'
-                    v={formatMoney(
-                      booking.assignment.driverPaymentCents,
-                      booking.currency,
-                    )}
-                  />
-                ) : null}
-              </div>
-            ) : null}
-          </>
-        )}
-      </Card>
-
       <Card title='Payment'>
         <div className={styles.paymentBlock}>
           <div className={styles.paymentStatus}>
@@ -829,6 +759,78 @@ export default async function AdminBookingDetailPage({
             </div>
           </div>
         </div>
+      </Card>
+
+      <Card title='Assign (allowed before payment)'>
+        {drivers.length === 0 ? (
+          <div className={styles.muted}>
+            No drivers yet. Create users and assign DRIVER role in{" "}
+            <Link className={styles.inlineLink} href='/admin/users'>
+              Users
+            </Link>
+            .
+          </div>
+        ) : (
+          <>
+            <AssignBookingForm
+              bookingId={booking.id}
+              drivers={drivers}
+              vehicleUnits={vehicleUnits}
+              currentDriverId={booking.assignment?.driverId ?? null}
+              currentVehicleUnitId={booking.assignment?.vehicleUnitId ?? null}
+              currentDriverPaymentCents={
+                booking.assignment?.driverPaymentCents ?? null
+              }
+              bookingTotalCents={booking.totalCents}
+              currency={booking.currency}
+            />
+
+            {booking.assignment ? (
+              <div
+                className={styles.assignmentInfo}
+                style={{
+                  marginTop: 20,
+                  paddingTop: 20,
+                  borderTop: "1px solid rgba(0,0,0,0.1)",
+                }}
+              >
+                <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                  Current assignment
+                </div>
+                <KeyVal
+                  k='Driver'
+                  v={`${booking.assignment.driver.name ?? "Driver"} (${
+                    booking.assignment.driver.email
+                  })`}
+                />
+                {booking.assignment.vehicleUnit ? (
+                  <KeyVal
+                    k='Vehicle'
+                    v={`${booking.assignment.vehicleUnit.name}${
+                      booking.assignment.vehicleUnit.plate
+                        ? ` (${booking.assignment.vehicleUnit.plate})`
+                        : ""
+                    }`}
+                  />
+                ) : null}
+                {booking.assignment.driverPaymentCents != null ? (
+                  <KeyVal
+                    k='Driver payment'
+                    v={formatMoney(
+                      booking.assignment.driverPaymentCents,
+                      booking.currency,
+                    )}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+          </>
+        )}
+      </Card>
+
+      {/* Notes/Comments section */}
+      <Card title='Internal Notes'>
+        <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
       </Card>
 
       <Card title='Status timeline'>

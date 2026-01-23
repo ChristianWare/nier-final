@@ -646,6 +646,17 @@ th {
   color: var(--paragraph);
 }
 
+.select {
+  width: 100%;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  color: var(--paragraph);
+  border-radius: 5px;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 .box {
   border: 2px solid var(--stroke);
   border-radius: 10px;

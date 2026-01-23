@@ -7,6 +7,15 @@ import { useRouter } from "next/navigation";
 import { assignBooking } from "../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
 
+function formatMoney(cents: number, currency = "USD") {
+  const n = cents / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
 function centsToDollars(cents: number | null | undefined): string {
   if (cents == null) return "";
   return (cents / 100).toFixed(2);
@@ -27,6 +36,8 @@ export default function AssignBookingForm({
   currentDriverId,
   currentVehicleUnitId,
   currentDriverPaymentCents,
+  bookingTotalCents,
+  currency = "USD",
 }: {
   bookingId: string;
   drivers: { id: string; name: string | null; email: string }[];
@@ -34,6 +45,8 @@ export default function AssignBookingForm({
   currentDriverId?: string | null;
   currentVehicleUnitId?: string | null;
   currentDriverPaymentCents?: number | null;
+  bookingTotalCents: number;
+  currency?: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -41,6 +54,27 @@ export default function AssignBookingForm({
   const [driverPayment, setDriverPayment] = useState<string>(
     centsToDollars(currentDriverPaymentCents),
   );
+
+  // Parse current input to cents for comparison
+  const currentPaymentCents = dollarsToCents(driverPayment) ?? 0;
+
+  // Calculate percentage amounts
+  const percentageOptions = [
+    { label: "10%", percent: 0.1 },
+    { label: "20%", percent: 0.2 },
+    { label: "30%", percent: 0.3 },
+    { label: "50%", percent: 0.5 },
+    { label: "70%", percent: 0.7 },
+  ];
+
+  const percentageAmounts = percentageOptions.map(({ label, percent }) => ({
+    label,
+    cents: Math.round(bookingTotalCents * percent),
+  }));
+
+  function setAmountFromCents(cents: number) {
+    setDriverPayment((cents / 100).toFixed(2));
+  }
 
   return (
     <form
@@ -102,31 +136,69 @@ export default function AssignBookingForm({
         </select>
       </div>
 
-      {/* ✅ NEW: Driver payment amount */}
-      <div className={styles.group}>
-        <label className='emptyTitle'>Driver payment (optional)</label>
-        <div className={styles.inputWrapper}>
-          <span className={styles.dollarSign}>$</span>
-          <input
-            type='number'
-            step='0.01'
-            min='0'
-            placeholder='0.00'
-            value={driverPayment}
-            onChange={(e) => setDriverPayment(e.target.value)}
-            disabled={isPending}
-            className={styles.input}
-          />
+      {/* ✅ Driver payment with percentage options - matching RefundButton layout */}
+
+      <div className={styles.driverPaymentSection}>
+        {/* Booking total reference - spans full width */}
+
+        {/* Input section - left column */}
+        <div className={styles.inputSection}>
+          <label className='emptyTitle'>Driver Payment</label>
+          <div className={styles.inputWrapper}>
+            <span className={styles.dollarSign}>$</span>
+            <input
+              type='text'
+              inputMode='decimal'
+              placeholder='0.00'
+              value={driverPayment}
+              onChange={(e) => {
+                // Allow only numbers and decimal
+                const val = e.target.value.replace(/[^0-9.]/g, "");
+                setDriverPayment(val);
+              }}
+              disabled={isPending}
+              className='inputBorder'
+            />
+          </div>
+          <span className='miniNote'>
+            Amount the driver will be paid for this trip
+          </span>
         </div>
-        <div className='miniNote' style={{ marginTop: 4 }}>
-          Amount the driver will be paid for this trip
-        </div>
+
+        {/* Percentage quick buttons - right column */}
+        {bookingTotalCents > 0 && (
+          <div className={styles.percentageSection}>
+            {bookingTotalCents > 0 && (
+              <div className='subheading'>
+                Booking total:{" "}
+                <strong>{formatMoney(bookingTotalCents, currency)}</strong>
+              </div>
+            )}
+            <br />
+            <label className='emptyTitle'>Quick Select</label>
+            <div className={styles.percentageButtons}>
+              {percentageAmounts.map(({ label, cents }) => (
+                <button
+                  key={label}
+                  type='button'
+                  className={`${styles.percentBtn} ${
+                    currentPaymentCents === cents ? styles.percentBtnActive : ""
+                  }`}
+                  onClick={() => setAmountFromCents(cents)}
+                  disabled={isPending || cents === 0}
+                >
+                  {label}
+                  <span className={styles.percentAmount}>
+                    {formatMoney(cents, currency)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className={styles.btnContainer}>
-        {/* <button disabled={isPending} className='primaryBtn' type='submit'>
-          {isPending ? "Saving..." : "Assign + Pay Driver"}
-        </button> */}
         <Button
           disabled={isPending}
           type='submit'

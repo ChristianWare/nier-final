@@ -1,100 +1,197 @@
-/* AssignBookingForm.module.css */
-
 .form {
-  display: grid;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .group {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .groupTight {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .select {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  font-size: 14px;
-  background: white;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  color: var(--paragraph);
+  border-radius: 5px;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: border-color 0.2s;
-}
-
-.select:hover:not(:disabled) {
-  border-color: rgba(0, 0, 0, 0.4);
 }
 
 .select:focus {
   outline: none;
-  border-color: rgba(0, 0, 0, 0.6);
+  border-color: var(--black);
 }
 
 .select:disabled {
-  background: rgba(0, 0, 0, 0.05);
-  cursor: not-allowed;
   opacity: 0.6;
+  cursor: not-allowed;
 }
 
-/* ✅ NEW: Dollar sign input wrapper */
+/* =============================================================================
+   Driver Payment Section
+   ============================================================================= */
+
+.driverPaymentSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.bookingTotalRef {
+  grid-column: 1 / -1;
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 0;
+}
+
+.bookingTotalRef strong {
+  color: #1e293b;
+}
+
+/* =============================================================================
+   Input Section
+   ============================================================================= */
+
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
 .inputWrapper {
-  position: relative;
   display: flex;
   align-items: center;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.inputWrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .dollarSign {
-  position: absolute;
-  left: 12px;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgba(0, 0, 0, 0.6);
-  pointer-events: none;
+  padding: 0.75rem 0.75rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
-.input {
-  width: 100%;
-  padding: 10px 12px 10px 28px; /* Extra left padding for $ sign */
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  font-size: 14px;
+/* =============================================================================
+   Percentage Buttons Section
+   ============================================================================= */
+
+.percentageSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.percentageLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.percentageButtons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.percentBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 10px 8px;
   background: white;
-  transition: border-color 0.2s;
+  border: 1px solid var(--stroke);
+  background-color: var(--lightGray);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #374151;
+  transition: all 0.15s ease;
 }
 
-.input:hover:not(:disabled) {
-  border-color: rgba(0, 0, 0, 0.4);
+.percentBtn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
 }
 
-.input:focus {
-  outline: none;
-  border-color: rgba(0, 0, 0, 0.6);
-}
-
-.input:disabled {
-  background: rgba(0, 0, 0, 0.05);
+.percentBtn:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
-/* Remove number input arrows */
-.input::-webkit-outer-spin-button,
-.input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.percentBtnActive {
+  background: #1e293b;
+  border-color: #1e293b;
+  color: white;
 }
 
-.input[type="number"] {
-  -moz-appearance: textfield;
+.percentBtnActive:hover:not(:disabled) {
+  background: #334155;
+  border-color: #334155;
 }
+
+.percentAmount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
+.percentBtnActive .percentAmount {
+  color: white;
+}
+
+/* =============================================================================
+   Button Container
+   ============================================================================= */
 
 .btnContainer {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  margin-top: 0.5rem;
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media screen and (max-width: 700px) {
+  .driverPaymentSection {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .percentageButtons {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .percentBtn {
+    padding: 8px 6px;
+  }
 }

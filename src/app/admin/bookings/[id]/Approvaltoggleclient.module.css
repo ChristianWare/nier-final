@@ -1,8 +1,8 @@
 .container {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding: 1.25rem;
+  gap: 2rem;
+  padding: 2rem;
   background: #fafafa;
   border: 1px solid var(--stroke);
   border-radius: 10px;
@@ -15,7 +15,7 @@
 .content {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 2rem;
 }
 
 /* =============================================================================
@@ -42,20 +42,14 @@
 }
 
 .checkboxLabel {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1e293b;
+  color: var(--paragraph);
 }
-
-/* =============================================================================
-   Status Badge
-   ============================================================================= */
 
 .statusBadge {
   display: inline-block;
   padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border-radius: 5px;
+  font-size: 1.4rem;
   font-weight: 600;
   width: fit-content;
 }
@@ -84,7 +78,7 @@
 }
 
 .hintLocked {
-  font-size: 0.9rem;
+  /* font-size: 0.9rem; */
   color: #64748b;
   margin: 0;
   font-style: italic;
