@@ -229,6 +229,7 @@ export default function RefundButton({
           <Button
             text={`Issue Refund${isValidAmount ? ` (${formatMoney(parsedAmountCents, currency)})` : ""}`}
             btnType='black'
+            refundIcon
             onClick={() => setShowConfirm(true)}
             disabled={isPending || !isValidAmount}
           />

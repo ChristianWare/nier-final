@@ -552,9 +552,22 @@ export default async function AdminBookingDetailPage({
       </header>
 
       <Card title='Trip'>
+        <KeyVal k='Date' v={formatDateTime(booking.pickupAt)} />{" "}
+        <KeyVal
+          k='Distance / duration'
+          v={`${booking.distanceMiles ?? "—"} mi • ${
+            booking.durationMinutes ?? "—"
+          } min`}
+        />
+        <KeyVal
+          k='Amount due'
+          v={formatMoney(booking.totalCents, booking.currency)}
+        />
+        {booking.specialRequests ? (
+          <KeyVal k='Special requests' v={booking.specialRequests} />
+        ) : null}
         <KeyVal k='Created' v={createdAtLabel} />
         <KeyVal k='Created by' v={createdByDisplay} />
-
         {/* Customer with history link */}
         <div className={styles.keyVal}>
           <div className='emptyTitle'>Customer</div>
@@ -571,26 +584,18 @@ export default async function AdminBookingDetailPage({
             )}
           </div>
         </div>
-
         <KeyVal k='Service' v={booking.serviceType.name} />
         <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
-        <KeyVal k='Pickup at' v={formatDateTime(booking.pickupAt)} />
         <KeyVal k='Pickup' v={booking.pickupAddress} />
         <KeyVal k='Dropoff' v={booking.dropoffAddress} />
         <KeyVal
           k='Passengers / luggage'
           v={`${booking.passengers} / ${booking.luggage}`}
         />
-        <KeyVal
-          k='Distance / duration'
-          v={`${booking.distanceMiles ?? "—"} mi • ${
-            booking.durationMinutes ?? "—"
-          } min`}
-        />
+        
         {booking.specialRequests ? (
           <KeyVal k='Special requests' v={booking.specialRequests} />
         ) : null}
-
         {/* ✅ Route Map Display */}
         {hasRouteCoordinates && (
           <>
@@ -610,7 +615,6 @@ export default async function AdminBookingDetailPage({
             </div>
           </>
         )}
-
         {/* Flight Information */}
         {hasFlightInfo && (
           <>
@@ -638,7 +642,6 @@ export default async function AdminBookingDetailPage({
             </div>
           </>
         )}
-
         {/* Edit Trip Details */}
         <div className={styles.sectionDivider} />
         <EditTripDetailsClient
@@ -647,12 +650,6 @@ export default async function AdminBookingDetailPage({
           pricingData={pricingData}
         />
       </Card>
-
-      {/* Notes/Comments section */}
-      <Card title='Internal Notes'>
-        <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
-      </Card>
-
       <Card title='Approve & price'>
         <ApprovePriceForm
           bookingId={booking.id}
@@ -663,6 +660,12 @@ export default async function AdminBookingDetailPage({
           totalCents={booking.totalCents}
         />
       </Card>
+
+      {/* Notes/Comments section */}
+      <Card title='Internal Notes'>
+        <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
+      </Card>
+
 
       <Card title='Assign (allowed before payment)'>
         {drivers.length === 0 ? (

@@ -7,6 +7,7 @@ import DownloadIcon from "../DownloadIcon/DownloadIcon";
 import Close from "../icons/Close/Close";
 import Check from "../icons/Check/Check";
 import Email from "../icons/Email/Email";
+import RefundIcon from "../icons/RefundIcon/RefundIcon";
 
 interface Props {
   href?: string;
@@ -16,6 +17,7 @@ interface Props {
   disabled?: boolean;
   children?: ReactNode;
   arrow?: boolean;
+  refundIcon?: boolean;
   plus?: boolean;
   email?: boolean;
   downloadIcon?: boolean;
@@ -34,6 +36,7 @@ export default function Button({
   disabled,
   children,
   arrow,
+  refundIcon,
   closeIcon,
   plus,
   email,
@@ -74,11 +77,16 @@ export default function Button({
           <Check className={styles.optionalIcon} />
         </div>
       )}
-      {email && (
-        <div className={styles.plusContainer}>
-          <Email className={styles.optionalIcon} />
-        </div>
-      )}
+        {email && (
+          <div className={styles.plusContainer}>
+            <Email className={styles.optionalIcon} />
+          </div>
+        )}
+        {refundIcon && (
+          <div className={styles.plusContainer}>
+            <RefundIcon className={styles.optionalIcon} />
+          </div>
+        )}
     </>
   );
 
