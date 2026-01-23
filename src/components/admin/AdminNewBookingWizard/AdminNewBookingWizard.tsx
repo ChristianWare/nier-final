@@ -46,6 +46,7 @@ import {
 } from "@stripe/react-stripe-js";
 
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
+import Link from "next/link";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -1662,9 +1663,9 @@ export default function AdminNewBookingWizard({
                 ) : drivers.length === 0 ? (
                   <div className='miniNote'>
                     No drivers yet. Create users and assign DRIVER role in{" "}
-                    <a className='inlineLink' href='/admin/users'>
+                    <Link className='inlineLink' href='/admin/users'>
                       Users
-                    </a>
+                    </Link>
                     .
                   </div>
                 ) : (
@@ -1675,6 +1676,13 @@ export default function AdminNewBookingWizard({
                       vehicleUnits={filteredVehicleUnits as any}
                       currentDriverId={assignedDriverId ?? null}
                       currentVehicleUnitId={assignedUnitId ?? null}
+                      currentDriverPaymentCents={
+                        bookingData?.assignment?.driverPaymentCents ?? null
+                      }
+                      bookingTotalCents={
+                        bookingData?.totalCents ?? estimateCents
+                      }
+                      currency={bookingData?.currency ?? "USD"}
                     />
 
                     <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
