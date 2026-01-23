@@ -4,16 +4,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 3rem;
+  gap: 1.8rem;
   text-align: center;
   border-radius: 5px;
-  justify-content: center;
-  padding: 10px 30px;
-  padding-left: 2rem;
+  border-bottom-right-radius: 15px;
+  padding: 6px 6px 6px 18px;
   font-size: 16px;
   font-weight: 500;
   letter-spacing: -0.8px;
-  transition-property: none;
   transition: all 0.2s ease-in-out;
   white-space: nowrap;
   cursor: pointer;
@@ -26,26 +24,121 @@
   color: inherit;
 }
 
+/* ================================
+   Text Flip Animation Styles
+   ================================ */
+.textContainer {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  color: inherit;
+}
+
+.textPrimary,
+.textSecondary {
+  display: block;
+  color: currentColor;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  white-space: nowrap;
+}
+
+.textPrimary {
+  position: relative;
+}
+
+.textSecondary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ================================
+   Arrow Slide Animation Styles
+   ================================ */
+.arrowContainer {
+  background-color: var(--white);
+  border-radius: 4px 4px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.arrowWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  overflow: hidden;
+}
+
+.arrowPrimary,
+.arrowSecondary {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow {
+  color: var(--black);
+  transform: rotate(90deg);
+}
+
+.optionalIcon {
+  color: inherit;
+  position: relative;
+  top: 2px;
+  width: 2rem;
+  height: 2rem;
+}
+
+.plusContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ================================
+   Button Variants
+   ================================ */
 .underlinedWhite,
 .underlinedWhite:link,
 .underlinedWhite:visited {
-  background-color: none;
+  background-color: transparent;
   color: var(--white);
   border-bottom: 1px solid var(--white);
   border-radius: 0px;
   padding: 5px 0px;
   justify-content: space-between;
 }
-/* 
-.underlinedWhite:hover {
-  border: 1px solid var(--darkGray);
-  background-color: var(--darkGray);
-} */
 
 .underlinedBlack,
 .underlinedBlack:link,
 .underlinedBlack:visited {
-  background-color: none;
+  background-color: transparent;
   color: var(--black);
   font-size: 2rem;
   border-bottom: 1px solid var(--black);
@@ -53,11 +146,6 @@
   padding: 5px 0px;
   justify-content: space-between;
 }
-/* 
-.underlinedBlack:hover {
-  border: 1px solid var(--darkGray);
-  background-color: var(--darkGray);
-} */
 
 .black,
 .black:link,
@@ -67,13 +155,6 @@
   border: 1px solid var(--black);
   display: flex;
   justify-content: space-between;
-  padding-right: 1rem;
-}
-
-.black:hover {
-  border: 1px solid var(--black400);
-  background-color: var(--black400);
-  color: var(--cream);
 }
 
 .blackAdmin,
@@ -84,12 +165,6 @@
   border: 1px solid var(--black);
   display: flex;
   justify-content: space-between;
-  padding-right: 1rem;
-}
-
-.blackAdmin:hover {
-  background-color: var(--cream);
-  color: var(--black);
 }
 
 .gray,
@@ -103,11 +178,6 @@
   padding-right: 1rem;
 }
 
-.gray:hover {
-  background-color: var(--cream);
-  color: var(--black);
-}
-
 .red,
 .red:link,
 .red:visited {
@@ -117,11 +187,6 @@
   display: flex;
   justify-content: space-between;
   padding-right: 1rem;
-}
-
-.red:hover {
-  background-color: var(--cream);
-  color: var(--accent);
 }
 
 .green,
@@ -135,10 +200,6 @@
   padding-right: 1rem;
 }
 
-.green:hover {
-  background-color: var(--darkGreen);
-}
-
 .lightRed,
 .lightRed:link,
 .lightRed:visited {
@@ -148,10 +209,6 @@
   display: flex;
   justify-content: space-between;
   padding-right: 1rem;
-}
-
-.lightRed:hover {
-  background-color: var(--accent600);
 }
 
 .cream,
@@ -165,34 +222,10 @@
   padding-right: 1rem;
 }
 
-.cream:hover {
-  background-color: var(--strokeii);
-}
-
 .blackOutline {
   background-color: transparent;
   color: var(--black);
   border: 1px solid var(--black);
-}
-
-.blackOutline:hover {
-  background-color: var(--black);
-  color: var(--white);
-}
-
-.arrow {
-  color: inherit;
-  transform: rotate(90deg);
-  position: relative;
-  top: 2px;
-}
-
-.optionalIcon {
-  color: inherit;
-  position: relative;
-  top: 2px;
-  width: 2rem;
-  height: 2rem;
 }
 
 .transparent {
@@ -203,13 +236,50 @@
   padding-right: 1rem;
 }
 
-.transparent:hover {
-  background-color: var(--black);
-  color: var(--yellow);
-}
-
+/* ================================
+   HOVER STATES - Desktop only
+   ================================ */
 @media (hover: hover) and (pointer: fine) {
-  .container:hover .arrow {
-    transform: rotate(90deg) translateY(-5px);
+  .black:hover {
+    border: 1px solid var(--black400);
+    background-color: var(--black400);
+    color: var(--cream);
+  }
+
+  .blackAdmin:hover {
+    background-color: var(--cream);
+    color: var(--black);
+  }
+
+  .gray:hover {
+    background-color: var(--cream);
+    color: var(--black);
+  }
+
+  .red:hover {
+    background-color: var(--cream);
+    color: var(--accent);
+  }
+
+  .green:hover {
+    background-color: var(--darkGreen);
+  }
+
+  .lightRed:hover {
+    background-color: var(--accent600);
+  }
+
+  .cream:hover {
+    background-color: var(--strokeii);
+  }
+
+  .blackOutline:hover {
+    background-color: var(--black);
+    color: var(--white);
+  }
+
+  .transparent:hover {
+    background-color: var(--black);
+    color: var(--yellow);
   }
 }

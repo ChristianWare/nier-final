@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useState } from "react";
@@ -147,7 +148,7 @@ export default function ContactSection() {
                   </button> */}
               <Button
                 text={loading ? "Sending..." : "Submit"}
-                btnType='underlinedBlack'
+                btnType='black'
                 arrow
               />
             </div>
