@@ -15,6 +15,13 @@
   width: 100%;
 }
 
+.box {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+}
+
 .meta {
   opacity: 0.75;
   font-size: 13px;
@@ -713,9 +720,11 @@
   opacity: 0.85;
 }
 
-/* =============================================================================
-   Responsive
-   ============================================================================= */
+@media screen and (max-width: 1268px) {
+  .box {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
 
 @media screen and (max-width: 768px) {
   .keyVal {

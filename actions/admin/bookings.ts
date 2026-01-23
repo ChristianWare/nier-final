@@ -139,6 +139,177 @@ export async function approveBookingAndSetPrice(formData: FormData) {
   };
 }
 
+// =============================================================================
+// ✅ NEW: Approve Booking Only (no pricing change)
+// =============================================================================
+
+const ApproveBookingSchema = z.object({
+  bookingId: z.string().min(1),
+});
+
+export async function approveBooking(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const parsed = ApproveBookingSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid booking data." };
+
+  const { bookingId } = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    select: { id: true, status: true },
+  });
+
+  if (!booking) return { error: "Booking not found." };
+
+  // Only approve if in PENDING_REVIEW or DRAFT status
+  if (booking.status !== "PENDING_REVIEW" && booking.status !== "DRAFT") {
+    return { error: "Booking is already approved or in a final state." };
+  }
+
+  await db.$transaction([
+    db.booking.update({
+      where: { id: bookingId },
+      data: { status: "PENDING_PAYMENT" },
+    }),
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status: "PENDING_PAYMENT",
+        createdById: actorId,
+      },
+    }),
+  ]);
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+
+  return { success: true };
+}
+
+// =============================================================================
+// ✅ NEW: Unapprove Booking (revert to PENDING_REVIEW)
+// =============================================================================
+
+export async function unapproveBooking(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const parsed = ApproveBookingSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid booking data." };
+
+  const { bookingId } = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    include: { payment: true },
+  });
+
+  if (!booking) return { error: "Booking not found." };
+
+  // Cannot unapprove if already paid
+  if (booking.payment?.status === "PAID") {
+    return { error: "Cannot unapprove a booking that has already been paid." };
+  }
+
+  // Only unapprove if in PENDING_PAYMENT status
+  if (booking.status !== "PENDING_PAYMENT") {
+    return {
+      error: "Booking must be in 'Pending Payment' status to reverse approval.",
+    };
+  }
+
+  await db.$transaction([
+    db.booking.update({
+      where: { id: bookingId },
+      data: { status: "PENDING_REVIEW" },
+    }),
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status: "PENDING_REVIEW",
+        createdById: actorId,
+      },
+    }),
+  ]);
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+
+  return { success: true };
+}
+
+// =============================================================================
+// ✅ NEW: Update Booking Price Only (no status change)
+// =============================================================================
+
+const UpdatePriceSchema = z.object({
+  bookingId: z.string().min(1),
+  currency: z.string().default("usd"),
+  subtotalCents: z.coerce.number().int().min(0),
+  feesCents: z.coerce.number().int().min(0),
+  taxesCents: z.coerce.number().int().min(0),
+  totalCents: z.coerce.number().int().min(0),
+});
+
+export async function updateBookingPrice(formData: FormData) {
+  await requireAdmin();
+
+  const parsed = UpdatePriceSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid pricing data." };
+
+  const d = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: d.bookingId },
+    include: { payment: true },
+  });
+
+  if (!booking) return { error: "Booking not found." };
+
+  // Check if already paid and price is being changed
+  const existingPayment = booking.payment;
+  const amountPaidCents = existingPayment?.amountPaidCents ?? 0;
+  const isPaid = existingPayment?.status === "PAID";
+
+  // If already paid and price increased, we have a balance due
+  const hasBalanceDue = isPaid && d.totalCents > amountPaidCents;
+
+  // If already paid and price decreased, we have a refund due
+  const hasRefundDue = isPaid && d.totalCents < amountPaidCents;
+
+  await db.$transaction([
+    db.booking.update({
+      where: { id: booking.id },
+      data: {
+        currency: d.currency,
+        subtotalCents: d.subtotalCents,
+        feesCents: d.feesCents,
+        taxesCents: d.taxesCents,
+        totalCents: d.totalCents,
+      },
+    }),
+    // If there's a balance or refund situation, update payment to reflect new total
+    ...((hasBalanceDue || hasRefundDue) && existingPayment
+      ? [
+          db.payment.update({
+            where: { id: existingPayment.id },
+            data: {
+              amountTotalCents: d.totalCents,
+            },
+          }),
+        ]
+      : []),
+  ]);
+
+  revalidatePath(`/admin/bookings/${booking.id}`);
+
+  return {
+    success: true,
+    hasBalanceDue,
+    balanceDueCents: hasBalanceDue ? d.totalCents - amountPaidCents : 0,
+    hasRefundDue,
+    refundDueCents: hasRefundDue ? amountPaidCents - d.totalCents : 0,
+  };
+}
+
 const AssignSchema = z.object({
   bookingId: z.string().min(1),
   driverId: z.string().min(1),

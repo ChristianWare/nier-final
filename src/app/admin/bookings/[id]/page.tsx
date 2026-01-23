@@ -4,7 +4,7 @@ import styles from "./AdminBookingDetailPage.module.css";
 import type { ReactNode } from "react";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
-import ApprovePriceForm from "@/components/admin/ApprovePriceForm/ApprovePriceForm";
+import PriceForm from "@/components/admin/Priceform/Priceform";
 import AssignBookingForm from "@/components/admin/AssignBookingForm/AssignBookingForm";
 import SendPaymentLinkButton from "@/components/admin/SendPaymentLinkButton/SendPaymentLinkButton";
 import { BookingStatus, Role } from "@prisma/client";
@@ -17,6 +17,7 @@ import EditTripDetailsClient, { PricingData } from "./EditTripDetailsClient";
 import DuplicateBookingClient from "./DuplicateBookingClient";
 import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
 import RefundButton from "@/components/admin/RefundButton/RefundButton";
+import ApprovalToggleClient from "./ApprovalToggleClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -365,6 +366,10 @@ export default async function AdminBookingDetailPage({
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
   const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
 
+  // ✅ Determine if booking is approved (not in PENDING_REVIEW or DRAFT)
+  const isApproved =
+    booking.status !== "PENDING_REVIEW" && booking.status !== "DRAFT";
+
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
     : null;
@@ -468,74 +473,86 @@ export default async function AdminBookingDetailPage({
         <h1 className={`heading h2`}>Booking Details</h1>
 
         <div className={styles.box}>
-          <div className='emptyTitle'>Booking ID:</div>
-          <p className='emptySmall'>{booking.id}</p>
+          <div className={styles.boxLeft}>
+            <div className='emptyTitle'>Booking ID:</div>
+            <p className='emptySmall'>{booking.id}</p>
 
-          {/* Current status badge */}
-          <div style={{ marginTop: 12 }}>
-            <div className='emptyTitle'>Current Status:</div>
-            <div style={{ marginTop: 6 }}>
-              <span className={`badge badge_${currentStatusTone}`}>
-                {currentStatusLabel}
-              </span>
+            {/* Current status badge */}
+            <div style={{ marginTop: 12 }}>
+              <div className='emptyTitle'>Current Status:</div>
+              <div style={{ marginTop: 6 }}>
+                <span className={`badge badge_${currentStatusTone}`}>
+                  {currentStatusLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* ✅ Updated Payment status with balance display */}
+            <div style={{ marginTop: 12 }}>
+              <div className='emptyTitle'>Payment:</div>
+              <div className={styles.paymentInfo}>
+                <span className={`badge badge_${paymentStatusDisplay.tone}`}>
+                  {paymentStatusDisplay.label}
+                </span>
+                {booking.totalCents > 0 && (
+                  <span className={styles.paymentAmount}>
+                    {formatMoney(booking.totalCents, booking.currency)}
+                  </span>
+                )}
+                {booking.payment?.paidAt && (
+                  <span className={styles.paymentDate}>
+                    on {formatDateTime(booking.payment.paidAt)}
+                  </span>
+                )}
+              </div>
+
+              {/* ✅ Show balance due if applicable */}
+              {paymentStatusDisplay.hasBalanceDue && (
+                <div className={styles.balanceDueAlert}>
+                  <strong>Balance Due:</strong>{" "}
+                  {formatMoney(
+                    paymentStatusDisplay.balanceDueCents,
+                    booking.currency,
+                  )}
+                  <span className={styles.balanceDetail}>
+                    (Paid: {formatMoney(amountPaidCents, booking.currency)} of{" "}
+                    {formatMoney(booking.totalCents, booking.currency)})
+                  </span>
+                </div>
+              )}
+
+              {/* ✅ Show refund due if applicable */}
+              {paymentStatusDisplay.hasRefundDue && (
+                <div className={styles.refundDueAlert}>
+                  <strong>Refund Due:</strong>{" "}
+                  {formatMoney(
+                    paymentStatusDisplay.refundDueCents,
+                    booking.currency,
+                  )}
+                  <span className={styles.refundDetail}>
+                    (Paid: {formatMoney(amountPaidCents, booking.currency)}
+                    {amountRefundedCents > 0 && (
+                      <>
+                        , Refunded:{" "}
+                        {formatMoney(amountRefundedCents, booking.currency)}
+                      </>
+                    )}
+                    , New Total:{" "}
+                    {formatMoney(booking.totalCents, booking.currency)})
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* ✅ Updated Payment status with balance display */}
-          <div style={{ marginTop: 12 }}>
-            <div className='emptyTitle'>Payment:</div>
-            <div className={styles.paymentInfo}>
-              <span className={`badge badge_${paymentStatusDisplay.tone}`}>
-                {paymentStatusDisplay.label}
-              </span>
-              {booking.totalCents > 0 && (
-                <span className={styles.paymentAmount}>
-                  {formatMoney(booking.totalCents, booking.currency)}
-                </span>
-              )}
-              {booking.payment?.paidAt && (
-                <span className={styles.paymentDate}>
-                  on {formatDateTime(booking.payment.paidAt)}
-                </span>
-              )}
-            </div>
-
-            {/* ✅ Show balance due if applicable */}
-            {paymentStatusDisplay.hasBalanceDue && (
-              <div className={styles.balanceDueAlert}>
-                <strong>Balance Due:</strong>{" "}
-                {formatMoney(
-                  paymentStatusDisplay.balanceDueCents,
-                  booking.currency,
-                )}
-                <span className={styles.balanceDetail}>
-                  (Paid: {formatMoney(amountPaidCents, booking.currency)} of{" "}
-                  {formatMoney(booking.totalCents, booking.currency)})
-                </span>
-              </div>
-            )}
-
-            {/* ✅ Show refund due if applicable */}
-            {paymentStatusDisplay.hasRefundDue && (
-              <div className={styles.refundDueAlert}>
-                <strong>Refund Due:</strong>{" "}
-                {formatMoney(
-                  paymentStatusDisplay.refundDueCents,
-                  booking.currency,
-                )}
-                <span className={styles.refundDetail}>
-                  (Paid: {formatMoney(amountPaidCents, booking.currency)}
-                  {amountRefundedCents > 0 && (
-                    <>
-                      , Refunded:{" "}
-                      {formatMoney(amountRefundedCents, booking.currency)}
-                    </>
-                  )}
-                  , New Total:{" "}
-                  {formatMoney(booking.totalCents, booking.currency)})
-                </span>
-              </div>
-            )}
+          {/* ✅ Approval Toggle in boxRight */}
+          <div className={styles.boxRight}>
+            <ApprovalToggleClient
+              bookingId={booking.id}
+              isApproved={isApproved}
+              isPaid={isPaid}
+              bookingStatus={booking.status}
+            />
           </div>
         </div>
 
@@ -552,7 +569,7 @@ export default async function AdminBookingDetailPage({
       </header>
 
       <Card title='Trip'>
-        <KeyVal k='Date' v={formatDateTime(booking.pickupAt)} />{" "}
+        <KeyVal k='Date' v={formatDateTime(booking.pickupAt)} />
         <KeyVal
           k='Distance / duration'
           v={`${booking.distanceMiles ?? "—"} mi • ${
@@ -592,7 +609,6 @@ export default async function AdminBookingDetailPage({
           k='Passengers / luggage'
           v={`${booking.passengers} / ${booking.luggage}`}
         />
-        
         {booking.specialRequests ? (
           <KeyVal k='Special requests' v={booking.specialRequests} />
         ) : null}
@@ -650,8 +666,10 @@ export default async function AdminBookingDetailPage({
           pricingData={pricingData}
         />
       </Card>
-      <Card title='Approve & price'>
-        <ApprovePriceForm
+
+      {/* ✅ Separated Price Card */}
+      <Card title='Price'>
+        <PriceForm
           bookingId={booking.id}
           currency={booking.currency}
           subtotalCents={booking.subtotalCents}
@@ -665,7 +683,6 @@ export default async function AdminBookingDetailPage({
       <Card title='Internal Notes'>
         <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
       </Card>
-
 
       <Card title='Assign (allowed before payment)'>
         {drivers.length === 0 ? (
