@@ -27,12 +27,11 @@ export default async function AdminLayout({
   const isAdmin = roles.includes("ADMIN");
   if (!isAdmin) redirect("/");
 
-  const [pendingReview, pendingPayment] = await Promise.all([
-    db.booking.count({ where: { status: "PENDING_REVIEW" } }),
-    db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
-  ]);
+  const pendingReview = await db.booking.count({
+    where: { status: "PENDING_REVIEW" },
+  });
 
-  const bookingNeedsAttentionCount = pendingReview + pendingPayment;
+  const bookingNeedsAttentionCount = pendingReview;
 
   const fullName = session.user?.name?.trim() ?? "";
   const firstName = fullName.split(/\s+/)[0] || "";

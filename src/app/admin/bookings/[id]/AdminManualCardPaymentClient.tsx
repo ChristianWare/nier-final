@@ -46,6 +46,8 @@ export default function AdminManualCardPaymentClient({
 }) {
   const [clientSecret, setClientSecret] = useState<string>("");
   const [creating, setCreating] = useState(false);
+  // ✅ NEW: Track if payment just completed (to hide the form immediately)
+  const [justPaid, setJustPaid] = useState(false);
 
   // Calculate balance due
   const balanceDueCents = amountCents - amountPaidCents;
@@ -61,8 +63,8 @@ export default function AdminManualCardPaymentClient({
     );
   }
 
-  // Only show "Payment successful" if fully paid (no balance due)
-  if (isFullyPaid) {
+  // ✅ Show success state if fully paid OR just paid (immediate UI feedback)
+  if (isFullyPaid || justPaid) {
     return (
       <Button
         disabled
@@ -163,6 +165,7 @@ export default function AdminManualCardPaymentClient({
         currency={currency}
         amountToCharge={hasBalanceDue ? balanceDueCents : amountCents}
         isBalancePayment={hasBalanceDue}
+        onPaymentSuccess={() => setJustPaid(true)}
       />
     </Elements>
   );
@@ -173,11 +176,13 @@ function ManualPaymentInner({
   currency,
   amountToCharge,
   isBalancePayment,
+  onPaymentSuccess,
 }: {
   clientSecret: string;
   currency: string;
   amountToCharge: number;
   isBalancePayment: boolean;
+  onPaymentSuccess: () => void;
 }) {
   const router = useRouter();
   const stripe = useStripe();
@@ -232,7 +237,14 @@ function ManualPaymentInner({
             ? "Balance payment succeeded."
             : "Payment succeeded.",
         );
-        router.refresh(); // ✅ updates Payment status on the server page
+
+        // ✅ Notify parent to show success state immediately (hides card form)
+        onPaymentSuccess();
+
+        // ✅ Wait for webhook to process, then refresh page data
+        // Webhook typically processes within 1-3 seconds
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+        router.refresh();
         return;
       }
 
@@ -263,7 +275,7 @@ function ManualPaymentInner({
           : `Charging ${formatMoney(amountToCharge)}`}
       </div>
 
-      {/* ✅ Card-only fields (no Affirm / Klarna / etc) */}
+      {/* Card-only fields */}
       <div
         style={{
           border: "1px solid rgba(0,0,0,0.12)",

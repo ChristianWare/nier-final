@@ -964,7 +964,7 @@ export default async function AdminBookingDetailPage({
                     <span className={styles.eventActor}>{actorLabel}</span>
                     {/* ✅ NEW: Show event details if available */}
                     {eventDetails && (
-                      <div className={styles.eventDetails}>{eventDetails}</div>
+                      <div className={`${styles.eventDetails} miniNote`}>{eventDetails}</div>
                     )}
                   </div>
                   <p className='val'>{formatDateTime(new Date(e.createdAt))}</p>
@@ -982,7 +982,7 @@ export default async function AdminBookingDetailPage({
       <Card title='Issue Refund' borderWarn stylesWarn>
         <div style={{ marginTop: 18 }}>
           <div className='miniNote' style={{ marginTop: 6 }}>
-            You can refund clients manually here as well, after they pay you.
+            You can refund clients manually here after they pay you.
           </div>
 
           <div style={{ marginTop: 10 }}>

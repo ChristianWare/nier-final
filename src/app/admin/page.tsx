@@ -19,6 +19,9 @@ import AdminActivityFeed, {
 import AdminRecentBookingRequests, {
   RecentBookingRequestItem,
 } from "@/components/admin/AdminRecentBookingRequests/AdminRecentBookingRequests";
+import AdminUpcomingRides, {
+  UpcomingRideItem,
+} from "@/components/admin/Adminupcomingrides/Adminupcomingrides";
 import AdminFinanceSnapshot from "@/components/admin/AdminFinanceSnapshot/AdminFinanceSnapshot";
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
@@ -278,6 +281,8 @@ export default async function AdminHome() {
 
     recentBookingRequestsRaw,
 
+    upcomingRidesRaw,
+
     recentStatusEvents,
     recentAssignments,
     recentPaymentsReceived,
@@ -473,9 +478,10 @@ export default async function AdminHome() {
       distinct: ["id"],
     }),
 
+    // Recent booking requests - only PENDING_REVIEW
     db.booking.findMany({
       where: {
-        status: { in: ["PENDING_REVIEW", "PENDING_PAYMENT"] as any },
+        status: "PENDING_REVIEW",
       },
       orderBy: [{ createdAt: "desc" }],
       take: 25,
@@ -494,6 +500,35 @@ export default async function AdminHome() {
         guestPhone: true,
         serviceType: { select: { name: true, airportLeg: true } },
         vehicle: { select: { name: true } },
+      },
+    }),
+
+    // Upcoming rides - CONFIRMED bookings with pickup in the future, ordered by soonest first
+    db.booking.findMany({
+      where: {
+        status: "CONFIRMED",
+        pickupAt: { gte: now },
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      take: 10,
+      select: {
+        id: true,
+        status: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        totalCents: true,
+        currency: true,
+        user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        serviceType: { select: { name: true } },
+        vehicle: { select: { name: true } },
+        assignment: {
+          select: {
+            driver: { select: { name: true, email: true } },
+          },
+        },
       },
     }),
 
@@ -656,6 +691,31 @@ export default async function AdminHome() {
             },
       };
     });
+
+  // Transform upcoming rides data
+  const upcomingRides: UpcomingRideItem[] = upcomingRidesRaw.map((b: any) => {
+    const customerName =
+      b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+    const customerEmail = b.user?.email || b.guestEmail || null;
+    const driverName = b.assignment?.driver?.name?.trim() || null;
+
+    return {
+      id: b.id,
+      status: b.status,
+      pickupAtIso: new Date(b.pickupAt).toISOString(),
+      pickupAddress: b.pickupAddress,
+      dropoffAddress: b.dropoffAddress,
+      serviceName: b.serviceType?.name ?? "—",
+      vehicleName: b.vehicle?.name ?? null,
+      driverName,
+      totalCents: b.totalCents ?? 0,
+      currency: b.currency ?? "usd",
+      customer: {
+        name: customerName,
+        email: customerEmail,
+      },
+    };
+  });
 
   const assignedActiveUnitIdsToday = new Set(
     (assignedActiveUnitsToday as any[]).map((u) => u.id),
@@ -832,6 +892,12 @@ export default async function AdminHome() {
 
       <AdminRecentBookingRequests
         items={recentBookingRequests}
+        timeZone={PHX_TZ}
+        bookingHrefBase='/admin/bookings'
+      />
+
+      <AdminUpcomingRides
+        items={upcomingRides}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />

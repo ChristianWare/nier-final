@@ -86,6 +86,29 @@ export default function AdminRideCalendar({
     return days;
   }, [monthDate]);
 
+  // Calculate monthly stats
+  const monthStats = useMemo(() => {
+    const monthKey = monthKeyFromUTCNoon(monthDate);
+    let totalBookings = 0;
+    let totalBlackouts = 0;
+
+    // Count bookings for the current month
+    Object.entries(countsByYmd).forEach(([ymd, count]) => {
+      if (ymd.startsWith(monthKey)) {
+        totalBookings += count;
+      }
+    });
+
+    // Count blackouts for the current month
+    Object.entries(blackoutsByYmd).forEach(([ymd, isBlackout]) => {
+      if (ymd.startsWith(monthKey) && isBlackout) {
+        totalBlackouts += 1;
+      }
+    });
+
+    return { totalBookings, totalBlackouts };
+  }, [monthDate, countsByYmd, blackoutsByYmd]);
+
   function pushMonth(next: Date) {
     const mk = monthKeyFromUTCNoon(next);
     const sp = new URLSearchParams(searchParams?.toString() ?? "");
@@ -255,6 +278,25 @@ export default function AdminRideCalendar({
             </button>
           );
         })}
+      </div>
+
+      <div className={styles.monthStats}>
+        <div className={styles.monthStatsItem} style={{ marginBottom: "1rem" }}>
+          <span className='subheading' style={{ textDecoration: "underline" }}>
+            Bookings this month:
+          </span>{" "}
+          <span className='subheading emptyTitle'>
+            {monthStats.totalBookings}
+          </span>
+        </div>
+        <div className={styles.monthStatsItem}>
+          <span className='subheading' style={{ textDecoration: "underline" }}>
+            Blackout dates:
+          </span>{" "}
+          <span className='subheading emptyTitle'>
+            {monthStats.totalBlackouts}
+          </span>
+        </div>
       </div>
 
       <div className={styles.mobileLegend}>

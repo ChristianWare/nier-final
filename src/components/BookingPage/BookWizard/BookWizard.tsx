@@ -742,6 +742,35 @@ export default function BookingWizard({
                   ) : null}
 
                   <div style={{ display: "grid", gap: 8 }}>
+                    <label
+                      className={labelCx(
+                        Boolean(errors.pickupAtDate) ||
+                          Boolean(errors.pickupAtTime),
+                      )}
+                    >
+                      Pickup date & time
+                    </label>
+
+                    <BookingDateTimeWithBlackouts
+                      date={pickupAtDate}
+                      time={pickupAtTime}
+                      onChangeDate={(d) => {
+                        setValue("pickupAtDate", d, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors("pickupAtDate");
+                      }}
+                      onChangeTime={(t) => {
+                        setValue("pickupAtTime", t, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors("pickupAtTime");
+                      }}
+                    />
+                  </div>
+                  <div style={{ display: "grid", gap: 8, marginTop: 50 }}>
                     <label className={labelCx(Boolean(errors.serviceTypeId))}>
                       Service
                     </label>
@@ -791,36 +820,6 @@ export default function BookingWizard({
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <label
-                      className={labelCx(
-                        Boolean(errors.pickupAtDate) ||
-                          Boolean(errors.pickupAtTime),
-                      )}
-                    >
-                      Pickup date & time
-                    </label>
-
-                    <BookingDateTimeWithBlackouts
-                      date={pickupAtDate}
-                      time={pickupAtTime}
-                      onChangeDate={(d) => {
-                        setValue("pickupAtDate", d, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                        clearErrors("pickupAtDate");
-                      }}
-                      onChangeTime={(t) => {
-                        setValue("pickupAtTime", t, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                        clearErrors("pickupAtTime");
-                      }}
-                    />
                   </div>
 
                   <Grid2>

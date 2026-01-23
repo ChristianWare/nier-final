@@ -56,10 +56,10 @@
   white-space: nowrap;
 }
 
-.btn:hover {
+/* .btn:hover {
   background: #f7f7f7;
   color: var(--black);
-}
+} */
 
 .primary {
   background: #111;

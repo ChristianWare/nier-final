@@ -19,7 +19,7 @@ import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
 import Plane from "@/components/shared/icons/Plane/Plane";
 import Money from "@/components/shared/icons/Money/Money";
-import Clock from "@/components/shared/icons/Clock/Clock";
+// import Clock from "@/components/shared/icons/Clock/Clock";
 import Report from "@/components/shared/icons/Report/Report";
 
 const NAV_ITEMS = [
@@ -37,7 +37,7 @@ const NAV_ITEMS = [
   // { title: "Drivers", href: "/admin/drivers", icon: <Wheel /> },
   { title: "Airports", href: "/admin/airports", icon: <Plane /> },
   { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
-  { title: "Activity", href: "/admin/activity", icon: <Clock /> },
+  // { title: "Activity", href: "/admin/activity", icon: <Clock /> },
   { title: "Reports", href: "/admin/reports", icon: <Report /> },
   { title: "Settings", href: "/admin/settings", icon: <Cog /> },
 ];
