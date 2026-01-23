@@ -108,7 +108,7 @@ export default function AdminUpcomingRides({
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>Upcoming rides</h2>
-          <Link href='/admin/bookings' className={styles.viewAllLink}>
+          <Link href='/admin/bookings' className='backBtn'>
             View all bookings →
           </Link>
         </div>

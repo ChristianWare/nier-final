@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./BookingsPage.module.css";
 import Link from "next/link";
@@ -726,9 +727,9 @@ export default async function AdminBookingsPage({
                           <div className={styles.cellStrong}>
                             {createdByTop}
                           </div>
-                          {createdBySub ? (
+                          {/* {createdBySub ? (
                             <div className={styles.cellSub}>{createdBySub}</div>
-                          ) : null}
+                          ) : null} */}
                         </div>
                       </td>
 
