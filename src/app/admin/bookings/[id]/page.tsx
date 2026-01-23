@@ -593,7 +593,8 @@ export default async function AdminBookingDetailPage({
             {customerBookingCount > 0 && customerEmail && (
               <Link
                 href={`/admin/bookings?q=${encodeURIComponent(customerEmail)}`}
-                className='backBtn' style={{ marginTop: "0.5rem", display: "inline-block" }}
+                className='backBtn'
+                style={{ marginTop: "0.5rem", display: "inline-block" }}
               >
                 View {customerBookingCount} other booking
                 {customerBookingCount !== 1 ? "s" : ""} from this customer →
@@ -737,27 +738,6 @@ export default async function AdminBookingDetailPage({
               />
             </div>
           </div>
-
-          {/* ✅ Issue Refund Section - Always visible */}
-          <div style={{ marginTop: 18 }}>
-            <div className='cardTitle h5'>Issue Refund</div>
-            <div className='miniNote' style={{ marginTop: 6 }}>
-              You can refund clients manually here as well, after they pay you.
-            </div>
-
-            <div style={{ marginTop: 10 }}>
-              <RefundButton
-                bookingId={booking.id}
-                totalCents={booking.totalCents}
-                amountPaidCents={amountPaidCents}
-                amountRefundedCents={amountRefundedCents}
-                currency={booking.currency}
-                stripePaymentIntentId={
-                  booking.payment?.stripePaymentIntentId ?? null
-                }
-              />
-            </div>
-          </div>
         </div>
       </Card>
 
@@ -829,9 +809,6 @@ export default async function AdminBookingDetailPage({
       </Card>
 
       {/* Notes/Comments section */}
-      <Card title='Internal Notes'>
-        <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
-      </Card>
 
       <Card title='Status timeline'>
         {booking.statusEvents.length === 0 ? (
@@ -867,15 +844,40 @@ export default async function AdminBookingDetailPage({
         )}
       </Card>
 
+      <Card title='Internal Notes'>
+        <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
+      </Card>
+
+      <Card title='Issue Refund' borderWarn>
+        <div style={{ marginTop: 18 }}>
+          <div className='miniNote' style={{ marginTop: 6 }}>
+            You can refund clients manually here as well, after they pay you.
+          </div>
+
+          <div style={{ marginTop: 10 }}>
+            <RefundButton
+              bookingId={booking.id}
+              totalCents={booking.totalCents}
+              amountPaidCents={amountPaidCents}
+              amountRefundedCents={amountRefundedCents}
+              currency={booking.currency}
+              stripePaymentIntentId={
+                booking.payment?.stripePaymentIntentId ?? null
+              }
+            />
+          </div>
+        </div>
+      </Card>
+
       {/* Danger Zone */}
       <DeleteBookingDangerZoneClient bookingId={booking.id} />
     </section>
   );
 }
 
-function Card({ title, children }: { title: string; children: ReactNode }) {
+function Card({ title, children, borderWarn }: { title: string; children: ReactNode; borderWarn?: boolean }) {
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${borderWarn ? styles.borderWarn : ''}`}>
       <div className={styles.cardTop}>
         <div className='cardTitle h4'>{title}</div>
       </div>

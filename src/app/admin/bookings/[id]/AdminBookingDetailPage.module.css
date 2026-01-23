@@ -37,6 +37,10 @@
   width: 100%;
 }
 
+.borderWarn {
+  border-color: var(--warning);
+}
+
 .cardTop {
   margin-bottom: 1rem;
 }
@@ -151,7 +155,7 @@
 
 /* Danger zone */
 .dangerCard {
-  border: 1px solid rgba(255, 0, 0, 0.18);
+  border: 1px solid rgba(255, 0, 0, 0.6);
   background: rgba(255, 0, 0, 0.03);
 }
 
