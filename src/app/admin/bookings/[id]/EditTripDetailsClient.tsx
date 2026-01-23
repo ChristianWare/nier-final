@@ -1,13 +1,38 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { updateTripDetails } from "../../../../../actions/admin/bookings";
+import {
+  updateTripDetails,
+  updateTripDetailsAndPrice,
+} from "../../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
 import styles from "./AdminBookingDetailPage.module.css";
 import RoutePickerAdmin, {
   RouteData,
 } from "@/components/admin/Routepickeradmin/Routepickeradmin";
+
+type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
+
+export type PricingData = {
+  pricingStrategy: PricingStrategy;
+  // Service pricing
+  serviceMinFareCents: number;
+  serviceBaseFeeCents: number;
+  servicePerMileCents: number;
+  servicePerMinuteCents: number;
+  servicePerHourCents: number;
+  // Vehicle pricing
+  vehicleBaseFareCents: number;
+  vehiclePerMileCents: number;
+  vehiclePerMinuteCents: number;
+  vehiclePerHourCents: number;
+  vehicleMinHours: number;
+  // Current booking
+  currentTotalCents: number;
+  hoursRequested: number | null;
+  currency: string;
+};
 
 type TripData = {
   pickupAt: string;
@@ -31,12 +56,92 @@ type TripData = {
   flightGate: string | null;
 };
 
+function formatMoney(cents: number, currency = "USD") {
+  const n = cents / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+// Client-side pricing calculation (mirrors server calcQuoteCents)
+function calculateQuote(
+  pricing: PricingData,
+  distanceMiles: number | null,
+  durationMinutes: number | null,
+): number {
+  const {
+    pricingStrategy,
+    serviceMinFareCents,
+    serviceBaseFeeCents,
+    servicePerMileCents,
+    servicePerMinuteCents,
+    servicePerHourCents,
+    vehicleBaseFareCents,
+    vehiclePerMileCents,
+    vehiclePerMinuteCents,
+    vehiclePerHourCents,
+    vehicleMinHours,
+    hoursRequested,
+  } = pricing;
+
+  // Combine service + vehicle pricing
+  const minFareCents = serviceMinFareCents;
+  const baseFeeCents = serviceBaseFeeCents + vehicleBaseFareCents;
+  const perMileCents = servicePerMileCents + vehiclePerMileCents;
+  const perMinuteCents = servicePerMinuteCents + vehiclePerMinuteCents;
+  const perHourCents = servicePerHourCents + vehiclePerHourCents;
+
+  let baseCharge = 0;
+  let distanceCharge = 0;
+  let timeCharge = 0;
+
+  switch (pricingStrategy) {
+    case "POINT_TO_POINT": {
+      baseCharge = baseFeeCents;
+      if (distanceMiles != null && distanceMiles > 0) {
+        distanceCharge = Math.round(distanceMiles * perMileCents);
+      }
+      if (durationMinutes != null && durationMinutes > 0) {
+        timeCharge = Math.round(durationMinutes * perMinuteCents);
+      }
+      break;
+    }
+    case "HOURLY": {
+      baseCharge = baseFeeCents;
+      const requested = hoursRequested ?? 0;
+      const minHours = vehicleMinHours ?? 0;
+      const billable = Math.max(Math.ceil(requested), Math.ceil(minHours));
+      if (billable > 0) {
+        timeCharge = Math.round(billable * perHourCents);
+      }
+      break;
+    }
+    case "FLAT": {
+      baseCharge = baseFeeCents;
+      break;
+    }
+  }
+
+  let subtotalCents = baseCharge + distanceCharge + timeCharge;
+
+  // Apply minimum fare
+  if (subtotalCents < minFareCents) {
+    subtotalCents = minFareCents;
+  }
+
+  return subtotalCents;
+}
+
 export default function EditTripDetailsClient({
   bookingId,
   initialData,
+  pricingData,
 }: {
   bookingId: string;
   initialData: TripData;
+  pricingData?: PricingData;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -68,6 +173,41 @@ export default function EditTripDetailsClient({
     durationMinutes: initialData.durationMinutes,
   });
 
+  // Calculate suggested price based on new route
+  const suggestedPriceCents = useMemo(() => {
+    if (!pricingData) return null;
+    return calculateQuote(
+      pricingData,
+      routeData.distanceMiles,
+      routeData.durationMinutes,
+    );
+  }, [pricingData, routeData.distanceMiles, routeData.durationMinutes]);
+
+  // Check if route has changed
+  const routeChanged = useMemo(() => {
+    const origMiles = initialData.distanceMiles;
+    const origMins = initialData.durationMinutes;
+    const newMiles = routeData.distanceMiles;
+    const newMins = routeData.durationMinutes;
+
+    // Consider changed if distance differs by more than 0.1 miles or duration differs
+    const milesDiff = Math.abs((newMiles ?? 0) - (origMiles ?? 0));
+    const minsDiff = Math.abs((newMins ?? 0) - (origMins ?? 0));
+
+    return milesDiff > 0.1 || minsDiff > 1;
+  }, [
+    initialData.distanceMiles,
+    initialData.durationMinutes,
+    routeData.distanceMiles,
+    routeData.durationMinutes,
+  ]);
+
+  // Check if suggested price differs from current
+  const priceChanged = useMemo(() => {
+    if (!pricingData || suggestedPriceCents === null) return false;
+    return suggestedPriceCents !== pricingData.currentTotalCents;
+  }, [pricingData, suggestedPriceCents]);
+
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
@@ -81,7 +221,6 @@ export default function EditTripDetailsClient({
 
   function handleRouteChange(data: RouteData) {
     setRouteData(data);
-    // Update formData with new route info
     setFormData((prev) => ({
       ...prev,
       pickupAddress: data.pickup.address,
@@ -97,12 +236,14 @@ export default function EditTripDetailsClient({
     }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(
+    e: React.FormEvent | React.MouseEvent,
+    applyNewPrice: boolean = false,
+  ) {
     e.preventDefault();
     setError(null);
     setSuccess(false);
 
-    // Validate route data
     if (!routeData.pickup.address || !routeData.dropoff.address) {
       setError("Please enter both pickup and dropoff addresses.");
       return;
@@ -130,8 +271,16 @@ export default function EditTripDetailsClient({
     fd.append("flightTerminal", formData.flightTerminal || "");
     fd.append("flightGate", formData.flightGate || "");
 
+    // If applying new price, add the suggested price
+    if (applyNewPrice && suggestedPriceCents !== null) {
+      fd.append("newTotalCents", suggestedPriceCents.toString());
+    }
+
     startTransition(async () => {
-      const result = await updateTripDetails(fd);
+      const result = applyNewPrice
+        ? await updateTripDetailsAndPrice(fd)
+        : await updateTripDetails(fd);
+
       if (result.error) {
         setError(result.error);
       } else {
@@ -182,8 +331,13 @@ export default function EditTripDetailsClient({
     );
   }
 
+  const currency = pricingData?.currency ?? "USD";
+
   return (
-    <form onSubmit={handleSubmit} className={styles.editTripForm}>
+    <form
+      onSubmit={(e) => handleSubmit(e, false)}
+      className={styles.editTripForm}
+    >
       <div className={styles.editFormSection}>
         <div className='cardTitle h4'>Edit Trip Details</div>
         <br />
@@ -219,6 +373,94 @@ export default function EditTripDetailsClient({
             disabled={isPending}
           />
         </div>
+
+        {/* Pricing Comparison Section */}
+        {pricingData && (
+          <div className={styles.pricingComparison}>
+            <div className='cardTitle h5' style={{ marginBottom: 12 }}>
+              Pricing
+            </div>
+
+            <div className={styles.pricingGrid}>
+              <div className={styles.pricingItem}>
+                <span className={styles.pricingLabel}>Current Price</span>
+                <span className={styles.pricingValue}>
+                  {formatMoney(pricingData.currentTotalCents, currency)}
+                </span>
+                <span className={styles.pricingDetail}>
+                  {initialData.distanceMiles?.toFixed(1) ?? "—"} mi •{" "}
+                  {initialData.durationMinutes ?? "—"} min
+                </span>
+              </div>
+
+              {routeChanged && suggestedPriceCents !== null && (
+                <div
+                  className={`${styles.pricingItem} ${
+                    priceChanged ? styles.pricingItemHighlight : ""
+                  }`}
+                >
+                  <span className={styles.pricingLabel}>Suggested Price</span>
+                  <span
+                    className={`${styles.pricingValue} ${
+                      priceChanged
+                        ? suggestedPriceCents > pricingData.currentTotalCents
+                          ? styles.priceIncrease
+                          : styles.priceDecrease
+                        : ""
+                    }`}
+                  >
+                    {formatMoney(suggestedPriceCents, currency)}
+                  </span>
+                  <span className={styles.pricingDetail}>
+                    {routeData.distanceMiles?.toFixed(1) ?? "—"} mi •{" "}
+                    {routeData.durationMinutes ?? "—"} min
+                  </span>
+                  {priceChanged && (
+                    <span className={styles.priceDiff}>
+                      {suggestedPriceCents > pricingData.currentTotalCents
+                        ? "+"
+                        : ""}
+                      {formatMoney(
+                        suggestedPriceCents - pricingData.currentTotalCents,
+                        currency,
+                      )}
+                      {suggestedPriceCents < pricingData.currentTotalCents && (
+                        <span className={styles.refundNote}>
+                          {" "}
+                          (refund may be due)
+                        </span>
+                      )}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {routeChanged && priceChanged && (
+              <div className={styles.pricingActions}>
+                <p className={styles.pricingNote}>
+                  {suggestedPriceCents! > pricingData.currentTotalCents
+                    ? "The route has increased. Would you like to update the price?"
+                    : "The route has decreased. Would you like to update the price? A refund may be due to the customer."}
+                </p>
+                <div className={styles.pricingButtons}>
+                  <Button
+                    text={`Apply Suggested Price (${formatMoney(suggestedPriceCents!, currency)})`}
+                    btnType='green'
+                    type='button'
+                    onClick={(e) => handleSubmit(e, true)}
+                    disabled={isPending}
+                  />
+                  <span className={styles.pricingOr}>or</span>
+                  <span className={styles.pricingHint}>
+                    Save changes and adjust price manually in &quot;Approve &
+                    price&quot; below
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className={styles.editFormRowDouble}>
           <label className={`${styles.editLabel} emptyTitle`}>

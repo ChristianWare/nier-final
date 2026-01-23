@@ -420,17 +420,19 @@ model Payment {
   stripeCheckoutSessionId String? @unique
   stripePaymentIntentId   String? @unique
   stripeCustomerId        String?
+  stripeRefundId          String? // ✅ NEW: Track Stripe refund ID
 
   checkoutUrl String? @db.Text
 
   amountSubtotalCents Int    @default(0)
   amountTotalCents    Int    @default(0)
-  // ✅ NEW: Track how much has actually been paid (for partial/balance payments)
   amountPaidCents     Int    @default(0)
+  amountRefundedCents Int    @default(0) // ✅ NEW: Track refunded amount
   currency            String @default("usd")
 
   receiptUrl String?
   paidAt     DateTime?
+  refundedAt DateTime? // ✅ NEW: Track when refund was issued
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

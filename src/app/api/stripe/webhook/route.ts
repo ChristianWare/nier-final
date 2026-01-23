@@ -351,6 +351,63 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
+    // Handle refund events
+    if (
+      event.type === "charge.refunded" ||
+      event.type === "charge.refund.updated"
+    ) {
+      const charge = event.data.object as any;
+      const paymentIntentId = str(charge?.payment_intent);
+
+      if (!paymentIntentId) return NextResponse.json({ received: true });
+
+      const payment = await db.payment.findUnique({
+        where: { stripePaymentIntentId: paymentIntentId },
+        select: { id: true, bookingId: true, amountPaidCents: true },
+      });
+
+      if (!payment) return NextResponse.json({ received: true });
+
+      // Calculate total refunded from the charge object
+      const amountRefunded = charge?.amount_refunded ?? 0;
+
+      console.log(
+        "➡️ Refund event:",
+        event.type,
+        "paymentIntentId:",
+        paymentIntentId,
+        "amountRefunded:",
+        amountRefunded,
+      );
+
+      // Determine new status based on refund amount
+      let newStatus: "PAID" | "PARTIALLY_REFUNDED" | "REFUNDED" = "PAID";
+      if (amountRefunded >= payment.amountPaidCents) {
+        newStatus = "REFUNDED";
+      } else if (amountRefunded > 0) {
+        newStatus = "PARTIALLY_REFUNDED";
+      }
+
+      await db.payment.update({
+        where: { id: payment.id },
+        data: {
+          amountRefundedCents: amountRefunded,
+          status: newStatus,
+          refundedAt: amountRefunded > 0 ? new Date() : undefined,
+        },
+      });
+
+      // Update booking status if fully refunded
+      if (newStatus === "REFUNDED") {
+        await db.booking.update({
+          where: { id: payment.bookingId },
+          data: { status: "REFUNDED" },
+        });
+      }
+
+      return NextResponse.json({ received: true });
+    }
+
     return NextResponse.json({ received: true });
   } catch (err: any) {
     console.error("❌ stripe webhook handler error:", err);

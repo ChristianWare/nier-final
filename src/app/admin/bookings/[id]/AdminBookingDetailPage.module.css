@@ -477,6 +477,124 @@
 }
 
 /* =============================================================================
+   Pricing Comparison Section
+   ============================================================================= */
+
+.pricingComparison {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.pricingItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.pricingItemHighlight {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.pricingLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.pricingValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pricingDetail {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.priceDiff {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  width: fit-content;
+}
+
+.priceIncrease {
+  color: #dc2626;
+}
+
+.priceIncrease + .priceDiff,
+.priceIncrease ~ .priceDiff {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.priceDecrease {
+  color: #16a34a;
+}
+
+.priceDecrease + .priceDiff,
+.priceDecrease ~ .priceDiff {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.pricingActions {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pricingNote {
+  font-size: 0.95rem;
+  color: #475569;
+  margin-bottom: 0.75rem;
+}
+
+.pricingButtons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pricingOr {
+  font-size: 0.9rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.pricingHint {
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.refundNote {
+  font-size: 0.8rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* =============================================================================
    Customer History Link
    ============================================================================= */
 
@@ -567,6 +685,31 @@
 }
 
 /* =============================================================================
+   ✅ NEW: Refund Due Alert
+   ============================================================================= */
+
+.refundDueAlert {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #ecfdf5;
+  border: 1px solid #10b981;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #065f46;
+}
+
+.refundDueAlert strong {
+  color: #047857;
+}
+
+.refundDetail {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+/* =============================================================================
    Responsive
    ============================================================================= */
 
@@ -596,5 +739,18 @@
 
   .balanceDueAlert {
     font-size: 0.9rem;
+  }
+
+  .pricingGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pricingButtons {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pricingOr {
+    display: none;
   }
 }

@@ -13,9 +13,10 @@ import DeleteBookingDangerZoneClient from "./DeleteBookingDangerZoneClient";
 import AdminManualCardPaymentClient from "./AdminManualCardPaymentClient";
 import QuickActionsClient from "./QuickActionsClient";
 import BookingNotesClient from "./BookingNotesClient";
-import EditTripDetailsClient from "./EditTripDetailsClient";
+import EditTripDetailsClient, { PricingData } from "./EditTripDetailsClient";
 import DuplicateBookingClient from "./DuplicateBookingClient";
 import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
+import RefundButton from "@/components/admin/RefundButton/RefundButton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -131,27 +132,67 @@ function getEventActorLabel(
   return `User: ${name}`;
 }
 
-// ✅ Updated payment status display with balance handling
+// ✅ Updated payment status display with balance and refund handling
 function getPaymentStatusDisplay(
   paymentStatus: string | null | undefined,
   totalCents: number,
   amountPaidCents: number,
+  amountRefundedCents: number,
 ): {
   label: string;
   tone: BadgeTone;
   hasBalanceDue: boolean;
   balanceDueCents: number;
+  hasRefundDue: boolean;
+  refundDueCents: number;
 } {
-  const balanceDueCents = totalCents - amountPaidCents;
-  const hasBalanceDue = amountPaidCents > 0 && balanceDueCents > 0;
+  const netPaidCents = amountPaidCents - amountRefundedCents;
+  const balanceDueCents = totalCents - netPaidCents;
+  const hasBalanceDue = netPaidCents > 0 && balanceDueCents > 0;
+  const hasRefundDue = netPaidCents > totalCents;
+  const refundDueCents = hasRefundDue ? netPaidCents - totalCents : 0;
+
+  if (paymentStatus === "REFUNDED") {
+    return {
+      label: "Refunded",
+      tone: "neutral",
+      hasBalanceDue: false,
+      balanceDueCents: 0,
+      hasRefundDue: false,
+      refundDueCents: 0,
+    };
+  }
+
+  if (paymentStatus === "PARTIALLY_REFUNDED") {
+    return {
+      label: "Partially Refunded",
+      tone: "neutral",
+      hasBalanceDue,
+      balanceDueCents: hasBalanceDue ? balanceDueCents : 0,
+      hasRefundDue,
+      refundDueCents,
+    };
+  }
 
   if (paymentStatus === "PAID") {
+    if (hasRefundDue) {
+      return {
+        label: "Overpaid",
+        tone: "warn",
+        hasBalanceDue: false,
+        balanceDueCents: 0,
+        hasRefundDue: true,
+        refundDueCents,
+      };
+    }
     if (hasBalanceDue) {
       return {
         label: "Partial Payment",
         tone: "warn",
         hasBalanceDue: true,
         balanceDueCents,
+        hasRefundDue: false,
+        refundDueCents: 0,
       };
     }
     return {
@@ -159,6 +200,8 @@ function getPaymentStatusDisplay(
       tone: "good",
       hasBalanceDue: false,
       balanceDueCents: 0,
+      hasRefundDue: false,
+      refundDueCents: 0,
     };
   }
 
@@ -169,6 +212,8 @@ function getPaymentStatusDisplay(
         tone: "warn",
         hasBalanceDue: false,
         balanceDueCents: 0,
+        hasRefundDue: false,
+        refundDueCents: 0,
       };
     case "FAILED":
       return {
@@ -176,20 +221,8 @@ function getPaymentStatusDisplay(
         tone: "bad",
         hasBalanceDue: false,
         balanceDueCents: 0,
-      };
-    case "REFUNDED":
-      return {
-        label: "Refunded",
-        tone: "neutral",
-        hasBalanceDue: false,
-        balanceDueCents: 0,
-      };
-    case "PARTIALLY_REFUNDED":
-      return {
-        label: "Partially Refunded",
-        tone: "neutral",
-        hasBalanceDue: false,
-        balanceDueCents: 0,
+        hasRefundDue: false,
+        refundDueCents: 0,
       };
     case "NONE":
     default:
@@ -198,6 +231,8 @@ function getPaymentStatusDisplay(
         tone: "bad",
         hasBalanceDue: false,
         balanceDueCents: 0,
+        hasRefundDue: false,
+        refundDueCents: 0,
       };
   }
 }
@@ -328,6 +363,7 @@ export default async function AdminBookingDetailPage({
 
   const isPaid = booking.payment?.status === "PAID";
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
+  const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
 
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
@@ -345,11 +381,12 @@ export default async function AdminBookingDetailPage({
     ? "good"
     : badgeTone(currentStatus);
 
-  // ✅ Updated payment status display with balance handling
+  // ✅ Updated payment status display with balance and refund handling
   const paymentStatusDisplay = getPaymentStatusDisplay(
     booking.payment?.status,
     booking.totalCents,
     amountPaidCents,
+    amountRefundedCents,
   );
 
   // ✅ Prepare data for EditTripDetailsClient (with route data)
@@ -376,6 +413,31 @@ export default async function AdminBookingDetailPage({
     flightTerminal: booking.flightTerminal,
     flightGate: booking.flightGate,
   };
+
+  // ✅ Prepare pricing data for EditTripDetailsClient
+  const pricingData: PricingData | undefined =
+    booking.serviceType && booking.vehicle
+      ? {
+          pricingStrategy: booking.serviceType
+            .pricingStrategy as PricingData["pricingStrategy"],
+          // Service pricing
+          serviceMinFareCents: booking.serviceType.minFareCents ?? 0,
+          serviceBaseFeeCents: booking.serviceType.baseFeeCents ?? 0,
+          servicePerMileCents: booking.serviceType.perMileCents ?? 0,
+          servicePerMinuteCents: booking.serviceType.perMinuteCents ?? 0,
+          servicePerHourCents: booking.serviceType.perHourCents ?? 0,
+          // Vehicle pricing
+          vehicleBaseFareCents: booking.vehicle.baseFareCents ?? 0,
+          vehiclePerMileCents: booking.vehicle.perMileCents ?? 0,
+          vehiclePerMinuteCents: booking.vehicle.perMinuteCents ?? 0,
+          vehiclePerHourCents: booking.vehicle.perHourCents ?? 0,
+          vehicleMinHours: booking.vehicle.minHours ?? 0,
+          // Current booking
+          currentTotalCents: booking.totalCents,
+          hoursRequested: decimalToNumber(booking.hoursRequested),
+          currency: booking.currency,
+        }
+      : undefined;
 
   // ✅ Prepare notes for client
   const notesForClient = booking.notes.map((n) => ({
@@ -448,6 +510,28 @@ export default async function AdminBookingDetailPage({
                 )}
                 <span className={styles.balanceDetail}>
                   (Paid: {formatMoney(amountPaidCents, booking.currency)} of{" "}
+                  {formatMoney(booking.totalCents, booking.currency)})
+                </span>
+              </div>
+            )}
+
+            {/* ✅ Show refund due if applicable */}
+            {paymentStatusDisplay.hasRefundDue && (
+              <div className={styles.refundDueAlert}>
+                <strong>Refund Due:</strong>{" "}
+                {formatMoney(
+                  paymentStatusDisplay.refundDueCents,
+                  booking.currency,
+                )}
+                <span className={styles.refundDetail}>
+                  (Paid: {formatMoney(amountPaidCents, booking.currency)}
+                  {amountRefundedCents > 0 && (
+                    <>
+                      , Refunded:{" "}
+                      {formatMoney(amountRefundedCents, booking.currency)}
+                    </>
+                  )}
+                  , New Total:{" "}
                   {formatMoney(booking.totalCents, booking.currency)})
                 </span>
               </div>
@@ -560,6 +644,7 @@ export default async function AdminBookingDetailPage({
         <EditTripDetailsClient
           bookingId={booking.id}
           initialData={tripEditData}
+          pricingData={pricingData}
         />
       </Card>
 
@@ -650,12 +735,19 @@ export default async function AdminBookingDetailPage({
             Payment status: <strong>{booking.payment?.status ?? "NONE"}</strong>
             {amountPaidCents > 0 && (
               <span style={{ marginLeft: 10 }}>
-                (Paid: {formatMoney(amountPaidCents, booking.currency)})
+                (Paid: {formatMoney(amountPaidCents, booking.currency)}
+                {amountRefundedCents > 0 && (
+                  <>
+                    , Refunded:{" "}
+                    {formatMoney(amountRefundedCents, booking.currency)}
+                  </>
+                )}
+                )
               </span>
             )}
           </div>
 
-          {/* ✅ Updated SendPaymentLinkButton with balance support */}
+          {/* ✅ Send Payment Link Button */}
           <SendPaymentLinkButton
             bookingId={booking.id}
             totalCents={booking.totalCents}
@@ -692,6 +784,27 @@ export default async function AdminBookingDetailPage({
                 currency={booking.currency}
                 isPaid={isPaid}
                 amountPaidCents={amountPaidCents}
+              />
+            </div>
+          </div>
+
+          {/* ✅ Issue Refund Section - Always visible */}
+          <div style={{ marginTop: 18 }}>
+            <div className='cardTitle h5'>Issue Refund</div>
+            <div className='miniNote' style={{ marginTop: 6 }}>
+              You can refund clients manually here as well, after they pay you.
+            </div>
+
+            <div style={{ marginTop: 10 }}>
+              <RefundButton
+                bookingId={booking.id}
+                totalCents={booking.totalCents}
+                amountPaidCents={amountPaidCents}
+                amountRefundedCents={amountRefundedCents}
+                currency={booking.currency}
+                stripePaymentIntentId={
+                  booking.payment?.stripePaymentIntentId ?? null
+                }
               />
             </div>
           </div>
