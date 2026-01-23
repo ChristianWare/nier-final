@@ -136,6 +136,19 @@
   letter-spacing: normal;
 }
 
+/* ✅ NEW: Event details styling for metadata display */
+.eventDetails {
+  font-size: 0.85rem;
+  color: #64748b;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border-left: 3px solid #e2e8f0;
+  max-width: 100%;
+  word-wrap: break-word;
+  line-height: 1.4;
+}
+
 .modalContent {
   display: flex;
   flex-direction: column;
@@ -769,5 +782,10 @@
 
   .pricingOr {
     display: none;
+  }
+
+  .eventDetails {
+    font-size: 0.8rem;
+    padding: 6px 10px;
   }
 }

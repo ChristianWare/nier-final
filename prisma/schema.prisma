@@ -471,6 +471,12 @@ model BookingStatusEvent {
 
   status BookingStatus
 
+  // ✅ NEW: Event type for categorization
+  eventType String @default("STATUS_CHANGE")
+
+  // ✅ NEW: JSON metadata for event details
+  metadata Json?
+
   createdById String?
   createdBy   User?   @relation("StatusEventsCreated", fields: [createdById], references: [id], onDelete: SetNull)
 
@@ -479,6 +485,7 @@ model BookingStatusEvent {
   @@index([bookingId])
   @@index([status])
   @@index([createdAt])
+  @@index([eventType])
 }
 
 model BlackoutDate {

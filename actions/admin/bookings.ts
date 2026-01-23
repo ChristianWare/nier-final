@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
@@ -71,15 +70,12 @@ export async function approveBookingAndSetPrice(formData: FormData) {
   });
   if (!booking) return { error: "Booking not found." };
 
-  // Check if there's an existing payment
   const existingPayment = booking.payment;
   const amountPaidCents = existingPayment?.amountPaidCents ?? 0;
   const isPaid = existingPayment?.status === "PAID";
 
-  // Determine the new status
   let newStatus = booking.status;
 
-  // If not paid yet, set to PENDING_PAYMENT
   if (
     !isPaid &&
     booking.status !== "CANCELLED" &&
@@ -88,11 +84,15 @@ export async function approveBookingAndSetPrice(formData: FormData) {
     newStatus = "PENDING_PAYMENT";
   }
 
-  // If already paid but price increased, we have a balance due
-  // Keep current status but payment status will show partial
   const hasBalanceDue = isPaid && d.totalCents > amountPaidCents;
 
-  await db.$transaction([
+  const priceChanged =
+    booking.subtotalCents !== d.subtotalCents ||
+    booking.feesCents !== d.feesCents ||
+    booking.taxesCents !== d.taxesCents ||
+    booking.totalCents !== d.totalCents;
+
+  const tx: any[] = [
     db.booking.update({
       where: { id: booking.id },
       data: {
@@ -104,31 +104,64 @@ export async function approveBookingAndSetPrice(formData: FormData) {
         status: newStatus,
       },
     }),
-    // Only create status event if status actually changed
-    ...(newStatus !== booking.status
-      ? [
-          db.bookingStatusEvent.create({
-            data: {
-              bookingId: booking.id,
-              status: newStatus,
-              createdById: actorId,
-            },
-          }),
-        ]
-      : []),
-    // If there's a balance due, update payment to reflect new total
-    ...(hasBalanceDue && existingPayment
-      ? [
-          db.payment.update({
-            where: { id: existingPayment.id },
-            data: {
-              amountTotalCents: d.totalCents,
-              // Keep amountPaidCents unchanged
-            },
-          }),
-        ]
-      : []),
-  ]);
+  ];
+
+  // ✅ Log approval event if status changed to PENDING_PAYMENT
+  if (newStatus !== booking.status) {
+    tx.push(
+      db.bookingStatusEvent.create({
+        data: {
+          bookingId: booking.id,
+          status: newStatus,
+          eventType: "APPROVAL_CHANGED",
+          metadata: {
+            approved: true,
+            previousStatus: booking.status,
+            newStatus: newStatus,
+          },
+          createdById: actorId,
+        },
+      }),
+    );
+  }
+
+  // ✅ Log price adjustment if price changed
+  if (priceChanged) {
+    tx.push(
+      db.bookingStatusEvent.create({
+        data: {
+          bookingId: booking.id,
+          status: newStatus,
+          eventType: "PRICE_ADJUSTED",
+          metadata: {
+            oldSubtotalCents: booking.subtotalCents,
+            newSubtotalCents: d.subtotalCents,
+            oldFeesCents: booking.feesCents,
+            newFeesCents: d.feesCents,
+            oldTaxesCents: booking.taxesCents,
+            newTaxesCents: d.taxesCents,
+            oldTotalCents: booking.totalCents,
+            newTotalCents: d.totalCents,
+            currency: d.currency,
+          },
+          createdById: actorId,
+        },
+      }),
+    );
+  }
+
+  if (hasBalanceDue && existingPayment) {
+    tx.push(
+      db.payment.update({
+        where: { id: existingPayment.id },
+        data: {
+          amountTotalCents: d.totalCents,
+        },
+      }),
+    );
+  }
+
+  await db.$transaction(tx);
 
   revalidatePath(`/admin/bookings/${booking.id}`);
 
@@ -140,7 +173,7 @@ export async function approveBookingAndSetPrice(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Approve Booking Only (no pricing change)
+// ✅ Approve Booking Only (no pricing change)
 // =============================================================================
 
 const ApproveBookingSchema = z.object({
@@ -162,7 +195,6 @@ export async function approveBooking(formData: FormData) {
 
   if (!booking) return { error: "Booking not found." };
 
-  // Only approve if in PENDING_REVIEW or DRAFT status
   if (booking.status !== "PENDING_REVIEW" && booking.status !== "DRAFT") {
     return { error: "Booking is already approved or in a final state." };
   }
@@ -176,6 +208,12 @@ export async function approveBooking(formData: FormData) {
       data: {
         bookingId,
         status: "PENDING_PAYMENT",
+        eventType: "APPROVAL_CHANGED",
+        metadata: {
+          approved: true,
+          previousStatus: booking.status,
+          newStatus: "PENDING_PAYMENT",
+        },
         createdById: actorId,
       },
     }),
@@ -187,7 +225,7 @@ export async function approveBooking(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Unapprove Booking (revert to PENDING_REVIEW)
+// ✅ Unapprove Booking (revert to PENDING_REVIEW)
 // =============================================================================
 
 export async function unapproveBooking(formData: FormData) {
@@ -205,12 +243,10 @@ export async function unapproveBooking(formData: FormData) {
 
   if (!booking) return { error: "Booking not found." };
 
-  // Cannot unapprove if already paid
   if (booking.payment?.status === "PAID") {
     return { error: "Cannot unapprove a booking that has already been paid." };
   }
 
-  // Only unapprove if in PENDING_PAYMENT status
   if (booking.status !== "PENDING_PAYMENT") {
     return {
       error: "Booking must be in 'Pending Payment' status to reverse approval.",
@@ -226,6 +262,12 @@ export async function unapproveBooking(formData: FormData) {
       data: {
         bookingId,
         status: "PENDING_REVIEW",
+        eventType: "APPROVAL_CHANGED",
+        metadata: {
+          approved: false,
+          previousStatus: booking.status,
+          newStatus: "PENDING_REVIEW",
+        },
         createdById: actorId,
       },
     }),
@@ -237,7 +279,7 @@ export async function unapproveBooking(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Update Booking Price Only (no status change)
+// ✅ Update Booking Price Only (no status change)
 // =============================================================================
 
 const UpdatePriceSchema = z.object({
@@ -250,7 +292,7 @@ const UpdatePriceSchema = z.object({
 });
 
 export async function updateBookingPrice(formData: FormData) {
-  await requireAdmin();
+  const { actorId } = await requireAdmin();
 
   const parsed = UpdatePriceSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid pricing data." };
@@ -264,18 +306,20 @@ export async function updateBookingPrice(formData: FormData) {
 
   if (!booking) return { error: "Booking not found." };
 
-  // Check if already paid and price is being changed
   const existingPayment = booking.payment;
   const amountPaidCents = existingPayment?.amountPaidCents ?? 0;
   const isPaid = existingPayment?.status === "PAID";
 
-  // If already paid and price increased, we have a balance due
   const hasBalanceDue = isPaid && d.totalCents > amountPaidCents;
-
-  // If already paid and price decreased, we have a refund due
   const hasRefundDue = isPaid && d.totalCents < amountPaidCents;
 
-  await db.$transaction([
+  const priceChanged =
+    booking.subtotalCents !== d.subtotalCents ||
+    booking.feesCents !== d.feesCents ||
+    booking.taxesCents !== d.taxesCents ||
+    booking.totalCents !== d.totalCents;
+
+  const tx: any[] = [
     db.booking.update({
       where: { id: booking.id },
       data: {
@@ -286,18 +330,45 @@ export async function updateBookingPrice(formData: FormData) {
         totalCents: d.totalCents,
       },
     }),
-    // If there's a balance or refund situation, update payment to reflect new total
-    ...((hasBalanceDue || hasRefundDue) && existingPayment
-      ? [
-          db.payment.update({
-            where: { id: existingPayment.id },
-            data: {
-              amountTotalCents: d.totalCents,
-            },
-          }),
-        ]
-      : []),
-  ]);
+  ];
+
+  // ✅ Log price adjustment event if price changed
+  if (priceChanged) {
+    tx.push(
+      db.bookingStatusEvent.create({
+        data: {
+          bookingId: booking.id,
+          status: booking.status,
+          eventType: "PRICE_ADJUSTED",
+          metadata: {
+            oldSubtotalCents: booking.subtotalCents,
+            newSubtotalCents: d.subtotalCents,
+            oldFeesCents: booking.feesCents,
+            newFeesCents: d.feesCents,
+            oldTaxesCents: booking.taxesCents,
+            newTaxesCents: d.taxesCents,
+            oldTotalCents: booking.totalCents,
+            newTotalCents: d.totalCents,
+            currency: d.currency,
+          },
+          createdById: actorId,
+        },
+      }),
+    );
+  }
+
+  if ((hasBalanceDue || hasRefundDue) && existingPayment) {
+    tx.push(
+      db.payment.update({
+        where: { id: existingPayment.id },
+        data: {
+          amountTotalCents: d.totalCents,
+        },
+      }),
+    );
+  }
+
+  await db.$transaction(tx);
 
   revalidatePath(`/admin/bookings/${booking.id}`);
 
@@ -309,6 +380,10 @@ export async function updateBookingPrice(formData: FormData) {
     refundDueCents: hasRefundDue ? amountPaidCents - d.totalCents : 0,
   };
 }
+
+// =============================================================================
+// ✅ Assign Booking
+// =============================================================================
 
 const AssignSchema = z.object({
   bookingId: z.string().min(1),
@@ -331,9 +406,25 @@ export async function assignBooking(formData: FormData) {
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    select: { id: true, status: true },
+    select: { id: true, status: true, currency: true },
   });
   if (!booking) return { error: "Booking not found." };
+
+  // ✅ Get driver details for event logging
+  const driver = await db.user.findUnique({
+    where: { id: driverId },
+    select: { id: true, name: true, email: true },
+  });
+  if (!driver) return { error: "Driver not found." };
+
+  // ✅ Get vehicle unit details if provided
+  let vehicleUnit = null;
+  if (vehicleUnitId) {
+    vehicleUnit = await db.vehicleUnit.findUnique({
+      where: { id: vehicleUnitId },
+      select: { id: true, name: true, plate: true },
+    });
+  }
 
   const nextStatus =
     booking.status === "COMPLETED" ||
@@ -367,6 +458,16 @@ export async function assignBooking(formData: FormData) {
       data: {
         bookingId,
         status: nextStatus,
+        eventType: "DRIVER_ASSIGNED",
+        metadata: {
+          driverId: driver.id,
+          driverName: driver.name ?? "Driver",
+          driverEmail: driver.email,
+          driverPaymentCents: driverPaymentCents ?? null,
+          vehicleUnitId: vehicleUnit?.id ?? null,
+          vehicleUnitName: vehicleUnit?.name ?? null,
+          vehicleUnitPlate: vehicleUnit?.plate ?? null,
+        },
         createdById: actorId,
       },
     }),
@@ -377,8 +478,14 @@ export async function assignBooking(formData: FormData) {
     bookingId,
   });
 
+  revalidatePath(`/admin/bookings/${bookingId}`);
+
   return { success: true };
 }
+
+// =============================================================================
+// ✅ Create Payment Link and Email
+// =============================================================================
 
 const SendPaymentSchema = z.object({
   bookingId: z.string().min(1),
@@ -416,7 +523,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     return { error: "Set a total price before sending payment link." };
   }
 
-  // Calculate the amount to charge
   const amountPaidCents = b.payment?.amountPaidCents ?? 0;
   const amountToCharge = isBalancePayment
     ? b.totalCents - amountPaidCents
@@ -435,7 +541,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 
   const existing = b.payment;
 
-  // Only reuse if NOT a balance payment and amounts match
   const canReuse =
     !isBalancePayment &&
     existing?.status === "PENDING" &&
@@ -449,8 +554,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     b.status === "DRAFT" || b.status === "PENDING_REVIEW";
 
   async function emailIt(url: string, isBalance: boolean) {
-    // Note: If you want to customize the email for balance payments,
-    // you'll need to update your sendPaymentLinkEmail function to accept these params
     await sendPaymentLinkEmail({
       to: recipientEmail,
       name: recipientName,
@@ -464,10 +567,27 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     });
   }
 
-  // ✅ REUSE path (only for full payments)
+  // ✅ REUSE path
   if (canReuse && existing?.checkoutUrl) {
     try {
       await emailIt(existing.checkoutUrl, false);
+
+      // ✅ Log payment link sent event
+      await db.bookingStatusEvent.create({
+        data: {
+          bookingId: b.id,
+          status: b.status,
+          eventType: "PAYMENT_LINK_SENT",
+          metadata: {
+            amountCents: amountToCharge,
+            currency: b.currency,
+            recipientEmail: recipientEmail,
+            isBalancePayment: false,
+            reused: true,
+          },
+          createdById: actorId,
+        },
+      });
 
       await queueAdminNotificationsForBookingEvent({
         event: "PAYMENT_LINK_SENT",
@@ -488,7 +608,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const email = booking.user?.email ?? booking.guestEmail ?? null;
   if (!email) return { error: "Booking email missing." };
 
-  // Create description based on payment type
   const productName = isBalancePayment
     ? `Balance Due — ${booking.serviceType.name} — Nier Transportation`
     : `${booking.serviceType.name} — Nier Transportation`;
@@ -538,17 +657,13 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 
   const tx: any[] = [];
 
-  // For balance payments, we update existing payment record
-  // For new payments, we create/update as before
   if (isBalancePayment && existing) {
     tx.push(
       db.payment.update({
         where: { id: existing.id },
         data: {
-          // Keep existing paid amount, update checkout session for balance
           stripeCheckoutSessionId: stripeSession.id,
           checkoutUrl: stripeSession.url,
-          // Don't change status - it's already PAID
         },
       }),
     );
@@ -590,11 +705,39 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
         data: {
           bookingId: b.id,
           status: "PENDING_PAYMENT",
+          eventType: "APPROVAL_CHANGED",
+          metadata: {
+            approved: true,
+            previousStatus: b.status,
+            newStatus: "PENDING_PAYMENT",
+          },
           createdById: actorId,
         },
       }),
     );
   }
+
+  // ✅ Log payment link sent event
+  tx.push(
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId: b.id,
+        status:
+          maybeSetPendingPayment && !isBalancePayment
+            ? "PENDING_PAYMENT"
+            : b.status,
+        eventType: "PAYMENT_LINK_SENT",
+        metadata: {
+          amountCents: amountToCharge,
+          currency: b.currency,
+          recipientEmail: recipientEmail,
+          isBalancePayment: isBalancePayment,
+          reused: false,
+        },
+        createdById: actorId,
+      },
+    }),
+  );
 
   await db.$transaction(tx);
 
@@ -625,7 +768,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Quick Status Actions
+// ✅ Quick Status Actions
 // =============================================================================
 
 const QuickStatusSchema = z.object({
@@ -654,11 +797,20 @@ export async function updateBookingStatus(formData: FormData) {
   });
   if (!booking) return { error: "Booking not found." };
 
-  // Prevent changing status of already finalized bookings (optional guard)
   const finalStatuses = ["REFUNDED", "PARTIALLY_REFUNDED"];
   if (finalStatuses.includes(booking.status)) {
     return { error: "Cannot change status of a refunded booking." };
   }
+
+  // ✅ Descriptive action names for metadata
+  const actionDescriptions: Record<string, string> = {
+    EN_ROUTE: "Driver marked as en route to pickup",
+    ARRIVED: "Driver marked as arrived at pickup location",
+    IN_PROGRESS: "Trip started - passenger picked up",
+    COMPLETED: "Trip marked as completed",
+    CANCELLED: "Booking cancelled",
+    NO_SHOW: "Passenger marked as no-show",
+  };
 
   await db.$transaction([
     db.booking.update({
@@ -669,12 +821,17 @@ export async function updateBookingStatus(formData: FormData) {
       data: {
         bookingId,
         status,
+        eventType: "STATUS_CHANGE",
+        metadata: {
+          previousStatus: booking.status,
+          newStatus: status,
+          action: actionDescriptions[status] ?? `Status changed to ${status}`,
+        },
         createdById: actorId,
       },
     }),
   ]);
 
-  // Queue notifications for relevant events
   if (status === "CANCELLED") {
     await queueAdminNotificationsForBookingEvent({
       event: "BOOKING_CANCELLED",
@@ -708,7 +865,7 @@ export async function updateBookingStatus(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Booking Notes
+// ✅ Booking Notes
 // =============================================================================
 
 const AddNoteSchema = z.object({
@@ -766,7 +923,7 @@ export async function deleteBookingNote(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ UPDATED: Edit Trip Details (with route data)
+// ✅ Edit Trip Details (with event logging)
 // =============================================================================
 
 const EditTripSchema = z.object({
@@ -785,7 +942,6 @@ const EditTripSchema = z.object({
   passengers: z.coerce.number().int().min(1).max(100),
   luggage: z.coerce.number().int().min(0).max(100),
   specialRequests: z.string().optional().nullable(),
-  // Flight info
   flightAirline: z.string().optional().nullable(),
   flightNumber: z.string().optional().nullable(),
   flightScheduledAt: z.string().optional().nullable(),
@@ -794,9 +950,8 @@ const EditTripSchema = z.object({
 });
 
 export async function updateTripDetails(formData: FormData) {
-  await requireAdmin();
+  const { actorId } = await requireAdmin();
 
-  // Convert empty strings to null for numeric fields
   const rawData = Object.fromEntries(formData);
   const processedData = {
     ...rawData,
@@ -818,67 +973,174 @@ export async function updateTripDetails(formData: FormData) {
     return { error: "Invalid trip data." };
   }
 
-  const {
-    bookingId,
-    pickupAt,
-    pickupAddress,
-    dropoffAddress,
-    pickupPlaceId,
-    dropoffPlaceId,
-    pickupLat,
-    pickupLng,
-    dropoffLat,
-    dropoffLng,
-    distanceMiles,
-    durationMinutes,
-    passengers,
-    luggage,
-    specialRequests,
-    flightAirline,
-    flightNumber,
-    flightScheduledAt,
-    flightTerminal,
-    flightGate,
-  } = parsed.data;
+  const d = parsed.data;
 
+  // ✅ Get current booking for comparison
   const booking = await db.booking.findUnique({
-    where: { id: bookingId },
-    select: { id: true },
+    where: { id: d.bookingId },
+    select: {
+      id: true,
+      status: true,
+      pickupAt: true,
+      pickupAddress: true,
+      dropoffAddress: true,
+      distanceMiles: true,
+      durationMinutes: true,
+      passengers: true,
+      luggage: true,
+      specialRequests: true,
+      flightAirline: true,
+      flightNumber: true,
+      flightScheduledAt: true,
+      flightTerminal: true,
+      flightGate: true,
+    },
   });
   if (!booking) return { error: "Booking not found." };
 
+  // ✅ Track what changed
+  const changes: Array<{ field: string; oldValue: any; newValue: any }> = [];
+
+  const oldPickupAt = booking.pickupAt?.toISOString();
+  const newPickupAt = new Date(d.pickupAt).toISOString();
+  if (oldPickupAt !== newPickupAt) {
+    changes.push({
+      field: "Date/Time",
+      oldValue: oldPickupAt,
+      newValue: newPickupAt,
+    });
+  }
+  if (booking.pickupAddress !== d.pickupAddress) {
+    changes.push({
+      field: "Pickup Address",
+      oldValue: booking.pickupAddress,
+      newValue: d.pickupAddress,
+    });
+  }
+  if (booking.dropoffAddress !== d.dropoffAddress) {
+    changes.push({
+      field: "Dropoff Address",
+      oldValue: booking.dropoffAddress,
+      newValue: d.dropoffAddress,
+    });
+  }
+  const oldDistance = booking.distanceMiles
+    ? Number(booking.distanceMiles)
+    : null;
+  if (oldDistance !== d.distanceMiles) {
+    changes.push({
+      field: "Distance (miles)",
+      oldValue: oldDistance,
+      newValue: d.distanceMiles,
+    });
+  }
+  if (booking.durationMinutes !== d.durationMinutes) {
+    changes.push({
+      field: "Duration (minutes)",
+      oldValue: booking.durationMinutes,
+      newValue: d.durationMinutes,
+    });
+  }
+  if (booking.passengers !== d.passengers) {
+    changes.push({
+      field: "Passengers",
+      oldValue: booking.passengers,
+      newValue: d.passengers,
+    });
+  }
+  if (booking.luggage !== d.luggage) {
+    changes.push({
+      field: "Luggage",
+      oldValue: booking.luggage,
+      newValue: d.luggage,
+    });
+  }
+  if (booking.specialRequests !== (d.specialRequests || null)) {
+    changes.push({
+      field: "Special Requests",
+      oldValue: booking.specialRequests,
+      newValue: d.specialRequests,
+    });
+  }
+  if (booking.flightAirline !== (d.flightAirline || null)) {
+    changes.push({
+      field: "Flight Airline",
+      oldValue: booking.flightAirline,
+      newValue: d.flightAirline,
+    });
+  }
+  if (booking.flightNumber !== (d.flightNumber || null)) {
+    changes.push({
+      field: "Flight Number",
+      oldValue: booking.flightNumber,
+      newValue: d.flightNumber,
+    });
+  }
+  if (booking.flightTerminal !== (d.flightTerminal || null)) {
+    changes.push({
+      field: "Flight Terminal",
+      oldValue: booking.flightTerminal,
+      newValue: d.flightTerminal,
+    });
+  }
+  if (booking.flightGate !== (d.flightGate || null)) {
+    changes.push({
+      field: "Flight Gate",
+      oldValue: booking.flightGate,
+      newValue: d.flightGate,
+    });
+  }
+
   await db.booking.update({
-    where: { id: bookingId },
+    where: { id: d.bookingId },
     data: {
-      pickupAt: new Date(pickupAt),
-      pickupAddress,
-      dropoffAddress,
-      pickupPlaceId: pickupPlaceId || null,
-      dropoffPlaceId: dropoffPlaceId || null,
-      pickupLat: pickupLat ?? null,
-      pickupLng: pickupLng ?? null,
-      dropoffLat: dropoffLat ?? null,
-      dropoffLng: dropoffLng ?? null,
-      distanceMiles: distanceMiles ?? null,
-      durationMinutes: durationMinutes ?? null,
-      passengers,
-      luggage,
-      specialRequests: specialRequests || null,
-      flightAirline: flightAirline || null,
-      flightNumber: flightNumber || null,
-      flightScheduledAt: flightScheduledAt ? new Date(flightScheduledAt) : null,
-      flightTerminal: flightTerminal || null,
-      flightGate: flightGate || null,
+      pickupAt: new Date(d.pickupAt),
+      pickupAddress: d.pickupAddress,
+      dropoffAddress: d.dropoffAddress,
+      pickupPlaceId: d.pickupPlaceId || null,
+      dropoffPlaceId: d.dropoffPlaceId || null,
+      pickupLat: d.pickupLat ?? null,
+      pickupLng: d.pickupLng ?? null,
+      dropoffLat: d.dropoffLat ?? null,
+      dropoffLng: d.dropoffLng ?? null,
+      distanceMiles: d.distanceMiles ?? null,
+      durationMinutes: d.durationMinutes ?? null,
+      passengers: d.passengers,
+      luggage: d.luggage,
+      specialRequests: d.specialRequests || null,
+      flightAirline: d.flightAirline || null,
+      flightNumber: d.flightNumber || null,
+      flightScheduledAt: d.flightScheduledAt
+        ? new Date(d.flightScheduledAt)
+        : null,
+      flightTerminal: d.flightTerminal || null,
+      flightGate: d.flightGate || null,
     },
   });
 
-  revalidatePath(`/admin/bookings/${bookingId}`);
+  // ✅ Log trip edit event if there were changes
+  if (changes.length > 0) {
+    await db.bookingStatusEvent.create({
+      data: {
+        bookingId: d.bookingId,
+        status: booking.status,
+        eventType: "TRIP_EDITED",
+        metadata: {
+          changes: changes,
+          fieldsEdited: changes.map((c) => c.field),
+        },
+        createdById: actorId,
+      },
+    });
+  }
+
+  revalidatePath(`/admin/bookings/${d.bookingId}`);
 
   return { success: true };
 }
 
 // =============================================================================
-// ✅ NEW: Update Trip Details AND Price in one action
+// ✅ Update Trip Details AND Price in one action
 // =============================================================================
 
 const EditTripWithPriceSchema = z.object({
@@ -897,13 +1159,11 @@ const EditTripWithPriceSchema = z.object({
   passengers: z.coerce.number().int().min(1).max(100),
   luggage: z.coerce.number().int().min(0).max(100),
   specialRequests: z.string().optional().nullable(),
-  // Flight info
   flightAirline: z.string().optional().nullable(),
   flightNumber: z.string().optional().nullable(),
   flightScheduledAt: z.string().optional().nullable(),
   flightTerminal: z.string().optional().nullable(),
   flightGate: z.string().optional().nullable(),
-  // Price update
   updatePrice: z.string().optional(),
   newTotalCents: z.coerce.number().int().min(0).optional(),
 });
@@ -911,7 +1171,6 @@ const EditTripWithPriceSchema = z.object({
 export async function updateTripDetailsAndPrice(formData: FormData) {
   const { actorId } = await requireAdmin();
 
-  // Convert empty strings to null for numeric fields
   const rawData = Object.fromEntries(formData);
   const processedData = {
     ...rawData,
@@ -933,37 +1192,20 @@ export async function updateTripDetailsAndPrice(formData: FormData) {
     return { error: "Invalid trip data." };
   }
 
-  const {
-    bookingId,
-    pickupAt,
-    pickupAddress,
-    dropoffAddress,
-    pickupPlaceId,
-    dropoffPlaceId,
-    pickupLat,
-    pickupLng,
-    dropoffLat,
-    dropoffLng,
-    distanceMiles,
-    durationMinutes,
-    passengers,
-    luggage,
-    specialRequests,
-    flightAirline,
-    flightNumber,
-    flightScheduledAt,
-    flightTerminal,
-    flightGate,
-    updatePrice,
-    newTotalCents,
-  } = parsed.data;
+  const d = parsed.data;
 
   const booking = await db.booking.findUnique({
-    where: { id: bookingId },
+    where: { id: d.bookingId },
     select: {
       id: true,
       status: true,
       totalCents: true,
+      subtotalCents: true,
+      pickupAt: true,
+      pickupAddress: true,
+      dropoffAddress: true,
+      passengers: true,
+      luggage: true,
       payment: {
         select: {
           status: true,
@@ -974,52 +1216,93 @@ export async function updateTripDetailsAndPrice(formData: FormData) {
   });
   if (!booking) return { error: "Booking not found." };
 
-  const shouldUpdatePrice = newTotalCents !== undefined && newTotalCents > 0;
+  const shouldUpdatePrice =
+    d.newTotalCents !== undefined && d.newTotalCents > 0;
 
-  // Build the update data
+  // ✅ Track trip changes
+  const tripChanges: Array<{ field: string; oldValue: any; newValue: any }> =
+    [];
+
+  const oldPickupAt = booking.pickupAt?.toISOString();
+  const newPickupAt = new Date(d.pickupAt).toISOString();
+  if (oldPickupAt !== newPickupAt) {
+    tripChanges.push({
+      field: "Date/Time",
+      oldValue: oldPickupAt,
+      newValue: newPickupAt,
+    });
+  }
+  if (booking.pickupAddress !== d.pickupAddress) {
+    tripChanges.push({
+      field: "Pickup Address",
+      oldValue: booking.pickupAddress,
+      newValue: d.pickupAddress,
+    });
+  }
+  if (booking.dropoffAddress !== d.dropoffAddress) {
+    tripChanges.push({
+      field: "Dropoff Address",
+      oldValue: booking.dropoffAddress,
+      newValue: d.dropoffAddress,
+    });
+  }
+  if (booking.passengers !== d.passengers) {
+    tripChanges.push({
+      field: "Passengers",
+      oldValue: booking.passengers,
+      newValue: d.passengers,
+    });
+  }
+  if (booking.luggage !== d.luggage) {
+    tripChanges.push({
+      field: "Luggage",
+      oldValue: booking.luggage,
+      newValue: d.luggage,
+    });
+  }
+
   const bookingUpdateData: any = {
-    pickupAt: new Date(pickupAt),
-    pickupAddress,
-    dropoffAddress,
-    pickupPlaceId: pickupPlaceId || null,
-    dropoffPlaceId: dropoffPlaceId || null,
-    pickupLat: pickupLat ?? null,
-    pickupLng: pickupLng ?? null,
-    dropoffLat: dropoffLat ?? null,
-    dropoffLng: dropoffLng ?? null,
-    distanceMiles: distanceMiles ?? null,
-    durationMinutes: durationMinutes ?? null,
-    passengers,
-    luggage,
-    specialRequests: specialRequests || null,
-    flightAirline: flightAirline || null,
-    flightNumber: flightNumber || null,
-    flightScheduledAt: flightScheduledAt ? new Date(flightScheduledAt) : null,
-    flightTerminal: flightTerminal || null,
-    flightGate: flightGate || null,
+    pickupAt: new Date(d.pickupAt),
+    pickupAddress: d.pickupAddress,
+    dropoffAddress: d.dropoffAddress,
+    pickupPlaceId: d.pickupPlaceId || null,
+    dropoffPlaceId: d.dropoffPlaceId || null,
+    pickupLat: d.pickupLat ?? null,
+    pickupLng: d.pickupLng ?? null,
+    dropoffLat: d.dropoffLat ?? null,
+    dropoffLng: d.dropoffLng ?? null,
+    distanceMiles: d.distanceMiles ?? null,
+    durationMinutes: d.durationMinutes ?? null,
+    passengers: d.passengers,
+    luggage: d.luggage,
+    specialRequests: d.specialRequests || null,
+    flightAirline: d.flightAirline || null,
+    flightNumber: d.flightNumber || null,
+    flightScheduledAt: d.flightScheduledAt
+      ? new Date(d.flightScheduledAt)
+      : null,
+    flightTerminal: d.flightTerminal || null,
+    flightGate: d.flightGate || null,
   };
 
-  // If updating price, add price fields
-  if (shouldUpdatePrice) {
-    bookingUpdateData.subtotalCents = newTotalCents;
-    bookingUpdateData.totalCents = newTotalCents;
+  const tx: any[] = [];
 
-    // Check if this creates a balance due situation
+  if (shouldUpdatePrice) {
+    bookingUpdateData.subtotalCents = d.newTotalCents;
+    bookingUpdateData.totalCents = d.newTotalCents;
+
     const isPaid = booking.payment?.status === "PAID";
     const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
 
-    if (isPaid && newTotalCents > amountPaidCents) {
-      // Price increased after payment - there's now a balance due
-      // Update the payment record to reflect new total
-      await db.payment.update({
-        where: { bookingId },
-        data: {
-          amountTotalCents: newTotalCents,
-        },
-      });
+    if (isPaid && d.newTotalCents! > amountPaidCents) {
+      tx.push(
+        db.payment.update({
+          where: { bookingId: d.bookingId },
+          data: { amountTotalCents: d.newTotalCents },
+        }),
+      );
     }
 
-    // If not paid yet, set status to PENDING_PAYMENT
     if (
       !isPaid &&
       booking.status !== "CANCELLED" &&
@@ -1027,35 +1310,85 @@ export async function updateTripDetailsAndPrice(formData: FormData) {
     ) {
       bookingUpdateData.status = "PENDING_PAYMENT";
     }
+
+    // ✅ Log price adjustment event
+    if (booking.totalCents !== d.newTotalCents) {
+      tx.push(
+        db.bookingStatusEvent.create({
+          data: {
+            bookingId: d.bookingId,
+            status: bookingUpdateData.status ?? booking.status,
+            eventType: "PRICE_ADJUSTED",
+            metadata: {
+              oldSubtotalCents: booking.subtotalCents,
+              newSubtotalCents: d.newTotalCents,
+              oldTotalCents: booking.totalCents,
+              newTotalCents: d.newTotalCents,
+              currency: "usd",
+            },
+            createdById: actorId,
+          },
+        }),
+      );
+    }
   }
 
-  await db.booking.update({
-    where: { id: bookingId },
-    data: bookingUpdateData,
-  });
+  tx.unshift(
+    db.booking.update({
+      where: { id: d.bookingId },
+      data: bookingUpdateData,
+    }),
+  );
 
-  // Create status event if status changed to PENDING_PAYMENT
+  // ✅ Log trip edit event if there were changes
+  if (tripChanges.length > 0) {
+    tx.push(
+      db.bookingStatusEvent.create({
+        data: {
+          bookingId: d.bookingId,
+          status: bookingUpdateData.status ?? booking.status,
+          eventType: "TRIP_EDITED",
+          metadata: {
+            changes: tripChanges,
+            fieldsEdited: tripChanges.map((c) => c.field),
+          },
+          createdById: actorId,
+        },
+      }),
+    );
+  }
+
   if (
     shouldUpdatePrice &&
     bookingUpdateData.status === "PENDING_PAYMENT" &&
     booking.status !== "PENDING_PAYMENT"
   ) {
-    await db.bookingStatusEvent.create({
-      data: {
-        bookingId,
-        status: "PENDING_PAYMENT",
-        createdById: actorId,
-      },
-    });
+    tx.push(
+      db.bookingStatusEvent.create({
+        data: {
+          bookingId: d.bookingId,
+          status: "PENDING_PAYMENT",
+          eventType: "APPROVAL_CHANGED",
+          metadata: {
+            approved: true,
+            previousStatus: booking.status,
+            newStatus: "PENDING_PAYMENT",
+          },
+          createdById: actorId,
+        },
+      }),
+    );
   }
 
-  revalidatePath(`/admin/bookings/${bookingId}`);
+  await db.$transaction(tx);
+
+  revalidatePath(`/admin/bookings/${d.bookingId}`);
 
   return { success: true, priceUpdated: shouldUpdatePrice };
 }
 
 // =============================================================================
-// ✅ NEW: Duplicate Booking
+// ✅ Duplicate Booking
 // =============================================================================
 
 export async function duplicateBooking(formData: FormData) {
@@ -1070,7 +1403,6 @@ export async function duplicateBooking(formData: FormData) {
   });
   if (!original) return { error: "Booking not found." };
 
-  // Create a new booking with same details but fresh status
   const newBooking = await db.booking.create({
     data: {
       userId: original.userId,
@@ -1108,16 +1440,21 @@ export async function duplicateBooking(formData: FormData) {
     },
   });
 
-  // Create initial status event
+  // ✅ Create initial status event with metadata
   await db.bookingStatusEvent.create({
     data: {
       bookingId: newBooking.id,
       status: "PENDING_REVIEW",
+      eventType: "STATUS_CHANGE",
+      metadata: {
+        action: "Booking created (duplicated)",
+        originalBookingId: bookingId,
+        duplicatedFrom: bookingId,
+      },
       createdById: actorId,
     },
   });
 
-  // Copy addons
   if (original.addons.length > 0) {
     await db.bookingAddon.createMany({
       data: original.addons.map((addon) => ({
@@ -1136,7 +1473,7 @@ export async function duplicateBooking(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Issue Refund
+// ✅ Issue Refund
 // =============================================================================
 
 const RefundSchema = z.object({
@@ -1145,7 +1482,7 @@ const RefundSchema = z.object({
 });
 
 export async function issueRefund(formData: FormData) {
-  await requireAdmin();
+  const { actorId } = await requireAdmin();
 
   const parsed = RefundSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
@@ -1159,20 +1496,15 @@ export async function issueRefund(formData: FormData) {
     include: { payment: true },
   });
 
-  if (!booking) {
-    return { error: "Booking not found." };
-  }
+  if (!booking) return { error: "Booking not found." };
 
   const payment = booking.payment;
-  if (!payment) {
-    return { error: "No payment found for this booking." };
-  }
+  if (!payment) return { error: "No payment found for this booking." };
 
   if (!payment.stripePaymentIntentId) {
     return { error: "No Stripe payment intent found. Cannot process refund." };
   }
 
-  // Calculate how much can be refunded
   const netPaidCents = payment.amountPaidCents - payment.amountRefundedCents;
 
   if (amountCents > netPaidCents) {
@@ -1182,7 +1514,6 @@ export async function issueRefund(formData: FormData) {
   }
 
   try {
-    // Create refund in Stripe
     const refund = await stripe.refunds.create({
       payment_intent: payment.stripePaymentIntentId,
       amount: amountCents,
@@ -1196,11 +1527,9 @@ export async function issueRefund(formData: FormData) {
       return { error: "Stripe refund failed. Please try again." };
     }
 
-    // Calculate new totals
     const newRefundedCents = payment.amountRefundedCents + amountCents;
     const newNetPaidCents = payment.amountPaidCents - newRefundedCents;
 
-    // Determine new payment status
     let newPaymentStatus = payment.status;
     if (newNetPaidCents <= 0) {
       newPaymentStatus = "REFUNDED";
@@ -1208,7 +1537,6 @@ export async function issueRefund(formData: FormData) {
       newPaymentStatus = "PARTIALLY_REFUNDED";
     }
 
-    // Update payment record
     await db.payment.update({
       where: { id: payment.id },
       data: {
@@ -1219,35 +1547,47 @@ export async function issueRefund(formData: FormData) {
       },
     });
 
-    // Update booking status if fully refunded
+    const tx: any[] = [];
+
     if (newPaymentStatus === "REFUNDED") {
-      await db.booking.update({
-        where: { id: booking.id },
-        data: { status: "REFUNDED" },
-      });
-
-      await db.bookingStatusEvent.create({
-        data: {
-          bookingId: booking.id,
-          status: "REFUNDED",
-        },
-      });
-    } else if (newPaymentStatus === "PARTIALLY_REFUNDED") {
-      // Only update booking status if it makes sense
-      if (booking.status !== "COMPLETED" && booking.status !== "CANCELLED") {
-        await db.booking.update({
+      tx.push(
+        db.booking.update({
           where: { id: booking.id },
-          data: { status: "PARTIALLY_REFUNDED" },
-        });
-
-        await db.bookingStatusEvent.create({
-          data: {
-            bookingId: booking.id,
-            status: "PARTIALLY_REFUNDED",
-          },
-        });
+          data: { status: "REFUNDED" },
+        }),
+      );
+    } else if (newPaymentStatus === "PARTIALLY_REFUNDED") {
+      if (booking.status !== "COMPLETED" && booking.status !== "CANCELLED") {
+        tx.push(
+          db.booking.update({
+            where: { id: booking.id },
+            data: { status: "PARTIALLY_REFUNDED" },
+          }),
+        );
       }
     }
+
+    // ✅ Log refund event with metadata
+    tx.push(
+      db.bookingStatusEvent.create({
+        data: {
+          bookingId: booking.id,
+          status: newPaymentStatus === "REFUNDED" ? "REFUNDED" : booking.status,
+          eventType: "REFUND_ISSUED",
+          metadata: {
+            amountCents: amountCents,
+            currency: booking.currency,
+            stripeRefundId: refund.id,
+            totalRefundedCents: newRefundedCents,
+            remainingPaidCents: newNetPaidCents,
+            newPaymentStatus: newPaymentStatus,
+          },
+          createdById: actorId,
+        },
+      }),
+    );
+
+    await db.$transaction(tx);
 
     revalidatePath(`/admin/bookings/${bookingId}`);
 

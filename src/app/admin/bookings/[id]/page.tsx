@@ -59,7 +59,7 @@ function statusLabel(status: BookingStatus) {
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
 function badgeTone(status: BookingStatus): BadgeTone {
-  if (status === "PENDING_PAYMENT") return "good"; // Changed to "good" since it's approved
+  if (status === "PENDING_PAYMENT") return "good";
   if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
   if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
   if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
@@ -131,6 +131,83 @@ function getEventActorLabel(
   }
 
   return `User: ${name}`;
+}
+
+// ✅ NEW: Helper to format event details from metadata
+function getEventDetails(
+  eventType: string,
+  metadata: Record<string, any> | null,
+  currency: string,
+): string | null {
+  if (!metadata) return null;
+
+  switch (eventType) {
+    case "PAYMENT_RECEIVED": {
+      const amount = formatMoney(metadata.amountCents, currency);
+      return `Amount: ${amount}`;
+    }
+
+    case "PAYMENT_LINK_SENT": {
+      const amount = formatMoney(metadata.amountCents, currency);
+      const email = metadata.recipientEmail;
+      return `${amount} → ${email}`;
+    }
+
+    case "DRIVER_ASSIGNED": {
+      const driverName = metadata.driverName ?? "Driver";
+      const driverPayment = metadata.driverPaymentCents
+        ? ` • Pay: ${formatMoney(metadata.driverPaymentCents, currency)}`
+        : "";
+      const vehicle = metadata.vehicleUnitName
+        ? ` • Vehicle: ${metadata.vehicleUnitName}${metadata.vehicleUnitPlate ? ` (${metadata.vehicleUnitPlate})` : ""}`
+        : "";
+      return `${driverName}${driverPayment}${vehicle}`;
+    }
+
+    case "TRIP_EDITED": {
+      const fields = metadata.fieldsEdited;
+      if (Array.isArray(fields) && fields.length > 0) {
+        return `Changed: ${fields.join(", ")}`;
+      }
+      return null;
+    }
+
+    case "PRICE_ADJUSTED": {
+      const oldTotal = formatMoney(metadata.oldTotalCents, currency);
+      const newTotal = formatMoney(metadata.newTotalCents, currency);
+      const diff = metadata.newTotalCents - metadata.oldTotalCents;
+      const diffStr =
+        diff > 0
+          ? `+${formatMoney(diff, currency)}`
+          : formatMoney(diff, currency);
+      return `${oldTotal} → ${newTotal} (${diffStr})`;
+    }
+
+    case "REFUND_ISSUED": {
+      const amount = formatMoney(metadata.amountCents, currency);
+      const remaining = formatMoney(metadata.remainingPaidCents, currency);
+      return `Refunded: ${amount} • Remaining: ${remaining}`;
+    }
+
+    case "APPROVAL_CHANGED": {
+      return metadata.approved
+        ? `Status: ${metadata.previousStatus} → ${metadata.newStatus}`
+        : `Reverted to: ${metadata.newStatus}`;
+    }
+
+    case "STATUS_CHANGE": {
+      if (metadata.action) {
+        return metadata.action;
+      }
+      if (metadata.previousStatus && metadata.newStatus) {
+        return `${metadata.previousStatus} → ${metadata.newStatus}`;
+      }
+      return null;
+    }
+
+    default:
+      return null;
+  }
 }
 
 // ✅ Updated payment status display with balance and refund handling
@@ -808,33 +885,87 @@ export default async function AdminBookingDetailPage({
         )}
       </Card>
 
-      {/* Notes/Comments section */}
-
-      <Card title='Status timeline'>
+      {/* ✅ ENHANCED: Activity Timeline with event types and metadata */}
+      <Card title='Activity Timeline'>
         {booking.statusEvents.length === 0 ? (
-          <div className={styles.muted}>No events yet.</div>
+          <div className={styles.muted}>No activity yet.</div>
         ) : (
           <ul className={styles.eventsList}>
             {booking.statusEvents.map((e) => {
+              // ✅ NEW: Extract eventType and metadata from the event
+              const eventType = (e as any).eventType ?? "STATUS_CHANGE";
+              const metadata = (e as any).metadata as Record<
+                string,
+                any
+              > | null;
+
               const isPaidConfirmed =
                 Boolean(mostRecentConfirmedEventId) &&
                 e.id === mostRecentConfirmedEventId;
 
-              const tone: BadgeTone = isPaidConfirmed
+              // Determine badge tone and label based on event type
+              let tone: BadgeTone = isPaidConfirmed
                 ? "good"
                 : badgeTone(e.status as BookingStatus);
-
-              const label = isPaidConfirmed
+              let label = isPaidConfirmed
                 ? "Payment received"
                 : statusLabel(e.status as BookingStatus);
 
+              // ✅ Override label and tone for specific event types
+              if (eventType === "PAYMENT_RECEIVED") {
+                tone = "good";
+                const method = metadata?.method;
+                if (method === "manual") {
+                  label = "Payment received (manual)";
+                } else if (method === "online") {
+                  label = "Payment received (online)";
+                } else if (method === "balance") {
+                  label = "Balance payment received";
+                } else {
+                  label = "Payment received";
+                }
+              } else if (eventType === "PAYMENT_LINK_SENT") {
+                tone = "accent";
+                label = metadata?.isBalancePayment
+                  ? "Balance payment link sent"
+                  : "Payment link sent";
+              } else if (eventType === "DRIVER_ASSIGNED") {
+                tone = "good";
+                label = "Driver assigned";
+              } else if (eventType === "TRIP_EDITED") {
+                tone = "neutral";
+                label = "Trip details edited";
+              } else if (eventType === "PRICE_ADJUSTED") {
+                tone = "warn";
+                label = "Price adjusted";
+              } else if (eventType === "REFUND_ISSUED") {
+                tone = "warn";
+                label = "Refund issued";
+              } else if (eventType === "APPROVAL_CHANGED") {
+                tone = metadata?.approved ? "good" : "neutral";
+                label = metadata?.approved
+                  ? "Booking approved"
+                  : "Approval reversed";
+              }
+
               const actorLabel = getEventActorLabel(e.createdBy, e.status);
+
+              // ✅ Build event details based on metadata
+              const eventDetails = getEventDetails(
+                eventType,
+                metadata,
+                booking.currency,
+              );
 
               return (
                 <li key={e.id} className={styles.eventItem}>
                   <div className={styles.eventLeft}>
                     <span className={`badge badge_${tone}`}>{label}</span>
                     <span className={styles.eventActor}>{actorLabel}</span>
+                    {/* ✅ NEW: Show event details if available */}
+                    {eventDetails && (
+                      <div className={styles.eventDetails}>{eventDetails}</div>
+                    )}
                   </div>
                   <p className='val'>{formatDateTime(new Date(e.createdAt))}</p>
                 </li>
@@ -848,7 +979,7 @@ export default async function AdminBookingDetailPage({
         <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
       </Card>
 
-      <Card title='Issue Refund' borderWarn>
+      <Card title='Issue Refund' borderWarn stylesWarn>
         <div style={{ marginTop: 18 }}>
           <div className='miniNote' style={{ marginTop: 6 }}>
             You can refund clients manually here as well, after they pay you.
@@ -875,11 +1006,26 @@ export default async function AdminBookingDetailPage({
   );
 }
 
-function Card({ title, children, borderWarn }: { title: string; children: ReactNode; borderWarn?: boolean }) {
+function Card({
+  title,
+  children,
+  borderWarn,
+  stylesWarn,
+}: {
+  title: string;
+  children: ReactNode;
+  borderWarn?: boolean;
+  stylesWarn?: boolean;
+}) {
   return (
-    <div className={`${styles.card} ${borderWarn ? styles.borderWarn : ''}`}>
+    <div className={`${styles.card} ${borderWarn ? styles.borderWarn : ""}`}>
       <div className={styles.cardTop}>
-        <div className='cardTitle h4'>{title}</div>
+        <div
+          className='cardTitle h4'
+          style={stylesWarn ? { background: "var(--warning300)", } : {}}
+        >
+          {title}
+        </div>
       </div>
       {children}
     </div>

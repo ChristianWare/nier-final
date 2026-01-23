@@ -47,7 +47,12 @@ export default function DeleteBookingDangerZoneClient({
   return (
     <div className={`${styles.card} ${styles.dangerCard}`}>
       <div className={styles.dangerTop}>
-        <div className='cardTitle h4'>Danger zone</div>
+        <div
+          className='cardTitle h4'
+          style={{ background: "var(--accent100)" }}
+        >
+          Danger zone
+        </div>
         <p className='subheading'>
           Permanently delete this booking and all related records (payment,
           assignment, status events, add-ons).{" "}

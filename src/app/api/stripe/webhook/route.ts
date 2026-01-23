@@ -61,24 +61,19 @@ async function finalizePaid(args: {
     // Calculate the new payment amount
     let newPaymentAmount: number;
     if (isBalancePayment && balanceAmount) {
-      // This is a balance payment - the balanceAmount is what was just charged
       newPaymentAmount = balanceAmount;
     } else if (typeof amountTotalCents === "number" && amountTotalCents > 0) {
-      // Regular payment - amountTotalCents is what Stripe charged
       newPaymentAmount = amountTotalCents;
     } else {
-      // Fallback to booking total
       newPaymentAmount = booking.totalCents ?? 0;
     }
 
-    // For balance payments, add to existing. For new payments, this is the total paid.
     const totalPaidCents = isBalancePayment
       ? previouslyPaidCents + newPaymentAmount
       : newPaymentAmount;
 
     const safeCurrency = (currency ?? booking.currency ?? "usd").toLowerCase();
 
-    // Determine if fully paid
     const isFullyPaid = totalPaidCents >= (booking.totalCents ?? 0);
 
     console.log(
@@ -117,7 +112,7 @@ async function finalizePaid(args: {
       },
     });
 
-    // Only update booking status if this is the first payment or booking isn't in a terminal state
+    // Only update booking status if not in a terminal state
     const terminal: BookingStatus[] = ["CANCELLED", "NO_SHOW", "COMPLETED"];
     const shouldUpdateStatus =
       !terminal.includes(booking.status) &&
@@ -131,8 +126,41 @@ async function finalizePaid(args: {
         data: { status: nextStatus },
       });
 
+      // ✅ UPDATED: Log payment event with eventType and metadata
       await tx.bookingStatusEvent.create({
-        data: { bookingId, status: nextStatus },
+        data: {
+          bookingId,
+          status: nextStatus,
+          eventType: "PAYMENT_RECEIVED",
+          metadata: {
+            amountCents: newPaymentAmount,
+            method: "online", // Customer paid via Stripe checkout link
+            currency: safeCurrency,
+            stripePaymentIntentId: paymentIntentId,
+            isBalancePayment: isBalancePayment,
+            previouslyPaidCents: previouslyPaidCents,
+            totalPaidCents: totalPaidCents,
+          },
+          // No createdById since this is system/customer initiated
+        },
+      });
+    } else {
+      // ✅ Still log the payment event even if status doesn't change
+      await tx.bookingStatusEvent.create({
+        data: {
+          bookingId,
+          status: booking.status,
+          eventType: "PAYMENT_RECEIVED",
+          metadata: {
+            amountCents: newPaymentAmount,
+            method: "online",
+            currency: safeCurrency,
+            stripePaymentIntentId: paymentIntentId,
+            isBalancePayment: isBalancePayment,
+            previouslyPaidCents: previouslyPaidCents,
+            totalPaidCents: totalPaidCents,
+          },
+        },
       });
     }
   });
@@ -144,7 +172,6 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
   let bookingId =
     str(incoming?.metadata?.bookingId) ?? str(incoming?.client_reference_id);
 
-  // Check for balance payment metadata
   const isBalancePayment = incoming?.metadata?.isBalancePayment === "true";
   const balanceAmount = incoming?.metadata?.balanceAmount
     ? parseInt(incoming.metadata.balanceAmount, 10)
@@ -159,7 +186,7 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
     bookingId = p?.bookingId ?? null;
   }
 
-  // Stripe retrieve fallback (but NEVER crash if it fails)
+  // Stripe retrieve fallback
   let fullSession: any | null = null;
   if (!bookingId && sessionId) {
     try {
@@ -256,7 +283,6 @@ export async function POST(req: Request) {
         balanceAmount,
       );
 
-      // Trigger events won't have bookingId; that's fine, just acknowledge.
       if (!bookingId) return NextResponse.json({ received: true });
 
       const session = fullSession ?? incoming;
@@ -368,7 +394,6 @@ export async function POST(req: Request) {
 
       if (!payment) return NextResponse.json({ received: true });
 
-      // Calculate total refunded from the charge object
       const amountRefunded = charge?.amount_refunded ?? 0;
 
       console.log(
@@ -380,7 +405,6 @@ export async function POST(req: Request) {
         amountRefunded,
       );
 
-      // Determine new status based on refund amount
       let newStatus: "PAID" | "PARTIALLY_REFUNDED" | "REFUNDED" = "PAID";
       if (amountRefunded >= payment.amountPaidCents) {
         newStatus = "REFUNDED";
@@ -402,6 +426,40 @@ export async function POST(req: Request) {
         await db.booking.update({
           where: { id: payment.bookingId },
           data: { status: "REFUNDED" },
+        });
+
+        // ✅ Log refund event from webhook
+        await db.bookingStatusEvent.create({
+          data: {
+            bookingId: payment.bookingId,
+            status: "REFUNDED",
+            eventType: "REFUND_ISSUED",
+            metadata: {
+              amountCents: amountRefunded,
+              source: "stripe_webhook",
+              stripeChargeId: charge?.id,
+            },
+          },
+        });
+      } else if (newStatus === "PARTIALLY_REFUNDED") {
+        // ✅ Log partial refund event from webhook
+        const booking = await db.booking.findUnique({
+          where: { id: payment.bookingId },
+          select: { status: true },
+        });
+
+        await db.bookingStatusEvent.create({
+          data: {
+            bookingId: payment.bookingId,
+            status: booking?.status ?? "PARTIALLY_REFUNDED",
+            eventType: "REFUND_ISSUED",
+            metadata: {
+              amountCents: amountRefunded,
+              source: "stripe_webhook",
+              stripeChargeId: charge?.id,
+              remainingPaidCents: payment.amountPaidCents - amountRefunded,
+            },
+          },
         });
       }
 
