@@ -42,6 +42,7 @@
   letter-spacing: inherit;
   text-transform: inherit;
   white-space: nowrap;
+  line-height: 1.5;
 }
 
 .textPrimary {
@@ -70,7 +71,8 @@
 /* ================================
    Arrow Slide Animation Styles
    ================================ */
-.arrowContainer {
+.arrowContainer,
+.plusContainer {
   background-color: var(--white);
   border-radius: 4px 4px 10px;
   display: flex;
@@ -108,7 +110,7 @@
 }
 
 .optionalIcon {
-  color: inherit;
+  color: var(--black);
   position: relative;
   top: 2px;
   width: 2rem;
@@ -119,6 +121,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  position: relative;
 }
 
 /* ================================
@@ -175,8 +179,7 @@
   border: 1px solid var(--strokeii);
   display: flex;
   justify-content: space-between;
-  border-bottom-right-radius: 6px;
-  padding: 6px;
+   
 }
 
 .red,
@@ -187,6 +190,7 @@
   border: 1px solid var(--accent600);
   display: flex;
   justify-content: space-between;
+   
 }
 
 .green,
@@ -197,6 +201,7 @@
   border: 1px solid var(--darkGreen);
   display: flex;
   justify-content: space-between;
+   
 }
 
 .lightRed,
@@ -207,6 +212,7 @@
   border: 1px solid var(--accent);
   display: flex;
   justify-content: space-between;
+   
 }
 
 .cream,
@@ -217,6 +223,7 @@
   border: 1px solid var(--cream);
   display: flex;
   justify-content: space-between;
+   
 }
 
 .blackOutline {
@@ -230,6 +237,7 @@
   background-color: #ffffff1a;
   display: flex;
   justify-content: space-between;
+   
 }
 
 /* ================================

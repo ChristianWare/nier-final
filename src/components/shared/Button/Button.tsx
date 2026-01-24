@@ -1,6 +1,11 @@
 "use client";
 
-import { ReactNode, MouseEventHandler, useState } from "react";
+import {
+  ReactNode,
+  MouseEventHandler,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import styles from "./Button.module.css";
 import { motion, useAnimate, AnimationOptions } from "motion/react";
@@ -31,9 +36,11 @@ interface Props {
   onClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
+// Changed from spring to tween to remove bounce
 const transition: AnimationOptions = {
-  type: "spring",
-  duration: 0.7,
+  type: "tween",
+  duration: 0.35,
+  ease: "easeOut",
 };
 
 // Text container with flip animation
@@ -57,27 +64,55 @@ const FlipText = ({ label }: { label: string }) => {
   );
 };
 
-// Arrow with horizontal slide animation
-const ArrowSlide = () => {
+// Generic icon slide component that works with any icon
+const IconSlide = ({
+  icon: Icon,
+  className: iconClassName,
+  containerClassName,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  className?: string;
+  containerClassName?: string;
+}) => {
   return (
-    <div className={styles.arrowContainer}>
+    <div className={containerClassName || styles.arrowContainer}>
       <div className={styles.arrowWrapper}>
         <motion.div
-          className={`arrow-primary ${styles.arrowPrimary}`}
+          className={`icon-primary ${styles.arrowPrimary}`}
           style={{ x: 0 }}
         >
-          <Arrow className={styles.arrow} />
+          <Icon className={iconClassName} />
         </motion.div>
         <motion.div
-          className={`arrow-secondary ${styles.arrowSecondary}`}
+          className={`icon-secondary ${styles.arrowSecondary}`}
           style={{ x: "-100%" }}
         >
-          <Arrow className={styles.arrow} />
+          <Icon className={iconClassName} />
         </motion.div>
       </div>
     </div>
   );
 };
+
+// Proper hook using useSyncExternalStore to detect hover capability
+function useSupportsHover() {
+  const subscribe = (callback: () => void) => {
+    const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+    mediaQuery.addEventListener("change", callback);
+    return () => mediaQuery.removeEventListener("change", callback);
+  };
+
+  const getSnapshot = () => {
+    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  };
+
+  const getServerSnapshot = () => {
+    // Default to true on server (will be corrected on hydration)
+    return true;
+  };
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
 
 export default function Button({
   href,
@@ -99,12 +134,15 @@ export default function Button({
 }: Props) {
   const [scope, animate] = useAnimate();
   const [blocked, setBlocked] = useState(false);
+  const supportsHover = useSupportsHover();
 
   const content = text || (typeof children === "string" ? children : null);
   const nonTextChildren = typeof children !== "string" ? children : null;
   const className = `${styles.btn} ${styles[btnType]}`;
 
   const hoverStart = () => {
+    // Don't animate on touch devices
+    if (!supportsHover) return;
     if (blocked) return;
     setBlocked(true);
 
@@ -121,15 +159,15 @@ export default function Button({
       animate(".text-secondary", { y: "-100%" }, { duration: 0 });
     });
 
-    // Animate arrow - horizontal swap
-    // Primary arrow moves right and out
-    animate(".arrow-primary", { x: "100%" }, transition).then(() => {
-      animate(".arrow-primary", { x: 0 }, { duration: 0 });
+    // Animate all icons - horizontal swap
+    // Primary icons move right and out
+    animate(".icon-primary", { x: "100%" }, transition).then(() => {
+      animate(".icon-primary", { x: 0 }, { duration: 0 });
     });
 
-    // Secondary arrow comes in from left
-    animate(".arrow-secondary", { x: "0%" }, transition).then(() => {
-      animate(".arrow-secondary", { x: "-100%" }, { duration: 0 });
+    // Secondary icons come in from left
+    animate(".icon-secondary", { x: "0%" }, transition).then(() => {
+      animate(".icon-secondary", { x: "-100%" }, { duration: 0 });
     });
   };
 
@@ -137,36 +175,54 @@ export default function Button({
     <>
       {content && <FlipText label={content} />}
       {nonTextChildren}
-      {arrow && <ArrowSlide />}
+      {arrow && (
+        <IconSlide
+          icon={Arrow}
+          className={styles.arrow}
+          containerClassName={styles.arrowContainer}
+        />
+      )}
       {plus && (
-        <div className={styles.plusContainer}>
-          <Plus className={styles.optionalIcon} />
-        </div>
+        <IconSlide
+          icon={Plus}
+          className={styles.optionalIcon}
+          containerClassName={styles.plusContainer}
+        />
       )}
       {downloadIcon && (
-        <div className={styles.plusContainer}>
-          <DownloadIcon className={styles.optionalIcon} />
-        </div>
+        <IconSlide
+          icon={DownloadIcon}
+          className={styles.optionalIcon}
+          containerClassName={styles.plusContainer}
+        />
       )}
       {closeIcon && (
-        <div className={styles.plusContainer}>
-          <Close className={styles.optionalIcon} />
-        </div>
+        <IconSlide
+          icon={Close}
+          className={styles.optionalIcon}
+          containerClassName={styles.plusContainer}
+        />
       )}
       {checkIcon && (
-        <div className={styles.plusContainer}>
-          <Check className={styles.optionalIcon} />
-        </div>
+        <IconSlide
+          icon={Check}
+          className={styles.optionalIcon}
+          containerClassName={styles.plusContainer}
+        />
       )}
       {email && (
-        <div className={styles.plusContainer}>
-          <Email className={styles.optionalIcon} />
-        </div>
+        <IconSlide
+          icon={Email}
+          className={styles.optionalIcon}
+          containerClassName={styles.plusContainer}
+        />
       )}
       {refundIcon && (
-        <div className={styles.plusContainer}>
-          <RefundIcon className={styles.optionalIcon} />
-        </div>
+        <IconSlide
+          icon={RefundIcon}
+          className={styles.optionalIcon}
+          containerClassName={styles.plusContainer}
+        />
       )}
     </>
   );

@@ -150,7 +150,7 @@ export default function AdminRecentBookingRequests({
           <h2
             className={`cardTitle h4 ${counts.total >= 1 ? "yellowBorder" : ""}`}
           >
-            Recent booking requests
+            New booking requests - needs review
           </h2>
 
           <div className={styles.kpis}>
