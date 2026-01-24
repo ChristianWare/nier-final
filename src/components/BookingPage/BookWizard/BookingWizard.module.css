@@ -153,6 +153,8 @@
     margin-bottom: 5rem;
     padding-top: 4rem;
     padding-bottom: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
     background-color: var(--white);
     z-index: 9999999999 !important;
     position: sticky;
