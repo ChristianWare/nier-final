@@ -676,9 +676,14 @@ export default function BookingWizard({
   return (
     <section className={styles.container}>
       <LayoutWrapper>
+        <div className={styles.stepperContainerii}>
+          <Stepper step={step} />
+        </div>
         <div className={styles.content}>
           <div className={styles.left}>
-            <Stepper step={step} />
+            <div className={styles.stepperContainer}>
+              <Stepper step={step} />
+            </div>
             <div className={styles.routePickerContainer}>
               <Controller
                 name='route'
