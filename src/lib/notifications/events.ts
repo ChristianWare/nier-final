@@ -1,5 +1,6 @@
 export type NotificationEvent =
   | "BOOKING_REQUESTED"
+  | "BOOKING_DECLINED"
   | "PAYMENT_LINK_SENT"
   | "PAYMENT_RECEIVED"
   | "DRIVER_ASSIGNED"
@@ -14,6 +15,7 @@ export const EVENT_META: Record<
   { label: string; group: "Bookings" | "Payments" | "Driver & Trip" }
 > = {
   BOOKING_REQUESTED: { label: "New booking request", group: "Bookings" },
+  BOOKING_DECLINED: { label: "Booking declined", group: "Bookings" },
   BOOKING_CANCELLED: { label: "Booking cancelled", group: "Bookings" },
 
   PAYMENT_LINK_SENT: {

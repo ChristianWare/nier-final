@@ -8,6 +8,7 @@ import styles from "./AdminBookingDetailPage.module.css";
 type BookingStatus =
   | "DRAFT"
   | "PENDING_REVIEW"
+  | "DECLINED"
   | "PENDING_PAYMENT"
   | "CONFIRMED"
   | "ASSIGNED"
@@ -106,8 +107,13 @@ export default function QuickActionsClient({
   const availableTripActions = TRIP_ACTIONS.filter((action) => {
     if (action.status === currentStatus) return false;
 
-    if (currentStatus === "DRAFT" || currentStatus === "PENDING_REVIEW") {
-      return false; // No trip actions for draft/pending review
+    // No trip actions for draft, pending review, or declined
+    if (
+      currentStatus === "DRAFT" ||
+      currentStatus === "PENDING_REVIEW" ||
+      currentStatus === "DECLINED"
+    ) {
+      return false;
     }
 
     if (currentStatus === "PENDING_PAYMENT") {
@@ -135,13 +141,13 @@ export default function QuickActionsClient({
     return false;
   });
 
-  // Show cancel button unless already finalized
+  // Show cancel button unless already finalized or declined
   const showCancelButton =
     !isFinalized &&
-    currentStatus !== "DRAFT" &&
-    currentStatus !== "PENDING_REVIEW"
+    currentStatus !== "DECLINED" &&
+    (currentStatus !== "DRAFT" && currentStatus !== "PENDING_REVIEW"
       ? true
-      : currentStatus === "DRAFT" || currentStatus === "PENDING_REVIEW";
+      : currentStatus === "DRAFT" || currentStatus === "PENDING_REVIEW");
 
   // Cancel button is disabled after booking is completed or day after pickup
   const isCancelDisabled = isFinalized || isDayAfterOrLater;
@@ -175,6 +181,18 @@ export default function QuickActionsClient({
           This booking is{" "}
           <strong>{currentStatus.toLowerCase().replace("_", " ")}</strong> — no
           further actions available.
+        </p>
+      </div>
+    );
+  }
+
+  // If declined, show message
+  if (currentStatus === "DECLINED") {
+    return (
+      <div className={styles.quickActionsFinalized}>
+        <p className={styles.muted}>
+          This booking is <strong>declined</strong> — use the Approval Status
+          section above to reopen or approve it.
         </p>
       </div>
     );

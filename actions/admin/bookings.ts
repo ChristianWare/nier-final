@@ -8,6 +8,7 @@ import { stripe } from "@/lib/stripe";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import { revalidatePath } from "next/cache";
+import { BookingStatus } from "@prisma/client";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -102,6 +103,7 @@ export async function approveBookingAndSetPrice(formData: FormData) {
         taxesCents: d.taxesCents,
         totalCents: d.totalCents,
         status: newStatus,
+        declineReason: null, // Clear any previous decline reason
       },
     }),
   ];
@@ -195,14 +197,27 @@ export async function approveBooking(formData: FormData) {
 
   if (!booking) return { error: "Booking not found." };
 
-  if (booking.status !== "PENDING_REVIEW" && booking.status !== "DRAFT") {
-    return { error: "Booking is already approved or in a final state." };
+  // ✅ Can approve from PENDING_REVIEW, DRAFT, or DECLINED
+  const canApproveFrom: BookingStatus[] = [
+    "PENDING_REVIEW",
+    "DRAFT",
+    "DECLINED",
+  ];
+  if (!canApproveFrom.includes(booking.status)) {
+    return {
+      error: `Cannot approve a booking with status "${booking.status}". Booking must be pending review, draft, or declined.`,
+    };
   }
+
+  const previousStatus = booking.status;
 
   await db.$transaction([
     db.booking.update({
       where: { id: bookingId },
-      data: { status: "PENDING_PAYMENT" },
+      data: {
+        status: "PENDING_PAYMENT",
+        declineReason: null, // Clear any previous decline reason
+      },
     }),
     db.bookingStatusEvent.create({
       data: {
@@ -211,7 +226,7 @@ export async function approveBooking(formData: FormData) {
         eventType: "APPROVAL_CHANGED",
         metadata: {
           approved: true,
-          previousStatus: booking.status,
+          previousStatus,
           newStatus: "PENDING_PAYMENT",
         },
         createdById: actorId,
@@ -220,6 +235,8 @@ export async function approveBooking(formData: FormData) {
   ]);
 
   revalidatePath(`/admin/bookings/${bookingId}`);
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
 
   return { success: true };
 }
@@ -253,6 +270,8 @@ export async function unapproveBooking(formData: FormData) {
     };
   }
 
+  const previousStatus = booking.status;
+
   await db.$transaction([
     db.booking.update({
       where: { id: bookingId },
@@ -265,7 +284,7 @@ export async function unapproveBooking(formData: FormData) {
         eventType: "APPROVAL_CHANGED",
         metadata: {
           approved: false,
-          previousStatus: booking.status,
+          previousStatus,
           newStatus: "PENDING_REVIEW",
         },
         createdById: actorId,
@@ -274,6 +293,143 @@ export async function unapproveBooking(formData: FormData) {
   ]);
 
   revalidatePath(`/admin/bookings/${bookingId}`);
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
+
+  return { success: true };
+}
+
+// =============================================================================
+// ✅ NEW: Decline Booking
+// =============================================================================
+
+const DeclineBookingSchema = z.object({
+  bookingId: z.string().min(1),
+  reason: z.string().optional(),
+});
+
+export async function declineBooking(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const parsed = DeclineBookingSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid booking data." };
+
+  const { bookingId, reason } = parsed.data;
+  const trimmedReason = reason?.trim() || null;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    include: { payment: true },
+  });
+
+  if (!booking) return { error: "Booking not found." };
+
+  // Cannot decline if already paid
+  if (booking.payment?.status === "PAID") {
+    return { error: "Cannot decline a booking that has already been paid." };
+  }
+
+  // Can only decline from PENDING_REVIEW, DRAFT, or PENDING_PAYMENT (if not paid)
+  const canDeclineFrom: BookingStatus[] = [
+    "PENDING_REVIEW",
+    "DRAFT",
+    "PENDING_PAYMENT",
+  ];
+  if (!canDeclineFrom.includes(booking.status)) {
+    return {
+      error: `Cannot decline a booking with status "${booking.status}".`,
+    };
+  }
+
+  const previousStatus = booking.status;
+
+  await db.$transaction([
+    db.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "DECLINED",
+        declineReason: trimmedReason,
+      },
+    }),
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status: "DECLINED",
+        eventType: "BOOKING_DECLINED",
+        metadata: {
+          previousStatus,
+          reason: trimmedReason,
+        },
+        createdById: actorId,
+      },
+    }),
+  ]);
+
+  // Queue notification for declined booking
+  await queueAdminNotificationsForBookingEvent({
+    event: "BOOKING_DECLINED",
+    bookingId,
+  });
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
+
+  return { success: true };
+}
+
+// =============================================================================
+// ✅ NEW: Reopen Declined Booking
+// =============================================================================
+
+export async function reopenBooking(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const parsed = ApproveBookingSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid booking data." };
+
+  const { bookingId } = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    select: { id: true, status: true },
+  });
+
+  if (!booking) return { error: "Booking not found." };
+
+  // Can only reopen from DECLINED
+  if (booking.status !== "DECLINED") {
+    return {
+      error: `Cannot reopen a booking with status "${booking.status}". Booking must be declined.`,
+    };
+  }
+
+  await db.$transaction([
+    db.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "PENDING_REVIEW",
+        declineReason: null,
+      },
+    }),
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status: "PENDING_REVIEW",
+        eventType: "STATUS_CHANGE",
+        metadata: {
+          action: "Booking reopened from declined",
+          previousStatus: "DECLINED",
+          newStatus: "PENDING_REVIEW",
+        },
+        createdById: actorId,
+      },
+    }),
+  ]);
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
 
   return { success: true };
 }
@@ -508,6 +664,15 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 
   const b = booking;
 
+  // ✅ Block if booking is not approved
+  if (
+    b.status === "PENDING_REVIEW" ||
+    b.status === "DRAFT" ||
+    b.status === "DECLINED"
+  ) {
+    return { error: "Booking must be approved before sending a payment link." };
+  }
+
   if (b.status === "CANCELLED" || b.status === "NO_SHOW") {
     return { error: "This booking is cancelled/no-show. Don't send payment." };
   }
@@ -549,9 +714,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     existing.amountTotalCents === (b.totalCents ?? 0) &&
     (existing.currency ?? "usd") === (b.currency ?? "usd") &&
     now - new Date(existing.updatedAt).getTime() < reuseWindowMs;
-
-  const maybeSetPendingPayment =
-    b.status === "DRAFT" || b.status === "PENDING_REVIEW";
 
   async function emailIt(url: string, isBalance: boolean) {
     await sendPaymentLinkEmail({
@@ -693,39 +855,12 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     );
   }
 
-  if (maybeSetPendingPayment && !isBalancePayment) {
-    tx.push(
-      db.booking.update({
-        where: { id: b.id },
-        data: { status: "PENDING_PAYMENT" },
-      }),
-    );
-    tx.push(
-      db.bookingStatusEvent.create({
-        data: {
-          bookingId: b.id,
-          status: "PENDING_PAYMENT",
-          eventType: "APPROVAL_CHANGED",
-          metadata: {
-            approved: true,
-            previousStatus: b.status,
-            newStatus: "PENDING_PAYMENT",
-          },
-          createdById: actorId,
-        },
-      }),
-    );
-  }
-
   // ✅ Log payment link sent event
   tx.push(
     db.bookingStatusEvent.create({
       data: {
         bookingId: b.id,
-        status:
-          maybeSetPendingPayment && !isBalancePayment
-            ? "PENDING_PAYMENT"
-            : b.status,
+        status: b.status,
         eventType: "PAYMENT_LINK_SENT",
         metadata: {
           amountCents: amountToCharge,

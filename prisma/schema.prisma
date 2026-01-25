@@ -27,6 +27,7 @@ enum Role {
 enum BookingStatus {
   DRAFT
   PENDING_REVIEW
+  DECLINED
   PENDING_PAYMENT
   CONFIRMED
   ASSIGNED
@@ -303,6 +304,8 @@ model Booking {
 
   status BookingStatus @default(DRAFT)
 
+  declineReason String? @db.Text
+
   // Trip details
   pickupAt   DateTime
   passengers Int      @default(1)
@@ -510,6 +513,7 @@ enum NotificationEventType {
   DRIVER_PICKED_UP
   TRIP_COMPLETED
   BOOKING_CANCELLED
+  BOOKING_DECLINED
 }
 
 enum NotificationJobStatus {

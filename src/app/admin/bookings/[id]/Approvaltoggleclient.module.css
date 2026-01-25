@@ -19,7 +19,7 @@
 }
 
 /* =============================================================================
-   Checkbox Row
+   Checkbox Row (kept for legacy/reference)
    ============================================================================= */
 
 .checkboxRow {
@@ -45,6 +45,10 @@
   color: var(--paragraph);
 }
 
+/* =============================================================================
+   Status Badge
+   ============================================================================= */
+
 .statusBadge {
   display: inline-block;
   padding: 6px 12px;
@@ -66,6 +70,68 @@
   border: 1px solid #fcd34d;
 }
 
+/* ✅ NEW: Declined status */
+.statusDeclined {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+/* =============================================================================
+   ✅ NEW: Decline Reason Display
+   ============================================================================= */
+
+.declineReasonDisplay {
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+.declineReasonDisplay strong {
+  color: #7f1d1d;
+}
+
+/* =============================================================================
+   ✅ NEW: Action Buttons
+   ============================================================================= */
+
+.actionButtons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* =============================================================================
+   ✅ NEW: Form Group (for textarea in modal)
+   ============================================================================= */
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.reasonTextarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.reasonTextarea:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
 /* =============================================================================
    Hints
    ============================================================================= */
@@ -78,7 +144,6 @@
 }
 
 .hintLocked {
-  /* font-size: 0.9rem; */
   color: #64748b;
   margin: 0;
   font-style: italic;
@@ -143,6 +208,15 @@
 @media screen and (max-width: 600px) {
   .container {
     padding: 1rem;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .actionButtons > * {
+    width: 100%;
   }
 
   .modalActions {

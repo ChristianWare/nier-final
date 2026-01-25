@@ -136,9 +136,8 @@
   letter-spacing: normal;
 }
 
-/* ✅ NEW: Event details styling for metadata display */
+/* ✅ Event details styling for metadata display */
 .eventDetails {
-  /* font-size: 0.85rem; */
   color: #64748b;
   padding: 8px 12px;
   background: #f8fafc;
@@ -688,7 +687,7 @@
 }
 
 /* =============================================================================
-   ✅ NEW: Balance Due Alert
+   ✅ Balance Due Alert
    ============================================================================= */
 
 .balanceDueAlert {
@@ -713,7 +712,7 @@
 }
 
 /* =============================================================================
-   ✅ NEW: Refund Due Alert
+   ✅ Refund Due Alert
    ============================================================================= */
 
 .refundDueAlert {
@@ -735,6 +734,25 @@
   margin-top: 4px;
   font-size: 0.85rem;
   opacity: 0.85;
+}
+
+/* =============================================================================
+   ✅ NEW: Decline Reason Box (in header)
+   ============================================================================= */
+
+.declineReasonBox {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+.declineReasonBox strong {
+  color: #7f1d1d;
 }
 
 @media screen and (max-width: 1268px) {
@@ -787,5 +805,9 @@
   .eventDetails {
     font-size: 0.8rem;
     padding: 6px 10px;
+  }
+
+  .declineReasonBox {
+    font-size: 0.9rem;
   }
 }

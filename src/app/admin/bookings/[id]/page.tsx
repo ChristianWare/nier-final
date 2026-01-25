@@ -27,6 +27,8 @@ function statusLabel(status: BookingStatus) {
   switch (status) {
     case "PENDING_REVIEW":
       return "Pending review";
+    case "DECLINED":
+      return "Declined";
     case "PENDING_PAYMENT":
       return "Approved (awaiting payment)";
     case "CONFIRMED":
@@ -61,6 +63,7 @@ type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 function badgeTone(status: BookingStatus): BadgeTone {
   if (status === "PENDING_PAYMENT") return "good";
   if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
+  if (status === "DECLINED") return "bad";
   if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
   if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
     return "accent";
@@ -133,7 +136,7 @@ function getEventActorLabel(
   return `User: ${name}`;
 }
 
-// ✅ NEW: Helper to format event details from metadata
+// ✅ Helper to format event details from metadata
 function getEventDetails(
   eventType: string,
   metadata: Record<string, any> | null,
@@ -193,6 +196,10 @@ function getEventDetails(
       return metadata.approved
         ? `Status: ${metadata.previousStatus} → ${metadata.newStatus}`
         : `Reverted to: ${metadata.newStatus}`;
+    }
+
+    case "BOOKING_DECLINED": {
+      return metadata.reason ? `Reason: ${metadata.reason}` : null;
     }
 
     case "STATUS_CHANGE": {
@@ -443,9 +450,14 @@ export default async function AdminBookingDetailPage({
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
   const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
 
-  // ✅ Determine if booking is approved (not in PENDING_REVIEW or DRAFT)
+  // ✅ Determine if booking is approved (not in PENDING_REVIEW, DRAFT, or DECLINED)
   const isApproved =
-    booking.status !== "PENDING_REVIEW" && booking.status !== "DRAFT";
+    booking.status !== "PENDING_REVIEW" &&
+    booking.status !== "DRAFT" &&
+    booking.status !== "DECLINED";
+
+  // ✅ Determine if booking is declined
+  const isDeclined = booking.status === "DECLINED";
 
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
@@ -564,6 +576,13 @@ export default async function AdminBookingDetailPage({
               </div>
             </div>
 
+            {/* ✅ Show decline reason if applicable */}
+            {isDeclined && booking.declineReason && (
+              <div className={styles.declineReasonBox}>
+                <strong>Decline Reason:</strong> {booking.declineReason}
+              </div>
+            )}
+
             {/* ✅ Updated Payment status with balance display */}
             <div style={{ marginTop: 12 }}>
               <div className='emptyTitle'>Payment:</div>
@@ -627,8 +646,10 @@ export default async function AdminBookingDetailPage({
             <ApprovalToggleClient
               bookingId={booking.id}
               isApproved={isApproved}
+              isDeclined={isDeclined}
               isPaid={isPaid}
               bookingStatus={booking.status}
+              declineReason={booking.declineReason}
             />
           </div>
         </div>
@@ -687,9 +708,6 @@ export default async function AdminBookingDetailPage({
           k='Passengers / luggage'
           v={`${booking.passengers} / ${booking.luggage}`}
         />
-        {booking.specialRequests ? (
-          <KeyVal k='Special requests' v={booking.specialRequests} />
-        ) : null}
         {/* ✅ Route Map Display */}
         {hasRouteCoordinates && (
           <>
@@ -775,12 +793,13 @@ export default async function AdminBookingDetailPage({
             )}
           </div>
 
-          {/* ✅ Send Payment Link Button */}
+          {/* ✅ Send Payment Link Button - now checks isApproved */}
           <SendPaymentLinkButton
             bookingId={booking.id}
             totalCents={booking.totalCents}
             amountPaidCents={amountPaidCents}
             currency={booking.currency}
+            isApproved={isApproved}
           />
 
           {booking.payment?.checkoutUrl ? (
@@ -806,11 +825,13 @@ export default async function AdminBookingDetailPage({
             </div>
 
             <div style={{ marginTop: 10 }}>
+              {/* ✅ Manual payment - now checks isApproved */}
               <AdminManualCardPaymentClient
                 bookingId={booking.id}
                 amountCents={booking.totalCents}
                 currency={booking.currency}
                 isPaid={isPaid}
+                isApproved={isApproved}
                 amountPaidCents={amountPaidCents}
               />
             </div>
@@ -892,7 +913,7 @@ export default async function AdminBookingDetailPage({
         ) : (
           <ul className={styles.eventsList}>
             {booking.statusEvents.map((e) => {
-              // ✅ NEW: Extract eventType and metadata from the event
+              // ✅ Extract eventType and metadata from the event
               const eventType = (e as any).eventType ?? "STATUS_CHANGE";
               const metadata = (e as any).metadata as Record<
                 string,
@@ -946,6 +967,9 @@ export default async function AdminBookingDetailPage({
                 label = metadata?.approved
                   ? "Booking approved"
                   : "Approval reversed";
+              } else if (eventType === "BOOKING_DECLINED") {
+                tone = "bad";
+                label = "Booking declined";
               }
 
               const actorLabel = getEventActorLabel(e.createdBy, e.status);
@@ -962,9 +986,11 @@ export default async function AdminBookingDetailPage({
                   <div className={styles.eventLeft}>
                     <span className={`badge badge_${tone}`}>{label}</span>
                     <span className={styles.eventActor}>{actorLabel}</span>
-                    {/* ✅ NEW: Show event details if available */}
+                    {/* ✅ Show event details if available */}
                     {eventDetails && (
-                      <div className={`${styles.eventDetails} miniNote`}>{eventDetails}</div>
+                      <div className={`${styles.eventDetails} miniNote`}>
+                        {eventDetails}
+                      </div>
                     )}
                   </div>
                   <p className='val'>{formatDateTime(new Date(e.createdAt))}</p>
@@ -1022,7 +1048,7 @@ function Card({
       <div className={styles.cardTop}>
         <div
           className='cardTitle h4'
-          style={stylesWarn ? { background: "var(--warning300)", } : {}}
+          style={stylesWarn ? { background: "var(--warning300)" } : {}}
         >
           {title}
         </div>

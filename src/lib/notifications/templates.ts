@@ -28,6 +28,7 @@ export function buildAdminNotification(args: {
 
   const subjectMap: Record<NotificationEvent, string> = {
     BOOKING_REQUESTED: `New booking request • ${baseLine}`,
+    BOOKING_DECLINED: `Booking declined • ${baseLine}`,
     PAYMENT_LINK_SENT: `Payment link sent • ${baseLine}`,
     PAYMENT_RECEIVED: `Payment received • ${baseLine}`,
     DRIVER_ASSIGNED: `Driver assigned • ${baseLine}`,
@@ -40,6 +41,7 @@ export function buildAdminNotification(args: {
 
   const titleMap: Record<NotificationEvent, string> = {
     BOOKING_REQUESTED: "New booking request",
+    BOOKING_DECLINED: "Booking declined",
     PAYMENT_LINK_SENT: "Payment link sent",
     PAYMENT_RECEIVED: "Payment received",
     DRIVER_ASSIGNED: "Driver assigned",

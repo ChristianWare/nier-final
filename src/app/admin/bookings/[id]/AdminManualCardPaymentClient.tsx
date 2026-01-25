@@ -36,17 +36,19 @@ export default function AdminManualCardPaymentClient({
   amountCents,
   currency,
   isPaid,
+  isApproved,
   amountPaidCents = 0,
 }: {
   bookingId: string;
   amountCents: number;
   currency: string;
   isPaid: boolean;
+  isApproved: boolean;
   amountPaidCents?: number;
 }) {
   const [clientSecret, setClientSecret] = useState<string>("");
   const [creating, setCreating] = useState(false);
-  // ✅ NEW: Track if payment just completed (to hide the form immediately)
+  // ✅ Track if payment just completed (to hide the form immediately)
   const [justPaid, setJustPaid] = useState(false);
 
   // Calculate balance due
@@ -59,6 +61,28 @@ export default function AdminManualCardPaymentClient({
       <div className='miniNote' style={{ color: "rgba(180,0,0,0.85)" }}>
         Missing <code>NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY</code>. Add it to
         enable manual payments.
+      </div>
+    );
+  }
+
+  // ✅ Block payments if booking is not approved
+  if (!isApproved) {
+    return (
+      <div
+        style={{
+          padding: "12px 16px",
+          background: "var(--warning50)",
+          border: "1px solid var(--warning200)",
+          borderRadius: 8,
+          fontSize: "0.9rem",
+          color: "var(--warning800)",
+        }}
+      >
+        <strong>⚠️ Booking not approved</strong>
+        <p style={{ margin: "6px 0 0", opacity: 0.9 }}>
+          You must approve this booking before taking payment. Go to the
+          Approval Status section above to approve it.
+        </p>
       </div>
     );
   }
@@ -111,7 +135,7 @@ export default function AdminManualCardPaymentClient({
     }
 
     return (
-      <div style={{ display: "flex", gap: 20 }}>
+      <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
         {/* Show balance info if applicable */}
         {hasBalanceDue && (
           <div

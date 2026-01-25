@@ -2,15 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 import { createPaymentLinkAndEmail } from "../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
-
-type Props = {
-  bookingId: string;
-  totalCents?: number;
-  amountPaidCents?: number;
-  currency?: string;
-};
 
 function formatMoney(cents: number, currency = "USD") {
   const n = cents / 100;
@@ -21,150 +15,140 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(n);
 }
 
+type Props = {
+  bookingId: string;
+  totalCents: number;
+  amountPaidCents: number;
+  currency: string;
+  isApproved?: boolean;
+};
+
 export default function SendPaymentLinkButton({
   bookingId,
-  totalCents = 0,
-  amountPaidCents = 0,
-  currency = "USD",
+  totalCents,
+  amountPaidCents,
+  currency,
+  isApproved = true, // Default to true for backward compatibility
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
-  const balanceDue = totalCents - amountPaidCents;
-  const hasBalanceDue = amountPaidCents > 0 && balanceDue > 0;
-  const isFullyPaid = amountPaidCents > 0 && balanceDue <= 0;
+  const balanceDueCents = totalCents - amountPaidCents;
+  const hasBalanceDue = amountPaidCents > 0 && balanceDueCents > 0;
+  const isFullyPaid = amountPaidCents >= totalCents && totalCents > 0;
 
-  async function handleSendPaymentLink(isBalancePayment: boolean) {
+  // ✅ Block if booking is not approved
+  if (!isApproved) {
+    return (
+      <div
+        style={{
+          padding: "12px 16px",
+          background: "var(--warning50)",
+          border: "1px solid var(--warning200)",
+          borderRadius: 8,
+          fontSize: "0.9rem",
+          color: "var(--warning800)",
+        }}
+      >
+        <strong>⚠️ Booking not approved</strong>
+        <p style={{ margin: "6px 0 0", opacity: 0.9 }}>
+          You must approve this booking before sending a payment link. Go to the
+          Approval Status section above to approve it.
+        </p>
+      </div>
+    );
+  }
+
+  if (isFullyPaid) {
+    return (
+      <Button
+        disabled
+        type='button'
+        text='Fully paid'
+        btnType='green'
+        checkIcon
+        onClick={() => {}}
+      />
+    );
+  }
+
+  async function handleSend(isBalancePayment: boolean) {
     setError(null);
-    setSuccess(null);
 
-    const fd = new FormData();
-    fd.append("bookingId", bookingId);
-    fd.append("isBalancePayment", isBalancePayment ? "true" : "false");
+    const formData = new FormData();
+    formData.append("bookingId", bookingId);
+    formData.append("isBalancePayment", isBalancePayment ? "true" : "false");
 
     startTransition(async () => {
-      const result = await createPaymentLinkAndEmail(fd);
+      const result = await createPaymentLinkAndEmail(formData);
 
       if (result.error) {
         setError(result.error);
-        if (result.checkoutUrl) {
-          setSuccess(`Checkout URL: ${result.checkoutUrl}`);
-        }
-      } else if (result.success) {
-        const amount = result.isBalancePayment
-          ? formatMoney(result.amountCharged ?? balanceDue, currency)
-          : formatMoney(totalCents, currency);
+        toast.error(result.error);
+        return;
+      }
 
-        setSuccess(
-          result.isBalancePayment
-            ? `Balance payment link (${amount}) sent successfully!`
-            : result.reused
-              ? "Payment link resent successfully!"
-              : "Payment link sent successfully!",
-        );
+      if (result.success) {
+        const msg = isBalancePayment
+          ? `Balance payment link sent! (${formatMoney(balanceDueCents, currency)})`
+          : "Payment link sent to customer!";
+        toast.success(msg);
         router.refresh();
       }
     });
   }
 
+  // Determine button text
+  let buttonText = "Send payment link";
+  if (isPending) {
+    buttonText = "Sending...";
+  } else if (hasBalanceDue) {
+    buttonText = `Send balance link (${formatMoney(balanceDueCents, currency)})`;
+  } else if (totalCents > 0) {
+    buttonText = `Send payment link (${formatMoney(totalCents, currency)})`;
+  }
+
   return (
-    <div style={{ display: "grid", gap: 12 }}>
-      {/* Show balance info if partially paid */}
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* Show balance info if applicable */}
       {hasBalanceDue && (
         <div
           style={{
             background: "#fef3c7",
             border: "1px solid #f59e0b",
             borderRadius: 8,
-            padding: "12px 16px",
-            fontSize: "0.95rem",
+            padding: "10px 14px",
+            fontSize: "0.9rem",
+            color: "#92400e",
           }}
         >
-          <div style={{ fontWeight: 700, marginBottom: 4 }}>
-            ⚠️ Balance Due: {formatMoney(balanceDue, currency)}
-          </div>
-          <div style={{ opacity: 0.8 }}>
-            Customer has paid {formatMoney(amountPaidCents, currency)} of{" "}
-            {formatMoney(totalCents, currency)}.
-          </div>
+          <strong>Balance Due:</strong> {formatMoney(balanceDueCents, currency)}
+          <span
+            style={{
+              display: "block",
+              fontSize: "0.8rem",
+              marginTop: 2,
+              opacity: 0.85,
+            }}
+          >
+            (Paid: {formatMoney(amountPaidCents, currency)} of{" "}
+            {formatMoney(totalCents, currency)})
+          </span>
         </div>
       )}
 
-      {/* Fully paid notice */}
-      {isFullyPaid && (
-        <div
-          style={{
-            background: "#d1fae5",
-            border: "1px solid #10b981",
-            borderRadius: 5,
-            padding: "12px 16px",
-            fontSize: "1.4rem",
-          }}
-        >
-          <div style={{ fontWeight: 700 }}>
-            ✓ Fully Paid: {formatMoney(amountPaidCents, currency)}
-          </div>
-        </div>
-      )}
+      <Button
+        disabled={isPending || totalCents <= 0}
+        type='button'
+        text={buttonText}
+        btnType='primary'
+        // emailIcon
+        onClick={() => handleSend(hasBalanceDue)}
+      />
 
-      {/* Buttons */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-        {/* Full payment link - only show if not fully paid */}
-        {!isFullyPaid && (
-          <Button
-            text={
-              isPending
-                ? "Sending..."
-                : `Send Payment Link (${formatMoney(totalCents, currency)})`
-            }
-            btnType='gray'
-            email
-            onClick={() => handleSendPaymentLink(false)}
-            disabled={isPending || totalCents <= 0}
-          />
-        )}
-
-        {/* Balance payment link - only show if there's a balance */}
-        {hasBalanceDue && (
-          <Button
-            text={
-              isPending
-                ? "Sending..."
-                : `Send Balance Link (${formatMoney(balanceDue, currency)})`
-            }
-            btnType='secondary'
-            onClick={() => handleSendPaymentLink(true)}
-            disabled={isPending}
-          />
-        )}
-      </div>
-
-      {/* Error/Success messages */}
       {error && (
-        <div
-          style={{
-            color: "#c00",
-            fontSize: "0.9rem",
-            padding: "8px 0",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div
-          style={{
-            color: "#080",
-            fontSize: "0.9rem",
-            padding: "8px 0",
-            wordBreak: "break-all",
-          }}
-        >
-          {success}
-        </div>
+        <p style={{ color: "#c00", fontSize: "0.9rem", margin: 0 }}>{error}</p>
       )}
     </div>
   );
