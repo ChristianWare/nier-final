@@ -60,12 +60,18 @@ export default function SearchFormClient({
         className='inputBorder'
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder='Search name, email, booking ID, phone, address…'
+        // ✅ UPDATED: Added confirmation code to placeholder
+        placeholder='Search name, email, confirmation #, booking ID, phone, address…'
       />
       <Button text='Search' btnType='blackReg' type='submit' />
 
       {value.trim().length ? (
-        <Button text='Clear' btnType='grayReg' type='button' onClick={onClear} />
+        <Button
+          text='Clear'
+          btnType='grayReg'
+          type='button'
+          onClick={onClear}
+        />
       ) : null}
     </form>
   );

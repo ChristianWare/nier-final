@@ -7,25 +7,51 @@ import { Prisma, BookingStatus, Role } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
 import CustomRangeFormClient from "./CustomRangeFormClient";
 import SearchFormClient from "./SearchFormClient";
+import ClearFiltersButton from "@/components/admin/Clearfiltersbutton/Clearfiltersbutton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// ✅ All statuses from schema
 const STATUSES = [
+  "ALL",
   "PENDING_REVIEW",
+  "DECLINED",
   "PENDING_PAYMENT",
   "CONFIRMED",
   "ASSIGNED",
+  "EN_ROUTE",
+  "ARRIVED",
+  "IN_PROGRESS",
   "COMPLETED",
   "CANCELLED",
   "NO_SHOW",
-  "ALL",
+  "REFUNDED",
+  "PARTIALLY_REFUNDED",
+  "DRAFT",
 ] as const;
 
 const RANGES = ["month", "year", "today", "next24", "next7", "range"] as const;
 
+// ✅ ALL sortable columns
+const SORT_COLUMNS = [
+  "created",
+  "createdBy",
+  "pickup",
+  "status",
+  "customer",
+  "service",
+  "vehicle",
+  "driver",
+  "total",
+] as const;
+
+const SORT_ORDERS = ["asc", "desc"] as const;
+
 type StatusFilter = (typeof STATUSES)[number];
 type RangeFilter = (typeof RANGES)[number];
+type SortColumn = (typeof SORT_COLUMNS)[number];
+type SortOrder = (typeof SORT_ORDERS)[number];
 
 type SearchParams = {
   status?: StatusFilter;
@@ -36,8 +62,11 @@ type SearchParams = {
   paid?: "1";
   stuck?: "1";
 
-  from?: string; // YYYY-MM-DD
-  to?: string; // YYYY-MM-DD
+  from?: string;
+  to?: string;
+
+  sort?: SortColumn;
+  order?: SortOrder;
 
   page?: string;
 };
@@ -149,6 +178,10 @@ function formatEta(at: Date, now: Date) {
   return `${label} ago`;
 }
 
+function getConfirmationCode(bookingId: string): string {
+  return bookingId.slice(0, 8).toUpperCase();
+}
+
 function buildHref(
   base: string,
   params: Record<string, string | undefined | null>,
@@ -174,6 +207,8 @@ function statusLabel(status: BookingStatus) {
   switch (status) {
     case "PENDING_REVIEW":
       return "Pending review";
+    case "DECLINED":
+      return "Declined";
     case "PENDING_PAYMENT":
       return "Payment due";
     case "CONFIRMED":
@@ -203,9 +238,47 @@ function statusLabel(status: BookingStatus) {
   }
 }
 
+function statusTabLabel(status: StatusFilter): string {
+  switch (status) {
+    case "ALL":
+      return "All";
+    case "PENDING_REVIEW":
+      return "Pending";
+    case "DECLINED":
+      return "Declined";
+    case "PENDING_PAYMENT":
+      return "Awaiting Pay";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "ASSIGNED":
+      return "Assigned";
+    case "EN_ROUTE":
+      return "En Route";
+    case "ARRIVED":
+      return "Arrived";
+    case "IN_PROGRESS":
+      return "In Progress";
+    case "COMPLETED":
+      return "Completed";
+    case "CANCELLED":
+      return "Cancelled";
+    case "NO_SHOW":
+      return "No-show";
+    case "REFUNDED":
+      return "Refunded";
+    case "PARTIALLY_REFUNDED":
+      return "Part. Refund";
+    case "DRAFT":
+      return "Draft";
+    default:
+      return String(status).replaceAll("_", " ");
+  }
+}
+
 function badgeTone(status: BookingStatus): BadgeTone {
   if (status === "PENDING_PAYMENT") return "warn";
   if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
+  if (status === "DECLINED") return "bad";
   if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
   if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
     return "accent";
@@ -232,7 +305,6 @@ type BookingRow = Prisma.BookingGetPayload<{
     assignment: {
       include: { driver: { select: { name: true; email: true } } };
     };
-    // ✅ for "Created by" column (earliest status event)
     statusEvents: {
       take: 1;
       orderBy: { createdAt: "asc" };
@@ -251,6 +323,14 @@ function safeRange(v: any): RangeFilter {
   return RANGES.includes(v) ? v : "month";
 }
 
+function safeSort(v: any): SortColumn | undefined {
+  return SORT_COLUMNS.includes(v) ? v : undefined;
+}
+
+function safeOrder(v: any): SortOrder {
+  return SORT_ORDERS.includes(v) ? v : "desc";
+}
+
 function buildWhere(args: {
   now: Date;
   status: StatusFilter;
@@ -267,7 +347,6 @@ function buildWhere(args: {
 
   const where: Prisma.BookingWhereInput = {};
 
-  // ---- Time window ----
   const todayStart = startOfDayPhoenix(now);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
@@ -297,10 +376,8 @@ function buildWhere(args: {
     let fromUtc = f ? startOfDayFromYMDPhoenix(f) : todayStart;
     const toUtc0 = t ? startOfDayFromYMDPhoenix(t) : todayStart;
 
-    // inclusive end-date => +1 day exclusive bound
     let toUtc = new Date(toUtc0.getTime() + 24 * 60 * 60 * 1000);
 
-    // guard inverted ranges
     if (toUtc.getTime() < fromUtc.getTime()) {
       const tmp = fromUtc;
       fromUtc = toUtc0;
@@ -312,14 +389,11 @@ function buildWhere(args: {
 
   if (pickupAtFilter) where.pickupAt = pickupAtFilter;
 
-  // ---- Status ----
   if (status !== "ALL") where.status = status as BookingStatus;
 
-  // ---- Toggles ----
   if (unassigned) where.assignment = { is: null };
   if (paid) where.payment = { is: { status: "PAID" } };
 
-  // ---- Stuck review ----
   if (stuck) {
     const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
     where.status = "PENDING_REVIEW";
@@ -327,37 +401,93 @@ function buildWhere(args: {
     where.pickupAt = { gte: now };
   }
 
-  // ---- Search ----
   const needle = (q ?? "").trim();
   if (needle) {
+    const isConfirmationCode = /^[A-Za-z0-9]{6,8}$/i.test(needle);
+
     const existingAnd = Array.isArray(where.AND)
       ? where.AND
       : where.AND
         ? [where.AND]
         : [];
 
+    const searchConditions: Prisma.BookingWhereInput[] = [
+      { id: { contains: needle, mode: "insensitive" } },
+      { guestName: { contains: needle, mode: "insensitive" } },
+      { guestEmail: { contains: needle, mode: "insensitive" } },
+      { guestPhone: { contains: needle, mode: "insensitive" } },
+      { pickupAddress: { contains: needle, mode: "insensitive" } },
+      { dropoffAddress: { contains: needle, mode: "insensitive" } },
+      { user: { is: { name: { contains: needle, mode: "insensitive" } } } },
+      { user: { is: { email: { contains: needle, mode: "insensitive" } } } },
+    ];
+
+    if (isConfirmationCode) {
+      searchConditions.push({
+        id: { startsWith: needle.toLowerCase(), mode: "insensitive" },
+      });
+    }
+
     where.AND = [
       ...existingAnd,
       {
-        OR: [
-          { id: { contains: needle, mode: "insensitive" } },
-          { guestName: { contains: needle, mode: "insensitive" } },
-          { guestEmail: { contains: needle, mode: "insensitive" } },
-          { guestPhone: { contains: needle, mode: "insensitive" } },
-          { pickupAddress: { contains: needle, mode: "insensitive" } },
-          { dropoffAddress: { contains: needle, mode: "insensitive" } },
-
-          // user relation (optional)
-          { user: { is: { name: { contains: needle, mode: "insensitive" } } } },
-          {
-            user: { is: { email: { contains: needle, mode: "insensitive" } } },
-          },
-        ],
+        OR: searchConditions,
       },
     ];
   }
 
   return where;
+}
+
+// ✅ UPDATED: Build orderBy for ALL columns
+function buildOrderBy(
+  sort: SortColumn | undefined,
+  order: SortOrder,
+  status: StatusFilter,
+  stuck: boolean,
+): Prisma.BookingOrderByWithRelationInput[] {
+  if (sort) {
+    const direction =
+      order === "asc" ? Prisma.SortOrder.asc : Prisma.SortOrder.desc;
+
+    switch (sort) {
+      case "created":
+        return [{ createdAt: direction }];
+      case "createdBy":
+        return [{ user: { name: direction } }, { guestName: direction }];
+      case "pickup":
+        return [{ pickupAt: direction }];
+      case "status":
+        return [{ status: direction }];
+      case "customer":
+        return [{ user: { name: direction } }, { guestName: direction }];
+      case "service":
+        return [{ serviceType: { name: direction } }];
+      case "vehicle":
+        return [{ vehicle: { name: direction } }];
+      case "driver":
+        return [{ assignment: { driver: { name: direction } } }];
+      case "total":
+        return [{ totalCents: direction }];
+      default:
+        return [{ pickupAt: direction }];
+    }
+  }
+
+  if (stuck || status === "PENDING_REVIEW") {
+    return [{ createdAt: Prisma.SortOrder.asc }];
+  }
+  if (status === "ALL") {
+    return [{ pickupAt: Prisma.SortOrder.desc }];
+  }
+  if (
+    status === "COMPLETED" ||
+    status === "CANCELLED" ||
+    status === "NO_SHOW"
+  ) {
+    return [{ pickupAt: Prisma.SortOrder.desc }];
+  }
+  return [{ pickupAt: Prisma.SortOrder.asc }];
 }
 
 export default async function AdminBookingsPage({
@@ -369,6 +499,8 @@ export default async function AdminBookingsPage({
 
   const status = safeStatus(sp.status) as StatusFilter;
   const range = safeRange(sp.range) as RangeFilter;
+  const sort = safeSort(sp.sort);
+  const order = safeOrder(sp.order);
 
   const unassigned = sp.unassigned === "1";
   const paid = sp.paid === "1";
@@ -396,16 +528,7 @@ export default async function AdminBookingsPage({
     q,
   });
 
-  const orderBy: Prisma.BookingOrderByWithRelationInput[] =
-    stuck || status === "PENDING_REVIEW"
-      ? [{ createdAt: Prisma.SortOrder.asc }]
-      : status === "ALL"
-        ? [{ pickupAt: Prisma.SortOrder.desc }]
-        : status === "COMPLETED" ||
-            status === "CANCELLED" ||
-            status === "NO_SHOW"
-          ? [{ pickupAt: Prisma.SortOrder.desc }]
-          : [{ pickupAt: Prisma.SortOrder.asc }];
+  const orderBy = buildOrderBy(sort, order, status, stuck);
 
   const totalCount = await db.booking.count({ where });
 
@@ -436,7 +559,6 @@ export default async function AdminBookingsPage({
     take: PAGE_SIZE,
   });
 
-  // ---- Counts for tabs (respects current q by default) ----
   async function countFor(next: {
     status?: StatusFilter;
     range?: RangeFilter;
@@ -498,17 +620,28 @@ export default async function AdminBookingsPage({
     number
   >;
 
-  // Params used in links/forms
   const baseParams: Record<string, string | undefined> = {
     status: status === "ALL" ? "ALL" : status,
-    range: range === "month" ? undefined : range, // keep URLs clean; default is month
+    range: range === "month" ? undefined : range,
     unassigned: unassigned ? "1" : undefined,
     paid: paid ? "1" : undefined,
     stuck: stuck ? "1" : undefined,
     from: range === "range" ? fromYmd : undefined,
     to: range === "range" ? toYmd : undefined,
     q: q.length ? q : undefined,
+    sort: sort,
+    order: sort ? order : undefined,
   };
+
+  // ✅ Check if any filters are active
+  const hasActiveFilters =
+    status !== "ALL" ||
+    range !== "month" ||
+    unassigned ||
+    paid ||
+    stuck ||
+    q.length > 0 ||
+    sort !== undefined;
 
   const pageParams: Record<string, string | undefined> = {
     ...baseParams,
@@ -528,7 +661,6 @@ export default async function AdminBookingsPage({
               href='/admin/bookings/new'
               text='New Booking'
               btnType='greenReg'
-              
             />
           </div>
 
@@ -580,6 +712,11 @@ export default async function AdminBookingsPage({
               }}
             />
           </div>
+
+          {/* ✅ Clear All Filters Button */}
+          <div className={styles.filterGroup}>
+            <ClearFiltersButton hasActiveFilters={hasActiveFilters} />
+          </div>
         </div>
 
         <SearchFormClient current={baseParams} defaultValue={q} />
@@ -615,15 +752,71 @@ export default async function AdminBookingsPage({
             <table className={styles.table}>
               <thead className={styles.thead}>
                 <tr className={styles.trHead}>
-                  <th className={styles.th}>Created</th>
-                  <th className={styles.th}>Created by</th>
-                  <th className={styles.th}>Pickup</th>
-                  <th className={styles.th}>Status</th>
-                  <th className={styles.th}>Customer</th>
-                  <th className={styles.th}>Service</th>
-                  <th className={styles.th}>Vehicle</th>
-                  <th className={styles.th}>Driver</th>
-                  <th className={`${styles.th} ${styles.thRight}`}>Total</th>
+                  {/* ✅ ALL headers are now sortable */}
+                  <SortableHeader
+                    label='Created'
+                    column='created'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Created by'
+                    column='createdBy'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Pickup'
+                    column='pickup'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Status'
+                    column='status'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Customer'
+                    column='customer'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Service'
+                    column='service'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Vehicle'
+                    column='vehicle'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Driver'
+                    column='driver'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Total'
+                    column='total'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                    align='right'
+                  />
                 </tr>
               </thead>
 
@@ -634,8 +827,11 @@ export default async function AdminBookingsPage({
                   const createdAgo = formatEta(b.createdAt, now);
                   const total = formatMoneyFromCents(b.totalCents ?? 0);
 
-                  const customerName = b.user?.name?.trim() || "Guest";
-                  const customerEmail = b.user?.email ?? "";
+                  const confirmationCode = getConfirmationCode(b.id);
+
+                  const customerName =
+                    b.user?.name?.trim() || b.guestName?.trim() || "Guest";
+                  const customerEmail = b.user?.email ?? b.guestEmail ?? "";
 
                   const driverName = b.assignment?.driver?.name?.trim() || "";
                   const driverEmail = b.assignment?.driver?.email ?? "";
@@ -653,37 +849,19 @@ export default async function AdminBookingsPage({
                       ? "good"
                       : badgeTone(b.status);
 
-                  // ✅ Created by (same logic as detail page, using earliest status event)
                   const createdEvent = b.statusEvents?.[0] ?? null;
                   const actor = createdEvent?.createdBy ?? null;
 
                   let createdByTop = "Guest checkout";
-                  let createdBySub = "";
 
                   if (actor?.roles?.includes(Role.ADMIN)) {
                     createdByTop = "Admin";
-                    createdBySub = fmtPersonLine(actor);
                   } else if (actor) {
                     createdByTop = "User account";
-                    createdBySub = fmtPersonLine(actor);
                   } else if (b.user) {
                     createdByTop = "User account";
-                    createdBySub = fmtPersonLine({
-                      name: b.user.name,
-                      email: b.user.email,
-                    });
                   } else {
                     createdByTop = "Guest checkout";
-                    const gName = (b.guestName ?? "").trim() || "Guest";
-                    const gEmail = (b.guestEmail ?? "").trim();
-                    const gPhone = (b.guestPhone ?? "").trim();
-
-                    const parts = [
-                      gEmail ? `${gName} • ${gEmail}` : gName,
-                      gPhone ? gPhone : null,
-                    ].filter(Boolean);
-
-                    createdBySub = parts.join(" • ");
                   }
 
                   return (
@@ -706,11 +884,17 @@ export default async function AdminBookingsPage({
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{createdAgo}</span>
+                            <span
+                              className={styles.confirmationCode}
+                              title='Confirmation Code'
+                            >
+                              #{confirmationCode}
+                            </span>
                           </div>
                         </div>
                       </td>
 
-                      {/* ✅ Created by */}
+                      {/* Created by */}
                       <td
                         className={styles.td}
                         data-label='Created by'
@@ -727,9 +911,6 @@ export default async function AdminBookingsPage({
                           <div className={styles.cellStrong}>
                             {createdByTop}
                           </div>
-                          {/* {createdBySub ? (
-                            <div className={styles.cellSub}>{createdBySub}</div>
-                          ) : null} */}
                         </div>
                       </td>
 
@@ -896,6 +1077,46 @@ export default async function AdminBookingsPage({
   );
 }
 
+// ✅ Sortable table header component
+function SortableHeader({
+  label,
+  column,
+  currentSort,
+  currentOrder,
+  baseParams,
+  align,
+}: {
+  label: string;
+  column: SortColumn;
+  currentSort: SortColumn | undefined;
+  currentOrder: SortOrder;
+  baseParams: Record<string, string | undefined>;
+  align?: "right";
+}) {
+  const isActive = currentSort === column;
+  const nextOrder = isActive && currentOrder === "desc" ? "asc" : "desc";
+
+  const href = buildHref("/admin/bookings", {
+    ...baseParams,
+    sort: column,
+    order: nextOrder,
+    page: undefined,
+  });
+
+  const indicator = isActive ? (currentOrder === "desc" ? " ↓" : " ↑") : "";
+
+  return (
+    <th
+      className={`${styles.th} ${styles.thSortable} ${align === "right" ? styles.thRight : ""}`}
+    >
+      <Link href={href} className={styles.sortLink}>
+        {label}
+        {indicator}
+      </Link>
+    </th>
+  );
+}
+
 function StatusTabs({
   active,
   current,
@@ -922,7 +1143,7 @@ function StatusTabs({
             href={href}
             className={`tab ${isActive ? "tabActive" : ""}`}
           >
-            {s}
+            {statusTabLabel(s)}
             <span
               className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
             >
@@ -1071,7 +1292,6 @@ function Pagination({
     page: String(page + 1),
   });
 
-  // Builds: 1 … 4 5 [6] 7 8 … 20
   function getPageItems() {
     const items: Array<number | "…"> = [];
     const windowSize = 2;

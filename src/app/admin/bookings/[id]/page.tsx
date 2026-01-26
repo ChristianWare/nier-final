@@ -338,6 +338,10 @@ function decimalToNumber(val: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function getConfirmationCode(bookingId: string): string {
+  return bookingId.slice(0, 8).toUpperCase();
+}
+
 export default async function AdminBookingDetailPage({
   params,
 }: {
@@ -687,6 +691,12 @@ export default async function AdminBookingDetailPage({
       </header>
 
       <Card title='Trip'>
+        <div className={styles.confirmationRow}>
+          <div className='emptyTitle'>Confirmation #</div>
+          <div className={styles.confirmationValue}>
+            {getConfirmationCode(booking.id)}
+          </div>
+        </div>
         <KeyVal k='Date' v={formatDateTime(booking.pickupAt)} />
         <KeyVal
           k='Distance / duration'

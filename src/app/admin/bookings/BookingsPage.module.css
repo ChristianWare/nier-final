@@ -328,6 +328,77 @@
   pointer-events: none;
 }
 
+/* ============================================
+   ADD THESE STYLES TO YOUR BookingsPage.module.css
+   ============================================ */
+
+/* ✅ Confirmation code in table row */
+.confirmationCode {
+  font-family: monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--paragraph);
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* ✅ Sortable table headers */
+.thSortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.thSortable:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.sortLink {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sortLink:hover {
+  color: var(--black);
+}
+
+/* Active sort indicator */
+.thSortable .sortLink::after {
+  content: "";
+  opacity: 0;
+}
+
+/* ✅ Tab row scroll for many statuses */
+.tabRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* On smaller screens, allow horizontal scroll */
+@media screen and (max-width: 1200px) {
+  .tabRow {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabRow::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .tabRow::-webkit-scrollbar-thumb {
+    background: var(--stroke);
+    border-radius: 2px;
+  }
+}
 
 @media screen and (max-width: 768px) {
   .tableCard {

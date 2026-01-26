@@ -827,6 +827,27 @@
   line-height: 1.4;
 }
 
+.confirmationRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--stroke);
+  margin-bottom: 0.5rem;
+}
+
+.confirmationValue {
+  font-family: monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--black);
+  background: var(--cream);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--stroke);
+}
+
 @media screen and (max-width: 1268px) {
   .box {
     grid-template-columns: repeat(1, 1fr);
