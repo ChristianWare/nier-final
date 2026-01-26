@@ -1964,8 +1964,12 @@ export default function AdminNewBookingWizard({
                         <strong>{bookingData?.paymentStatus ?? "NONE"}</strong>
                       </div>
 
-                      <SendPaymentLinkButton bookingId={bookingId} />
-
+                      <SendPaymentLinkButton
+                        bookingId={bookingId}
+                        totalCents={bookingData?.totalCents ?? estimateCents}
+                        amountPaidCents={0}
+                        currency={bookingData?.currency ?? "USD"}
+                      />
                       {bookingData?.checkoutUrl ? (
                         <div className='miniNote' style={{ marginTop: 12 }}>
                           Latest checkout URL:
