@@ -254,6 +254,26 @@
   padding: 8px 15px;
 }
 
+.redReg {
+  background-color: var(--accent);
+  color: var(--white) !important;
+  border: 1px solid var(--accent600);
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  padding: 8px 15px;
+}
+
+.grayReg {
+  background-color: var(--black400);
+  color: var(--white) !important;
+  border: 1px solid var(--black400);
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  padding: 8px 15px;
+}
+
 /* ================================
    HOVER STATES - Desktop only
    ================================ */

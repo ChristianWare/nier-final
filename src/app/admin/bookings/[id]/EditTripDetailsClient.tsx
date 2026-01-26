@@ -11,6 +11,7 @@ import styles from "./AdminBookingDetailPage.module.css";
 import RoutePickerAdmin, {
   RouteData,
 } from "@/components/admin/Routepickeradmin/Routepickeradmin";
+import toast from "react-hot-toast";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 
@@ -283,9 +284,18 @@ export default function EditTripDetailsClient({
 
       if (result.error) {
         setError(result.error);
+        toast.error(result.error);
       } else {
         setSuccess(true);
         setIsEditing(false);
+
+        // Show appropriate toast based on whether price was updated
+        if (applyNewPrice) {
+          toast.success("Trip details and price updated successfully.");
+        } else {
+          toast.success("Trip details updated successfully.");
+        }
+
         router.refresh();
       }
     });
@@ -445,7 +455,7 @@ export default function EditTripDetailsClient({
                 <div className={styles.pricingButtons}>
                   <Button
                     text={`Apply Suggested Price (${formatMoney(suggestedPriceCents!, currency)})`}
-                    btnType='green'
+                    btnType='greenReg'
                     type='button'
                     onClick={(e) => handleSubmit(e, true)}
                     disabled={isPending}
@@ -577,17 +587,16 @@ export default function EditTripDetailsClient({
       <div className={styles.editFormActions}>
         <Button
           text={isPending ? "Saving..." : "Save Changes"}
-          btnType='green'
+          btnType='greenReg'
           type='submit'
           disabled={isPending}
-          checkIcon
         />
         <Button
           text='Cancel'
-          btnType='gray'
+          btnType='grayReg'
           onClick={handleCancel}
           disabled={isPending}
-          closeIcon
+          
         />
       </div>
     </form>

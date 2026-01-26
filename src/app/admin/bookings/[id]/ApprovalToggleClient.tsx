@@ -157,16 +157,14 @@ export default function ApprovalToggleClient({
               <Button
                 type='button'
                 text={isPending ? "Approving..." : "Approve"}
-                btnType='green'
-                checkIcon
+                btnType='greenReg'
                 onClick={handleApprove}
                 disabled={isPending}
               />
               <Button
                 type='button'
                 text='Decline'
-                btnType='red'
-                closeIcon
+                btnType='redReg'
                 onClick={() => setShowDeclineModal(true)}
                 disabled={isPending}
               />
@@ -184,15 +182,14 @@ export default function ApprovalToggleClient({
               <Button
                 type='button'
                 text='Reverse Approval'
-                btnType='gray'
+                btnType='grayReg'
                 onClick={() => setShowUnapproveModal(true)}
                 disabled={isPending}
               />
               <Button
                 type='button'
                 text='Decline Instead'
-                btnType='red'
-                closeIcon
+                btnType='redReg'
                 onClick={() => setShowDeclineModal(true)}
                 disabled={isPending}
               />
@@ -216,15 +213,14 @@ export default function ApprovalToggleClient({
               <Button
                 type='button'
                 text={isPending ? "Reopening..." : "Reopen for Review"}
-                btnType='gray'
+                btnType='grayReg'
                 onClick={handleReopen}
                 disabled={isPending}
               />
               <Button
                 type='button'
                 text={isPending ? "Approving..." : "Approve Now"}
-                btnType='green'
-                checkIcon
+                btnType='greenReg'
                 onClick={handleApprove}
                 disabled={isPending}
               />
@@ -251,7 +247,7 @@ export default function ApprovalToggleClient({
           </p>
 
           <div className={styles.warningBox}>
-            <strong>⚠️ Please note:</strong>
+            <strong> ⚠️ Please note:</strong>
             <ul className={styles.warningList}>
               <li>Any existing payment links will no longer be valid</li>
               <li>
@@ -265,14 +261,14 @@ export default function ApprovalToggleClient({
             <Button
               type='button'
               text='Cancel'
-              btnType='gray'
+              btnType='grayReg'
               onClick={() => setShowUnapproveModal(false)}
               disabled={isPending}
             />
             <Button
               type='button'
               text={isPending ? "Reversing..." : "Yes, Reverse Approval"}
-              btnType='red'
+              btnType='redReg'
               onClick={handleUnapprove}
               disabled={isPending}
             />
@@ -318,7 +314,7 @@ export default function ApprovalToggleClient({
             <Button
               type='button'
               text='Cancel'
-              btnType='gray'
+              btnType='grayReg'
               onClick={() => {
                 setShowDeclineModal(false);
                 setDeclineReasonInput("");
@@ -328,8 +324,7 @@ export default function ApprovalToggleClient({
             <Button
               type='button'
               text={isPending ? "Declining..." : "Decline Booking"}
-              btnType='red'
-              closeIcon
+              btnType='redReg'
               onClick={handleDecline}
               disabled={isPending}
             />
