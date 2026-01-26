@@ -11,6 +11,7 @@ import {
 } from "@stripe/react-stripe-js";
 import styles from "./Checkout.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
+import Button from "@/components/shared/Button/Button";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
@@ -124,17 +125,16 @@ function CheckoutForm({
         </div>
       )}
 
-      <button
+      <Button
+        text={
+          isProcessing
+            ? "Submitting..."
+            : `Pay ${formatMoney(totalCents, currency)}`
+        }
         type='submit'
-        disabled={!stripe || isProcessing}
-        className={styles.payButton}
-      >
-        {isProcessing ? (
-          <span className={styles.spinner} />
-        ) : (
-          `Pay ${formatMoney(totalCents, currency)}`
-        )}
-      </button>
+        disabled={isProcessing || !stripe}
+        btnType='blackReg'
+      />
 
       <div className={styles.secureNote}>
         <svg
@@ -257,7 +257,9 @@ export default function CheckoutClient({
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.header}>
-            <h1 className={styles.title}>Complete Your Payment</h1>
+            <h1 className={`${styles.heading} underline`}>
+              Complete Your Payment
+            </h1>
             <p className={styles.subtitle}>
               {isBalancePayment
                 ? "Pay the remaining balance for your trip"
@@ -271,7 +273,7 @@ export default function CheckoutClient({
               {/* Trip Summary Card */}
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
-                  <h2 className={styles.cardTitle}>Trip Summary</h2>
+                  <h2 className='cardTitle h5'>Trip Summary</h2>
                 </div>
                 <div className={styles.tripDetails}>
                   <div className={styles.tripRow}>
@@ -312,9 +314,7 @@ export default function CheckoutClient({
               {/* Tip Selection Card */}
               <div className={styles.card}>
                 <div className={styles.cardHeader}>
-                  <h2 className={styles.cardTitle}>
-                    Add a tip for your driver
-                  </h2>
+                  <h2 className='cardTitle h5'> Add a tip for your driver</h2>
                   <p className={styles.cardSubtitle}>
                     100% of your tip goes directly to your driver
                   </p>
@@ -416,7 +416,7 @@ export default function CheckoutClient({
             <div className={styles.rightColumn}>
               <div className={styles.paymentCard}>
                 <div className={styles.cardHeader}>
-                  <h2 className={styles.cardTitle}>Payment Details</h2>
+                  <h2 className='cardTitle h5'>Payment Details</h2>
                 </div>
 
                 {error && (

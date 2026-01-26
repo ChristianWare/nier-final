@@ -1,6 +1,7 @@
 .container {
   min-height: 100vh;
   padding: 2rem 0 4rem;
+  padding-top: 7rem;
   background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
 }
 
@@ -13,20 +14,20 @@
   text-align: center;
   margin-bottom: 3rem;
   padding-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
 }
 
-.title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--black);
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.02em;
+.heading {
+  width: 100%;
 }
 
 .subtitle {
-  font-size: 1.1rem;
-  color: #666;
-  margin: 0;
+  color: var(--paragraph);
 }
 
 .grid {
@@ -53,7 +54,7 @@
 .card {
   background: white;
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--stroke);
   padding: 1.5rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
@@ -61,24 +62,23 @@
 .paymentCard {
   background: white;
   border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--stroke);
   padding: 2rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .cardHeader {
-  margin-bottom: 1.25rem;
-}
-
-.cardTitle {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--black);
-  margin: 0 0 0.25rem 0;
+  margin-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
 }
 
 .cardSubtitle {
-  font-size: 0.875rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
   color: #666;
   margin: 0;
 }
@@ -95,11 +95,17 @@
 .tripRow {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 2rem;
+  border-bottom: 1px solid var(--stroke);
+  padding-bottom: 1rem;
+}
+
+.tripRow:last-child {
+  border-bottom: none;
 }
 
 .tripIcon {
-  font-size: 1.25rem;
+  font-size: 2rem;
   width: 2rem;
   height: 2rem;
   display: flex;
@@ -113,12 +119,12 @@
 .tripInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  gap: 1rem;
   min-width: 0;
 }
 
 .tripLabel {
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #888;
@@ -126,7 +132,7 @@
 }
 
 .tripValue {
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   color: var(--black);
   line-height: 1.4;
   word-break: break-word;
@@ -138,7 +144,7 @@
 .tipGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
+  gap: 1rem;
   margin-bottom: 1rem;
 }
 
@@ -149,16 +155,11 @@
   justify-content: center;
   padding: 1rem 0.5rem;
   border: 2px solid #e5e5e5;
-  border-radius: 12px;
+  border-radius: 5px;
   background: white;
   cursor: pointer;
   transition: all 0.15s ease;
-  gap: 0.25rem;
-}
-
-.tipButton:hover {
-  border-color: #ccc;
-  background: #fafafa;
+  gap: 0.5rem;
 }
 
 .tipButtonSelected {
@@ -171,14 +172,15 @@
   color: white;
 }
 
+
 .tipPercent {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--black);
 }
 
 .tipAmount {
-  font-size: 0.8rem;
+  font-size: 1.4rem;
   color: #666;
 }
 
@@ -189,11 +191,11 @@
 
 .tipActionButton {
   flex: 1;
-  padding: 0.75rem 1rem;
+  padding: 1rem 2rem;
   border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  background: white;
-  font-size: 0.9rem;
+  background-color: #e5e5e5;
+  border-radius: 5px;
+  font-size: 1.4rem;
   font-weight: 500;
   color: #666;
   cursor: pointer;
@@ -258,12 +260,12 @@
 }
 
 .priceLabel {
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   color: #666;
 }
 
 .priceValue {
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   font-weight: 500;
   color: var(--black);
 }
@@ -279,7 +281,7 @@
 }
 
 .priceTotalLabel {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--black);
 }
@@ -310,7 +312,7 @@
   color: white;
   border: none;
   border-radius: 12px;
-  font-size: 1.1rem;
+  font-size: 1.6rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -336,7 +338,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   color: #888;
 }
 
@@ -382,7 +384,7 @@
   border: 1px solid #fecaca;
   border-radius: 8px;
   color: #dc2626;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   margin-bottom: 1rem;
 }
 
@@ -395,11 +397,11 @@
   border: 1px solid #fecaca;
   border-radius: 8px;
   color: #dc2626;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
 }
 
 .errorIcon {
-  font-size: 1rem;
+  font-size: 1.4rem;
 }
 
 /* ================================
@@ -434,7 +436,7 @@
   }
 
   .subtitle {
-    font-size: 1rem;
+    font-size: 1.4rem;
   }
 
   .tipGrid {
