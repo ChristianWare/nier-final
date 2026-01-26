@@ -103,12 +103,11 @@ export async function approveBookingAndSetPrice(formData: FormData) {
         taxesCents: d.taxesCents,
         totalCents: d.totalCents,
         status: newStatus,
-        declineReason: null, // Clear any previous decline reason
+        declineReason: null,
       },
     }),
   ];
 
-  // ✅ Log approval event if status changed to PENDING_PAYMENT
   if (newStatus !== booking.status) {
     tx.push(
       db.bookingStatusEvent.create({
@@ -127,7 +126,6 @@ export async function approveBookingAndSetPrice(formData: FormData) {
     );
   }
 
-  // ✅ Log price adjustment if price changed
   if (priceChanged) {
     tx.push(
       db.bookingStatusEvent.create({
@@ -197,7 +195,6 @@ export async function approveBooking(formData: FormData) {
 
   if (!booking) return { error: "Booking not found." };
 
-  // ✅ Can approve from PENDING_REVIEW, DRAFT, or DECLINED
   const canApproveFrom: BookingStatus[] = [
     "PENDING_REVIEW",
     "DRAFT",
@@ -216,7 +213,7 @@ export async function approveBooking(formData: FormData) {
       where: { id: bookingId },
       data: {
         status: "PENDING_PAYMENT",
-        declineReason: null, // Clear any previous decline reason
+        declineReason: null,
       },
     }),
     db.bookingStatusEvent.create({
@@ -300,7 +297,7 @@ export async function unapproveBooking(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Decline Booking
+// ✅ Decline Booking
 // =============================================================================
 
 const DeclineBookingSchema = z.object({
@@ -324,12 +321,10 @@ export async function declineBooking(formData: FormData) {
 
   if (!booking) return { error: "Booking not found." };
 
-  // Cannot decline if already paid
   if (booking.payment?.status === "PAID") {
     return { error: "Cannot decline a booking that has already been paid." };
   }
 
-  // Can only decline from PENDING_REVIEW, DRAFT, or PENDING_PAYMENT (if not paid)
   const canDeclineFrom: BookingStatus[] = [
     "PENDING_REVIEW",
     "DRAFT",
@@ -365,7 +360,6 @@ export async function declineBooking(formData: FormData) {
     }),
   ]);
 
-  // Queue notification for declined booking
   await queueAdminNotificationsForBookingEvent({
     event: "BOOKING_DECLINED",
     bookingId,
@@ -379,7 +373,7 @@ export async function declineBooking(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ NEW: Reopen Declined Booking
+// ✅ Reopen Declined Booking
 // =============================================================================
 
 export async function reopenBooking(formData: FormData) {
@@ -397,7 +391,6 @@ export async function reopenBooking(formData: FormData) {
 
   if (!booking) return { error: "Booking not found." };
 
-  // Can only reopen from DECLINED
   if (booking.status !== "DECLINED") {
     return {
       error: `Cannot reopen a booking with status "${booking.status}". Booking must be declined.`,
@@ -488,7 +481,6 @@ export async function updateBookingPrice(formData: FormData) {
     }),
   ];
 
-  // ✅ Log price adjustment event if price changed
   if (priceChanged) {
     tx.push(
       db.bookingStatusEvent.create({
@@ -566,14 +558,12 @@ export async function assignBooking(formData: FormData) {
   });
   if (!booking) return { error: "Booking not found." };
 
-  // ✅ Get driver details for event logging
   const driver = await db.user.findUnique({
     where: { id: driverId },
     select: { id: true, name: true, email: true },
   });
   if (!driver) return { error: "Driver not found." };
 
-  // ✅ Get vehicle unit details if provided
   let vehicleUnit = null;
   if (vehicleUnitId) {
     vehicleUnit = await db.vehicleUnit.findUnique({
@@ -640,7 +630,7 @@ export async function assignBooking(formData: FormData) {
 }
 
 // =============================================================================
-// ✅ Create Payment Link and Email
+// ✅ Create Payment Link and Email - UPDATED FOR CUSTOM CHECKOUT
 // =============================================================================
 
 const SendPaymentSchema = z.object({
@@ -698,158 +688,66 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   }
 
   const APP_URL = process.env.APP_URL || "http://localhost:3000";
-  const successUrl = `${APP_URL}/dashboard?paid=1&bookingId=${b.id}`;
-  const cancelUrl = `${APP_URL}/dashboard?cancelled=1&bookingId=${b.id}`;
 
-  const now = Date.now();
-  const reuseWindowMs = 23 * 60 * 60 * 1000;
+  // ✅ Custom checkout page URL (with tip selection + Stripe Elements)
+  const customCheckoutUrl = `${APP_URL}/pay/${b.id}`;
 
-  const existing = b.payment;
-
-  const canReuse =
-    !isBalancePayment &&
-    existing?.status === "PENDING" &&
-    Boolean(existing.checkoutUrl) &&
-    Boolean(existing.stripeCheckoutSessionId) &&
-    existing.amountTotalCents === (b.totalCents ?? 0) &&
-    (existing.currency ?? "usd") === (b.currency ?? "usd") &&
-    now - new Date(existing.updatedAt).getTime() < reuseWindowMs;
-
-  async function emailIt(url: string, isBalance: boolean) {
+  // ✅ Send email with custom checkout page URL
+  try {
     await sendPaymentLinkEmail({
       to: recipientEmail,
       name: recipientName,
       pickupAtISO: b.pickupAt.toISOString(),
       pickupAddress: b.pickupAddress,
       dropoffAddress: b.dropoffAddress,
-      totalCents: isBalance ? amountToCharge : b.totalCents,
+      totalCents: isBalancePayment ? amountToCharge : b.totalCents,
       currency: b.currency,
-      payUrl: url,
+      payUrl: customCheckoutUrl,
       bookingId: b.id,
     });
+  } catch (e) {
+    console.error("sendPaymentLinkEmail failed", e);
+    return {
+      error:
+        "Failed to send the payment email. Please try again or send the link manually.",
+      checkoutUrl: customCheckoutUrl,
+      debug: errMsg(e),
+    };
   }
 
-  // ✅ REUSE path
-  if (canReuse && existing?.checkoutUrl) {
-    try {
-      await emailIt(existing.checkoutUrl, false);
-
-      // ✅ Log payment link sent event
-      await db.bookingStatusEvent.create({
-        data: {
-          bookingId: b.id,
-          status: b.status,
-          eventType: "PAYMENT_LINK_SENT",
-          metadata: {
-            amountCents: amountToCharge,
-            currency: b.currency,
-            recipientEmail: recipientEmail,
-            isBalancePayment: false,
-            reused: true,
-          },
-          createdById: actorId,
-        },
-      });
-
-      await queueAdminNotificationsForBookingEvent({
-        event: "PAYMENT_LINK_SENT",
-        bookingId: b.id,
-      });
-
-      return { success: true, reused: true, checkoutUrl: existing.checkoutUrl };
-    } catch (e) {
-      console.error("sendPaymentLinkEmail failed (reuse)", e);
-      return {
-        error:
-          "Payment link created, but the email failed to send. Copy the checkout URL from this page and send it manually.",
-        checkoutUrl: existing.checkoutUrl,
-      };
-    }
-  }
-
-  const email = booking.user?.email ?? booking.guestEmail ?? null;
-  if (!email) return { error: "Booking email missing." };
-
-  const productName = isBalancePayment
-    ? `Balance Due — ${booking.serviceType.name} — Nier Transportation`
-    : `${booking.serviceType.name} — Nier Transportation`;
-
-  const productDescription = isBalancePayment
-    ? `Balance due for trip: ${booking.pickupAddress} → ${booking.dropoffAddress}`
-    : `${booking.pickupAddress} → ${booking.dropoffAddress}`;
-
-  const stripeSession = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer_email: email,
-    client_reference_id: booking.id,
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    metadata: {
-      bookingId: booking.id,
-      userId: booking.userId ?? "",
-      isBalancePayment: isBalancePayment ? "true" : "false",
-      balanceAmount: amountToCharge.toString(),
-    },
-    payment_intent_data: {
-      metadata: {
-        bookingId: booking.id,
-        userId: booking.userId ?? "",
-        isBalancePayment: isBalancePayment ? "true" : "false",
-        balanceAmount: amountToCharge.toString(),
-      },
-    },
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: booking.currency ?? "usd",
-          unit_amount: amountToCharge,
-          product_data: {
-            name: productName,
-            description: productDescription,
-          },
-        },
-      },
-    ],
-  });
-
-  if (!stripeSession.url) {
-    return { error: "Stripe did not return a checkout URL." };
-  }
-
+  // ✅ Create or update payment record (PaymentIntent will be created when customer visits checkout)
   const tx: any[] = [];
 
-  if (isBalancePayment && existing) {
+  if (isBalancePayment && b.payment) {
+    // Update existing payment record
     tx.push(
       db.payment.update({
-        where: { id: existing.id },
+        where: { id: b.payment.id },
         data: {
-          stripeCheckoutSessionId: stripeSession.id,
-          checkoutUrl: stripeSession.url,
+          checkoutUrl: customCheckoutUrl,
         },
       }),
     );
   } else {
+    // Create or update payment record
     tx.push(
       db.payment.upsert({
         where: { bookingId: b.id },
         update: {
           status: "PENDING",
-          stripeCheckoutSessionId: stripeSession.id,
           amountSubtotalCents: b.subtotalCents,
           amountTotalCents: b.totalCents,
           currency: b.currency,
-          checkoutUrl: stripeSession.url,
+          checkoutUrl: customCheckoutUrl,
         },
         create: {
           bookingId: b.id,
           status: "PENDING",
-          stripeCheckoutSessionId: stripeSession.id,
           amountSubtotalCents: b.subtotalCents,
           amountTotalCents: b.totalCents,
           amountPaidCents: 0,
           currency: b.currency,
-          checkoutUrl: stripeSession.url,
+          checkoutUrl: customCheckoutUrl,
         },
       }),
     );
@@ -867,7 +765,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
           currency: b.currency,
           recipientEmail: recipientEmail,
           isBalancePayment: isBalancePayment,
-          reused: false,
+          checkoutType: "custom", // ✅ Indicates custom checkout with tips
         },
         createdById: actorId,
       },
@@ -876,18 +774,6 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 
   await db.$transaction(tx);
 
-  try {
-    await emailIt(stripeSession.url, isBalancePayment);
-  } catch (e) {
-    console.error("sendPaymentLinkEmail failed (new)", e);
-    return {
-      error:
-        "Payment link created, but the email failed to send. Copy the checkout URL from this page and send it manually.",
-      checkoutUrl: stripeSession.url,
-      debug: errMsg(e),
-    };
-  }
-
   await queueAdminNotificationsForBookingEvent({
     event: "PAYMENT_LINK_SENT",
     bookingId: b.id,
@@ -895,8 +781,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 
   return {
     success: true,
-    reused: false,
-    checkoutUrl: stripeSession.url,
+    checkoutUrl: customCheckoutUrl,
     isBalancePayment,
     amountCharged: amountToCharge,
   };
@@ -937,7 +822,6 @@ export async function updateBookingStatus(formData: FormData) {
     return { error: "Cannot change status of a refunded booking." };
   }
 
-  // ✅ Descriptive action names for metadata
   const actionDescriptions: Record<string, string> = {
     EN_ROUTE: "Driver marked as en route to pickup",
     ARRIVED: "Driver marked as arrived at pickup location",
@@ -1110,7 +994,6 @@ export async function updateTripDetails(formData: FormData) {
 
   const d = parsed.data;
 
-  // ✅ Get current booking for comparison
   const booking = await db.booking.findUnique({
     where: { id: d.bookingId },
     select: {
@@ -1133,7 +1016,6 @@ export async function updateTripDetails(formData: FormData) {
   });
   if (!booking) return { error: "Booking not found." };
 
-  // ✅ Track what changed
   const changes: Array<{ field: string; oldValue: any; newValue: any }> = [];
 
   const oldPickupAt = booking.pickupAt?.toISOString();
@@ -1253,7 +1135,6 @@ export async function updateTripDetails(formData: FormData) {
     },
   });
 
-  // ✅ Log trip edit event if there were changes
   if (changes.length > 0) {
     await db.bookingStatusEvent.create({
       data: {
@@ -1354,7 +1235,6 @@ export async function updateTripDetailsAndPrice(formData: FormData) {
   const shouldUpdatePrice =
     d.newTotalCents !== undefined && d.newTotalCents > 0;
 
-  // ✅ Track trip changes
   const tripChanges: Array<{ field: string; oldValue: any; newValue: any }> =
     [];
 
@@ -1446,7 +1326,6 @@ export async function updateTripDetailsAndPrice(formData: FormData) {
       bookingUpdateData.status = "PENDING_PAYMENT";
     }
 
-    // ✅ Log price adjustment event
     if (booking.totalCents !== d.newTotalCents) {
       tx.push(
         db.bookingStatusEvent.create({
@@ -1475,7 +1354,6 @@ export async function updateTripDetailsAndPrice(formData: FormData) {
     }),
   );
 
-  // ✅ Log trip edit event if there were changes
   if (tripChanges.length > 0) {
     tx.push(
       db.bookingStatusEvent.create({
@@ -1575,7 +1453,6 @@ export async function duplicateBooking(formData: FormData) {
     },
   });
 
-  // ✅ Create initial status event with metadata
   await db.bookingStatusEvent.create({
     data: {
       bookingId: newBooking.id,
@@ -1702,7 +1579,6 @@ export async function issueRefund(formData: FormData) {
       }
     }
 
-    // ✅ Log refund event with metadata
     tx.push(
       db.bookingStatusEvent.create({
         data: {

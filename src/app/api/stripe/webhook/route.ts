@@ -20,6 +20,7 @@ async function finalizePaid(args: {
   currency: string | null;
   isBalancePayment?: boolean;
   balanceAmount?: number | null;
+  tipCents?: number | null;
 }) {
   const {
     bookingId,
@@ -30,6 +31,7 @@ async function finalizePaid(args: {
     currency,
     isBalancePayment = false,
     balanceAmount,
+    tipCents = 0,
   } = args;
 
   await db.$transaction(async (tx) => {
@@ -53,12 +55,14 @@ async function finalizePaid(args: {
         status: true,
         amountPaidCents: true,
         amountTotalCents: true,
+        tipCents: true,
       },
     });
 
     const previouslyPaidCents = existingPayment?.amountPaidCents ?? 0;
+    const previousTipCents = existingPayment?.tipCents ?? 0;
 
-    // Calculate the new payment amount
+    // Calculate the new payment amount (excluding tip for booking total comparison)
     let newPaymentAmount: number;
     if (isBalancePayment && balanceAmount) {
       newPaymentAmount = balanceAmount;
@@ -68,20 +72,28 @@ async function finalizePaid(args: {
       newPaymentAmount = booking.totalCents ?? 0;
     }
 
+    // Tip is tracked separately
+    const totalTipCents = previousTipCents + (tipCents ?? 0);
+
+    // Amount paid towards the booking fare (excluding tips)
+    const baseFarePayment = newPaymentAmount - (tipCents ?? 0);
+
     const totalPaidCents = isBalancePayment
-      ? previouslyPaidCents + newPaymentAmount
-      : newPaymentAmount;
+      ? previouslyPaidCents + baseFarePayment
+      : baseFarePayment;
 
     const safeCurrency = (currency ?? booking.currency ?? "usd").toLowerCase();
 
+    // Check if booking fare is fully paid (tips don't count towards this)
     const isFullyPaid = totalPaidCents >= (booking.totalCents ?? 0);
 
     console.log(
       `✅ Payment recorded for booking ${bookingId}:`,
       `Previous: $${(previouslyPaidCents / 100).toFixed(2)}`,
-      `New payment: $${(newPaymentAmount / 100).toFixed(2)}`,
+      `New payment: $${(newPaymentAmount / 100).toFixed(2)} (base: $${(baseFarePayment / 100).toFixed(2)}, tip: $${((tipCents ?? 0) / 100).toFixed(2)})`,
       `Total paid: $${(totalPaidCents / 100).toFixed(2)}`,
       `Booking total: $${((booking.totalCents ?? 0) / 100).toFixed(2)}`,
+      `Total tips: $${(totalTipCents / 100).toFixed(2)}`,
       `Fully paid: ${isFullyPaid}`,
       `Is balance payment: ${isBalancePayment}`,
     );
@@ -96,6 +108,7 @@ async function finalizePaid(args: {
         paidAt: new Date(),
         amountTotalCents: booking.totalCents ?? 0,
         amountPaidCents: totalPaidCents,
+        tipCents: totalTipCents,
         currency: safeCurrency,
       },
       create: {
@@ -108,6 +121,7 @@ async function finalizePaid(args: {
         amountSubtotalCents: booking.subtotalCents ?? 0,
         amountTotalCents: booking.totalCents ?? 0,
         amountPaidCents: totalPaidCents,
+        tipCents: totalTipCents,
         currency: safeCurrency,
       },
     });
@@ -126,7 +140,7 @@ async function finalizePaid(args: {
         data: { status: nextStatus },
       });
 
-      // ✅ UPDATED: Log payment event with eventType and metadata
+      // ✅ Log payment event with eventType and metadata including tip
       await tx.bookingStatusEvent.create({
         data: {
           bookingId,
@@ -134,14 +148,16 @@ async function finalizePaid(args: {
           eventType: "PAYMENT_RECEIVED",
           metadata: {
             amountCents: newPaymentAmount,
-            method: "online", // Customer paid via Stripe checkout link
+            baseFareCents: baseFarePayment,
+            tipCents: tipCents ?? 0,
+            method: "online",
             currency: safeCurrency,
             stripePaymentIntentId: paymentIntentId,
             isBalancePayment: isBalancePayment,
             previouslyPaidCents: previouslyPaidCents,
             totalPaidCents: totalPaidCents,
+            totalTipCents: totalTipCents,
           },
-          // No createdById since this is system/customer initiated
         },
       });
     } else {
@@ -153,12 +169,15 @@ async function finalizePaid(args: {
           eventType: "PAYMENT_RECEIVED",
           metadata: {
             amountCents: newPaymentAmount,
+            baseFareCents: baseFarePayment,
+            tipCents: tipCents ?? 0,
             method: "online",
             currency: safeCurrency,
             stripePaymentIntentId: paymentIntentId,
             isBalancePayment: isBalancePayment,
             previouslyPaidCents: previouslyPaidCents,
             totalPaidCents: totalPaidCents,
+            totalTipCents: totalTipCents,
           },
         },
       });
@@ -328,6 +347,11 @@ export async function POST(req: Request) {
         ? parseInt(pi.metadata.balanceAmount, 10)
         : null;
 
+      // ✅ Extract tip amount from metadata
+      const tipCents = pi?.metadata?.tipCents
+        ? parseInt(pi.metadata.tipCents, 10)
+        : 0;
+
       if (!bookingId && paymentIntentId) {
         const p = await db.payment.findUnique({
           where: { stripePaymentIntentId: paymentIntentId },
@@ -345,6 +369,8 @@ export async function POST(req: Request) {
         isBalancePayment,
         "balanceAmount:",
         balanceAmount,
+        "tipCents:",
+        tipCents,
       );
 
       if (!bookingId) return NextResponse.json({ received: true });
@@ -372,6 +398,7 @@ export async function POST(req: Request) {
         currency,
         isBalancePayment,
         balanceAmount,
+        tipCents,
       });
 
       return NextResponse.json({ received: true });

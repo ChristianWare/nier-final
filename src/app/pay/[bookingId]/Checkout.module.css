@@ -1,0 +1,449 @@
+.container {
+  min-height: 100vh;
+  padding: 2rem 0 4rem;
+  background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+}
+
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding-top: 2rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--black);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rightColumn {
+  position: sticky;
+  top: 100px;
+}
+
+/* ================================
+   Card Styles
+   ================================ */
+.card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.paymentCard {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.cardHeader {
+  margin-bottom: 1.25rem;
+}
+
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--black);
+  margin: 0 0 0.25rem 0;
+}
+
+.cardSubtitle {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0;
+}
+
+/* ================================
+   Trip Details
+   ================================ */
+.tripDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tripRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.tripIcon {
+  font-size: 1.25rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.tripInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.tripLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #888;
+  font-weight: 500;
+}
+
+.tripValue {
+  font-size: 0.95rem;
+  color: var(--black);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ================================
+   Tip Selection
+   ================================ */
+.tipGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.tipButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0.5rem;
+  border: 2px solid #e5e5e5;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  gap: 0.25rem;
+}
+
+.tipButton:hover {
+  border-color: #ccc;
+  background: #fafafa;
+}
+
+.tipButtonSelected {
+  border-color: var(--black);
+  background: var(--black);
+}
+
+.tipButtonSelected .tipPercent,
+.tipButtonSelected .tipAmount {
+  color: white;
+}
+
+.tipPercent {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.tipAmount {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.tipActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.tipActionButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tipActionButton:hover {
+  border-color: #ccc;
+  background: #fafafa;
+}
+
+.tipActionButtonSelected {
+  border-color: var(--black);
+  background: var(--cream);
+  color: var(--black);
+}
+
+.customTipWrapper {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+  border: 2px solid var(--black);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  background: white;
+}
+
+.currencySymbol {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--black);
+  margin-right: 0.5rem;
+}
+
+.customTipInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--black);
+  background: transparent;
+}
+
+.customTipInput::placeholder {
+  color: #ccc;
+}
+
+/* ================================
+   Price Breakdown
+   ================================ */
+.priceBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.priceLabel {
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.priceValue {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--black);
+}
+
+.priceDivider {
+  height: 1px;
+  background: #e5e5e5;
+  margin: 0.5rem 0;
+}
+
+.priceTotal {
+  padding-top: 0.25rem;
+}
+
+.priceTotalLabel {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.priceTotalValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+/* ================================
+   Payment Form
+   ================================ */
+.paymentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.paymentElementWrapper {
+  min-height: 200px;
+}
+
+.payButton {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: var(--black);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 56px;
+}
+
+.payButton:hover:not(:disabled) {
+  background: #333;
+  transform: translateY(-1px);
+}
+
+.payButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.secureNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.lockIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ================================
+   Loading & Error States
+   ================================ */
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  gap: 1rem;
+  color: #666;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e5e5e5;
+  border-top-color: var(--black);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 0.9rem;
+}
+
+.errorIcon {
+  font-size: 1rem;
+}
+
+/* ================================
+   Responsive
+   ================================ */
+@media screen and (max-width: 968px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rightColumn {
+    position: static;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .container {
+    padding: 1rem 0 2rem;
+  }
+
+  .header {
+    margin-bottom: 2rem;
+    padding-top: 1rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .tipGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card,
+  .paymentCard {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+}

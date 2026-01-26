@@ -147,6 +147,13 @@ function getEventDetails(
   switch (eventType) {
     case "PAYMENT_RECEIVED": {
       const amount = formatMoney(metadata.amountCents, currency);
+      const tip = metadata.tipCents
+        ? formatMoney(metadata.tipCents, currency)
+        : null;
+      // ✅ Show tip in event details if present
+      if (tip && metadata.tipCents > 0) {
+        return `Amount: ${amount} (includes ${tip} tip)`;
+      }
       return `Amount: ${amount}`;
     }
 
@@ -449,6 +456,8 @@ export default async function AdminBookingDetailPage({
   const isPaid = booking.payment?.status === "PAID";
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
   const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
+  // ✅ Get tip amount from payment
+  const tipCents = booking.payment?.tipCents ?? 0;
 
   // ✅ Determine if booking is approved (not in PENDING_REVIEW, DRAFT, or DECLINED)
   const isApproved =
@@ -601,6 +610,17 @@ export default async function AdminBookingDetailPage({
                   </span>
                 )}
               </div>
+
+              {/* ✅ NEW: Show tip amount if present */}
+              {tipCents > 0 && (
+                <div className={styles.tipDisplay}>
+                  <span className={styles.tipIcon}>💰</span>
+                  <span className={styles.tipLabel}>Driver Tip:</span>
+                  <span className={styles.tipAmount}>
+                    {formatMoney(tipCents, booking.currency)}
+                  </span>
+                </div>
+              )}
 
               {/* ✅ Show balance due if applicable */}
               {paymentStatusDisplay.hasBalanceDue && (
@@ -788,10 +808,33 @@ export default async function AdminBookingDetailPage({
                     {formatMoney(amountRefundedCents, booking.currency)}
                   </>
                 )}
+                {/* ✅ Show tip in payment status */}
+                {tipCents > 0 && (
+                  <>, Tip: {formatMoney(tipCents, booking.currency)}</>
+                )}
                 )
               </span>
             )}
           </div>
+
+          {/* ✅ NEW: Tip breakdown in Payment card */}
+          {tipCents > 0 && (
+            <div className={styles.tipBreakdownCard}>
+              <div className={styles.tipBreakdownHeader}>
+                <span className={styles.tipBreakdownIcon}>💰</span>
+                <span className={styles.tipBreakdownTitle}>
+                  Driver Tip Received
+                </span>
+              </div>
+              <div className={styles.tipBreakdownAmount}>
+                {formatMoney(tipCents, booking.currency)}
+              </div>
+              <div className={styles.tipBreakdownNote}>
+                This tip was added by the customer during checkout and should be
+                passed to the assigned driver.
+              </div>
+            </div>
+          )}
 
           {/* ✅ Send Payment Link Button - now checks isApproved */}
           <SendPaymentLinkButton
@@ -900,6 +943,13 @@ export default async function AdminBookingDetailPage({
                     )}
                   />
                 ) : null}
+                {/* ✅ NEW: Show tip for driver in assignment section */}
+                {tipCents > 0 && (
+                  <KeyVal
+                    k='Customer tip'
+                    v={formatMoney(tipCents, booking.currency)}
+                  />
+                )}
               </div>
             ) : null}
           </>

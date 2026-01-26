@@ -418,24 +418,25 @@ model Payment {
   bookingId String  @unique
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
-  status PaymentStatus @default(NONE)
+  status PaymentStatus @default(PENDING)
 
   stripeCheckoutSessionId String? @unique
   stripePaymentIntentId   String? @unique
-  stripeCustomerId        String?
-  stripeRefundId          String? // ✅ NEW: Track Stripe refund ID
+  stripeRefundId          String?
 
-  checkoutUrl String? @db.Text
+  amountSubtotalCents Int @default(0)
+  amountTotalCents    Int @default(0)
+  amountPaidCents     Int @default(0)
+  amountRefundedCents Int @default(0)
 
-  amountSubtotalCents Int    @default(0)
-  amountTotalCents    Int    @default(0)
-  amountPaidCents     Int    @default(0)
-  amountRefundedCents Int    @default(0) // ✅ NEW: Track refunded amount
-  currency            String @default("usd")
+  tipCents Int @default(0) // ✅ ADD THIS LINE
 
-  receiptUrl String?
-  paidAt     DateTime?
-  refundedAt DateTime? // ✅ NEW: Track when refund was issued
+  currency String @default("usd")
+
+  checkoutUrl String?
+  receiptUrl  String?
+  paidAt      DateTime?
+  refundedAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

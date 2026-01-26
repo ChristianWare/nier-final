@@ -755,6 +755,78 @@
   color: #7f1d1d;
 }
 
+/* ============================================
+   ADD THESE STYLES TO YOUR AdminBookingDetailPage.module.css
+   ============================================ */
+
+/* ✅ Tip display in header */
+.tipDisplay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+}
+
+.tipIcon {
+  font-size: 1.2rem;
+}
+
+.tipLabel {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #92400e;
+}
+
+.tipAmount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #78350f;
+}
+
+/* ✅ Tip breakdown card in Payment section */
+.tipBreakdownCard {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 1px solid #10b981;
+  border-radius: 12px;
+}
+
+.tipBreakdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tipBreakdownIcon {
+  font-size: 1.5rem;
+}
+
+.tipBreakdownTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.tipBreakdownAmount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #047857;
+  margin-bottom: 8px;
+}
+
+.tipBreakdownNote {
+  font-size: 0.8rem;
+  color: #065f46;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
 @media screen and (max-width: 1268px) {
   .box {
     grid-template-columns: repeat(1, 1fr);
