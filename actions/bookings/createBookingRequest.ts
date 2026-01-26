@@ -32,6 +32,13 @@ type CreateBookingRequestInput = {
 
   specialRequests?: string | null;
 
+  // ✅ Flight info fields
+  flightAirline?: string | null;
+  flightNumber?: string | null;
+  flightScheduledAt?: string | null;
+  flightTerminal?: string | null;
+  flightGate?: string | null;
+
   guestName?: string | null;
   guestEmail?: string | null;
   guestPhone?: string | null;
@@ -139,6 +146,11 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
 
   const claimToken = userId ? null : randomUUID();
 
+  // ✅ Parse flight scheduled time if provided
+  const flightScheduledAt = input.flightScheduledAt
+    ? new Date(input.flightScheduledAt)
+    : null;
+
   const booking = await db.booking.create({
     data: {
       userId: userId ?? undefined,
@@ -174,6 +186,13 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       hoursBilled: quote.billedHours ?? null,
 
       specialRequests: input.specialRequests ?? null,
+
+      // ✅ Flight info fields
+      flightAirline: input.flightAirline?.trim() || null,
+      flightNumber: input.flightNumber?.trim().toUpperCase() || null,
+      flightScheduledAt: flightScheduledAt,
+      flightTerminal: input.flightTerminal?.trim() || null,
+      flightGate: input.flightGate?.trim().toUpperCase() || null,
 
       // ✅ FIX: Access subtotalCents from the breakdown object
       subtotalCents: quote.breakdown.subtotalCents,

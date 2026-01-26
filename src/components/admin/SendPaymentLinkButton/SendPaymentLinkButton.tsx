@@ -99,13 +99,13 @@ export default function SendPaymentLinkButton({
   }
 
   // Determine button text
-  let buttonText = "Send payment link";
+  let buttonText = "Email payment link";
   if (isPending) {
     buttonText = "Sending...";
   } else if (hasBalanceDue) {
-    buttonText = `Send balance link (${formatMoney(balanceDueCents, currency)})`;
+    buttonText = `Email balance link (${formatMoney(balanceDueCents, currency)})`;
   } else if (totalCents > 0) {
-    buttonText = `Send payment link (${formatMoney(totalCents, currency)})`;
+    buttonText = `Email payment link (${formatMoney(totalCents, currency)})`;
   }
 
   return (
@@ -141,7 +141,7 @@ export default function SendPaymentLinkButton({
         disabled={isPending || totalCents <= 0}
         type='button'
         text={buttonText}
-        btnType='primary'
+        btnType='greenReg'
         // emailIcon
         onClick={() => handleSend(hasBalanceDue)}
       />

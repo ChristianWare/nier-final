@@ -39,7 +39,6 @@ type ServiceTypeDTO = {
   name: string;
   slug: string;
   pricingStrategy: PricingStrategy;
-
   minFareCents: number;
   baseFeeCents: number;
   perMileCents: number;
@@ -47,7 +46,6 @@ type ServiceTypeDTO = {
   perHourCents: number;
   active: boolean;
   sortOrder: number;
-
   airportLeg: AirportLeg;
   airports: AirportDTO[];
 };
@@ -60,7 +58,6 @@ type VehicleDTO = {
   luggageCapacity: number;
   imageUrl: string | null;
   minHours: number;
-
   baseFareCents: number;
   perMileCents: number;
   perMinuteCents: number;
@@ -71,24 +68,22 @@ type VehicleDTO = {
 
 type FormValues = {
   serviceTypeId: string;
-
   pickupAtDate: string;
   pickupAtTime: string;
-
   passengers: number;
   luggage: number;
-
   pickupAirportId: string;
   dropoffAirportId: string;
-
   hoursRequested: number;
-
   route: RoutePickerValue | null;
-
   vehicleId: string;
-
   specialRequests: string;
-
+  flightAirline: string;
+  flightNumber: string;
+  flightScheduledAtDate: string;
+  flightScheduledAtTime: string;
+  flightTerminal: string;
+  flightGate: string;
   guestName: string;
   guestEmail: string;
   guestPhone: string;
@@ -122,17 +117,14 @@ function routeEquals(a: RoutePickerValue | null, b: RoutePickerValue | null) {
   if (a === b) return true;
   if (!a && !b) return true;
   if (!a || !b) return false;
-
   const ap = normPlace(a.pickup);
   const ad = normPlace(a.dropoff);
   const bp = normPlace(b.pickup);
   const bd = normPlace(b.dropoff);
-
   const milesA = toNumber(a.miles ?? a.distanceMiles ?? null);
   const minsA = toNumber(a.minutes ?? a.durationMinutes ?? null);
   const milesB = toNumber(b.miles ?? b.distanceMiles ?? null);
   const minsB = toNumber(b.minutes ?? b.durationMinutes ?? null);
-
   return (
     JSON.stringify(ap) === JSON.stringify(bp) &&
     JSON.stringify(ad) === JSON.stringify(bd) &&
@@ -147,10 +139,10 @@ function toStrategy(s: PricingStrategy): ServicePricingStrategy {
   return ServicePricingStrategy.FLAT;
 }
 
-// ✅ IMPORTANT: RoutePicker may provide miles/minutes OR distanceMiles/durationMinutes
 function routeMiles(v: RoutePickerValue | null): number {
   return Math.max(0, toNumber(v?.miles ?? v?.distanceMiles ?? null) ?? 0);
 }
+
 function routeMinutes(v: RoutePickerValue | null): number {
   return Math.max(0, toNumber(v?.minutes ?? v?.durationMinutes ?? null) ?? 0);
 }
@@ -169,17 +161,16 @@ export default function BookingWizard({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showFlightInfo, setShowFlightInfo] = useState(false);
 
   const services = useMemo<ServiceTypeDTO[]>(
     () => serviceTypes ?? [],
     [serviceTypes],
   );
-
   const vehicleOptions = useMemo<VehicleDTO[]>(
     () => vehicles ?? [],
     [vehicles],
   );
-
   const hasNoServices = services.length === 0;
 
   const pickupInputRef = useRef<HTMLInputElement | null>(null);
@@ -199,24 +190,22 @@ export default function BookingWizard({
     mode: "onTouched",
     defaultValues: {
       serviceTypeId: "",
-
       pickupAtDate: "",
       pickupAtTime: "",
-
       passengers: 1,
       luggage: 0,
-
       pickupAirportId: "",
       dropoffAirportId: "",
-
       hoursRequested: 2,
-
       route: null,
-
       vehicleId: "",
-
       specialRequests: "",
-
+      flightAirline: "",
+      flightNumber: "",
+      flightScheduledAtDate: "",
+      flightScheduledAtTime: "",
+      flightTerminal: "",
+      flightGate: "",
       guestName: "",
       guestEmail: "",
       guestPhone: "",
@@ -231,13 +220,17 @@ export default function BookingWizard({
   const hoursRequested = watch("hoursRequested");
   const route = watch("route");
   const vehicleId = watch("vehicleId");
-
   const guestName = watch("guestName");
   const guestEmail = watch("guestEmail");
   const guestPhone = watch("guestPhone");
-
   const pickupAirportId = watch("pickupAirportId");
   const dropoffAirportId = watch("dropoffAirportId");
+  const flightAirline = watch("flightAirline");
+  const flightNumber = watch("flightNumber");
+  const flightScheduledAtDate = watch("flightScheduledAtDate");
+  const flightScheduledAtTime = watch("flightScheduledAtTime");
+  const flightTerminal = watch("flightTerminal");
+  const flightGate = watch("flightGate");
 
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
@@ -252,26 +245,28 @@ export default function BookingWizard({
   const serviceAirports = selectedService?.airports ?? [];
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
+  const isAirportService = usesPickupAirport || usesDropoffAirport;
 
-  // ✅ Register validation rules (IMPORTANT: these rules exist even if you don’t render inputs)
+  useEffect(() => {
+    if (isAirportService) {
+      setShowFlightInfo(true);
+    }
+  }, [isAirportService]);
+
   useEffect(() => {
     register("serviceTypeId", { required: "Please select a service." });
-
     register("pickupAtDate", { required: "Please choose a pickup date." });
     register("pickupAtTime", { required: "Please choose a pickup time." });
-
     register("passengers", {
       valueAsNumber: true,
       required: "Passengers is required.",
       min: { value: 1, message: "Passengers must be at least 1." },
     });
-
     register("luggage", {
       valueAsNumber: true,
       required: "Luggage is required.",
       min: { value: 0, message: "Luggage cannot be negative." },
     });
-
     register("pickupAirportId", {
       validate: (v) =>
         usesPickupAirport
@@ -280,7 +275,6 @@ export default function BookingWizard({
             : "Please choose a pickup airport."
           : true,
     });
-
     register("dropoffAirportId", {
       validate: (v) =>
         usesDropoffAirport
@@ -289,7 +283,6 @@ export default function BookingWizard({
             : "Please choose a dropoff airport."
           : true,
     });
-
     register("hoursRequested", {
       valueAsNumber: true,
       validate: (v) => {
@@ -299,14 +292,11 @@ export default function BookingWizard({
         return true;
       },
     });
-
     register("vehicleId", { required: "Please choose a vehicle category." });
-
     register("guestName", {
       validate: (v) =>
         isAuthed ? true : v.trim() ? true : "Please enter your name.",
     });
-
     register("guestEmail", {
       validate: (v) => {
         if (isAuthed) return true;
@@ -316,11 +306,16 @@ export default function BookingWizard({
         return true;
       },
     });
-
     register("guestPhone", {
       validate: (v) =>
         isAuthed ? true : v.trim() ? true : "Please enter your phone number.",
     });
+    register("flightAirline");
+    register("flightNumber");
+    register("flightScheduledAtDate");
+    register("flightScheduledAtTime");
+    register("flightTerminal");
+    register("flightGate");
   }, [
     register,
     usesPickupAirport,
@@ -329,32 +324,25 @@ export default function BookingWizard({
     isAuthed,
   ]);
 
-  // ✅ Route validation via Controller
   const pickupLabelRed =
     Boolean(errors.route) && !route?.pickup && !usesPickupAirport;
   const dropoffLabelRed =
     Boolean(errors.route) && !route?.dropoff && !usesDropoffAirport;
-
   const minHours =
     selectedService?.pricingStrategy === "HOURLY"
       ? (selectedVehicle?.minHours ?? 0)
       : 0;
-
   const billableHours =
     selectedService?.pricingStrategy === "HOURLY"
       ? Math.max(Math.ceil(hoursRequested || 0), Math.ceil(minHours || 0))
       : null;
-
-  // ✅ FIX: read either miles/minutes OR distanceMiles/durationMinutes
   const distanceMiles = routeMiles(route);
   const durationMinutes = routeMinutes(route);
 
   const estimateCents = useMemo(() => {
     if (!selectedService) return 0;
-
     const quote = calcQuoteCents({
       pricingStrategy: toStrategy(selectedService.pricingStrategy),
-
       distanceMiles:
         selectedService.pricingStrategy === "POINT_TO_POINT"
           ? distanceMiles
@@ -363,24 +351,19 @@ export default function BookingWizard({
         selectedService.pricingStrategy === "POINT_TO_POINT"
           ? durationMinutes
           : null,
-
       hoursRequested:
         selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
-
       vehicleMinHours: selectedVehicle?.minHours ?? 0,
-
       serviceMinFareCents: selectedService.minFareCents,
       serviceBaseFeeCents: selectedService.baseFeeCents,
       servicePerMileCents: selectedService.perMileCents,
       servicePerMinuteCents: selectedService.perMinuteCents,
       servicePerHourCents: selectedService.perHourCents,
-
       vehicleBaseFareCents: selectedVehicle?.baseFareCents ?? 0,
       vehiclePerMileCents: selectedVehicle?.perMileCents ?? 0,
       vehiclePerMinuteCents: selectedVehicle?.perMinuteCents ?? 0,
       vehiclePerHourCents: selectedVehicle?.perHourCents ?? 0,
     });
-
     return quote.totalCents;
   }, [
     selectedService,
@@ -390,7 +373,6 @@ export default function BookingWizard({
     hoursRequested,
   ]);
 
-  // ✅ scroll wizard to top whenever step changes
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
 
@@ -425,7 +407,6 @@ export default function BookingWizard({
       "guestEmail",
       "guestPhone",
     ];
-
     for (const k of order) {
       const err = (errors as any)?.[k];
       if (err?.message) return String(err.message);
@@ -433,14 +414,20 @@ export default function BookingWizard({
     return "Please fix the highlighted fields.";
   }
 
+  function firstErrorMessageFrom(fields: (keyof FormValues)[]) {
+    for (const k of fields) {
+      const st = getFieldState(k as any);
+      if (st.error?.message) return String(st.error.message);
+    }
+    return "Please complete the highlighted fields.";
+  }
+
   function applyAirportToRoute(side: "pickup" | "dropoff", airportId: string) {
     const a = serviceAirports.find((x) => x.id === airportId) ?? null;
-
     if (!a) {
       const prev = getValues("route");
       const prevPickup = prev?.pickup ?? null;
       const prevDropoff = prev?.dropoff ?? null;
-
       const next: RoutePickerValue = {
         pickup: side === "pickup" ? null : prevPickup,
         dropoff: side === "dropoff" ? null : prevDropoff,
@@ -449,34 +436,28 @@ export default function BookingWizard({
         distanceMiles: null,
         durationMinutes: null,
       };
-
       setValue("route", next.pickup || next.dropoff ? next : null, {
         shouldDirty: true,
         shouldValidate: true,
       });
       return;
     }
-
     const lat = toNumber(a.lat);
     const lng = toNumber(a.lng);
-
     if (lat == null || lng == null) {
       toast.error(
         "That airport is missing coordinates. Edit the airport and choose an address suggestion so we can save its location.",
       );
       return;
     }
-
     const place: RoutePickerPlace = {
       address: a.address,
       placeId: a.placeId ?? a.id,
       location: { lat, lng },
     };
-
     const prev = getValues("route");
     const prevPickup = prev?.pickup ?? null;
     const prevDropoff = prev?.dropoff ?? null;
-
     const next: RoutePickerValue = {
       pickup: side === "pickup" ? place : prevPickup,
       dropoff: side === "dropoff" ? place : prevDropoff,
@@ -485,7 +466,6 @@ export default function BookingWizard({
       distanceMiles: null,
       durationMinutes: null,
     };
-
     setValue("route", next, { shouldDirty: true, shouldValidate: true });
   }
 
@@ -496,11 +476,10 @@ export default function BookingWizard({
       serviceAirports.length === 0
     ) {
       toast.error(
-        "This airport service isn’t configured yet (no airports assigned).",
+        "This airport service isn't configured yet (no airports assigned).",
       );
       return;
     }
-
     const fields: (keyof FormValues)[] = [
       "serviceTypeId",
       "pickupAtDate",
@@ -509,18 +488,15 @@ export default function BookingWizard({
       "luggage",
       "route",
     ];
-
     if (usesPickupAirport) fields.push("pickupAirportId");
     if (usesDropoffAirport) fields.push("dropoffAirportId");
     if (selectedService?.pricingStrategy === "HOURLY")
       fields.push("hoursRequested");
-
     const ok = await trigger(fields, { shouldFocus: false });
     if (!ok) {
       toast.error(firstErrorMessageFrom(fields));
       return;
     }
-
     setStep(2);
   }
 
@@ -535,16 +511,14 @@ export default function BookingWizard({
 
   async function handleSubmit() {
     if (submitting || submitted) return;
-
     if (
       selectedService &&
       selectedService.airportLeg !== "NONE" &&
       serviceAirports.length === 0
     ) {
-      toast.error("This airport service isn’t configured yet.");
+      toast.error("This airport service isn't configured yet.");
       return;
     }
-
     const fields: (keyof FormValues)[] = [
       "serviceTypeId",
       "pickupAtDate",
@@ -554,19 +528,16 @@ export default function BookingWizard({
       "route",
       "vehicleId",
     ];
-
     if (usesPickupAirport) fields.push("pickupAirportId");
     if (usesDropoffAirport) fields.push("dropoffAirportId");
     if (selectedService?.pricingStrategy === "HOURLY")
       fields.push("hoursRequested");
     if (!isAuthed) fields.push("guestName", "guestEmail", "guestPhone");
-
     const ok = await trigger(fields, { shouldFocus: false });
     if (!ok) {
       toast.error(firstErrorMessage());
       return;
     }
-
     const v = getValues();
     if (!selectedService) {
       toast.error("Please select a service.");
@@ -576,8 +547,6 @@ export default function BookingWizard({
       toast.error("Please select pickup and dropoff.");
       return;
     }
-
-    // ✅ extra safety: point-to-point MUST have miles > 0
     if (selectedService.pricingStrategy === "POINT_TO_POINT") {
       const miles = routeMiles(v.route);
       if (!miles || miles <= 0) {
@@ -587,73 +556,70 @@ export default function BookingWizard({
         return;
       }
     }
-
     const pickupAtIso = new Date(
       `${v.pickupAtDate}T${v.pickupAtTime}:00`,
     ).toISOString();
-
+    let flightScheduledAtIso: string | null = null;
+    if (v.flightScheduledAtDate && v.flightScheduledAtTime) {
+      flightScheduledAtIso = new Date(
+        `${v.flightScheduledAtDate}T${v.flightScheduledAtTime}:00`,
+      ).toISOString();
+    } else if (v.flightScheduledAtDate) {
+      flightScheduledAtIso = new Date(
+        `${v.flightScheduledAtDate}T00:00:00`,
+      ).toISOString();
+    }
     setSubmitting(true);
-
     try {
       const pickup = v.route.pickup;
       const dropoff = v.route.dropoff;
-
       const res = await createBookingRequest({
         serviceTypeId: selectedService.id,
         vehicleId: v.vehicleId,
         pickupAt: pickupAtIso,
         passengers: v.passengers,
         luggage: v.luggage,
-
         pickupAddress: pickup.address,
         pickupPlaceId: pickup.placeId ?? null,
         pickupLat: pickup.location?.lat ?? null,
         pickupLng: pickup.location?.lng ?? null,
-
         dropoffAddress: dropoff.address,
         dropoffPlaceId: dropoff.placeId ?? null,
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
-
         distanceMiles: toNumber(v.route.miles ?? v.route.distanceMiles ?? null),
         durationMinutes: toNumber(
           v.route.minutes ?? v.route.durationMinutes ?? null,
         ),
-
         hoursRequested:
           selectedService.pricingStrategy === "HOURLY"
             ? v.hoursRequested
             : null,
-
         specialRequests: v.specialRequests || null,
-
+        flightAirline: v.flightAirline || null,
+        flightNumber: v.flightNumber || null,
+        flightScheduledAt: flightScheduledAtIso,
+        flightTerminal: v.flightTerminal || null,
+        flightGate: v.flightGate || null,
         guestName: isAuthed ? null : v.guestName.trim(),
         guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
         guestPhone: isAuthed ? null : v.guestPhone.trim(),
       });
-
       const data = res as any;
-
       if (data?.error) {
         toast.error(data.error);
         setSubmitting(false);
         return;
       }
-
       setSubmitted(true);
       toast.success("Request submitted.");
-
       const bookingId = data?.bookingId ?? null;
       const claimToken = data?.claimToken ?? null;
-
       const href = bookingId
         ? claimToken
-          ? `/book/success?id=${encodeURIComponent(String(bookingId))}&t=${encodeURIComponent(
-              String(claimToken),
-            )}`
+          ? `/book/success?id=${encodeURIComponent(String(bookingId))}&t=${encodeURIComponent(String(claimToken))}`
           : `/book/success?id=${encodeURIComponent(String(bookingId))}`
         : "/book/success";
-
       router.replace(href);
     } catch (e: any) {
       toast.error(e?.message ?? "Something went wrong. Please try again.");
@@ -661,17 +627,13 @@ export default function BookingWizard({
     }
   }
 
-  const inputsKey = `${step}-${serviceTypeId || "none"}-${
-    usesPickupAirport ? "P" : ""
-  }${usesDropoffAirport ? "D" : ""}`;
-
-  function firstErrorMessageFrom(fields: (keyof FormValues)[]) {
-    for (const k of fields) {
-      const st = getFieldState(k as any);
-      if (st.error?.message) return String(st.error.message);
-    }
-    return "Please complete the highlighted fields.";
-  }
+  const inputsKey = `${step}-${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}`;
+  const hasFlightInfo =
+    flightAirline ||
+    flightNumber ||
+    flightScheduledAtDate ||
+    flightTerminal ||
+    flightGate;
 
   return (
     <section className={styles.container}>
@@ -692,17 +654,13 @@ export default function BookingWizard({
                   validate: (v) => {
                     if (!v?.pickup || !v?.dropoff)
                       return "Please select pickup and dropoff.";
-
-                    // ✅ prevent “$55 everywhere” when miles aren’t present
                     if (selectedService?.pricingStrategy === "POINT_TO_POINT") {
                       const miles = toNumber(
                         v.miles ?? v.distanceMiles ?? null,
                       );
-                      if (!miles || miles <= 0) {
+                      if (!miles || miles <= 0)
                         return "Route estimate missing (miles). Please re-check the route.";
-                      }
                     }
-
                     return true;
                   },
                 }}
@@ -755,7 +713,6 @@ export default function BookingWizard({
                     >
                       Pickup date & time
                     </label>
-
                     <BookingDateTimeWithBlackouts
                       date={pickupAtDate}
                       time={pickupAtTime}
@@ -775,26 +732,33 @@ export default function BookingWizard({
                       }}
                     />
                   </div>
+
                   <div style={{ display: "grid", gap: 8, marginTop: 50 }}>
                     <label className={labelCx(Boolean(errors.serviceTypeId))}>
                       Service
                     </label>
-
                     <select
                       value={serviceTypeId}
                       onChange={(e) => {
                         const next = e.target.value;
-
                         setValue("pickupAirportId", "", { shouldDirty: true });
                         setValue("dropoffAirportId", "", { shouldDirty: true });
                         setValue("route", null, { shouldDirty: true });
                         setValue("vehicleId", "", { shouldDirty: true });
-
+                        setValue("flightAirline", "", { shouldDirty: true });
+                        setValue("flightNumber", "", { shouldDirty: true });
+                        setValue("flightScheduledAtDate", "", {
+                          shouldDirty: true,
+                        });
+                        setValue("flightScheduledAtTime", "", {
+                          shouldDirty: true,
+                        });
+                        setValue("flightTerminal", "", { shouldDirty: true });
+                        setValue("flightGate", "", { shouldDirty: true });
                         setValue("serviceTypeId", next, {
                           shouldDirty: true,
                           shouldValidate: true,
                         });
-
                         clearErrors([
                           "serviceTypeId",
                           "pickupAirportId",
@@ -802,17 +766,21 @@ export default function BookingWizard({
                           "route",
                           "vehicleId",
                         ]);
-
                         const svc = services.find((s) => s.id === next);
                         if (svc?.pricingStrategy === "HOURLY") {
                           setValue(
                             "hoursRequested",
                             Math.max(getValues("hoursRequested") || 2, 2),
-                            {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            },
+                            { shouldDirty: true, shouldValidate: true },
                           );
+                        }
+                        if (
+                          svc?.airportLeg === "PICKUP" ||
+                          svc?.airportLeg === "DROPOFF"
+                        ) {
+                          setShowFlightInfo(true);
+                        } else {
+                          setShowFlightInfo(false);
                         }
                       }}
                       className='input emptySmall'
@@ -846,7 +814,6 @@ export default function BookingWizard({
                         className='input emptySmall'
                       />
                     </div>
-
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className={labelCx(Boolean(errors.luggage))}>
                         Luggage
@@ -870,19 +837,10 @@ export default function BookingWizard({
                   <div className={styles.pickupDropoffContainer}>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label
-                        className={`cardTitle h5${
-                          usesPickupAirport
-                            ? errors.pickupAirportId
-                              ? " redBorder"
-                              : ""
-                            : pickupLabelRed
-                              ? " redBorder"
-                              : ""
-                        }`}
+                        className={`cardTitle h5${usesPickupAirport ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
                       >
                         {usesPickupAirport ? "Pickup airport" : "Pickup"}
                       </label>
-
                       {usesPickupAirport ? (
                         <select
                           value={pickupAirportId}
@@ -913,22 +871,12 @@ export default function BookingWizard({
                         />
                       )}
                     </div>
-
                     <div style={{ display: "grid", gap: 8 }}>
                       <label
-                        className={`cardTitle h5${
-                          usesDropoffAirport
-                            ? errors.dropoffAirportId
-                              ? " redBorder"
-                              : ""
-                            : dropoffLabelRed
-                              ? " redBorder"
-                              : ""
-                        }`}
+                        className={`cardTitle h5${usesDropoffAirport ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
                       >
                         {usesDropoffAirport ? "Dropoff airport" : "Dropoff"}
                       </label>
-
                       {usesDropoffAirport ? (
                         <select
                           value={dropoffAirportId}
@@ -989,6 +937,143 @@ export default function BookingWizard({
                     </div>
                   ) : null}
 
+                  {/* Flight Information Section */}
+                  {isAirportService && (
+                    <div className={styles.flightInfoSection}>
+                      <button
+                        type='button'
+                        className={styles.flightInfoToggle}
+                        onClick={() => setShowFlightInfo(!showFlightInfo)}
+                      >
+                        <span className='cardTitle h5'>
+                          ✈️ Flight Information{" "}
+                          <span style={{ fontWeight: 400, opacity: 0.7 }}>
+                            (optional)
+                          </span>
+                        </span>
+                        <span className={styles.flightInfoToggleIcon}>
+                          {showFlightInfo ? "−" : "+"}
+                        </span>
+                      </button>
+                      {showFlightInfo && (
+                        <div className={styles.flightInfoFields}>
+                          <p
+                            className='miniNote'
+                            style={{ marginBottom: 16, marginTop: 0 }}
+                          >
+                            {usesPickupAirport
+                              ? "Provide your flight details so we can monitor for delays and adjust your pickup time if needed."
+                              : "Provide your flight details so your driver knows which terminal to drop you off at."}
+                          </p>
+                          <Grid2>
+                            <div style={{ display: "grid", gap: 8 }}>
+                              <label className='cardTitle h5'>Airline</label>
+                              <input
+                                type='text'
+                                value={flightAirline}
+                                onChange={(e) =>
+                                  setValue("flightAirline", e.target.value, {
+                                    shouldDirty: true,
+                                  })
+                                }
+                                placeholder='e.g., American Airlines'
+                                className='input emptySmall'
+                              />
+                            </div>
+                            <div style={{ display: "grid", gap: 8 }}>
+                              <label className='cardTitle h5'>
+                                Flight Number
+                              </label>
+                              <input
+                                type='text'
+                                value={flightNumber}
+                                onChange={(e) =>
+                                  setValue(
+                                    "flightNumber",
+                                    e.target.value.toUpperCase(),
+                                    { shouldDirty: true },
+                                  )
+                                }
+                                placeholder='e.g., AA1234'
+                                className='input emptySmall'
+                              />
+                            </div>
+                          </Grid2>
+                          <div style={{ display: "grid", gap: 8 }}>
+                            <label className='cardTitle h5'>
+                              {usesPickupAirport
+                                ? "Flight Arrival Time"
+                                : "Flight Departure Time"}
+                            </label>
+                            <Grid2>
+                              <input
+                                type='date'
+                                value={flightScheduledAtDate}
+                                onChange={(e) =>
+                                  setValue(
+                                    "flightScheduledAtDate",
+                                    e.target.value,
+                                    { shouldDirty: true },
+                                  )
+                                }
+                                className='input emptySmall'
+                              />
+                              <input
+                                type='time'
+                                value={flightScheduledAtTime}
+                                onChange={(e) =>
+                                  setValue(
+                                    "flightScheduledAtTime",
+                                    e.target.value,
+                                    { shouldDirty: true },
+                                  )
+                                }
+                                className='input emptySmall'
+                              />
+                            </Grid2>
+                          </div>
+                          <Grid2>
+                            <div style={{ display: "grid", gap: 8 }}>
+                              <label className='cardTitle h5'>Terminal</label>
+                              <input
+                                type='text'
+                                value={flightTerminal}
+                                onChange={(e) =>
+                                  setValue("flightTerminal", e.target.value, {
+                                    shouldDirty: true,
+                                  })
+                                }
+                                placeholder='e.g., Terminal 4'
+                                className='input emptySmall'
+                              />
+                            </div>
+                            <div style={{ display: "grid", gap: 8 }}>
+                              <label className='cardTitle h5'>
+                                Gate{" "}
+                                <span style={{ fontWeight: 400, opacity: 0.6 }}>
+                                  (if known)
+                                </span>
+                              </label>
+                              <input
+                                type='text'
+                                value={flightGate}
+                                onChange={(e) =>
+                                  setValue(
+                                    "flightGate",
+                                    e.target.value.toUpperCase(),
+                                    { shouldDirty: true },
+                                  )
+                                }
+                                placeholder='e.g., B12'
+                                className='input emptySmall'
+                              />
+                            </div>
+                          </Grid2>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div>
                     <div className={styles.btnContainer}>
                       <button
@@ -1012,21 +1097,17 @@ export default function BookingWizard({
                 >
                   <h2 className='underline'>Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
-
                   <label className={labelCx(Boolean(errors.vehicleId))}>
                     Vehicle category
                   </label>
-
                   <div style={{ display: "grid", gap: 10 }}>
                     {vehicleOptions.map((v) => {
                       const isSelected = v.id === vehicleId;
-
                       const rowQuote = selectedService
                         ? calcQuoteCents({
                             pricingStrategy: toStrategy(
                               selectedService.pricingStrategy,
                             ),
-
                             distanceMiles:
                               selectedService.pricingStrategy ===
                               "POINT_TO_POINT"
@@ -1037,35 +1118,28 @@ export default function BookingWizard({
                               "POINT_TO_POINT"
                                 ? durationMinutes
                                 : null,
-
                             hoursRequested:
                               selectedService.pricingStrategy === "HOURLY"
                                 ? hoursRequested
                                 : null,
-
                             vehicleMinHours: v.minHours ?? 0,
-
                             serviceMinFareCents: selectedService.minFareCents,
                             serviceBaseFeeCents: selectedService.baseFeeCents,
                             servicePerMileCents: selectedService.perMileCents,
                             servicePerMinuteCents:
                               selectedService.perMinuteCents,
                             servicePerHourCents: selectedService.perHourCents,
-
                             vehicleBaseFareCents: v.baseFareCents ?? 0,
                             vehiclePerMileCents: v.perMileCents ?? 0,
                             vehiclePerMinuteCents: v.perMinuteCents ?? 0,
                             vehiclePerHourCents: v.perHourCents ?? 0,
                           })
                         : null;
-
                       const rowEstimateCents = rowQuote?.totalCents ?? 0;
-
                       const rowMinHours =
                         selectedService?.pricingStrategy === "HOURLY"
                           ? v.minHours
                           : null;
-
                       const rowBillable =
                         selectedService?.pricingStrategy === "HOURLY"
                           ? Math.max(
@@ -1073,7 +1147,6 @@ export default function BookingWizard({
                               Math.ceil(v.minHours || 0),
                             )
                           : null;
-
                       return (
                         <button
                           key={v.id}
@@ -1084,7 +1157,6 @@ export default function BookingWizard({
                               shouldValidate: true,
                             });
                             clearErrors("vehicleId");
-
                             if (selectedService?.pricingStrategy === "HOURLY") {
                               setValue(
                                 "hoursRequested",
@@ -1118,7 +1190,6 @@ export default function BookingWizard({
                               ${centsToUsd(rowEstimateCents)}
                             </div>
                           </div>
-
                           <div className='val'>
                             Capacity: {v.capacity} • Luggage:{" "}
                             {v.luggageCapacity}
@@ -1129,7 +1200,6 @@ export default function BookingWizard({
                               ? ` • Billable hours: ${rowBillable}`
                               : ""}
                           </div>
-
                           {v.description ? (
                             <div style={{ fontSize: 12, opacity: 0.75 }}>
                               {v.description}
@@ -1139,7 +1209,6 @@ export default function BookingWizard({
                       );
                     })}
                   </div>
-
                   <div
                     style={{
                       display: "flex",
@@ -1154,7 +1223,6 @@ export default function BookingWizard({
                     >
                       Back
                     </button>
-
                     <button
                       type='button'
                       onClick={goStep3}
@@ -1174,7 +1242,6 @@ export default function BookingWizard({
                 >
                   <h2 className='underline'>Confirm</h2>
                   <p className='subheading'>Overview</p>
-
                   <div className='box'>
                     <SummaryRow
                       label='Service'
@@ -1198,7 +1265,6 @@ export default function BookingWizard({
                       label='Dropoff'
                       value={route?.dropoff?.address ?? "—"}
                     />
-
                     {selectedService?.pricingStrategy === "HOURLY" ? (
                       <>
                         <SummaryRow
@@ -1211,7 +1277,60 @@ export default function BookingWizard({
                         />
                       </>
                     ) : null}
-
+                    {hasFlightInfo && (
+                      <>
+                        <div
+                          style={{
+                            borderTop: "1px solid rgba(0,0,0,0.1)",
+                            marginTop: 12,
+                            paddingTop: 12,
+                          }}
+                        >
+                          <div
+                            className='cardTitle h6'
+                            style={{ marginBottom: 8, opacity: 0.7 }}
+                          >
+                            ✈️ Flight Information
+                          </div>
+                        </div>
+                        {flightAirline && (
+                          <SummaryRow label='Airline' value={flightAirline} />
+                        )}
+                        {flightNumber && (
+                          <SummaryRow
+                            label='Flight Number'
+                            value={flightNumber}
+                          />
+                        )}
+                        {flightScheduledAtDate && (
+                          <SummaryRow
+                            label={
+                              usesPickupAirport
+                                ? "Arrival Time"
+                                : "Departure Time"
+                            }
+                            value={
+                              flightScheduledAtTime
+                                ? `${flightScheduledAtDate} @ ${flightScheduledAtTime}`
+                                : flightScheduledAtDate
+                            }
+                          />
+                        )}
+                        {flightTerminal && (
+                          <SummaryRow label='Terminal' value={flightTerminal} />
+                        )}
+                        {flightGate && (
+                          <SummaryRow label='Gate' value={flightGate} />
+                        )}
+                      </>
+                    )}
+                    <div
+                      style={{
+                        borderTop: "1px solid rgba(0,0,0,0.1)",
+                        marginTop: 12,
+                        paddingTop: 12,
+                      }}
+                    />
                     <SummaryRow
                       label='Estimate'
                       value={`$${centsToUsd(estimateCents)}`}
@@ -1242,7 +1361,6 @@ export default function BookingWizard({
                           placeholder='Your name'
                         />
                       </div>
-
                       <Grid2>
                         <div style={{ display: "grid", gap: 10 }}>
                           <label
@@ -1264,7 +1382,6 @@ export default function BookingWizard({
                             inputMode='email'
                           />
                         </div>
-
                         <div style={{ display: "grid", gap: 6 }}>
                           <label
                             className={labelCx(Boolean(errors.guestPhone))}
@@ -1321,7 +1438,6 @@ export default function BookingWizard({
                     >
                       Back
                     </button>
-
                     <button
                       type='button'
                       onClick={handleSubmit}
