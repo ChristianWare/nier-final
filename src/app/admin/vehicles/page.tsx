@@ -19,8 +19,7 @@ export default async function AdminVehiclesPage() {
         <Button
           href='/admin/vehicles/new'
           text='New vehicle'
-          btnType='black'
-          plus
+          btnType='greenReg'
         />
       </header>
 

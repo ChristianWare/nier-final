@@ -152,8 +152,7 @@ export default async function AdminUsersPage({
             <Button
               href='/api/admin/users/export'
               text='Download CSV'
-              btnType='black'
-              downloadIcon
+              btnType='blackReg'
             />
           </div>
 

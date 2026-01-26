@@ -18,8 +18,7 @@ export default async function AdminVehicleCategoriesPage() {
         <Button
           href='/admin/vehicle-categories/new'
           text='New category'
-          btnType='black'
-          plus
+          btnType='greenReg'
         />
       </header>
 

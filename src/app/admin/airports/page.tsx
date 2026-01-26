@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { toggleAirport } from "../../../../actions/admin/airports";
+import Button from "@/components/shared/Button/Button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,9 +31,11 @@ export default async function AdminAirportsPage() {
         <p className='miniNote' style={{ margin: 0 }}>
           Manage the airport list used by airport pickup/dropoff services.
         </p>
-        <Link className='primaryBtn' href='/admin/airports/new'>
-          New airport
-        </Link>
+        <Button
+          href='/admin/airports/new'
+          text='New Airport'
+          btnType='greenReg'
+        />
       </header>
       {airports.length === 0 ? (
         <div className='box' style={{ display: "grid", gap: 10 }}>
@@ -83,11 +86,11 @@ export default async function AdminAirportsPage() {
                         <span style={{ opacity: 0.7 }}>({a.iata})</span>
                       </div>
 
-                        <span
-                        className={`pill ${a.active ? 'pillGood' : 'pillBad'}`}
-                        >
+                      <span
+                        className={`pill ${a.active ? "pillGood" : "pillBad"}`}
+                      >
                         {a.active ? "Active" : "Disabled"}
-                        </span>
+                      </span>
                     </div>
 
                     <div className='emptySmall' style={{ opacity: 0.8 }}>

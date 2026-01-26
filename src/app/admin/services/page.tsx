@@ -18,8 +18,7 @@ export default async function AdminServicesPage() {
         <Button
           href='/admin/services/new'
           text='New service'
-          btnType='black'
-          plus
+          btnType='greenReg'
         />
       </header>
 

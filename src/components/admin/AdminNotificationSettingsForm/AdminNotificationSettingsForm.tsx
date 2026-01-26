@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import styles from "./AdminNotificationSettingsForm.module.css";
 import { saveMyAdminNotificationSettings } from "../../../../actions/admin/notificationSettings";
 import { EVENT_META } from "@/lib/notifications/events";
+import Button from "@/components/shared/Button/Button";
 
 type Props = {
   initial: {
@@ -147,9 +148,12 @@ export default function AdminNotificationSettingsForm({ initial }: Props) {
       </div>
 
       <div className={styles.actions}>
-        <button className='primaryBtn' type='submit' disabled={isPending}>
-          {isPending ? "Saving..." : "Save settings"}
-        </button>
+        <Button
+          text={isPending ? "Saving..." : "Save settings"}
+          btnType='blackReg'
+          disabled={isPending}
+          type='submit'
+        />
       </div>
     </form>
   );
