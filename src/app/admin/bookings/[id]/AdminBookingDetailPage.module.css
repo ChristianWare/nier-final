@@ -768,21 +768,21 @@
   padding: 10px 14px;
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   border: 1px solid #f59e0b;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
 .tipIcon {
-  font-size: 1.2rem;
+  font-size: 2rem;
 }
 
 .tipLabel {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   font-weight: 500;
   color: #92400e;
 }
 
 .tipAmount {
-  font-size: 1rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: #78350f;
 }
@@ -793,7 +793,7 @@
   padding: 16px;
   background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
   border: 1px solid #10b981;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .tipBreakdownHeader {
@@ -808,7 +808,7 @@
 }
 
 .tipBreakdownTitle {
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #065f46;
 }
@@ -821,7 +821,7 @@
 }
 
 .tipBreakdownNote {
-  font-size: 0.8rem;
+  font-size: 1.4rem;
   color: #065f46;
   opacity: 0.85;
   line-height: 1.4;

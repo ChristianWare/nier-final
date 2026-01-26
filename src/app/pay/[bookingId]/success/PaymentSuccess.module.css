@@ -84,7 +84,7 @@
 }
 
 .subtitle {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   color: #666;
   margin: 0 0 2rem 0;
   line-height: 1.5;
@@ -107,7 +107,7 @@
 }
 
 .confirmationLabel {
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: #888;
@@ -134,7 +134,7 @@
 }
 
 .tripTitle {
-  font-size: 0.875rem;
+  font-size: 1.4rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #888;
@@ -180,7 +180,7 @@
 }
 
 .tripLabel {
-  font-size: 0.7rem;
+  font-size: 1.4rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #888;
@@ -188,7 +188,7 @@
 }
 
 .tripValue {
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   color: var(--black);
   line-height: 1.4;
   word-break: break-word;
@@ -207,8 +207,9 @@
 }
 
 .nextStepsTitle {
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: normal;
   color: #0369a1;
   margin: 0 0 0.75rem 0;
 }
@@ -216,13 +217,13 @@
 .nextStepsList {
   margin: 0;
   padding-left: 1.25rem;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   color: #0c4a6e;
   line-height: 1.7;
 }
 
 .nextStepsList li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .nextStepsList li:last-child {
@@ -247,9 +248,10 @@
    Help Text
    ================================ */
 .helpText {
-  font-size: 0.875rem;
+  font-size: 1.4rem;
   color: #888;
   margin: 0;
+  letter-spacing: normal;
 }
 
 .helpLink {
@@ -272,7 +274,7 @@
     border-radius: 16px;
   }
 
-  .title {
+  /* .title {
     font-size: 1.5rem;
   }
 
@@ -294,5 +296,5 @@
 
   .confirmationId {
     font-size: 1.25rem;
-  }
+  } */
 }

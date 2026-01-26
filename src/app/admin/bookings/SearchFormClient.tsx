@@ -65,7 +65,7 @@ export default function SearchFormClient({
       <Button text='Search' btnType='blackReg' type='submit' />
 
       {value.trim().length ? (
-        <Button text='Clear' btnType='gray' type='button' onClick={onClear} arrow />
+        <Button text='Clear' btnType='grayReg' type='button' onClick={onClear} />
       ) : null}
     </form>
   );

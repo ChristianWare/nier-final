@@ -904,6 +904,7 @@ export default async function AdminBookingDetailPage({
               }
               bookingTotalCents={booking.totalCents}
               currency={booking.currency}
+              tipCents={tipCents}
             />
 
             {booking.assignment ? (

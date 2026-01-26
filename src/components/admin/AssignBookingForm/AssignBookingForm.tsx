@@ -38,6 +38,7 @@ export default function AssignBookingForm({
   currentDriverPaymentCents,
   bookingTotalCents,
   currency = "USD",
+  tipCents = 0, // ✅ NEW: Customer tip from payment
 }: {
   bookingId: string;
   drivers: { id: string; name: string | null; email: string }[];
@@ -47,6 +48,7 @@ export default function AssignBookingForm({
   currentDriverPaymentCents?: number | null;
   bookingTotalCents: number;
   currency?: string;
+  tipCents?: number; // ✅ NEW
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -58,7 +60,10 @@ export default function AssignBookingForm({
   // Parse current input to cents for comparison
   const currentPaymentCents = dollarsToCents(driverPayment) ?? 0;
 
-  // Calculate percentage amounts
+  // ✅ Calculate total driver earnings (payment + tip)
+  const totalDriverEarnings = currentPaymentCents + tipCents;
+
+  // Calculate percentage amounts (based on booking total, excluding tips)
   const percentageOptions = [
     { label: "10%", percent: 0.1 },
     { label: "20%", percent: 0.2 },
@@ -136,14 +141,11 @@ export default function AssignBookingForm({
         </select>
       </div>
 
-      {/* ✅ Driver payment with percentage options - matching RefundButton layout */}
-
+      {/* ✅ Driver payment with percentage options */}
       <div className={styles.driverPaymentSection}>
-        {/* Booking total reference - spans full width */}
-
         {/* Input section - left column */}
         <div className={styles.inputSection}>
-          <label className='emptyTitle'>Driver Payment</label>
+          <label className='emptyTitle'>Driver Payment (from company)</label>
           <div className={styles.inputWrapper}>
             <span className={styles.dollarSign}>$</span>
             <input
@@ -152,7 +154,6 @@ export default function AssignBookingForm({
               placeholder='0.00'
               value={driverPayment}
               onChange={(e) => {
-                // Allow only numbers and decimal
                 const val = e.target.value.replace(/[^0-9.]/g, "");
                 setDriverPayment(val);
               }}
@@ -161,7 +162,7 @@ export default function AssignBookingForm({
             />
           </div>
           <span className='miniNote'>
-            Amount the driver will be paid for this trip
+            Amount the company pays the driver for this trip
           </span>
         </div>
 
@@ -198,11 +199,76 @@ export default function AssignBookingForm({
         )}
       </div>
 
+      {/* ✅ NEW: Driver Earnings Summary Card */}
+      <div className={styles.driverEarningsCard}>
+        <div className={styles.earningsHeader}>
+          <span className={styles.earningsIcon}>💵</span>
+          <span className={styles.earningsTitle}>Driver Earnings Summary</span>
+        </div>
+
+        <div className={styles.earningsBreakdown}>
+          {/* Company Payment Row */}
+          <div className={styles.earningsRow}>
+            <span className={styles.earningsLabel}>Company Payment</span>
+            <span className={styles.earningsValue}>
+              {currentPaymentCents > 0
+                ? formatMoney(currentPaymentCents, currency)
+                : "—"}
+            </span>
+          </div>
+
+          {/* Customer Tip Row */}
+          <div className={styles.earningsRow}>
+            <span className={styles.earningsLabel}>
+              Customer Tip
+              {tipCents > 0 && (
+                <span className={styles.tipBadge}>From checkout</span>
+              )}
+            </span>
+            <span
+              className={`${styles.earningsValue} ${tipCents > 0 ? styles.tipValue : ""}`}
+            >
+              {tipCents > 0 ? formatMoney(tipCents, currency) : "—"}
+            </span>
+          </div>
+
+          {/* Divider */}
+          <div className={styles.earningsDivider} />
+
+          {/* Total Row */}
+          <div className={`${styles.earningsRow} ${styles.earningsTotalRow}`}>
+            <span className={styles.earningsTotalLabel}>
+              Total Driver Earnings
+            </span>
+            <span className={styles.earningsTotalValue}>
+              {totalDriverEarnings > 0
+                ? formatMoney(totalDriverEarnings, currency)
+                : "—"}
+            </span>
+          </div>
+        </div>
+
+        {/* Tip note */}
+        {tipCents > 0 && (
+          <div className={styles.tipNote}>
+            💡 The customer added a {formatMoney(tipCents, currency)} tip during
+            checkout. This should be passed directly to the driver in addition
+            to the company payment.
+          </div>
+        )}
+
+        {tipCents === 0 && (
+          <div className={styles.noTipNote}>
+            No customer tip was added during checkout.
+          </div>
+        )}
+      </div>
+
       <div className={styles.btnContainer}>
         <Button
           disabled={isPending}
           type='submit'
-          text={isPending ? "Saving..." : "Assign + Pay Driver"}
+          text={isPending ? "Saving..." : "Assign + Save Driver Payment"}
           btnType='blackReg'
         />
       </div>
