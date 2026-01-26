@@ -257,11 +257,7 @@ export default function EarningsControls({
             </select>
           </label>
 
-          <button
-            className={styles.rangeSubmit}
-            type='submit'
-            disabled={isPending}
-          >
+          <button className='rangeSubmitBtn' type='submit' disabled={isPending}>
             Apply
           </button>
         </form>

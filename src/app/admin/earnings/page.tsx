@@ -814,12 +814,7 @@ export default async function EarningsPage({
             year-to-date, or all time.
           </p>
           <div className={styles.headerActions}>
-            <Button
-              href={exportHref}
-              text='Download CSV'
-              btnType='black'
-              downloadIcon
-            />
+            <Button href={exportHref} text='Download CSV' btnType='blackReg' />
           </div>
         </div>
 
@@ -932,8 +927,7 @@ export default async function EarningsPage({
             <Button
               href={exportHref}
               text='Download CSV for current view'
-              btnType='black'
-              downloadIcon
+              btnType='blackReg'
             />
           </div>
         </section>
@@ -1012,12 +1006,7 @@ export default async function EarningsPage({
           )}
 
           <div className={styles.cardFooter}>
-            <Button
-              href={exportHref}
-              text='Download CSV'
-              btnType='black'
-              downloadIcon
-            />
+            <Button href={exportHref} text='Download CSV' btnType='blackReg' />
           </div>
         </section>
       </div>

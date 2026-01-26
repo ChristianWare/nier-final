@@ -161,7 +161,7 @@ export default function AdminFinanceSnapshot({
         <Button
           href='/admin/earnings'
           text='See all earnings'
-          btnType='black'
+          btnType='green'
           arrow
         />
       </div>

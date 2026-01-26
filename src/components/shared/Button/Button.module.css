@@ -179,7 +179,6 @@
   border: 1px solid var(--strokeii);
   display: flex;
   justify-content: space-between;
-   
 }
 
 .red,
@@ -190,7 +189,6 @@
   border: 1px solid var(--accent600);
   display: flex;
   justify-content: space-between;
-   
 }
 
 .green,
@@ -201,7 +199,6 @@
   border: 1px solid var(--darkGreen);
   display: flex;
   justify-content: space-between;
-   
 }
 
 .lightRed,
@@ -212,7 +209,6 @@
   border: 1px solid var(--accent);
   display: flex;
   justify-content: space-between;
-   
 }
 
 .cream,
@@ -223,7 +219,6 @@
   border: 1px solid var(--cream);
   display: flex;
   justify-content: space-between;
-   
 }
 
 .blackOutline {
@@ -237,13 +232,26 @@
   background-color: #ffffff1a;
   display: flex;
   justify-content: space-between;
-   
+}
+
+.blackReg {
+  background-color: var(--black);
+  color: var(--white) !important;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  padding: 8px 15px;
 }
 
 /* ================================
    HOVER STATES - Desktop only
    ================================ */
 @media (hover: hover) and (pointer: fine) {
+  .blackReg:hover {
+    background-color: var(--black400);
+    border: 1px solid var(--black400);
+  }
   /* .black:hover {
     border: 1px solid var(--black400);
     background-color: var(--black400);

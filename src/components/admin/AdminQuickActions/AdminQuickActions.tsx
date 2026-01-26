@@ -46,7 +46,7 @@ export default function AdminQuickActions() {
         {ACTIONS.map((a) => (
           <div key={a.href} className={styles.card}>
             <div className={styles.btnContainer}>
-              <Button href={a.href} text={a.label} btnType='black' arrow />
+              <Button href={a.href} text={a.label} btnType='blackReg' />
             </div>
             {a.description ? (
               <p className='subheading'>{a.description}</p>
