@@ -244,6 +244,16 @@
   padding: 8px 15px;
 }
 
+.greenReg {
+  background-color: var(--green);
+  color: var(--white) !important;
+  border: 1px solid var(--darkGreen);
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  padding: 8px 15px;
+}
+
 /* ================================
    HOVER STATES - Desktop only
    ================================ */
@@ -252,46 +262,9 @@
     background-color: var(--black400);
     border: 1px solid var(--black400);
   }
-  /* .black:hover {
-    border: 1px solid var(--black400);
-    background-color: var(--black400);
-    color: var(--cream);
-  }
 
-  .blackAdmin:hover {
-    background-color: var(--cream);
-    color: var(--black);
-  }
-
-  .gray:hover {
-    background-color: var(--cream);
-    color: var(--black);
-  }
-
-  .red:hover {
-    background-color: var(--cream);
-    color: var(--accent);
-  }
-
-  .green:hover {
+  .greenReg:hover {
     background-color: var(--darkGreen);
+    border: 1px solid var(--darkGreen);
   }
-
-  .lightRed:hover {
-    background-color: var(--accent600);
-  }
-
-  .cream:hover {
-    background-color: var(--strokeii);
-  }
-
-  .blackOutline:hover {
-    background-color: var(--black);
-    color: var(--white);
-  }
-
-  .transparent:hover {
-    background-color: var(--black);
-    color: var(--yellow);
-  } */
 }

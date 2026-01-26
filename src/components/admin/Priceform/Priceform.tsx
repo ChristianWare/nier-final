@@ -193,8 +193,8 @@ export default function PriceForm({
           disabled={isPending}
           type='submit'
           text={isPending ? "Saving..." : "Update Price"}
-          btnType='black'
-          arrow
+          btnType='blackReg'
+          
         />
       </div>
     </form>

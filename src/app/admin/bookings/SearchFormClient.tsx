@@ -62,7 +62,7 @@ export default function SearchFormClient({
         onChange={(e) => setValue(e.target.value)}
         placeholder='Search name, email, booking ID, phone, address…'
       />
-      <Button text='Search' btnType='black' arrow type='submit' />
+      <Button text='Search' btnType='blackReg' type='submit' />
 
       {value.trim().length ? (
         <Button text='Clear' btnType='gray' type='button' onClick={onClear} arrow />

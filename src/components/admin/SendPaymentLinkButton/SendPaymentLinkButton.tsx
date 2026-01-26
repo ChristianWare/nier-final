@@ -66,8 +66,7 @@ export default function SendPaymentLinkButton({
         disabled
         type='button'
         text='Fully paid'
-        btnType='green'
-        checkIcon
+        btnType='greenReg'
         onClick={() => {}}
       />
     );

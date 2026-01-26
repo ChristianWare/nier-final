@@ -94,8 +94,7 @@ export default function AdminManualCardPaymentClient({
         disabled
         type='button'
         text='Payment successful'
-        btnType='green'
-        checkIcon
+        btnType='greenReg'
         onClick={() => {}}
       />
     );

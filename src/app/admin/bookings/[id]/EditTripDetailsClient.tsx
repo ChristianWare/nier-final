@@ -322,9 +322,8 @@ export default function EditTripDetailsClient({
       <div className={styles.editTripToggle}>
         <Button
           text='Edit Trip Details'
-          btnType='black'
+          btnType='blackReg'
           onClick={() => setIsEditing(true)}
-          arrow
         />
         {success && <span className={styles.successText}>✓ Changes saved</span>}
       </div>

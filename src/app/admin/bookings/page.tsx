@@ -527,8 +527,8 @@ export default async function AdminBookingsPage({
             <Button
               href='/admin/bookings/new'
               text='New Booking'
-              btnType='black'
-              plus
+              btnType='greenReg'
+              
             />
           </div>
 

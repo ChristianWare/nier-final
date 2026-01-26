@@ -39,8 +39,7 @@ export default function DuplicateBookingClient({
     <div className={styles.duplicateSection}>
       <Button
         text={isPending ? "Creating..." : "Duplicate Booking"}
-        btnType='green'
-        arrow
+        btnType='greenReg'
         onClick={handleDuplicate}
         disabled={isPending}
       />

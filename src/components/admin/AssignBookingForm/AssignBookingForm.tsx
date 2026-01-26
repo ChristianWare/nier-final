@@ -203,8 +203,7 @@ export default function AssignBookingForm({
           disabled={isPending}
           type='submit'
           text={isPending ? "Saving..." : "Assign + Pay Driver"}
-          btnType='black'
-          arrow
+          btnType='blackReg'
         />
       </div>
     </form>

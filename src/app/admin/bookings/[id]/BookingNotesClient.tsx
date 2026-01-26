@@ -97,9 +97,8 @@ export default function BookingNotesClient({
         <div className={styles.noteFormActions}>
           <Button
             text={isPending ? "Adding..." : "Add Note"}
-            btnType='black'
+            btnType='blackReg'
             type='submit'
-            plus
             disabled={isPending || !content.trim()}
           />
         </div>
