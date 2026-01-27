@@ -103,6 +103,7 @@ type UserLite = {
   name: string | null;
   email: string;
   emailVerified: boolean;
+  phone: string | null;
 };
 
 type DriverLite = { id: string; name: string | null; email: string };
@@ -1021,6 +1022,11 @@ export default function AdminNewBookingWizard({
                           style={{ marginBottom: "4rem" }}
                         >
                           {selectedUser.email}
+                        </div>
+                        <div className='miniNote'>
+                          {selectedUser.phone
+                            ? `📞 ${selectedUser.phone}`
+                            : "📞 No phone on file"}
                         </div>
                         <div
                           style={{ display: "flex", gap: 10, flexWrap: "wrap" }}
@@ -1979,14 +1985,21 @@ export default function AdminNewBookingWizard({
 
                     <SummaryRow label='Customer type' value={customerKind} />
                     {customerKind === "account" ? (
-                      <SummaryRow
-                        label='User'
-                        value={
-                          selectedUser
-                            ? `${(selectedUser.name ?? "").trim() || "Unnamed"} • ${selectedUser.email}`
-                            : "—"
-                        }
-                      />
+                      <>
+                        <SummaryRow
+                          label='User'
+                          value={
+                            selectedUser
+                              ? `${(selectedUser.name ?? "").trim() || "Unnamed"} • ${selectedUser.email}`
+                              : "—"
+                          }
+                        />
+                        {/* ✅ Show phone for account users */}
+                        <SummaryRow
+                          label='Phone'
+                          value={selectedUser?.phone || "No phone on file"}
+                        />
+                      </>
                     ) : (
                       <>
                         <SummaryRow

@@ -1462,6 +1462,15 @@ export default function BookingWizard({
                     />
                     <SummaryRow label='Passengers' value={String(passengers)} />
                     <SummaryRow label='Luggage' value={String(luggage)} />
+                    {/* ✅ Show phone in summary */}
+                    <SummaryRow
+                      label='Phone'
+                      value={
+                        isAuthed
+                          ? watch("contactPhone") || "—"
+                          : guestPhone || "—"
+                      }
+                    />
                     <SummaryRow
                       label='Pickup'
                       value={route?.pickup?.address ?? "—"}
@@ -1655,11 +1664,12 @@ export default function BookingWizard({
                       </Grid2>
                     </div>
                   ) : (
-                    // null
-                    // ✅ NEW: Phone field for logged-in users
+                    // ✅ Phone field for logged-in users
                     <div style={{ display: "grid", gap: 10 }}>
                       <div style={{ display: "grid", gap: 8 }}>
-                        <label className='cardTitle h5'>
+                        <label
+                          className={labelCx(Boolean(errors.contactPhone))}
+                        >
                           Phone number for this trip
                         </label>
                         <input

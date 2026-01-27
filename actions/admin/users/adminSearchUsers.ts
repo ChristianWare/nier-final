@@ -25,7 +25,13 @@ export async function adminSearchUsers(input: { query: string }) {
     },
     orderBy: [{ createdAt: "desc" }],
     take: 8,
-    select: { id: true, name: true, email: true, emailVerified: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      emailVerified: true,
+      phone: true,
+    },
   });
 
   return {
@@ -34,6 +40,7 @@ export async function adminSearchUsers(input: { query: string }) {
       name: u.name,
       email: u.email,
       emailVerified: Boolean(u.emailVerified),
+      phone: u.phone ?? null, 
     })),
   };
 }
