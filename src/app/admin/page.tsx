@@ -240,7 +240,7 @@ function transformPayment(p: any, isLink = false): PaymentItem {
   return {
     id: p.id,
     bookingId: p.booking?.id ?? "",
-    paidAt: isLink ? p.createdAt : p.paidAt,
+    paidAt: isLink ? (p.updatedAt ?? p.createdAt) : p.paidAt,
     amountCents: p.amountPaidCents ?? p.amountTotalCents ?? p.amountCents ?? 0,
     tipCents: p.tipCents ?? 0,
     currency: p.currency ?? "usd",
@@ -704,18 +704,18 @@ export default async function AdminHome() {
       },
     }),
 
-    // ✅ Payment links sent today (pending payments)
+    // ✅ FIXED: Payment links sent today - use updatedAt instead of createdAt
     db.payment.findMany({
       where: {
-        createdAt: { gte: todayStart, lt: tomorrowStart },
+        updatedAt: { gte: todayStart, lt: tomorrowStart },
         stripeCheckoutSessionId: { not: null },
         paidAt: null,
       },
-      orderBy: [{ createdAt: "desc" }],
+      orderBy: [{ updatedAt: "desc" }],
       take: 20,
       select: {
         id: true,
-        createdAt: true,
+        updatedAt: true,
         amountTotalCents: true,
         tipCents: true,
         currency: true,
@@ -733,18 +733,18 @@ export default async function AdminHome() {
       },
     }),
 
-    // ✅ Payment links sent this week
+    // ✅ FIXED: Payment links sent this week - use updatedAt instead of createdAt
     db.payment.findMany({
       where: {
-        createdAt: { gte: weekStart, lt: tomorrowStart },
+        updatedAt: { gte: weekStart, lt: tomorrowStart },
         stripeCheckoutSessionId: { not: null },
         paidAt: null,
       },
-      orderBy: [{ createdAt: "desc" }],
+      orderBy: [{ updatedAt: "desc" }],
       take: 50,
       select: {
         id: true,
-        createdAt: true,
+        updatedAt: true,
         amountTotalCents: true,
         tipCents: true,
         currency: true,
