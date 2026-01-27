@@ -1,418 +1,441 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import { BookingStatus } from "@prisma/client";
+
+import styles from "./DriverTripDetailPage.module.css";
 import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
-import { BookingStatus } from "@prisma/client";
-import { updateDriverBookingStatus } from "../../../../../actions/driver-dashboard/actions";
+import TripStatusStepper from "@/components/Driver/TripStatusStepper/TripStatusStepper";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type AppRole = "USER" | "ADMIN" | "DRIVER";
-
-const TERMINAL: BookingStatus[] = [
-  BookingStatus.COMPLETED,
-  BookingStatus.CANCELLED,
-  BookingStatus.REFUNDED,
-  BookingStatus.PARTIALLY_REFUNDED,
-  BookingStatus.NO_SHOW,
-];
-
-function normalizeRoles(roles: any): AppRole[] {
-  return Array.isArray(roles) && roles.length > 0
-    ? (roles as AppRole[])
-    : (["USER"] as AppRole[]);
-}
-
-async function resolveViewer(
-  session: any
-): Promise<{ userId: string; roles: AppRole[] }> {
-  const userId =
-    (session?.user?.id as string | undefined) ??
-    (session?.user?.userId as string | undefined);
-
-  const roles = normalizeRoles(session?.user?.roles);
-
-  if (userId) {
-    if (roles.length) return { userId, roles };
-    const u = await db.user.findUnique({
-      where: { id: userId },
-      select: { id: true, roles: true },
-    });
-    if (u?.id) return { userId: u.id, roles: normalizeRoles(u.roles) };
-  }
-
-  const email = session?.user?.email ?? null;
-  if (!email) throw new Error("Missing identity");
-  const u = await db.user.findUnique({
-    where: { email },
-    select: { id: true, roles: true },
-  });
-  if (!u?.id) throw new Error("User not found");
-  return { userId: u.id, roles: normalizeRoles(u.roles) };
-}
-
-function mapsHref(address: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
-}
-
-function formatDateTime(dt: Date) {
-  return dt.toLocaleString(undefined, {
+function formatDateTime(d: Date) {
+  return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
+    year: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "America/Phoenix",
+  }).format(d);
+}
+
+function formatTime(d: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Phoenix",
+  }).format(d);
+}
+
+function formatMoney(cents: number | null | undefined, currency = "USD") {
+  if (cents == null) return "—";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
+
+// Helper to convert Prisma Decimal to number
+function toNumber(val: unknown): number | null {
+  if (val == null) return null;
+  if (typeof val === "number") return val;
+  if (typeof (val as any).toNumber === "function")
+    return (val as any).toNumber();
+  const n = Number(val);
+  return Number.isFinite(n) ? n : null;
+}
+
+function getGoogleMapsUrl(address: string) {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
+function getWazeUrl(address: string) {
+  return `https://waze.com/ul?q=${encodeURIComponent(address)}&navigate=yes`;
+}
+
+function getAppleMapsUrl(address: string) {
+  return `https://maps.apple.com/?q=${encodeURIComponent(address)}`;
+}
+
+// Calculate remaining wait minutes for no-show (server-side)
+function calculateWaitMinutes(arrivedAt: Date | null): number {
+  if (!arrivedAt) return 0;
+  const arrivedTime = new Date(arrivedAt).getTime();
+  const currentTime = new Date().getTime();
+  const waitedMs = currentTime - arrivedTime;
+  const waitedMin = waitedMs / (1000 * 60);
+  return Math.max(0, Math.ceil(15 - waitedMin));
+}
+
+// Terminal statuses
+const TERMINAL_STATUSES: BookingStatus[] = [
+  BookingStatus.COMPLETED,
+  BookingStatus.CANCELLED,
+  BookingStatus.NO_SHOW,
+  BookingStatus.REFUNDED,
+  BookingStatus.PARTIALLY_REFUNDED,
+];
+
+// Pickup navigation statuses
+const PICKUP_NAV_STATUSES: BookingStatus[] = [
+  BookingStatus.ASSIGNED,
+  BookingStatus.EN_ROUTE,
+  BookingStatus.ARRIVED,
+];
+
+async function resolveSessionUserId(session: any) {
+  const direct =
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined);
+
+  if (direct) return direct;
+
+  const email = session?.user?.email ?? null;
+  if (!email) return null;
+
+  const u = await db.user.findUnique({
+    where: { email },
+    select: { id: true },
   });
+
+  return u?.id ?? null;
 }
 
-function bufferRecommendation(durationMinutes: number | null | undefined) {
-  const mins = durationMinutes ?? 0;
-  if (mins >= 90) return "Arrive 20–25 minutes early.";
-  if (mins >= 45) return "Arrive 15–20 minutes early.";
-  return "Arrive 10–15 minutes early.";
-}
-
-function nextActionOptions(status: BookingStatus) {
-  if (TERMINAL.includes(status)) return [];
-
-  if (
-    status === "ASSIGNED" ||
-    status === "CONFIRMED" ||
-    status === "PENDING_REVIEW" ||
-    status === "PENDING_PAYMENT"
-  ) {
-    return [{ label: "I’m en route", next: BookingStatus.EN_ROUTE }];
-  }
-  if (status === "EN_ROUTE") {
-    return [{ label: "Arrived", next: BookingStatus.ARRIVED }];
-  }
-  if (status === "ARRIVED") {
-    return [{ label: "Passenger onboard", next: BookingStatus.IN_PROGRESS }];
-  }
-  if (status === "IN_PROGRESS") {
-    return [{ label: "Complete trip", next: BookingStatus.COMPLETED }];
-  }
-
-  return [];
-}
-
-export default async function DriverTripDetailsPage({
+export default async function DriverTripDetailPage({
   params,
 }: {
-  params: { id?: string };
+  params: Promise<{ id: string }>;
 }) {
-  const bookingId = params?.id;
-  if (!bookingId) notFound();
+  const { id } = await params;
 
   const session = await auth();
-  if (!session) redirect(`/login?next=/driver-dashboard/trips/${bookingId}`);
+  if (!session) redirect("/login?next=/driver-dashboard");
 
-  const { userId, roles } = await resolveViewer(session);
-  const isAdmin = roles.includes("ADMIN");
-  const isDriver = roles.includes("DRIVER");
-  if (!isAdmin && !isDriver) redirect("/");
+  const roles = (session.user as any)?.roles as string[] | undefined;
+  const hasAccess = Array.isArray(roles)
+    ? roles.includes("DRIVER") || roles.includes("ADMIN")
+    : false;
+
+  if (!hasAccess) redirect("/");
+
+  const driverId = await resolveSessionUserId(session);
+  if (!driverId) redirect("/");
 
   const booking = await db.booking.findUnique({
-    where: { id: bookingId },
+    where: { id },
     include: {
-      user: { select: { id: true, name: true, email: true } },
-      serviceType: {
-        select: { name: true, slug: true, pricingStrategy: true },
-      },
+      user: { select: { name: true, email: true, phone: true } },
+      serviceType: { select: { name: true, slug: true } },
       vehicle: { select: { name: true } },
-      addons: { select: { type: true, quantity: true, label: true } },
-      payment: {
-        select: { status: true, receiptUrl: true, checkoutUrl: true },
-      },
       assignment: {
         include: {
-          driver: { select: { id: true, name: true, email: true } },
+          driver: { select: { id: true, name: true } },
           vehicleUnit: { select: { name: true, plate: true } },
         },
       },
+      stops: {
+        orderBy: { stopOrder: "asc" },
+      },
       statusEvents: {
+        where: { status: BookingStatus.ARRIVED },
         orderBy: { createdAt: "desc" },
-        take: 60,
-        include: { createdBy: { select: { name: true } } },
+        take: 1,
       },
     },
   });
 
-  if (!booking) notFound();
+  if (!booking) return notFound();
 
-  const isAssignedDriver = Boolean(
-    booking.assignment?.driverId && booking.assignment.driverId === userId
-  );
+  // Verify this driver is assigned (or is admin)
+  const isAdmin = roles?.includes("ADMIN");
+  if (!isAdmin && booking.assignment?.driverId !== driverId) {
+    redirect("/driver-dashboard");
+  }
 
-  if (!isAdmin && !isAssignedDriver) redirect("/driver-dashboard/trips");
+  // Customer info
+  const customerName =
+    booking.user?.name?.trim() || booking.guestName?.trim() || "Customer";
+  const customerPhone = booking.user?.phone || booking.guestPhone || null;
+  const customerEmail = booking.user?.email || booking.guestEmail || null;
 
-  const passengerName =
-    booking.user?.name?.trim() ||
-    booking.guestName?.trim() ||
-    booking.user?.email ||
-    booking.guestEmail ||
-    "Passenger";
+  // Vehicle unit info
+  const vehicleUnit = booking.assignment?.vehicleUnit;
+  const vehicleUnitDisplay = vehicleUnit
+    ? `${vehicleUnit.name}${vehicleUnit.plate ? ` (${vehicleUnit.plate})` : ""}`
+    : booking.vehicle?.name || "—";
 
-  const passengerEmail = booking.user?.email || booking.guestEmail || "—";
-  const passengerPhone = booking.guestPhone || "—";
+  // Earnings for driver
+  const driverPaymentCents = booking.assignment?.driverPaymentCents ?? null;
+  const tipCents = 0; // Would need to fetch from payment if tips are tracked
 
-  const vehicleUnit = booking.assignment?.vehicleUnit
-    ? `${booking.assignment.vehicleUnit.name}${
-        booking.assignment.vehicleUnit.plate
-          ? ` • ${booking.assignment.vehicleUnit.plate}`
-          : ""
-      }`
-    : null;
+  // Arrived timestamp for no-show timer
+  const arrivedEvent = booking.statusEvents[0];
+  const arrivedAt = arrivedEvent?.createdAt ?? null;
 
-  const actions = nextActionOptions(booking.status);
+  // Calculate initial wait minutes on server
+  const initialWaitMinutes =
+    booking.status === BookingStatus.ARRIVED
+      ? calculateWaitMinutes(arrivedAt)
+      : 0;
+
+  // Check if trip is active (not terminal)
+  const isActive = !TERMINAL_STATUSES.includes(booking.status as BookingStatus);
+
+  // Determine which address to show for navigation
+  const currentStatus = booking.status as BookingStatus;
+  const showPickupNav = PICKUP_NAV_STATUSES.includes(currentStatus);
+  const showDropoffNav = currentStatus === BookingStatus.IN_PROGRESS;
+
+  const navAddress = showPickupNav
+    ? booking.pickupAddress
+    : showDropoffNav
+      ? booking.dropoffAddress
+      : null;
 
   return (
-    <section style={{ display: "grid", gap: 14 }}>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <div style={{ display: "grid", gap: 4 }}>
-          <h1 style={{ margin: 0, fontSize: 22 }}>Trip details</h1>
-          <p style={{ margin: 0, opacity: 0.75 }}>
-            {formatDateTime(booking.pickupAt)} • {booking.pickupAddress} →{" "}
-            {booking.dropoffAddress}
-          </p>
-        </div>
-
-        <Link
-          href='/driver-dashboard/trips'
-          style={{ textDecoration: "none", fontWeight: 700 }}
-        >
-          ← Back to trips
+    <section className={styles.container}>
+      {/* Header */}
+      <header className={styles.header}>
+        <Link href='/driver-dashboard' className={styles.backLink}>
+          ← Back to Dashboard
         </Link>
+        <h1 className={styles.title}>Trip Details</h1>
       </header>
 
-      <Card title='Core info'>
-        <Row label='Pickup time' value={formatDateTime(booking.pickupAt)} />
-        <Row
-          label='Buffer'
-          value={bufferRecommendation(booking.durationMinutes)}
+      {/* Status Stepper */}
+      <div className={styles.stepperSection}>
+        <TripStatusStepper
+          bookingId={booking.id}
+          currentStatus={currentStatus}
+          arrivedAt={arrivedAt}
+          initialWaitMinutes={initialWaitMinutes}
+          pickupAt={booking.pickupAt}
         />
-        <Row
-          label='Pickup'
-          value={
-            <a
-              href={mapsHref(booking.pickupAddress)}
-              target='_blank'
-              rel='noreferrer'
-            >
-              Open in Maps →
-            </a>
-          }
-        />
-        <Row
-          label='Dropoff'
-          value={
-            <a
-              href={mapsHref(booking.dropoffAddress)}
-              target='_blank'
-              rel='noreferrer'
-            >
-              Open in Maps →
-            </a>
-          }
-        />
-        <Row label='Service' value={booking.serviceType?.name ?? "Service"} />
-        <Row
-          label='Status'
-          value={String(booking.status).replaceAll("_", " ")}
-        />
-      </Card>
+      </div>
 
-      <Card title='Passenger'>
-        <Row label='Name' value={passengerName} />
-        <Row label='Email' value={passengerEmail} />
-        <Row label='Phone' value={passengerPhone} />
-      </Card>
-
-      <Card title='Notes & instructions'>
-        <div style={{ display: "grid", gap: 10 }}>
-          <div>
-            <div style={{ fontWeight: 800, marginBottom: 6 }}>
-              Passenger notes
-            </div>
-            <div style={{ opacity: 0.85 }}>
-              {booking.specialRequests?.trim() || "—"}
-            </div>
+      {/* Navigation Section (if active trip) */}
+      {isActive && navAddress && (
+        <div className={styles.navigationSection}>
+          <h2 className={styles.sectionTitle}>
+            🗺️ Navigate to {showPickupNav ? "Pickup" : "Dropoff"}
+          </h2>
+          <div className={styles.addressDisplay}>
+            <p className={styles.addressText}>{navAddress}</p>
           </div>
-
-          <div>
-            <div style={{ fontWeight: 800, marginBottom: 6 }}>
-              Dispatch notes
-            </div>
-            <div style={{ opacity: 0.85 }}>
-              {booking.internalNotes?.trim() || "—"}
-            </div>
+          <div className={styles.navButtons}>
+            <a
+              href={getGoogleMapsUrl(navAddress)}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={styles.navButton}
+            >
+              <span className={styles.navIcon}>🗺️</span>
+              Google Maps
+            </a>
+            <a
+              href={getWazeUrl(navAddress)}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={styles.navButton}
+            >
+              <span className={styles.navIcon}>🚗</span>
+              Waze
+            </a>
+            <a
+              href={getAppleMapsUrl(navAddress)}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={styles.navButton}
+            >
+              <span className={styles.navIcon}>🍎</span>
+              Apple Maps
+            </a>
           </div>
-
-          {booking.addons?.length ? (
-            <div>
-              <div style={{ fontWeight: 800, marginBottom: 6 }}>Add-ons</div>
-              <div style={{ opacity: 0.85 }}>
-                {booking.addons
-                  .map((a) => `${a.label ?? a.type} ×${a.quantity}`)
-                  .join(", ")}
-              </div>
-            </div>
-          ) : null}
         </div>
-      </Card>
+      )}
 
-      <Card title='Vehicle'>
-        <Row label='Category' value={booking.vehicle?.name ?? "—"} />
-        <Row label='Unit' value={vehicleUnit ?? "TBD"} />
-      </Card>
-
-      <Card title='Job actions'>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {actions.length === 0 ? (
-            <div style={{ opacity: 0.75 }}>
-              {TERMINAL.includes(booking.status)
-                ? "This trip is finished."
-                : "No actions available for this status."}
+      {/* Customer Contact */}
+      <div className={styles.card}>
+        <h2 className={styles.sectionTitle}>👤 Customer</h2>
+        <div className={styles.customerInfo}>
+          <div className={styles.customerName}>{customerName}</div>
+          {customerPhone && (
+            <div className={styles.contactButtons}>
+              <a href={`tel:${customerPhone}`} className={styles.contactButton}>
+                📞 Call
+              </a>
+              <a href={`sms:${customerPhone}`} className={styles.contactButton}>
+                💬 Text
+              </a>
             </div>
-          ) : (
-            actions.map((a) => (
-              <form key={a.next} action={updateDriverBookingStatus}>
-                <input type='hidden' name='bookingId' value={booking.id} />
-                <input type='hidden' name='nextStatus' value={a.next} />
-                <button
-                  type='submit'
-                  style={{
-                    borderRadius: 10,
-                    padding: "10px 12px",
-                    fontWeight: 800,
-                    border: "1px solid rgba(0,0,0,0.18)",
-                    cursor: "pointer",
-                    background: "white",
-                  }}
-                >
-                  {a.label}
-                </button>
-              </form>
-            ))
           )}
-
-          <Link
-            href={`/driver-dashboard/support?bookingId=${booking.id}`}
-            style={{
-              borderRadius: 10,
-              padding: "10px 12px",
-              fontWeight: 800,
-              border: "1px solid rgba(0,0,0,0.18)",
-              textDecoration: "none",
-              color: "inherit",
-              background: "white",
-            }}
-          >
-            Report issue →
-          </Link>
+          {customerPhone && (
+            <div className={styles.phoneDisplay}>{customerPhone}</div>
+          )}
+          {!customerPhone && (
+            <div className={styles.noPhone}>No phone number on file</div>
+          )}
         </div>
-      </Card>
+      </div>
 
-      <Card title='Activity log'>
-        {booking.statusEvents.length === 0 ? (
-          <div style={{ opacity: 0.75 }}>No updates yet.</div>
-        ) : (
-          <div style={{ display: "grid", gap: 8 }}>
-            {booking.statusEvents.map((e) => (
-              <div
-                key={e.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  borderRadius: 10,
-                  padding: 10,
-                }}
-              >
-                <div style={{ fontWeight: 800 }}>
-                  {String(e.status).replaceAll("_", " ")}
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.7, textAlign: "right" }}>
-                  {formatDateTime(e.createdAt)}{" "}
-                  {e.createdBy?.name ? `• ${e.createdBy.name}` : ""}
+      {/* Trip Details */}
+      <div className={styles.card}>
+        <h2 className={styles.sectionTitle}>📍 Route</h2>
+
+        <div className={styles.routeTimeline}>
+          {/* Pickup */}
+          <div className={styles.routePoint}>
+            <div className={`${styles.routeMarker} ${styles.markerPickup}`}>
+              A
+            </div>
+            <div className={styles.routeDetails}>
+              <div className={styles.routeLabel}>Pickup</div>
+              <div className={styles.routeAddress}>{booking.pickupAddress}</div>
+              <div className={styles.routeTime}>
+                {formatTime(booking.pickupAt)}
+              </div>
+            </div>
+          </div>
+
+          {/* Stops */}
+          {booking.stops.map((stop, index) => (
+            <div key={stop.id} className={styles.routePoint}>
+              <div className={`${styles.routeMarker} ${styles.markerStop}`}>
+                {index + 1}
+              </div>
+              <div className={styles.routeDetails}>
+                <div className={styles.routeLabel}>Stop {index + 1}</div>
+                <div className={styles.routeAddress}>{stop.address}</div>
+                <div className={styles.routeWait}>
+                  ~{stop.waitTimeMinutes ?? 5} min wait
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
+
+          {/* Dropoff */}
+          <div className={styles.routePoint}>
+            <div className={`${styles.routeMarker} ${styles.markerDropoff}`}>
+              B
+            </div>
+            <div className={styles.routeDetails}>
+              <div className={styles.routeLabel}>Dropoff</div>
+              <div className={styles.routeAddress}>
+                {booking.dropoffAddress}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trip Info */}
+      <div className={styles.card}>
+        <h2 className={styles.sectionTitle}>ℹ️ Trip Info</h2>
+        <div className={styles.infoGrid}>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Date & Time</span>
+            <span className={styles.infoValue}>
+              {formatDateTime(booking.pickupAt)}
+            </span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Service</span>
+            <span className={styles.infoValue}>
+              {booking.serviceType?.name || "—"}
+            </span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Vehicle</span>
+            <span className={styles.infoValue}>{vehicleUnitDisplay}</span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Passengers</span>
+            <span className={styles.infoValue}>{booking.passengers}</span>
+          </div>
+          <div className={styles.infoItem}>
+            <span className={styles.infoLabel}>Luggage</span>
+            <span className={styles.infoValue}>{booking.luggage}</span>
+          </div>
+          {booking.distanceMiles && (
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Distance</span>
+              <span className={styles.infoValue}>
+                {toNumber(booking.distanceMiles)} mi
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Special Requests */}
+        {booking.specialRequests && (
+          <div className={styles.specialRequests}>
+            <div className={styles.specialRequestsLabel}>
+              ⚠️ Special Requests
+            </div>
+            <div className={styles.specialRequestsText}>
+              {booking.specialRequests}
+            </div>
           </div>
         )}
-      </Card>
 
-      {booking.payment ? (
-        <Card title='Payment (FYI)'>
-          <Row label='Status' value={booking.payment.status} />
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            {booking.payment.receiptUrl ? (
-              <a
-                href={booking.payment.receiptUrl}
-                target='_blank'
-                rel='noreferrer'
-              >
-                Open receipt →
-              </a>
-            ) : null}
-
-            {booking.payment.checkoutUrl &&
-            (booking.payment.status === "NONE" ||
-              booking.payment.status === "PENDING" ||
-              booking.payment.status === "FAILED") ? (
-              <a
-                href={booking.payment.checkoutUrl}
-                target='_blank'
-                rel='noreferrer'
-              >
-                Continue checkout →
-              </a>
-            ) : null}
+        {/* Flight Info */}
+        {(booking.flightAirline || booking.flightNumber) && (
+          <div className={styles.flightInfo}>
+            <div className={styles.flightInfoLabel}>✈️ Flight Info</div>
+            <div className={styles.flightInfoContent}>
+              {booking.flightAirline && <span>{booking.flightAirline}</span>}
+              {booking.flightNumber && (
+                <span>Flight {booking.flightNumber}</span>
+              )}
+              {booking.flightTerminal && (
+                <span>Terminal {booking.flightTerminal}</span>
+              )}
+              {booking.flightGate && <span>Gate {booking.flightGate}</span>}
+            </div>
           </div>
-        </Card>
-      ) : null}
+        )}
+      </div>
+
+      {/* Earnings */}
+      {driverPaymentCents !== null && (
+        <div className={styles.card}>
+          <h2 className={styles.sectionTitle}>💰 Your Earnings</h2>
+          <div className={styles.earningsDisplay}>
+            <div className={styles.earningsMain}>
+              <span className={styles.earningsLabel}>Trip Payment</span>
+              <span className={styles.earningsAmount}>
+                {formatMoney(driverPaymentCents, booking.currency)}
+              </span>
+            </div>
+            {tipCents > 0 && (
+              <div className={styles.earningsTip}>
+                <span className={styles.earningsLabel}>+ Tip</span>
+                <span className={styles.earningsAmount}>
+                  {formatMoney(tipCents, booking.currency)}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Admin Link (for admins only) */}
+      {isAdmin && (
+        <div className={styles.adminLink}>
+          <Link
+            href={`/admin/bookings/${booking.id}`}
+            className={styles.adminButton}
+          >
+            View in Admin Panel →
+          </Link>
+        </div>
+      )}
     </section>
-  );
-}
-
-function Card({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      style={{
-        border: "1px solid rgba(0,0,0,0.08)",
-        borderRadius: 12,
-        padding: 14,
-        display: "grid",
-        gap: 10,
-      }}
-    >
-      <div style={{ fontWeight: 900 }}>{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "160px 1fr", gap: 12 }}>
-      <div style={{ opacity: 0.7, fontWeight: 700 }}>{label}</div>
-      <div style={{ fontWeight: 700 }}>{value}</div>
-    </div>
   );
 }

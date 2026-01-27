@@ -1,365 +1,334 @@
-.wrapper {
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 16px 100px;
+}
+
+/* KPI Row */
+.kpiRow {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 7rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
-.topGrid {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 1.6rem;
+.kpiCard {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.bottomGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 7rem;
-}
-
-.card {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 2rem;
-  width: 100%;
-}
-
-.cardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.cardTitle {
-  font-size: 1.6rem;
+.kpiValue {
+  font-size: 28px;
   font-weight: 700;
-  color: var(--black);
+  color: #111827;
 }
 
-.kpiStrip {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.2rem;
+.kpiLabel {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
-.row {
+/* Next Trip Card */
+.nextTripCard {
+  display: block;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 16px;
+  padding: 20px;
+  color: white;
+  text-decoration: none;
+  margin-bottom: 24px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.nextTripCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.nextTripHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.nextTripLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+.nextTripTime {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.nextTripCustomer {
+  font-size: 16px;
+  opacity: 0.9;
+  margin-bottom: 16px;
+}
+
+.nextTripRoute {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.routePoint {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 10px;
 }
 
-.kv,
-.kvRight {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.routeIcon {
+  font-size: 12px;
+  margin-top: 3px;
 }
 
-.kvBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+.routeText {
+  font-size: 14px;
+  line-height: 1.4;
+  opacity: 0.95;
 }
 
-.k {
-  font-size: 1.2rem;
-  font-weight: 700;
-  opacity: 0.7;
-}
-
-.v {
-  font-size: 1.5rem;
-  font-weight: 650;
-  color: var(--black);
-}
-
-.mins {
-  font-size: 1.2rem;
-  font-weight: 700;
-  opacity: 0.75;
-  margin-left: 0.6rem;
-}
-
-.smallLink {
-  font-size: 1.2rem;
-  font-weight: 700;
-  text-decoration: none;
-  color: var(--black);
-  opacity: 0.75;
-}
-
-.smallLink:hover {
-  opacity: 1;
-  text-decoration: underline;
-}
-
-.nextTripBody {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-}
-
-.contactBtns {
-  display: flex;
-  gap: 0.8rem;
-}
-
-.iconBtn {
-  text-decoration: none;
-  font-size: 1.3rem;
-  font-weight: 800;
-  background: var(--stroke);
-  color: var(--black);
-  padding: 0.7rem 1rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.iconBtn:hover {
-  background: var(--accent);
-  color: var(--white);
-}
-
-.disabledLink {
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.notes {
-  background: var(--stroke);
+.specialNote {
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  padding: 10px 12px;
+  font-size: 13px;
+  margin-bottom: 12px;
 }
 
-.noteText {
-  font-size: 1.35rem;
-  line-height: 1.35;
-}
-
-.viewTripRow {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.linkBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--black);
-  color: var(--cream);
-  padding: 0.9rem 1.2rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 1.35rem;
-  font-weight: 800;
-}
-
-.linkBtn:hover {
-  background: var(--black400);
-}
-
-.actionsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.9rem;
-}
-
-.actionForm {
-  width: 100%;
-}
-
-.actionBtn {
-  width: 100%;
-  border: none;
-  cursor: pointer;
-  background: var(--stroke);
-  color: var(--black);
-  padding: 1.1rem 1rem;
-  border-radius: 8px;
-  font-size: 1.35rem;
-  font-weight: 850;
-  transition: all 0.2s ease;
-  text-decoration: none;
+.viewTripBtn {
   text-align: center;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  margin-top: 8px;
 }
 
-.actionBtn:hover {
-  background: var(--accent);
-  color: var(--white);
+/* No Trips State */
+.noTrips {
+  background: white;
+  border-radius: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.reportBtn {
-  background: var(--black);
-  color: var(--cream);
+.noTripsIcon {
+  font-size: 48px;
+  margin-bottom: 12px;
 }
 
-.reportBtn:hover {
-  background: var(--black400);
+.noTripsText {
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
 }
 
-.actionBtn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.noTripsSubtext {
+  font-size: 14px;
+  color: #6b7280;
 }
 
-.timeline {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 1rem;
+/* Section */
+.section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.timelineItem {
-  display: grid;
-  grid-template-columns: 7.5rem 1fr;
-  gap: 1.2rem;
-  background: var(--stroke);
-  border-radius: 8px;
-  padding: 1rem;
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 16px;
 }
 
-.timeCol {
-  font-size: 1.25rem;
-  font-weight: 900;
-  opacity: 0.8;
+.emptyState {
+  text-align: center;
+  padding: 24px;
+  color: #9ca3af;
+  font-size: 14px;
 }
 
-.mainCol {
+/* Trip List */
+.tripList {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 8px;
 }
 
-.route {
+.tripItem {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.2s;
 }
 
-.routeStrong {
-  font-size: 1.35rem;
-  font-weight: 850;
+.tripItem:hover {
+  background: #f3f4f6;
 }
 
-.routeArrow {
-  opacity: 0.7;
-  font-weight: 900;
-}
-
-.metaRow {
+.tripItemLeft {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 6px;
+  min-width: 70px;
 }
 
+.tripItemTime {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.tripItemRight {
+  flex: 1;
+  min-width: 0;
+}
+
+.tripItemService {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 2px;
+}
+
+.tripItemRoute {
+  font-size: 13px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tripItemArrow {
+  font-size: 24px;
+  color: #d1d5db;
+  font-weight: 300;
+}
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.badgeSmall {
+  padding: 2px 8px;
+  font-size: 10px;
+}
+
+.badgeNeutral {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.badgeGood {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badgeActive {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badgeArrived {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badgeBad {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Alert List */
 .alertList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .alertItem {
-  background: var(--stroke);
-  border-radius: 8px;
-  padding: 1rem;
-  display: grid;
-  gap: 0.6rem;
+  display: block;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.alertItem:hover {
+  background: #f3f4f6;
 }
 
 .alertTitle {
-  font-size: 1.35rem;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 4px;
 }
 
 .alertBody {
-  font-size: 1.25rem;
-  opacity: 0.8;
-  line-height: 1.35;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
 }
 
-.empty,
-.emptySmall {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 1rem;
+.alertTime {
+  font-size: 11px;
+  color: #9ca3af;
 }
 
-.pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.7rem;
-  border-radius: 999px;
-  font-size: 1.15rem;
-  font-weight: 900;
-  white-space: nowrap;
-}
-
-.pillNeutral {
-  background: var(--stroke);
-  color: var(--black);
-}
-
-.pillInfo {
-  background: var(--paragraph);
-  color: var(--cream);
-}
-
-.pillWarn {
-  background: var(--accent);
-  color: var(--white);
-}
-
-.pillSuccess {
-  background: var(--black);
-  color: var(--cream);
-}
-
-.pillMuted {
-  background: var(--black200);
-  color: var(--black);
-}
-
-.pillDanger {
-  background: var(--lightRed);
-  color: var(--white);
-}
-
-.btnContainer {
-  display: flex;
-  width: fit-content;
-}
-
-@media screen and (max-width: 968px) {
-  .topGrid,
-  .bottomGrid {
-    grid-template-columns: 1fr;
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .kpiRow {
+    gap: 8px;
   }
 
-  .kpiStrip {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media screen and (max-width: 568px) {
-  .btnContainer {
-    display: grid;
-    width: 100%;
+  .kpiCard {
+    padding: 12px;
   }
 
-  .kpiStrip {
-    grid-template-columns: repeat(1, 1fr);
+  .kpiValue {
+    font-size: 24px;
+  }
+
+  .nextTripCard {
+    padding: 16px;
+  }
+
+  .nextTripTime {
+    font-size: 20px;
   }
 }

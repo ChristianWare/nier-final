@@ -1,0 +1,401 @@
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 100px;
+}
+
+/* Header */
+.header {
+  margin-bottom: 24px;
+}
+
+.backLink {
+  display: inline-block;
+  color: #6b7280;
+  font-size: 14px;
+  text-decoration: none;
+  margin-bottom: 12px;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: #3b82f6;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* Stepper Section */
+.stepperSection {
+  margin-bottom: 24px;
+}
+
+/* Navigation Section */
+.navigationSection {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  color: white;
+}
+
+.navigationSection .sectionTitle {
+  color: white;
+  margin-bottom: 12px;
+}
+
+.addressDisplay {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.addressText {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.navButtons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.navButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  background: white;
+  color: #111827;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.navButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.navIcon {
+  font-size: 24px;
+}
+
+/* Card */
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 16px;
+}
+
+/* Customer Info */
+.customerInfo {
+  text-align: center;
+}
+
+.customerName {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 16px;
+}
+
+.contactButtons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.contactButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: #22c55e;
+  color: white;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.contactButton:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+.phoneDisplay {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.noPhone {
+  color: #9ca3af;
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Route Timeline */
+.routeTimeline {
+  position: relative;
+  padding-left: 24px;
+}
+
+.routeTimeline::before {
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 20px;
+  bottom: 20px;
+  width: 2px;
+  background: #e5e7eb;
+}
+
+.routePoint {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.routeMarker {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  flex-shrink: 0;
+  margin-left: -8px;
+}
+
+.markerPickup {
+  background: #22c55e;
+}
+
+.markerStop {
+  background: #3b82f6;
+}
+
+.markerDropoff {
+  background: #ef4444;
+}
+
+.routeDetails {
+  flex: 1;
+}
+
+.routeLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.routeAddress {
+  font-size: 15px;
+  color: #111827;
+  line-height: 1.4;
+}
+
+.routeTime {
+  font-size: 14px;
+  color: #3b82f6;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.routeWait {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+/* Info Grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.infoLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.infoValue {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Special Requests */
+.specialRequests {
+  margin-top: 20px;
+  padding: 16px;
+  background: #fef3c7;
+  border-radius: 10px;
+  border-left: 4px solid #f59e0b;
+}
+
+.specialRequestsLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 8px;
+}
+
+.specialRequestsText {
+  font-size: 14px;
+  color: #78350f;
+  line-height: 1.5;
+}
+
+/* Flight Info */
+.flightInfo {
+  margin-top: 20px;
+  padding: 16px;
+  background: #eff6ff;
+  border-radius: 10px;
+  border-left: 4px solid #3b82f6;
+}
+
+.flightInfoLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e40af;
+  margin-bottom: 8px;
+}
+
+.flightInfoContent {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 14px;
+  color: #1e3a8a;
+}
+
+/* Earnings */
+.earningsDisplay {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.earningsMain,
+.earningsTip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.earningsMain {
+  margin-bottom: 8px;
+}
+
+.earningsLabel {
+  font-size: 16px;
+  color: #166534;
+}
+
+.earningsAmount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #166534;
+}
+
+.earningsTip .earningsAmount {
+  font-size: 18px;
+}
+
+/* Admin Link */
+.adminLink {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.adminButton {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.adminButton:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .container {
+    padding: 16px;
+  }
+
+  .title {
+    font-size: 24px;
+  }
+
+  .navButtons {
+    grid-template-columns: 1fr;
+  }
+
+  .navButton {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .contactButtons {
+    flex-direction: column;
+  }
+
+  .contactButton {
+    justify-content: center;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+}

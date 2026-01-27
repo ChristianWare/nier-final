@@ -1,13 +1,11 @@
-import styles from "./DriverOverview.module.css";
+"use client";
+
 import Link from "next/link";
-import { BookingStatus } from "@prisma/client";
+import styles from "./DriverOverview.module.css";
 
-import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
-import { updateDriverBookingStatus } from "../../../../actions/driver-dashboard/actions";
-
-type NextTrip = {
+type TripData = {
   id: string;
-  status: BookingStatus;
+  status: string;
   pickupAt: Date;
   pickupAddress: string;
   dropoffAddress: string;
@@ -16,12 +14,12 @@ type NextTrip = {
   specialRequests: string | null;
   internalNotes: string | null;
   totalCents: number;
-  serviceType: { name: string; slug: string };
-  vehicle: { name: string } | null;
-  user: { name: string | null; email: string } | null;
   guestName: string | null;
   guestEmail: string | null;
   guestPhone: string | null;
+  serviceType: { name: string; slug: string } | null;
+  vehicle: { name: string } | null;
+  user: { name: string | null; email: string } | null;
   assignment: {
     vehicleUnit: { name: string; plate: string | null } | null;
   } | null;
@@ -30,14 +28,14 @@ type NextTrip = {
 
 type TodayTrip = {
   id: string;
-  status: BookingStatus;
+  status: string;
   pickupAt: Date;
   pickupAddress: string;
   dropoffAddress: string;
-  serviceType: { name: string };
+  serviceType: { name: string } | null;
 };
 
-type AlertItem = {
+type Alert = {
   id: string;
   createdAt: Date;
   title: string;
@@ -45,98 +43,61 @@ type AlertItem = {
   href: string;
 };
 
-export type DriverOverviewProps = {
-  nextTrip: NextTrip | null;
+type KPIs = {
+  tripsToday: number;
+  upcoming7Days: number;
+  onTimeRate30Days: string;
+  earningsWeek: string;
+};
+
+type Props = {
+  nextTrip: TripData | null;
   todayTrips: TodayTrip[];
-  alerts: AlertItem[];
-  kpis: {
-    tripsToday: number;
-    upcoming7Days: number;
-    onTimeRate30Days: string;
-    earningsWeek: string;
-  };
+  alerts: Alert[];
+  kpis: KPIs;
 };
 
 function formatTime(d: Date) {
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
-  }).format(d);
+    timeZone: "America/Phoenix",
+  }).format(new Date(d));
 }
 
-function minutesUntil(d: Date) {
-  const diffMs = d.getTime() - Date.now();
-  return Math.round(diffMs / (1000 * 60));
+function formatDateTime(d: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Phoenix",
+  }).format(new Date(d));
 }
 
-function mapsUrl(address: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    ASSIGNED: "Assigned",
+    EN_ROUTE: "En Route",
+    ARRIVED: "Arrived",
+    IN_PROGRESS: "In Progress",
+    COMPLETED: "Completed",
+    PENDING_REVIEW: "Pending Review",
+    PENDING_PAYMENT: "Pending Payment",
+    CONFIRMED: "Confirmed",
+    CANCELLED: "Cancelled",
+    NO_SHOW: "No-Show",
+  };
+  return labels[status] || status.replace(/_/g, " ");
 }
 
-function statusLabel(status: BookingStatus) {
-  switch (status) {
-    case "ASSIGNED":
-      return { label: "Assigned", tone: "neutral" as const };
-    case "EN_ROUTE":
-      return { label: "En route", tone: "info" as const };
-    case "ARRIVED":
-      return { label: "Arrived", tone: "warn" as const };
-    case "IN_PROGRESS":
-      return { label: "In progress", tone: "success" as const };
-    case "COMPLETED":
-      return { label: "Completed", tone: "muted" as const };
-    case "CONFIRMED":
-      return { label: "Confirmed", tone: "success" as const };
-    case "PENDING_REVIEW":
-      return { label: "Pending review", tone: "neutral" as const };
-    case "PENDING_PAYMENT":
-      return { label: "Pending payment", tone: "warn" as const };
-    case "CANCELLED":
-      return { label: "Cancelled", tone: "muted" as const };
-    case "NO_SHOW":
-      return { label: "No-show", tone: "danger" as const };
-    default:
-      return {
-        label: String(status).replaceAll("_", " "),
-        tone: "neutral" as const,
-      };
-  }
-}
-
-function StatusPill({ status }: { status: BookingStatus }) {
-  const { label, tone } = statusLabel(status);
-  const cls =
-    tone === "success"
-      ? styles.pillSuccess
-      : tone === "warn"
-        ? styles.pillWarn
-        : tone === "info"
-          ? styles.pillInfo
-          : tone === "danger"
-            ? styles.pillDanger
-            : tone === "muted"
-              ? styles.pillMuted
-              : styles.pillNeutral;
-
-  return <span className={`${styles.pill} ${cls}`}>{label}</span>;
-}
-
-function Action({
-  bookingId,
-  nextStatus,
-  label,
-}: {
-  bookingId: string;
-  nextStatus: BookingStatus;
-  label: string;
-}) {
-  return (
-    <form action={updateDriverBookingStatus} className={styles.actionForm}>
-      <input type='hidden' name='bookingId' value={bookingId} />
-      <input type='hidden' name='nextStatus' value={nextStatus} />
-      <button className={styles.actionBtn}>{label}</button>
-    </form>
-  );
+function statusBadgeClass(status: string) {
+  if (["COMPLETED"].includes(status)) return styles.badgeGood;
+  if (["EN_ROUTE", "IN_PROGRESS"].includes(status)) return styles.badgeActive;
+  if (["ARRIVED"].includes(status)) return styles.badgeArrived;
+  if (["CANCELLED", "NO_SHOW"].includes(status)) return styles.badgeBad;
+  return styles.badgeNeutral;
 }
 
 export default function DriverOverview({
@@ -144,276 +105,144 @@ export default function DriverOverview({
   todayTrips,
   alerts,
   kpis,
-}: DriverOverviewProps) {
-  const mins = nextTrip ? minutesUntil(nextTrip.pickupAt) : null;
-  const minsLabel =
-    mins == null
-      ? ""
-      : mins < 0
-        ? `(${Math.abs(mins)} min ago)`
-        : `(in ${mins} min)`;
-
-  const passengerName =
-    nextTrip?.user?.name?.trim() ||
-    nextTrip?.guestName?.trim() ||
-    nextTrip?.user?.email ||
-    nextTrip?.guestEmail ||
-    "Passenger";
-
-  const passengerEmail = nextTrip?.user?.email || nextTrip?.guestEmail || "";
-  const passengerPhone = nextTrip?.guestPhone || "";
-
-  const vehicleUnit = nextTrip?.assignment?.vehicleUnit;
-  const vehicleDisplay = vehicleUnit
-    ? `${vehicleUnit.name}${vehicleUnit.plate ? ` • ${vehicleUnit.plate}` : ""}`
-    : nextTrip?.vehicle?.name || "TBD";
-
-  const extraStops =
-    nextTrip?.addons?.find((a) => a.type === "EXTRA_STOP")?.quantity ?? 0;
+}: Props) {
+  const customerName = nextTrip
+    ? nextTrip.user?.name?.trim() || nextTrip.guestName?.trim() || "Customer"
+    : null;
 
   return (
-    <div className={styles.wrapper}>
-      <section className={styles.card}>
-        <header className={styles.cardHeader}>
-          <h2 className='cardTitle h4'>Next trip</h2>
-          {nextTrip ? <StatusPill status={nextTrip.status} /> : null}
-        </header>
-        {!nextTrip ? (
-          <div className={styles.empty}>
-            <div className='emptyTitle underline'>No upcoming trips</div>
-            <p className='emptySmall'>
-              When dispatch assigns you a job, it’ll appear here.
-            </p>
-            <div className={styles.btnContainer}>
-              <Link className='primaryBtn' href='/driver-dashboard/trips'>
-                View trips
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.nextTripBody}>
-            <div className={styles.row}>
-              <div className={styles.kv}>
-                <div className={styles.k}>Pickup</div>
-                <div className={styles.v}>
-                  {formatTime(nextTrip.pickupAt)}{" "}
-                  <span className={styles.mins}>{minsLabel}</span>
-                </div>
-              </div>
+    <div className={styles.container}>
+      {/* KPIs Row */}
+      <div className={styles.kpiRow}>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiValue}>{kpis.tripsToday}</div>
+          <div className={styles.kpiLabel}>Today</div>
+        </div>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiValue}>{kpis.upcoming7Days}</div>
+          <div className={styles.kpiLabel}>This Week</div>
+        </div>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiValue}>{kpis.earningsWeek}</div>
+          <div className={styles.kpiLabel}>Earnings</div>
+        </div>
+      </div>
 
-              <a
-                className={styles.smallLink}
-                href={mapsUrl(nextTrip.pickupAddress)}
-                target='_blank'
-                rel='noreferrer'
-              >
-                Open in Maps
-              </a>
-            </div>
-
-            <div className={styles.kvBlock}>
-              <div className={styles.k}>Pickup location</div>
-              <div className={styles.v}>{nextTrip.pickupAddress}</div>
-            </div>
-
-            <div className={styles.kvBlock}>
-              <div className={styles.k}>Dropoff</div>
-              <div className={styles.v}>{nextTrip.dropoffAddress}</div>
-            </div>
-
-            <div className={styles.row}>
-              <div className={styles.kv}>
-                <div className={styles.k}>Passenger</div>
-                <div className={styles.v}>{passengerName}</div>
-              </div>
-
-              <div className={styles.contactBtns}>
-                {passengerEmail ? (
-                  <a
-                    className={styles.iconBtn}
-                    href={`mailto:${passengerEmail}`}
-                  >
-                    Email
-                  </a>
-                ) : null}
-                {passengerPhone ? (
-                  <a className={styles.iconBtn} href={`tel:${passengerPhone}`}>
-                    Call
-                  </a>
-                ) : null}
-              </div>
-            </div>
-
-            <div className={styles.rowChips}>
-              <span className={styles.chip}>
-                {nextTrip.passengers} passenger(s)
-              </span>
-              <span className={styles.chip}>{nextTrip.luggage} luggage</span>
-              {extraStops > 0 ? (
-                <span className={styles.chip}>{extraStops} extra stop(s)</span>
-              ) : null}
-            </div>
-
-            <div className={styles.kvBlock}>
-              <div className={styles.k}>Vehicle</div>
-              <div className={styles.v}>{vehicleDisplay}</div>
-            </div>
-
-            {nextTrip.specialRequests ? (
-              <div className={styles.notes}>
-                <div className={styles.k}>Notes</div>
-                <div className={styles.noteText}>
-                  {nextTrip.specialRequests}
-                </div>
-              </div>
-            ) : null}
-
-            <div className={styles.viewTripRow}>
-              <Link
-                className='primaryBtn'
-                href={`/driver-dashboard/trips/${nextTrip.id}`}
-              >
-                View trip details
-              </Link>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className={styles.card}>
-        <header className={styles.cardHeader}>
-          <h2 className='cardTitle h4'>Quick actions</h2>
-        </header>
-
-        {!nextTrip ? (
-          <div className={styles.emptySmall}>
-            <p className='emptySmall'>
-              Actions appear when you have a next trip.
-            </p>
-          </div>
-        ) : (
-          <div className={styles.actionsGrid}>
-            <Action
-              bookingId={nextTrip.id}
-              nextStatus='EN_ROUTE'
-              label="I'm en route"
-            />
-            <Action
-              bookingId={nextTrip.id}
-              nextStatus='ARRIVED'
-              label='Arrived'
-            />
-            <Action
-              bookingId={nextTrip.id}
-              nextStatus='IN_PROGRESS'
-              label='Passenger onboard'
-            />
-            <Action
-              bookingId={nextTrip.id}
-              nextStatus='COMPLETED'
-              label='Complete trip'
-            />
-            <Link
-              className={`${styles.actionBtn} ${styles.reportBtn}`}
-              href={`/driver-dashboard/support?tripId=${nextTrip.id}`}
+      {/* Next Trip Card */}
+      {nextTrip ? (
+        <Link
+          href={`/driver-dashboard/trips/${nextTrip.id}`}
+          className={styles.nextTripCard}
+        >
+          <div className={styles.nextTripHeader}>
+            <span className={styles.nextTripLabel}>📍 NEXT TRIP</span>
+            <span
+              className={`${styles.badge} ${statusBadgeClass(nextTrip.status)}`}
             >
-              Report issue
-            </Link>
+              {statusLabel(nextTrip.status)}
+            </span>
+          </div>
+          <div className={styles.nextTripTime}>
+            {formatDateTime(nextTrip.pickupAt)}
+          </div>
+          <div className={styles.nextTripCustomer}>
+            {customerName} • {nextTrip.serviceType?.name || "Trip"}
+          </div>
+          <div className={styles.nextTripRoute}>
+            <div className={styles.routePoint}>
+              <span className={styles.routeIcon}>🟢</span>
+              <span className={styles.routeText}>{nextTrip.pickupAddress}</span>
+            </div>
+            <div className={styles.routePoint}>
+              <span className={styles.routeIcon}>🔴</span>
+              <span className={styles.routeText}>
+                {nextTrip.dropoffAddress}
+              </span>
+            </div>
+          </div>
+          {nextTrip.specialRequests && (
+            <div className={styles.specialNote}>
+              ⚠️ {nextTrip.specialRequests}
+            </div>
+          )}
+          <div className={styles.viewTripBtn}>View Trip Details →</div>
+        </Link>
+      ) : (
+        <div className={styles.noTrips}>
+          <div className={styles.noTripsIcon}>📋</div>
+          <div className={styles.noTripsText}>No upcoming trips assigned</div>
+          <div className={styles.noTripsSubtext}>
+            Check back later or contact dispatch
+          </div>
+        </div>
+      )}
+
+      {/* Today's Schedule */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Today&apos;s Schedule</h2>
+        {todayTrips.length === 0 ? (
+          <div className={styles.emptyState}>No trips scheduled for today</div>
+        ) : (
+          <div className={styles.tripList}>
+            {todayTrips.map((trip) => (
+              <Link
+                key={trip.id}
+                href={`/driver-dashboard/trips/${trip.id}`}
+                className={styles.tripItem}
+              >
+                <div className={styles.tripItemLeft}>
+                  <div className={styles.tripItemTime}>
+                    {formatTime(trip.pickupAt)}
+                  </div>
+                  <span
+                    className={`${styles.badge} ${styles.badgeSmall} ${statusBadgeClass(trip.status)}`}
+                  >
+                    {statusLabel(trip.status)}
+                  </span>
+                </div>
+                <div className={styles.tripItemRight}>
+                  <div className={styles.tripItemService}>
+                    {trip.serviceType?.name || "Trip"}
+                  </div>
+                  <div className={styles.tripItemRoute}>
+                    {trip.pickupAddress.split(",")[0]} →{" "}
+                    {trip.dropoffAddress.split(",")[0]}
+                  </div>
+                </div>
+                <div className={styles.tripItemArrow}>›</div>
+              </Link>
+            ))}
           </div>
         )}
-      </section>
+      </div>
 
-      <section className={styles.kpiStrip}>
-        <AdminKPICard title='Trips today' value={kpis.tripsToday} />
-        <AdminKPICard title='Upcoming (7 days)' value={kpis.upcoming7Days} />
-        <AdminKPICard
-          title='On-time rate (30 days)'
-          value={kpis.onTimeRate30Days}
-        />
-        <AdminKPICard
-          title='Trip totals (this week)'
-          value={kpis.earningsWeek}
-        />
-      </section>
-
-      <div className={styles.bottomGrid}>
-        <section className={styles.card}>
-          <header className={styles.cardHeader}>
-            <div className='cardTitle h4'>Today’s schedule</div>
-            <Link className={styles.smallLink} href='/driver-dashboard/trips'>
-              View all
-            </Link>
-          </header>
-
-          {todayTrips.length === 0 ? (
-            <div className={styles.emptySmall}>
-              <div className='emptyTitle underline'>No trips today</div>
-              <p className='emptySmall'>
-                If dispatch assigns a trip for today, it’ll show up here.
-              </p>
-            </div>
-          ) : (
-            <ul className={styles.timeline}>
-              {todayTrips.map((t) => (
-                <li key={t.id} className={styles.timelineItem}>
-                  <div className={styles.timeCol}>{formatTime(t.pickupAt)}</div>
-
-                  <div className={styles.mainCol}>
-                    <div className={styles.route}>
-                      <span className={styles.routeStrong}>
-                        {t.pickupAddress}
-                      </span>
-                      <span className={styles.routeArrow}>→</span>
-                      <span className={styles.routeStrong}>
-                        {t.dropoffAddress}
-                      </span>
-                    </div>
-
-                    <div className={styles.metaRow}>
-                      <StatusPill status={t.status} />
-                      <Link
-                        className={styles.smallLink}
-                        href={`/driver-dashboard/trips/${t.id}`}
-                      >
-                        View trip
-                      </Link>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className={styles.card}>
-          <header className={styles.cardHeader}>
-            <div className='cardTitle h4'>Alerts</div>
-            <Link className={styles.smallLink} href='/driver-dashboard/trips'>
-              View all
-            </Link>
-          </header>
-
-          {alerts.length === 0 ? (
-            <div className={styles.emptySmall}>
-              <div className='emptyTitle underline'>All caught up</div>
-              <p className='emptySmall'>
-                Trip updates and dispatch notes will appear here.
-              </p>
-            </div>
-          ) : (
-            <ul className={styles.alertList}>
-              {alerts.map((a) => (
-                <li key={a.id} className={styles.alertItem}>
-                  <div className={styles.alertTitle}>{a.title}</div>
-                  <div className={styles.alertBody}>{a.body}</div>
-                  <Link className={styles.smallLink} href={a.href}>
-                    Open
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+      {/* Recent Activity */}
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Recent Activity</h2>
+        {alerts.length === 0 ? (
+          <div className={styles.emptyState}>No recent activity</div>
+        ) : (
+          <div className={styles.alertList}>
+            {alerts.slice(0, 5).map((alert) => (
+              <Link
+                key={alert.id}
+                href={alert.href}
+                className={styles.alertItem}
+              >
+                <div className={styles.alertTitle}>{alert.title}</div>
+                <div className={styles.alertBody}>{alert.body}</div>
+                <div className={styles.alertTime}>
+                  {new Intl.DateTimeFormat("en-US", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    month: "short",
+                    day: "numeric",
+                  }).format(new Date(alert.createdAt))}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
