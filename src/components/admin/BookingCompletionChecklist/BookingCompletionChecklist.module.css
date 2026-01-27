@@ -1,0 +1,185 @@
+.container {
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.alert_critical {
+  background: rgba(239, 68, 68, 0.08);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+}
+
+.alert_warning {
+  background: rgba(245, 158, 11, 0.08);
+  border: 2px solid rgba(245, 158, 11, 0.3);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.alert_critical .title {
+  color: #b91c1c;
+}
+
+.alert_warning .title {
+  color: #92400e;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.checkItem.complete {
+  opacity: 0.7;
+}
+
+.checkItem.incomplete {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.checkItem.critical {
+  background: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.checkIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.complete .checkIcon {
+  background: #22c55e;
+  color: white;
+}
+
+.incomplete .checkIcon {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.critical .checkIcon {
+  background: #ef4444;
+  color: white;
+}
+
+.checkContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.checkLabel {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.criticalBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #ef4444;
+  color: white;
+}
+
+.checkValue {
+  font-size: 1.2rem;
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.checkDescription {
+  font-size: 1.15rem;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.impactWarning {
+  margin-top: 1.25rem;
+  padding: 10px 12px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  font-size: 1.2rem;
+  color: #1e40af;
+  line-height: 1.4;
+}
+
+.impactWarning strong {
+  font-weight: 700;
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    padding: 1.25rem;
+  }
+
+  .checkItem {
+    padding: 8px 10px;
+  }
+
+  .checkLabel {
+    font-size: 1.2rem;
+  }
+
+  .checkDescription,
+  .checkValue {
+    font-size: 1.1rem;
+  }
+}

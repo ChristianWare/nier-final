@@ -1,18 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { redirect } from "next/navigation";
 import { BookingStatus } from "@prisma/client";
-import Link from "next/link";
 
 import styles from "./DriverDashboardHome.module.css";
 import { auth } from "../../../auth";
 import { db } from "@/lib/db";
 
-import DriverTripsSnapshot, {
-  TripItem,
-} from "@/components/Driver/DriverTripsSnapshot/DriverTripsSnapshot";
-import DriverEarningsChart, {
-  DailyEarning,
-} from "@/components/Driver/DriverEarningsChart/DriverEarningsChart";
+import DriverNextTrip, {
+  NextTripData,
+} from "@/components/Driver/DriverNextTrip/DriverNextTrip";
+import DriverUpcomingRides, {
+  UpcomingRideItem,
+} from "@/components/Driver/DriverUpcomingRides/DriverUpcomingRides";
+import DriverEarningsSnapshot, {
+  DriverEarningsChartPoint,
+} from "@/components/Driver/DriverEarningsSnapshot/DriverEarningsSnapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,13 +34,6 @@ function endOfDayPhoenix(d: Date): Date {
   return new Date(year, month - 1, day, 23, 59, 59, 999);
 }
 
-function startOfWeekPhoenix(d: Date): Date {
-  const start = startOfDayPhoenix(d);
-  const dayOfWeek = start.getDay();
-  start.setDate(start.getDate() - dayOfWeek);
-  return start;
-}
-
 function startOfMonthPhoenix(d: Date): Date {
   const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
   const [month, , year] = str.split("/").map(Number);
@@ -51,14 +46,25 @@ function endOfMonthPhoenix(d: Date): Date {
   return new Date(year, month, 0, 23, 59, 59, 999);
 }
 
-function addDays(d: Date, days: number): Date {
-  const result = new Date(d);
-  result.setDate(result.getDate() + days);
-  return result;
-}
-
 function formatDateKey(d: Date): string {
   return d.toISOString().split("T")[0];
+}
+
+function formatChartLabel(d: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: TIMEZONE,
+  }).format(d);
+}
+
+function formatChartTick(d: Date): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: TIMEZONE,
+  }).format(d);
 }
 
 function getMonthLabel(d: Date): string {
@@ -95,24 +101,47 @@ async function resolveSessionUserId(session: any): Promise<string | null> {
   return u?.id ?? null;
 }
 
-// Transform booking to TripItem
-function toTripItem(booking: any): TripItem {
+// Transform booking to UpcomingRideItem
+function toUpcomingRideItem(booking: any): UpcomingRideItem {
   return {
     id: booking.id,
     status: booking.status,
-    pickupAt: booking.pickupAt,
+    pickupAtIso: booking.pickupAt.toISOString(),
     pickupAddress: booking.pickupAddress,
     dropoffAddress: booking.dropoffAddress,
-    passengers: booking.passengers,
-    luggage: booking.luggage,
-    specialRequests: booking.specialRequests,
-    customerName:
-      booking.user?.name?.trim() || booking.guestName?.trim() || "Customer",
     serviceName: booking.serviceType?.name || "Trip",
     vehicleName:
       booking.assignment?.vehicleUnit?.name || booking.vehicle?.name || null,
+    customerName:
+      booking.user?.name?.trim() || booking.guestName?.trim() || "Customer",
+    customerPhone: booking.user?.phone || booking.guestPhone || null,
     driverPaymentCents: booking.assignment?.driverPaymentCents ?? null,
     currency: booking.currency || "USD",
+    passengers: booking.passengers,
+    luggage: booking.luggage,
+    specialRequests: booking.specialRequests,
+  };
+}
+
+// Transform booking to NextTripData
+function toNextTripData(booking: any): NextTripData {
+  return {
+    id: booking.id,
+    status: booking.status,
+    pickupAtIso: booking.pickupAt.toISOString(),
+    pickupAddress: booking.pickupAddress,
+    dropoffAddress: booking.dropoffAddress,
+    serviceName: booking.serviceType?.name || "Trip",
+    vehicleName:
+      booking.assignment?.vehicleUnit?.name || booking.vehicle?.name || null,
+    customerName:
+      booking.user?.name?.trim() || booking.guestName?.trim() || "Customer",
+    customerPhone: booking.user?.phone || booking.guestPhone || null,
+    driverPaymentCents: booking.assignment?.driverPaymentCents ?? null,
+    currency: booking.currency || "USD",
+    passengers: booking.passengers,
+    luggage: booking.luggage,
+    specialRequests: booking.specialRequests,
   };
 }
 
@@ -135,62 +164,20 @@ export default async function DriverDashboardHome() {
   const now = new Date();
   const todayStart = startOfDayPhoenix(now);
   const todayEnd = endOfDayPhoenix(now);
-  const weekStart = startOfWeekPhoenix(now);
-  const weekEnd = endOfDayPhoenix(addDays(weekStart, 6));
   const monthStart = startOfMonthPhoenix(now);
   const monthEnd = endOfMonthPhoenix(now);
 
-  // Fetch trips for today
-  const tripsToday = await db.booking.findMany({
-    where: {
-      pickupAt: { gte: todayStart, lte: todayEnd },
-      assignment: { driverId },
-    },
-    orderBy: { pickupAt: "asc" },
-    take: 50,
-    include: {
-      user: { select: { name: true, email: true } },
-      serviceType: { select: { name: true } },
-      vehicle: { select: { name: true } },
-      assignment: {
-        include: {
-          vehicleUnit: { select: { name: true } },
-        },
-      },
-    },
-  });
-
-  // Fetch trips for this week (excluding today to avoid duplicates in the list)
-  const tripsThisWeekRaw = await db.booking.findMany({
-    where: {
-      pickupAt: { gte: weekStart, lte: weekEnd },
-      assignment: { driverId },
-    },
-    orderBy: { pickupAt: "asc" },
-    take: 100,
-    include: {
-      user: { select: { name: true, email: true } },
-      serviceType: { select: { name: true } },
-      vehicle: { select: { name: true } },
-      assignment: {
-        include: {
-          vehicleUnit: { select: { name: true } },
-        },
-      },
-    },
-  });
-
   // Fetch all upcoming trips (not completed/cancelled)
-  const allUpcomingRaw = await db.booking.findMany({
+  const upcomingTrips = await db.booking.findMany({
     where: {
       pickupAt: { gte: todayStart },
       status: { notIn: TERMINAL },
       assignment: { driverId },
     },
     orderBy: { pickupAt: "asc" },
-    take: 100,
+    take: 50,
     include: {
-      user: { select: { name: true, email: true } },
+      user: { select: { name: true, email: true, phone: true } },
       serviceType: { select: { name: true } },
       vehicle: { select: { name: true } },
       assignment: {
@@ -201,7 +188,7 @@ export default async function DriverDashboardHome() {
     },
   });
 
-  // Fetch completed trips this month for earnings chart
+  // Fetch completed trips this month for earnings
   const completedThisMonth = await db.booking.findMany({
     where: {
       pickupAt: { gte: monthStart, lte: monthEnd },
@@ -217,7 +204,35 @@ export default async function DriverDashboardHome() {
     },
   });
 
-  // Aggregate daily earnings
+  // Fetch completed trips today for today's earnings count
+  const completedToday = await db.booking.count({
+    where: {
+      pickupAt: { gte: todayStart, lte: todayEnd },
+      status: BookingStatus.COMPLETED,
+      assignment: { driverId },
+    },
+  });
+
+  // Get actual driver payment for today
+  const todayCompletedWithPayments = await db.booking.findMany({
+    where: {
+      pickupAt: { gte: todayStart, lte: todayEnd },
+      status: BookingStatus.COMPLETED,
+      assignment: { driverId },
+    },
+    select: {
+      assignment: {
+        select: { driverPaymentCents: true },
+      },
+    },
+  });
+
+  const todayDriverPaymentsCents = todayCompletedWithPayments.reduce(
+    (sum, b) => sum + (b.assignment?.driverPaymentCents ?? 0),
+    0,
+  );
+
+  // Aggregate daily earnings for chart
   const dailyEarningsMap = new Map<string, { amount: number; count: number }>();
 
   for (const trip of completedThisMonth) {
@@ -228,31 +243,37 @@ export default async function DriverDashboardHome() {
     dailyEarningsMap.set(dateKey, existing);
   }
 
-  const dailyEarnings: DailyEarning[] = Array.from(dailyEarningsMap.entries())
-    .map(([date, data]) => ({
-      date,
-      amountCents: data.amount,
-      tripCount: data.count,
-    }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+  const chartData: DriverEarningsChartPoint[] = Array.from(
+    dailyEarningsMap.entries(),
+  )
+    .map(([dateStr, data]) => {
+      const d = new Date(dateStr);
+      return {
+        key: dateStr,
+        tick: formatChartTick(d),
+        label: formatChartLabel(d),
+        earningsCents: data.amount,
+        tripCount: data.count,
+      };
+    })
+    .sort((a, b) => a.key.localeCompare(b.key));
 
-  const totalEarningsCents = dailyEarnings.reduce(
-    (sum, d) => sum + d.amountCents,
+  const totalEarningsMonthCents = chartData.reduce(
+    (sum, d) => sum + d.earningsCents,
     0,
   );
-  const totalTrips = dailyEarnings.reduce((sum, d) => sum + d.tripCount, 0);
+  const totalTripsMonth = chartData.reduce((sum, d) => sum + d.tripCount, 0);
+  const avgPerTripCents =
+    totalTripsMonth > 0
+      ? Math.round(totalEarningsMonthCents / totalTripsMonth)
+      : 0;
 
-  // Transform to TripItem arrays
-  const tripsTodayItems = tripsToday.map(toTripItem);
-  const tripsThisWeekItems = tripsThisWeekRaw.map(toTripItem);
-  const allUpcomingItems = allUpcomingRaw.map(toTripItem);
-
-  // Get next trip (first upcoming non-terminal)
-  const nextTrip = allUpcomingItems[0] || null;
+  // Transform to component data
+  const upcomingRideItems = upcomingTrips.map(toUpcomingRideItem);
+  const nextTrip = upcomingTrips[0] ? toNextTripData(upcomingTrips[0]) : null;
 
   // Stats for header
-  const activeCount = allUpcomingItems.length;
-  const todayCount = tripsTodayItems.length;
+  const activeCount = upcomingTrips.length;
 
   return (
     <section className={styles.pageContainer}>
@@ -269,77 +290,38 @@ export default async function DriverDashboardHome() {
 
         <div className={styles.headerKpis}>
           <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
-            <span className={styles.headerKpiValue}>{todayCount}</span>
-            <span className={styles.headerKpiLabel}>Today</span>
+            <span className={styles.headerKpiValue}>{activeCount}</span>
+            <span className={styles.headerKpiLabel}>Upcoming</span>
           </div>
           <div className={styles.headerKpi}>
-            <span className={styles.headerKpiValue}>
-              {tripsThisWeekItems.length}
-            </span>
-            <span className={styles.headerKpiLabel}>This Week</span>
+            <span className={styles.headerKpiValue}>{totalTripsMonth}</span>
+            <span className={styles.headerKpiLabel}>This Month</span>
           </div>
           <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
             <span className={styles.headerKpiValue}>
-              ${Math.round(totalEarningsCents / 100)}
+              ${Math.round(totalEarningsMonthCents / 100)}
             </span>
-            <span className={styles.headerKpiLabel}>This Month</span>
+            <span className={styles.headerKpiLabel}>Earned</span>
           </div>
         </div>
       </header>
 
-      {/* Next Trip Card */}
-      {nextTrip && (
-        <div className={styles.nextTripSection}>
-          <div className={styles.sectionHeader}>
-            <h2 className='cardTitle h4'>
-              <span className={styles.sectionIcon}>📍</span>
-              Next Trip
-            </h2>
-          </div>
-          <Link
-            href={`/driver-dashboard/trips/${nextTrip.id}`}
-            className={styles.nextTripCard}
-          >
-            <div className={styles.nextTripMain}>
-              <div className={styles.nextTripTime}>
-                {new Intl.DateTimeFormat("en-US", {
-                  weekday: "short",
-                  month: "short",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                  timeZone: TIMEZONE,
-                }).format(new Date(nextTrip.pickupAt))}
-              </div>
-              <div className={styles.nextTripCustomer}>
-                {nextTrip.customerName} • {nextTrip.serviceName}
-              </div>
-              <div className={styles.nextTripRoute}>
-                <span>📍 {nextTrip.pickupAddress.split(",")[0]}</span>
-                <span className={styles.routeArrow}>→</span>
-                <span>🏁 {nextTrip.dropoffAddress.split(",")[0]}</span>
-              </div>
-            </div>
-            <div className={styles.nextTripAction}>View Details →</div>
-          </Link>
-        </div>
-      )}
+      {/* Next Trip */}
+      <DriverNextTrip trip={nextTrip} timeZone={TIMEZONE} />
 
-      {/* Trips Snapshot */}
-      <DriverTripsSnapshot
-        tripsToday={tripsTodayItems}
-        tripsThisWeek={tripsThisWeekItems}
-        tripsAllUpcoming={allUpcomingItems}
-        timeZone={TIMEZONE}
-      />
+      {/* Upcoming Rides Table */}
+      <DriverUpcomingRides items={upcomingRideItems} timeZone={TIMEZONE} />
 
-      {/* Earnings Chart */}
-      <DriverEarningsChart
-        dailyEarnings={dailyEarnings}
+      {/* Earnings Snapshot with Chart */}
+      <DriverEarningsSnapshot
         monthLabel={getMonthLabel(now)}
-        totalEarningsCents={totalEarningsCents}
-        totalTrips={totalTrips}
         currency='USD'
+        earningsMonthCents={totalEarningsMonthCents}
+        earningsTodayCents={todayDriverPaymentsCents}
+        tripCountMonth={totalTripsMonth}
+        tripCountToday={completedToday}
+        avgPerTripCents={avgPerTripCents}
+        chartData={chartData}
       />
     </section>
   );

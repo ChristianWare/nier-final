@@ -1,5 +1,205 @@
-.container {
+.pageContainer {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 7rem;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Page Header */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--stroke);
+}
+
+.headerContent {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.headerKpis {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.headerKpi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  border: 2px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.02);
+  min-width: 100px;
+}
+
+.headerKpiValue {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: #111827;
+}
+
+.headerKpiLabel {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.headerKpiGood {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.headerKpiGood .headerKpiValue {
+  color: #15803d;
+}
+
+.headerKpiAccent {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.headerKpiAccent .headerKpiValue {
+  color: #1d4ed8;
+}
+
+/* Section Headers */
+.sectionHeader {
+  margin-bottom: 1rem;
+}
+
+.sectionIcon {
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+/* Next Trip Section */
+.nextTripSection {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2rem;
+}
+
+.nextTripCard {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 10px;
+  color: white;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nextTripCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+}
+
+.nextTripMain {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.nextTripTime {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
+.nextTripCustomer {
+  font-size: 1.4rem;
+  opacity: 0.9;
+}
+
+.nextTripRoute {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.3rem;
+  opacity: 0.85;
+  flex-wrap: wrap;
+}
+
+.routeArrow {
+  opacity: 0.6;
+}
+
+.nextTripAction {
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.4rem;
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 768px) {
+  .pageContainer {
+    padding: 1.5rem;
+  }
+
+  .pageHeader {
+    flex-direction: column;
+  }
+
+  .headerKpis {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .headerKpi {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.75rem 1rem;
+  }
+
+  .headerKpiValue {
+    font-size: 2rem;
+  }
+
+  .nextTripCard {
+    grid-template-columns: 1fr;
+  }
+
+  .nextTripAction {
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .pageContainer {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .nextTripSection {
+    padding: 1.5rem;
+  }
+
+  .nextTripTime {
+    font-size: 1.6rem;
+  }
+
+  .nextTripRoute {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .routeArrow {
+    display: none;
+  }
 }

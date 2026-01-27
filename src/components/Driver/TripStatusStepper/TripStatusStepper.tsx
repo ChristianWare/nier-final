@@ -25,6 +25,17 @@ const TERMINAL_STATUSES: BookingStatus[] = [
   BookingStatus.PARTIALLY_REFUNDED,
 ];
 
+// Statuses that should show the stepper (driver flow)
+// CONFIRMED is included because a driver might be assigned before status changes to ASSIGNED
+const DRIVER_FLOW_STATUSES: BookingStatus[] = [
+  BookingStatus.CONFIRMED,
+  BookingStatus.ASSIGNED,
+  BookingStatus.EN_ROUTE,
+  BookingStatus.ARRIVED,
+  BookingStatus.IN_PROGRESS,
+  BookingStatus.COMPLETED,
+];
+
 // Labels for each status
 const STATUS_LABELS: Record<BookingStatus, string> = {
   [BookingStatus.ASSIGNED]: "Assigned",
@@ -103,6 +114,15 @@ export default function TripStatusStepper({
   // Check if terminal state
   const isTerminal = TERMINAL_STATUSES.includes(currentStatus);
 
+  // Check if in driver flow (includes CONFIRMED since driver might be assigned)
+  const isInDriverFlow = DRIVER_FLOW_STATUSES.includes(currentStatus);
+
+  // For display purposes, treat CONFIRMED as ASSIGNED (index 0)
+  const displayStatus =
+    currentStatus === BookingStatus.CONFIRMED
+      ? BookingStatus.ASSIGNED
+      : currentStatus;
+
   // Check if trip is today or in the past (eligible for status updates)
   const pickupDate = new Date(pickupAt);
   const now = new Date();
@@ -114,9 +134,9 @@ export default function TripStatusStepper({
   );
   const isTodayOrPast = pickupDay <= today;
 
-  // Get current step index
-  const currentIndex = STATUS_ORDER.indexOf(currentStatus);
-  const isInMainFlow = currentIndex >= 0;
+  // Get current step index based on display status
+  const currentIndex = STATUS_ORDER.indexOf(displayStatus);
+  const isInMainFlow = currentIndex >= 0 || isInDriverFlow;
 
   // Get next status
   const nextStatus =

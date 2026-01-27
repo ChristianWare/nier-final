@@ -10,6 +10,7 @@ import { sendCustomerTripNotification } from "@/lib/notifications/customerNotifi
 // Valid status transitions for drivers
 const VALID_FORWARD_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
   [BookingStatus.ASSIGNED]: [BookingStatus.EN_ROUTE],
+  [BookingStatus.CONFIRMED]: [BookingStatus.EN_ROUTE], // Driver can start from CONFIRMED if assigned
   [BookingStatus.EN_ROUTE]: [BookingStatus.ARRIVED],
   [BookingStatus.ARRIVED]: [BookingStatus.IN_PROGRESS, BookingStatus.NO_SHOW],
   [BookingStatus.IN_PROGRESS]: [BookingStatus.COMPLETED],
@@ -22,7 +23,6 @@ const VALID_FORWARD_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
   // Non-driver states
   [BookingStatus.PENDING_REVIEW]: [],
   [BookingStatus.PENDING_PAYMENT]: [],
-  [BookingStatus.CONFIRMED]: [BookingStatus.ASSIGNED], // Admin assigns, then driver can proceed
   [BookingStatus.DECLINED]: [],
   [BookingStatus.DRAFT]: [],
 };
@@ -37,11 +37,11 @@ const VALID_BACKWARD_TRANSITIONS: Record<BookingStatus, BookingStatus[]> = {
   [BookingStatus.NO_SHOW]: [],
   [BookingStatus.CANCELLED]: [],
   [BookingStatus.ASSIGNED]: [],
+  [BookingStatus.CONFIRMED]: [],
   [BookingStatus.REFUNDED]: [],
   [BookingStatus.PARTIALLY_REFUNDED]: [],
   [BookingStatus.PENDING_REVIEW]: [],
   [BookingStatus.PENDING_PAYMENT]: [],
-  [BookingStatus.CONFIRMED]: [],
   [BookingStatus.DECLINED]: [],
   [BookingStatus.DRAFT]: [],
 };

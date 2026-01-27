@@ -18,6 +18,8 @@ import DuplicateBookingClient from "./DuplicateBookingClient";
 import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
 import RefundButton from "@/components/admin/RefundButton/RefundButton";
 import ApprovalToggleClient from "./ApprovalToggleClient";
+import BookingCompletionChecklist from "@/components/admin/BookingCompletionChecklist/BookingCompletionChecklist";
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -593,7 +595,18 @@ export default async function AdminBookingDetailPage({
     <section className='container'>
       <header className='header'>
         <h1 className={`heading h2`}>Booking Details</h1>
-
+        <BookingCompletionChecklist
+          bookingId={booking.id}
+          bookingStatus={booking.status}
+          hasDriver={!!booking.assignment?.driverId}
+          driverName={booking.assignment?.driver?.name ?? null}
+          hasVehicleUnit={!!booking.assignment?.vehicleUnitId}
+          vehicleUnitName={booking.assignment?.vehicleUnit?.name ?? null}
+          hasVehicleCategory={!!booking.vehicleId}
+          vehicleCategoryName={booking.vehicle?.name ?? null}
+          isPaid={isPaid}
+          isApproved={isApproved}
+        />
         <div className={styles.box}>
           <div className={styles.boxLeft}>
             <div className='emptyTitle'>Booking ID:</div>
