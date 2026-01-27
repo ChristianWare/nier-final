@@ -7,7 +7,7 @@ import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
-// ✅ NEW: Stop input type
+// ✅ Stop input type
 type StopInput = {
   address: string;
   placeId?: string | null;
@@ -33,7 +33,7 @@ type CreateBookingRequestInput = {
   dropoffLat?: number | null;
   dropoffLng?: number | null;
 
-  // ✅ NEW: Extra stops
+  // Extra stops
   stops?: StopInput[];
 
   distanceMiles?: number | null;
@@ -50,9 +50,13 @@ type CreateBookingRequestInput = {
   flightTerminal?: string | null;
   flightGate?: string | null;
 
+  // Guest fields
   guestName?: string | null;
   guestEmail?: string | null;
   guestPhone?: string | null;
+
+  // ✅ NEW: Phone for logged-in users
+  contactPhone?: string | null;
 };
 
 const PHX_TZ = "America/Phoenix";
@@ -83,13 +87,20 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
   const guestName = (input.guestName ?? "").trim();
   const guestEmail = (input.guestEmail ?? "").trim().toLowerCase();
   const guestPhone = (input.guestPhone ?? "").trim();
+  const contactPhone = (input.contactPhone ?? "").trim();
 
+  // Validation for guests
   if (!userId) {
     if (!guestName) return { error: "Please enter your name." as const };
     if (!guestEmail || !isValidEmail(guestEmail))
       return { error: "Please enter a valid email address." as const };
     if (!guestPhone)
       return { error: "Please enter your phone number." as const };
+  }
+
+  // ✅ Validation for logged-in users - require phone
+  if (userId && !contactPhone) {
+    return { error: "Please enter a phone number for this trip." as const };
   }
 
   const pickupAtDate = new Date(input.pickupAt);
@@ -121,7 +132,7 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
   const durationMinutes = numOrNull(input.durationMinutes);
   const hoursRequested = numOrNull(input.hoursRequested);
 
-  // ✅ Process stops
+  // Process stops
   const stopsInput = input.stops ?? [];
   const validStops = stopsInput.filter(
     (s) => s.address && s.lat != null && s.lng != null,
@@ -139,14 +150,14 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     } as const;
   }
 
-  // ✅ Calculate quote WITH stop count
+  // Calculate quote WITH stop count
   const quote = calcQuoteCents({
     pricingStrategy: service.pricingStrategy,
 
-    distanceMiles, // This should already include the detour from stops
+    distanceMiles,
     durationMinutes,
     hoursRequested,
-    stopCount, // ✅ Pass stop count for surcharge calculation
+    stopCount,
 
     vehicleMinHours: vehicle?.minHours ?? 0,
 
@@ -169,7 +180,7 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     ? new Date(input.flightScheduledAt)
     : null;
 
-  // ✅ Calculate stop surcharge separately for storage
+  // Calculate stop surcharge separately for storage
   const stopSurchargeCents = stopCount * EXTRA_STOP_FEE_CENTS;
 
   // Create booking with stops
@@ -216,14 +227,14 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       flightTerminal: input.flightTerminal?.trim() || null,
       flightGate: input.flightGate?.trim().toUpperCase() || null,
 
-      // ✅ Store stop count and surcharge
+      // Store stop count and surcharge
       stopCount,
       stopSurchargeCents,
 
       subtotalCents: quote.breakdown.subtotalCents,
       totalCents: quote.totalCents,
 
-      // ✅ Create stops as nested records
+      // Create stops as nested records
       stops: {
         create: validStops.map((stop, index) => ({
           stopOrder: index + 1,
@@ -231,12 +242,33 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
           placeId: stop.placeId ?? null,
           lat: stop.lat ?? null,
           lng: stop.lng ?? null,
-          waitTimeMinutes: 5, // Default 5 min wait per stop
+          waitTimeMinutes: 5,
         })),
       },
     },
     select: { id: true, guestClaimToken: true },
   });
+
+  // ✅ Save phone to user profile if logged in and user doesn't have one yet
+  if (userId && contactPhone) {
+    try {
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { phone: true },
+      });
+
+      // Only update if user doesn't have a phone yet (don't overwrite existing)
+      if (!user?.phone) {
+        await db.user.update({
+          where: { id: userId },
+          data: { phone: contactPhone },
+        });
+      }
+    } catch (e) {
+      // Non-critical - log but don't fail the booking
+      console.error("Failed to save phone to user profile:", e);
+    }
+  }
 
   await queueAdminNotificationsForBookingEvent({
     event: "BOOKING_REQUESTED",

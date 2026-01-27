@@ -92,6 +92,7 @@ type FormValues = {
   guestName: string;
   guestEmail: string;
   guestPhone: string;
+  contactPhone: string;
 };
 
 function centsToUsd(cents: number) {
@@ -155,9 +156,11 @@ function routeMinutes(v: RoutePickerValue | null): number {
 export default function BookingWizard({
   serviceTypes,
   vehicles,
+  userPhone,
 }: {
   serviceTypes: ServiceTypeDTO[];
   vehicles: VehicleDTO[];
+  userPhone?: string | null;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -214,6 +217,7 @@ export default function BookingWizard({
       guestName: "",
       guestEmail: "",
       guestPhone: "",
+      contactPhone: userPhone ?? "",
     },
   });
 
@@ -314,6 +318,12 @@ export default function BookingWizard({
     register("guestPhone", {
       validate: (v) =>
         isAuthed ? true : v.trim() ? true : "Please enter your phone number.",
+    });
+    register("contactPhone", {
+      validate: (v) => {
+        if (!isAuthed) return true; // Guests use guestPhone
+        return v?.trim() ? true : "Please enter a phone number for this trip.";
+      },
     });
     register("flightAirline");
     register("flightNumber");
@@ -417,6 +427,7 @@ export default function BookingWizard({
       "guestName",
       "guestEmail",
       "guestPhone",
+      "contactPhone",
     ];
     for (const k of order) {
       const err = (errors as any)?.[k];
@@ -546,6 +557,7 @@ export default function BookingWizard({
     if (selectedService?.pricingStrategy === "HOURLY")
       fields.push("hoursRequested");
     if (!isAuthed) fields.push("guestName", "guestEmail", "guestPhone");
+    if (isAuthed) fields.push("contactPhone");
     const ok = await trigger(fields, { shouldFocus: false });
     if (!ok) {
       toast.error(firstErrorMessage());
@@ -600,6 +612,7 @@ export default function BookingWizard({
         dropoffPlaceId: dropoff.placeId ?? null,
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
+        contactPhone: isAuthed ? v.contactPhone?.trim() : null,
         stops: (v.route?.stops ?? []).map((s) => ({
           address: s.address,
           placeId: s.placeId ?? null,
@@ -1641,7 +1654,34 @@ export default function BookingWizard({
                         </div>
                       </Grid2>
                     </div>
-                  ) : null}
+                  ) : (
+                    // null
+                    // ✅ NEW: Phone field for logged-in users
+                    <div style={{ display: "grid", gap: 10 }}>
+                      <div style={{ display: "grid", gap: 8 }}>
+                        <label className='cardTitle h5'>
+                          Phone number for this trip
+                        </label>
+                        <input
+                          value={watch("contactPhone") ?? ""}
+                          onChange={(e) => {
+                            setValue("contactPhone", e.target.value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            clearErrors("contactPhone");
+                          }}
+                          className='input subheading'
+                          placeholder='(602) 555-1234'
+                          inputMode='tel'
+                        />
+                        <p className='miniNote'>
+                          Your driver will use this number to contact you about
+                          pickup.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <div style={{ display: "grid", gap: 8 }}>
                     <div className='cardTitle h5'>

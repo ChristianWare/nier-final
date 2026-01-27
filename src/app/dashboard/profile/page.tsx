@@ -54,8 +54,9 @@ export default async function DashboardProfilePage({
       id: true,
       name: true,
       email: true,
+      phone: true, // ✅ ADD THIS
       emailVerified: true,
-      password: true, // don't display this; we only use boolean presence
+      password: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -72,6 +73,7 @@ export default async function DashboardProfilePage({
           id: user.id,
           name: user.name,
           email: user.email,
+          phone: user.phone, // ✅ ADD THIS
           emailVerified: user.emailVerified,
           hasPassword,
         }}

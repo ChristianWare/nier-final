@@ -1,8 +1,8 @@
 import styles from "./DashboardProfile.module.css";
-import { updateName } from "../../../../actions/auth/updateName"; 
-import { changePassword } from "../../../../actions/auth/changePassword"; 
+import { updateName } from "../../../../actions/auth/updateName";
+import { updatePhone } from "../../../../actions/auth/updatePhone";
+import { changePassword } from "../../../../actions/auth/changePassword";
 import SubmitButton from "./SubmitButton";
-
 
 function formatDate(d: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -14,12 +14,13 @@ function formatDate(d: Date) {
 
 export default function DashboardProfile({
   user,
-  // flash,
+  flash,
 }: {
   user: {
     id: string;
     name: string | null;
     email: string;
+    phone: string | null; // ✅ ADD THIS
     emailVerified: Date | null;
     hasPassword: boolean;
   };
@@ -38,11 +39,11 @@ export default function DashboardProfile({
         </p>
       </header>
 
-      {/* {flash.err ? (
+      {flash.err ? (
         <div className={`banner bannerError`}>{flash.err}</div>
       ) : null}
 
-      {flash.ok ? <div className={`banner bannerOk`}>{flash.ok}</div> : null} */}
+      {flash.ok ? <div className={`banner bannerOk`}>{flash.ok}</div> : null}
 
       <div className={styles.grid}>
         {/* Account */}
@@ -69,7 +70,7 @@ export default function DashboardProfile({
 
             {!user.emailVerified ? (
               <p className={styles.helpText}>
-                If you haven’t verified your email yet, check your inbox for the
+                If you haven&#39;t verified your email yet, check your inbox for the
                 verification link.
               </p>
             ) : null}
@@ -97,9 +98,45 @@ export default function DashboardProfile({
             </label>
 
             <div className={styles.formActions}>
-              <SubmitButton className="primaryBtn" text='Save name' />
-              <p className="miniNote">
-                This is what you’ll see in your dashboard and receipts.
+              <SubmitButton className='primaryBtn' text='Save name' />
+              <p className='miniNote'>
+                This is what you&#39;ll see in your dashboard and receipts.
+              </p>
+            </div>
+          </form>
+        </section>
+
+        {/* ✅ NEW: Phone number section */}
+        <section className={styles.card}>
+          <header className={styles.cardTop}>
+            <h2 className={`cardTitle h4`}>Phone number</h2>
+          </header>
+
+          <form action={updatePhone} className={styles.form}>
+            <input type='hidden' name='userId' value={user.id} />
+
+            <label className='label'>
+              Phone
+              <input
+                name='phone'
+                type='tel'
+                defaultValue={user.phone ?? ""}
+                className={styles.input}
+                placeholder='(602) 555-1234'
+                maxLength={20}
+              />
+            </label>
+
+            <div className={styles.formActions}>
+              <SubmitButton className='primaryBtn' text='Save phone' />
+              <p className='miniNote'>
+                Your driver will use this number to contact you about pickups.
+                {!user.phone && (
+                  <strong>
+                    {" "}
+                    You&#39;ll be asked to provide this when booking.
+                  </strong>
+                )}
               </p>
             </div>
           </form>
@@ -114,12 +151,12 @@ export default function DashboardProfile({
           {!user.hasPassword ? (
             <div className={styles.disabledBox}>
               <p className={styles.muted}>
-                This account doesn’t have a password set (likely a social
+                This account doesn&#39;t have a password set (likely a social
                 login).
               </p>
               <p className={styles.muted}>
                 If you want to support setting a password later, we can add a
-                “Set password” flow safely.
+                &ldquo;Set password&rdquo; flow safely.
               </p>
             </div>
           ) : (
@@ -164,20 +201,14 @@ export default function DashboardProfile({
               </div>
 
               <div className={styles.formActions}>
-                <SubmitButton
-                  className="primaryBtn"
-                  text='Update password'
-                />
-                <p className="miniNote">
+                <SubmitButton className='primaryBtn' text='Update password' />
+                <p className='miniNote'>
                   Use at least 8 characters. Avoid reusing old passwords.
                 </p>
               </div>
             </form>
           )}
         </section>
-
-      
-       
       </div>
     </section>
   );

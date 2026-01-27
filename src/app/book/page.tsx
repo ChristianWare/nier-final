@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
+import { auth } from "../../../auth";
 import BookingWizard from "@/components/BookingPage/BookWizard/BookWizard";
 import BookingPageIntro from "@/components/BookingPage/BookingPageIntro/BookingPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
@@ -8,6 +9,20 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function BookPage() {
+  // ✅ Get current user session
+  const session = await auth();
+  const userId = (session?.user as { id?: string } | null)?.id ?? null;
+
+  // ✅ Fetch user's phone if logged in
+  let userPhone: string | null = null;
+  if (userId) {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { phone: true },
+    });
+    userPhone = user?.phone ?? null;
+  }
+
   const serviceTypesRaw = await db.serviceType.findMany({
     where: { active: true },
     orderBy: { sortOrder: "asc" },
@@ -32,7 +47,6 @@ export default async function BookPage() {
       airports: {
         where: {
           active: true,
-          // ✅ DO NOT filter out lat/lng here
         },
         orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
         select: {
@@ -88,6 +102,7 @@ export default async function BookPage() {
       <BookingWizard
         serviceTypes={serviceTypes as any}
         vehicles={vehicles as any}
+        userPhone={userPhone}
       />
     </main>
   );
