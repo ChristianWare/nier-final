@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import RoutePicker, {
   RoutePickerPlace,
+  RoutePickerStop,
   RoutePickerValue,
 } from "@/components/BookingPage/RoutePicker/RoutePicker";
 import BookingDateTimePicker from "@/components/BookingPage/BookingDateTimePicker/BookingDateTimePicker";
@@ -185,9 +186,16 @@ function estimateTotalCents(args: {
   distanceMiles: number | null;
   durationMinutes: number | null;
   hoursRequested: number | null;
+  stopCount?: number;
 }) {
-  const { service, vehicle, distanceMiles, durationMinutes, hoursRequested } =
-    args;
+  const {
+    service,
+    vehicle,
+    distanceMiles,
+    durationMinutes,
+    hoursRequested,
+    stopCount = 0,
+  } = args;
 
   const q = calcQuoteCents({
     pricingStrategy: service.pricingStrategy as any,
@@ -196,6 +204,7 @@ function estimateTotalCents(args: {
     durationMinutes,
     hoursRequested:
       service.pricingStrategy === "HOURLY" ? hoursRequested : null,
+    stopCount,
 
     vehicleMinHours: vehicle?.minHours ?? 0,
 
@@ -431,6 +440,7 @@ export default function AdminNewBookingWizard({
         const next: RoutePickerValue = {
           pickup: side === "pickup" ? null : prevPickup,
           dropoff: side === "dropoff" ? null : prevDropoff,
+          stops: prev?.stops ?? [], // ✅ Preserve existing stops
           miles: null,
           minutes: null,
           distanceMiles: null,
@@ -466,6 +476,7 @@ export default function AdminNewBookingWizard({
       const next: RoutePickerValue = {
         pickup: side === "pickup" ? place : prevPickup,
         dropoff: side === "dropoff" ? place : prevDropoff,
+        stops: prev?.stops ?? [], // ✅ Preserve existing stops
         miles: null,
         minutes: null,
         distanceMiles: null,
@@ -485,6 +496,10 @@ export default function AdminNewBookingWizard({
   // ✅ Quote for selected service/vehicle (also gives billed hours)
   const selectedQuote = useMemo(() => {
     if (!selectedService) return null;
+
+    // ✅ Get stop count from route
+    const stopCount = route?.stops?.length ?? 0;
+
     return calcQuoteCents({
       pricingStrategy: selectedService.pricingStrategy as any,
       distanceMiles,
@@ -493,6 +508,7 @@ export default function AdminNewBookingWizard({
         selectedService.pricingStrategy === "HOURLY"
           ? toNumber(hoursRequested)
           : null,
+      stopCount, // ✅ Add this
       vehicleMinHours: selectedVehicle?.minHours ?? 0,
 
       serviceMinFareCents: selectedService.minFareCents,
@@ -512,6 +528,7 @@ export default function AdminNewBookingWizard({
     distanceMiles,
     durationMinutes,
     hoursRequested,
+    route?.stops?.length, // ✅ Add this dependency
   ]);
 
   const billableHours =
@@ -750,43 +767,50 @@ export default function AdminNewBookingWizard({
       const pickup = route!.pickup!;
       const dropoff = route!.dropoff!;
 
-      const res = await adminCreateBooking({
-        serviceTypeId,
-        vehicleId,
-        pickupAt: pickupAtIso,
-        passengers,
-        luggage,
+     const res = await adminCreateBooking({
+       serviceTypeId,
+       vehicleId,
+       pickupAt: pickupAtIso,
+       passengers,
+       luggage,
 
-        pickupAddress: pickup.address,
-        pickupPlaceId: pickup.placeId ?? null,
-        pickupLat: pickup.location?.lat ?? null,
-        pickupLng: pickup.location?.lng ?? null,
+       pickupAddress: pickup.address,
+       pickupPlaceId: pickup.placeId ?? null,
+       pickupLat: pickup.location?.lat ?? null,
+       pickupLng: pickup.location?.lng ?? null,
 
-        dropoffAddress: dropoff.address,
-        dropoffPlaceId: dropoff.placeId ?? null,
-        dropoffLat: dropoff.location?.lat ?? null,
-        dropoffLng: dropoff.location?.lng ?? null,
+       dropoffAddress: dropoff.address,
+       dropoffPlaceId: dropoff.placeId ?? null,
+       dropoffLat: dropoff.location?.lat ?? null,
+       dropoffLng: dropoff.location?.lng ?? null,
 
-        distanceMiles: toNumber(route?.miles ?? (route as any)?.distanceMiles),
-        durationMinutes: toNumber(
-          route?.minutes ?? (route as any)?.durationMinutes,
-        ),
+       // ✅ Add stops
+       stops: (route?.stops ?? []).map((s) => ({
+         address: s.address,
+         placeId: s.placeId ?? null,
+         lat: s.location?.lat ?? null,
+         lng: s.location?.lng ?? null,
+       })),
 
-        hoursRequested:
-          selectedService.pricingStrategy === "HOURLY"
-            ? toNumber(hoursRequested)
-            : null,
-        specialRequests: specialRequests || null,
+       distanceMiles: toNumber(route?.miles ?? (route as any)?.distanceMiles),
+       durationMinutes: toNumber(
+         route?.minutes ?? (route as any)?.durationMinutes,
+       ),
 
-        // default to current status (chosen later on Assign step, but starts as PENDING_REVIEW)
-        status: bookingStatus,
+       hoursRequested:
+         selectedService.pricingStrategy === "HOURLY"
+           ? toNumber(hoursRequested)
+           : null,
+       specialRequests: specialRequests || null,
 
-        customerKind,
-        customerUserId,
-        customerEmail: email,
-        customerName: customerKind === "guest" ? customerName.trim() : null,
-        customerPhone: customerKind === "guest" ? customerPhone.trim() : null,
-      });
+       status: bookingStatus,
+
+       customerKind,
+       customerUserId,
+       customerEmail: email,
+       customerName: customerKind === "guest" ? customerName.trim() : null,
+       customerPhone: customerKind === "guest" ? customerPhone.trim() : null,
+     });
 
       if ((res as any)?.error) {
         toast.error((res as any).error);
@@ -920,6 +944,8 @@ export default function AdminNewBookingWizard({
     },
     { value: "CONFIRMED" as AdminCreateBookingStatus, label: "Confirmed" },
   ];
+
+  const [stops, setStops] = useState<RoutePickerStop[]>([]);
 
   return (
     <section className={styles.container}>
@@ -1839,6 +1865,42 @@ export default function AdminNewBookingWizard({
                       label='Pickup'
                       value={route?.pickup?.address ?? "—"}
                     />
+
+                    {/* ✅ Extra Stops */}
+                    {(route?.stops?.length ?? 0) > 0 && (
+                      <>
+                        <div
+                          style={{
+                            borderTop: "1px solid rgba(0,0,0,0.1)",
+                            marginTop: 12,
+                            paddingTop: 12,
+                          }}
+                        >
+                          <div
+                            className='cardTitle h6'
+                            style={{ marginBottom: 8, opacity: 0.7 }}
+                          >
+                            🛑 Extra Stops ({route?.stops?.length})
+                          </div>
+                        </div>
+                        {route?.stops?.map((stop, index) => (
+                          <SummaryRow
+                            key={stop.id}
+                            label={`Stop ${index + 1}`}
+                            value={stop.address || "—"}
+                          />
+                        ))}
+                        <SummaryRow
+                          label='Stop surcharge'
+                          value={`$${(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(2)}`}
+                        />
+                        <SummaryRow
+                          label='Est. wait time'
+                          value={`+${(route?.stops?.length ?? 0) * 5} min`}
+                        />
+                      </>
+                    )}
+
                     <SummaryRow
                       label='Dropoff'
                       value={route?.dropoff?.address ?? "—"}
@@ -1934,7 +1996,6 @@ export default function AdminNewBookingWizard({
                 </div>
               </div>
             ) : null}
-
             {/* STEP 6: Payment */}
             {step === 6 ? (
               <div

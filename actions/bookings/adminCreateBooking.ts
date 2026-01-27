@@ -16,6 +16,14 @@ const ADMIN_CREATE_STATUSES = [
 
 export type AdminCreateBookingStatus = (typeof ADMIN_CREATE_STATUSES)[number];
 
+// ✅ Stop input type
+type StopInput = {
+  address: string;
+  placeId?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+};
+
 type AdminCreateBookingInput = {
   serviceTypeId: string;
   vehicleId?: string | null;
@@ -33,6 +41,9 @@ type AdminCreateBookingInput = {
   dropoffPlaceId?: string | null;
   dropoffLat?: number | null;
   dropoffLng?: number | null;
+
+  // ✅ Extra stops
+  stops?: StopInput[];
 
   distanceMiles?: number | null;
   durationMinutes?: number | null;
@@ -167,12 +178,24 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     guestPhone = p;
   }
 
+  // ✅ Process stops - filter to only valid ones
+  const validStops = (input.stops ?? []).filter(
+    (s) =>
+      s.address?.trim() &&
+      s.lat != null &&
+      s.lng != null &&
+      s.lat !== 0 &&
+      s.lng !== 0,
+  );
+  const stopCount = validStops.length;
+
   // --- quote ---
   const quote = calcQuoteCents({
     pricingStrategy: service.pricingStrategy,
     distanceMiles: input.distanceMiles ?? null,
     durationMinutes: input.durationMinutes ?? null,
     hoursRequested: input.hoursRequested ?? null,
+    stopCount, // ✅ Pass stop count for pricing
     vehicleMinHours: vehicle?.minHours ?? 0,
 
     serviceMinFareCents: service.minFareCents,
@@ -214,6 +237,22 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
       dropoffPlaceId: input.dropoffPlaceId ?? null,
       dropoffLat: input.dropoffLat ?? null,
       dropoffLng: input.dropoffLng ?? null,
+
+      // ✅ Create stops as nested records
+      stops: {
+        create: validStops.map((stop, index) => ({
+          stopOrder: index + 1,
+          address: stop.address.trim(),
+          placeId: stop.placeId ?? null,
+          lat: stop.lat ?? null,
+          lng: stop.lng ?? null,
+          waitTimeMinutes: 5,
+        })),
+      },
+
+      // ✅ Store stop count and surcharge
+      stopCount,
+      stopSurchargeCents: quote.breakdown.stopSurchargeCents,
 
       distanceMiles: input.distanceMiles ?? null,
       durationMinutes: input.durationMinutes ?? null,
