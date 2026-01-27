@@ -319,7 +319,16 @@ export default function RouteMapDisplay({
             color: "#64748b",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: "1.4rem",
+              fontWeight: "700",
+              marginTop: "1rem",
+            }}
+          >
             <span
               style={{
                 width: 12,
@@ -331,7 +340,16 @@ export default function RouteMapDisplay({
             />
             Pickup
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: "1.4rem",
+              marginTop: "1rem",
+              fontWeight: "700",
+            }}
+          >
             <span
               style={{
                 width: 12,
@@ -343,7 +361,16 @@ export default function RouteMapDisplay({
             />
             Stops ({stops.length})
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: "1.4rem",
+              marginTop: "1rem",
+              fontWeight: "700",
+            }}
+          >
             <span
               style={{
                 width: 12,

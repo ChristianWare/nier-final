@@ -194,8 +194,8 @@ export default function ApprovePriceForm({
           disabled={isPending}
           type='submit'
           text={isPending ? "Saving..." : "Approve & Set Price"}
-          btnType='black'
-          arrow
+          btnType='greenReg'
+          
         />
       </div>
     </form>

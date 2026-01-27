@@ -767,50 +767,50 @@ export default function AdminNewBookingWizard({
       const pickup = route!.pickup!;
       const dropoff = route!.dropoff!;
 
-     const res = await adminCreateBooking({
-       serviceTypeId,
-       vehicleId,
-       pickupAt: pickupAtIso,
-       passengers,
-       luggage,
+      const res = await adminCreateBooking({
+        serviceTypeId,
+        vehicleId,
+        pickupAt: pickupAtIso,
+        passengers,
+        luggage,
 
-       pickupAddress: pickup.address,
-       pickupPlaceId: pickup.placeId ?? null,
-       pickupLat: pickup.location?.lat ?? null,
-       pickupLng: pickup.location?.lng ?? null,
+        pickupAddress: pickup.address,
+        pickupPlaceId: pickup.placeId ?? null,
+        pickupLat: pickup.location?.lat ?? null,
+        pickupLng: pickup.location?.lng ?? null,
 
-       dropoffAddress: dropoff.address,
-       dropoffPlaceId: dropoff.placeId ?? null,
-       dropoffLat: dropoff.location?.lat ?? null,
-       dropoffLng: dropoff.location?.lng ?? null,
+        dropoffAddress: dropoff.address,
+        dropoffPlaceId: dropoff.placeId ?? null,
+        dropoffLat: dropoff.location?.lat ?? null,
+        dropoffLng: dropoff.location?.lng ?? null,
 
-       // ✅ Add stops
-       stops: (route?.stops ?? []).map((s) => ({
-         address: s.address,
-         placeId: s.placeId ?? null,
-         lat: s.location?.lat ?? null,
-         lng: s.location?.lng ?? null,
-       })),
+        // ✅ Add stops
+        stops: (route?.stops ?? []).map((s) => ({
+          address: s.address,
+          placeId: s.placeId ?? null,
+          lat: s.location?.lat ?? null,
+          lng: s.location?.lng ?? null,
+        })),
 
-       distanceMiles: toNumber(route?.miles ?? (route as any)?.distanceMiles),
-       durationMinutes: toNumber(
-         route?.minutes ?? (route as any)?.durationMinutes,
-       ),
+        distanceMiles: toNumber(route?.miles ?? (route as any)?.distanceMiles),
+        durationMinutes: toNumber(
+          route?.minutes ?? (route as any)?.durationMinutes,
+        ),
 
-       hoursRequested:
-         selectedService.pricingStrategy === "HOURLY"
-           ? toNumber(hoursRequested)
-           : null,
-       specialRequests: specialRequests || null,
+        hoursRequested:
+          selectedService.pricingStrategy === "HOURLY"
+            ? toNumber(hoursRequested)
+            : null,
+        specialRequests: specialRequests || null,
 
-       status: bookingStatus,
+        status: bookingStatus,
 
-       customerKind,
-       customerUserId,
-       customerEmail: email,
-       customerName: customerKind === "guest" ? customerName.trim() : null,
-       customerPhone: customerKind === "guest" ? customerPhone.trim() : null,
-     });
+        customerKind,
+        customerUserId,
+        customerEmail: email,
+        customerName: customerKind === "guest" ? customerName.trim() : null,
+        customerPhone: customerKind === "guest" ? customerPhone.trim() : null,
+      });
 
       if ((res as any)?.error) {
         toast.error((res as any).error);
@@ -1016,7 +1016,12 @@ export default function AdminNewBookingWizard({
                         <div className='emptyTitle'>
                           {(selectedUser.name ?? "").trim() || "Unnamed user"}
                         </div>
-                        <div className='miniNote'>{selectedUser.email}</div>
+                        <div
+                          className='miniNote'
+                          style={{ marginBottom: "4rem" }}
+                        >
+                          {selectedUser.email}
+                        </div>
                         <div
                           style={{ display: "flex", gap: 10, flexWrap: "wrap" }}
                         >
@@ -1225,7 +1230,7 @@ export default function AdminNewBookingWizard({
                     className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
-                    This airport service isn’t configured yet (no airports
+                    This airport service isn&#39;t configured yet (no airports
                     assigned). Choose a different service or assign airports
                     first.
                   </div>
@@ -1330,6 +1335,162 @@ export default function AdminNewBookingWizard({
                     )}
                   </div>
 
+                  {/* ✅ STOPS SECTION - Between Pickup and Dropoff */}
+                  {(route?.stops?.length ?? 0) > 0 && (
+                    <div className={styles.stopsListWizard}>
+                      {route?.stops?.map((stop, index) => (
+                        <div key={stop.id} className={styles.stopRowWizard}>
+                          <div className={styles.stopBadgeWizard}>
+                            {index + 1}
+                          </div>
+                          <input
+                            type='text'
+                            placeholder={`Stop ${index + 1} address...`}
+                            defaultValue={stop.address}
+                            className='input emptySmall'
+                            style={{ flex: 1 }}
+                            ref={(el) => {
+                              if (el && window.google?.maps?.places) {
+                                const existingAC = (el as any).__stopAC;
+                                if (!existingAC) {
+                                  const ac =
+                                    new window.google.maps.places.Autocomplete(
+                                      el,
+                                      {
+                                        fields: [
+                                          "place_id",
+                                          "formatted_address",
+                                          "geometry",
+                                        ],
+                                        componentRestrictions: {
+                                          country: "us",
+                                        },
+                                      },
+                                    );
+                                  ac.addListener("place_changed", () => {
+                                    const place = ac.getPlace();
+                                    const loc = place?.geometry?.location;
+                                    if (
+                                      !place?.place_id ||
+                                      !place?.formatted_address ||
+                                      !loc
+                                    )
+                                      return;
+
+                                    resetCreatedBooking();
+                                    setRoute((prev) => {
+                                      const currentStops = [
+                                        ...(prev?.stops ?? []),
+                                      ];
+                                      const stopIdx = currentStops.findIndex(
+                                        (s) => s.id === stop.id,
+                                      );
+
+                                      if (stopIdx >= 0) {
+                                        currentStops[stopIdx] = {
+                                          ...currentStops[stopIdx],
+                                          address: String(
+                                            place.formatted_address,
+                                          ),
+                                          placeId: String(place.place_id),
+                                          location: {
+                                            lat: loc.lat(),
+                                            lng: loc.lng(),
+                                          },
+                                        };
+                                      }
+
+                                      return {
+                                        pickup: prev?.pickup ?? null,
+                                        dropoff: prev?.dropoff ?? null,
+                                        stops: currentStops,
+                                        miles: null,
+                                        minutes: null,
+                                        distanceMiles: null,
+                                        durationMinutes: null,
+                                      };
+                                    });
+                                  });
+                                  (el as any).__stopAC = ac;
+                                }
+                              }
+                            }}
+                          />
+                          <button
+                            type='button'
+                            onClick={() => {
+                              resetCreatedBooking();
+                              setRoute((prev) => {
+                                const newStops = (prev?.stops ?? []).filter(
+                                  (s) => s.id !== stop.id,
+                                );
+                                return {
+                                  pickup: prev?.pickup ?? null,
+                                  dropoff: prev?.dropoff ?? null,
+                                  stops: newStops,
+                                  miles: null,
+                                  minutes: null,
+                                  distanceMiles: null,
+                                  durationMinutes: null,
+                                };
+                              });
+                            }}
+                            className={styles.removeStopBtnWizard}
+                            title='Remove stop'
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* ✅ ADD STOP BUTTON */}
+                  <button
+                    type='button'
+                    onClick={() => {
+                      resetCreatedBooking();
+                      const newStop: RoutePickerStop = {
+                        id: `stop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                        address: "",
+                        placeId: "",
+                        location: { lat: 0, lng: 0 },
+                      };
+                      setRoute((prev) => ({
+                        pickup: prev?.pickup ?? null,
+                        dropoff: prev?.dropoff ?? null,
+                        stops: [...(prev?.stops ?? []), newStop],
+                        miles: prev?.miles ?? null,
+                        minutes: prev?.minutes ?? null,
+                        distanceMiles: prev?.distanceMiles ?? null,
+                        durationMinutes: prev?.durationMinutes ?? null,
+                      }));
+                    }}
+                    className={styles.addStopBtnWizard}
+                  >
+                    <span>➕</span> Add a stop
+                    <span className={styles.addStopFeeWizard}>
+                      (+$15.00 per stop)
+                    </span>
+                  </button>
+
+                  {/* ✅ Show stop surcharge info */}
+                  {(route?.stops?.length ?? 0) > 0 && (
+                    <div className={styles.stopSurchargeInfo}>
+                      <span>
+                        🛑 {route?.stops?.length} extra stop
+                        {(route?.stops?.length ?? 0) > 1 ? "s" : ""}
+                      </span>
+                      <span className={styles.stopSurchargeAmount}>
+                        +$
+                        {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
+                          2,
+                        )}{" "}
+                        surcharge
+                      </span>
+                    </div>
+                  )}
+
                   <div style={{ display: "grid", gap: 8 }}>
                     <label
                       className={cx(
@@ -1414,7 +1575,6 @@ export default function AdminNewBookingWizard({
                 </div>
               </div>
             ) : null}
-
             {/* STEP 2: Vehicle + Special requests */}
             {step === 2 ? (
               <div
@@ -2019,7 +2179,7 @@ export default function AdminNewBookingWizard({
                     <div className='box'>
                       <div
                         className='emptyTitleSmall'
-                        style={{ marginBottom: 8 }}
+                        style={{ marginBottom: "1rem" }}
                       >
                         Payment status:{" "}
                         <strong>{bookingData?.paymentStatus ?? "NONE"}</strong>
@@ -2031,6 +2191,7 @@ export default function AdminNewBookingWizard({
                         amountPaidCents={0}
                         currency={bookingData?.currency ?? "USD"}
                       />
+                      <br />
                       {bookingData?.checkoutUrl ? (
                         <div className='miniNote' style={{ marginTop: 12 }}>
                           Latest checkout URL:
@@ -2080,7 +2241,10 @@ export default function AdminNewBookingWizard({
                       <div className='cardTitle h5'>
                         Take card payment (manual)
                       </div>
-                      <div className='miniNote' style={{ marginTop: 6 }}>
+                      <div
+                        className='miniNote'
+                        style={{ marginBottom: "2rem", marginTop: "2rem" }}
+                      >
                         Card-only checkout. After success, you’ll see a green
                         confirmation state.
                       </div>

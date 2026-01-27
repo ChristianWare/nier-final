@@ -4,8 +4,8 @@
 }
 
 .button {
-  padding: 0.85rem 1rem;
-  border-radius: 12px;
+  padding: 1rem;
+  border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0.2);
   cursor: pointer;
   justify-self: start;
@@ -21,17 +21,17 @@
 .grid2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 1rem;
   margin-top: 2rem;
 }
 
 .field {
   display: grid;
-  gap: 6px;
+  gap: 1rem;
 }
 
 .fieldLabel {
-  font-size: 12px;
+  font-size: 1.4rem;
   opacity: 0.8;
   font-weight: 600;
   text-transform: uppercase;
@@ -45,7 +45,8 @@
   background: #fff;
   font: inherit;
   font-weight: 600;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
 }
 
 .input:focus {
@@ -62,7 +63,8 @@
   background: #f0fdf4;
   border-color: #22c55e;
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
 }
 
 .inputHighlight:focus {

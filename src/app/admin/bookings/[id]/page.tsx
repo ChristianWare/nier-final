@@ -973,7 +973,7 @@ export default async function AdminBookingDetailPage({
 
           <div style={{ marginTop: 18 }}>
             <div className='cardTitle h5'>Take card payment (manual)</div>
-            <div className='miniNote' style={{ marginTop: 6 }}>
+            <div className='miniNote' style={{ marginTop: 6, marginBottom: "30px" }}>
               Card-only checkout. After success, the button turns green and says
               &ldquo;Payment successful&rdquo;.
             </div>
