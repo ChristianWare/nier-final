@@ -425,12 +425,12 @@ export default async function AdminBookingDetailPage({
   const customerName =
     booking.user?.name?.trim() || booking.guestName?.trim() || "—";
   const customerEmailDisplay = booking.user?.email || booking.guestEmail || "—";
-  const customerPhone = booking.guestPhone?.trim() || "—";
+  // ✅ Get phone from user profile OR guest phone
+  const customerPhone =
+    booking.user?.phone?.trim() || booking.guestPhone?.trim() || null;
   const customerLine = booking.user
-    ? `${customerName} (${customerEmailDisplay})`
-    : `${customerName} (${customerEmailDisplay})${
-        booking.guestPhone ? ` • ${customerPhone}` : ""
-      }`;
+    ? `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${customerPhone}` : ""}`
+    : `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${customerPhone}` : ""}`;
 
   const createdAtLabel = formatDateTime(booking.createdAt);
   const actor = createdEvent?.createdBy ?? null;
@@ -750,6 +750,10 @@ export default async function AdminBookingDetailPage({
             )}
           </div>
         </div>
+        <KeyVal
+          k='Phone'
+          v={customerPhone ? `📞 ${customerPhone}` : "No phone on file"}
+        />
         <KeyVal k='Service' v={booking.serviceType.name} />
         <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
 
@@ -759,7 +763,8 @@ export default async function AdminBookingDetailPage({
             <div className={styles.sectionDivider} />
             <div className={styles.stopsSection}>
               <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                <span style={{ marginRight: "2rem" }}>🛑</span>Route with {stopCount} Extra Stop
+                <span style={{ marginRight: "2rem" }}>🛑</span>Route with{" "}
+                {stopCount} Extra Stop
                 {stopCount > 1 ? "s" : ""}
               </div>
               <div className={styles.routeTimeline}>
@@ -973,7 +978,10 @@ export default async function AdminBookingDetailPage({
 
           <div style={{ marginTop: 18 }}>
             <div className='cardTitle h5'>Take card payment (manual)</div>
-            <div className='miniNote' style={{ marginTop: 6, marginBottom: "30px" }}>
+            <div
+              className='miniNote'
+              style={{ marginTop: 6, marginBottom: "30px" }}
+            >
               Card-only checkout. After success, the button turns green and says
               &ldquo;Payment successful&rdquo;.
             </div>
