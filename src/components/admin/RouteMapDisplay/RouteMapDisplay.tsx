@@ -42,6 +42,14 @@ const loadGoogleMaps = (browserKey: string) => {
   });
 };
 
+// ✅ NEW: Stop type
+type StopMarker = {
+  lat: number;
+  lng: number;
+  address: string;
+  stopOrder: number;
+};
+
 type Props = {
   pickupLat: number;
   pickupLng: number;
@@ -49,6 +57,8 @@ type Props = {
   dropoffLng: number;
   pickupAddress: string;
   dropoffAddress: string;
+  // ✅ NEW: Optional stops
+  stops?: StopMarker[];
 };
 
 export default function RouteMapDisplay({
@@ -58,18 +68,23 @@ export default function RouteMapDisplay({
   dropoffLng,
   pickupAddress,
   dropoffAddress,
+  stops = [],
 }: Props) {
   const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapInstance = useRef<any>(null);
   const pickupMarker = useRef<any>(null);
   const dropoffMarker = useRef<any>(null);
+  const stopMarkers = useRef<any[]>([]);
   const routePolyline = useRef<any>(null);
 
   const [error, setError] = useState(() =>
     !browserKey ? "Missing NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY" : "",
   );
   const [loading, setLoading] = useState(() => !!browserKey);
+
+  // Stable key for stops
+  const stopsKey = stops.map((s) => `${s.lat}|${s.lng}`).join(";");
 
   useEffect(() => {
     if (!browserKey) {
@@ -103,33 +118,77 @@ export default function RouteMapDisplay({
 
         const map = mapInstance.current;
 
-        // Add markers
+        // Pickup marker (green)
         if (!pickupMarker.current) {
           pickupMarker.current = new google.maps.Marker({
             map,
             position: { lat: pickupLat, lng: pickupLng },
             label: "A",
             title: pickupAddress,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: "#22c55e",
+              fillOpacity: 1,
+              strokeColor: "#fff",
+              strokeWeight: 2,
+            },
           });
         }
 
+        // Dropoff marker (red)
         if (!dropoffMarker.current) {
           dropoffMarker.current = new google.maps.Marker({
             map,
             position: { lat: dropoffLat, lng: dropoffLng },
             label: "B",
             title: dropoffAddress,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 10,
+              fillColor: "#ef4444",
+              fillOpacity: 1,
+              strokeColor: "#fff",
+              strokeWeight: 2,
+            },
           });
         }
 
-        // Fetch and draw route
+        // ✅ Clear old stop markers
+        stopMarkers.current.forEach((m) => m.setMap(null));
+        stopMarkers.current = [];
+
+        // ✅ Add stop markers (blue)
+        stops.forEach((stop) => {
+          const marker = new google.maps.Marker({
+            map,
+            position: { lat: stop.lat, lng: stop.lng },
+            label: String(stop.stopOrder),
+            title: `Stop ${stop.stopOrder}: ${stop.address}`,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: "#3b82f6",
+              fillOpacity: 1,
+              strokeColor: "#fff",
+              strokeWeight: 2,
+            },
+          });
+          stopMarkers.current.push(marker);
+        });
+
+        // Fetch and draw route with waypoints
         try {
+          // ✅ Build waypoints for API call
+          const waypoints = stops.map((s) => ({ lat: s.lat, lng: s.lng }));
+
           const res = await fetch("/api/maps/route", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               origin: { lat: pickupLat, lng: pickupLng },
               destination: { lat: dropoffLat, lng: dropoffLng },
+              waypoints: waypoints.length > 0 ? waypoints : undefined,
             }),
           });
 
@@ -161,9 +220,10 @@ export default function RouteMapDisplay({
               map.fitBounds(bounds, 50);
             }
           } else {
-            // No polyline, just fit to markers
+            // No polyline, just fit to all markers
             const bounds = new google.maps.LatLngBounds();
             bounds.extend({ lat: pickupLat, lng: pickupLng });
+            stops.forEach((s) => bounds.extend({ lat: s.lat, lng: s.lng }));
             bounds.extend({ lat: dropoffLat, lng: dropoffLng });
             map.fitBounds(bounds, 50);
           }
@@ -172,6 +232,7 @@ export default function RouteMapDisplay({
           console.warn("Could not fetch route:", routeErr);
           const bounds = new google.maps.LatLngBounds();
           bounds.extend({ lat: pickupLat, lng: pickupLng });
+          stops.forEach((s) => bounds.extend({ lat: s.lat, lng: s.lng }));
           bounds.extend({ lat: dropoffLat, lng: dropoffLng });
           map.fitBounds(bounds, 50);
         }
@@ -196,6 +257,8 @@ export default function RouteMapDisplay({
     dropoffLng,
     pickupAddress,
     dropoffAddress,
+    stopsKey,
+    stops,
   ]);
 
   if (error) {
@@ -244,6 +307,56 @@ export default function RouteMapDisplay({
           background: "#f5f5f5",
         }}
       />
+
+      {/* ✅ Legend */}
+      {stops.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            marginTop: 8,
+            fontSize: "0.8rem",
+            color: "#64748b",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                background: "#22c55e",
+                display: "inline-block",
+              }}
+            />
+            Pickup
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                background: "#3b82f6",
+                display: "inline-block",
+              }}
+            />
+            Stops ({stops.length})
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <span
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                background: "#ef4444",
+                display: "inline-block",
+              }}
+            />
+            Dropoff
+          </div>
+        </div>
+      )}
     </div>
   );
 }

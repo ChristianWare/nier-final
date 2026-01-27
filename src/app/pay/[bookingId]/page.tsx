@@ -31,6 +31,15 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
           amountTotalCents: true,
         },
       },
+      // ✅ Include stops
+      stops: {
+        orderBy: { stopOrder: "asc" },
+        select: {
+          id: true,
+          stopOrder: true,
+          address: true,
+        },
+      },
     },
   });
 
@@ -67,6 +76,13 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
   const customerName = booking.user?.name ?? booking.guestName ?? "Guest";
   const customerEmail = booking.user?.email ?? booking.guestEmail ?? "";
 
+  // ✅ Prepare stops for client
+  const stops = booking.stops.map((s) => ({
+    id: s.id,
+    stopOrder: s.stopOrder,
+    address: s.address,
+  }));
+
   return (
     <main>
       <Nav background='white' />
@@ -77,6 +93,8 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
         pickupAt={booking.pickupAt.toISOString()}
         pickupAddress={booking.pickupAddress}
         dropoffAddress={booking.dropoffAddress}
+        stops={stops}
+        stopSurchargeCents={booking.stopSurchargeCents ?? 0}
         baseFareCents={isBalancePayment ? balanceDueCents : booking.totalCents}
         currency={booking.currency ?? "usd"}
         customerName={customerName}

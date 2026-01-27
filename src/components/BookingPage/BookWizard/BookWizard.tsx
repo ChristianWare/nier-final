@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/incompatible-library */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -18,7 +19,11 @@ import SummaryRow from "../SummaryRow/SummaryRow";
 import BookingDateTimeWithBlackouts from "@/components/BookingPage/BookingDateTimeWithBlackouts/BookingDateTimeWithBlackouts";
 import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
-import { calcQuoteCents } from "@/lib/pricing/calcQuote";
+import {
+  calcQuoteCents,
+  EXTRA_STOP_FEE_CENTS,
+  STOP_WAIT_TIME_MINUTES,
+} from "@/lib/pricing/calcQuote";
 import { ServicePricingStrategy } from "@prisma/client";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
@@ -341,6 +346,10 @@ export default function BookingWizard({
 
   const estimateCents = useMemo(() => {
     if (!selectedService) return 0;
+
+    // ✅ Get stop count from route
+    const stopCount = route?.stops?.length ?? 0;
+
     const quote = calcQuoteCents({
       pricingStrategy: toStrategy(selectedService.pricingStrategy),
       distanceMiles:
@@ -353,6 +362,7 @@ export default function BookingWizard({
           : null,
       hoursRequested:
         selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
+      stopCount,
       vehicleMinHours: selectedVehicle?.minHours ?? 0,
       serviceMinFareCents: selectedService.minFareCents,
       serviceBaseFeeCents: selectedService.baseFeeCents,
@@ -371,6 +381,7 @@ export default function BookingWizard({
     distanceMiles,
     durationMinutes,
     hoursRequested,
+    route?.stops?.length,
   ]);
 
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
@@ -431,6 +442,7 @@ export default function BookingWizard({
       const next: RoutePickerValue = {
         pickup: side === "pickup" ? null : prevPickup,
         dropoff: side === "dropoff" ? null : prevDropoff,
+        stops: [],
         miles: null,
         minutes: null,
         distanceMiles: null,
@@ -461,6 +473,7 @@ export default function BookingWizard({
     const next: RoutePickerValue = {
       pickup: side === "pickup" ? place : prevPickup,
       dropoff: side === "dropoff" ? place : prevDropoff,
+      stops: [],
       miles: null,
       minutes: null,
       distanceMiles: null,
@@ -587,6 +600,12 @@ export default function BookingWizard({
         dropoffPlaceId: dropoff.placeId ?? null,
         dropoffLat: dropoff.location?.lat ?? null,
         dropoffLng: dropoff.location?.lng ?? null,
+        stops: (v.route?.stops ?? []).map((s) => ({
+          address: s.address,
+          placeId: s.placeId ?? null,
+          lat: s.location?.lat ?? null,
+          lng: s.location?.lng ?? null,
+        })),
         distanceMiles: toNumber(v.route.miles ?? v.route.distanceMiles ?? null),
         durationMinutes: toNumber(
           v.route.minutes ?? v.route.durationMinutes ?? null,
@@ -871,6 +890,161 @@ export default function BookingWizard({
                         />
                       )}
                     </div>
+
+                    {/* ✅ STOPS SECTION - Between Pickup and Dropoff */}
+                    {(route?.stops?.length ?? 0) > 0 && (
+                      <div className={styles.stopsListWizard}>
+                        {route?.stops?.map((stop, index) => (
+                          <div key={stop.id} className={styles.stopRowWizard}>
+                            <div className={styles.stopBadgeWizard}>
+                              {index + 1}
+                            </div>
+                            <input
+                              type='text'
+                              placeholder={`Stop ${index + 1} address...`}
+                              defaultValue={stop.address}
+                              className='input emptySmall'
+                              style={{ flex: 1 }}
+                              ref={(el) => {
+                                if (el && window.google?.maps?.places) {
+                                  // Setup autocomplete for this stop
+                                  const existingAC = (el as any).__stopAC;
+                                  if (!existingAC) {
+                                    const ac =
+                                      new window.google.maps.places.Autocomplete(
+                                        el,
+                                        {
+                                          fields: [
+                                            "place_id",
+                                            "formatted_address",
+                                            "geometry",
+                                          ],
+                                          componentRestrictions: {
+                                            country: "us",
+                                          },
+                                        },
+                                      );
+                                    ac.addListener("place_changed", () => {
+                                      const place = ac.getPlace();
+                                      const loc = place?.geometry?.location;
+                                      if (
+                                        !place?.place_id ||
+                                        !place?.formatted_address ||
+                                        !loc
+                                      )
+                                        return;
+
+                                      const currentRoute = getValues("route");
+                                      const currentStops = [
+                                        ...(currentRoute?.stops ?? []),
+                                      ];
+                                      const stopIdx = currentStops.findIndex(
+                                        (s) => s.id === stop.id,
+                                      );
+
+                                      if (stopIdx >= 0) {
+                                        currentStops[stopIdx] = {
+                                          ...currentStops[stopIdx],
+                                          address: String(
+                                            place.formatted_address,
+                                          ),
+                                          placeId: String(place.place_id),
+                                          location: {
+                                            lat: loc.lat(),
+                                            lng: loc.lng(),
+                                          },
+                                        };
+
+                                        setValue(
+                                          "route",
+                                          {
+                                            pickup:
+                                              currentRoute?.pickup ?? null,
+                                            dropoff:
+                                              currentRoute?.dropoff ?? null,
+                                            stops: currentStops,
+                                            miles: null,
+                                            minutes: null,
+                                            distanceMiles: null,
+                                            durationMinutes: null,
+                                          },
+                                          {
+                                            shouldDirty: true,
+                                            shouldValidate: true,
+                                          },
+                                        );
+                                      }
+                                    });
+                                    (el as any).__stopAC = ac;
+                                  }
+                                }
+                              }}
+                            />
+                            <button
+                              type='button'
+                              onClick={() => {
+                                const currentRoute = getValues("route");
+                                const newStops = (
+                                  currentRoute?.stops ?? []
+                                ).filter((s) => s.id !== stop.id);
+                                setValue(
+                                  "route",
+                                  {
+                                    pickup: currentRoute?.pickup ?? null,
+                                    dropoff: currentRoute?.dropoff ?? null,
+                                    stops: newStops,
+                                    miles: null,
+                                    minutes: null,
+                                    distanceMiles: null,
+                                    durationMinutes: null,
+                                  },
+                                  { shouldDirty: true, shouldValidate: true },
+                                );
+                              }}
+                              className={styles.removeStopBtnWizard}
+                              title='Remove stop'
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* ✅ ADD STOP BUTTON */}
+                    <button
+                      type='button'
+                      onClick={() => {
+                        const currentRoute = getValues("route");
+                        const newStop = {
+                          id: `stop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                          address: "",
+                          placeId: "",
+                          location: { lat: 0, lng: 0 },
+                        };
+                        setValue(
+                          "route",
+                          {
+                            pickup: currentRoute?.pickup ?? null,
+                            dropoff: currentRoute?.dropoff ?? null,
+                            stops: [...(currentRoute?.stops ?? []), newStop],
+                            miles: currentRoute?.miles ?? null,
+                            minutes: currentRoute?.minutes ?? null,
+                            distanceMiles: currentRoute?.distanceMiles ?? null,
+                            durationMinutes:
+                              currentRoute?.durationMinutes ?? null,
+                          },
+                          { shouldDirty: true, shouldValidate: true },
+                        );
+                      }}
+                      className={styles.addStopBtnWizard}
+                    >
+                      <span>➕</span> Add a stop
+                      <span className={styles.addStopFeeWizard}>
+                        (+$15.00 per stop)
+                      </span>
+                    </button>
+
                     <div style={{ display: "grid", gap: 8 }}>
                       <label
                         className={`cardTitle h5${usesDropoffAirport ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
@@ -908,6 +1082,23 @@ export default function BookingWizard({
                       )}
                     </div>
                   </div>
+
+                  {/* ✅ Show stop surcharge info */}
+                  {(route?.stops?.length ?? 0) > 0 && (
+                    <div className={styles.stopSurchargeInfo}>
+                      <span>
+                        🛑 {route?.stops?.length} extra stop
+                        {(route?.stops?.length ?? 0) > 1 ? "s" : ""}
+                      </span>
+                      <span className={styles.stopSurchargeAmount}>
+                        +$
+                        {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
+                          2,
+                        )}{" "}
+                        surcharge
+                      </span>
+                    </div>
+                  )}
 
                   {selectedService?.pricingStrategy === "HOURLY" ? (
                     <div style={{ display: "grid", gap: 8 }}>
@@ -1122,6 +1313,7 @@ export default function BookingWizard({
                               selectedService.pricingStrategy === "HOURLY"
                                 ? hoursRequested
                                 : null,
+                            stopCount: route?.stops?.length ?? 0,
                             vehicleMinHours: v.minHours ?? 0,
                             serviceMinFareCents: selectedService.minFareCents,
                             serviceBaseFeeCents: selectedService.baseFeeCents,
@@ -1265,6 +1457,40 @@ export default function BookingWizard({
                       label='Dropoff'
                       value={route?.dropoff?.address ?? "—"}
                     />
+                    {/* ✅ Show stops if any */}
+                    {(route?.stops?.length ?? 0) > 0 && (
+                      <>
+                        <div
+                          style={{
+                            borderTop: "1px solid rgba(0,0,0,0.1)",
+                            marginTop: 12,
+                            paddingTop: 12,
+                          }}
+                        >
+                          <div
+                            className='cardTitle h6'
+                            style={{ marginBottom: 8, opacity: 0.7 }}
+                          >
+                            🛑 Extra Stops ({route?.stops?.length})
+                          </div>
+                        </div>
+                        {route?.stops?.map((stop, index) => (
+                          <SummaryRow
+                            key={stop.id}
+                            label={`Stop ${index + 1}`}
+                            value={stop.address || "—"}
+                          />
+                        ))}
+                        <SummaryRow
+                          label='Stop surcharge'
+                          value={`$${(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(2)}`}
+                        />
+                        <SummaryRow
+                          label='Est. wait time'
+                          value={`+${(route?.stops?.length ?? 0) * 5} min`}
+                        />
+                      </>
+                    )}
                     {selectedService?.pricingStrategy === "HOURLY" ? (
                       <>
                         <SummaryRow
@@ -1339,6 +1565,17 @@ export default function BookingWizard({
                     <div className='miniNote'>
                       This is an estimate. Dispatch may adjust for special
                       dates, late night, extra stops, etc.
+                      {(route?.stops?.length ?? 0) > 0 && (
+                        <strong>
+                          {" "}
+                          Includes $
+                          {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
+                            2,
+                          )}
+                          surcharge for {route?.stops?.length ?? 0} extra stop
+                          {(route?.stops?.length ?? 0) > 1 ? "s" : ""}.
+                        </strong>
+                      )}
                     </div>
                   </div>
 

@@ -2,10 +2,18 @@
 
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
-import { calcQuoteCents } from "@/lib/pricing/calcQuote";
+import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
 import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
+
+// ✅ NEW: Stop input type
+type StopInput = {
+  address: string;
+  placeId?: string | null;
+  lat?: number | null;
+  lng?: number | null;
+};
 
 type CreateBookingRequestInput = {
   serviceTypeId: string;
@@ -25,6 +33,9 @@ type CreateBookingRequestInput = {
   dropoffLat?: number | null;
   dropoffLng?: number | null;
 
+  // ✅ NEW: Extra stops
+  stops?: StopInput[];
+
   distanceMiles?: number | null;
   durationMinutes?: number | null;
 
@@ -32,7 +43,7 @@ type CreateBookingRequestInput = {
 
   specialRequests?: string | null;
 
-  // ✅ Flight info fields
+  // Flight info fields
   flightAirline?: string | null;
   flightNumber?: string | null;
   flightScheduledAt?: string | null;
@@ -59,7 +70,6 @@ function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
-// ✅ Helps when client accidentally sends strings, NaN, etc.
 function numOrNull(v: unknown): number | null {
   if (v == null) return null;
   const n = typeof v === "number" ? v : Number(v);
@@ -106,13 +116,19 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     return { error: "Vehicle not available" as const };
   }
 
-  // ✅ Normalize numeric inputs (prevents NaN/string weirdness)
+  // Normalize numeric inputs
   const distanceMiles = numOrNull(input.distanceMiles);
   const durationMinutes = numOrNull(input.durationMinutes);
   const hoursRequested = numOrNull(input.hoursRequested);
 
-  // ✅ IMPORTANT: if distance is missing, you will ALWAYS fall back to minFare.
-  // Better to fail fast so you fix the route-estimate pipeline.
+  // ✅ Process stops
+  const stopsInput = input.stops ?? [];
+  const validStops = stopsInput.filter(
+    (s) => s.address && s.lat != null && s.lng != null,
+  );
+  const stopCount = validStops.length;
+
+  // Validate distance for point-to-point
   if (
     service.pricingStrategy === ServicePricingStrategy.POINT_TO_POINT &&
     (!distanceMiles || distanceMiles <= 0)
@@ -123,12 +139,14 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     } as const;
   }
 
+  // ✅ Calculate quote WITH stop count
   const quote = calcQuoteCents({
     pricingStrategy: service.pricingStrategy,
 
-    distanceMiles,
+    distanceMiles, // This should already include the detour from stops
     durationMinutes,
     hoursRequested,
+    stopCount, // ✅ Pass stop count for surcharge calculation
 
     vehicleMinHours: vehicle?.minHours ?? 0,
 
@@ -146,11 +164,15 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
 
   const claimToken = userId ? null : randomUUID();
 
-  // ✅ Parse flight scheduled time if provided
+  // Parse flight scheduled time if provided
   const flightScheduledAt = input.flightScheduledAt
     ? new Date(input.flightScheduledAt)
     : null;
 
+  // ✅ Calculate stop surcharge separately for storage
+  const stopSurchargeCents = stopCount * EXTRA_STOP_FEE_CENTS;
+
+  // Create booking with stops
   const booking = await db.booking.create({
     data: {
       userId: userId ?? undefined,
@@ -187,16 +209,31 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
 
       specialRequests: input.specialRequests ?? null,
 
-      // ✅ Flight info fields
+      // Flight info fields
       flightAirline: input.flightAirline?.trim() || null,
       flightNumber: input.flightNumber?.trim().toUpperCase() || null,
       flightScheduledAt: flightScheduledAt,
       flightTerminal: input.flightTerminal?.trim() || null,
       flightGate: input.flightGate?.trim().toUpperCase() || null,
 
-      // ✅ FIX: Access subtotalCents from the breakdown object
+      // ✅ Store stop count and surcharge
+      stopCount,
+      stopSurchargeCents,
+
       subtotalCents: quote.breakdown.subtotalCents,
       totalCents: quote.totalCents,
+
+      // ✅ Create stops as nested records
+      stops: {
+        create: validStops.map((stop, index) => ({
+          stopOrder: index + 1,
+          address: stop.address,
+          placeId: stop.placeId ?? null,
+          lat: stop.lat ?? null,
+          lng: stop.lng ?? null,
+          waitTimeMinutes: 5, // Default 5 min wait per stop
+        })),
+      },
     },
     select: { id: true, guestClaimToken: true },
   });

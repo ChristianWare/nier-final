@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -12,13 +13,20 @@ export type RoutePickerPlace = {
   location: LatLng;
 };
 
+// Stop type
+export type RoutePickerStop = {
+  id: string;
+  address: string;
+  placeId: string;
+  location: LatLng;
+};
+
 export type RoutePickerValue = {
   pickup: RoutePickerPlace | null;
   dropoff: RoutePickerPlace | null;
-
+  stops: RoutePickerStop[];
   miles: number | null;
   minutes: number | null;
-
   distanceMiles?: number | null;
   durationMinutes?: number | null;
 };
@@ -36,13 +44,13 @@ const loadGoogleMaps = (browserKey: string) => {
     }
 
     const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-google-maps="1"]'
+      'script[data-google-maps="1"]',
     );
 
     if (existing) {
       existing.addEventListener("load", () => resolve());
       existing.addEventListener("error", () =>
-        reject(new Error("Failed to load Google Maps"))
+        reject(new Error("Failed to load Google Maps")),
       );
       return;
     }
@@ -50,7 +58,7 @@ const loadGoogleMaps = (browserKey: string) => {
     const script = document.createElement("script");
     script.dataset.googleMaps = "1";
     script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      browserKey
+      browserKey,
     )}&libraries=places,geometry`;
     script.async = true;
     script.defer = true;
@@ -71,10 +79,8 @@ export default function RoutePicker({
 }: {
   value: RoutePickerValue | null;
   onChange: (v: RoutePickerValue) => void;
-
   pickupInputRef?: RefObject<HTMLInputElement | null>;
   dropoffInputRef?: RefObject<HTMLInputElement | null>;
-
   inputsKey?: any;
 }) {
   const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
@@ -90,6 +96,7 @@ export default function RoutePicker({
   const mapInstance = useRef<any>(null);
   const pickupMarker = useRef<any>(null);
   const dropoffMarker = useRef<any>(null);
+  const stopMarkers = useRef<any[]>([]);
   const routePolyline = useRef<any>(null);
 
   const pickupAC = useRef<any>(null);
@@ -107,14 +114,18 @@ export default function RoutePicker({
 
   const pickup = value?.pickup ?? null;
   const dropoff = value?.dropoff ?? null;
+  const stops = value?.stops ?? [];
 
-  // ✅ primitive “keys” so deps are stable + ESLint is happy
+  // Primitive keys for stable deps
   const pickupKey = pickup
     ? `${pickup.placeId}|${pickup.location.lat}|${pickup.location.lng}`
     : "";
   const dropoffKey = dropoff
     ? `${dropoff.placeId}|${dropoff.location.lat}|${dropoff.location.lng}`
     : "";
+  const stopsKey = stops
+    .map((s) => `${s.placeId}|${s.location.lat}|${s.location.lng}`)
+    .join(";");
 
   // Init maps + autocomplete
   useEffect(() => {
@@ -163,17 +174,16 @@ export default function RoutePicker({
 
             onChange({
               pickup: {
-                placeId: String(place.place_id), // ✅ always string
+                placeId: String(place.place_id),
                 address: String(place.formatted_address),
                 location: { lat: loc.lat(), lng: loc.lng() },
               },
               dropoff: latest?.dropoff ?? null,
-
-              miles: latest?.miles ?? null,
-              minutes: latest?.minutes ?? null,
-
-              distanceMiles: latest?.distanceMiles ?? null,
-              durationMinutes: latest?.durationMinutes ?? null,
+              stops: latest?.stops ?? [],
+              miles: null,
+              minutes: null,
+              distanceMiles: null,
+              durationMinutes: null,
             });
           });
         }
@@ -200,16 +210,15 @@ export default function RoutePicker({
             onChange({
               pickup: latest?.pickup ?? null,
               dropoff: {
-                placeId: String(place.place_id), // ✅ always string
+                placeId: String(place.place_id),
                 address: String(place.formatted_address),
                 location: { lat: loc.lat(), lng: loc.lng() },
               },
-
-              miles: latest?.miles ?? null,
-              minutes: latest?.minutes ?? null,
-
-              distanceMiles: latest?.distanceMiles ?? null,
-              durationMinutes: latest?.durationMinutes ?? null,
+              stops: latest?.stops ?? [],
+              miles: null,
+              minutes: null,
+              distanceMiles: null,
+              durationMinutes: null,
             });
           });
         }
@@ -230,39 +239,90 @@ export default function RoutePicker({
 
     const map = mapInstance.current;
 
+    // Pickup marker (green)
     if (pickup) {
       if (!pickupMarker.current)
         pickupMarker.current = new google.maps.Marker({ map });
       pickupMarker.current.setPosition(pickup.location);
       pickupMarker.current.setLabel("A");
+      pickupMarker.current.setIcon({
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#22c55e",
+        fillOpacity: 1,
+        strokeColor: "#fff",
+        strokeWeight: 2,
+      });
     } else if (pickupMarker.current) {
       pickupMarker.current.setMap(null);
       pickupMarker.current = null;
     }
 
+    // Dropoff marker (red)
     if (dropoff) {
       if (!dropoffMarker.current)
         dropoffMarker.current = new google.maps.Marker({ map });
       dropoffMarker.current.setPosition(dropoff.location);
       dropoffMarker.current.setLabel("B");
+      dropoffMarker.current.setIcon({
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#ef4444",
+        fillOpacity: 1,
+        strokeColor: "#fff",
+        strokeWeight: 2,
+      });
     } else if (dropoffMarker.current) {
       dropoffMarker.current.setMap(null);
       dropoffMarker.current = null;
     }
 
-    if (pickup && dropoff && !routePolyline.current) {
+    // Stop markers (blue)
+    stopMarkers.current.forEach((m) => m.setMap(null));
+    stopMarkers.current = [];
+
+    stops.forEach((stop, index) => {
+      // Only show marker if stop has valid coordinates
+      if (stop.location.lat !== 0 && stop.location.lng !== 0) {
+        const marker = new google.maps.Marker({
+          map,
+          position: stop.location,
+          label: String(index + 1),
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 8,
+            fillColor: "#3b82f6",
+            fillOpacity: 1,
+            strokeColor: "#fff",
+            strokeWeight: 2,
+          },
+          title: `Stop ${index + 1}: ${stop.address}`,
+        });
+        stopMarkers.current.push(marker);
+      }
+    });
+
+    // Fit bounds if we have points
+    const allPoints = [
+      pickup?.location,
+      ...stops
+        .filter((s) => s.location.lat !== 0 && s.location.lng !== 0)
+        .map((s) => s.location),
+      dropoff?.location,
+    ].filter(Boolean);
+
+    if (allPoints.length >= 2 && !routePolyline.current) {
       const bounds = new google.maps.LatLngBounds();
-      bounds.extend(pickup.location);
-      bounds.extend(dropoff.location);
+      allPoints.forEach((p) => bounds.extend(p));
       map.fitBounds(bounds, 70);
     }
-  }, [pickupKey, dropoffKey, pickup, dropoff]);
+  }, [pickupKey, dropoffKey, stopsKey, pickup, dropoff, stops]);
 
   // Route compute + polyline draw
   useEffect(() => {
     const google = window.google;
 
-    // If missing either side, clear route + notify upstream
+    // If missing either endpoint, clear route
     if (!pickup || !dropoff) {
       if (routePolyline.current) {
         routePolyline.current.setMap(null);
@@ -272,6 +332,7 @@ export default function RoutePicker({
       onChange({
         pickup,
         dropoff,
+        stops,
         miles: null,
         minutes: null,
         distanceMiles: null,
@@ -289,12 +350,19 @@ export default function RoutePicker({
         setLoadingRoute(true);
         setError("");
 
+        // Build waypoints array for stops (only valid ones)
+        const validStops = stops.filter(
+          (s) => s.location.lat !== 0 && s.location.lng !== 0,
+        );
+        const waypoints = validStops.map((s) => s.location);
+
         const res = await fetch("/api/maps/route", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             origin: pickup.location,
             destination: dropoff.location,
+            waypoints: waypoints.length > 0 ? waypoints : undefined,
           }),
         });
 
@@ -310,6 +378,7 @@ export default function RoutePicker({
         onChange({
           pickup,
           dropoff,
+          stops,
           miles,
           minutes,
           distanceMiles: miles,
@@ -351,8 +420,7 @@ export default function RoutePicker({
     return () => {
       cancelled = true;
     };
-    // ✅ stable deps: only rerun when actual endpoints change
-  }, [pickupKey, dropoffKey, pickup, dropoff, onChange]);
+  }, [pickupKey, dropoffKey, stopsKey, pickup, dropoff]);
 
   const displayMiles = value?.miles ?? value?.distanceMiles ?? null;
   const displayMinutes = value?.minutes ?? value?.durationMinutes ?? null;
@@ -360,7 +428,7 @@ export default function RoutePicker({
   return (
     <div style={{ display: "grid", gap: 10 }}>
       <div className={styles.infoItemContainer}>
-        {loadingRoute && <div style={{ opacity: 0.7 }}>Calculating…</div>}
+        {loadingRoute && <div style={{ opacity: 0.7 }}>Calculating route…</div>}
         {error && <div style={{ color: "crimson", fontSize: 14 }}>{error}</div>}
       </div>
 
@@ -378,16 +446,28 @@ export default function RoutePicker({
       />
 
       <div className={styles.infoItem}>
-        <div className='emptyTitleSmall'>Distance</div>
+        <div className='emptyTitleSmall'>Total Distance</div>
         <div className='subheading'>
           {displayMiles == null ? "—" : `${displayMiles} mi`}
+          {stops.length > 0 && displayMiles != null && (
+            <span className={styles.includesStops}>
+              {" "}
+              (includes {stops.length} stop{stops.length > 1 ? "s" : ""})
+            </span>
+          )}
         </div>
       </div>
 
       <div className={styles.infoItem}>
-        <div className='emptyTitleSmall'>Duration</div>
+        <div className='emptyTitleSmall'>Est. Duration</div>
         <div className='subheading'>
           {displayMinutes == null ? "—" : `${displayMinutes} min`}
+          {stops.length > 0 && displayMinutes != null && (
+            <span className={styles.includesStops}>
+              {" "}
+              (+{stops.length * 5} min wait time)
+            </span>
+          )}
         </div>
       </div>
     </div>

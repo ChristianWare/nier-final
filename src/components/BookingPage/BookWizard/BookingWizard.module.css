@@ -78,18 +78,18 @@
 }
 
 .summaryLine {
-  font-size: 13px;
+  font-size: 14px;
   opacity: 0.8;
 }
 
 .summaryNote {
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0.7;
 }
 
 .textarea {
   padding: 0.8rem;
-  border-radius: 12px;
+  border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0.15);
   resize: vertical;
   background: white;
@@ -109,7 +109,7 @@
 
 .button {
   padding: 0.8rem 1rem;
-  border-radius: 12px;
+  border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0.15);
   background: white;
   cursor: pointer;
@@ -178,6 +178,104 @@
   animation: flightFieldsFadeIn 200ms ease-out;
 }
 
+/* Extra Stops in Wizard */
+.stopsListWizard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.stopRowWizard {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stopBadgeWizard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #3b82f6;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.removeStopBtnWizard {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  transition: all 0.15s ease;
+}
+
+.removeStopBtnWizard:hover {
+  background: #fecaca;
+}
+
+.addStopBtnWizard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.addStopBtnWizard:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+  color: #3b82f6;
+}
+
+.addStopFeeWizard {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.stopSurchargeInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  color: #92400e;
+}
+
+.stopSurchargeAmount {
+  font-weight: 600;
+  color: #b45309;
+}
+
 @keyframes flightFieldsFadeIn {
   from {
     opacity: 0;
@@ -194,7 +292,6 @@
     animation: none;
   }
 }
-
 
 @media screen and (max-width: 1068px) {
   .content {

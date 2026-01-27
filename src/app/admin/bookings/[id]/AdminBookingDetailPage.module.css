@@ -22,11 +22,6 @@
   grid-gap: 2rem;
 }
 
-.meta {
-  opacity: 0.75;
-  font-size: 13px;
-}
-
 .card {
   border: 1px solid var(--stroke);
   border-radius: 10px;
@@ -58,12 +53,12 @@
 }
 
 .key {
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0.65;
 }
 
 .val {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .muted {
@@ -82,11 +77,11 @@
 
 .paymentStatus {
   opacity: 0.8;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .checkoutUrl {
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0.75;
   word-break: break-all;
 }
@@ -108,7 +103,7 @@
   width: 100%;
   gap: 1rem;
   border-bottom: 1px solid var(--stroke);
-  padding-bottom: 0.5rem;
+  padding-bottom: 1rem;
 }
 
 .eventItem:last-child {
@@ -126,7 +121,7 @@
 }
 
 .eventRaw {
-  font-size: 12px;
+  font-size: 14px;
   opacity: 0.7;
   white-space: nowrap;
 }
@@ -173,7 +168,7 @@
 
 .dangerTop {
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .dangerCopy {
@@ -183,51 +178,52 @@
 
 .dangerActions {
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
   margin-top: 1.2rem;
 }
 
 .dangerNote {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
 
 /* Modal layout */
 .modalSubnote {
   display: inline-block;
-  margin-top: 0.6rem;
+  margin-top: 1rem;
   opacity: 0.8;
 }
 
 .confirmBlock {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
   width: 100%;
 }
 
 .confirmLabel {
   font-weight: 900;
+  letter-spacing: normal;
   opacity: 0.7;
-  letter-spacing: 0.03em;
   text-transform: uppercase;
-  font-size: 1.05rem;
+  font-size: 1.4rem;
 }
 
 .confirmInput {
   width: 100%;
   border: 1px solid var(--stroke);
   background: var(--white);
-  border-radius: 12px;
+  border-radius: 5px;
   padding: 0.85rem 1rem;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 900;
+  letter-spacing: normal;
 }
 
 .confirmCheckboxRow {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   align-items: center;
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   opacity: 0.9;
 }
 
@@ -253,7 +249,7 @@
 .quickActionsRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .quickActionsColumn {
@@ -261,7 +257,7 @@
   align-items: flex-start;
   justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .cancelActionRow {
@@ -305,7 +301,7 @@
 .noteForm {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .noteTextarea {
@@ -314,7 +310,7 @@
   background: var(--white);
   border-radius: 10px;
   padding: 0.85rem 1rem;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-family: inherit;
   resize: vertical;
   min-height: 80px;
@@ -327,7 +323,7 @@
 
 .noteFormActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .notesList {
@@ -341,7 +337,7 @@
 
 .noteItem {
   border: 1px solid var(--stroke);
-  border-radius: 10px;
+  border-radius: 5px;
   padding: 1rem;
   background: rgba(0, 0, 0, 0.02);
 }
@@ -350,33 +346,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
   gap: 1rem;
 }
 
 .noteAuthor {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
 }
 
 .noteTime {
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   opacity: 0.6;
 }
 
 .noteContent {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   line-height: 1.5;
   white-space: pre-wrap;
 }
 
 .noteDeleteBtn {
-  margin-top: 0.75rem;
+  margin-top: 1rem;
   background: none;
   border: none;
   color: #c00;
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   cursor: pointer;
   padding: 0;
   opacity: 0.7;
@@ -395,14 +392,14 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding-top: 0.5rem;
+  padding-top: 1rem;
 }
 
 .editTripForm {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding-top: 0.5rem;
+  padding-top: 1rem;
 }
 
 .editFormSection {
@@ -413,14 +410,14 @@
 
 .editFormTitle {
   font-weight: 800;
-  font-size: 1.15rem;
-  margin-bottom: 0.25rem;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
 }
 
 .editFormRow {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .editFormRowDouble {
@@ -433,7 +430,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  font-size: 1.05rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
   font-weight: 600;
   opacity: 0.8;
   margin-bottom: 1rem;
@@ -443,9 +441,9 @@
   width: 100%;
   border: 1px solid var(--stroke);
   background: var(--white);
-  border-radius: 10px;
-  padding: 0.7rem 0.9rem;
-  font-size: 1.1rem;
+  border-radius: 5px;
+  padding: 0.7rem 1rem;
+  font-size: 1.4rem;
   font-family: inherit;
 }
 
@@ -458,9 +456,9 @@
   width: 100%;
   border: 1px solid var(--stroke);
   background: var(--white);
-  border-radius: 10px;
-  padding: 0.7rem 0.9rem;
-  font-size: 1.1rem;
+  border-radius: 5px;
+  padding: 0.7rem 1rem;
+  font-size: 1.4rem;
   font-family: inherit;
   resize: vertical;
   min-height: 60px;
@@ -474,7 +472,7 @@
 .editFormActions {
   display: flex;
   gap: 0.75rem;
-  padding-top: 0.5rem;
+  padding-top: 1rem;
 }
 
 /* =============================================================================
@@ -482,7 +480,7 @@
    ============================================================================= */
 
 .flightSection {
-  padding-top: 0.5rem;
+  padding-top: 1rem;
 }
 
 .sectionDivider {
@@ -496,7 +494,7 @@
    ============================================================================= */
 
 .routeMapSection {
-  padding-top: 0.5rem;
+  padding-top: 1rem;
 }
 
 /* =============================================================================
@@ -524,7 +522,7 @@
   padding: 1rem;
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 5px;
 }
 
 .pricingItemHighlight {
@@ -533,11 +531,11 @@
 }
 
 .pricingLabel {
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: normal;
 }
 
 .pricingValue {
@@ -547,16 +545,17 @@
 }
 
 .pricingDetail {
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   color: #94a3b8;
 }
 
 .priceDiff {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   font-weight: 600;
+  letter-spacing: normal;
   margin-top: 4px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: 5px;
   display: inline-block;
   width: fit-content;
 }
@@ -588,31 +587,31 @@
 }
 
 .pricingNote {
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   color: #475569;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .pricingButtons {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .pricingOr {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   color: #94a3b8;
   font-style: italic;
 }
 
 .pricingHint {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   color: #64748b;
 }
 
 .refundNote {
-  font-size: 0.8rem;
+  font-size: 1.4rem;
   font-weight: 400;
   opacity: 0.85;
 }
@@ -673,16 +672,16 @@
   margin-top: 6px;
   border: 1px solid var(--stroke);
   padding: 1rem;
-  border-radius: 7px;
+  border-radius: 5px;
 }
 
 .paymentAmount {
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.4rem;
 }
 
 .paymentDate {
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   opacity: 0.7;
 }
 
@@ -695,8 +694,8 @@
   padding: 10px 14px;
   background: #fef3c7;
   border: 1px solid #f59e0b;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 5px;
+  font-size: 1.4rem;
   color: #92400e;
 }
 
@@ -706,8 +705,8 @@
 
 .balanceDetail {
   display: block;
-  margin-top: 4px;
-  font-size: 0.85rem;
+  margin-top: 4px;  
+  font-size: 1.4rem;
   opacity: 0.85;
 }
 
@@ -720,8 +719,8 @@
   padding: 10px 14px;
   background: #ecfdf5;
   border: 1px solid #10b981;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: 5px;
+  font-size: 1.4rem;
   color: #065f46;
 }
 
@@ -732,7 +731,7 @@
 .refundDetail {
   display: block;
   margin-top: 4px;
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   opacity: 0.85;
 }
 
@@ -745,7 +744,7 @@
   padding: 10px 14px;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 1.4rem;
   color: #991b1b;
   line-height: 1.5;
@@ -844,8 +843,104 @@
   color: var(--black);
   background: var(--cream);
   padding: 0.5rem 1rem;
-  border-radius: 6px;
+  border-radius: 5px;
   border: 1px solid var(--stroke);
+}
+
+/* ============================================
+   ADD THESE STYLES TO AdminBookingDetailPage.module.css
+   ============================================ */
+
+/* Confirmation Number Display */
+.confirmationRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--stroke);
+  margin-bottom: 1rem;
+}
+
+.confirmationValue {
+  font-family: monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--black);
+  background: var(--cream);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: 1px solid var(--stroke);
+}
+
+/* Stops Section */
+.stopsSection {
+  padding: 1rem 0;
+}
+
+.routeTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.routePoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1rem 0;
+  position: relative;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.routeMarker {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.routeAddress {
+  flex: 1;
+  min-width: 0;
+}
+
+.routeAddress .subheading {
+  word-break: break-word;
+}
+
+.stopCharges {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.stopChargeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 1.4rem;
+}
+
+.stopChargeRow:not(:last-child) {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.stopChargeAmount {
+  font-weight: 600;
+  color: #059669;
 }
 
 @media screen and (max-width: 1268px) {
@@ -879,7 +974,7 @@
   }
 
   .balanceDueAlert {
-    font-size: 0.9rem;
+    font-size: 1.4rem;
   }
 
   .pricingGrid {
@@ -896,11 +991,11 @@
   }
 
   .eventDetails {
-    font-size: 0.8rem;
+    font-size: 1.4rem;
     padding: 6px 10px;
   }
 
   .declineReasonBox {
-    font-size: 0.9rem;
+    font-size: 1.4rem;
   }
 }

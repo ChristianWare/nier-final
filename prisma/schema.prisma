@@ -356,6 +356,11 @@ model Booking {
   // ✅ NEW: Admin notes
   notes BookingNote[]
 
+  // ✅ Extra stops
+  stops              BookingStop[]
+  stopCount          Int           @default(0)
+  stopSurchargeCents Int           @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -570,4 +575,29 @@ model NotificationJob {
   dedupeKey String @unique
 
   payload Json?
+}
+
+model BookingStop {
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  stopOrder Int // 1, 2, 3... (order between pickup and dropoff)
+  address   String
+  placeId   String?
+  lat       Decimal? @db.Decimal(10, 7)
+  lng       Decimal? @db.Decimal(10, 7)
+
+  // Distance/duration FROM previous point TO this stop
+  distanceFromPrevMiles   Decimal? @db.Decimal(8, 2)
+  durationFromPrevMinutes Int?
+
+  // Estimated wait time at this stop (in minutes)
+  waitTimeMinutes Int @default(5)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([bookingId])
+  @@index([stopOrder])
 }

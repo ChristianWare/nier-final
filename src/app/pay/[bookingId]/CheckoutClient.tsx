@@ -17,6 +17,13 @@ const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
 );
 
+// ✅ Stop type
+type Stop = {
+  id: string;
+  stopOrder: number;
+  address: string;
+};
+
 type Props = {
   bookingId: string;
   serviceName: string;
@@ -24,6 +31,8 @@ type Props = {
   pickupAt: string;
   pickupAddress: string;
   dropoffAddress: string;
+  stops: Stop[];
+  stopSurchargeCents: number;
   baseFareCents: number;
   currency: string;
   customerName: string;
@@ -160,6 +169,8 @@ export default function CheckoutClient({
   pickupAt,
   pickupAddress,
   dropoffAddress,
+  stops,
+  stopSurchargeCents,
   baseFareCents,
   currency,
   customerName,
@@ -301,6 +312,31 @@ export default function CheckoutClient({
                       <span className={styles.tripValue}>{pickupAddress}</span>
                     </div>
                   </div>
+
+                  {/* ✅ Extra Stops */}
+                  {stops.length > 0 && (
+                    <div className={styles.stopsContainer}>
+                      <h2 className='cardTitle h5' style={{ marginBottom: "2rem" }}>Additional Stops</h2>
+                      {stops.map((stop) => (
+                        <div key={stop.id} className={styles.tripRow}>
+                          <span className={styles.tripIcon}>
+                            <span className={styles.stopBadge}>
+                              {stop.stopOrder}
+                            </span>
+                          </span>
+                          <div className={styles.tripInfo}>
+                            <span className={styles.tripLabel}>
+                              Stop {stop.stopOrder}
+                            </span>
+                            <span className={styles.tripValue}>
+                              {stop.address}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div className={styles.tripRow}>
                     <span className={styles.tripIcon}>🏁</span>
                     <div className={styles.tripInfo}>
@@ -308,6 +344,20 @@ export default function CheckoutClient({
                       <span className={styles.tripValue}>{dropoffAddress}</span>
                     </div>
                   </div>
+
+                  {/* ✅ Stops Surcharge Note */}
+                  {stops.length > 0 && stopSurchargeCents > 0 && (
+                    <div className={styles.stopsSurchargeNote}>
+                      <span className={styles.stopsSurchargeIcon}>🛑</span>
+                      <span>
+                        {stops.length} extra stop{stops.length > 1 ? "s" : ""}{" "}
+                        included
+                      </span>
+                      <span className={styles.stopsSurchargeAmount}>
+                        +{formatMoney(stopSurchargeCents, currency)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -395,6 +445,19 @@ export default function CheckoutClient({
                       {formatMoney(baseFareCents, currency)}
                     </span>
                   </div>
+                  {/* ✅ Show stops surcharge in breakdown if not a balance payment */}
+                  {!isBalancePayment &&
+                    stops.length > 0 &&
+                    stopSurchargeCents > 0 && (
+                      <div className={styles.priceRow}>
+                        <span className={styles.priceLabel}>
+                          Extra Stops ({stops.length})
+                        </span>
+                        <span className={styles.priceValueIncluded}>
+                          Included
+                        </span>
+                      </div>
+                    )}
                   <div className={styles.priceRow}>
                     <span className={styles.priceLabel}>Driver Tip</span>
                     <span className={styles.priceValue}>

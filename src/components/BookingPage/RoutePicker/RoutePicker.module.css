@@ -13,3 +13,115 @@
   padding: 1rem;
   border-radius: 7px;
 }
+
+/* ============================================
+   ADD THESE STYLES TO RoutePicker.module.css
+   ============================================ */
+
+/* Stops List Container */
+.stopsList {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stopsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.stopsFee {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #059669;
+  background: #d1fae5;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+/* Individual Stop Row */
+.stopRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stopNumber {
+  flex-shrink: 0;
+}
+
+.stopBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #3b82f6;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+.removeStopBtn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  transition: all 0.15s ease;
+}
+
+.removeStopBtn:hover {
+  background: #fecaca;
+}
+
+/* Add Stop Button */
+.addStopBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border: 2px dashed #cbd5e1;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.15s ease;
+}
+
+.addStopBtn:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+  color: #3b82f6;
+}
+
+.addStopFee {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+/* Distance/Duration notes */
+.includesStops {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  font-weight: 400;
+}

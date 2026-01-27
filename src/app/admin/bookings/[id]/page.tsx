@@ -136,7 +136,7 @@ function getEventActorLabel(
   return `User: ${name}`;
 }
 
-// ✅ Helper to format event details from metadata
+// Helper to format event details from metadata
 function getEventDetails(
   eventType: string,
   metadata: Record<string, any> | null,
@@ -150,7 +150,6 @@ function getEventDetails(
       const tip = metadata.tipCents
         ? formatMoney(metadata.tipCents, currency)
         : null;
-      // ✅ Show tip in event details if present
       if (tip && metadata.tipCents > 0) {
         return `Amount: ${amount} (includes ${tip} tip)`;
       }
@@ -224,7 +223,7 @@ function getEventDetails(
   }
 }
 
-// ✅ Updated payment status display with balance and refund handling
+// Updated payment status display with balance and refund handling
 function getPaymentStatusDisplay(
   paymentStatus: string | null | undefined,
   totalCents: number,
@@ -356,6 +355,10 @@ export default async function AdminBookingDetailPage({
       serviceType: true,
       vehicle: true,
       payment: true,
+      // ✅ NEW: Include stops
+      stops: {
+        orderBy: { stopOrder: "asc" },
+      },
       assignment: {
         include: {
           driver: { select: { id: true, name: true, email: true } },
@@ -460,16 +463,15 @@ export default async function AdminBookingDetailPage({
   const isPaid = booking.payment?.status === "PAID";
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
   const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
-  // ✅ Get tip amount from payment
   const tipCents = booking.payment?.tipCents ?? 0;
 
-  // ✅ Determine if booking is approved (not in PENDING_REVIEW, DRAFT, or DECLINED)
+  // Determine if booking is approved (not in PENDING_REVIEW, DRAFT, or DECLINED)
   const isApproved =
     booking.status !== "PENDING_REVIEW" &&
     booking.status !== "DRAFT" &&
     booking.status !== "DECLINED";
 
-  // ✅ Determine if booking is declined
+  // Determine if booking is declined
   const isDeclined = booking.status === "DECLINED";
 
   const mostRecentConfirmedEventId = isPaid
@@ -488,7 +490,7 @@ export default async function AdminBookingDetailPage({
     ? "good"
     : badgeTone(currentStatus);
 
-  // ✅ Updated payment status display with balance and refund handling
+  // Updated payment status display with balance and refund handling
   const paymentStatusDisplay = getPaymentStatusDisplay(
     booking.payment?.status,
     booking.totalCents,
@@ -496,7 +498,7 @@ export default async function AdminBookingDetailPage({
     amountRefundedCents,
   );
 
-  // ✅ Prepare data for EditTripDetailsClient (with route data)
+  // Prepare data for EditTripDetailsClient (with route data)
   const tripEditData = {
     pickupAt: formatDateTimeLocal(booking.pickupAt),
     pickupAddress: booking.pickupAddress,
@@ -521,7 +523,7 @@ export default async function AdminBookingDetailPage({
     flightGate: booking.flightGate,
   };
 
-  // ✅ Prepare pricing data for EditTripDetailsClient
+  // Prepare pricing data for EditTripDetailsClient
   const pricingData: PricingData | undefined =
     booking.serviceType && booking.vehicle
       ? {
@@ -546,7 +548,7 @@ export default async function AdminBookingDetailPage({
         }
       : undefined;
 
-  // ✅ Prepare notes for client
+  // Prepare notes for client
   const notesForClient = booking.notes.map((n) => ({
     id: n.id,
     content: n.content,
@@ -554,7 +556,7 @@ export default async function AdminBookingDetailPage({
     createdBy: n.createdBy,
   }));
 
-  // ✅ Check if booking has flight info
+  // Check if booking has flight info
   const hasFlightInfo =
     booking.flightAirline ||
     booking.flightNumber ||
@@ -562,12 +564,30 @@ export default async function AdminBookingDetailPage({
     booking.flightTerminal ||
     booking.flightGate;
 
-  // ✅ Check if we have route coordinates for map display
+  // Check if we have route coordinates for map display
   const hasRouteCoordinates =
     booking.pickupLat &&
     booking.pickupLng &&
     booking.dropoffLat &&
     booking.dropoffLng;
+
+  // ✅ NEW: Check if booking has stops
+  const hasStops = booking.stops && booking.stops.length > 0;
+  const stopCount = booking.stops?.length ?? 0;
+  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
+  const totalWaitTimeMinutes =
+    booking.stops?.reduce((sum, s) => sum + (s.waitTimeMinutes ?? 5), 0) ?? 0;
+
+  // ✅ NEW: Prepare stops for map display
+  const stopsForMap =
+    booking.stops
+      ?.map((s) => ({
+        lat: decimalToNumber(s.lat)!,
+        lng: decimalToNumber(s.lng)!,
+        address: s.address,
+        stopOrder: s.stopOrder,
+      }))
+      .filter((s) => s.lat && s.lng) ?? [];
 
   return (
     <section className='container'>
@@ -589,14 +609,14 @@ export default async function AdminBookingDetailPage({
               </div>
             </div>
 
-            {/* ✅ Show decline reason if applicable */}
+            {/* Show decline reason if applicable */}
             {isDeclined && booking.declineReason && (
               <div className={styles.declineReasonBox}>
                 <strong>Decline Reason:</strong> {booking.declineReason}
               </div>
             )}
 
-            {/* ✅ Updated Payment status with balance display */}
+            {/* Updated Payment status with balance display */}
             <div style={{ marginTop: 12 }}>
               <div className='emptyTitle'>Payment:</div>
               <div className={styles.paymentInfo}>
@@ -615,7 +635,7 @@ export default async function AdminBookingDetailPage({
                 )}
               </div>
 
-              {/* ✅ NEW: Show tip amount if present */}
+              {/* Show tip amount if present */}
               {tipCents > 0 && (
                 <div className={styles.tipDisplay}>
                   <span className={styles.tipIcon}>💰</span>
@@ -626,7 +646,7 @@ export default async function AdminBookingDetailPage({
                 </div>
               )}
 
-              {/* ✅ Show balance due if applicable */}
+              {/* Show balance due if applicable */}
               {paymentStatusDisplay.hasBalanceDue && (
                 <div className={styles.balanceDueAlert}>
                   <strong>Balance Due:</strong>{" "}
@@ -641,7 +661,7 @@ export default async function AdminBookingDetailPage({
                 </div>
               )}
 
-              {/* ✅ Show refund due if applicable */}
+              {/* Show refund due if applicable */}
               {paymentStatusDisplay.hasRefundDue && (
                 <div className={styles.refundDueAlert}>
                   <strong>Refund Due:</strong>{" "}
@@ -665,7 +685,7 @@ export default async function AdminBookingDetailPage({
             </div>
           </div>
 
-          {/* ✅ Approval Toggle in boxRight */}
+          {/* Approval Toggle in boxRight */}
           <div className={styles.boxRight}>
             <ApprovalToggleClient
               bookingId={booking.id}
@@ -702,7 +722,7 @@ export default async function AdminBookingDetailPage({
           k='Distance / duration'
           v={`${booking.distanceMiles ?? "—"} mi • ${
             booking.durationMinutes ?? "—"
-          } min`}
+          } min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
         />
         <KeyVal
           k='Amount due'
@@ -732,13 +752,93 @@ export default async function AdminBookingDetailPage({
         </div>
         <KeyVal k='Service' v={booking.serviceType.name} />
         <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
-        <KeyVal k='Pickup' v={booking.pickupAddress} />
-        <KeyVal k='Dropoff' v={booking.dropoffAddress} />
+
+        {/* ✅ NEW: Route Timeline with Stops */}
+        {hasStops ? (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.stopsSection}>
+              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                <span style={{ marginRight: "2rem" }}>🛑</span>Route with {stopCount} Extra Stop
+                {stopCount > 1 ? "s" : ""}
+              </div>
+              <div className={styles.routeTimeline}>
+                {/* Pickup */}
+                <div className={styles.routePoint}>
+                  <div
+                    className={styles.routeMarker}
+                    style={{ background: "#22c55e" }}
+                  >
+                    A
+                  </div>
+                  <div className={styles.routeAddress}>
+                    <div className='emptyTitle'>Pickup</div>
+                    <p className='subheading'>{booking.pickupAddress}</p>
+                  </div>
+                </div>
+
+                {/* Stops */}
+                {booking.stops.map((stop, index) => (
+                  <div key={stop.id} className={styles.routePoint}>
+                    <div
+                      className={styles.routeMarker}
+                      style={{ background: "#3b82f6" }}
+                    >
+                      {index + 1}
+                    </div>
+                    <div className={styles.routeAddress}>
+                      <div className='emptyTitle'>Stop {index + 1}</div>
+                      <p className='subheading'>{stop.address}</p>
+                      <span className='miniNote'>
+                        ~{stop.waitTimeMinutes ?? 5} min wait
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Dropoff */}
+                <div className={styles.routePoint}>
+                  <div
+                    className={styles.routeMarker}
+                    style={{ background: "#ef4444" }}
+                  >
+                    B
+                  </div>
+                  <div className={styles.routeAddress}>
+                    <div className='emptyTitle'>Dropoff</div>
+                    <p className='subheading'>{booking.dropoffAddress}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stop charges */}
+              <div className={styles.stopCharges}>
+                <div className={styles.stopChargeRow}>
+                  <span>Stop surcharge ({stopCount} × $15)</span>
+                  <span className={styles.stopChargeAmount}>
+                    {formatMoney(stopSurchargeCents, booking.currency)}
+                  </span>
+                </div>
+                <div className={styles.stopChargeRow}>
+                  <span>Total wait time</span>
+                  <span>~{totalWaitTimeMinutes} min</span>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <KeyVal k='Pickup' v={booking.pickupAddress} />
+            <KeyVal k='Dropoff' v={booking.dropoffAddress} />
+          </>
+        )}
+
         <KeyVal
           k='Passengers / luggage'
           v={`${booking.passengers} / ${booking.luggage}`}
         />
-        {/* ✅ Route Map Display */}
+
+        {/* Route Map Display */}
         {hasRouteCoordinates && (
           <>
             <div className={styles.sectionDivider} />
@@ -753,10 +853,12 @@ export default async function AdminBookingDetailPage({
                 dropoffLng={decimalToNumber(booking.dropoffLng)!}
                 pickupAddress={booking.pickupAddress}
                 dropoffAddress={booking.dropoffAddress}
+                stops={stopsForMap}
               />
             </div>
           </>
         )}
+
         {/* Flight Information */}
         {hasFlightInfo && (
           <>
@@ -793,7 +895,7 @@ export default async function AdminBookingDetailPage({
         />
       </Card>
 
-      {/* ✅ Separated Price Card */}
+      {/* Separated Price Card */}
       <Card title='Price'>
         <PriceForm
           bookingId={booking.id}
@@ -818,7 +920,6 @@ export default async function AdminBookingDetailPage({
                     {formatMoney(amountRefundedCents, booking.currency)}
                   </>
                 )}
-                {/* ✅ Show tip in payment status */}
                 {tipCents > 0 && (
                   <>, Tip: {formatMoney(tipCents, booking.currency)}</>
                 )}
@@ -827,7 +928,7 @@ export default async function AdminBookingDetailPage({
             )}
           </div>
 
-          {/* ✅ NEW: Tip breakdown in Payment card */}
+          {/* Tip breakdown in Payment card */}
           {tipCents > 0 && (
             <div className={styles.tipBreakdownCard}>
               <div className={styles.tipBreakdownHeader}>
@@ -846,7 +947,7 @@ export default async function AdminBookingDetailPage({
             </div>
           )}
 
-          {/* ✅ Send Payment Link Button - now checks isApproved */}
+          {/* Send Payment Link Button - now checks isApproved */}
           <SendPaymentLinkButton
             bookingId={booking.id}
             totalCents={booking.totalCents}
@@ -878,7 +979,7 @@ export default async function AdminBookingDetailPage({
             </div>
 
             <div style={{ marginTop: 10 }}>
-              {/* ✅ Manual payment - now checks isApproved */}
+              {/* Manual payment - now checks isApproved */}
               <AdminManualCardPaymentClient
                 bookingId={booking.id}
                 amountCents={booking.totalCents}
@@ -954,7 +1055,7 @@ export default async function AdminBookingDetailPage({
                     )}
                   />
                 ) : null}
-                {/* ✅ NEW: Show tip for driver in assignment section */}
+                {/* Show tip for driver in assignment section */}
                 {tipCents > 0 && (
                   <KeyVal
                     k='Customer tip'
@@ -967,14 +1068,14 @@ export default async function AdminBookingDetailPage({
         )}
       </Card>
 
-      {/* ✅ ENHANCED: Activity Timeline with event types and metadata */}
+      {/* Activity Timeline with event types and metadata */}
       <Card title='Activity Timeline'>
         {booking.statusEvents.length === 0 ? (
           <div className={styles.muted}>No activity yet.</div>
         ) : (
           <ul className={styles.eventsList}>
             {booking.statusEvents.map((e) => {
-              // ✅ Extract eventType and metadata from the event
+              // Extract eventType and metadata from the event
               const eventType = (e as any).eventType ?? "STATUS_CHANGE";
               const metadata = (e as any).metadata as Record<
                 string,
@@ -993,7 +1094,7 @@ export default async function AdminBookingDetailPage({
                 ? "Payment received"
                 : statusLabel(e.status as BookingStatus);
 
-              // ✅ Override label and tone for specific event types
+              // Override label and tone for specific event types
               if (eventType === "PAYMENT_RECEIVED") {
                 tone = "good";
                 const method = metadata?.method;
@@ -1035,7 +1136,7 @@ export default async function AdminBookingDetailPage({
 
               const actorLabel = getEventActorLabel(e.createdBy, e.status);
 
-              // ✅ Build event details based on metadata
+              // Build event details based on metadata
               const eventDetails = getEventDetails(
                 eventType,
                 metadata,
@@ -1047,7 +1148,7 @@ export default async function AdminBookingDetailPage({
                   <div className={styles.eventLeft}>
                     <span className={`badge badge_${tone}`}>{label}</span>
                     <span className={styles.eventActor}>{actorLabel}</span>
-                    {/* ✅ Show event details if available */}
+                    {/* Show event details if available */}
                     {eventDetails && (
                       <div className={`${styles.eventDetails} miniNote`}>
                         {eventDetails}
