@@ -23,6 +23,9 @@ import AdminUpcomingRides, {
   UpcomingRideItem,
 } from "@/components/admin/Adminupcomingrides/Adminupcomingrides";
 import AdminFinanceSnapshot from "@/components/admin/AdminFinanceSnapshot/AdminFinanceSnapshot";
+import AdminPaymentsSnapshot, {
+  PaymentItem,
+} from "@/components/admin/AdminPaymentsSnapshot/AdminPaymentsSnapshot";
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
@@ -40,6 +43,23 @@ function startOfDayPhoenix(dateUtc: Date) {
   const y = phx.getUTCFullYear();
   const m = phx.getUTCMonth();
   const d = phx.getUTCDate();
+
+  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
+  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
+
+  return new Date(startUtcMs);
+}
+
+function startOfWeekPhoenix(dateUtc: Date) {
+  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+
+  const dayOfWeek = phx.getUTCDay(); // 0 = Sunday
+  const daysToSubtract = dayOfWeek; // Go back to Sunday
+
+  const y = phx.getUTCFullYear();
+  const m = phx.getUTCMonth();
+  const d = phx.getUTCDate() - daysToSubtract;
 
   const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
   const startUtcMs = startLocalMs - PHX_OFFSET_MS;
@@ -106,8 +126,6 @@ function statusLabel(status: string) {
 
 /**
  * Finance helpers
- * - Tries to use `amountCents` (common) via aggregate.
- * - If your schema uses a different field, update the _sum/_avg keys below.
  */
 async function safeCapturedAgg({
   from,
@@ -130,7 +148,6 @@ async function safeCapturedAgg({
 
     return { sumCents, count, avgCents };
   } catch {
-    // Fallback (works even if aggregate fields differ): fetch rows & sum a few common keys.
     const rows = await db.payment.findMany({
       where: { paidAt: { gte: from, lt: to } },
     });
@@ -152,14 +169,6 @@ async function safeCapturedAgg({
   }
 }
 
-/**
- * Refunds are optional (depending on your schema).
- * If you don't track refunds yet, this safely returns 0s.
- *
- * Update these fields to match your schema if/when you add refunds:
- * - refundedAt
- * - refundedCents (or refundCents / refundAmountCents)
- */
 async function safeRefundAgg({
   from,
   to,
@@ -185,12 +194,6 @@ async function safeRefundAgg({
   }
 }
 
-/**
- * Pending payment estimate:
- * - looks for unpaid Payment rows tied to PENDING_PAYMENT bookings
- * - requires Payment.booking relation (you already use it in selects)
- * - requires an amount field (typically amountCents)
- */
 async function safePendingPaymentEstimate(): Promise<{
   sumCents: number;
 }> {
@@ -206,7 +209,6 @@ async function safePendingPaymentEstimate(): Promise<{
 
     return { sumCents: Number(agg?._sum?.amountCents ?? 0) };
   } catch {
-    // Fallback: fetch and sum common amount keys
     const rows = await (db.payment as any).findMany({
       where: {
         paidAt: null,
@@ -229,12 +231,35 @@ async function safePendingPaymentEstimate(): Promise<{
   }
 }
 
+// ✅ Transform payment data helper
+function transformPayment(p: any, isLink = false): PaymentItem {
+  const customerName =
+    p.booking?.user?.name?.trim() || p.booking?.guestName?.trim() || "Customer";
+  const customerEmail = p.booking?.user?.email || p.booking?.guestEmail || null;
+
+  return {
+    id: p.id,
+    bookingId: p.booking?.id ?? "",
+    paidAt: isLink ? p.createdAt : p.paidAt,
+    amountCents: p.amountPaidCents ?? p.amountTotalCents ?? p.amountCents ?? 0,
+    tipCents: p.tipCents ?? 0,
+    currency: p.currency ?? "usd",
+    status: p.paidAt ? "PAID" : "PENDING",
+    customerName,
+    customerEmail,
+    pickupAddress: p.booking?.pickupAddress ?? "",
+    dropoffAddress: p.booking?.dropoffAddress ?? "",
+    serviceName: p.booking?.serviceType?.name ?? "—",
+  };
+}
+
 export default async function AdminHome() {
   const now = new Date();
 
   const todayStart = startOfDayPhoenix(now);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
   const dayAfterStart = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000);
+  const weekStart = startOfWeekPhoenix(now);
 
   const next3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
   const next12h = new Date(now.getTime() + 12 * 60 * 60 * 1000);
@@ -290,6 +315,12 @@ export default async function AdminHome() {
 
     newVerifiedUsersCount,
     latestVerifiedUser,
+
+    // ✅ New payment queries
+    paymentsReceivedTodayRaw,
+    paymentsReceivedWeekRaw,
+    paymentLinksTodayRaw,
+    paymentLinksWeekRaw,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -503,7 +534,7 @@ export default async function AdminHome() {
       },
     }),
 
-    // Upcoming rides - CONFIRMED bookings with pickup in the future, ordered by soonest first
+    // Upcoming rides - CONFIRMED bookings with pickup in the future
     db.booking.findMany({
       where: {
         status: "CONFIRMED",
@@ -616,6 +647,120 @@ export default async function AdminHome() {
       orderBy: [{ emailVerified: "desc" }],
       select: { name: true, email: true, emailVerified: true },
     }),
+
+    // ✅ Payments received today
+    db.payment.findMany({
+      where: {
+        paidAt: { gte: todayStart, lt: tomorrowStart },
+      },
+      orderBy: [{ paidAt: "desc" }],
+      take: 20,
+      select: {
+        id: true,
+        paidAt: true,
+        amountPaidCents: true,
+        amountTotalCents: true,
+        tipCents: true,
+        currency: true,
+        booking: {
+          select: {
+            id: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            user: { select: { name: true, email: true } },
+            guestName: true,
+            guestEmail: true,
+            serviceType: { select: { name: true } },
+          },
+        },
+      },
+    }),
+
+    // ✅ Payments received this week
+    db.payment.findMany({
+      where: {
+        paidAt: { gte: weekStart, lt: tomorrowStart },
+      },
+      orderBy: [{ paidAt: "desc" }],
+      take: 50,
+      select: {
+        id: true,
+        paidAt: true,
+        amountPaidCents: true,
+        amountTotalCents: true,
+        tipCents: true,
+        currency: true,
+        booking: {
+          select: {
+            id: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            user: { select: { name: true, email: true } },
+            guestName: true,
+            guestEmail: true,
+            serviceType: { select: { name: true } },
+          },
+        },
+      },
+    }),
+
+    // ✅ Payment links sent today (pending payments)
+    db.payment.findMany({
+      where: {
+        createdAt: { gte: todayStart, lt: tomorrowStart },
+        stripeCheckoutSessionId: { not: null },
+        paidAt: null,
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 20,
+      select: {
+        id: true,
+        createdAt: true,
+        amountTotalCents: true,
+        tipCents: true,
+        currency: true,
+        booking: {
+          select: {
+            id: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            user: { select: { name: true, email: true } },
+            guestName: true,
+            guestEmail: true,
+            serviceType: { select: { name: true } },
+          },
+        },
+      },
+    }),
+
+    // ✅ Payment links sent this week
+    db.payment.findMany({
+      where: {
+        createdAt: { gte: weekStart, lt: tomorrowStart },
+        stripeCheckoutSessionId: { not: null },
+        paidAt: null,
+      },
+      orderBy: [{ createdAt: "desc" }],
+      take: 50,
+      select: {
+        id: true,
+        createdAt: true,
+        amountTotalCents: true,
+        tipCents: true,
+        currency: true,
+        booking: {
+          select: {
+            id: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            user: { select: { name: true, email: true } },
+            guestName: true,
+            guestEmail: true,
+            serviceType: { select: { name: true } },
+          },
+        },
+      },
+    }),
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
@@ -716,6 +861,20 @@ export default async function AdminHome() {
       },
     };
   });
+
+  // ✅ Transform payment data
+  const paymentsToday: PaymentItem[] = (paymentsReceivedTodayRaw as any[]).map(
+    (p) => transformPayment(p),
+  );
+  const paymentsThisWeek: PaymentItem[] = (
+    paymentsReceivedWeekRaw as any[]
+  ).map((p) => transformPayment(p));
+  const paymentLinksToday: PaymentItem[] = (paymentLinksTodayRaw as any[]).map(
+    (p) => transformPayment(p, true),
+  );
+  const paymentLinksThisWeek: PaymentItem[] = (
+    paymentLinksWeekRaw as any[]
+  ).map((p) => transformPayment(p, true));
 
   const assignedActiveUnitIdsToday = new Set(
     (assignedActiveUnitsToday as any[]).map((u) => u.id),
@@ -889,6 +1048,16 @@ export default async function AdminHome() {
       <AdminFinanceSnapshot {...snap} currency='USD' />
 
       <AdminAlerts alerts={alerts} />
+
+      {/* ✅ New Payments Snapshot - placed under alerts */}
+      <AdminPaymentsSnapshot
+        paymentsToday={paymentsToday}
+        paymentsThisWeek={paymentsThisWeek}
+        paymentLinksToday={paymentLinksToday}
+        paymentLinksThisWeek={paymentLinksThisWeek}
+        timeZone={PHX_TZ}
+        bookingHrefBase='/admin/bookings'
+      />
 
       <AdminRecentBookingRequests
         items={recentBookingRequests}
