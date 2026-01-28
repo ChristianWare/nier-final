@@ -395,71 +395,381 @@
   cursor: not-allowed;
 }
 
-/* Mobile Responsive */
-@media (max-width: 640px) {
+/* ============================================
+   MOBILE STACKED STEPS
+   Hidden on desktop, shown on mobile
+   ============================================ */
+.mobileSteps {
+  display: none;
+}
+
+.mobileSecondaryActions {
+  display: none;
+}
+
+/* ============================================
+   MOBILE RESPONSIVE (640px and below)
+   Stacked rectangular step buttons
+   ============================================ */
+@media screen and (max-width: 640px) {
   .container {
     padding: 16px;
+    border-radius: 16px;
   }
 
+  /* Hide desktop horizontal stepper */
   .stepper {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 8px;
-    margin-bottom: 24px;
+    display: none;
   }
 
-  .step {
-    min-width: 50px;
-  }
-
-  .stepCircle {
-    width: 32px;
-    height: 32px;
-    font-size: 12px;
-  }
-
-  .stepLabel {
-    font-size: 10px;
-  }
-
-  .connector {
-    min-width: 20px;
-    margin: 16px 4px 0;
-  }
-
+  /* Hide desktop current status card */
   .currentStatusCard {
-    padding: 16px;
+    display: none;
   }
 
-  .currentStatusLabel {
+  /* Hide desktop secondary actions */
+  .secondaryActions {
+    display: none;
+  }
+
+  /* Show mobile stacked steps */
+  .mobileSteps {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Individual step - stacked rectangle */
+  .mobileStep {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 16px;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 14px;
+    transition: all 0.2s ease;
+  }
+
+  /* Completed step */
+  .mobileStep.mobileStepCompleted {
+    background: #f0fdf4;
+    border-color: #86efac;
+  }
+
+  /* Current step - highlighted */
+  .mobileStep.mobileStepCurrent {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    border-width: 3px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  }
+
+  /* Upcoming step - dimmed */
+  .mobileStep.mobileStepUpcoming {
+    background: #fafafa;
+    border-color: #e5e7eb;
+    opacity: 0.5;
+  }
+
+  /* No-show step */
+  .mobileStep.mobileStepNoShow {
+    background: #fef2f2;
+    border-color: #fecaca;
+  }
+
+  /* Step number circle */
+  .mobileStepNumber {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+    background: #e5e7eb;
+    color: #6b7280;
+  }
+
+  .mobileStepCompleted .mobileStepNumber {
+    background: #22c55e;
+    color: white;
+  }
+
+  .mobileStepCurrent .mobileStepNumber {
+    background: #3b82f6;
+    color: white;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+  }
+
+  .mobileStepUpcoming .mobileStepNumber {
+    background: #d1d5db;
+    color: #9ca3af;
+  }
+
+  .mobileStepNoShow .mobileStepNumber {
+    background: #ef4444;
+    color: white;
+  }
+
+  /* Step content */
+  .mobileStepContent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mobileStepLabel {
+    font-size: 18px;
+    font-weight: 700;
+    color: #374151;
+  }
+
+  .mobileStepCompleted .mobileStepLabel {
+    color: #166534;
+  }
+
+  .mobileStepCurrent .mobileStepLabel {
+    color: #1d4ed8;
+  }
+
+  .mobileStepUpcoming .mobileStepLabel {
+    color: #9ca3af;
+  }
+
+  .mobileStepNoShow .mobileStepLabel {
+    color: #991b1b;
+  }
+
+  .mobileStepStatus {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b7280;
+  }
+
+  .mobileStepCompleted .mobileStepStatus {
+    color: #22c55e;
+  }
+
+  .mobileStepCurrent .mobileStepStatus {
+    color: #3b82f6;
+  }
+
+  /* Icon on right side */
+  .mobileStepIcon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  /* Action button inside current step */
+  .mobileStepAction {
+    width: 100%;
+    margin-top: 14px;
+    padding: 18px 24px;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 60px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+  }
+
+  .mobileStepAction:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.45);
+  }
+
+  .mobileStepAction:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .mobileStepAction:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Mobile secondary actions */
+  .mobileSecondaryActions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .mobileSecondaryActions .goBackButton,
+  .mobileSecondaryActions .noShowButton {
+    flex: 1;
+    padding: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 12px;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobileSecondaryActions .noShowButton {
+    background: #fef2f2;
+  }
+
+  /* Completed Banner - Mobile */
+  .completedBanner {
+    padding: 24px 16px;
+    border-radius: 14px;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 0;
+  }
+
+  .completedIcon {
+    font-size: 48px;
+  }
+
+  .completedText {
+    font-size: 22px;
+    text-align: center;
+  }
+
+  /* Future Trip Banner - Mobile */
+  .futureTripBanner {
+    flex-direction: column;
+    text-align: center;
+    padding: 24px 16px;
+    gap: 12px;
+    border-radius: 14px;
+    margin-top: 16px;
+  }
+
+  .futureIcon {
+    font-size: 48px;
+  }
+
+  .futureText {
+    align-items: center;
+  }
+
+  .futureText strong {
+    font-size: 18px;
+  }
+
+  .futureText p {
+    font-size: 15px;
+  }
+
+  /* Status Banner - Mobile */
+  .statusBanner {
+    flex-direction: column;
+    padding: 24px 16px;
+    gap: 10px;
+    border-radius: 14px;
+  }
+
+  .statusIcon {
+    font-size: 40px;
+  }
+
+  .statusText {
     font-size: 20px;
   }
 
-  .advanceButton {
-    padding: 14px 24px;
-    font-size: 16px;
+  .waitingMessage {
+    font-size: 15px;
   }
 
-  .secondaryActions {
-    flex-direction: column;
-  }
-
-  .goBackButton,
-  .noShowButton {
-    width: 100%;
+  /* Modal - Slide up sheet on mobile */
+  .modalOverlay {
+    padding: 0;
+    align-items: flex-end;
   }
 
   .modal {
-    padding: 20px;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 32px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .modalTitle {
+    font-size: 22px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .modalDescription {
+    font-size: 15px;
+    text-align: center;
+  }
+
+  .reasonInput {
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 12px;
+    min-height: 100px;
   }
 
   .modalActions {
     flex-direction: column-reverse;
+    gap: 10px;
   }
 
   .cancelButton,
   .confirmButton,
   .noShowConfirmButton {
+    width: 100%;
+    padding: 18px;
+    font-size: 17px;
+    border-radius: 12px;
+    min-height: 58px;
+  }
+}
+
+/* Extra small screens (380px and below) */
+@media screen and (max-width: 380px) {
+  .mobileStep {
+    padding: 14px 12px;
+    gap: 12px;
+  }
+
+  .mobileStepNumber {
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+  }
+
+  .mobileStepLabel {
+    font-size: 16px;
+  }
+
+  .mobileStepStatus {
+    font-size: 13px;
+  }
+
+  .mobileStepIcon {
+    font-size: 24px;
+  }
+
+  .mobileStepAction {
+    padding: 16px 20px;
+    font-size: 16px;
+    min-height: 54px;
+  }
+
+  .mobileSecondaryActions {
+    flex-direction: column;
+  }
+
+  .mobileSecondaryActions .goBackButton,
+  .mobileSecondaryActions .noShowButton {
     width: 100%;
   }
 }

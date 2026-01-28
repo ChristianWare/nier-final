@@ -205,7 +205,7 @@ export default async function DriverTripDetailPage({
         <Link href='/driver-dashboard' className={styles.backLink}>
           ← Back to Dashboard
         </Link>
-        <h1 className={styles.title}>Trip Details</h1>
+        <h1 className='cardTitle h5'>Trip Details</h1>
       </header>
 
       {/* Status Stepper */}
@@ -262,7 +262,7 @@ export default async function DriverTripDetailPage({
 
       {/* Customer Contact */}
       <div className={styles.card}>
-        <h2 className={styles.sectionTitle}>👤 Customer</h2>
+        <h2 className='cardTitle h4'>Customer Details</h2>
         <div className={styles.customerInfo}>
           <div className={styles.customerName}>{customerName}</div>
           {customerPhone && (
@@ -336,7 +336,7 @@ export default async function DriverTripDetailPage({
 
       {/* Trip Info */}
       <div className={styles.card}>
-        <h2 className={styles.sectionTitle}>ℹ️ Trip Info</h2>
+        <h2 className='cardTitle h4'>Trip Info</h2>
         <div className={styles.infoGrid}>
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Date & Time</span>
@@ -375,9 +375,7 @@ export default async function DriverTripDetailPage({
         {/* Special Requests */}
         {booking.specialRequests && (
           <div className={styles.specialRequests}>
-            <div className={styles.specialRequestsLabel}>
-              ⚠️ Special Requests
-            </div>
+            <h2 className='cardTitle h4'>⚠️ Special Requests</h2>
             <div className={styles.specialRequestsText}>
               {booking.specialRequests}
             </div>
@@ -387,7 +385,7 @@ export default async function DriverTripDetailPage({
         {/* Flight Info */}
         {(booking.flightAirline || booking.flightNumber) && (
           <div className={styles.flightInfo}>
-            <div className={styles.flightInfoLabel}>✈️ Flight Info</div>
+            <h2 className='cardTitle h4'>✈️ Flight Info</h2>
             <div className={styles.flightInfoContent}>
               {booking.flightAirline && <span>{booking.flightAirline}</span>}
               {booking.flightNumber && (
@@ -405,7 +403,7 @@ export default async function DriverTripDetailPage({
       {/* Earnings */}
       {driverPaymentCents !== null && (
         <div className={styles.card}>
-          <h2 className={styles.sectionTitle}>💰 Your Earnings</h2>
+          <h2 className='cardTitle h4'>Your Earnings</h2>
           <div className={styles.earningsDisplay}>
             <div className={styles.earningsMain}>
               <span className={styles.earningsLabel}>Trip Payment</span>

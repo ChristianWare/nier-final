@@ -1,8 +1,5 @@
 .container {
-  max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
-  padding-bottom: 100px;
 }
 
 /* Header */
@@ -23,12 +20,13 @@
   color: #3b82f6;
 }
 
-.title {
+/* .title {
   font-size: 28px;
   font-weight: 700;
+letter-spacing: normal;
   color: #111827;
   margin: 0;
-}
+} */
 
 /* Stepper Section */
 .stepperSection {
@@ -72,15 +70,19 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 1rem;
   padding: 12px 8px;
   background: white;
   color: #111827;
-  border-radius: 10px;
+  border-radius: 5px;
   text-decoration: none;
-  font-size: 12px;
-  font-weight: 600;
-  transition: transform 0.2s, box-shadow 0.2s;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: normal;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .navButton:hover {
@@ -104,6 +106,7 @@
 .sectionTitle {
   font-size: 18px;
   font-weight: 700;
+  letter-spacing: normal;
   color: #111827;
   margin: 0 0 16px;
 }
@@ -111,11 +114,14 @@
 /* Customer Info */
 .customerInfo {
   text-align: center;
+  margin-top: 2rem;
 }
 
 .customerName {
   font-size: 22px;
   font-weight: 700;
+  letter-spacing: normal;
+  letter-spacing: normal;
   color: #111827;
   margin-bottom: 16px;
 }
@@ -138,7 +144,9 @@
   text-decoration: none;
   font-size: 16px;
   font-weight: 600;
-  transition: background 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
 }
 
 .contactButton:hover {
@@ -191,6 +199,8 @@
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  letter-spacing: normal;
+  letter-spacing: normal;
   font-size: 14px;
   color: white;
   flex-shrink: 0;
@@ -245,6 +255,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+  margin-top: 2rem;
 }
 
 .infoItem {
@@ -278,6 +289,7 @@
 .specialRequestsLabel {
   font-size: 14px;
   font-weight: 700;
+  letter-spacing: normal;
   color: #92400e;
   margin-bottom: 8px;
 }
@@ -300,6 +312,7 @@
 .flightInfoLabel {
   font-size: 14px;
   font-weight: 700;
+  letter-spacing: normal;
   color: #1e40af;
   margin-bottom: 8px;
 }
@@ -317,6 +330,7 @@
   background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
   border-radius: 12px;
   padding: 20px;
+  margin-top: 2rem;
 }
 
 .earningsMain,
@@ -338,6 +352,7 @@
 .earningsAmount {
   font-size: 24px;
   font-weight: 700;
+  letter-spacing: normal;
   color: #166534;
 }
 
@@ -369,13 +384,13 @@
 }
 
 /* Mobile Responsive */
-@media (max-width: 480px) {
-  .container {
-    padding: 16px;
-  }
-
+@media (max-width: 568px) {
   .title {
     font-size: 24px;
+  }
+
+  .card {
+    padding: 0rem;
   }
 
   .navButtons {
