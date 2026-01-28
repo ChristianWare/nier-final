@@ -1,0 +1,184 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Current Photo */
+.currentPhoto {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.currentImageWrap {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--stroke);
+}
+
+.currentImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Dropzone */
+.dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 2rem;
+  border: 2px dashed var(--stroke);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropzone:hover {
+  border-color: var(--black);
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.dropzoneActive {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.dropzoneContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.dropzoneIcon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.dropzoneText {
+  font-size: 1.4rem;
+  letter-spacing: normal;
+  color: var(--paragraph);
+}
+
+.dropzoneLink {
+  color: #3b82f6;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Crop Section */
+.cropSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.cropContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 100%;
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 1rem;
+  border: 1px solid var(--stroke);
+}
+
+.reactCrop {
+  max-height: 400px;
+}
+
+.cropImage {
+  max-width: 100%;
+  max-height: 350px;
+  display: block;
+}
+
+.cropActions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.changeImageBtn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.changeImageBtn:hover {
+  background: var(--lightGray);
+  border-color: var(--black);
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+}
+
+/* React Image Crop overrides */
+:global(.ReactCrop__crop-selection) {
+  border-radius: 50%;
+}
+
+/* Responsive */
+@media (max-width: 568px) {
+  .container {
+    gap: 1.25rem;
+  }
+
+  .dropzone {
+    padding: 2rem 1.5rem;
+  }
+
+  .dropzoneIcon {
+    font-size: 2rem;
+  }
+
+  .cropContainer {
+    padding: 0.75rem;
+  }
+
+  .reactCrop {
+    max-height: 300px;
+  }
+
+  .cropImage {
+    max-height: 260px;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions > * {
+    width: 100%;
+  }
+}

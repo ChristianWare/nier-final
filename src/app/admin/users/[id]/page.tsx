@@ -2,7 +2,6 @@
 import styles from "./UserDetailPage.module.css";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
@@ -10,6 +9,7 @@ import RoleCheckboxForm from "@/components/admin/RoleCheckboxForm/RoleCheckboxFo
 import UserEarningsChart from "./Userearningschart";
 import UserEarningsControls from "./Userearningscontrols";
 import DeleteUserDangerZoneClient from "./DeleteUserDangerZoneClient";
+import AdminPhotoUpload from "@/components/admin/Adminphotoupload/Adminphotoupload";
 import DefaultProfileImg from "../../../../../public/images/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 
@@ -535,26 +535,13 @@ export default async function UserDetailPage({
         <div className={styles.headerTop}>
           <div className={styles.top}>
             <div className={styles.profileSection}>
-              <div className={styles.profileImageWrap}>
-                {profileImage ? (
-                  <Image
-                    src={profileImage}
-                    alt={user.name || "User"}
-                    width={80}
-                    height={80}
-                    className={styles.profileImage}
-                  />
-                ) : (
-                  <Image
-                    src={DefaultProfileImg}
-                    alt={user.name || "User"}
-                    width={80}
-                    height={80}
-                    className={styles.profileImage}
-                    placeholder='blur'
-                  />
-                )}
-              </div>
+              {/* Profile Photo with Admin Upload Button */}
+              <AdminPhotoUpload
+                userId={user.id}
+                currentImage={profileImage}
+                userName={user.name}
+                defaultImage={DefaultProfileImg}
+              />
               <div className={styles.profileInfo}>
                 <h1 className={`${styles.heading} h2`}>
                   {user.name || "Unnamed User"}
