@@ -202,7 +202,7 @@ export default function DriverNextTrip({ trip, timeZone }: Props) {
           )}
         </div>
 
-        <div className={styles.tripAction}>View Details →</div>
+        <div className='primaryBtn'>View Details →</div>
       </Link>
     </section>
   );
