@@ -2,407 +2,1019 @@
 import styles from "./DriverTripsPage.module.css";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "../../../../auth";
 import { db } from "@/lib/db";
-import { BookingStatus } from "@prisma/client";
-import Button from "@/components/shared/Button/Button";
+import { Prisma, BookingStatus } from "@prisma/client";
+import { auth } from "../../../../auth";
+import DriverSearchFormClient from "@/app/driver-dashboard/trips/DriverSearchFormClient";
+import DriverClearFiltersButton from "@/app/driver-dashboard/trips/Driverclearfiltersbutton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type AppRole = "USER" | "ADMIN" | "DRIVER";
-type Tab = "today" | "upcoming" | "completed" | "attention";
+// Driver-relevant statuses
+const STATUSES = [
+  "ALL",
+  "ASSIGNED",
+  "EN_ROUTE",
+  "ARRIVED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "NO_SHOW",
+  "CANCELLED",
+] as const;
 
-const TERMINAL: BookingStatus[] = [
-  BookingStatus.COMPLETED,
-  BookingStatus.CANCELLED,
-  BookingStatus.REFUNDED,
-  BookingStatus.PARTIALLY_REFUNDED,
-  BookingStatus.NO_SHOW,
-];
+const RANGES = ["upcoming", "today", "next7", "month", "past"] as const;
 
-function startOfDay(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
-}
-function endOfDay(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
-}
-function addDays(d: Date, days: number) {
-  const x = new Date(d);
-  x.setDate(x.getDate() + days);
-  return x;
-}
+const SORT_COLUMNS = [
+  "pickup",
+  "status",
+  "customer",
+  "service",
+  "earnings",
+] as const;
+const SORT_ORDERS = ["asc", "desc"] as const;
 
-function normalizeRoles(roles: any): AppRole[] {
-  return Array.isArray(roles) && roles.length > 0 ? (roles as AppRole[]) : [];
-}
+type StatusFilter = (typeof STATUSES)[number];
+type RangeFilter = (typeof RANGES)[number];
+type SortColumn = (typeof SORT_COLUMNS)[number];
+type SortOrder = (typeof SORT_ORDERS)[number];
 
-async function resolveViewer(
-  session: any
-): Promise<{ userId: string; roles: AppRole[] }> {
-  const userId =
-    (session?.user?.id as string | undefined) ??
-    (session?.user?.userId as string | undefined);
+type SearchParams = {
+  status?: StatusFilter;
+  range?: RangeFilter;
+  q?: string;
+  sort?: SortColumn;
+  order?: SortOrder;
+  page?: string;
+};
 
-  const roles = normalizeRoles(session?.user?.roles);
+type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-  if (userId) {
-    if (roles.length) return { userId, roles };
+const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
+const PAGE_SIZE = 10;
 
-    const u = await db.user.findUnique({
-      where: { id: userId },
-      select: { id: true, roles: true },
-    });
-
-    if (u?.id) return { userId: u.id, roles: normalizeRoles(u.roles) };
-  }
-
-  const email = session?.user?.email ?? null;
-  if (!email) throw new Error("Missing identity");
-
-  const u = await db.user.findUnique({
-    where: { email },
-    select: { id: true, roles: true },
-  });
-
-  if (!u?.id) throw new Error("User not found");
-  return { userId: u.id, roles: normalizeRoles(u.roles) };
+// Phoenix timezone helpers
+function toPhoenixParts(dateUtc: Date) {
+  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
 }
 
-function formatDateTime(d: Date) {
+function startOfDayPhoenix(dateUtc: Date) {
+  const { y, m, d } = toPhoenixParts(dateUtc);
+  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
+  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
+  return new Date(startUtcMs);
+}
+
+function startOfMonthPhoenix(dateUtc: Date) {
+  const { y, m } = toPhoenixParts(dateUtc);
+  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
+  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
+  return new Date(startUtcMs);
+}
+
+function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
+  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+  const y = phx.getUTCFullYear();
+  const m = phx.getUTCMonth();
+  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
+  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
+  return new Date(nextStartUtcMs);
+}
+
+function formatPhoenix(d: Date) {
   return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
+    timeZone: "America/Phoenix",
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  }).format(d);
+}
+
+function formatPhoenixTime(d: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Phoenix",
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
   }).format(d);
+}
+
+function formatMoneyFromCents(cents: number | null | undefined) {
+  if (cents == null) return "—";
+  const dollars = cents / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(dollars);
+}
+
+function formatEta(at: Date, now: Date) {
+  const diffMs = at.getTime() - now.getTime();
+  const absMs = Math.abs(diffMs);
+
+  const mins = Math.round(absMs / (60 * 1000));
+  const hours = Math.round(absMs / (60 * 60 * 1000));
+  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
+
+  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
+
+  if (diffMs >= 0) return `in ${label}`;
+  return `${label} ago`;
+}
+
+function getConfirmationCode(bookingId: string): string {
+  return bookingId.slice(0, 8).toUpperCase();
+}
+
+function buildHref(
+  base: string,
+  params: Record<string, string | undefined | null>,
+) {
+  const usp = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (!v) continue;
+    const s = String(v).trim();
+    if (!s) continue;
+    usp.set(k, s);
+  }
+  const qs = usp.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+
+function clampPage(raw: string | undefined) {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 1) return 1;
+  return Math.floor(n);
 }
 
 function statusLabel(status: BookingStatus) {
   switch (status) {
-    case "PENDING_REVIEW":
-      return "Pending review";
-    case "PENDING_PAYMENT":
-      return "Payment due";
+    case "ASSIGNED":
+      return "Assigned";
     case "CONFIRMED":
       return "Confirmed";
-    case "ASSIGNED":
-      return "Driver assigned";
     case "EN_ROUTE":
-      return "Driver en route";
+      return "En Route";
     case "ARRIVED":
-      return "Driver arrived";
+      return "Arrived";
     case "IN_PROGRESS":
-      return "In progress";
+      return "In Progress";
     case "COMPLETED":
       return "Completed";
     case "CANCELLED":
       return "Cancelled";
     case "NO_SHOW":
-      return "No-show";
-    case "REFUNDED":
-      return "Refunded";
-    case "PARTIALLY_REFUNDED":
-      return "Partially refunded";
-    case "DRAFT":
-      return "Draft";
+      return "No-Show";
     default:
-      return status;
+      return String(status).replaceAll("_", " ");
   }
 }
 
-function badgeTone(status: BookingStatus) {
-  if (status === "PENDING_PAYMENT") return "warn";
-  if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
-  if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
+function statusTabLabel(status: StatusFilter): string {
+  switch (status) {
+    case "ALL":
+      return "All";
+    case "ASSIGNED":
+      return "Assigned";
+    case "EN_ROUTE":
+      return "En Route";
+    case "ARRIVED":
+      return "Arrived";
+    case "IN_PROGRESS":
+      return "In Progress";
+    case "COMPLETED":
+      return "Completed";
+    case "CANCELLED":
+      return "Cancelled";
+    case "NO_SHOW":
+      return "No-Show";
+    default:
+      return String(status).replaceAll("_", " ");
+  }
+}
+
+function badgeTone(status: BookingStatus): BadgeTone {
+  if (status === "ASSIGNED" || status === "CONFIRMED") return "good";
   if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
     return "accent";
-  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
   if (status === "COMPLETED") return "good";
+  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
   return "neutral";
 }
 
-function tripTypeLabel(service: { slug: string; pricingStrategy: string }) {
-  const slug = (service.slug || "").toLowerCase();
-  if (slug.includes("airport")) return "Airport";
-  if (slug.includes("event")) return "Event";
-  if (service.pricingStrategy === "HOURLY") return "Hourly";
-  return "Point-to-point";
+async function resolveSessionUserId(session: any) {
+  const direct =
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined);
+
+  if (direct) return direct;
+
+  const email = session?.user?.email ?? null;
+  if (!email) return null;
+
+  const u = await db.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  return u?.id ?? null;
 }
 
-function isTab(x: any): x is Tab {
-  return (
-    x === "today" || x === "upcoming" || x === "completed" || x === "attention"
-  );
+function safeStatus(v: any): StatusFilter {
+  return STATUSES.includes(v) ? v : "ALL";
+}
+
+function safeRange(v: any): RangeFilter {
+  return RANGES.includes(v) ? v : "upcoming";
+}
+
+function safeSort(v: any): SortColumn | undefined {
+  return SORT_COLUMNS.includes(v) ? v : undefined;
+}
+
+function safeOrder(v: any): SortOrder {
+  return SORT_ORDERS.includes(v) ? v : "asc";
+}
+
+function buildWhere(args: {
+  now: Date;
+  driverId: string;
+  status: StatusFilter;
+  range: RangeFilter;
+  q?: string;
+}) {
+  const { now, driverId, status, range, q } = args;
+
+  const where: Prisma.BookingWhereInput = {
+    assignment: { driverId },
+  };
+
+  const todayStart = startOfDayPhoenix(now);
+  const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+  const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const monthStart = startOfMonthPhoenix(now);
+  const nextMonthStart = addMonthsPhoenix(monthStart, 1);
+
+  let pickupAtFilter: Prisma.DateTimeFilter | undefined;
+
+  if (range === "upcoming") pickupAtFilter = { gte: now };
+  if (range === "today")
+    pickupAtFilter = { gte: todayStart, lt: tomorrowStart };
+  if (range === "next7") pickupAtFilter = { gte: now, lt: next7d };
+  if (range === "month")
+    pickupAtFilter = { gte: monthStart, lt: nextMonthStart };
+  if (range === "past") pickupAtFilter = { lt: now };
+
+  if (pickupAtFilter) where.pickupAt = pickupAtFilter;
+
+  if (status !== "ALL") {
+    where.status = status as BookingStatus;
+  }
+
+  const needle = (q ?? "").trim();
+  if (needle) {
+    const isConfirmationCode = /^[A-Za-z0-9]{6,8}$/i.test(needle);
+
+    const existingAnd = Array.isArray(where.AND)
+      ? where.AND
+      : where.AND
+        ? [where.AND]
+        : [];
+
+    const searchConditions: Prisma.BookingWhereInput[] = [
+      { id: { contains: needle, mode: "insensitive" } },
+      { guestName: { contains: needle, mode: "insensitive" } },
+      { guestPhone: { contains: needle, mode: "insensitive" } },
+      { pickupAddress: { contains: needle, mode: "insensitive" } },
+      { dropoffAddress: { contains: needle, mode: "insensitive" } },
+      { user: { is: { name: { contains: needle, mode: "insensitive" } } } },
+      { user: { is: { phone: { contains: needle, mode: "insensitive" } } } },
+    ];
+
+    if (isConfirmationCode) {
+      searchConditions.push({
+        id: { startsWith: needle.toLowerCase(), mode: "insensitive" },
+      });
+    }
+
+    where.AND = [
+      ...existingAnd,
+      {
+        OR: searchConditions,
+      },
+    ];
+  }
+
+  return where;
+}
+
+function buildOrderBy(
+  sort: SortColumn | undefined,
+  order: SortOrder,
+  range: RangeFilter,
+): Prisma.BookingOrderByWithRelationInput[] {
+  if (sort) {
+    const direction =
+      order === "asc" ? Prisma.SortOrder.asc : Prisma.SortOrder.desc;
+
+    switch (sort) {
+      case "pickup":
+        return [{ pickupAt: direction }];
+      case "status":
+        return [{ status: direction }];
+      case "customer":
+        return [{ user: { name: direction } }, { guestName: direction }];
+      case "service":
+        return [{ serviceType: { name: direction } }];
+      case "earnings":
+        return [{ assignment: { driverPaymentCents: direction } }];
+      default:
+        return [{ pickupAt: direction }];
+    }
+  }
+
+  // Default: upcoming trips ascending, past trips descending
+  if (range === "past") {
+    return [{ pickupAt: Prisma.SortOrder.desc }];
+  }
+  return [{ pickupAt: Prisma.SortOrder.asc }];
 }
 
 export default async function DriverTripsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<SearchParams>;
 }) {
   const session = await auth();
   if (!session) redirect("/login?next=/driver-dashboard/trips");
 
-  const { userId, roles } = await resolveViewer(session);
+  const roles = (session.user as any)?.roles as string[] | undefined;
+  const hasAccess = Array.isArray(roles)
+    ? roles.includes("DRIVER") || roles.includes("ADMIN")
+    : false;
 
-  const isAdmin = roles.includes("ADMIN");
-  const isDriver = roles.includes("DRIVER");
-  if (!isAdmin && !isDriver) redirect("/");
+  if (!hasAccess) redirect("/");
+
+  const driverIdOrNull = await resolveSessionUserId(session);
+  if (!driverIdOrNull) redirect("/");
+  const driverId: string = driverIdOrNull;
 
   const sp = await searchParams;
-  const tab: Tab = isTab(sp.tab) ? sp.tab : "today";
 
+  const status = safeStatus(sp.status) as StatusFilter;
+  const range = safeRange(sp.range) as RangeFilter;
+  const sort = safeSort(sp.sort);
+  const order = safeOrder(sp.order);
+  const page = clampPage(sp.page);
+  const q = (sp.q ?? "").trim();
   const now = new Date();
-  const todayStart = startOfDay(now);
-  const todayEnd = endOfDay(now);
-  const upcomingEnd = endOfDay(addDays(now, 7));
-  const attentionSince = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  const scopeWhere: any = isAdmin ? {} : { assignment: { driverId: userId } };
+  const where = buildWhere({ now, driverId, status, range, q });
+  const orderBy = buildOrderBy(sort, order, range);
 
-  const todayWhere: any = { pickupAt: { gte: todayStart, lte: todayEnd } };
+  const totalCount = await db.booking.count({ where });
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const skip = (safePage - 1) * PAGE_SIZE;
 
-  const upcomingWhere: any = {
-    pickupAt: { gt: todayEnd, lte: upcomingEnd },
-    status: { notIn: TERMINAL },
-  };
-
-  const completedWhere: any = { status: { in: TERMINAL } };
-
-  const attentionWhere: any = {
-    status: { notIn: TERMINAL },
-    OR: [
-      { updatedAt: { gte: attentionSince } },
-      { statusEvents: { some: { createdAt: { gte: attentionSince } } } },
-      { AND: [{ internalNotes: null }, { specialRequests: null }] },
-    ],
-  };
-
-  const tabWhere: any =
-    tab === "today"
-      ? todayWhere
-      : tab === "upcoming"
-        ? upcomingWhere
-        : tab === "completed"
-          ? completedWhere
-          : attentionWhere;
-
-  const [counts, trips] = await Promise.all([
-    Promise.all([
-      db.booking.count({ where: { ...scopeWhere, ...todayWhere } }),
-      db.booking.count({ where: { ...scopeWhere, ...upcomingWhere } }),
-      db.booking.count({ where: { ...scopeWhere, ...completedWhere } }),
-      db.booking.count({ where: { ...scopeWhere, ...attentionWhere } }),
-    ]).then(([today, upcoming, completed, attention]) => ({
-      today,
-      upcoming,
-      completed,
-      attention,
-    })),
-    db.booking.findMany({
-      where: { ...scopeWhere, ...tabWhere },
-      orderBy:
-        tab === "completed" ? [{ pickupAt: "desc" }] : [{ pickupAt: "asc" }],
-      take: 200,
-      select: {
-        id: true,
-        pickupAt: true,
-        pickupAddress: true,
-        dropoffAddress: true,
-        status: true,
-        updatedAt: true,
-        internalNotes: true,
-        specialRequests: true,
-        user: { select: { name: true } },
-        serviceType: {
-          select: { name: true, slug: true, pricingStrategy: true },
-        },
-        statusEvents: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-          select: { createdAt: true },
+  const bookings = await db.booking.findMany({
+    where,
+    include: {
+      user: { select: { name: true, email: true, phone: true } },
+      serviceType: { select: { name: true } },
+      vehicle: { select: { name: true } },
+      assignment: {
+        include: {
+          vehicleUnit: { select: { name: true, plate: true } },
         },
       },
-    }),
+    },
+    orderBy,
+    skip,
+    take: PAGE_SIZE,
+  });
+
+  // Count for filters
+  async function countFor(next: {
+    status?: StatusFilter;
+    range?: RangeFilter;
+    q?: string;
+  }) {
+    const w = buildWhere({
+      now,
+      driverId,
+      status: next.status ?? status,
+      range: next.range ?? range,
+      q: next.q ?? q,
+    });
+    return db.booking.count({ where: w });
+  }
+
+  const [statusCountsArr, rangeCountsArr] = await Promise.all([
+    Promise.all(
+      STATUSES.map(async (s) => {
+        const c = await countFor({ status: s, q });
+        return [s, c] as const;
+      }),
+    ),
+    Promise.all(
+      RANGES.map(async (r) => {
+        const c = await countFor({ range: r, q });
+        return [r, c] as const;
+      }),
+    ),
   ]);
 
-  const tabHref = (t: Tab) =>
-    t === "today"
-      ? "/driver-dashboard/trips"
-      : `/driver-dashboard/trips?tab=${t}`;
+  const statusCounts = Object.fromEntries(statusCountsArr) as Record<
+    StatusFilter,
+    number
+  >;
+  const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
+    RangeFilter,
+    number
+  >;
 
-  const lastUpdated = (t: (typeof trips)[number]) =>
-    t.statusEvents[0]?.createdAt ?? t.updatedAt;
-
-  const attentionBadge = (t: (typeof trips)[number]) => {
-    const reasons: string[] = [];
-    const lu = lastUpdated(t);
-    if (lu >= attentionSince) reasons.push("Updated");
-    if (!t.internalNotes && !t.specialRequests) reasons.push("Missing notes");
-    return reasons.slice(0, 2).join(" • ");
+  const baseParams: Record<string, string | undefined> = {
+    status: status === "ALL" ? undefined : status,
+    range: range === "upcoming" ? undefined : range,
+    q: q.length ? q : undefined,
+    sort: sort,
+    order: sort ? order : undefined,
   };
 
-  const emptyCopy =
-    tab === "today"
-      ? "No trips scheduled for today."
-      : tab === "upcoming"
-        ? "No upcoming trips in the next 7 days."
-        : tab === "completed"
-          ? "No completed trips yet."
-          : "Nothing needs attention right now.";
+  const hasActiveFilters =
+    status !== "ALL" ||
+    range !== "upcoming" ||
+    q.length > 0 ||
+    sort !== undefined;
+
+  const pageParams: Record<string, string | undefined> = {
+    ...baseParams,
+    page: safePage > 1 ? String(safePage) : undefined,
+  };
 
   return (
-    <section className='container' aria-label='Trips'>
-      <header className='header'>
-        <h1 className='heading h2'>Trips</h1>
-        <p className='subheading'>Fast access to what you need right now.</p>
+    <section className={styles.container} aria-label='My Trips'>
+      <header className={styles.header}>
+        <div className={styles.headerTop}>
+          <div className={styles.top}>
+            <Link href='/driver-dashboard' className={styles.backLink}>
+              ← Back to Dashboard
+            </Link>
+            <h1 className={`${styles.heading} h2`}>My Trips</h1>
+          </div>
 
-        <nav className='tabs' aria-label='Trip filters'>
-          <Link
-            href={tabHref("today")}
-            className={`tab ${tab === "today" ? "tabActive" : ""}`}
-          >
-            Today <span className='count'>{counts.today}</span>
-          </Link>
-
-          <Link
-            href={tabHref("upcoming")}
-            className={`tab ${tab === "upcoming" ? "tabActive" : ""}`}
-          >
-            Upcoming <span className='count'>{counts.upcoming}</span>
-          </Link>
-
-          <Link
-            href={tabHref("completed")}
-            className={`tab ${tab === "completed" ? "tabActive" : ""}`}
-          >
-            Completed <span className='count'>{counts.completed}</span>
-          </Link>
-
-          <Link
-            href={tabHref("attention")}
-            className={`tab ${tab === "attention" ? "tabActive" : ""}`}
-          >
-            Needs attention <span className='count'>{counts.attention}</span>
-          </Link>
-        </nav>
-      </header>
-
-      {trips.length === 0 ? (
-        <div className={styles.empty}>
-          <p className={styles.emptyTitle}>No trips found.</p>
-          <p className={styles.emptyCopy}>{emptyCopy}</p>
-          <div className={styles.actionsRow}>
-            <div className={styles.btnContainer}>
-              <Button
-                href='/driver-dashboard'
-                btnType='red'
-                text='Back to dashboard'
-                arrow
-              />
-            </div>
+          <div className={styles.meta}>
+            <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong> trips
+            {totalCount > 0 ? (
+              <span className={styles.metaSep}>
+                • Page <strong className='emptyTitleSmall'>{safePage}</strong>{" "}
+                of <strong className='emptyTitleSmall'>{totalPages}</strong>
+              </span>
+            ) : null}
           </div>
         </div>
+
+        <div className={styles.filters}>
+          <div className={styles.filterGroup}>
+            <div className={styles.filterTitle}>Time</div>
+            <RangeTabs
+              active={range}
+              current={baseParams}
+              counts={rangeCounts}
+            />
+          </div>
+
+          <div className={styles.filterGroup}>
+            <div className={styles.filterTitle}>Status</div>
+            <StatusTabs
+              active={status}
+              current={baseParams}
+              counts={statusCounts}
+            />
+          </div>
+
+          <div className={styles.filterGroup}>
+            <DriverClearFiltersButton hasActiveFilters={hasActiveFilters} />
+          </div>
+        </div>
+
+        <DriverSearchFormClient current={baseParams} defaultValue={q} />
+
+        <Pagination
+          totalCount={totalCount}
+          page={safePage}
+          totalPages={totalPages}
+          current={pageParams}
+        />
+      </header>
+
+      {bookings.length === 0 ? (
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>No trips found.</p>
+          <p className={styles.emptyCopy}>
+            Try adjusting filters or check back later for new assignments.
+          </p>
+        </div>
       ) : (
-        <div className={styles.list}>
-          {trips.map((t) => {
-            const passenger = t.user?.name?.trim() || "Passenger";
-            const lu = lastUpdated(t);
-            const typeLabel = tripTypeLabel({
-              slug: t.serviceType.slug,
-              pricingStrategy: t.serviceType.pricingStrategy,
-            });
+        <div className={styles.tableCard}>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead className={styles.thead}>
+                <tr className={styles.trHead}>
+                  <SortableHeader
+                    label='Pickup'
+                    column='pickup'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Status'
+                    column='status'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <SortableHeader
+                    label='Customer'
+                    column='customer'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <th className={styles.th}>Route</th>
+                  <SortableHeader
+                    label='Service'
+                    column='service'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                  />
+                  <th className={styles.th}>Pax/Bags</th>
+                  <SortableHeader
+                    label='Earnings'
+                    column='earnings'
+                    currentSort={sort}
+                    currentOrder={order}
+                    baseParams={baseParams}
+                    align='right'
+                  />
+                  <th className={`${styles.th} ${styles.thRight}`}></th>
+                </tr>
+              </thead>
 
-            const notes =
-              [t.specialRequests, t.internalNotes]
-                .filter(Boolean)
-                .join(" • ") || "—";
+              <tbody>
+                {bookings.map((b) => {
+                  const href = `/driver-dashboard/trips/${b.id}`;
+                  const pickupEta = formatEta(b.pickupAt, now);
+                  const confirmationCode = getConfirmationCode(b.id);
 
-            return (
-              <article key={t.id} className={styles.card}>
-                <header className={styles.cardTop}>
-                  <h2 className={`cardTitle h4`}>Trip</h2>
-                  <span className={`badge badge_${badgeTone(t.status)}`}>
-                    {statusLabel(t.status)}
-                  </span>
-                </header>
+                  const customerName =
+                    b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+                  const customerPhone =
+                    b.user?.phone?.trim() || b.guestPhone?.trim() || null;
 
-                <div className={styles.tripMeta}>
-                  <div className={styles.row}>
-                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                      Date
-                    </div>
-                    <div className='emptySmall'>
-                      {formatDateTime(t.pickupAt)}
-                    </div>
-                  </div>
+                  const earnings = b.assignment?.driverPaymentCents ?? null;
+                  const tone = badgeTone(b.status as BookingStatus);
 
-                  <div className={styles.row}>
-                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                      From
-                    </div>
-                    <div className='emptySmall'>{t.pickupAddress}</div>
-                  </div>
+                  // Shorten addresses for display
+                  const pickupShort =
+                    b.pickupAddress.length > 30
+                      ? b.pickupAddress.slice(0, 30) + "..."
+                      : b.pickupAddress;
+                  const dropoffShort =
+                    b.dropoffAddress.length > 30
+                      ? b.dropoffAddress.slice(0, 30) + "..."
+                      : b.dropoffAddress;
 
-                  <div className={styles.row}>
-                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                      To
-                    </div>
-                    <div className='emptySmall'>{t.dropoffAddress}</div>
-                  </div>
+                  return (
+                    <tr key={b.id} className={styles.tr}>
+                      {/* Pickup */}
+                      <td
+                        className={styles.td}
+                        data-label='Pickup'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-label='Open trip'
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.pickupCell}>
+                          <Link href={href} className={styles.rowLink}>
+                            {formatPhoenix(b.pickupAt)} @{" "}
+                            {formatPhoenixTime(b.pickupAt)}
+                          </Link>
+                          <div className={styles.pickupMeta}>
+                            <span className={styles.pill}>{pickupEta}</span>
+                            <span
+                              className={styles.confirmationCode}
+                              title='Confirmation Code'
+                            >
+                              #{confirmationCode}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
 
-                  <div className={styles.row}>
-                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                      Service
-                    </div>
-                    <div className='emptySmall'>
-                      {t.serviceType?.name ?? "Service"}
-                      <span className={styles.pill}>{typeLabel}</span>
-                    </div>
-                  </div>
+                      {/* Status */}
+                      <td
+                        className={styles.td}
+                        data-label='Status'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.pickupMeta}>
+                          <span className={`badge badge_${tone}`}>
+                            {statusLabel(b.status as BookingStatus)}
+                          </span>
+                        </div>
+                      </td>
 
-                  <div className={styles.row}>
-                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                      Passenger
-                    </div>
-                    <div className='emptySmall'>{passenger}</div>
-                  </div>
+                      {/* Customer */}
+                      <td
+                        className={styles.td}
+                        data-label='Customer'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.cellStack}>
+                          <Link href={href} className={styles.rowLink}>
+                            {customerName}
+                          </Link>
+                          {customerPhone && (
+                            <div className={styles.cellSub}>
+                              {customerPhone}
+                            </div>
+                          )}
+                        </div>
+                      </td>
 
-                  <div className={styles.row}>
-                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                      Notes
-                    </div>
-                    <div className='emptySmall'>{notes}</div>
-                  </div>
+                      {/* Route */}
+                      <td
+                        className={styles.td}
+                        data-label='Route'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.routeCell}>
+                          <div className={styles.routeFrom}>
+                            <span className={styles.routeIcon}>📍</span>
+                            {pickupShort}
+                          </div>
+                          <div className={styles.routeTo}>
+                            <span className={styles.routeIcon}>🏁</span>
+                            {dropoffShort}
+                          </div>
+                        </div>
+                      </td>
 
-                  <div className={styles.row}>
-                    <div className={`${styles.emptyTitleLocal} emptyTitle`}>
-                      Updated
-                    </div>
-                    <div className='emptySmall'>
-                      {formatDateTime(lu)}
-                      {tab === "attention" ? (
-                        <span className={styles.pill}>{attentionBadge(t)}</span>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
+                      {/* Service */}
+                      <td
+                        className={styles.td}
+                        data-label='Service'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.cellStack}>
+                          <div className={styles.cellStrong}>
+                            {b.serviceType?.name ?? "—"}
+                          </div>
+                          {b.assignment?.vehicleUnit && (
+                            <div className={styles.cellSub}>
+                              {b.assignment.vehicleUnit.name}
+                            </div>
+                          )}
+                        </div>
+                      </td>
 
-                <div className={styles.btnRow}>
-                  <Link
-                    className='primaryBtn'
-                    href={`/driver-dashboard/trips/${t.id}`}
-                  >
-                    Open trip →
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
+                      {/* Pax/Bags */}
+                      <td
+                        className={styles.td}
+                        data-label='Pax/Bags'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.cellStrong}>
+                          {b.passengers} / {b.luggage}
+                        </div>
+                      </td>
+
+                      {/* Earnings */}
+                      <td
+                        className={`${styles.td} ${styles.tdRight}`}
+                        data-label='Earnings'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.earningsCell}>
+                          {formatMoneyFromCents(earnings)}
+                        </div>
+                      </td>
+
+                      {/* Action */}
+                      <td
+                        className={`${styles.td} ${styles.tdRight}`}
+                        data-label='Action'
+                      >
+                        <Link className='primaryBtn' href={href}>
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
+
+      <Pagination
+        totalCount={totalCount}
+        page={safePage}
+        totalPages={totalPages}
+        current={pageParams}
+      />
     </section>
+  );
+}
+
+// Sortable header component
+function SortableHeader({
+  label,
+  column,
+  currentSort,
+  currentOrder,
+  baseParams,
+  align,
+}: {
+  label: string;
+  column: SortColumn;
+  currentSort: SortColumn | undefined;
+  currentOrder: SortOrder;
+  baseParams: Record<string, string | undefined>;
+  align?: "right";
+}) {
+  const isActive = currentSort === column;
+  const nextOrder = isActive && currentOrder === "asc" ? "desc" : "asc";
+
+  const href = buildHref("/driver-dashboard/trips", {
+    ...baseParams,
+    sort: column,
+    order: nextOrder,
+    page: undefined,
+  });
+
+  const indicator = isActive ? (currentOrder === "asc" ? " ↑" : " ↓") : "";
+
+  return (
+    <th
+      className={`${styles.th} ${styles.thSortable} ${align === "right" ? styles.thRight : ""}`}
+    >
+      <Link href={href} className={styles.sortLink}>
+        {label}
+        {indicator}
+      </Link>
+    </th>
+  );
+}
+
+function StatusTabs({
+  active,
+  current,
+  counts,
+}: {
+  active: StatusFilter;
+  current: Record<string, string | undefined>;
+  counts: Record<StatusFilter, number>;
+}) {
+  return (
+    <div className={styles.tabRow}>
+      {STATUSES.map((s) => {
+        const href = buildHref("/driver-dashboard/trips", {
+          ...current,
+          status: s === "ALL" ? undefined : s,
+          page: undefined,
+        });
+        const isActive = s === active;
+
+        return (
+          <Link
+            key={s}
+            href={href}
+            className={`tab ${isActive ? "tabActive" : ""}`}
+          >
+            {statusTabLabel(s)}
+            <span
+              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
+            >
+              {counts[s] ?? 0}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function RangeTabs({
+  active,
+  current,
+  counts,
+}: {
+  active: RangeFilter;
+  current: Record<string, string | undefined>;
+  counts: Record<RangeFilter, number>;
+}) {
+  const items: { label: string; value: RangeFilter }[] = [
+    { label: "Upcoming", value: "upcoming" },
+    { label: "Today", value: "today" },
+    { label: "Next 7 days", value: "next7" },
+    { label: "This month", value: "month" },
+    { label: "Past trips", value: "past" },
+  ];
+
+  return (
+    <div className={styles.tabRow}>
+      {items.map((x) => {
+        const href = buildHref("/driver-dashboard/trips", {
+          ...current,
+          range: x.value === "upcoming" ? undefined : x.value,
+          page: undefined,
+        });
+        const isActive = x.value === active;
+
+        return (
+          <Link
+            key={x.value}
+            href={href}
+            className={`tab ${isActive ? "tabActive" : ""}`}
+          >
+            {x.label}
+            <span
+              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
+            >
+              {counts[x.value] ?? 0}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+function Pagination({
+  totalCount,
+  page,
+  totalPages,
+  current,
+}: {
+  totalCount: number;
+  page: number;
+  totalPages: number;
+  current: Record<string, string | undefined>;
+}) {
+  if (totalCount === 0) return null;
+
+  const hasPrev = page > 1;
+  const hasNext = page < totalPages;
+
+  const prevHref = buildHref("/driver-dashboard/trips", {
+    ...current,
+    page: page - 1 > 1 ? String(page - 1) : undefined,
+  });
+
+  const nextHref = buildHref("/driver-dashboard/trips", {
+    ...current,
+    page: String(page + 1),
+  });
+
+  function getPageItems() {
+    const items: Array<number | "…"> = [];
+    const windowSize = 2;
+
+    items.push(1);
+
+    const start = Math.max(2, page - windowSize);
+    const end = Math.min(totalPages - 1, page + windowSize);
+
+    if (start > 2) items.push("…");
+    for (let p = start; p <= end; p++) items.push(p);
+    if (end < totalPages - 1) items.push("…");
+
+    if (totalPages > 1) items.push(totalPages);
+
+    return items;
+  }
+
+  const pageItems = getPageItems();
+
+  return (
+    <div className={styles.pagination}>
+      <div className={styles.paginationLeft}>
+        <span className={styles.paginationMeta}>
+          Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+        </span>
+      </div>
+
+      <div className={styles.paginationRight}>
+        {hasPrev ? (
+          <Link className={styles.pageBtn} href={prevHref}>
+            Prev
+          </Link>
+        ) : (
+          <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`}>
+            Prev
+          </span>
+        )}
+
+        {pageItems.map((x, idx) => {
+          if (x === "…") {
+            return (
+              <span
+                key={`dots-${idx}`}
+                className={`${styles.pageBtn} ${styles.pageBtnDisabled}`}
+                aria-hidden='true'
+              >
+                …
+              </span>
+            );
+          }
+
+          const href = buildHref("/driver-dashboard/trips", {
+            ...current,
+            page: x > 1 ? String(x) : undefined,
+          });
+
+          const isActive = x === page;
+
+          return isActive ? (
+            <span
+              key={x}
+              className={`${styles.pageBtn} ${styles.pageBtnActive}`}
+            >
+              {x}
+            </span>
+          ) : (
+            <Link key={x} className={styles.pageBtn} href={href}>
+              {x}
+            </Link>
+          );
+        })}
+
+        {hasNext ? (
+          <Link className={styles.pageBtn} href={nextHref}>
+            Next
+          </Link>
+        ) : (
+          <span className={`${styles.pageBtn} ${styles.pageBtnDisabled}`}>
+            Next
+          </span>
+        )}
+      </div>
+    </div>
   );
 }

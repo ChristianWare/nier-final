@@ -1,43 +1,212 @@
-.metricsGrid {
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.backBtn {
+  width: fit-content;
+}
+
+/* Controls / Tabs */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.rangePill {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  margin-left: auto;
+}
+
+.rangeForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.rangeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 140px;
+}
+
+.rangeInput {
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.rangeSubmit {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  background: rgba(0, 0, 0, 0.92);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.rangeSubmit:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.rangeSubmit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* KPI Grid */
+.kpiGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kpiCard {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.metricCard {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
-  padding: 12px;
-  display: grid;
-  gap: 6px;
-  background: var(--white);
+.kpiTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.metricLabel {
-  font-size: 12px;
-  opacity: 0.7;
-  font-weight: 800;
+.kpiValue {
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
 }
 
-.metricValue {
-  font-size: 18px;
-  font-weight: 900;
+.tone_good {
+  color: var(--darkGreen);
+  background: var(--lightGreen);
+  border-color: rgba(22, 163, 74, 0.2);
 }
 
-.tableCard {
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
+.tone_warn {
+  color: var(--darkYellow);
+  background: rgba(255, 200, 9, 0.25);
+  border-color: rgba(255, 200, 9, 0.3);
+}
+
+/* Chart Card */
+.chartCard {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
   overflow: hidden;
   background: var(--white);
 }
 
-.tableTitle {
-  padding: 12px;
-  font-weight: 900;
+.chartWrap {
+  padding: 14px;
+  height: 320px;
 }
 
-.tableScroll {
-  overflow-x: auto;
+/* Two Column Layout */
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 2rem;
+  align-items: start;
+}
+
+/* Cards */
+.card {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--white);
+}
+
+.cardHeader {
+  padding: 1rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.cardHeaderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 1rem;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.selectedMonth {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+.tzPill {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: flex-start;
+  padding: 12px 14px;
+  border-top: 1px solid var(--stroke);
+}
+
+/* Tables */
+.monthTableWrap,
+.tripsTableWrap {
+  overflow: auto;
+  max-height: 480px;
 }
 
 .table {
@@ -45,61 +214,198 @@
   border-collapse: collapse;
 }
 
-.trHead {
+.table th {
   text-align: left;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.th {
-  padding: 10px;
-  font-size: 12px;
-  opacity: 0.75;
-  font-weight: 900;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
   white-space: nowrap;
-}
-
-.tr {
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.td {
-  padding: 10px;
-  font-size: 13px;
+  font-size: 1.1rem;
   font-weight: 700;
-  vertical-align: top;
-}
-
-.tdMono {
-  font-family: monospace;
-}
-
-.tdWide {
-  min-width: 320px;
-}
-
-.tdStrong {
-  font-weight: 900;
-}
-
-.emptyRow {
-  padding: 14px;
-  opacity: 0.75;
-}
-
-.footerNote {
-  padding: 12px;
-  font-size: 12px;
   opacity: 0.7;
 }
 
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: top;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.right {
+  text-align: right;
+}
+
+.rowLink {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+}
+
+.rowActive td {
+  background-color: var(--lightGreen);
+}
+
+.customerName {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.earningsValue {
+  font-weight: 700;
+  color: #22c55e;
+}
+
+/* Empty State */
+.empty {
+  padding: 22px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* Chart Inner */
+.chartInner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding-left: 0.5rem;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: var(--lightGreen);
+}
+
+.chartCanvas {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Tooltip */
+.tooltip {
+  border-radius: 8px;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+}
+
+.tooltipTitle {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 1.2rem;
+}
+
+.tooltipRow + .tooltipRow {
+  margin-top: 0.25rem;
+}
+
+.tooltipVal {
+  font-weight: 600;
+}
+
+/* Responsive */
 @media screen and (max-width: 1268px) {
-  .metricsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .kpiGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    gap: 0.5rem;
+  }
+
+  .rangePill {
+    margin-left: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .rangeForm {
+    flex-direction: column;
+  }
+
+  .rangeField {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rangeInput {
+    width: 100%;
+  }
+
+  .chartWrap {
+    height: 260px;
+  }
+
+  .kpiValue {
+    font-size: 24px;
   }
 }
 
 @media screen and (max-width: 568px) {
-  .metricsGrid {
-    grid-template-columns: repeat(1, minmax(0, 1fr));
+  .container {
+    gap: 16px;
+  }
+
+  .kpiCard {
+    padding: 12px;
+  }
+
+  .kpiValue {
+    font-size: 22px;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 10px;
+    font-size: 1rem;
   }
 }

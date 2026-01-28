@@ -213,7 +213,7 @@ export default function DashboardNotifications({
   return (
     <section className='container' aria-label='Notifications'>
       <header className='header'>
-        <h1 className='heading h2'>Notifications</h1>
+        <h1 className='heading h2'>Notifications (Text)</h1>
         <p className='subheading'>
           Recent activity from trip updates and payments.
         </p>
