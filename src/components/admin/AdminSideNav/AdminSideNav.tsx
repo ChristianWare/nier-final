@@ -6,7 +6,6 @@ import Calendar from "@/components/shared/icons/Calendar/Calendar";
 import House from "@/components/shared/icons/House/House";
 import Bell from "@/components/shared/icons/Bell/Bell";
 import Users from "@/components/shared/icons/Users/Users";
-// import Wheel from "@/components/shared/icons/Wheel/Wheel";
 import Car from "@/components/shared/icons/Car/Car";
 import Listing from "@/components/shared/icons/Listing/Listing";
 import { useState } from "react";
@@ -19,8 +18,8 @@ import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
 import Plane from "@/components/shared/icons/Plane/Plane";
 import Money from "@/components/shared/icons/Money/Money";
-// import Clock from "@/components/shared/icons/Clock/Clock";
 import Report from "@/components/shared/icons/Report/Report";
+import Company from "@/components/shared/icons/Company/Company";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
@@ -39,7 +38,7 @@ const NAV_ITEMS = [
   { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
   // { title: "Activity", href: "/admin/activity", icon: <Clock /> },
   { title: "Reports", href: "/admin/reports", icon: <Report /> },
-  { title: "Company", href: "/admin/settings/company", icon: <Report /> },
+  { title: "Company", href: "/admin/settings/company", icon: <Company /> },
   { title: "Settings", href: "/admin/settings", icon: <Cog /> },
 ];
 
