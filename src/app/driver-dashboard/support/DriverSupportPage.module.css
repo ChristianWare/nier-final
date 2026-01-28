@@ -1,0 +1,418 @@
+.container {
+  display: grid;
+  gap: 3rem;
+}
+
+.header {
+  display: grid;
+  gap: 2rem;
+}
+
+.headerTop {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--stroke);
+}
+
+.backBtn {
+  width: fit-content;
+}
+
+/* Emergency Card */
+.emergencyCard {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.08) 0%,
+    rgba(220, 38, 38, 0.12) 100%
+  );
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+}
+
+.emergencyIcon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.emergencyContent {
+  flex: 1;
+}
+
+.emergencyTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: #b91c1c;
+  margin: 0 0 0.25rem;
+}
+
+.emergencyText {
+  font-size: 1.4rem;
+  color: #7f1d1d;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.emergencyButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: #dc2626;
+  color: white;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.emergencyButton:hover {
+  background: #b91c1c;
+  transform: translateY(-1px);
+}
+
+/* Sections */
+.section {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Contact Grid */
+.contactGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.contactCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+}
+
+.contactCard:hover {
+  border-color: var(--black);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.contactCardEmergency {
+  background: rgba(254, 226, 226, 0.5);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.contactCardEmergency:hover {
+  border-color: #ef4444;
+}
+
+.contactIcon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contactTitle {
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+}
+
+.contactDetail {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.contactHours {
+  font-size: 1.4rem;
+  opacity: 0.7;
+}
+
+/* FAQ */
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.faqItem:last-child {
+  border-bottom: none;
+}
+
+.faqButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 1.4rem;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.faqButton:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.faqQuestion {
+  flex: 1;
+  padding-right: 1rem;
+}
+
+.faqIcon {
+  font-size: 1.5rem;
+  transition: transform 0.2s ease;
+  opacity: 0.5;
+}
+
+.faqIconOpen {
+  transform: rotate(45deg);
+}
+
+.faqAnswer {
+  padding: 0 1.25rem 1.25rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+  line-height: 1.6;
+  color: var(--paragraph);
+}
+
+.faqAnswer p {
+  margin: 0;
+}
+
+.faqAnswer p + p {
+  margin-top: 1rem;
+}
+
+.faqAnswer ul {
+  margin: 1rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.faqAnswer li {
+  margin-bottom: 1rem;
+}
+
+/* Resources Grid */
+.resourcesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.resourceCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.resourceCard:hover {
+  border-color: var(--black);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.resourceIcon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.resourceContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.resourceTitle {
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+  margin-bottom: 1rem;
+}
+
+.resourceDesc {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
+.resourceBadge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Office Card */
+.officeCard {
+  display: flex;
+  gap: 2rem;
+  padding: 1.5rem;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+}
+
+.officeContent {
+  flex: 1;
+}
+
+.officeHours {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.officeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.officeRow:last-child {
+  border-bottom: none;
+}
+
+.officeDay {
+  font-weight: 600;
+  font-size: 1.4rem;
+}
+
+.officeTime {
+  font-size: 1.4rem;
+  opacity: 0.8;
+}
+
+.officeMap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 5px;
+  min-width: 220px;
+}
+
+.officeAddress {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.officeIcon {
+  font-size: 1.5rem;
+}
+
+.officeName {
+  font-weight: 700;
+  font-size: 1.4rem;
+  margin-bottom: 0.25rem;
+}
+
+.officeStreet,
+.officeCity {
+  font-size: 1.4rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* Mobile Responsive */
+@media screen and (max-width: 768px) {
+  .emergencyCard {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .emergencyButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contactGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .resourcesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .officeCard {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .officeMap {
+    min-width: 0;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    gap: 2rem;
+  }
+
+  .contactCard {
+    padding: 1rem;
+  }
+}

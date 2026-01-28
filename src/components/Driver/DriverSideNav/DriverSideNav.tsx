@@ -40,13 +40,6 @@ const NAV_ITEMS = [
     key: "notifications",
     icon: <Bell />,
   },
-//   {
-//     title: "Availability",
-//     href: "/driver-dashboard/availability",
-//     key: "availability",
-//     icon: <Wheel />,
-//   },
-  // View-only pay summary (no Stripe cash-out flow)
   {
     title: "Earnings",
     href: "/driver-dashboard/earnings",
@@ -54,7 +47,7 @@ const NAV_ITEMS = [
     icon: <Listing />,
   },
   {
-    title: "Profile & Docs",
+    title: "Profile",
     href: "/driver-dashboard/profile",
     key: "profile",
     icon: <Users />,

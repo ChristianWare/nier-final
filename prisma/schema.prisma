@@ -602,3 +602,27 @@ model BookingStop {
   @@index([bookingId])
   @@index([stopOrder])
 }
+
+model CompanySettings {
+  id String @id @default("default") // Single row
+
+  // Contact Info (shown on driver support page)
+  dispatchPhone     String? // (480) 555-0123
+  dispatchPhoneRaw  String? // 4805550123 (for tel: links)
+  emergencyPhone    String? // (480) 555-0911
+  emergencyPhoneRaw String? // 4805550911
+  supportEmail      String? // drivers@yourcompany.com
+
+  // Office Info
+  officeAddress String? // 123 Driver Lane
+  officeCity    String? // Phoenix, AZ 85001
+  officeName    String? // Main Office
+
+  // Office Hours (stored as JSON or separate fields)
+  officeHoursMon String? // "8:00 AM - 6:00 PM"
+  officeHoursSat String? // "9:00 AM - 2:00 PM"
+  officeHoursSun String? // "Closed"
+
+  updatedAt DateTime @updatedAt
+  updatedBy String? // Admin who last updated
+}

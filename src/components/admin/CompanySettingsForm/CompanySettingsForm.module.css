@@ -1,0 +1,105 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldFull {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  grid-column: 1 / -1;
+}
+
+/* Preview Section */
+.preview {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.previewCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px dashed var(--stroke);
+  border-radius: 8px;
+}
+
+.previewIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.previewTitle {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 0.25rem;
+}
+
+.previewValue {
+  font-size: 1rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fieldFull {
+    grid-column: 1;
+  }
+
+  .preview {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .section {
+    padding: 1rem;
+  }
+}

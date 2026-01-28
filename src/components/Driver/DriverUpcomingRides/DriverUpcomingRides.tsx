@@ -137,7 +137,7 @@ export default function DriverUpcomingRides({
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>
-            <span className={styles.icon}>🚗</span>
+            {/* <span className={styles.icon}>🚗</span> */}
             My Upcoming Rides
           </h2>
           <Link href='/driver-dashboard/trips' className='backBtn'>

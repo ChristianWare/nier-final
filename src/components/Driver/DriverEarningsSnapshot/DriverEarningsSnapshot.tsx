@@ -59,7 +59,7 @@ export default function DriverEarningsSnapshot({
     <section className={styles.container} aria-label='Earnings snapshot'>
       <header className='header'>
         <h2 className='cardTitle h4'>
-          <span className={styles.icon}>💰</span>
+          {/* <span className={styles.icon}>💰</span> */}
           {monthLabel} - My Earnings
         </h2>
       </header>
