@@ -232,7 +232,7 @@ export default function DashboardNotifications({
             Mark all as read
           </button>
 
-          <Link className='tab' href='/dashboard/trips'>
+          <Link className='tab' href='/driver-dashboard/trips'>
             View trips
           </Link>
         </div>

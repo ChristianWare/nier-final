@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.sanity.io", pathname: "/images/**" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
 
@@ -15,7 +16,7 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
 
-  // If you ever add Turbopack config, make sure it’s NOT on in prod:
+  // If you ever add Turbopack config, make sure it's NOT on in prod:
   ...(isProd ? {} : { turbopack: {} }),
 };
 

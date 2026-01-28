@@ -2,11 +2,11 @@
 import styles from "./DriverProfilePage.module.css";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { db } from "@/lib/db";
 import { auth } from "../../../../auth";
 import DefaultProfileImg from "../../../../public/images/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import ProfilePhotoUpload from "@/components/Driver/ProfilePhotoUpload/ProfilePhotoUpload";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -245,26 +245,12 @@ export default async function DriverProfilePage() {
         <div className={styles.headerTop}>
           <div className={styles.top}>
             <div className={styles.profileSection}>
-              <div className={styles.profileImageWrap}>
-                {profileImage ? (
-                  <Image
-                    src={profileImage}
-                    alt={user.name || "Driver"}
-                    width={80}
-                    height={80}
-                    className={styles.profileImage}
-                  />
-                ) : (
-                  <Image
-                    src={DefaultProfileImg}
-                    alt={user.name || "Driver"}
-                    width={80}
-                    height={80}
-                    className={styles.profileImage}
-                    placeholder='blur'
-                  />
-                )}
-              </div>
+              {/* Profile Photo with Upload Button */}
+              <ProfilePhotoUpload
+                currentImage={profileImage}
+                userName={user.name || "Driver"}
+                defaultImage={DefaultProfileImg}
+              />
               <div className={styles.profileInfo}>
                 <h1 className={`${styles.heading} h2`}>
                   {user.name || "Driver"}
