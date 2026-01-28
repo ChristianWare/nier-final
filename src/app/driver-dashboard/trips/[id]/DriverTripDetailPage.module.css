@@ -58,6 +58,8 @@ letter-spacing: normal;
   margin: 0;
   font-size: 15px;
   line-height: 1.4;
+  letter-spacing: normal;
+  color: var(--white);
 }
 
 .navButtons {
