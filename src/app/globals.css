@@ -292,11 +292,6 @@ select:focus {
   text-transform: capitalize;
 }
 
-.subheading {
-  color: var(--paragraph);
-  font-size: 1.6rem;
-  font-weight: 500;
-}
 
 .tabs {
   display: flex;
@@ -712,4 +707,17 @@ th {
   background: rgba(0, 0, 0, 0.92);
   color: white;
   cursor: pointer;
+}
+
+.subheading {
+  color: var(--paragraph);
+  font-size: 1.6rem;
+  font-weight: 500;
+}
+
+.select {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 1.4rem;
+  border-radius: 5px;
 }

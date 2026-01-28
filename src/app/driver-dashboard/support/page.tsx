@@ -5,12 +5,34 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { auth } from "../../../../auth";
 import { db } from "@/lib/db";
-import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import {
+  getCompanySettings,
+  type WeekHours,
+} from "../../../../actions/admin/companySettings";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import DriverSupportFAQ from "./Driversupportfaq";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const DAYS: { key: keyof WeekHours; label: string }[] = [
+  { key: "monday", label: "Monday" },
+  { key: "tuesday", label: "Tuesday" },
+  { key: "wednesday", label: "Wednesday" },
+  { key: "thursday", label: "Thursday" },
+  { key: "friday", label: "Friday" },
+  { key: "saturday", label: "Saturday" },
+  { key: "sunday", label: "Sunday" },
+];
+
+// Format time from 24h to 12h display
+function formatTime(time24: string): string {
+  const [hStr, mStr] = time24.split(":");
+  const h = parseInt(hStr, 10);
+  const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const ampm = h < 12 ? "AM" : "PM";
+  return `${hour12}:${mStr} ${ampm}`;
+}
 
 async function resolveSessionUserId(session: any) {
   const direct =
@@ -46,6 +68,15 @@ export default async function DriverSupportPage() {
 
   // Fetch company settings from database
   const settings = await getCompanySettings();
+  const hours = settings.officeHoursParsed;
+
+  // Check if address should be shown
+  const showAddress = Boolean(
+    settings.officeName || settings.officeAddress || settings.officeCity,
+  );
+
+  // Check if any days have hours enabled
+  const hasOfficeHours = DAYS.some((d) => hours[d.key]?.enabled);
 
   return (
     <section className={styles.container}>
@@ -217,49 +248,64 @@ export default async function DriverSupportPage() {
         </div>
       </div>
 
-      {/* Office Hours Card */}
-      <div className={styles.section}>
-        <div className={styles.officeCard}>
-          <div className={styles.officeContent}>
-            <h2 className='cardTitle h4'>Office Hours</h2>
-            <div className={styles.officeHours}>
-              <div className={styles.officeRow}>
-                <span className={styles.officeDay}>Monday - Friday</span>
-                <span className={styles.officeTime}>
-                  {settings.officeHoursMon}
-                </span>
-              </div>
-              <div className={styles.officeRow}>
-                <span className={styles.officeDay}>Saturday</span>
-                <span className={styles.officeTime}>
-                  {settings.officeHoursSat}
-                </span>
-              </div>
-              <div className={styles.officeRow}>
-                <span className={styles.officeDay}>Sunday</span>
-                <span className={styles.officeTime}>
-                  {settings.officeHoursSun}
-                </span>
-              </div>
-            </div>
-            <p className='miniNote' style={{ marginTop: "1rem" }}>
-              Dispatch is available 24/7 for active trip support
-            </p>
-          </div>
-          <div className={styles.officeMap}>
-            <div className={styles.officeAddress}>
-              <div className={styles.officeIcon}>📍</div>
-              <div>
-                <div className={styles.officeName}>{settings.officeName}</div>
-                <div className={styles.officeStreet}>
-                  {settings.officeAddress}
+      {/* Office Hours & Address Card - Only show if there's data */}
+      {(hasOfficeHours || showAddress) && (
+        <div className={styles.section}>
+          <div className={styles.officeCard}>
+            {/* Office Hours */}
+            {hasOfficeHours && (
+              <div className={styles.officeContent}>
+                <h2 className='cardTitle h4'>Office Hours</h2>
+                <div className={styles.officeHours}>
+                  {DAYS.map(({ key, label }) => {
+                    const day = hours[key];
+                    if (!day) return null;
+                    return (
+                      <div key={key} className={styles.officeRow}>
+                        <span className={styles.officeDay}>{label}</span>
+                        <span className={styles.officeTime}>
+                          {day.enabled
+                            ? `${formatTime(day.open)} - ${formatTime(day.close)}`
+                            : "Closed"}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className={styles.officeCity}>{settings.officeCity}</div>
+                <p className='miniNote' style={{ marginTop: "1rem" }}>
+                  Dispatch is available 24/7 for active trip support
+                </p>
               </div>
-            </div>
+            )}
+
+            {/* Office Address - Only show if filled out */}
+            {showAddress && (
+              <div className={styles.officeMap}>
+                <div className={styles.officeAddress}>
+                  <div className={styles.officeIcon}>📍</div>
+                  <div>
+                    {settings.officeName && (
+                      <div className={styles.officeName}>
+                        {settings.officeName}
+                      </div>
+                    )}
+                    {settings.officeAddress && (
+                      <div className={styles.officeStreet}>
+                        {settings.officeAddress}
+                      </div>
+                    )}
+                    {settings.officeCity && (
+                      <div className={styles.officeCity}>
+                        {settings.officeCity}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

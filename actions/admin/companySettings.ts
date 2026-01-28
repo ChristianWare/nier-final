@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
+import { revalidatePath } from "next/cache";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -31,6 +32,17 @@ async function requireAdmin() {
   return { session, actorId, roles };
 }
 
+// Default hours structure
+const DEFAULT_HOURS = {
+  monday: { enabled: true, open: "08:00", close: "18:00" },
+  tuesday: { enabled: true, open: "08:00", close: "18:00" },
+  wednesday: { enabled: true, open: "08:00", close: "18:00" },
+  thursday: { enabled: true, open: "08:00", close: "18:00" },
+  friday: { enabled: true, open: "08:00", close: "18:00" },
+  saturday: { enabled: true, open: "09:00", close: "14:00" },
+  sunday: { enabled: false, open: "09:00", close: "17:00" },
+};
+
 // Default values shown when no settings exist yet
 const DEFAULTS = {
   dispatchPhone: "(480) 555-0123",
@@ -38,12 +50,26 @@ const DEFAULTS = {
   emergencyPhone: "(480) 555-0911",
   emergencyPhoneRaw: "4805550911",
   supportEmail: "support@yourcompany.com",
-  officeName: "Main Office",
-  officeAddress: "123 Main Street",
-  officeCity: "Phoenix, AZ 85001",
-  officeHoursMon: "8:00 AM - 6:00 PM",
-  officeHoursSat: "9:00 AM - 2:00 PM",
-  officeHoursSun: "Closed",
+  officeName: "",
+  officeAddress: "",
+  officeCity: "",
+  officeHours: JSON.stringify(DEFAULT_HOURS),
+};
+
+export type DayHours = {
+  enabled: boolean;
+  open: string;
+  close: string;
+};
+
+export type WeekHours = {
+  monday: DayHours;
+  tuesday: DayHours;
+  wednesday: DayHours;
+  thursday: DayHours;
+  friday: DayHours;
+  saturday: DayHours;
+  sunday: DayHours;
 };
 
 export type CompanySettingsData = {
@@ -55,9 +81,8 @@ export type CompanySettingsData = {
   officeName: string;
   officeAddress: string;
   officeCity: string;
-  officeHoursMon: string;
-  officeHoursSat: string;
-  officeHoursSun: string;
+  officeHours: string; // JSON string
+  officeHoursParsed: WeekHours; // Parsed object for convenience
 };
 
 /**
@@ -68,6 +93,15 @@ export async function getCompanySettings(): Promise<CompanySettingsData> {
     where: { id: "default" },
   });
 
+  const officeHours = row?.officeHours ?? DEFAULTS.officeHours;
+  let officeHoursParsed: WeekHours;
+
+  try {
+    officeHoursParsed = JSON.parse(officeHours);
+  } catch {
+    officeHoursParsed = DEFAULT_HOURS;
+  }
+
   return {
     dispatchPhone: row?.dispatchPhone ?? DEFAULTS.dispatchPhone,
     dispatchPhoneRaw: row?.dispatchPhoneRaw ?? DEFAULTS.dispatchPhoneRaw,
@@ -77,9 +111,8 @@ export async function getCompanySettings(): Promise<CompanySettingsData> {
     officeName: row?.officeName ?? DEFAULTS.officeName,
     officeAddress: row?.officeAddress ?? DEFAULTS.officeAddress,
     officeCity: row?.officeCity ?? DEFAULTS.officeCity,
-    officeHoursMon: row?.officeHoursMon ?? DEFAULTS.officeHoursMon,
-    officeHoursSat: row?.officeHoursSat ?? DEFAULTS.officeHoursSat,
-    officeHoursSun: row?.officeHoursSun ?? DEFAULTS.officeHoursSun,
+    officeHours,
+    officeHoursParsed,
   };
 }
 
@@ -95,12 +128,10 @@ const SaveSchema = z.object({
     .trim()
     .min(1, "Emergency phone (raw) is required"),
   supportEmail: z.string().trim().email("Invalid email format"),
-  officeName: z.string().trim().min(1, "Office name is required"),
-  officeAddress: z.string().trim().min(1, "Office address is required"),
-  officeCity: z.string().trim().min(1, "Office city is required"),
-  officeHoursMon: z.string().trim(),
-  officeHoursSat: z.string().trim(),
-  officeHoursSun: z.string().trim(),
+  officeName: z.string().trim().optional(),
+  officeAddress: z.string().trim().optional(),
+  officeCity: z.string().trim().optional(),
+  officeHours: z.string().trim(),
 });
 
 /**
@@ -118,15 +149,16 @@ export async function saveCompanySettings(formData: FormData) {
     officeName: String(formData.get("officeName") ?? "").trim(),
     officeAddress: String(formData.get("officeAddress") ?? "").trim(),
     officeCity: String(formData.get("officeCity") ?? "").trim(),
-    officeHoursMon: String(formData.get("officeHoursMon") ?? "").trim(),
-    officeHoursSat: String(formData.get("officeHoursSat") ?? "").trim(),
-    officeHoursSun: String(formData.get("officeHoursSun") ?? "").trim(),
+    officeHours:
+      String(formData.get("officeHours") ?? "").trim() ||
+      JSON.stringify(DEFAULT_HOURS),
   };
 
   const parsed = SaveSchema.safeParse(data);
 
   if (!parsed.success) {
-const firstError = parsed.error.issues[0]?.message ?? "Invalid settings";    return { error: firstError };
+    const firstError = parsed.error.issues[0]?.message ?? "Invalid settings";
+    return { error: firstError };
   }
 
   const d = parsed.data;
@@ -139,12 +171,10 @@ const firstError = parsed.error.issues[0]?.message ?? "Invalid settings";    ret
       emergencyPhone: d.emergencyPhone,
       emergencyPhoneRaw: d.emergencyPhoneRaw,
       supportEmail: d.supportEmail.toLowerCase(),
-      officeName: d.officeName,
-      officeAddress: d.officeAddress,
-      officeCity: d.officeCity,
-      officeHoursMon: d.officeHoursMon,
-      officeHoursSat: d.officeHoursSat,
-      officeHoursSun: d.officeHoursSun,
+      officeName: d.officeName || null,
+      officeAddress: d.officeAddress || null,
+      officeCity: d.officeCity || null,
+      officeHours: d.officeHours,
       updatedBy: actorId,
     },
     create: {
@@ -154,15 +184,16 @@ const firstError = parsed.error.issues[0]?.message ?? "Invalid settings";    ret
       emergencyPhone: d.emergencyPhone,
       emergencyPhoneRaw: d.emergencyPhoneRaw,
       supportEmail: d.supportEmail.toLowerCase(),
-      officeName: d.officeName,
-      officeAddress: d.officeAddress,
-      officeCity: d.officeCity,
-      officeHoursMon: d.officeHoursMon,
-      officeHoursSat: d.officeHoursSat,
-      officeHoursSun: d.officeHoursSun,
+      officeName: d.officeName || null,
+      officeAddress: d.officeAddress || null,
+      officeCity: d.officeCity || null,
+      officeHours: d.officeHours,
       updatedBy: actorId,
     },
   });
+
+  // Revalidate driver support page
+  revalidatePath("/driver-dashboard/support");
 
   return { success: true };
 }

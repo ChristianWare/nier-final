@@ -613,15 +613,14 @@ model CompanySettings {
   emergencyPhoneRaw String? // 4805550911
   supportEmail      String? // drivers@yourcompany.com
 
-  // Office Info
+  // Office Info (optional - leave blank to hide from drivers)
+  officeName    String? // Main Office
   officeAddress String? // 123 Driver Lane
   officeCity    String? // Phoenix, AZ 85001
-  officeName    String? // Main Office
 
-  // Office Hours (stored as JSON or separate fields)
-  officeHoursMon String? // "8:00 AM - 6:00 PM"
-  officeHoursSat String? // "9:00 AM - 2:00 PM"
-  officeHoursSun String? // "Closed"
+  // Office Hours - stored as JSON string
+  // Format: {"monday":{"enabled":true,"open":"08:00","close":"18:00"},...}
+  officeHours String? @db.Text
 
   updatedAt DateTime @updatedAt
   updatedBy String? // Admin who last updated
