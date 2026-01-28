@@ -1,10 +1,10 @@
-import { getCompanySettings } from "../../../../../actions/admin/companySettings"; 
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import CompanySettingsForm from "@/components/admin/CompanySettingsForm/CompanySettingsForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function AdminCompanySettingsPage() {
+export default async function AdminCompanyPage() {
   const initial = await getCompanySettings();
 
   return (
