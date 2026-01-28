@@ -224,7 +224,11 @@ export default function AdminUpcomingRides({
                       </div>
                     </td>
 
-                    <td className={styles.td} data-label='Driver'>
+                    <td
+                      className={`${styles.td} ${!b.driverName ? styles.unassignedCell : ""}`}
+                      data-label='Driver'
+                    >
+                      {" "}
                       <Link
                         href={href}
                         className={styles.rowStretchedLink}

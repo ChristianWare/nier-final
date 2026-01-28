@@ -1020,7 +1020,7 @@ export default async function AdminBookingsPage({
 
                       {/* Driver */}
                       <td
-                        className={styles.td}
+                        className={`${styles.td} ${!b.assignment?.driver ? styles.unassignedCell : ""}`}
                         data-label='Driver'
                         style={{ position: "relative" }}
                       >

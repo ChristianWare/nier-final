@@ -185,6 +185,12 @@
   white-space: nowrap;
 }
 
+.unassignedCell {
+  background: #ef444414;
+  border: 2px solid #ef44444d;
+  border-radius: 8px;
+}
+
 @media screen and (max-width: 768px) {
   .tableCard {
     border: 0;
