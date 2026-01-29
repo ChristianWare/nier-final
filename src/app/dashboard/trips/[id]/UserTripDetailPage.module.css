@@ -90,19 +90,20 @@
   font-family: monospace;
   font-size: 1.8rem;
   font-weight: 700;
+  width: fit-content;
   letter-spacing: 2px;
   color: var(--black);
   background: var(--cream);
   padding: 0.5rem 1rem;
   border-radius: 5px;
   border: 1px solid var(--stroke);
-  margin-top: 0.5rem;
+  margin-top: 1rem;
   display: inline-block;
 }
 
 /* =============================================================================
-   Payment Info (matching admin)
-   ============================================================================= */
+Payment Info (matching admin)
+============================================================================= */
 
 .paymentInfo {
   display: flex;
