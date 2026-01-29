@@ -767,43 +767,152 @@ export default async function AdminHome() {
 
   const setupAlerts = await getBookingWizardSetupAlerts();
 
+  function formatAlertPickup(date: Date, timeZone: string) {
+    return new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone,
+    }).format(date);
+  }
+
   const alerts: AlertItem[] = [];
 
+  // Unassigned bookings within 24 hours
   if (unassignedWithin24hCount > 0) {
+    const detailRows = (unassignedSoon as any[]).slice(0, 5).map((b) => {
+      const customerName =
+        b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+      return {
+        id: b.id,
+        href: `/admin/bookings/${b.id}#assign-section`,
+        badge: {
+          label: "Unassigned",
+          tone: "danger" as const,
+        },
+        cells: [
+          {
+            label: "Pickup",
+            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+          },
+          { label: "Customer", value: customerName },
+          { label: "From", value: shortAddress(b.pickupAddress) },
+          { label: "To", value: shortAddress(b.dropoffAddress) },
+        ],
+      };
+    });
+
     alerts.push({
       id: "unassigned-24h",
       severity: unassignedWithin24hCount >= 3 ? "danger" : "warning",
       message: `${unassignedWithin24hCount} booking(s) are unassigned within 24 hours`,
-      href: "/admin/bookings",
-      ctaLabel: "Review",
+      href: "/admin/bookings?status=unassigned",
+      ctaLabel: "View All Unassigned",
+      details:
+        unassignedWithin24hCount > 1
+          ? `These trips need drivers assigned before pickup. Click any row to assign a driver.`
+          : `This trip needs a driver assigned before pickup.`,
+      detailRows,
+      timestamp: "Action needed",
     });
   }
 
+  // Pending payment within 12 hours
   if (pendingPaymentWithin12hCount > 0) {
+    const detailRows = (pendingPaymentSoon as any[]).slice(0, 5).map((b) => {
+      const customerName =
+        b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+      return {
+        id: b.id,
+        href: `/admin/bookings/${b.id}#payment-section`,
+        badge: {
+          label: "Unpaid",
+          tone: "warning" as const,
+        },
+        cells: [
+          {
+            label: "Pickup",
+            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+          },
+          { label: "Customer", value: customerName },
+          { label: "Service", value: b.serviceType?.name ?? "—" },
+          { label: "From", value: shortAddress(b.pickupAddress) },
+        ],
+      };
+    });
+
     alerts.push({
       id: "pending-payment-12h",
       severity: pendingPaymentWithin12hCount >= 2 ? "danger" : "warning",
       message: `${pendingPaymentWithin12hCount} booking(s) pending payment within 12 hours`,
-      href: "/admin/bookings",
-      ctaLabel: "Open",
+      href: "/admin/bookings?status=PENDING_PAYMENT",
+      ctaLabel: "View All Pending",
+      details: `These customers haven't completed payment yet. Click any row to send a reminder.`,
+      detailRows,
+      timestamp: "Payment overdue",
     });
   }
 
-  if (newVerifiedUsersCount > 0) {
-    const who =
-      latestVerifiedUser?.name?.trim() ||
-      latestVerifiedUser?.email ||
-      "a new user";
+  // Stuck in review (older than 2 hours)
+  if (stuckReview.length > 0) {
+    const detailRows = (stuckReview as any[]).slice(0, 5).map((b) => {
+      const customerName =
+        b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+      const hoursAgo = Math.round(
+        (now.getTime() - new Date(b.createdAt).getTime()) / (1000 * 60 * 60),
+      );
+      return {
+        id: b.id,
+        href: `/admin/bookings/${b.id}`,
+        badge: {
+          label: `${hoursAgo}h+ waiting`,
+          tone: "warning" as const,
+        },
+        cells: [
+          {
+            label: "Pickup",
+            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+          },
+          { label: "Customer", value: customerName },
+          { label: "From", value: shortAddress(b.pickupAddress) },
+          { label: "To", value: shortAddress(b.dropoffAddress) },
+        ],
+      };
+    });
 
+    alerts.push({
+      id: "stuck-review",
+      severity: stuckReview.length >= 3 ? "danger" : "warning",
+      message: `${stuckReview.length} booking(s) stuck in review for over 2 hours`,
+      href: "/admin/bookings?status=PENDING_REVIEW",
+      ctaLabel: "View All Pending Review",
+      details: `These requests have been waiting for approval. Click any row to review.`,
+      detailRows,
+      timestamp: "Needs attention",
+    });
+  }
+
+  // New verified users
+  if (newVerifiedUsersCount > 0) {
+    // For users, we'd need to fetch them - for now show a summary
+    // You can expand this to show actual user rows if you add a query
     alerts.push({
       id: "new-verified-users",
       severity: newVerifiedUsersCount >= 10 ? "warning" : "info",
-      message: `${newVerifiedUsersCount} new verified user(s) in the last 24 hours (latest: ${who})`,
+      message: `${newVerifiedUsersCount} new verified user(s) in the last 24 hours`,
       href: "/admin/users",
-      ctaLabel: "View users",
+      ctaLabel: "View All Users",
+      details:
+        newVerifiedUsersCount > 1
+          ? `${newVerifiedUsersCount} new customers have verified their email. Latest: ${latestVerifiedUser?.name?.trim() || latestVerifiedUser?.email || "Unknown"}`
+          : `A new customer has verified their email: ${latestVerifiedUser?.name?.trim() || latestVerifiedUser?.email || "Unknown"}`,
+      timestamp: "Last 24 hours",
     });
   }
 
+  // Add setup alerts at the beginning
   alerts.unshift(...setupAlerts);
 
   const recentBookingRequests: RecentBookingRequestItem[] =
