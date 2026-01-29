@@ -91,7 +91,7 @@ export async function sendDriverAssignedEmail(args: {
 
   const dashboardUrl =
     args.dashboardUrl ||
-    `${process.env.APP_URL || "http://localhost:3000"}/driver-dashboard`;
+    `${process.env.APP_URL || "http://localhost:3000"}/driver-dashboard/trips/${args.bookingId}`;
 
   const subject = `🚗 New Trip Assigned – ${pickupDate} | Nier Transportation`;
 
