@@ -1,5 +1,6 @@
 "use client";
 
+import Button from "@/components/shared/Button/Button";
 import styles from "./DriverNextTrip.module.css";
 import Link from "next/link";
 
@@ -93,9 +94,7 @@ function prettyStatus(s: string) {
   return statusMap[s] || s.replace(/_/g, " ");
 }
 
-function statusTone(
-  s: string,
-): "neutral" | "warning" | "danger" | "good" | "accent" {
+function badgeTone(s: string): "neutral" | "warn" | "good" | "accent" | "bad" {
   switch (s) {
     case "ASSIGNED":
     case "CONFIRMED":
@@ -104,15 +103,13 @@ function statusTone(
     case "IN_PROGRESS":
       return "accent";
     case "ARRIVED":
-      return "warning";
+      return "warn";
+    case "CANCELLED":
+    case "NO_SHOW":
+      return "bad";
     default:
       return "neutral";
   }
-}
-
-function shortAddress(address: string) {
-  if (!address) return "";
-  return address.split(",")[0]?.trim() || address;
 }
 
 export default function DriverNextTrip({ trip, timeZone }: Props) {
@@ -125,17 +122,18 @@ export default function DriverNextTrip({ trip, timeZone }: Props) {
             Next Trip
           </h2>
         </header>
-        <div className={styles.emptyState}>
-          <div className={styles.emptyIcon}>🚗</div>
-          <p className='emptySmall'>No upcoming trips assigned.</p>
-          <p className='miniNote'>Check back later or contact dispatch.</p>
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>No upcoming trips assigned.</p>
+          <p className={styles.emptyCopy}>
+            Check back later or contact dispatch.
+          </p>
         </div>
       </section>
     );
   }
 
   const pickup = formatPickup(trip.pickupAtIso, timeZone);
-  const tone = statusTone(trip.status);
+  const tone = badgeTone(trip.status);
   const href = `/driver-dashboard/trips/${trip.id}`;
 
   return (
@@ -146,64 +144,97 @@ export default function DriverNextTrip({ trip, timeZone }: Props) {
             <span className={styles.icon}>📍</span>
             Next Trip
           </h2>
-          <span className={styles.pill}>{pickup.rel}</span>
+          <span className={styles.timePill}>{pickup.rel}</span>
         </div>
       </header>
 
-      <Link href={href} className={styles.tripCard}>
-        <div className={styles.tripMain}>
-          <div className={styles.tripHeader}>
-            <span className={`${styles.badge} ${styles[`badge_${tone}`]}`}>
-              {prettyStatus(trip.status)}
-            </span>
-            <span className={styles.tripTime}>
+      <Link href={href} className={styles.card}>
+        <header className={styles.cardTop}>
+          <h3 className='cardTitle h4'>Trip Details</h3>
+          <span className={`badge badge_${tone}`}>
+            {prettyStatus(trip.status)}
+          </span>
+        </header>
+
+        <div className={styles.tripMeta}>
+          <div className={styles.row}>
+            <div className={`${styles.emptyTitleLocal} emptyTitle`}>Date</div>
+            <div className='emptySmall'>
               {pickup.dateLabel} @ {pickup.timeLabel}
-            </span>
-            {trip.driverPaymentCents != null && trip.driverPaymentCents > 0 && (
-              <span className={styles.tripEarnings}>
+            </div>
+          </div>
+
+          <div className={styles.row}>
+            <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+              Customer
+            </div>
+            <div className='emptySmall'>
+              {trip.customerName}
+              {trip.customerPhone && (
+                <span className={styles.pill}>{trip.customerPhone}</span>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.row}>
+            <div className={`${styles.emptyTitleLocal} emptyTitle`}>Pickup</div>
+            <div className='emptySmall'>{trip.pickupAddress}</div>
+          </div>
+
+          <div className={styles.row}>
+            <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+              Drop off
+            </div>
+            <div className='emptySmall'>{trip.dropoffAddress}</div>
+          </div>
+
+          <div className={styles.row}>
+            <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+              Service
+            </div>
+            <div className='emptySmall'>{trip.serviceName}</div>
+          </div>
+
+          <div className={styles.row}>
+            <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+              Vehicle
+            </div>
+            <div className='emptySmall'>
+              {trip.vehicleName ?? "Vehicle TBD"}
+            </div>
+          </div>
+
+          <div className={styles.row}>
+            <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+              Passengers
+            </div>
+            <div className='emptySmall'>
+              {trip.passengers} • Luggage: {trip.luggage}
+            </div>
+          </div>
+
+          {trip.driverPaymentCents != null && trip.driverPaymentCents > 0 && (
+            <div className={styles.row}>
+              <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                Your Earnings
+              </div>
+              <div className='val'>
                 {formatCurrency(trip.driverPaymentCents, trip.currency)}
-              </span>
-            )}
-          </div>
-
-          <div className={styles.tripCustomer}>
-            <span className={styles.customerName}>{trip.customerName}</span>
-            {trip.customerPhone && (
-              <span className={styles.customerPhone}>{trip.customerPhone}</span>
-            )}
-          </div>
-
-          <div className={styles.tripRoute}>
-            <div className={styles.routePoint}>
-              <span className={styles.routeIcon}>📍</span>
-              <span>{shortAddress(trip.pickupAddress)}</span>
+              </div>
             </div>
-            <div className={styles.routePoint}>
-              <span className={styles.routeIcon}>🏁</span>
-              <span>{shortAddress(trip.dropoffAddress)}</span>
-            </div>
-          </div>
-
-          <div className={styles.tripMeta}>
-            <span className={styles.metaItem}>{trip.serviceName}</span>
-            {trip.vehicleName && (
-              <span className={styles.metaItem}>{trip.vehicleName}</span>
-            )}
-            <span className={styles.metaItem}>
-              {trip.passengers} pax • {trip.luggage} bags
-            </span>
-          </div>
+          )}
 
           {trip.specialRequests && (
-            <div className={styles.specialRequests}>
-              <span className={styles.specialIcon}>⚠️</span>
-              <span>{trip.specialRequests}</span>
+            <div className={styles.row}>
+              <div className={`${styles.emptyTitleLocal} emptyTitle`}>
+                ⚠️ Special Requests
+              </div>
+              <div className='emptySmall'>{trip.specialRequests}</div>
             </div>
           )}
         </div>
-
-        <div className='primaryBtn'>View Details →</div>
       </Link>
+      <Button href={href} text='View Details' btnType='black' arrow />
     </section>
   );
 }
