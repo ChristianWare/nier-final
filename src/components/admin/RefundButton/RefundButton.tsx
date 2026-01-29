@@ -99,6 +99,7 @@ export default function RefundButton({
         );
         setRefundAmount("");
         setShowConfirm(false);
+        // ✅ Call refresh inside, after success
         router.refresh();
       }
     });
@@ -138,11 +139,14 @@ export default function RefundButton({
       {hasRefundDue && (
         <div className={styles.refundDueAlert}>
           <div className={styles.refundDueContent}>
-            <strong>💰 Refund Due:</strong>{" "}
-            {formatMoney(refundDueCents, currency)}
+            <strong>
+              💰 Refund Due: {formatMoney(refundDueCents, currency)}
+            </strong>{" "}
             <span className={styles.refundDetail}>
-              Customer paid {formatMoney(amountPaidCents, currency)}, but
-              current total is {formatMoney(totalCents, currency)}
+              Customer paid{" "}
+              <strong>{formatMoney(amountPaidCents, currency)}</strong>, but
+              current total is{" "}
+              <strong>{formatMoney(totalCents, currency)}</strong>
             </span>
           </div>
           <button
@@ -236,8 +240,8 @@ export default function RefundButton({
       ) : (
         <div className={styles.confirmSection}>
           <div className={styles.confirmMessage}>
-            <strong>⚠️ Confirm Refund</strong>
-            <p>
+            <strong className={styles.confirmTitle}>⚠️ Confirm Refund</strong>
+            <p className={styles.confirmMsg}>
               You are about to refund{" "}
               <strong>{formatMoney(parsedAmountCents, currency)}</strong> to the
               customer. This action cannot be undone.
@@ -246,13 +250,13 @@ export default function RefundButton({
           <div className={styles.confirmActions}>
             <Button
               text={isPending ? "Processing..." : "Yes, Issue Refund"}
-              btnType='black'
+              btnType='blackReg'
               onClick={handleRefund}
               disabled={isPending}
             />
             <Button
               text='Cancel'
-              btnType='gray'
+              btnType='grayReg'
               onClick={() => setShowConfirm(false)}
               disabled={isPending}
             />

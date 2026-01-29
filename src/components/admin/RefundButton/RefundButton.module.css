@@ -4,10 +4,6 @@
   gap: 1rem;
 }
 
-/* =============================================================================
-   Disabled / Locked State
-   ============================================================================= */
-
 .disabledState {
   padding: 1rem;
   background: #f9fafb;
@@ -27,10 +23,6 @@
   font-size: 1.1rem;
 }
 
-/* =============================================================================
-   Fully Refunded State
-   ============================================================================= */
-
 .fullyRefundedState {
   display: flex;
   align-items: center;
@@ -47,10 +39,6 @@
   font-size: 1.1rem;
   font-weight: bold;
 }
-
-/* =============================================================================
-   Refund Due Alert
-   ============================================================================= */
 
 .refundDueAlert {
   display: flex;
@@ -71,12 +59,15 @@
 
 .refundDueContent strong {
   color: #b45309;
+  display: inline-block;
+  font-size: 1.6rem;
+  letter-spacing: normal;
 }
 
 .refundDetail {
   display: block;
-  margin-top: 2px;
-  font-size: 0.85rem;
+  margin-top: 1rem;
+  font-size: 1.4rem;
   opacity: 0.85;
 }
 
@@ -87,7 +78,7 @@
   color: white;
   border: none;
   border-radius: 6px;
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -96,15 +87,11 @@
   background: #d97706;
 }
 
-/* =============================================================================
-   Already Refunded Info
-   ============================================================================= */
-
 .refundedInfo {
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   color: #6b7280;
   padding: 10px 14px;
   background: #f3f4f6;
@@ -115,10 +102,6 @@
   font-weight: 600;
   color: #374151;
 }
-
-/* =============================================================================
-   Refund Form
-   ============================================================================= */
 
 .refundForm {
   display: grid;
@@ -139,7 +122,7 @@
 }
 
 .inputLabel {
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #374151;
   text-transform: uppercase;
@@ -165,14 +148,14 @@
   background: #f3f4f6;
   color: #6b7280;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.4rem;
 }
 
 .input {
   flex: 1;
   border: none;
   padding: 0.75rem;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   font-weight: 600;
   outline: none;
   min-width: 0;
@@ -186,10 +169,6 @@
   font-size: 0.8rem;
   color: #9ca3af;
 }
-
-/* =============================================================================
-   Percentage Buttons
-   ============================================================================= */
 
 .percentageSection {
   display: flex;
@@ -243,7 +222,6 @@
 
 .percentAmount {
   font-size: 1.4rem;
-  font-weight: 500;
   font-weight: 700;
   letter-spacing: normal;
 }
@@ -251,10 +229,6 @@
 .percentBtnActive .percentAmount {
   color: white;
 }
-
-/* =============================================================================
-   Warning Message
-   ============================================================================= */
 
 .warningMessage {
   padding: 10px 14px;
@@ -265,18 +239,10 @@
   color: #92400e;
 }
 
-/* =============================================================================
-   Action Section
-   ============================================================================= */
-
 .actionSection {
   display: flex;
   gap: 0.75rem;
 }
-
-/* =============================================================================
-   Confirm Section
-   ============================================================================= */
 
 .confirmSection {
   padding: 1rem;
@@ -287,30 +253,34 @@
 
 .confirmMessage {
   margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
 }
 
 .confirmMessage strong {
-  display: block;
-  font-size: 1rem;
+  display: inline-block;
+  font-size: 1.6rem;
+  letter-spacing: normal;
   color: #991b1b;
   margin-bottom: 6px;
 }
 
 .confirmMessage p {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
   color: #7f1d1d;
   margin: 0;
 }
 
 .confirmActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-wrap: wrap;
+  margin-top: 2rem;
 }
-
-/* =============================================================================
-   Responsive
-   ============================================================================= */
 
 @media screen and (max-width: 700px) {
   .refundForm {

@@ -1609,6 +1609,72 @@ export async function issueRefund(formData: FormData) {
     };
   } catch (e: any) {
     console.error("Stripe refund error:", e);
+
+    // ✅ Handle "charge_already_refunded" - sync DB with Stripe
+    if (e?.code === "charge_already_refunded") {
+      try {
+        // Fetch actual refund data from Stripe
+        const paymentIntent = await stripe.paymentIntents.retrieve(
+          payment.stripePaymentIntentId!,
+          { expand: ["charges.data.refunds"] },
+        );
+
+        const charges = (paymentIntent as any).charges?.data ?? [];
+        const totalRefundedFromStripe = charges.reduce(
+          (sum: number, charge: any) => sum + (charge.amount_refunded ?? 0),
+          0,
+        );
+
+        const newNetPaidCents =
+          payment.amountPaidCents - totalRefundedFromStripe;
+        let newPaymentStatus: "PAID" | "PARTIALLY_REFUNDED" | "REFUNDED" =
+          "PAID";
+
+        if (newNetPaidCents <= 0) {
+          newPaymentStatus = "REFUNDED";
+        } else if (totalRefundedFromStripe > 0) {
+          newPaymentStatus = "PARTIALLY_REFUNDED";
+        }
+
+        // Sync database with Stripe's actual state
+        await db.payment.update({
+          where: { id: payment.id },
+          data: {
+            amountRefundedCents: totalRefundedFromStripe,
+            refundedAt: new Date(),
+            status: newPaymentStatus,
+          },
+        });
+
+        if (newPaymentStatus === "REFUNDED") {
+          await db.booking.update({
+            where: { id: booking.id },
+            data: { status: "REFUNDED" },
+          });
+        } else if (newPaymentStatus === "PARTIALLY_REFUNDED") {
+          await db.booking.update({
+            where: { id: booking.id },
+            data: { status: "PARTIALLY_REFUNDED" },
+          });
+        }
+
+        revalidatePath(`/admin/bookings/${bookingId}`);
+
+        return {
+          success: true,
+          refundedCents: totalRefundedFromStripe - payment.amountRefundedCents,
+          newPaymentStatus,
+          note: "Synced with existing Stripe refund",
+        };
+      } catch (syncError) {
+        console.error("Failed to sync refund state:", syncError);
+        return {
+          error:
+            "Charge was already refunded in Stripe. Please refresh the page.",
+        };
+      }
+    }
+
     return {
       error: e?.message ?? "Failed to process refund. Please try again.",
     };
