@@ -11,7 +11,6 @@ import { revalidatePath } from "next/cache";
 import { BookingStatus } from "@prisma/client";
 import { sendBookingDeclinedEmail } from "@/lib/email/sendBookingDeclinedEmail";
 
-
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
 function getActorId(session: any) {
@@ -1711,4 +1710,99 @@ export async function issueRefund(formData: FormData) {
       error: e?.message ?? "Failed to process refund. Please try again.",
     };
   }
+}
+
+const UnassignSchema = z.object({
+  bookingId: z.string().min(1),
+});
+
+export async function unassignBooking(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const parsed = UnassignSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid request." };
+
+  const { bookingId } = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    include: {
+      assignment: {
+        include: {
+          driver: { select: { name: true, email: true } },
+          vehicleUnit: { select: { name: true, plate: true } },
+        },
+      },
+      payment: { select: { status: true } },
+    },
+  });
+
+  if (!booking) return { error: "Booking not found." };
+
+  if (!booking.assignment) {
+    return { error: "This booking has no driver assigned." };
+  }
+
+  // Store previous assignment info for the event log
+  const previousDriver = booking.assignment.driver;
+  const previousVehicle = booking.assignment.vehicleUnit;
+  const previousDriverPaymentCents = booking.assignment.driverPaymentCents;
+
+  // Determine what status to revert to
+  const terminalStatuses = [
+    "COMPLETED",
+    "CANCELLED",
+    "NO_SHOW",
+    "REFUNDED",
+    "PARTIALLY_REFUNDED",
+  ];
+
+  let newStatus = booking.status;
+  if (!terminalStatuses.includes(booking.status)) {
+    // Revert from ASSIGNED back to appropriate status
+    if (booking.status === "ASSIGNED") {
+      if (booking.payment?.status === "PAID") {
+        newStatus = "CONFIRMED";
+      } else {
+        newStatus = "PENDING_PAYMENT";
+      }
+    }
+  }
+
+  await db.$transaction([
+    // Delete the assignment
+    db.assignment.delete({
+      where: { bookingId },
+    }),
+    // Update booking status
+    db.booking.update({
+      where: { id: bookingId },
+      data: { status: newStatus },
+    }),
+    // Log the event
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status: newStatus,
+        eventType: "DRIVER_UNASSIGNED",
+        metadata: {
+          previousDriverId: booking.assignment.driverId,
+          previousDriverName: previousDriver?.name ?? "Driver",
+          previousDriverEmail: previousDriver?.email,
+          previousDriverPaymentCents: previousDriverPaymentCents,
+          previousVehicleUnitId: booking.assignment.vehicleUnitId,
+          previousVehicleUnitName: previousVehicle?.name ?? null,
+          previousVehicleUnitPlate: previousVehicle?.plate ?? null,
+          previousStatus: booking.status,
+          newStatus,
+        },
+        createdById: actorId,
+      },
+    }),
+  ]);
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
+  revalidatePath("/admin/bookings");
+
+  return { success: true };
 }

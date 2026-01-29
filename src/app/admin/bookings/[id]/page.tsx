@@ -208,6 +208,17 @@ function getEventDetails(
       return `${driverName}${driverPayment}${vehicle}`;
     }
 
+    case "DRIVER_UNASSIGNED": {
+      const driverName = metadata.previousDriverName ?? "Driver";
+      const driverPayment = metadata.previousDriverPaymentCents
+        ? ` • Pay was: ${formatMoney(metadata.previousDriverPaymentCents, currency)}`
+        : "";
+      const vehicle = metadata.previousVehicleUnitName
+        ? ` • Vehicle: ${metadata.previousVehicleUnitName}${metadata.previousVehicleUnitPlate ? ` (${metadata.previousVehicleUnitPlate})` : ""}`
+        : "";
+      return `Removed: ${driverName}${driverPayment}${vehicle}`;
+    }
+
     case "TRIP_EDITED": {
       const fields = metadata.fieldsEdited;
       if (Array.isArray(fields) && fields.length > 0) {
@@ -1208,6 +1219,9 @@ export default async function AdminBookingDetailPage({
               } else if (eventType === "DRIVER_ASSIGNED") {
                 tone = "good";
                 label = "Driver assigned";
+              } else if (eventType === "DRIVER_UNASSIGNED") {
+                tone = "warn";
+                label = "Driver unassigned";
               } else if (eventType === "TRIP_EDITED") {
                 tone = "neutral";
                 label = "Trip details edited";
