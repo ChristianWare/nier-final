@@ -16,7 +16,8 @@ type Props = {
     officeName: string;
     officeAddress: string;
     officeCity: string;
-    officeHours: string; // JSON string of hours data
+    officeHours: string;
+    smsFromNumber: string;
   };
 };
 
@@ -120,6 +121,9 @@ export default function CompanySettingsForm({ initial }: Props) {
   const [officeHours, setOfficeHours] = useState<WeekHours>(
     parseInitialHours(initial.officeHours),
   );
+
+  // State for SMS from number
+  const [smsFromNumber, setSmsFromNumber] = useState(initial.smsFromNumber);
 
   const handleDispatchPhoneChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -227,6 +231,34 @@ export default function CompanySettingsForm({ initial }: Props) {
         </div>
       </div>
 
+      {/* SMS Settings */}
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h2 className='cardTitle h4'>SMS Notifications</h2>
+          <p className='miniNote'>
+            Configure the phone number used to send SMS notifications
+          </p>
+        </div>
+
+        <div className={styles.grid}>
+          <div className={styles.fieldFull}>
+            <label className='emptyTitleSmall'>SMS From Number</label>
+            <input
+              name='smsFromNumber'
+              className='input subheading'
+              placeholder='+15209992737'
+              value={smsFromNumber}
+              onChange={(e) => setSmsFromNumber(e.target.value)}
+              inputMode='tel'
+            />
+            <div className='miniNote'>
+              Twilio phone number in E.164 format (e.g., +15209992737). Leave
+              blank to use system default.
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Office Information */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -310,7 +342,7 @@ export default function CompanySettingsForm({ initial }: Props) {
 
                 <div className={styles.hoursTimeCell}>
                   <select
-                    className={` ${styles.hoursSelect}`}
+                    className={`input ${styles.hoursSelect}`}
                     value={day.open}
                     onChange={(e) =>
                       handleTimeChange(key, "open", e.target.value)
@@ -327,7 +359,7 @@ export default function CompanySettingsForm({ initial }: Props) {
 
                 <div className={styles.hoursTimeCell}>
                   <select
-                    className={` ${styles.hoursSelect}`}
+                    className={`input ${styles.hoursSelect}`}
                     value={day.close}
                     onChange={(e) =>
                       handleTimeChange(key, "close", e.target.value)

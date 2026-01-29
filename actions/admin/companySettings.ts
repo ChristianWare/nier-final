@@ -54,6 +54,7 @@ const DEFAULTS = {
   officeAddress: "",
   officeCity: "",
   officeHours: JSON.stringify(DEFAULT_HOURS),
+  smsFromNumber: "", // Will fall back to env if empty
 };
 
 export type DayHours = {
@@ -81,8 +82,9 @@ export type CompanySettingsData = {
   officeName: string;
   officeAddress: string;
   officeCity: string;
-  officeHours: string; // JSON string
-  officeHoursParsed: WeekHours; // Parsed object for convenience
+  officeHours: string;
+  officeHoursParsed: WeekHours;
+  smsFromNumber: string;
 };
 
 /**
@@ -113,7 +115,22 @@ export async function getCompanySettings(): Promise<CompanySettingsData> {
     officeCity: row?.officeCity ?? DEFAULTS.officeCity,
     officeHours,
     officeHoursParsed,
+    smsFromNumber: row?.smsFromNumber ?? DEFAULTS.smsFromNumber,
   };
+}
+
+/**
+ * Get SMS from number for notifications
+ * Returns the client's configured number, or falls back to env default
+ */
+export async function getSmsFromNumber(): Promise<string | null> {
+  const row = await db.companySettings.findUnique({
+    where: { id: "default" },
+    select: { smsFromNumber: true },
+  });
+
+  // Return client's number if set, otherwise return null (caller will use env default)
+  return row?.smsFromNumber?.trim() || null;
 }
 
 const SaveSchema = z.object({
@@ -132,6 +149,7 @@ const SaveSchema = z.object({
   officeAddress: z.string().trim().optional(),
   officeCity: z.string().trim().optional(),
   officeHours: z.string().trim(),
+  smsFromNumber: z.string().trim().optional(),
 });
 
 /**
@@ -152,6 +170,7 @@ export async function saveCompanySettings(formData: FormData) {
     officeHours:
       String(formData.get("officeHours") ?? "").trim() ||
       JSON.stringify(DEFAULT_HOURS),
+    smsFromNumber: String(formData.get("smsFromNumber") ?? "").trim(),
   };
 
   const parsed = SaveSchema.safeParse(data);
@@ -175,6 +194,7 @@ export async function saveCompanySettings(formData: FormData) {
       officeAddress: d.officeAddress || null,
       officeCity: d.officeCity || null,
       officeHours: d.officeHours,
+      smsFromNumber: d.smsFromNumber || null,
       updatedBy: actorId,
     },
     create: {
@@ -188,11 +208,11 @@ export async function saveCompanySettings(formData: FormData) {
       officeAddress: d.officeAddress || null,
       officeCity: d.officeCity || null,
       officeHours: d.officeHours,
+      smsFromNumber: d.smsFromNumber || null,
       updatedBy: actorId,
     },
   });
 
-  // Revalidate driver support page
   revalidatePath("/driver-dashboard/support");
 
   return { success: true };

@@ -5,6 +5,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function isAuthorized(req: Request) {
+  // Skip auth in development for easy testing
+  if (process.env.NODE_ENV === "development") return true;
+
   const auth = req.headers.get("authorization") || "";
 
   // Prefer Vercel's built-in CRON_SECRET, but allow your custom name too.

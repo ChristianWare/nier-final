@@ -6,6 +6,8 @@ import {
   DEFAULT_SMS_EVENTS,
 } from "./events";
 import { buildAdminNotification } from "./templates";
+import { sendSms } from "../sms/sendSms";
+import { sendAdminNotificationEmail } from "../email/sendAdminNotificationEmail";
 
 type AdminSettings = {
   emailEnabled: boolean;
@@ -49,7 +51,7 @@ async function getAdminSettings(userId: string): Promise<AdminSettings> {
 }
 
 function applyDefaultsIfEmpty(settings: AdminSettings): AdminSettings {
-  // If admin hasn’t chosen any events yet, give them good defaults
+  // If admin hasn't chosen any events yet, give them good defaults
   const emailEvents =
     settings.emailEvents && settings.emailEvents.length > 0
       ? settings.emailEvents
@@ -63,10 +65,25 @@ function applyDefaultsIfEmpty(settings: AdminSettings): AdminSettings {
   return { ...settings, emailEvents, smsEvents };
 }
 
-export async function queueAdminNotificationsForBookingEvent(args: {
+type NotificationJob = {
+  channel: "EMAIL" | "SMS";
+  event: NotificationEvent;
+  to: string;
+  subject?: string | null;
+  body: string;
+  bookingId: string;
+  userId: string;
+  dedupeKey: string;
+  payload: any;
+};
+
+/**
+ * Build notification jobs for all admins based on their settings
+ */
+async function buildNotificationJobs(args: {
   event: NotificationEvent;
   bookingId: string;
-}) {
+}): Promise<NotificationJob[]> {
   const { event, bookingId } = args;
 
   const booking = await db.booking.findUnique({
@@ -74,7 +91,7 @@ export async function queueAdminNotificationsForBookingEvent(args: {
     include: { user: true, serviceType: true },
   });
 
-  if (!booking) return;
+  if (!booking) return [];
 
   const appUrl = process.env.APP_URL || "http://localhost:3000";
 
@@ -101,19 +118,9 @@ export async function queueAdminNotificationsForBookingEvent(args: {
     take: 500,
   });
 
-  if (admins.length === 0) return;
+  if (admins.length === 0) return [];
 
-  const jobs: Array<{
-    channel: "EMAIL" | "SMS";
-    event: NotificationEvent;
-    to: string;
-    subject?: string | null;
-    body: string;
-    bookingId: string;
-    userId: string;
-    dedupeKey: string;
-    payload: any;
-  }> = [];
+  const jobs: NotificationJob[] = [];
 
   for (const a of admins) {
     const rawEmail = normalizeEmail(a.email ?? "");
@@ -158,6 +165,19 @@ export async function queueAdminNotificationsForBookingEvent(args: {
     }
   }
 
+  return jobs;
+}
+
+/**
+ * Queue notifications for later processing by a worker/cron
+ * Use this if you want to decouple notification sending from the main request
+ */
+export async function queueAdminNotificationsForBookingEvent(args: {
+  event: NotificationEvent;
+  bookingId: string;
+}) {
+  const jobs = await buildNotificationJobs(args);
+
   if (jobs.length === 0) return;
 
   // Create jobs idempotently
@@ -175,4 +195,111 @@ export async function queueAdminNotificationsForBookingEvent(args: {
     })),
     skipDuplicates: true,
   });
+}
+
+/**
+ * Send notifications IMMEDIATELY (no queue)
+ * Use this for time-sensitive notifications where you want instant delivery
+ *
+ * Note: This will slow down the request slightly but ensures immediate delivery
+ */
+export async function sendAdminNotificationsForBookingEvent(args: {
+  event: NotificationEvent;
+  bookingId: string;
+}) {
+  const jobs = await buildNotificationJobs(args);
+
+  if (jobs.length === 0) return { sent: 0, failed: 0 };
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const job of jobs) {
+    try {
+      // Check for duplicate (already sent)
+      const existing = await db.notificationJob.findUnique({
+        where: { dedupeKey: job.dedupeKey },
+      });
+
+      if (existing?.status === "SENT") {
+        // Already sent, skip
+        continue;
+      }
+
+      // Send immediately
+      if (job.channel === "EMAIL") {
+        await sendAdminNotificationEmail({
+          to: job.to,
+          subject: job.subject || "Notification",
+          text: job.body,
+        });
+      } else if (job.channel === "SMS") {
+        await sendSms({
+          to: job.to,
+          body: job.body,
+        });
+      }
+
+      // Record as sent (for deduplication)
+      await db.notificationJob.upsert({
+        where: { dedupeKey: job.dedupeKey },
+        create: {
+          channel: job.channel as any,
+          event: job.event as any,
+          to: job.to,
+          subject: job.subject ?? null,
+          body: job.body,
+          bookingId: job.bookingId,
+          userId: job.userId,
+          dedupeKey: job.dedupeKey,
+          payload: job.payload,
+          status: "SENT",
+          sentAt: new Date(),
+        },
+        update: {
+          status: "SENT",
+          sentAt: new Date(),
+          lastError: null,
+        },
+      });
+
+      sent++;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      console.error(
+        `Failed to send ${job.channel} to ${job.to}:`,
+        errorMessage,
+      );
+
+      // Record failure
+      await db.notificationJob.upsert({
+        where: { dedupeKey: job.dedupeKey },
+        create: {
+          channel: job.channel as any,
+          event: job.event as any,
+          to: job.to,
+          subject: job.subject ?? null,
+          body: job.body,
+          bookingId: job.bookingId,
+          userId: job.userId,
+          dedupeKey: job.dedupeKey,
+          payload: job.payload,
+          status: "FAILED",
+          lastError: errorMessage,
+          attempts: 1,
+        },
+        update: {
+          status: "FAILED",
+          lastError: errorMessage,
+          attempts: { increment: 1 },
+        },
+      });
+
+      failed++;
+    }
+  }
+
+  return { sent, failed };
 }

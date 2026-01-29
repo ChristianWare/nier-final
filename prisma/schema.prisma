@@ -622,6 +622,9 @@ model CompanySettings {
   // Format: {"monday":{"enabled":true,"open":"08:00","close":"18:00"},...}
   officeHours String? @db.Text
 
+  // SMS Settings
+  smsFromNumber String? // Twilio phone number for this client, E.164 format (+15209992737)
+
   updatedAt DateTime @updatedAt
   updatedBy String? // Admin who last updated
 }
