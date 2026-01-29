@@ -123,12 +123,12 @@ function paymentLabel(status: PaymentStatus) {
 
 export default function DashboardOverview({
   nextTrip,
-  recentActivity,
+  // recentActivity,
 }: {
   nextTrip: NextTrip | null;
   recentActivity: ActivityItem[];
 }) {
-const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
+  const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
 
   const showPayNow = nextTrip
     ? Boolean(payUrl) &&
@@ -283,12 +283,9 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
           )}
         </section>
 
-        <section className={styles.card}>
+        {/* <section className={styles.card}>
           <header className={styles.cardTop}>
             <h2 className={`cardTitle h4`}>Recent activity</h2>
-            {/* <Link className={styles.inlineLink} href='/dashboard/trips'>
-              View all
-            </Link> */}
           </header>
 
           {recentActivity.length === 0 ? (
@@ -300,9 +297,6 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
               {recentActivity.map((evt) => (
                 <li key={evt.id} className={styles.activityItem}>
                   <div className={styles.activityLeft}>
-                    {/* <div className={styles.activityTitle}>
-                      {statusLabel(evt.status)}
-                    </div> */}
                     <span className={`badge badge_${badgeTone(evt.status)}`}>
                       {statusLabel(evt.status)}
                     </span>
@@ -325,7 +319,7 @@ const payUrl = nextTrip?.payment?.checkoutUrl ?? null;
               ))}
             </ul>
           )}
-        </section>
+        </section> */}
       </div>
     </section>
   );

@@ -1,0 +1,386 @@
+.container {
+  display: grid;
+  gap: 1.5rem;
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  padding: 2rem;
+  background: var(--white);
+}
+
+.header {
+  display: grid;
+  gap: 8px;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.titleIcon {
+  margin-right: 0.5rem;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1rem;
+  gap: 1rem;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  opacity: 0.5;
+}
+
+.emptyText {
+  display: grid;
+  gap: 0.5rem;
+}
+
+/* Table Card */
+.tableCard {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.thead {
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 2;
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.tr:hover {
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
+}
+
+.trHighlight {
+  background: rgba(239, 68, 68, 0.04);
+}
+
+.trHighlight:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.td {
+  padding: 14px;
+  vertical-align: middle;
+  position: relative;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cellInner {
+  position: relative;
+  z-index: 2;
+}
+
+.tdRight {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rowLink {
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.cellStack {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cellSub {
+  font-size: 1.2rem;
+  opacity: 0.65;
+  line-height: 1.25;
+}
+
+.cellMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Route display */
+.routeText {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.3rem;
+  color: var(--paragraph);
+}
+
+.routeIcon {
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+/* Driver display */
+.driverAssigned {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.driverIcon {
+  font-size: 1rem;
+}
+
+.driverPending {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* Amount */
+.amount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--black);
+}
+
+/* Badges */
+.badge {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  width: fit-content;
+  white-space: nowrap;
+}
+
+.badge_neutral {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.badge_warning {
+  background: rgba(255, 200, 9, 0.2);
+  border-color: rgba(255, 200, 9, 0.55);
+  color: #92400e;
+}
+
+.badge_danger {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.35);
+  color: #991b1b;
+}
+
+.badge_good {
+  background: rgba(22, 163, 74, 0.12);
+  border-color: rgba(22, 163, 74, 0.28);
+  color: #166534;
+}
+
+.pill {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  white-space: nowrap;
+}
+
+/* Pay Now Button */
+.payNowBtn {
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+.payNowBtn:hover {
+  background: var(--accent600) !important;
+}
+
+/* Info Box */
+.infoBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 10px;
+}
+
+.infoIcon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.infoText {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Responsive */
+@media screen and (max-width: 900px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: var(--white);
+  }
+
+  .tr:hover {
+    background: var(--white);
+  }
+
+  .trHighlight {
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 900;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .tdRight {
+    text-align: left;
+  }
+
+  .tdRight::before {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    padding: 1.25rem;
+  }
+
+  .td::before {
+    font-size: 1rem;
+  }
+
+  .rowLink {
+    font-size: 1.3rem;
+  }
+
+  .cellSub {
+    font-size: 1.1rem;
+  }
+
+  .routeText {
+    font-size: 1.2rem;
+  }
+
+  .pill {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+}
