@@ -1,9 +1,9 @@
 "use client";
 
-import styles from "./UserTripsTable.module.css";
+import styles from "./UserPaymentDue.module.css";
 import Link from "next/link";
 
-export type UserPendingTripItem = {
+export type UserPaymentDueItem = {
   id: string;
   pickupAtIso: string;
   pickupAddress: string;
@@ -12,11 +12,11 @@ export type UserPendingTripItem = {
   vehicleName: string | null;
   totalCents: number;
   currency: string;
-  createdAtIso: string;
+  paymentUrl: string | null;
 };
 
 type Props = {
-  items: UserPendingTripItem[];
+  items: UserPaymentDueItem[];
   timeZone?: string;
   bookingHrefBase?: string;
 };
@@ -30,6 +30,7 @@ function formatCurrency(cents: number, currency: string = "USD") {
 
 function formatPickup(iso: string, timeZone: string) {
   const d = new Date(iso);
+  const now = new Date();
 
   const dateLabel = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -45,21 +46,29 @@ function formatPickup(iso: string, timeZone: string) {
     hour12: true,
   }).format(d);
 
-  return { dateLabel, timeLabel };
-}
-
-function formatCreatedAt(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-
-  const mins = Math.round(diffMs / (60 * 1000));
+  // Calculate relative time
+  const diffMs = d.getTime() - now.getTime();
   const hours = Math.round(diffMs / (60 * 60 * 1000));
   const days = Math.round(diffMs / (24 * 60 * 60 * 1000));
 
-  if (mins < 60) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return `${days}d ago`;
+  let urgency: "critical" | "warning" | "normal" = "normal";
+  let relLabel = "";
+
+  if (diffMs < 0) {
+    relLabel = "Overdue";
+    urgency = "critical";
+  } else if (hours < 24) {
+    relLabel = hours <= 1 ? "Today" : `In ${hours}h`;
+    urgency = "critical";
+  } else if (days <= 3) {
+    relLabel = days === 1 ? "Tomorrow" : `In ${days} days`;
+    urgency = "warning";
+  } else {
+    relLabel = `In ${days} days`;
+    urgency = "normal";
+  }
+
+  return { dateLabel, timeLabel, relLabel, urgency };
 }
 
 function shortAddress(address: string): string {
@@ -68,27 +77,29 @@ function shortAddress(address: string): string {
   return parts[0]?.trim() || address;
 }
 
-export default function UserPendingTrips({
+export default function UserPaymentDue({
   items,
   timeZone = "America/Phoenix",
   bookingHrefBase = "/dashboard/trips",
 }: Props) {
   if (items.length === 0) {
-    return null; // Don't show section if no pending items
+    return null; // Don't show section if no items
   }
 
   return (
-    <section className={styles.container} aria-label='Pending approval'>
+    <section className={styles.container} aria-label='Payment required'>
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>
-            <span className={styles.titleIcon}>⏳</span>
-            Awaiting Approval
+            <span className={styles.titleIcon}>💳</span>
+            Payment Required
           </h2>
-          <span className={styles.countBadge}>{items.length}</span>
+          <span className={`${styles.countBadge} ${styles.countBadgeDanger}`}>
+            {items.length}
+          </span>
         </div>
         <p className='miniNote'>
-          These booking requests are being reviewed by our team
+          These bookings have been approved and require payment to confirm
         </p>
       </header>
 
@@ -97,11 +108,10 @@ export default function UserPendingTrips({
           <thead className={styles.thead}>
             <tr className={styles.trHead}>
               <th className={styles.th}>Status</th>
-              <th className={styles.th}>Requested Pickup</th>
+              <th className={styles.th}>Pickup</th>
               <th className={styles.th}>Route</th>
               <th className={styles.th}>Service</th>
-              <th className={styles.th}>Estimate</th>
-              <th className={styles.th}>Submitted</th>
+              <th className={styles.th}>Amount Due</th>
               <th className={`${styles.th} ${styles.thRight}`}></th>
             </tr>
           </thead>
@@ -110,10 +120,12 @@ export default function UserPendingTrips({
             {items.map((b) => {
               const pickup = formatPickup(b.pickupAtIso, timeZone);
               const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}`;
-              const createdAgo = formatCreatedAt(b.createdAtIso);
 
               return (
-                <tr key={b.id} className={styles.tr}>
+                <tr
+                  key={b.id}
+                  className={`${styles.tr} ${pickup.urgency === "critical" ? styles.trCritical : pickup.urgency === "warning" ? styles.trWarning : ""}`}
+                >
                   <td className={styles.td} data-label='Status'>
                     <Link
                       href={href}
@@ -123,9 +135,9 @@ export default function UserPendingTrips({
                     />
                     <div className={styles.cellInner}>
                       <span
-                        className={`${styles.badge} ${styles.badge_warning}`}
+                        className={`${styles.badge} ${styles.badge_danger}`}
                       >
-                        Pending Review
+                        Payment Due
                       </span>
                     </div>
                   </td>
@@ -141,6 +153,19 @@ export default function UserPendingTrips({
                       <span className={styles.rowLink}>
                         {pickup.dateLabel} @ {pickup.timeLabel}
                       </span>
+                      <div className={styles.cellMeta}>
+                        <span
+                          className={`${styles.pill} ${
+                            pickup.urgency === "critical"
+                              ? styles.pillCritical
+                              : pickup.urgency === "warning"
+                                ? styles.pillWarning
+                                : ""
+                          }`}
+                        >
+                          {pickup.relLabel}
+                        </span>
+                      </div>
                     </div>
                   </td>
 
@@ -178,7 +203,7 @@ export default function UserPendingTrips({
                     </div>
                   </td>
 
-                  <td className={styles.td} data-label='Estimate'>
+                  <td className={styles.td} data-label='Amount Due'>
                     <Link
                       href={href}
                       className={styles.rowStretchedLink}
@@ -186,21 +211,9 @@ export default function UserPendingTrips({
                       tabIndex={-1}
                     />
                     <div className={styles.cellInner}>
-                      <div className={styles.amount}>
+                      <div className={styles.amountDue}>
                         {formatCurrency(b.totalCents, b.currency)}
                       </div>
-                    </div>
-                  </td>
-
-                  <td className={styles.td} data-label='Submitted'>
-                    <Link
-                      href={href}
-                      className={styles.rowStretchedLink}
-                      aria-hidden='true'
-                      tabIndex={-1}
-                    />
-                    <div className={styles.cellInner}>
-                      <span className={styles.cellSub}>{createdAgo}</span>
                     </div>
                   </td>
 
@@ -208,9 +221,20 @@ export default function UserPendingTrips({
                     className={`${styles.td} ${styles.tdRight}`}
                     data-label='Action'
                   >
-                    <Link className='primaryBtn' href={href}>
-                      View
-                    </Link>
+                    {b.paymentUrl ? (
+                      <Link
+                        className='primaryBtn'
+                        href={href}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                      >
+                        View{" "}
+                      </Link>
+                    ) : (
+                      <Link className='primaryBtn' href={href}>
+                        View
+                      </Link>
+                    )}
                   </td>
                 </tr>
               );
@@ -219,12 +243,13 @@ export default function UserPendingTrips({
         </table>
       </div>
 
-      {/* Info box */}
-      <div className={styles.infoBox}>
-        <span className={styles.infoIcon}>ℹ️</span>
-        <p className={styles.infoText}>
-          You&apos;ll receive an email once your booking is approved with a link
-          to complete payment.
+      {/* Warning box */}
+      <div className={styles.warningBox}>
+        <span className={styles.warningIcon}>⚠️</span>
+        <p className={styles.warningText}>
+          Please complete payment as soon as possible to confirm your booking.
+          Unpaid bookings may be cancelled if payment is not received before the
+          pickup time.
         </p>
       </div>
     </section>

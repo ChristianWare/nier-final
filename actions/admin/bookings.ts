@@ -1951,3 +1951,118 @@ export async function getDriverSchedule(formData: FormData) {
     return { error: "Failed to fetch schedule.", trips: [] };
   }
 }
+
+const CancelBookingSchema = z.object({
+  bookingId: z.string().min(1),
+});
+
+async function resolveSessionUserId(session: any) {
+  const direct =
+    (session?.user?.id as string | undefined) ??
+    (session?.user?.userId as string | undefined);
+
+  if (direct) return direct;
+
+  const email = session?.user?.email ?? null;
+  if (!email) return null;
+
+  const u = await db.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+
+  return u?.id ?? null;
+}
+
+export async function userCancelBooking(formData: FormData) {
+  const session = await auth();
+  if (!session) {
+    return { error: "Not authenticated." };
+  }
+
+  const userId = await resolveSessionUserId(session);
+  if (!userId) {
+    return { error: "User not found." };
+  }
+
+  const parsed = CancelBookingSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { error: "Invalid request." };
+  }
+
+  const { bookingId } = parsed.data;
+
+  // Fetch booking and verify ownership
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    select: {
+      id: true,
+      userId: true,
+      status: true,
+      payment: {
+        select: { status: true, amountPaidCents: true },
+      },
+    },
+  });
+
+  if (!booking) {
+    return { error: "Booking not found." };
+  }
+
+  // Verify the user owns this booking
+  if (booking.userId !== userId) {
+    return { error: "You do not have permission to cancel this booking." };
+  }
+
+  // Check if booking can be cancelled
+  const nonCancellableStatuses = [
+    "COMPLETED",
+    "CANCELLED",
+    "NO_SHOW",
+    "REFUNDED",
+    "PARTIALLY_REFUNDED",
+    "IN_PROGRESS",
+  ];
+
+  if (nonCancellableStatuses.includes(booking.status)) {
+    return { error: "This booking cannot be cancelled." };
+  }
+
+  // Check if payment has been made
+  const isPaid = booking.payment?.status === "PAID";
+  const hasPaid = (booking.payment?.amountPaidCents ?? 0) > 0;
+
+  if (isPaid || hasPaid) {
+    return {
+      error:
+        "Cannot cancel a paid booking. Please contact support for refund requests.",
+    };
+  }
+
+  // Cancel the booking
+  await db.$transaction([
+    db.booking.update({
+      where: { id: bookingId },
+      data: { status: "CANCELLED" },
+    }),
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status: "CANCELLED",
+        eventType: "STATUS_CHANGE",
+        metadata: {
+          previousStatus: booking.status,
+          newStatus: "CANCELLED",
+          action: "Booking cancelled by customer",
+          cancelledBy: "user",
+        },
+        createdById: userId,
+      },
+    }),
+  ]);
+
+  revalidatePath(`/dashboard/trips/${bookingId}`);
+  revalidatePath("/dashboard/trips");
+
+  return { success: true };
+}

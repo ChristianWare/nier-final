@@ -1,0 +1,838 @@
+.container {
+  display: grid;
+  gap: 16px;
+}
+
+.header {
+  display: grid;
+  gap: 6px;
+}
+
+.backLink {
+  display: inline-block;
+  color: var(--paragraph);
+  font-size: 14px;
+  text-decoration: none;
+  margin-bottom: 1rem;
+  transition: color 0.2s;
+}
+
+.backLink:hover {
+  color: var(--accent);
+}
+
+.heading {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  width: 100%;
+}
+
+.box {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+}
+
+.boxLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.boxRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+/* =============================================================================
+   Cards (matching admin)
+   ============================================================================= */
+
+.card {
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 1rem;
+  width: 100%;
+  position: relative;
+}
+
+.cardTop {
+  margin-bottom: 1rem;
+}
+
+/* =============================================================================
+   Key-Value Rows (matching admin)
+   ============================================================================= */
+
+.keyVal {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.keyVal:last-child {
+  border-bottom: none;
+}
+
+/* =============================================================================
+   Confirmation Code
+   ============================================================================= */
+
+.confirmationValue {
+  font-family: monospace;
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--black);
+  background: var(--cream);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: 1px solid var(--stroke);
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+/* =============================================================================
+   Payment Info (matching admin)
+   ============================================================================= */
+
+.paymentInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  border: 1px solid var(--stroke);
+  padding: 1rem;
+  border-radius: 5px;
+}
+
+.paymentAmount {
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.paymentBlock {
+  display: grid;
+  gap: 10px;
+}
+
+.paymentStatus {
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+/* =============================================================================
+   Tip Display (matching admin)
+   ============================================================================= */
+
+.tipDisplay {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 5px;
+}
+
+.tipIcon {
+  font-size: 2rem;
+}
+
+.tipLabel {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #92400e;
+}
+
+.tipAmount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #78350f;
+}
+
+/* Tip breakdown card */
+.tipBreakdownCard {
+  margin: 16px 0;
+  padding: 16px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 1px solid #10b981;
+  border-radius: 10px;
+}
+
+.tipBreakdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tipBreakdownIcon {
+  font-size: 1.5rem;
+}
+
+.tipBreakdownTitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.tipBreakdownAmount {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #047857;
+  margin-bottom: 8px;
+}
+
+.tipBreakdownNote {
+  font-size: 1.4rem;
+  color: #065f46;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+/* =============================================================================
+   Decline Reason Box (matching admin)
+   ============================================================================= */
+
+.declineReasonBox {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 5px;
+  font-size: 1.4rem;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+.declineReasonBox strong {
+  color: #7f1d1d;
+}
+
+/* =============================================================================
+   Section Divider (matching admin)
+   ============================================================================= */
+
+.sectionDivider {
+  height: 1px;
+  background: var(--stroke);
+  margin: 1rem 0;
+}
+
+/* =============================================================================
+   Stops Section (matching admin)
+   ============================================================================= */
+
+.stopsSection {
+  padding: 1rem 0;
+}
+
+.routeTimeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.routePoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1rem 0;
+  position: relative;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.routeMarker {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.routeAddress {
+  flex: 1;
+  min-width: 0;
+}
+
+.routeAddress .subheading {
+  word-break: break-word;
+}
+
+.stopCharges {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+}
+
+.stopChargeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 1.4rem;
+}
+
+.stopChargeRow:not(:last-child) {
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.stopChargeAmount {
+  font-weight: 600;
+  color: #059669;
+}
+
+/* =============================================================================
+   Route Map Section
+   ============================================================================= */
+
+.routeMapSection {
+  padding-top: 1rem;
+}
+
+/* =============================================================================
+   Flight Section (matching admin)
+   ============================================================================= */
+
+.flightSection {
+  padding-top: 1rem;
+}
+
+/* =============================================================================
+   Driver Section
+   ============================================================================= */
+
+.driverSection {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.driverImageWrap {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--stroke);
+}
+
+.driverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.driverInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.driverContact {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.contactButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--cream);
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--black);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.contactButton:hover {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+/* =============================================================================
+   Help Section
+   ============================================================================= */
+
+.helpContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.helpActions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.helpButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--cream);
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.helpButton:hover {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+/* =============================================================================
+   Payment Section (Stripe + Tips)
+   ============================================================================= */
+
+.paymentSection {
+  display: grid;
+  gap: 2rem;
+}
+
+.tipSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tipHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.tipSubtitle {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  opacity: 0.8;
+}
+
+.tipGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.tipButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 1rem 0.5rem;
+  background: var(--white);
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tipButton:hover {
+  border-color: var(--black);
+}
+
+.tipButtonSelected {
+  border-color: var(--black);
+  background: var(--cream);
+}
+
+.tipPercent {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.tipAmountSmall {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.8;
+}
+
+.tipActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.tipActionButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--paragraph);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tipActionButton:hover {
+  border-color: var(--black);
+  color: var(--black);
+}
+
+.tipActionButtonSelected {
+  border-color: var(--black);
+  background: var(--cream);
+  color: var(--black);
+}
+
+.customTipWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--black);
+  border-radius: 8px;
+  background: var(--white);
+}
+
+.currencySymbol {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--paragraph);
+}
+
+.customTipInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.6rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: transparent;
+}
+
+.customTipInput::placeholder {
+  color: var(--paragraph);
+  opacity: 0.5;
+}
+
+/* Price Breakdown */
+.priceBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: var(--cream);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+}
+
+.priceRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.4rem;
+}
+
+.priceLabel {
+  color: var(--paragraph);
+}
+
+.priceValue {
+  font-weight: 600;
+  color: var(--black);
+}
+
+.priceValueIncluded {
+  font-weight: 500;
+  color: #059669;
+  font-style: italic;
+}
+
+.priceDivider {
+  height: 1px;
+  background: var(--stroke);
+  margin: 0.5rem 0;
+}
+
+.priceTotal {
+  margin-top: 0.25rem;
+}
+
+.priceTotalLabel {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.priceTotalValue {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--black);
+}
+
+/* Payment Form */
+.paymentFormSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.paymentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.paymentElementWrapper {
+  padding: 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: var(--white);
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 1.3rem;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+  font-size: 1.3rem;
+}
+
+.errorIcon {
+  font-size: 1.2rem;
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 2rem;
+  color: var(--paragraph);
+  font-size: 1.4rem;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--stroke);
+  border-top-color: var(--black);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.secureNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.7;
+}
+
+.lockIcon {
+  width: 14px;
+  height: 14px;
+}
+
+/* =============================================================================
+   Cancel Trip Section
+   ============================================================================= */
+
+.cancelSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cancelButton {
+  padding: 12px 24px;
+  background: transparent;
+  border: 1px solid rgba(220, 38, 38, 0.5);
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
+}
+
+.cancelConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+}
+
+.cancelConfirmText {
+  font-size: 1.4rem;
+  color: #991b1b;
+  margin: 0;
+}
+
+.cancelConfirmActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.cancelConfirmYes {
+  flex: 1;
+  padding: 10px 16px;
+  background: #dc2626;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.cancelConfirmYes:hover {
+  background: #b91c1c;
+}
+
+.cancelConfirmYes:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelConfirmNo {
+  flex: 1;
+  padding: 10px 16px;
+  background: white;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  color: var(--black);
+  font-size: 1.3rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelConfirmNo:hover {
+  background: var(--cream);
+}
+
+.cancelConfirmNo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelError {
+  font-size: 1.3rem;
+  color: #dc2626;
+  margin: 0;
+}
+
+/* =============================================================================
+   Responsive (matching admin)
+   ============================================================================= */
+
+@media screen and (max-width: 1268px) {
+  .box {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .boxRight {
+    align-items: flex-start;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .keyVal {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .driverSection {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .driverContact {
+    justify-content: center;
+  }
+
+  .helpActions {
+    flex-direction: column;
+  }
+
+  .helpButton {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .declineReasonBox {
+    font-size: 1.4rem;
+  }
+
+  .tipGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cancelConfirmActions {
+    flex-direction: column;
+  }
+}

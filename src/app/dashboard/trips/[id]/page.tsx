@@ -1,141 +1,664 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import styles from "./TripDetailsPage.module.css";
-import { auth } from "../../../../../auth";
 import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { BookingStatus } from "@prisma/client";
+import type { ReactNode } from "react";
+
+import styles from "./UserTripDetailPage.module.css";
+import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
-import TripDetails from "@/components/Dashboard/TripDetails/TripDetails";
+import DefaultProfileImg from "../../../../../public/images/mesaii.jpg";
+import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
+import UserTripPaymentClient from "./UserTripPaymentClient";
+import UserCancelTripClient from "./UserCancelTripClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type AppRole = "USER" | "ADMIN" | "DRIVER";
+type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-function normalizeRoles(input: any): AppRole[] {
-  if (Array.isArray(input)) {
-    return input.filter(Boolean) as AppRole[];
-  }
-  if (typeof input === "string" && input.trim()) {
-    return [input as AppRole];
-  }
-  return [];
+function formatDateTime(d: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Phoenix",
+  }).format(d);
 }
 
-async function resolveViewer(
-  session: any
-): Promise<{ userId: string; roles: AppRole[] }> {
-  const idFromSession =
+function formatMoney(cents: number | null | undefined, currency = "USD") {
+  if (cents == null) return "—";
+  const n = cents / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+function toNumber(val: unknown): number | null {
+  if (val == null) return null;
+  if (typeof val === "number") return val;
+  if (typeof (val as any).toNumber === "function")
+    return (val as any).toNumber();
+  const n = Number(val);
+  return Number.isFinite(n) ? n : null;
+}
+
+function getConfirmationCode(bookingId: string): string {
+  return bookingId.slice(0, 8).toUpperCase();
+}
+
+function statusLabel(status: BookingStatus): string {
+  switch (status) {
+    case "PENDING_REVIEW":
+      return "Pending review";
+    case "DECLINED":
+      return "Declined";
+    case "PENDING_PAYMENT":
+      return "Approved (awaiting payment)";
+    case "CONFIRMED":
+      return "Confirmed";
+    case "ASSIGNED":
+      return "Driver assigned";
+    case "EN_ROUTE":
+      return "Driver en route";
+    case "ARRIVED":
+      return "Driver arrived";
+    case "IN_PROGRESS":
+      return "In progress";
+    case "COMPLETED":
+      return "Completed";
+    case "CANCELLED":
+      return "Cancelled";
+    case "NO_SHOW":
+      return "No-show";
+    case "REFUNDED":
+      return "Refunded";
+    case "PARTIALLY_REFUNDED":
+      return "Partially refunded";
+    default:
+      return String(status).replaceAll("_", " ");
+  }
+}
+
+function badgeTone(status: BookingStatus): BadgeTone {
+  if (status === "PENDING_PAYMENT") return "warn";
+  if (status === "PENDING_REVIEW") return "neutral";
+  if (status === "DECLINED") return "bad";
+  if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
+  if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
+    return "accent";
+  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
+  if (status === "COMPLETED") return "good";
+  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
+    return "neutral";
+  return "neutral";
+}
+
+function getPaymentStatusDisplay(
+  paymentStatus: string | null | undefined,
+  totalCents: number,
+  amountPaidCents: number,
+): {
+  label: string;
+  tone: BadgeTone;
+} {
+  if (paymentStatus === "REFUNDED") {
+    return { label: "Refunded", tone: "neutral" };
+  }
+  if (paymentStatus === "PARTIALLY_REFUNDED") {
+    return { label: "Partially Refunded", tone: "neutral" };
+  }
+  if (paymentStatus === "PAID") {
+    if (amountPaidCents < totalCents) {
+      return { label: "Partial Payment", tone: "warn" };
+    }
+    return { label: "Paid", tone: "good" };
+  }
+  if (paymentStatus === "PENDING") {
+    return { label: "Pending", tone: "warn" };
+  }
+  if (paymentStatus === "FAILED") {
+    return { label: "Failed", tone: "bad" };
+  }
+  return { label: "Not Paid", tone: "bad" };
+}
+
+async function resolveSessionUserId(session: any) {
+  const direct =
     (session?.user?.id as string | undefined) ??
     (session?.user?.userId as string | undefined);
 
-  const rolesFromSession = normalizeRoles(
-    session?.user?.roles ?? session?.user?.role
-  );
-
-  if (idFromSession) {
-    if (rolesFromSession.length)
-      return { userId: idFromSession, roles: rolesFromSession };
-
-    const u = await db.user.findUnique({
-      where: { id: idFromSession },
-      select: { id: true, roles: true },
-    });
-
-    if (u?.id) {
-      const roles = normalizeRoles(u.roles);
-      return {
-        userId: u.id,
-        roles: roles.length ? roles : (["USER"] as AppRole[]),
-      };
-    }
-  }
+  if (direct) return direct;
 
   const email = session?.user?.email ?? null;
-  if (!email) throw new Error("Missing identity");
+  if (!email) return null;
 
   const u = await db.user.findUnique({
     where: { email },
-    select: { id: true, roles: true },
+    select: { id: true },
   });
 
-  if (!u?.id) throw new Error("User not found");
-
-  const roles = normalizeRoles(u.roles);
-  return {
-    userId: u.id,
-    roles: roles.length ? roles : (["USER"] as AppRole[]),
-  };
+  return u?.id ?? null;
 }
 
-export default async function TripDetailsPage({
+export default async function UserTripDetailPage({
   params,
 }: {
-  params: { id: string } | Promise<{ id: string }>;
+  params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  if (!id) notFound();
 
   const session = await auth();
-  if (!session)
-    redirect(`/login?next=${encodeURIComponent(`/dashboard/trips/${id}`)}`);
+  if (!session) redirect("/login?next=/dashboard/trips");
 
-  let viewer: { userId: string; roles: AppRole[] };
-  try {
-    viewer = await resolveViewer(session);
-  } catch {
-    redirect(`/login?next=${encodeURIComponent(`/dashboard/trips/${id}`)}`);
-  }
-
-  const { userId, roles } = viewer;
-
-  const isAdmin = roles.includes("ADMIN");
-  const isDriver = roles.includes("DRIVER");
-  const isUser = roles.includes("USER");
+  const userId = await resolveSessionUserId(session);
+  if (!userId) redirect("/login?next=/dashboard/trips");
 
   const booking = await db.booking.findUnique({
     where: { id },
     include: {
-      user: { select: { id: true, name: true, email: true } },
-      serviceType: {
-        select: { name: true, slug: true, pricingStrategy: true },
-      },
+      user: { select: { id: true, name: true, email: true, phone: true } },
+      serviceType: { select: { name: true, slug: true } },
       vehicle: { select: { name: true } },
-      addons: true,
-      payment: true,
+      payment: {
+        select: {
+          status: true,
+          checkoutUrl: true,
+          amountPaidCents: true,
+          amountRefundedCents: true,
+          tipCents: true,
+          paidAt: true,
+        },
+      },
       assignment: {
         include: {
-          driver: { select: { id: true, name: true, email: true } },
+          driver: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phone: true,
+              image: true,
+            },
+          },
           vehicleUnit: { select: { name: true, plate: true } },
         },
       },
-      statusEvents: {
-        orderBy: { createdAt: "desc" },
-        take: 50,
-        include: {
-          createdBy: { select: { name: true, email: true } },
-        },
+      stops: {
+        orderBy: { stopOrder: "asc" },
       },
     },
   });
 
-  if (!booking) notFound();
+  if (!booking) return notFound();
 
-  const isOwner = booking.userId === userId;
-  const isAssignedDriver = Boolean(
-    booking.assignment && booking.assignment.driverId === userId
+  // Verify this user owns the booking
+  if (booking.userId !== userId) {
+    redirect("/dashboard/trips");
+  }
+
+  const currentStatus = booking.status as BookingStatus;
+  const isPaid = booking.payment?.status === "PAID";
+  const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
+  const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
+  const tipCents = booking.payment?.tipCents ?? 0;
+
+  // Current status display
+  const currentStatusIsPaidConfirmed =
+    isPaid &&
+    (currentStatus === "CONFIRMED" || currentStatus === "PENDING_PAYMENT");
+  const currentStatusLabel = currentStatusIsPaidConfirmed
+    ? "Payment received"
+    : statusLabel(currentStatus);
+  const currentStatusTone: BadgeTone = currentStatusIsPaidConfirmed
+    ? "good"
+    : badgeTone(currentStatus);
+
+  // Payment status display
+  const paymentStatusDisplay = getPaymentStatusDisplay(
+    booking.payment?.status,
+    booking.totalCents,
+    amountPaidCents,
   );
 
-  const allowed =
-    isAdmin || (isDriver && isAssignedDriver) || (isUser && isOwner);
+  // Driver info
+  const hasDriver = !!booking.assignment?.driver;
+  const driver = booking.assignment?.driver;
+  const driverName = driver?.name?.trim() || "Your Driver";
+  const driverPhone = driver?.phone || null;
+  const driverImage = driver?.image || null;
 
-  if (!allowed) {
-    redirect(
-      isAdmin || isDriver ? "/driver-dashboard/trips" : "/dashboard/trips"
-    );
-  }
+  // Vehicle info
+  const vehicleUnit = booking.assignment?.vehicleUnit;
+  const vehicleUnitDisplay = vehicleUnit
+    ? `${vehicleUnit.name}${vehicleUnit.plate ? ` (${vehicleUnit.plate})` : ""}`
+    : null;
+
+  // Check for stops
+  const hasStops = booking.stops && booking.stops.length > 0;
+  const stopCount = booking.stops?.length ?? 0;
+  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
+  const totalWaitTimeMinutes =
+    booking.stops?.reduce((sum, s) => sum + (s.waitTimeMinutes ?? 5), 0) ?? 0;
+
+  // Check for flight info
+  const hasFlightInfo =
+    booking.flightAirline ||
+    booking.flightNumber ||
+    booking.flightScheduledAt ||
+    booking.flightTerminal ||
+    booking.flightGate;
+
+  // Check if we have route coordinates for map
+  const hasRouteCoordinates =
+    booking.pickupLat &&
+    booking.pickupLng &&
+    booking.dropoffLat &&
+    booking.dropoffLng;
+
+  // Prepare stops for map
+  const stopsForMap =
+    booking.stops
+      ?.map((s) => ({
+        lat: toNumber(s.lat)!,
+        lng: toNumber(s.lng)!,
+        address: s.address,
+        stopOrder: s.stopOrder,
+      }))
+      .filter((s) => s.lat && s.lng) ?? [];
+
+  // Show payment section if pending payment
+  const showPaymentSection = currentStatus === "PENDING_PAYMENT";
+
+  // Can cancel if not paid and not in terminal/active status
+  const canCancel =
+    !isPaid &&
+    amountPaidCents === 0 &&
+    ![
+      "COMPLETED",
+      "CANCELLED",
+      "NO_SHOW",
+      "REFUNDED",
+      "PARTIALLY_REFUNDED",
+      "IN_PROGRESS",
+    ].includes(currentStatus);
+
+  // Declined
+  const isDeclined = currentStatus === "DECLINED";
+
+  // Prepare stops for payment client
+  const stopsForPayment = booking.stops.map((s) => ({
+    id: s.id,
+    stopOrder: s.stopOrder,
+    address: s.address,
+  }));
 
   return (
     <section className={styles.container}>
-      <TripDetails booking={booking} />
+      <header className={styles.header}>
+        <Link href='/dashboard/trips' className={styles.backLink}>
+          ← Back to My Trips
+        </Link>
+        <h1 className={`${styles.heading} h2`}>Trip Details</h1>
+
+        <div className={styles.box}>
+          <div className={styles.boxLeft}>
+            <div className='emptyTitle'>Confirmation #</div>
+            <div className={styles.confirmationValue}>
+              {getConfirmationCode(booking.id)}
+            </div>
+
+            {/* Current status badge */}
+            <div style={{ marginTop: 12 }}>
+              <div className='emptyTitle'>Current Status:</div>
+              <div style={{ marginTop: 6 }}>
+                <span className={`badge badge_${currentStatusTone}`}>
+                  {currentStatusLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Show decline reason if applicable */}
+            {isDeclined && booking.declineReason && (
+              <div className={styles.declineReasonBox}>
+                <strong>Decline Reason:</strong> {booking.declineReason}
+              </div>
+            )}
+
+            {/* Payment status */}
+            <div style={{ marginTop: 12 }}>
+              <div className='emptyTitle'>Payment:</div>
+              <div className={styles.paymentInfo}>
+                <span className={`badge badge_${paymentStatusDisplay.tone}`}>
+                  {paymentStatusDisplay.label}
+                </span>
+                {booking.totalCents > 0 && (
+                  <span className={styles.paymentAmount}>
+                    {formatMoney(booking.totalCents, booking.currency)}
+                  </span>
+                )}
+                {booking.payment?.paidAt && (
+                  <span className='miniNote'>
+                    on {formatDateTime(booking.payment.paidAt)}
+                  </span>
+                )}
+              </div>
+
+              {/* Show tip amount if present */}
+              {tipCents > 0 && (
+                <div className={styles.tipDisplay}>
+                  <span className={styles.tipIcon}>💰</span>
+                  <span className={styles.tipLabel}>Driver Tip:</span>
+                  <span className={styles.tipAmount}>
+                    {formatMoney(tipCents, booking.currency)}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Cancel button in boxRight if allowed */}
+          <div className={styles.boxRight}>
+            {canCancel && <UserCancelTripClient bookingId={booking.id} />}
+          </div>
+        </div>
+      </header>
+
+      {/* Payment Section (if pending payment) */}
+      {showPaymentSection && (
+        <Card title='Complete Your Payment'>
+          <UserTripPaymentClient
+            bookingId={booking.id}
+            serviceName={booking.serviceType?.name ?? "Transportation"}
+            vehicleName={booking.vehicle?.name ?? "Vehicle"}
+            baseFareCents={booking.totalCents}
+            currency={booking.currency}
+            stops={stopsForPayment}
+            stopSurchargeCents={stopSurchargeCents}
+          />
+        </Card>
+      )}
+
+      {/* Driver Card (if assigned) */}
+      {hasDriver && (
+        <Card title='Your Driver'>
+          <div className={styles.driverSection}>
+            <div className={styles.driverImageWrap}>
+              <Image
+                src={driverImage || DefaultProfileImg}
+                alt={driverName}
+                width={80}
+                height={80}
+                className={styles.driverImage}
+              />
+            </div>
+            <div className={styles.driverInfo}>
+              <KeyVal k='Driver' v={driverName} />
+              {vehicleUnitDisplay && (
+                <KeyVal k='Vehicle' v={vehicleUnitDisplay} />
+              )}
+              {driverPhone && (
+                <div className={styles.driverContact}>
+                  <a
+                    href={`tel:${driverPhone}`}
+                    className={styles.contactButton}
+                  >
+                    📞 Call Driver
+                  </a>
+                  <a
+                    href={`sms:${driverPhone}`}
+                    className={styles.contactButton}
+                  >
+                    💬 Text
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Trip Details Card */}
+      <Card title='Trip'>
+        <KeyVal k='Date' v={formatDateTime(booking.pickupAt)} />
+        <KeyVal
+          k='Distance / duration'
+          v={`${toNumber(booking.distanceMiles) ?? "—"} mi • ${booking.durationMinutes ?? "—"} min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
+        />
+        <KeyVal
+          k='Amount'
+          v={formatMoney(booking.totalCents, booking.currency)}
+        />
+        {booking.specialRequests && (
+          <KeyVal k='Special requests' v={booking.specialRequests} />
+        )}
+        <KeyVal k='Booked' v={formatDateTime(booking.createdAt)} />
+        <KeyVal k='Service' v={booking.serviceType?.name ?? "—"} />
+        <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
+
+        {/* Route Timeline with Stops */}
+        {hasStops ? (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.stopsSection}>
+              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                <span style={{ marginRight: "2rem" }}>🛑</span>Route with{" "}
+                {stopCount} Extra Stop{stopCount > 1 ? "s" : ""}
+              </div>
+              <div className={styles.routeTimeline}>
+                {/* Pickup */}
+                <div className={styles.routePoint}>
+                  <div
+                    className={styles.routeMarker}
+                    style={{ background: "#22c55e" }}
+                  >
+                    A
+                  </div>
+                  <div className={styles.routeAddress}>
+                    <div className='emptyTitle'>Pickup</div>
+                    <p className='subheading'>{booking.pickupAddress}</p>
+                  </div>
+                </div>
+
+                {/* Stops */}
+                {booking.stops.map((stop, index) => (
+                  <div key={stop.id} className={styles.routePoint}>
+                    <div
+                      className={styles.routeMarker}
+                      style={{ background: "#3b82f6" }}
+                    >
+                      {index + 1}
+                    </div>
+                    <div className={styles.routeAddress}>
+                      <div className='emptyTitle'>Stop {index + 1}</div>
+                      <p className='subheading'>{stop.address}</p>
+                      <span className='miniNote'>
+                        ~{stop.waitTimeMinutes ?? 5} min wait
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Dropoff */}
+                <div className={styles.routePoint}>
+                  <div
+                    className={styles.routeMarker}
+                    style={{ background: "#ef4444" }}
+                  >
+                    B
+                  </div>
+                  <div className={styles.routeAddress}>
+                    <div className='emptyTitle'>Dropoff</div>
+                    <p className='subheading'>{booking.dropoffAddress}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stop charges */}
+              <div className={styles.stopCharges}>
+                <div className={styles.stopChargeRow}>
+                  <span>Stop surcharge ({stopCount} × $15)</span>
+                  <span className={styles.stopChargeAmount}>
+                    {formatMoney(stopSurchargeCents, booking.currency)}
+                  </span>
+                </div>
+                <div className={styles.stopChargeRow}>
+                  <span>Total wait time</span>
+                  <span>~{totalWaitTimeMinutes} min</span>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <KeyVal k='Pickup' v={booking.pickupAddress} />
+            <KeyVal k='Dropoff' v={booking.dropoffAddress} />
+          </>
+        )}
+
+        <KeyVal
+          k='Passengers / luggage'
+          v={`${booking.passengers} / ${booking.luggage}`}
+        />
+
+        {/* Route Map Display */}
+        {hasRouteCoordinates && (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.routeMapSection}>
+              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                Route Map
+              </div>
+              <RouteMapDisplay
+                pickupLat={toNumber(booking.pickupLat)!}
+                pickupLng={toNumber(booking.pickupLng)!}
+                dropoffLat={toNumber(booking.dropoffLat)!}
+                dropoffLng={toNumber(booking.dropoffLng)!}
+                pickupAddress={booking.pickupAddress}
+                dropoffAddress={booking.dropoffAddress}
+                stops={stopsForMap}
+              />
+            </div>
+          </>
+        )}
+
+        {/* Flight Information */}
+        {hasFlightInfo && (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.flightSection}>
+              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                ✈️ Flight Information
+              </div>
+              {booking.flightAirline && (
+                <KeyVal k='Airline' v={booking.flightAirline} />
+              )}
+              {booking.flightNumber && (
+                <KeyVal k='Flight Number' v={booking.flightNumber} />
+              )}
+              {booking.flightScheduledAt && (
+                <KeyVal
+                  k='Scheduled Time'
+                  v={formatDateTime(booking.flightScheduledAt)}
+                />
+              )}
+              {booking.flightTerminal && (
+                <KeyVal k='Terminal' v={booking.flightTerminal} />
+              )}
+              {booking.flightGate && <KeyVal k='Gate' v={booking.flightGate} />}
+            </div>
+          </>
+        )}
+      </Card>
+
+      {/* Payment Summary Card (if paid) */}
+      {isPaid && (
+        <Card title='Payment Summary'>
+          <div className={styles.paymentBlock}>
+            <div className={styles.paymentStatus}>
+              Payment status:{" "}
+              <strong>{booking.payment?.status ?? "NONE"}</strong>
+              {amountPaidCents > 0 && (
+                <span style={{ marginLeft: 10 }}>
+                  (Paid: {formatMoney(amountPaidCents, booking.currency)}
+                  {amountRefundedCents > 0 && (
+                    <>
+                      , Refunded:{" "}
+                      {formatMoney(amountRefundedCents, booking.currency)}
+                    </>
+                  )}
+                  {tipCents > 0 && (
+                    <>, Tip: {formatMoney(tipCents, booking.currency)}</>
+                  )}
+                  )
+                </span>
+              )}
+            </div>
+
+            {/* Tip breakdown */}
+            {tipCents > 0 && (
+              <div className={styles.tipBreakdownCard}>
+                <div className={styles.tipBreakdownHeader}>
+                  <span className={styles.tipBreakdownIcon}>💰</span>
+                  <span className={styles.tipBreakdownTitle}>
+                    Driver Tip Added
+                  </span>
+                </div>
+                <div className={styles.tipBreakdownAmount}>
+                  {formatMoney(tipCents, booking.currency)}
+                </div>
+                <div className={styles.tipBreakdownNote}>
+                  Thank you for tipping your driver!
+                </div>
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Help Section */}
+      <Card title='Need Help?'>
+        <div className={styles.helpContent}>
+          <p className='subheading'>
+            If you have questions about your booking or need to make changes,
+            please contact us.
+          </p>
+          <div className={styles.helpActions}>
+            <a href='tel:+14805551234' className={styles.helpButton}>
+              📞 Call Support
+            </a>
+            <a href='mailto:support@example.com' className={styles.helpButton}>
+              ✉️ Email Us
+            </a>
+          </div>
+        </div>
+      </Card>
     </section>
+  );
+}
+
+function Card({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div className={styles.card}>
+      <div className={styles.cardTop}>
+        <div className='cardTitle h4'>{title}</div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function KeyVal({ k, v }: { k: string; v: string }) {
+  return (
+    <div className={styles.keyVal}>
+      <div className='emptyTitle'>{k}</div>
+      <p className='subheading'>{v}</p>
+    </div>
   );
 }

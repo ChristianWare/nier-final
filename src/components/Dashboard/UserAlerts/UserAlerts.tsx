@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export type UserAlertItem = {
   id: string;
-  severity: "danger" | "warning" | "info";
+  severity: "danger" | "warning" | "info" | "success";
   title: string;
   message: string;
   href?: string;
@@ -17,11 +17,26 @@ export type UserAlertItem = {
   amountDue?: string | null;
   dueDate?: string | null;
   paymentUrl?: string | null;
+  // For payment received / refunds
+  amountPaid?: string | null;
+  amountRefunded?: string | null;
+  // For driver assigned
+  driverName?: string | null;
+  vehicleName?: string | null;
   // Booking info
   bookingId?: string;
   pickupDate?: string;
   route?: string;
   timestamp?: string;
+  // Alert type for icon selection
+  alertType?:
+    | "declined"
+    | "payment_due"
+    | "payment_received"
+    | "approved"
+    | "driver_assigned"
+    | "refunded"
+    | "cancelled";
 };
 
 type Props = {
@@ -58,6 +73,41 @@ function SlideDrawer({
   );
 }
 
+// Get appropriate icon based on alert type
+function getAlertIcon(
+  alertType: UserAlertItem["alertType"],
+  severity: UserAlertItem["severity"],
+): string {
+  switch (alertType) {
+    case "payment_received":
+      return "✅";
+    case "approved":
+      return "👍";
+    case "driver_assigned":
+      return "🚗";
+    case "declined":
+      return "❌";
+    case "payment_due":
+      return "💳";
+    case "refunded":
+      return "💸";
+    case "cancelled":
+      return "🚫";
+    default:
+      // Fallback to severity-based icons
+      switch (severity) {
+        case "success":
+          return "✅";
+        case "danger":
+          return "🚨";
+        case "warning":
+          return "⚠️";
+        default:
+          return "ℹ️";
+      }
+  }
+}
+
 export default function UserAlerts({ alerts }: Props) {
   const count = alerts.length;
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -92,7 +142,14 @@ export default function UserAlerts({ alerts }: Props) {
         {alerts.map((a) => {
           const isExpanded = expandedIds.has(a.id);
           const hasDetails =
-            a.declineReason || a.amountDue || a.pickupDate || a.route || a.href;
+            a.declineReason ||
+            a.amountDue ||
+            a.amountPaid ||
+            a.amountRefunded ||
+            a.driverName ||
+            a.pickupDate ||
+            a.route ||
+            a.href;
 
           return (
             <li key={a.id} className={`${styles.row} ${styles[a.severity]}`}>
@@ -102,11 +159,7 @@ export default function UserAlerts({ alerts }: Props) {
                   <div className={styles.left}>
                     <div className={styles.alertHeader}>
                       <span className={styles.severityIcon}>
-                        {a.severity === "danger"
-                          ? "🚨"
-                          : a.severity === "warning"
-                            ? "⚠️"
-                            : "ℹ️"}
+                        {getAlertIcon(a.alertType, a.severity)}
                       </span>
                       <span className={styles.alertTitle}>{a.title}</span>
                     </div>
@@ -142,6 +195,62 @@ export default function UserAlerts({ alerts }: Props) {
                     <div className={styles.declineBox}>
                       <span className={styles.declineLabel}>Reason:</span>
                       <p className={styles.declineReason}>{a.declineReason}</p>
+                    </div>
+                  )}
+
+                  {/* Payment Received Info */}
+                  {a.amountPaid && (
+                    <div className={styles.successBox}>
+                      <div className={styles.successRow}>
+                        <span className={styles.successLabel}>
+                          Amount Paid:
+                        </span>
+                        <span className={styles.successAmount}>
+                          {a.amountPaid}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Refund Info */}
+                  {a.amountRefunded && (
+                    <div className={styles.refundBox}>
+                      <div className={styles.refundRow}>
+                        <span className={styles.refundLabel}>
+                          Amount Refunded:
+                        </span>
+                        <span className={styles.refundAmount}>
+                          {a.amountRefunded}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Driver Assigned Info */}
+                  {a.driverName && (
+                    <div className={styles.driverBox}>
+                      <div className={styles.driverRow}>
+                        <span className={styles.driverIcon}>👤</span>
+                        <div className={styles.driverInfo}>
+                          <span className={styles.driverLabel}>
+                            Your Driver:
+                          </span>
+                          <span className={styles.driverName}>
+                            {a.driverName}
+                          </span>
+                        </div>
+                      </div>
+                      {a.vehicleName && (
+                        <div className={styles.driverRow}>
+                          <span className={styles.driverIcon}>🚐</span>
+                          <div className={styles.driverInfo}>
+                            <span className={styles.driverLabel}>Vehicle:</span>
+                            <span className={styles.driverName}>
+                              {a.vehicleName}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
