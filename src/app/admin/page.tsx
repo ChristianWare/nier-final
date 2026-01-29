@@ -5,9 +5,9 @@ import AdminPageIntro from "@/components/admin/AdminPageIntro/AdminPageIntro";
 import AdminAlerts, {
   AlertItem,
 } from "@/components/admin/AdminAlerts/AdminAlerts";
-import AdminUrgentQueue, {
-  UrgentBookingItem,
-} from "@/components/admin/AdminUrgentQueue/AdminUrgentQueue";
+// import AdminUrgentQueue, {
+//   UrgentBookingItem,
+// } from "@/components/admin/AdminUrgentQueue/AdminUrgentQueue";
 import AdminScheduleSnapshot from "@/components/admin/AdminScheduleSnapshot/AdminScheduleSnapshot";
 import AdminDriverSnapshot from "@/components/admin/AdminDriverSnapshot/AdminDriverSnapshot";
 import AdminVehicleSnapshot, {
@@ -1211,14 +1211,14 @@ export default async function AdminHome() {
 
       <AdminActivityFeed items={activityTop10} timeZone={PHX_TZ} />
 
-      <AdminUrgentQueue
+      {/* <AdminUrgentQueue
         unassignedSoon={unassignedSoon as unknown as UrgentBookingItem[]}
         pendingPaymentSoon={
           pendingPaymentSoon as unknown as UrgentBookingItem[]
         }
         stuckReview={stuckReview as unknown as UrgentBookingItem[]}
         timeZone={PHX_TZ}
-      />
+      /> */}
     </section>
   );
 }
