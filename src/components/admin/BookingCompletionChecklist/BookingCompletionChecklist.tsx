@@ -15,7 +15,7 @@ type Props = {
   // Payment info
   isPaid: boolean;
   isApproved: boolean;
-  // ✅ NEW: Payment link sent
+  // Payment link sent
   hasPaymentLinkSent: boolean;
 };
 
@@ -26,10 +26,10 @@ type ChecklistItem = {
   isComplete: boolean;
   value: string | null;
   priority: "critical" | "important" | "optional";
-  sectionId: string; // ✅ NEW: ID of the section to scroll to
+  sectionId: string;
 };
 
-// ✅ NEW: Function to scroll to section and highlight it
+// Function to scroll to section and highlight it
 function scrollToSection(sectionId: string) {
   const element = document.getElementById(sectionId);
   if (!element) return;
@@ -78,13 +78,13 @@ export default function BookingCompletionChecklist({
   }
 
   // Don't show if everything is complete
-  const allComplete = isApproved && isPaid && hasDriver && hasVehicleUnit;
+  // Payment link sent OR paid counts as payment complete (admin's job is done)
+  const paymentComplete = isPaid || hasPaymentLinkSent;
+  const allComplete =
+    isApproved && paymentComplete && hasDriver && hasVehicleUnit;
   if (allComplete) {
     return null;
   }
-
-  // Payment link is only relevant if approved but not paid
-  const paymentLinkRelevant = isApproved && !isPaid;
 
   const checklist: ChecklistItem[] = [
     {
@@ -96,13 +96,14 @@ export default function BookingCompletionChecklist({
       priority: "critical",
       sectionId: "approval-section",
     },
-    // Only show payment link step if approved but not paid
-    ...(paymentLinkRelevant
+    // Payment link - only show if approved and not yet paid
+    ...(isApproved && !isPaid
       ? [
           {
             key: "payment_link",
             label: "Payment Link Sent",
-            description: "Send payment link to customer or take manual payment",
+            description:
+              "Send payment link to customer or take manual payment",
             isComplete: hasPaymentLinkSent,
             value: hasPaymentLinkSent ? "Sent" : null,
             priority: "critical" as const,
@@ -110,15 +111,6 @@ export default function BookingCompletionChecklist({
           },
         ]
       : []),
-    {
-      key: "paid",
-      label: "Payment Received",
-      description: "Customer has paid for the booking",
-      isComplete: isPaid,
-      value: isPaid ? "Paid" : null,
-      priority: "critical",
-      sectionId: "payment-section",
-    },
     {
       key: "vehicle_category",
       label: "Vehicle Category",
@@ -231,12 +223,6 @@ export default function BookingCompletionChecklist({
           <strong>📧 Customer Impact:</strong> The customer confirmation email
           won&apos;t include specific vehicle details until a vehicle unit is
           assigned.
-        </div>
-      )}
-      {paymentLinkRelevant && !hasPaymentLinkSent && (
-        <div className={styles.impactWarning}>
-          <strong>💳 Payment Impact:</strong> The customer hasn&apos;t received
-          a payment link yet. Send one or take a manual payment.
         </div>
       )}
     </div>

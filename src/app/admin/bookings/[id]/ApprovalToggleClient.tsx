@@ -84,13 +84,11 @@ export default function ApprovalToggleClient({
   ];
   const isTerminal = terminalStatuses.includes(bookingStatus);
 
-  const indicatorStatus: IndicatorStatus = isTerminal
-    ? "neutral"
-    : isDeclined
-      ? "warning"
-      : isApproved
-        ? "complete"
-        : "warning";
+  const indicatorStatus: IndicatorStatus = isDeclined
+    ? "warning"
+    : isApproved
+      ? "complete"
+      : "warning";
 
   // Determine status label
   const getStatusLabel = () => {

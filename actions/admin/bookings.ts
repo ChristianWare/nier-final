@@ -9,6 +9,8 @@ import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import { revalidatePath } from "next/cache";
 import { BookingStatus } from "@prisma/client";
+import { sendBookingDeclinedEmail } from "@/lib/email/sendBookingDeclinedEmail";
+
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -316,7 +318,10 @@ export async function declineBooking(formData: FormData) {
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { payment: true },
+    include: {
+      payment: true,
+      user: true, // ✅ Include user for email
+    },
   });
 
   if (!booking) return { error: "Booking not found." };
@@ -360,10 +365,37 @@ export async function declineBooking(formData: FormData) {
     }),
   ]);
 
+  // ✅ Send admin notification
   await queueAdminNotificationsForBookingEvent({
     event: "BOOKING_DECLINED",
     bookingId,
   });
+
+  // ✅ Send decline email to customer
+  const customerEmail = (booking.user?.email ?? booking.guestEmail ?? "")
+    .trim()
+    .toLowerCase();
+  const customerName = booking.user?.name ?? booking.guestName ?? null;
+
+  if (customerEmail) {
+    try {
+      await sendBookingDeclinedEmail({
+        to: customerEmail,
+        name: customerName,
+        pickupAtISO: booking.pickupAt.toISOString(),
+        pickupAddress: booking.pickupAddress,
+        dropoffAddress: booking.dropoffAddress,
+        bookingId: booking.id,
+        declineReason: trimmedReason,
+        // Optional: Add your contact info from CompanySettings if you have it
+        // contactEmail: "support@niertransportation.com",
+        // contactPhone: "(480) 555-1234",
+      });
+    } catch (e) {
+      console.error("Failed to send booking declined email:", e);
+      // Don't fail the whole operation if email fails
+    }
+  }
 
   revalidatePath(`/admin/bookings/${bookingId}`);
   revalidatePath("/admin/bookings");

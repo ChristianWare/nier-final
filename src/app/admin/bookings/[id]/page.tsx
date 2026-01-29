@@ -514,15 +514,6 @@ export default async function AdminBookingDetailPage({
   );
 
   // ✅ Determine card indicator statuses
-  const terminalStatuses = [
-    "COMPLETED",
-    "CANCELLED",
-    "REFUNDED",
-    "PARTIALLY_REFUNDED",
-    "NO_SHOW",
-    "DECLINED",
-  ];
-  const isTerminal = terminalStatuses.includes(booking.status);
 
   // Trip card is always complete (has required info)
   const tripIndicator: IndicatorStatus = "complete";
@@ -530,26 +521,27 @@ export default async function AdminBookingDetailPage({
   // Price card - always has a price
   const priceIndicator: IndicatorStatus = "complete";
 
-  // Payment card - warning if approved but no payment link sent or not paid
-  const paymentIndicator: IndicatorStatus = isTerminal
-    ? "neutral"
-    : isPaid
+  // Payment card - green if paid/refunded, warning if approved but not paid
+  const isPaidOrRefunded =
+    booking.payment?.status === "PAID" ||
+    booking.payment?.status === "REFUNDED" ||
+    booking.payment?.status === "PARTIALLY_REFUNDED";
+
+  const paymentIndicator: IndicatorStatus = isPaidOrRefunded
+    ? "complete"
+    : hasPaymentLinkSent
       ? "complete"
       : isApproved
         ? "warning"
-        : "neutral";
+        : "warning";
 
-  // Assign card - warning if no driver or vehicle unit
+  // Assign card - green if driver AND vehicle assigned, warning otherwise
   const hasDriver = !!booking.assignment?.driverId;
   const hasVehicleUnit = !!booking.assignment?.vehicleUnitId;
-  const assignIndicator: IndicatorStatus = isTerminal
-    ? "neutral"
-    : hasDriver && hasVehicleUnit
-      ? "complete"
-      : "warning";
+  const assignIndicator: IndicatorStatus =
+    hasDriver && hasVehicleUnit ? "complete" : "warning";
 
   // 4. UPDATE THE Card FUNCTION to accept an optional indicator prop:
-  
 
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
