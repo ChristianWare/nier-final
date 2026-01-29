@@ -6,8 +6,8 @@ import {
   DEFAULT_SMS_EVENTS,
 } from "./events";
 import { buildAdminNotification } from "./templates";
-import { sendSms } from "../sms/sendSms";
-import { sendAdminNotificationEmail } from "../email/sendAdminNotificationEmail";
+import { sendSms } from "@/lib/sms/sendSms";
+import { sendAdminNotificationEmail } from "@/lib/email/sendAdminNotificationEmail";
 
 type AdminSettings = {
   emailEnabled: boolean;
@@ -71,6 +71,7 @@ type NotificationJob = {
   to: string;
   subject?: string | null;
   body: string;
+  htmlBody?: string | null;
   bookingId: string;
   userId: string;
   dedupeKey: string;
@@ -135,8 +136,9 @@ async function buildNotificationJobs(args: {
           channel: "EMAIL",
           event,
           to,
-          subject: `[Nier] ${tpl.subject}`,
+          subject: tpl.subject,
           body: tpl.emailBody,
+          htmlBody: tpl.htmlBody,
           bookingId,
           userId: a.id,
           dedupeKey,
@@ -191,7 +193,7 @@ export async function queueAdminNotificationsForBookingEvent(args: {
       bookingId: j.bookingId,
       userId: j.userId,
       dedupeKey: j.dedupeKey,
-      payload: j.payload,
+      payload: { ...j.payload, htmlBody: j.htmlBody },
     })),
     skipDuplicates: true,
   });
@@ -232,6 +234,7 @@ export async function sendAdminNotificationsForBookingEvent(args: {
           to: job.to,
           subject: job.subject || "Notification",
           text: job.body,
+          html: job.htmlBody || undefined,
         });
       } else if (job.channel === "SMS") {
         await sendSms({
@@ -252,7 +255,7 @@ export async function sendAdminNotificationsForBookingEvent(args: {
           bookingId: job.bookingId,
           userId: job.userId,
           dedupeKey: job.dedupeKey,
-          payload: job.payload,
+          payload: { ...job.payload, htmlBody: job.htmlBody },
           status: "SENT",
           sentAt: new Date(),
         },
@@ -285,7 +288,7 @@ export async function sendAdminNotificationsForBookingEvent(args: {
           bookingId: job.bookingId,
           userId: job.userId,
           dedupeKey: job.dedupeKey,
-          payload: job.payload,
+          payload: { ...job.payload, htmlBody: job.htmlBody },
           status: "FAILED",
           lastError: errorMessage,
           attempts: 1,

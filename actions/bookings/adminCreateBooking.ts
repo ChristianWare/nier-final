@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import { BookingStatus } from "@prisma/client";
+import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
 // ✅ Allowed statuses for admin-created bookings
 const ADMIN_CREATE_STATUSES = [
@@ -268,6 +269,20 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     },
     select: { id: true },
   });
+
+  // ✅ Send notifications IMMEDIATELY (no queue/cron needed)
+  // Only send for CONFIRMED bookings
+  if (status === "CONFIRMED") {
+    try {
+      await sendAdminNotificationsForBookingEvent({
+        event: "BOOKING_REQUESTED",
+        bookingId: booking.id,
+      });
+    } catch (e) {
+      // Non-critical - log but don't fail the booking
+      console.error("Failed to send admin notifications:", e);
+    }
+  }
 
   return {
     success: true as const,

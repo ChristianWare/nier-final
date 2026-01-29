@@ -5,7 +5,7 @@ import { auth } from "../../auth";
 import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
 import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { randomUUID } from "crypto";
-import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
+import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
 // ✅ Stop input type
 type StopInput = {
@@ -270,10 +270,17 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     }
   }
 
-  await queueAdminNotificationsForBookingEvent({
-    event: "BOOKING_REQUESTED",
-    bookingId: booking.id,
-  });
+  // ✅ Send notifications IMMEDIATELY (no queue/cron needed)
+  // This sends email/SMS right away based on admin notification settings
+  try {
+    await sendAdminNotificationsForBookingEvent({
+      event: "BOOKING_REQUESTED",
+      bookingId: booking.id,
+    });
+  } catch (e) {
+    // Non-critical - log but don't fail the booking
+    console.error("Failed to send admin notifications:", e);
+  }
 
   return {
     success: true as const,

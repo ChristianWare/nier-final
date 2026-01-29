@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { BookingStatus } from "@prisma/client";
+import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -33,6 +34,8 @@ async function finalizePaid(args: {
     balanceAmount,
     tipCents = 0,
   } = args;
+
+  let shouldSendNotification = false;
 
   await db.$transaction(async (tx) => {
     const booking = await tx.booking.findUnique({
@@ -140,6 +143,9 @@ async function finalizePaid(args: {
         data: { status: nextStatus },
       });
 
+      // ✅ Flag to send notification after transaction commits
+      shouldSendNotification = true;
+
       // ✅ Log payment event with eventType and metadata including tip
       await tx.bookingStatusEvent.create({
         data: {
@@ -183,6 +189,18 @@ async function finalizePaid(args: {
       });
     }
   });
+
+  // ✅ Send admin notification AFTER transaction commits successfully
+  if (shouldSendNotification) {
+    try {
+      await sendAdminNotificationsForBookingEvent({
+        event: "PAYMENT_RECEIVED",
+        bookingId,
+      });
+    } catch (e) {
+      console.error("Failed to send PAYMENT_RECEIVED admin notification:", e);
+    }
+  }
 }
 
 async function resolveBookingIdFromCheckoutSession(incoming: any) {

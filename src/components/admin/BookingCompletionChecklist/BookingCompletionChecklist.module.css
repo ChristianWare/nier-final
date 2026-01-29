@@ -112,7 +112,7 @@
 .checkContent {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 
@@ -163,6 +163,50 @@
 .impactWarning strong {
   font-weight: 700;
   letter-spacing: normal;
+}
+
+/* ✅ Clickable items */
+.clickable {
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.clickable:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+  transform: translateX(4px);
+}
+
+.clickable:active {
+  transform: translateX(2px);
+}
+
+/* ✅ Go to arrow */
+.goToArrow {
+  margin-left: auto;
+  font-size: 1.6rem;
+  color: #94a3b8;
+  font-weight: 600;
+  transition:
+    transform 0.2s ease,
+    color 0.2s ease;
+}
+
+.clickable:hover .goToArrow {
+  transform: translateX(4px);
+  color: #64748b;
+}
+
+/* Update checkItem to have flex for arrow positioning */
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
 @media screen and (max-width: 568px) {

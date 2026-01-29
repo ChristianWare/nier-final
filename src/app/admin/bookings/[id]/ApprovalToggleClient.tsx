@@ -14,6 +14,40 @@ import {
   reopenBooking,
 } from "../../../../../actions/admin/bookings";
 
+type IndicatorStatus = "complete" | "warning" | "neutral";
+
+function CardIndicator({ status }: { status: IndicatorStatus }) {
+  const colors = {
+    complete: { bg: "#22c55e", icon: "✓" },
+    warning: { bg: "#f59e0b", icon: "!" },
+    neutral: { bg: "#94a3b8", icon: "○" },
+  };
+  const { bg, icon } = colors[status];
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: -8,
+        left: -8,
+        width: 24,
+        height: 24,
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 12,
+        fontWeight: 700,
+        zIndex: 10,
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.15)",
+        background: bg,
+        color: "white",
+      }}
+    >
+      {icon}
+    </div>
+  );
+}
+
 type Props = {
   bookingId: string;
   isApproved: boolean;
@@ -39,6 +73,24 @@ export default function ApprovalToggleClient({
 
   // Can't unapprove or decline if already paid
   const canModify = !isPaid;
+
+  // ✅ Determine indicator status
+  const terminalStatuses = [
+    "COMPLETED",
+    "CANCELLED",
+    "REFUNDED",
+    "PARTIALLY_REFUNDED",
+    "NO_SHOW",
+  ];
+  const isTerminal = terminalStatuses.includes(bookingStatus);
+
+  const indicatorStatus: IndicatorStatus = isTerminal
+    ? "neutral"
+    : isDeclined
+      ? "warning"
+      : isApproved
+        ? "complete"
+        : "warning";
 
   // Determine status label
   const getStatusLabel = () => {
@@ -129,7 +181,8 @@ export default function ApprovalToggleClient({
   }
 
   return (
-    <div className={styles.container}>
+    <div id='approval-section' className={styles.container}>
+      <CardIndicator status={indicatorStatus} />
       <div className={styles.header}>
         <div className='cardTitle h5'>Approval Status</div>
       </div>

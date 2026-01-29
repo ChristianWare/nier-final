@@ -20,9 +20,42 @@ import RefundButton from "@/components/admin/RefundButton/RefundButton";
 import ApprovalToggleClient from "./ApprovalToggleClient";
 import BookingCompletionChecklist from "@/components/admin/BookingCompletionChecklist/BookingCompletionChecklist";
 
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+type IndicatorStatus = "complete" | "warning" | "neutral";
+
+function CardIndicator({ status }: { status: IndicatorStatus }) {
+  const colors = {
+    complete: { bg: "#22c55e", icon: "✓" },
+    warning: { bg: "#f59e0b", icon: "!" },
+    neutral: { bg: "#94a3b8", icon: "○" },
+  };
+  const { bg, icon } = colors[status];
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: -8,
+        left: -8,
+        width: 24,
+        height: 24,
+        borderRadius: "50%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 12,
+        fontWeight: 700,
+        zIndex: 10,
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.15)",
+        background: bg,
+        color: "white",
+      }}
+    >
+      {icon}
+    </div>
+  );
+}
 
 // --- shared-ish label helpers ---
 function statusLabel(status: BookingStatus) {
@@ -476,6 +509,48 @@ export default async function AdminBookingDetailPage({
   // Determine if booking is declined
   const isDeclined = booking.status === "DECLINED";
 
+  const hasPaymentLinkSent = booking.statusEvents.some(
+    (e) => (e as any).eventType === "PAYMENT_LINK_SENT",
+  );
+
+  // ✅ Determine card indicator statuses
+  const terminalStatuses = [
+    "COMPLETED",
+    "CANCELLED",
+    "REFUNDED",
+    "PARTIALLY_REFUNDED",
+    "NO_SHOW",
+    "DECLINED",
+  ];
+  const isTerminal = terminalStatuses.includes(booking.status);
+
+  // Trip card is always complete (has required info)
+  const tripIndicator: IndicatorStatus = "complete";
+
+  // Price card - always has a price
+  const priceIndicator: IndicatorStatus = "complete";
+
+  // Payment card - warning if approved but no payment link sent or not paid
+  const paymentIndicator: IndicatorStatus = isTerminal
+    ? "neutral"
+    : isPaid
+      ? "complete"
+      : isApproved
+        ? "warning"
+        : "neutral";
+
+  // Assign card - warning if no driver or vehicle unit
+  const hasDriver = !!booking.assignment?.driverId;
+  const hasVehicleUnit = !!booking.assignment?.vehicleUnitId;
+  const assignIndicator: IndicatorStatus = isTerminal
+    ? "neutral"
+    : hasDriver && hasVehicleUnit
+      ? "complete"
+      : "warning";
+
+  // 4. UPDATE THE Card FUNCTION to accept an optional indicator prop:
+  
+
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
     : null;
@@ -598,14 +673,15 @@ export default async function AdminBookingDetailPage({
         <BookingCompletionChecklist
           bookingId={booking.id}
           bookingStatus={booking.status}
-          hasDriver={!!booking.assignment?.driverId}
+          hasDriver={hasDriver}
           driverName={booking.assignment?.driver?.name ?? null}
-          hasVehicleUnit={!!booking.assignment?.vehicleUnitId}
+          hasVehicleUnit={hasVehicleUnit}
           vehicleUnitName={booking.assignment?.vehicleUnit?.name ?? null}
           hasVehicleCategory={!!booking.vehicleId}
           vehicleCategoryName={booking.vehicle?.name ?? null}
           isPaid={isPaid}
           isApproved={isApproved}
+          hasPaymentLinkSent={hasPaymentLinkSent} // ✅ NEW PROP
         />
         <div className={styles.box}>
           <div className={styles.boxLeft}>
@@ -723,7 +799,7 @@ export default async function AdminBookingDetailPage({
         </Card>
       </header>
 
-      <Card title='Trip'>
+      <Card title='Trip' indicator={tripIndicator} id='trip-section'>
         <div className={styles.confirmationRow}>
           <div className='emptyTitle'>Confirmation #</div>
           <div className={styles.confirmationValue}>
@@ -914,7 +990,7 @@ export default async function AdminBookingDetailPage({
       </Card>
 
       {/* Separated Price Card */}
-      <Card title='Price'>
+      <Card title='Price' indicator={priceIndicator}>
         <PriceForm
           bookingId={booking.id}
           currency={booking.currency}
@@ -925,7 +1001,7 @@ export default async function AdminBookingDetailPage({
         />
       </Card>
 
-      <Card title='Payment'>
+      <Card title='Payment' indicator={paymentIndicator} id='payment-section'>
         <div className={styles.paymentBlock}>
           <div className={styles.paymentStatus}>
             Payment status: <strong>{booking.payment?.status ?? "NONE"}</strong>
@@ -1014,7 +1090,11 @@ export default async function AdminBookingDetailPage({
         </div>
       </Card>
 
-      <Card title='Assign (allowed before payment)'>
+      <Card
+        title='Assign (allowed before payment)'
+        indicator={assignIndicator}
+        id='assign-section'
+      >
         {drivers.length === 0 ? (
           <div className={styles.muted}>
             No drivers yet. Create users and assign DRIVER role in{" "}
@@ -1220,14 +1300,22 @@ function Card({
   children,
   borderWarn,
   stylesWarn,
+  indicator,
+  id, // ✅ ADD THIS
 }: {
   title: string;
   children: ReactNode;
   borderWarn?: boolean;
   stylesWarn?: boolean;
+  indicator?: IndicatorStatus;
+  id?: string; // ✅ ADD THIS
 }) {
   return (
-    <div className={`${styles.card} ${borderWarn ? styles.borderWarn : ""}`}>
+    <div
+      id={id} // ✅ ADD THIS
+      className={`${styles.card} ${borderWarn ? styles.borderWarn : ""}`}
+    >
+      {indicator && <CardIndicator status={indicator} />}
       <div className={styles.cardTop}>
         <div
           className='cardTitle h4'

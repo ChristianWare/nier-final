@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
 function requireEnv(name: string) {
   const v = process.env[name];
@@ -347,4 +348,14 @@ export async function sendPaymentLinkEmail(args: {
     html,
     text,
   });
+
+  // ✅ Send admin notification for PAYMENT_LINK_SENT
+  try {
+    await sendAdminNotificationsForBookingEvent({
+      event: "PAYMENT_LINK_SENT",
+      bookingId: args.bookingId,
+    });
+  } catch (e) {
+    console.error("Failed to send PAYMENT_LINK_SENT admin notification:", e);
+  }
 }

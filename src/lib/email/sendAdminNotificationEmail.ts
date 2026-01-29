@@ -4,6 +4,7 @@ export async function sendAdminNotificationEmail(args: {
   to: string;
   subject: string;
   text: string;
+  html?: string;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from =
@@ -18,5 +19,6 @@ export async function sendAdminNotificationEmail(args: {
     to: args.to,
     subject: args.subject,
     text: args.text,
+    ...(args.html && { html: args.html }),
   });
 }
