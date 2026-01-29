@@ -1120,6 +1120,7 @@ export default async function AdminBookingDetailPage({
               bookingTotalCents={booking.totalCents}
               currency={booking.currency}
               tipCents={tipCents}
+              pickupAt={booking.pickupAt.toISOString()} // ✅ ADD THIS LINE
             />
 
             {booking.assignment ? (

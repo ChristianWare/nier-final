@@ -279,7 +279,7 @@ export default async function DriverDashboardHome() {
     <section className={styles.pageContainer}>
       {/* Page Header */}
       <header className={styles.pageHeader}>
-        <div className={styles.headerContent}>
+        <div className="header">
           <h1 className='heading h2'>Welcome back, {driverName}</h1>
           <p className='subheading'>
             {activeCount > 0

@@ -1806,3 +1806,89 @@ export async function unassignBooking(formData: FormData) {
 
   return { success: true };
 }
+
+// =============================================================================
+// ✅ Get Driver Schedule (for assignment preview)
+// =============================================================================
+
+const GetDriverScheduleSchema = z.object({
+  driverId: z.string().min(1),
+  targetDate: z.string().min(1), // ISO date string
+  excludeBookingId: z.string().optional(), // Current booking to exclude
+});
+
+export async function getDriverSchedule(formData: FormData) {
+  await requireAdmin();
+
+  const parsed = GetDriverScheduleSchema.safeParse(
+    Object.fromEntries(formData),
+  );
+  if (!parsed.success) return { error: "Invalid request.", trips: [] };
+
+  const { driverId, targetDate, excludeBookingId } = parsed.data;
+
+  const targetDateObj = new Date(targetDate);
+
+  // Get start and end of the target date
+  const startOfDay = new Date(targetDateObj);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(targetDateObj);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  try {
+    const assignments = await db.assignment.findMany({
+      where: {
+        driverId,
+        booking: {
+          pickupAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+          status: {
+            notIn: ["CANCELLED", "NO_SHOW", "REFUNDED", "DRAFT", "DECLINED"],
+          },
+          ...(excludeBookingId ? { id: { not: excludeBookingId } } : {}),
+        },
+      },
+      include: {
+        booking: {
+          select: {
+            id: true,
+            pickupAt: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            status: true,
+            durationMinutes: true,
+            totalCents: true,
+            currency: true,
+          },
+        },
+        vehicleUnit: {
+          select: { name: true, plate: true },
+        },
+      },
+      orderBy: {
+        booking: { pickupAt: "asc" },
+      },
+    });
+
+    const trips = assignments.map((a) => ({
+      bookingId: a.booking.id,
+      pickupAt: a.booking.pickupAt.toISOString(),
+      pickupAddress: a.booking.pickupAddress,
+      dropoffAddress: a.booking.dropoffAddress,
+      status: a.booking.status,
+      durationMinutes: a.booking.durationMinutes,
+      driverPaymentCents: a.driverPaymentCents,
+      currency: a.booking.currency,
+      vehicleName: a.vehicleUnit?.name ?? null,
+      vehiclePlate: a.vehicleUnit?.plate ?? null,
+    }));
+
+    return { trips };
+  } catch (e) {
+    console.error("Failed to fetch driver schedule:", e);
+    return { error: "Failed to fetch schedule.", trips: [] };
+  }
+}

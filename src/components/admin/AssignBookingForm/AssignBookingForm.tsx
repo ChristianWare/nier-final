@@ -10,6 +10,7 @@ import {
 } from "../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
 import Modal from "@/components/shared/Modal/Modal";
+import DriverSchedulePreview from "../DriverSchedulePreview/DriverSchedulePreview";
 
 function formatMoney(cents: number, currency = "USD") {
   const n = cents / 100;
@@ -43,6 +44,7 @@ export default function AssignBookingForm({
   bookingTotalCents,
   currency = "USD",
   tipCents = 0,
+  pickupAt, // ✅ NEW PROP
 }: {
   bookingId: string;
   drivers: { id: string; name: string | null; email: string }[];
@@ -53,6 +55,7 @@ export default function AssignBookingForm({
   bookingTotalCents: number;
   currency?: string;
   tipCents?: number;
+  pickupAt: string; // ✅ NEW PROP - ISO string
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -62,6 +65,11 @@ export default function AssignBookingForm({
   );
   const [showUnassignModal, setShowUnassignModal] = useState(false);
 
+  // ✅ NEW: Track selected driver for schedule preview
+  const [selectedDriverId, setSelectedDriverId] = useState<string | null>(
+    currentDriverId ?? null,
+  );
+
   // Check if there's a current assignment
   const hasAssignment = !!currentDriverId;
 
@@ -69,6 +77,11 @@ export default function AssignBookingForm({
   const currentDriver = drivers.find((d) => d.id === currentDriverId);
   const currentDriverName =
     currentDriver?.name ?? currentDriver?.email ?? "Driver";
+
+  // ✅ Get selected driver name for schedule preview
+  const selectedDriver = drivers.find((d) => d.id === selectedDriverId);
+  const selectedDriverName =
+    selectedDriver?.name ?? selectedDriver?.email ?? "Driver";
 
   // Get current vehicle name for the modal
   const currentVehicle = vehicleUnits.find(
@@ -116,6 +129,7 @@ export default function AssignBookingForm({
       toast.success("Driver unassigned successfully");
       setShowUnassignModal(false);
       setDriverPayment(""); // Clear the payment field
+      setSelectedDriverId(null); // Clear selected driver
       router.refresh();
     });
   }
@@ -151,6 +165,7 @@ export default function AssignBookingForm({
             defaultValue={currentDriverId ?? ""}
             disabled={isPending}
             className={styles.select}
+            onChange={(e) => setSelectedDriverId(e.target.value || null)}
           >
             <option value='' disabled>
               Select driver
@@ -162,6 +177,14 @@ export default function AssignBookingForm({
             ))}
           </select>
         </div>
+
+        {/* ✅ NEW: Driver Schedule Preview */}
+        <DriverSchedulePreview
+          driverId={selectedDriverId}
+          driverName={selectedDriverName}
+          targetPickupAt={pickupAt}
+          currentBookingId={bookingId}
+        />
 
         <div className={styles.groupTight}>
           <label className='emptyTitle'>Vehicle unit (optional)</label>
