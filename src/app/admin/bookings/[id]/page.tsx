@@ -440,13 +440,51 @@ export default async function AdminBookingDetailPage({
     },
   });
 
-  const drivers = await db.user.findMany({
+  // Get the month/year from the booking's pickup date
+  const pickupMonth = booking.pickupAt.getMonth(); // 0-11
+  const pickupYear = booking.pickupAt.getFullYear();
+
+  // Start and end of the pickup month
+  const monthStart = new Date(pickupYear, pickupMonth, 1);
+  const monthEnd = new Date(pickupYear, pickupMonth + 1, 0, 23, 59, 59, 999);
+
+  // Fetch drivers with their ride count for the booking's month
+  const driversRaw = await db.user.findMany({
     where: { roles: { has: "DRIVER" } },
-    select: { id: true, name: true, email: true },
-    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      driverAssignments: {
+        where: {
+          booking: {
+            pickupAt: {
+              gte: monthStart,
+              lte: monthEnd,
+            },
+            status: {
+              notIn: ["CANCELLED", "NO_SHOW", "DECLINED", "DRAFT"],
+            },
+          },
+        },
+        select: { id: true },
+      },
+    },
+    orderBy: { name: "asc" },
     take: 300,
   });
 
+  // Format month label (e.g., "01/26")
+  const monthLabel = `${String(pickupMonth + 1).padStart(2, "0")}/${String(pickupYear).slice(-2)}`;
+
+  // Transform to include ride count
+  const drivers = driversRaw.map((d) => ({
+    id: d.id,
+    name: d.name,
+    email: d.email,
+    rideCount: d.driverAssignments.length,
+    monthLabel,
+  }));
   const vehicleUnits = await db.vehicleUnit.findMany({
     where: {
       active: true,

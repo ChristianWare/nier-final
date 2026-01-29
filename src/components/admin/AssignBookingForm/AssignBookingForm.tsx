@@ -44,10 +44,16 @@ export default function AssignBookingForm({
   bookingTotalCents,
   currency = "USD",
   tipCents = 0,
-  pickupAt, // ✅ NEW PROP
+  pickupAt,
 }: {
   bookingId: string;
-  drivers: { id: string; name: string | null; email: string }[];
+  drivers: {
+    id: string;
+    name: string | null;
+    email: string;
+    rideCount: number;
+    monthLabel: string;
+  }[];
   vehicleUnits: { id: string; name: string; plate: string | null }[];
   currentDriverId?: string | null;
   currentVehicleUnitId?: string | null;
@@ -55,7 +61,7 @@ export default function AssignBookingForm({
   bookingTotalCents: number;
   currency?: string;
   tipCents?: number;
-  pickupAt: string; // ✅ NEW PROP - ISO string
+  pickupAt: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -172,7 +178,8 @@ export default function AssignBookingForm({
             </option>
             {drivers.map((d) => (
               <option key={d.id} value={d.id}>
-                {d.name ?? "Driver"} — {d.email}
+                {d.name ?? "Driver"} ({d.rideCount}{" "}
+                {d.rideCount === 1 ? "Ride" : "Rides"} in {d.monthLabel})
               </option>
             ))}
           </select>
