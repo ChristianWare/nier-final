@@ -485,15 +485,38 @@ export default async function AdminBookingDetailPage({
     rideCount: d.driverAssignments.length,
     monthLabel,
   }));
-  const vehicleUnits = await db.vehicleUnit.findMany({
-    where: {
-      active: true,
-      ...(booking.vehicleId ? { categoryId: booking.vehicleId } : {}),
+  // Fetch ALL active vehicle units, with category info
+  const vehicleUnitsRaw = await db.vehicleUnit.findMany({
+    where: { active: true },
+    select: {
+      id: true,
+      name: true,
+      plate: true,
+      categoryId: true,
+      category: { select: { name: true } },
     },
-    select: { id: true, name: true, plate: true },
     orderBy: { name: "asc" },
     take: 300,
   });
+
+  // Sort: matching category first, then others
+  const vehicleUnits = vehicleUnitsRaw
+    .map((u) => ({
+      id: u.id,
+      name: u.name,
+      plate: u.plate,
+      categoryName: u.category?.name ?? null,
+      isMatchingCategory: booking.vehicleId
+        ? u.categoryId === booking.vehicleId
+        : false,
+    }))
+    .sort((a, b) => {
+      // Matching category first
+      if (a.isMatchingCategory && !b.isMatchingCategory) return -1;
+      if (!a.isMatchingCategory && b.isMatchingCategory) return 1;
+      // Then alphabetical
+      return (a.name ?? "").localeCompare(b.name ?? "");
+    });
 
   const customerEmail = booking.user?.email || booking.guestEmail;
   let customerBookingCount = 0;

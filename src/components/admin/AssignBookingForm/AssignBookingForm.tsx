@@ -54,7 +54,13 @@ export default function AssignBookingForm({
     rideCount: number;
     monthLabel: string;
   }[];
-  vehicleUnits: { id: string; name: string; plate: string | null }[];
+  vehicleUnits: {
+    id: string;
+    name: string;
+    plate: string | null;
+    categoryName: string | null;
+    isMatchingCategory: boolean;
+  }[];
   currentDriverId?: string | null;
   currentVehicleUnitId?: string | null;
   currentDriverPaymentCents?: number | null;
@@ -202,12 +208,37 @@ export default function AssignBookingForm({
             className={styles.select}
           >
             <option value=''>Unassigned</option>
-            {vehicleUnits.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-                {u.plate ? ` (${u.plate})` : ""}
-              </option>
-            ))}
+            {vehicleUnits.some((u) => u.isMatchingCategory) && (
+              <optgroup label='Matching Category'>
+                {vehicleUnits
+                  .filter((u) => u.isMatchingCategory)
+                  .map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                      {u.plate ? ` (${u.plate})` : ""}
+                    </option>
+                  ))}
+              </optgroup>
+            )}
+            {vehicleUnits.some((u) => !u.isMatchingCategory) && (
+              <optgroup
+                label={
+                  vehicleUnits.some((u) => u.isMatchingCategory)
+                    ? "Other Vehicles"
+                    : "All Vehicles"
+                }
+              >
+                {vehicleUnits
+                  .filter((u) => !u.isMatchingCategory)
+                  .map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name}
+                      {u.plate ? ` (${u.plate})` : ""}
+                      {u.categoryName ? ` — ${u.categoryName}` : ""}
+                    </option>
+                  ))}
+              </optgroup>
+            )}
           </select>
         </div>
 

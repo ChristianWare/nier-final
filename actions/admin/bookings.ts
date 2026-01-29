@@ -10,6 +10,7 @@ import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queu
 import { revalidatePath } from "next/cache";
 import { BookingStatus } from "@prisma/client";
 import { sendBookingDeclinedEmail } from "@/lib/email/sendBookingDeclinedEmail";
+import { sendDriverAssignedEmail } from "@/lib/email/sendDriverAssignedEmail";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -564,6 +565,13 @@ export async function updateBookingPrice(formData: FormData) {
 // ✅ Assign Booking
 // =============================================================================
 
+// ============================================================================
+// REPLACE YOUR assignBooking FUNCTION IN actions/admin/bookings.ts WITH THIS
+// ============================================================================
+
+// Add this import at the top of the file:
+// import { sendDriverAssignedEmail } from "@/lib/email/sendDriverAssignedEmail";
+
 const AssignSchema = z.object({
   bookingId: z.string().min(1),
   driverId: z.string().min(1),
@@ -583,9 +591,26 @@ export async function assignBooking(formData: FormData) {
   const { bookingId, driverId, vehicleUnitId, driverPaymentCents } =
     parsed.data;
 
+  // ✅ Fetch more booking details for the email
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    select: { id: true, status: true, currency: true },
+    select: {
+      id: true,
+      status: true,
+      currency: true,
+      pickupAt: true,
+      pickupAddress: true,
+      dropoffAddress: true,
+      passengers: true,
+      luggage: true,
+      specialRequests: true,
+      user: { select: { name: true, email: true, phone: true } },
+      guestName: true,
+      guestEmail: true,
+      guestPhone: true,
+      serviceType: { select: { name: true } },
+      payment: { select: { tipCents: true } },
+    },
   });
   if (!booking) return { error: "Booking not found." };
 
@@ -650,16 +675,50 @@ export async function assignBooking(formData: FormData) {
     }),
   ]);
 
+  // ✅ Send admin notification
   await queueAdminNotificationsForBookingEvent({
     event: "DRIVER_ASSIGNED",
     bookingId,
   });
 
+  // ✅ Send email to driver
+  const driverEmail = driver.email?.trim().toLowerCase();
+  if (driverEmail) {
+    try {
+      const customerName =
+        booking.user?.name?.trim() || booking.guestName?.trim() || null;
+      const customerPhone =
+        booking.user?.phone?.trim() || booking.guestPhone?.trim() || null;
+
+      await sendDriverAssignedEmail({
+        to: driverEmail,
+        driverName: driver.name,
+        pickupAtISO: booking.pickupAt.toISOString(),
+        pickupAddress: booking.pickupAddress,
+        dropoffAddress: booking.dropoffAddress,
+        bookingId: booking.id,
+        customerName,
+        customerPhone,
+        vehicleName: vehicleUnit?.name ?? null,
+        vehiclePlate: vehicleUnit?.plate ?? null,
+        driverPaymentCents: driverPaymentCents ?? null,
+        tipCents: booking.payment?.tipCents ?? null,
+        currency: booking.currency,
+        specialRequests: booking.specialRequests,
+        passengers: booking.passengers,
+        luggage: booking.luggage,
+        serviceName: booking.serviceType?.name ?? null,
+      });
+    } catch (e) {
+      console.error("Failed to send driver assigned email:", e);
+      // Don't fail the assignment if email fails
+    }
+  }
+
   revalidatePath(`/admin/bookings/${bookingId}`);
 
   return { success: true };
 }
-
 // =============================================================================
 // ✅ Create Payment Link and Email - UPDATED FOR CUSTOM CHECKOUT
 // =============================================================================
