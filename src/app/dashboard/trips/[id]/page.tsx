@@ -403,20 +403,24 @@ export default async function UserTripDetailPage({
 
   return (
     <section className={styles.container}>
-      <header className={styles.header}>
-        <Link href='/dashboard/trips' className={styles.backLink}>
+      <header className='header'>
+        <Link href='/dashboard/trips' className='backBtn'>
           ← Back to My Trips
         </Link>
-        <h1 className={`${styles.heading} h2`}>Trip Details</h1>
-
-        <div className={styles.box}>
-          <div className={styles.boxLeft}>
+        <div className={styles.headerTop}>
+          <div className={styles.headerTopLeft}>
+            <h1 className={`${styles.heading} h2`}>Trip Details</h1>
+          </div>
+          <div className={styles.headerTopRight}>
             <div className='emptyTitle'>Confirmation #</div>
             <div className={styles.confirmationValue}>
               {getConfirmationCode(booking.id)}
             </div>
+          </div>
+        </div>
 
-            {/* Current status badge */}
+        <div className={styles.box}>
+          <div className={styles.boxLeft}>
             <div style={{ marginTop: 12 }}>
               <div className='emptyTitle'>Current Status:</div>
               <div style={{ marginTop: 6 }}>
@@ -432,7 +436,11 @@ export default async function UserTripDetailPage({
                 <strong>Decline Reason:</strong> {booking.declineReason}
               </div>
             )}
+          </div>
 
+          {/* Cancel button in boxRight if allowed */}
+          <div className={styles.boxRight}>
+            {/* {canCancel && <UserCancelTripClient bookingId={booking.id} />} */}
             {/* Payment status */}
             <div style={{ marginTop: 12 }}>
               <div className='emptyTitle'>Payment:</div>
@@ -463,11 +471,6 @@ export default async function UserTripDetailPage({
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Cancel button in boxRight if allowed */}
-          <div className={styles.boxRight}>
-            {canCancel && <UserCancelTripClient bookingId={booking.id} />}
           </div>
         </div>
       </header>
