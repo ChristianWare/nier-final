@@ -138,7 +138,9 @@ export default function UserNextTrip({ trip, timeZone }: Props) {
             Book a ride to see your next trip here.
           </p>
         </div>
-        <Button href='/book' text='Book a Ride' btnType='black' arrow />
+        <div className={styles.btnContainer}>
+          <Button href='/book' text='Book a Ride' btnType='black' arrow />
+        </div>
       </section>
     );
   }
