@@ -13,6 +13,7 @@
     "@auth/prisma-adapter": "^2.11.1",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "^6.19.1",
+    "@react-pdf/renderer": "^4.3.2",
     "@sanity/image-url": "^2.0.2",
     "@sanity/vision": "^5.1.0",
     "@stripe/react-stripe-js": "^5.4.1",

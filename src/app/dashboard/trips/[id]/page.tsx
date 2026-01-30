@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// src/app/dashboard/trips/[id]/page.tsx
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -8,10 +9,14 @@ import type { ReactNode } from "react";
 import styles from "./UserTripDetailPage.module.css";
 import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import DefaultProfileImg from "../../../../../public/images/mesaii.jpg";
 import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
 import UserTripPaymentClient from "./UserTripPaymentClient";
 import UserCancelTripClient from "./UserCancelTripClient";
+import InvoiceSection from "./InvoiceSection";
+import type { InvoiceData, InvoiceLineItem } from "@/lib/invoice/types";
+import { formatInvoiceDate, formatTripDateTime } from "@/lib/invoice/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -299,6 +304,103 @@ export default async function UserTripDetailPage({
     address: s.address,
   }));
 
+  // Build invoice data if paid
+  let invoiceData: InvoiceData | null = null;
+
+  if (isPaid) {
+    // Get company settings for invoice
+    const companySettings = await getCompanySettings();
+
+    const invoiceNumber = booking.id.slice(0, 8).toUpperCase();
+    const invoiceDate = formatInvoiceDate(booking.createdAt);
+    const paidDate = booking.payment?.paidAt
+      ? formatInvoiceDate(booking.payment.paidAt)
+      : null;
+
+    // Build line items
+    const lineItems: InvoiceLineItem[] = [];
+
+    // Base fare (subtotal minus stop surcharge)
+    const baseFareCents = booking.subtotalCents - stopSurchargeCents;
+
+    lineItems.push({
+      description: `${booking.serviceType?.name ?? "Transportation"} - ${booking.vehicle?.name ?? "Vehicle"}`,
+      amount: baseFareCents,
+    });
+
+    // Stop surcharge
+    if (stopCount > 0 && stopSurchargeCents > 0) {
+      lineItems.push({
+        description: `Extra Stop${stopCount > 1 ? "s" : ""} (${stopCount} × $15.00)`,
+        amount: stopSurchargeCents,
+      });
+    }
+
+    // Fees
+    if (booking.feesCents > 0) {
+      lineItems.push({
+        description: "Service Fee",
+        amount: booking.feesCents,
+      });
+    }
+
+    // Taxes
+    if (booking.taxesCents > 0) {
+      lineItems.push({
+        description: "Tax",
+        amount: booking.taxesCents,
+      });
+    }
+
+    invoiceData = {
+      invoiceNumber,
+      invoiceDate,
+      paidDate,
+
+      company: {
+        name: companySettings.officeName || "Nier Transportation",
+        address: companySettings.officeAddress || "",
+        city: companySettings.officeCity || "",
+        phone: companySettings.dispatchPhone || "",
+        email: companySettings.supportEmail || "",
+      },
+
+      customer: {
+        name: booking.user?.name?.trim() || booking.user?.email || "Customer",
+        email: booking.user?.email || "",
+        phone: booking.user?.phone || null,
+      },
+
+      trip: {
+        date: formatTripDateTime(booking.pickupAt),
+        pickupAddress: booking.pickupAddress,
+        dropoffAddress: booking.dropoffAddress,
+        stops: booking.stops.map((s) => ({
+          address: s.address,
+          stopOrder: s.stopOrder,
+        })),
+        serviceName: booking.serviceType?.name ?? "Transportation",
+        vehicleName: booking.vehicle?.name ?? "Vehicle",
+        passengers: booking.passengers,
+        luggage: booking.luggage,
+        distanceMiles: toNumber(booking.distanceMiles),
+        durationMinutes: booking.durationMinutes,
+      },
+
+      lineItems,
+
+      subtotalCents: booking.subtotalCents,
+      feesCents: booking.feesCents,
+      taxesCents: booking.taxesCents,
+      totalCents: booking.totalCents,
+      tipCents: tipCents,
+      amountPaidCents: amountPaidCents,
+      amountRefundedCents: amountRefundedCents,
+
+      currency: booking.currency,
+    };
+  }
+
   return (
     <section className={styles.container}>
       <header className={styles.header}>
@@ -382,6 +484,13 @@ export default async function UserTripDetailPage({
             stops={stopsForPayment}
             stopSurchargeCents={stopSurchargeCents}
           />
+        </Card>
+      )}
+
+      {/* Invoice Section (if paid) */}
+      {isPaid && invoiceData && (
+        <Card title='Invoice'>
+          <InvoiceSection invoice={invoiceData} bookingId={booking.id} />
         </Card>
       )}
 
@@ -576,51 +685,6 @@ export default async function UserTripDetailPage({
           </>
         )}
       </Card>
-
-      {/* Payment Summary Card (if paid) */}
-      {isPaid && (
-        <Card title='Payment Summary'>
-          <div className={styles.paymentBlock}>
-            <div className={styles.paymentStatus}>
-              Payment status:{" "}
-              <strong>{booking.payment?.status ?? "NONE"}</strong>
-              {amountPaidCents > 0 && (
-                <span style={{ marginLeft: 10 }}>
-                  (Paid: {formatMoney(amountPaidCents, booking.currency)}
-                  {amountRefundedCents > 0 && (
-                    <>
-                      , Refunded:{" "}
-                      {formatMoney(amountRefundedCents, booking.currency)}
-                    </>
-                  )}
-                  {tipCents > 0 && (
-                    <>, Tip: {formatMoney(tipCents, booking.currency)}</>
-                  )}
-                  )
-                </span>
-              )}
-            </div>
-
-            {/* Tip breakdown */}
-            {tipCents > 0 && (
-              <div className={styles.tipBreakdownCard}>
-                <div className={styles.tipBreakdownHeader}>
-                  <span className={styles.tipBreakdownIcon}>💰</span>
-                  <span className={styles.tipBreakdownTitle}>
-                    Driver Tip Added
-                  </span>
-                </div>
-                <div className={styles.tipBreakdownAmount}>
-                  {formatMoney(tipCents, booking.currency)}
-                </div>
-                <div className={styles.tipBreakdownNote}>
-                  Thank you for tipping your driver!
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-      )}
 
       {/* Help Section */}
       <Card title='Need Help?'>
