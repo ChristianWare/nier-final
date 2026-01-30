@@ -16,6 +16,8 @@ import UserPendingTrips, {
 import UserPaymentDue, {
   UserPaymentDueItem,
 } from "@/components/Dashboard/UserPaymentDue/UserPaymentDue";
+import UserNextTrip from "@/components/Dashboard/UserNextTrip/UserNextTrip";
+import { getUserNextTrip } from "@/components/Dashboard/UserNextTrip/getUserNextTrip";
 import { BookingStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
@@ -76,6 +78,9 @@ export default async function DashboardHomePage() {
   if (!userId) redirect("/login?next=/dashboard");
 
   const now = new Date();
+
+  // Fetch user's next trip
+  const nextTrip = await getUserNextTrip(userId);
 
   const [
     // KPI counts
@@ -471,6 +476,9 @@ export default async function DashboardHomePage() {
 
       {/* User Alerts (all types: positive and negative) */}
       <UserAlerts alerts={finalAlerts} />
+
+      {/* User's Next Trip */}
+      <UserNextTrip trip={nextTrip} timeZone={PHX_TZ} />
 
       {/* Payment Required (approved, needs payment) */}
       <UserPaymentDue
