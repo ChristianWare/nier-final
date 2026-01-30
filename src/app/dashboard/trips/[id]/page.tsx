@@ -487,13 +487,6 @@ export default async function UserTripDetailPage({
         </Card>
       )}
 
-      {/* Invoice Section (if paid) */}
-      {isPaid && invoiceData && (
-        <Card title='Invoice'>
-          <InvoiceSection invoice={invoiceData} bookingId={booking.id} />
-        </Card>
-      )}
-
       {/* Driver Card (if assigned) */}
       {hasDriver && (
         <Card title='Your Driver'>
@@ -685,6 +678,12 @@ export default async function UserTripDetailPage({
           </>
         )}
       </Card>
+      {/* Invoice Section (if paid) */}
+      {isPaid && invoiceData && (
+        <Card title='Invoice'>
+          <InvoiceSection invoice={invoiceData} bookingId={booking.id} />
+        </Card>
+      )}
 
       {/* Help Section */}
       <Card title='Need Help?'>
