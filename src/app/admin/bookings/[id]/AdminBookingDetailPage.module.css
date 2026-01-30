@@ -21,6 +21,16 @@
   grid-gap: 2rem;
 }
 
+.boxRight {
+  margin-left: auto;
+  text-align: right;
+}
+
+.badge {
+  margin-left: auto;
+  width: 100%;
+}
+
 .card {
   border: 1px solid var(--stroke);
   border-radius: 10px;
@@ -678,6 +688,7 @@
 .paymentAmount {
   font-weight: 700;
   font-size: 1.4rem;
+  margin-left: auto;
 }
 
 .paymentDate {

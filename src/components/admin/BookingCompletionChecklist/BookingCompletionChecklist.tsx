@@ -77,14 +77,10 @@ export default function BookingCompletionChecklist({
     return null;
   }
 
-  // Don't show if everything is complete
-  // Payment link sent OR paid counts as payment complete (admin's job is done)
+  // Check if everything is complete
   const paymentComplete = isPaid || hasPaymentLinkSent;
   const allComplete =
     isApproved && paymentComplete && hasDriver && hasVehicleUnit;
-  if (allComplete) {
-    return null;
-  }
 
   const checklist: ChecklistItem[] = [
     {
@@ -102,10 +98,23 @@ export default function BookingCompletionChecklist({
           {
             key: "payment_link",
             label: "Payment Link Sent",
-            description:
-              "Send payment link to customer or take manual payment",
+            description: "Send payment link to customer or take manual payment",
             isComplete: hasPaymentLinkSent,
             value: hasPaymentLinkSent ? "Sent" : null,
+            priority: "critical" as const,
+            sectionId: "payment-section",
+          },
+        ]
+      : []),
+    // Show "Payment Received" instead when paid
+    ...(isPaid
+      ? [
+          {
+            key: "payment_received",
+            label: "Payment Received",
+            description: "Customer has completed payment",
+            isComplete: true,
+            value: "Paid",
             priority: "critical" as const,
             sectionId: "payment-section",
           },
@@ -151,24 +160,32 @@ export default function BookingCompletionChecklist({
   );
 
   // Determine alert level
-  const alertLevel = criticalMissing.length > 0 ? "critical" : "warning";
+  const alertLevel = allComplete
+    ? "complete"
+    : criticalMissing.length > 0
+      ? "critical"
+      : "warning";
 
   return (
     <div className={`${styles.container} ${styles[`alert_${alertLevel}`]}`}>
       <div className={styles.header}>
         <span className={styles.icon}>
-          {alertLevel === "critical" ? "⚠️" : "📋"}
+          {allComplete ? "✅" : alertLevel === "critical" ? "⚠️" : "📋"}
         </span>
         <div className={styles.headerText}>
           <h3 className={styles.title}>
-            {alertLevel === "critical"
-              ? "Action Required"
-              : "Booking Incomplete"}
+            {allComplete
+              ? "Booking Ready"
+              : alertLevel === "critical"
+                ? "Action Required"
+                : "Booking Incomplete"}
           </h3>
           <p className={styles.subtitle}>
-            {criticalMissing.length > 0
-              ? `${criticalMissing.length} critical item${criticalMissing.length > 1 ? "s" : ""} missing`
-              : `${importantMissing.length} item${importantMissing.length > 1 ? "s" : ""} to complete`}
+            {allComplete
+              ? "All steps completed – booking is ready for service"
+              : criticalMissing.length > 0
+                ? `${criticalMissing.length} critical item${criticalMissing.length > 1 ? "s" : ""} missing`
+                : `${importantMissing.length} item${importantMissing.length > 1 ? "s" : ""} to complete`}
           </p>
         </div>
       </div>
@@ -211,19 +228,23 @@ export default function BookingCompletionChecklist({
         ))}
       </div>
 
-      {/* Impact warnings */}
-      {!hasDriver && (
-        <div className={styles.impactWarning}>
-          <strong>🚗 Driver Impact:</strong> The assigned driver cannot see this
-          trip in their dashboard until they are assigned.
-        </div>
-      )}
-      {!hasVehicleUnit && hasDriver && (
-        <div className={styles.impactWarning}>
-          <strong>📧 Customer Impact:</strong> The customer confirmation email
-          won&apos;t include specific vehicle details until a vehicle unit is
-          assigned.
-        </div>
+      {/* Impact warnings - only show when incomplete */}
+      {!allComplete && (
+        <>
+          {!hasDriver && (
+            <div className={styles.impactWarning}>
+              <strong>🚗 Driver Impact:</strong> The assigned driver cannot see
+              this trip in their dashboard until they are assigned.
+            </div>
+          )}
+          {!hasVehicleUnit && hasDriver && (
+            <div className={styles.impactWarning}>
+              <strong>📧 Customer Impact:</strong> The customer confirmation
+              email won&apos;t include specific vehicle details until a vehicle
+              unit is assigned.
+            </div>
+          )}
+        </>
       )}
     </div>
   );

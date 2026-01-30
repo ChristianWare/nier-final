@@ -734,29 +734,43 @@ export default async function AdminBookingDetailPage({
     <section className='container'>
       <header className='header'>
         <h1 className={`heading h2`}>Booking Details</h1>
-        <BookingCompletionChecklist
-          bookingId={booking.id}
-          bookingStatus={booking.status}
-          hasDriver={hasDriver}
-          driverName={booking.assignment?.driver?.name ?? null}
-          hasVehicleUnit={hasVehicleUnit}
-          vehicleUnitName={booking.assignment?.vehicleUnit?.name ?? null}
-          hasVehicleCategory={!!booking.vehicleId}
-          vehicleCategoryName={booking.vehicle?.name ?? null}
-          isPaid={isPaid}
-          isApproved={isApproved}
-          hasPaymentLinkSent={hasPaymentLinkSent} // ✅ NEW PROP
-        />
         <div className={styles.box}>
           <div className={styles.boxLeft}>
+            <BookingCompletionChecklist
+              bookingId={booking.id}
+              bookingStatus={booking.status}
+              hasDriver={hasDriver}
+              driverName={booking.assignment?.driver?.name ?? null}
+              hasVehicleUnit={hasVehicleUnit}
+              vehicleUnitName={booking.assignment?.vehicleUnit?.name ?? null}
+              hasVehicleCategory={!!booking.vehicleId}
+              vehicleCategoryName={booking.vehicle?.name ?? null}
+              isPaid={isPaid}
+              isApproved={isApproved}
+              hasPaymentLinkSent={hasPaymentLinkSent} // ✅ NEW PROP
+            />
+            <ApprovalToggleClient
+              bookingId={booking.id}
+              isApproved={isApproved}
+              isDeclined={isDeclined}
+              isPaid={isPaid}
+              bookingStatus={booking.status}
+              declineReason={booking.declineReason}
+            />
+          </div>
+
+          {/* Approval Toggle in boxRight */}
+          <div className={styles.boxRight}>
             <div className='emptyTitle'>Booking ID:</div>
             <p className='emptySmall'>{booking.id}</p>
 
             {/* Current status badge */}
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 30 }}>
               <div className='emptyTitle'>Current Status:</div>
               <div style={{ marginTop: 6 }}>
-                <span className={`badge badge_${currentStatusTone}`}>
+                <span
+                  className={`badge badge_${currentStatusTone} ${styles.badge}`}
+                >
                   {currentStatusLabel}
                 </span>
               </div>
@@ -770,10 +784,12 @@ export default async function AdminBookingDetailPage({
             )}
 
             {/* Updated Payment status with balance display */}
-            <div style={{ marginTop: 12 }}>
+            <div style={{ marginTop: 30 }}>
               <div className='emptyTitle'>Payment:</div>
               <div className={styles.paymentInfo}>
-                <span className={`badge badge_${paymentStatusDisplay.tone}`}>
+                <span
+                  className={`badge badge_${paymentStatusDisplay.tone} ${styles.badge}`}
+                >
                   {paymentStatusDisplay.label}
                 </span>
                 {booking.totalCents > 0 && (
@@ -836,18 +852,6 @@ export default async function AdminBookingDetailPage({
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Approval Toggle in boxRight */}
-          <div className={styles.boxRight}>
-            <ApprovalToggleClient
-              bookingId={booking.id}
-              isApproved={isApproved}
-              isDeclined={isDeclined}
-              isPaid={isPaid}
-              bookingStatus={booking.status}
-              declineReason={booking.declineReason}
-            />
           </div>
         </div>
 
