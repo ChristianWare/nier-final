@@ -137,9 +137,9 @@ export default function DriverSideNav({
               );
             })}
 
-            <Link href='/' className={styles.homeBtn}>
+            {/* <Link href='/' className={styles.homeBtn}>
               Go Home <Arrow className={styles.arrow} />
-            </Link>
+            </Link> */}
 
             <button className={styles.signOutBtn} onClick={() => signOut()}>
               Sign Out <Arrow className={styles.arrow} />

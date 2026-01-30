@@ -5,6 +5,9 @@ import RegisterPageIntro from "@/components/registerPage/RegisterPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
 function roleHomeFromRoles(roles: AppRole[]) {
@@ -14,10 +17,19 @@ function roleHomeFromRoles(roles: AppRole[]) {
   return "/dashboard";
 }
 
-export default async function RegisterPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ next?: string }>;
+}) {
   const session = await auth();
+  const sp = (await searchParams) ?? {};
 
   if (session) {
+    // If already logged in, redirect to next or role-based home
+    const next = sp.next;
+    if (next && next.startsWith("/")) redirect(next);
+
     const roles: AppRole[] = Array.isArray((session.user as any)?.roles)
       ? (((session.user as any).roles as AppRole[]) ?? ["USER"])
       : (["USER"] as AppRole[]);

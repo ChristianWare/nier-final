@@ -149,6 +149,22 @@
   white-space: nowrap;
 }
 
+@media screen and (max-width: 968px) {
+  .pageHeader h1 {
+    display: none;
+  }
+
+  .pageHeader p {
+    text-align: center;
+    width: 100%;
+  }
+
+  .headerKpis {
+    justify-content: center;
+  }
+}
+
+
 @media screen and (max-width: 768px) {
   .pageContainer {
     padding: 1.5rem;

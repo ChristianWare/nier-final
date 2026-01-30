@@ -131,7 +131,7 @@ export default function UserUpcomingTrips({
               When you have confirmed trips, they&apos;ll appear here.
             </p>
           </div>
-          <Link href='/booking' className='primaryBtn'>
+          <Link href='/book' className='primaryBtn'>
             Book a Ride →
           </Link>
         </div>

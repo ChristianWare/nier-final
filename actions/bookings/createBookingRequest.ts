@@ -6,6 +6,7 @@ import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
 import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
+import { sendBookingRequestedEmail } from "@/lib/email/sendBookingRequestedEmail";
 
 // ✅ Stop input type
 type StopInput = {
@@ -280,6 +281,51 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
   } catch (e) {
     // Non-critical - log but don't fail the booking
     console.error("Failed to send admin notifications:", e);
+  }
+
+  // ✅ Send confirmation email to customer (guest or logged-in user)
+  const customerEmail = userId
+    ? (
+        await db.user.findUnique({
+          where: { id: userId },
+          select: { email: true, name: true },
+        })
+      )?.email
+    : guestEmail;
+
+  const customerName = userId
+    ? (
+        await db.user.findUnique({
+          where: { id: userId },
+          select: { name: true },
+        })
+      )?.name
+    : guestName;
+
+  if (customerEmail) {
+    try {
+      const APP_URL = process.env.APP_URL || "http://localhost:3000";
+      const trackingUrl = claimToken
+        ? `${APP_URL}/book/track?t=${encodeURIComponent(claimToken)}`
+        : null;
+
+      await sendBookingRequestedEmail({
+        to: customerEmail,
+        name: customerName,
+        pickupAtISO: pickupAtDate.toISOString(),
+        pickupAddress: input.pickupAddress,
+        dropoffAddress: input.dropoffAddress,
+        serviceName: service.name,
+        vehicleName: vehicle?.name ?? "Standard",
+        passengers: input.passengers,
+        luggage: input.luggage,
+        bookingId: booking.id,
+        trackingUrl,
+      });
+    } catch (e) {
+      // Non-critical - log but don't fail the booking
+      console.error("Failed to send booking confirmation email:", e);
+    }
   }
 
   return {

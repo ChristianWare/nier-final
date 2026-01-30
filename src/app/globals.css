@@ -430,14 +430,15 @@ th {
 /* Buttons and badges */
 
 .pill {
-  font-size: 1.15rem;
-  padding: 0.5rem 1rem;
+  font-size: 1.4rem;
+  padding: 0.7rem 1.5rem;
   border-radius: 999px;
   border: 1px solid var(--stroke);
   font-size: 1.4rem;
-  line-height: 1;
+  line-height: 1.5;
   font-weight: 700;
   text-transform: uppercase;
+  width: fit-content;
 }
 
 .pillGood {

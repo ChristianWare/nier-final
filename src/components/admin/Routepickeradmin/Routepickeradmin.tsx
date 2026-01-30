@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -500,11 +501,11 @@ export default function RoutePickerAdmin({
       </div>
 
       {/* Status messages */}
-      {loadingRoute && (
+      {/* {loadingRoute && (
         <div style={{ opacity: 0.7, fontSize: "0.9rem" }}>
           Calculating route…
         </div>
-      )}
+      )} */}
       {error && (
         <div style={{ color: "crimson", fontSize: "0.9rem" }}>{error}</div>
       )}

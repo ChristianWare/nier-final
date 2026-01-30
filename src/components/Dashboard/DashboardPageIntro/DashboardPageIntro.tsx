@@ -27,7 +27,7 @@ export default function DashboardPageIntro({
       <div className={styles.content}>
         <div className={styles.top}>
           <h1 className={`${styles.heading} h2`}>
-            Welcome {firstName}! - User Dashboard
+            Welcome {firstName}!
           </h1>
         </div>
 

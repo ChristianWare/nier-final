@@ -8,7 +8,8 @@
   gap: 6px;
 }
 
-.headerTop, .box {
+.headerTop,
+.box {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -838,5 +839,14 @@ Payment Info (matching admin)
 
   .cancelConfirmActions {
     flex-direction: column;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .headerTop {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2rem;
   }
 }

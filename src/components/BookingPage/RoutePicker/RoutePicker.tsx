@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -428,7 +429,7 @@ export default function RoutePicker({
   return (
     <div style={{ display: "grid", gap: 10 }}>
       <div className={styles.infoItemContainer}>
-        {loadingRoute && <div style={{ opacity: 0.7 }}>Calculating route…</div>}
+        {/* {loadingRoute && <div style={{ opacity: 0.7 }}>Calculating route…</div>} */}
         {error && <div style={{ color: "crimson", fontSize: 14 }}>{error}</div>}
       </div>
 

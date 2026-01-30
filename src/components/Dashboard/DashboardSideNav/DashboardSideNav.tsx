@@ -82,13 +82,13 @@ export default function DashboardSideNav() {
               );
             })}
 
-            <Link
+            {/* <Link
               href='/'
               className={styles.homeBtn}
               onClick={() => setIsOpen(false)}
             >
               Go Home <Arrow className={styles.arrow} />
-            </Link>
+            </Link> */}
 
             <button className={styles.signOutBtn} onClick={() => signOut()}>
               Sign Out <Arrow className={styles.arrow} />

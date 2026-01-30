@@ -1,3 +1,4 @@
+// src/app/book/success/page.tsx
 import styles from "./BookSuccess.module.css";
 import Nav from "@/components/shared/Nav/Nav";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
@@ -6,6 +7,7 @@ import Check from "@/components/shared/icons/Check/Check";
 import Button from "@/components/shared/Button/Button";
 import Faq from "@/components/shared/Faq/Faq";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
+import WhatHappensNext from "@/components/shared/WhatHappensNext";
 import { homeQuestions } from "@/lib/data";
 
 export const runtime = "nodejs";
@@ -20,6 +22,9 @@ export default async function BookSuccessPage(props: {
 
   const trackHref = t ? `/book/track?t=${encodeURIComponent(t)}` : null;
   const nextTrack = trackHref ? `?next=${encodeURIComponent(trackHref)}` : "";
+
+  // Determine if this is a guest checkout (has tracking token)
+  const isGuestCheckout = Boolean(t);
 
   return (
     <main>
@@ -39,52 +44,62 @@ export default async function BookSuccessPage(props: {
                 hours.
               </p>
 
-              {id ? <div className={styles.meta}>Request ID: {id}</div> : null}
+              {id ? (
+                <div className={`${styles.meta} pill pillGood`}>
+                  Request ID: {id}
+                </div>
+              ) : null}
+
+              {/* ✅ What Happens Next - shows the step-by-step process */}
+              <WhatHappensNext />
 
               <div className={styles.actions}>
                 {trackHref ? (
                   <Button
                     href={trackHref}
                     text='Track your request'
-                    btnType='black'
+                    btnType='underlinedBlack'
                     arrow
                   />
                 ) : null}
-
-                <Button
-                  href='/book'
-                  text='Book another ride'
-                  btnType='red'
-                  arrow
-                />
-                <Button href='/' text='Go back home' btnType='black' arrow />
               </div>
 
-              {trackHref ? (
+              {/* ✅ Only show account creation for guest checkout */}
+              {isGuestCheckout && trackHref ? (
                 <div style={{ display: "grid", gap: 10, paddingTop: 10 }}>
                   <div className='miniNote'>
                     Want faster checkout next time? Create an account to manage
                     requests and updates.
                   </div>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 20,
+                      marginTop: 5,
+                    }}
+                  >
                     <Button
                       href={`/register${nextTrack}`}
                       text='Create account'
-                      btnType='black'
-                      arrow
+                      btnType='blackReg'
                     />
                     <Button
                       href={`/login${nextTrack}`}
                       text='Sign in'
-                      btnType='red'
-                      arrow
+                      btnType='redReg'
                     />
                   </div>
                 </div>
               ) : null}
 
+              <div className='miniNote' style={{ marginTop: 16 }}>
+                📧 Check your email! We&apos;ve sent you a confirmation with your
+                booking details.
+              </div>
+
               <div className='miniNote'>
-                If you don’t see an email, check spam or contact support.
+                If you don&apos;t see an email, check spam or contact support.
               </div>
             </div>
           </div>
