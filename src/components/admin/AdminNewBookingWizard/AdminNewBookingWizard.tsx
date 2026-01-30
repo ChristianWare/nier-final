@@ -1875,6 +1875,13 @@ export default function AdminNewBookingWizard({
                         bookingData?.totalCents ?? estimateCents
                       }
                       currency={bookingData?.currency ?? "USD"}
+                      pickupAt={
+                        pickupAtDate && pickupAtTime
+                          ? new Date(
+                              `${pickupAtDate}T${pickupAtTime}:00`,
+                            ).toISOString()
+                          : new Date().toISOString()
+                      }
                     />
 
                     <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
