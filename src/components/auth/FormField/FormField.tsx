@@ -21,6 +21,8 @@ interface FormFieldProps<T extends FieldValues> {
   errors: FieldErrors;
   eye?: boolean;
   autoComplete?: string;
+  isValid?: boolean; // New prop for green outline
+  children?: React.ReactNode; // For password requirements
 }
 
 export default function FormField<T extends FieldValues>({
@@ -33,6 +35,8 @@ export default function FormField<T extends FieldValues>({
   errors,
   eye = false,
   autoComplete,
+  isValid,
+  children,
 }: FormFieldProps<T>) {
   const [show, setShow] = useState(false);
   const message = errors[id]?.message as string | undefined;
@@ -49,9 +53,13 @@ export default function FormField<T extends FieldValues>({
           ? "numeric"
           : undefined;
 
-  // Default autocomplete behavior: disable unless caller opts in
   const computedAutocomplete =
     autoComplete ?? (inputType === "password" ? "new-password" : "off");
+
+  // Determine input class based on validation state
+  const inputClassName = `${styles.input} ${
+    message ? styles.inputError : isValid ? styles.inputValid : ""
+  }`;
 
   return (
     <div className={styles.formGroup}>
@@ -72,7 +80,7 @@ export default function FormField<T extends FieldValues>({
           autoCorrect='off'
           spellCheck={false}
           {...register(id as Path<T>)}
-          className={styles.input}
+          className={inputClassName}
           name={id}
         />
         {eye && type === "password" && (
@@ -91,6 +99,7 @@ export default function FormField<T extends FieldValues>({
         )}
       </div>
       {message && <span className={styles.error}>{message}</span>}
+      {children}
     </div>
   );
 }

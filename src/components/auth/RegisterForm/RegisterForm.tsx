@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/incompatible-library */
 "use client";
 
 import styles from "./RegisterForm.module.css";
@@ -5,11 +6,16 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import FormField from "../FormField/FormField";
 import Link from "next/link";
-import { RegisterSchema, RegisterSchemaType } from "@/schemas/RegisterSchema";
+import {
+  RegisterSchema,
+  RegisterSchemaType,
+  passwordRequirements,
+} from "@/schemas/RegisterSchema";
 import { signUp } from "../../../../actions/auth/register";
 import { useTransition, useState } from "react";
 import Alert from "@/components/shared/Alert/Alert";
 import Button from "@/components/shared/Button/Button";
+import PasswordRequirements from "../PasswordRequirements/PasswordRequirements";
 
 export default function RegisterForm() {
   const [isPending, startTransition] = useTransition();
@@ -19,10 +25,25 @@ export default function RegisterForm() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterSchemaType>({
     resolver: zodResolver(RegisterSchema),
+    mode: "onChange", // Validate on change for real-time feedback
   });
+
+  const password = watch("password", "");
+  const confirmPassword = watch("confirmPassword", "");
+
+  // Check if password meets all requirements
+  const isPasswordValid =
+    password.length >= passwordRequirements.minLength &&
+    passwordRequirements.hasUppercase.test(password) &&
+    passwordRequirements.hasNumber.test(password);
+
+  // Check if confirm password matches
+  const isConfirmPasswordValid =
+    confirmPassword.length > 0 && password === confirmPassword;
 
   const onSubmit: SubmitHandler<RegisterSchemaType> = (data) => {
     setSuccess("");
@@ -38,15 +59,12 @@ export default function RegisterForm() {
 
   return (
     <div className={styles.container}>
-      {/* <GoogleButton title='up' /> */}
-      <p className={styles.or}>or</p>
-
       <form
         onSubmit={handleSubmit(onSubmit)}
         className={styles.form}
         autoComplete='off'
       >
-        {/* Small hidden “honeypot” inputs help keep Chrome from force-filling */}
+        {/* Honeypot inputs */}
         <input
           className={styles.honeypot}
           type='text'
@@ -68,7 +86,7 @@ export default function RegisterForm() {
           id='name'
           register={register}
           errors={errors}
-          label='name'
+          label='Name'
           disabled={isPending}
           autoComplete='off'
         />
@@ -77,7 +95,7 @@ export default function RegisterForm() {
           id='email'
           register={register}
           errors={errors}
-          label='email'
+          label='Email'
           disabled={isPending}
           type='email'
           autoComplete='off'
@@ -87,24 +105,28 @@ export default function RegisterForm() {
           id='password'
           register={register}
           errors={errors}
-          placeholder='•••••••••'
           type='password'
-          label='password'
+          label='Password'
           disabled={isPending}
           eye
           autoComplete='new-password'
-        />
+          isValid={isPasswordValid && password.length > 0}
+        >
+          {password.length > 0 && !errors.password && (
+            <PasswordRequirements password={password} />
+          )}
+        </FormField>
 
         <FormField
           id='confirmPassword'
           register={register}
           errors={errors}
-          placeholder='Confirm Password'
           type='password'
           label='Confirm Password'
           disabled={isPending}
           eye
           autoComplete='new-password'
+          isValid={isConfirmPasswordValid}
         />
 
         {error && <Alert message={error} error />}
@@ -112,7 +134,7 @@ export default function RegisterForm() {
 
         <div className={styles.btnContainer}>
           <Button
-            text={isPending ? "Submitting..." : "Sign In"}
+            text={isPending ? "Submitting..." : "Sign Up"}
             type='submit'
             disabled={isPending}
             btnType='black'

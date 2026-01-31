@@ -40,21 +40,19 @@ export default function LoginForm() {
     const safeNext = next && next.startsWith("/") ? next : null;
     const destination = safeNext ?? LOGIN_REDIRECT;
 
-    startTransition(() => {
-      login(data).then((res) => {
-        if (res?.error) {
-          router.replace("/login");
-          router.refresh();
-          setError(res.error);
-          return;
-        }
+   startTransition(() => {
+     login(data).then((res) => {
+       if (res?.error) {
+         setError(res.error);
+         return;
+       }
 
-        if (res?.success) setSuccess(res.success);
+       if (res?.success) setSuccess(res.success);
 
-        router.replace(destination);
-        router.refresh();
-      });
-    });
+       router.replace(destination);
+       router.refresh();
+     });
+   });
   };
 
   return (
@@ -117,7 +115,7 @@ export default function LoginForm() {
           />
         </div>
 
-        <p className={styles.or}>or</p>
+        {/* <p className={styles.or}>or</p> */}
       </form>
 
       <footer className={styles.cardFooter}>
