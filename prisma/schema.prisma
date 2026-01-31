@@ -271,6 +271,12 @@ model ServiceType {
   // ✅ NEW: airports allowed for this service (only used when airportLeg != NONE)
   airports Airport[]
 
+  // ✅ NEW: Minimum hours for HOURLY services
+  minHours Int @default(0)
+
+  // ✅ NEW: Named fees for this service
+  fees ServiceFee[]
+
   // Pricing knobs (in cents)
   minFareCents   Int @default(0)
   baseFeeCents   Int @default(0)
@@ -371,6 +377,9 @@ model Booking {
   guestEmailVerifiedAt DateTime?
 
   guestClaimToken String? @unique
+
+  // ✅ NEW: Fees snapshot (copied from ServiceFee at booking time)
+  fees BookingFee[]
 
   @@index([userId])
   @@index([serviceTypeId])
@@ -627,4 +636,45 @@ model CompanySettings {
 
   updatedAt DateTime @updatedAt
   updatedBy String? // Admin who last updated
+}
+
+/**
+ * ✅ NEW: Named fees for services (e.g., "Airport Fee", "Fuel Surcharge")
+ */
+model ServiceFee {
+  id            String      @id @default(cuid())
+  serviceTypeId String
+  serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id], onDelete: Cascade)
+
+  label       String // "Airport Fee", "Meet & Greet", etc.
+  amountCents Int // 1200 = $12.00
+
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serviceTypeId])
+  @@index([active])
+  @@index([sortOrder])
+}
+
+/**
+ * ✅ NEW: Fees snapshot for bookings (copied from ServiceFee at booking time)
+ */
+model BookingFee {
+  id        String  @id @default(cuid())
+  bookingId String
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  label       String // Copied from ServiceFee.label
+  amountCents Int // Copied from ServiceFee.amountCents
+
+  // Optional reference to original fee (for analytics)
+  serviceFeeId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
 }
