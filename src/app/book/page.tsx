@@ -38,6 +38,7 @@ export default async function BookPage() {
       perMileCents: true,
       perMinuteCents: true,
       perHourCents: true,
+      minHours: true, // ✅ NEW
 
       active: true,
       sortOrder: true,
@@ -59,6 +60,17 @@ export default async function BookPage() {
           lng: true,
         },
       },
+
+      // ✅ NEW: Include fees
+      fees: {
+        where: { active: true },
+        orderBy: { sortOrder: "asc" },
+        select: {
+          id: true,
+          label: true,
+          amountCents: true,
+        },
+      },
     },
   });
 
@@ -70,6 +82,8 @@ export default async function BookPage() {
       lat: a.lat == null ? null : Number(a.lat),
       lng: a.lng == null ? null : Number(a.lng),
     })),
+    // ✅ NEW: Include fees (already plain objects, no conversion needed)
+    fees: s.fees ?? [],
   }));
 
   const vehicles = await db.vehicle.findMany({

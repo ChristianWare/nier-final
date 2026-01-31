@@ -49,10 +49,17 @@ type ServiceTypeDTO = {
   perMileCents: number;
   perMinuteCents: number;
   perHourCents: number;
+  minHours: number; // ✅ NEW
   active: boolean;
   sortOrder: number;
   airportLeg: AirportLeg;
   airports: AirportDTO[];
+  // ✅ NEW: Service fees
+  fees: {
+    id: string;
+    label: string;
+    amountCents: number;
+  }[];
 };
 
 type VehicleDTO = {
@@ -360,6 +367,12 @@ export default function BookingWizard({
     // ✅ Get stop count from route
     const stopCount = route?.stops?.length ?? 0;
 
+    // ✅ NEW: Prepare fees for calculation
+    const feesForQuote = (selectedService.fees ?? []).map((f) => ({
+      label: f.label,
+      amountCents: f.amountCents,
+    }));
+
     const quote = calcQuoteCents({
       pricingStrategy: toStrategy(selectedService.pricingStrategy),
       distanceMiles:
@@ -373,7 +386,9 @@ export default function BookingWizard({
       hoursRequested:
         selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
       stopCount,
+      fees: feesForQuote, // ✅ NEW
       vehicleMinHours: selectedVehicle?.minHours ?? 0,
+      serviceMinHours: selectedService.minHours ?? 0, // ✅ NEW
       serviceMinFareCents: selectedService.minFareCents,
       serviceBaseFeeCents: selectedService.baseFeeCents,
       servicePerMileCents: selectedService.perMileCents,
@@ -1327,7 +1342,13 @@ export default function BookingWizard({
                                 ? hoursRequested
                                 : null,
                             stopCount: route?.stops?.length ?? 0,
+                            // ✅ NEW: Include fees
+                            fees: (selectedService.fees ?? []).map((f) => ({
+                              label: f.label,
+                              amountCents: f.amountCents,
+                            })),
                             vehicleMinHours: v.minHours ?? 0,
+                            serviceMinHours: selectedService.minHours ?? 0, // ✅ NEW
                             serviceMinFareCents: selectedService.minFareCents,
                             serviceBaseFeeCents: selectedService.baseFeeCents,
                             servicePerMileCents: selectedService.perMileCents,
@@ -1511,6 +1532,31 @@ export default function BookingWizard({
                           label='Est. wait time'
                           value={`+${(route?.stops?.length ?? 0) * 5} min`}
                         />
+                      </>
+                    )}
+                    {(selectedService?.fees?.length ?? 0) > 0 && (
+                      <>
+                        <div
+                          style={{
+                            borderTop: "1px solid rgba(0,0,0,0.1)",
+                            marginTop: 12,
+                            paddingTop: 12,
+                          }}
+                        >
+                          <div
+                            className='cardTitle h6'
+                            style={{ marginBottom: 8, opacity: 0.7 }}
+                          >
+                            💰 Service Fees
+                          </div>
+                        </div>
+                        {selectedService?.fees?.map((fee) => (
+                          <SummaryRow
+                            key={fee.id}
+                            label={fee.label}
+                            value={`$${(fee.amountCents / 100).toFixed(2)}`}
+                          />
+                        ))}
                       </>
                     )}
                     {selectedService?.pricingStrategy === "HOURLY" ? (

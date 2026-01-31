@@ -51,6 +51,7 @@ export default async function AdminNewBookingPage() {
           perMileCents: true,
           perMinuteCents: true,
           perHourCents: true,
+          minHours: true, // ✅ NEW
           active: true,
           sortOrder: true,
           airportLeg: true,
@@ -63,6 +64,16 @@ export default async function AdminNewBookingPage() {
               placeId: true,
               lat: true, // Decimal
               lng: true, // Decimal
+            },
+          },
+          // ✅ NEW: Include fees
+          fees: {
+            where: { active: true },
+            orderBy: { sortOrder: "asc" },
+            select: {
+              id: true,
+              label: true,
+              amountCents: true,
             },
           },
         },
@@ -128,6 +139,8 @@ export default async function AdminNewBookingPage() {
       lat: decToNumber(a.lat),
       lng: decToNumber(a.lng),
     })),
+    // ✅ NEW: Include fees (already plain objects, no conversion needed)
+    fees: s.fees ?? [],
   }));
 
   const blackoutsByYmd: Record<string, boolean> = {};

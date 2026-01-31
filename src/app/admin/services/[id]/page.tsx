@@ -42,10 +42,21 @@ export default async function EditServicePage({
         perMileCents: true,
         perMinuteCents: true,
         perHourCents: true,
+        minHours: true, // ✅ NEW
         sortOrder: true,
         active: true,
         airportLeg: true,
         airports: { select: { id: true } },
+        // ✅ NEW: Include fees
+        fees: {
+          where: { active: true },
+          orderBy: { sortOrder: "asc" },
+          select: {
+            id: true,
+            label: true,
+            amountCents: true,
+          },
+        },
       },
     }),
     db.airport.findMany({
@@ -67,10 +78,17 @@ export default async function EditServicePage({
     perMileCents: serviceRaw.perMileCents,
     perMinuteCents: serviceRaw.perMinuteCents,
     perHourCents: serviceRaw.perHourCents,
+    minHours: serviceRaw.minHours ?? 0, // ✅ NEW
     sortOrder: serviceRaw.sortOrder,
     active: serviceRaw.active,
     airportLeg: normalizeAirportLeg(serviceRaw.airportLeg),
     airportIds: (serviceRaw.airports ?? []).map((a) => a.id),
+    // ✅ NEW: Include fees
+    fees: serviceRaw.fees.map((f) => ({
+      id: f.id,
+      label: f.label,
+      amountCents: f.amountCents,
+    })),
   };
 
   const airports = airportsRaw.map((a) => ({

@@ -954,6 +954,46 @@
   color: #059669;
 }
 
+.feesSection {
+  padding-top: 16px;
+}
+
+.feesList {
+  display: grid;
+  gap: 8px;
+}
+
+.feeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 6px;
+}
+
+.feeLabel {
+  font-size: 14px;
+  color: #374151;
+}
+
+.feeAmount {
+  font-weight: 600;
+  font-family: monospace;
+  color: #1f2937;
+}
+
+.feeTotalRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #e0f2fe;
+  border-radius: 6px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
 @media screen and (max-width: 1268px) {
   .box {
     grid-template-columns: repeat(1, 1fr);

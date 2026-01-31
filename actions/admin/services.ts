@@ -41,11 +41,9 @@ async function requireAdmin() {
   const actorId = getActorId(session);
   if (!session?.user || !actorId) throw new Error("Unauthorized");
 
-  // Fast path: session already has roles
   const roles = getSessionRoles(session);
   if (roles.includes("ADMIN")) return { userId: actorId };
 
-  // Source-of-truth path: verify from DB (roles-only)
   const me = await db.user.findUnique({
     where: { id: actorId },
     select: { roles: true },
@@ -70,6 +68,37 @@ function airportIdsFromForm(fd: FormData) {
     .filter(Boolean);
 }
 
+// Parse fees from form data
+// Format: fees[0].label, fees[0].amount, fees[1].label, fees[1].amount, etc.
+// Parse fees from form data
+// Format: fees[0].label, fees[0].amount, fees[1].label, fees[1].amount, etc.
+function parseFeesFromForm(
+  fd: FormData,
+): Array<{ label: string; amountCents: number }> {
+  const fees: Array<{ label: string; amountCents: number }> = [];
+
+  // Get all fee entries
+  const feeLabels = fd.getAll("feeLabel");
+  const feeAmounts = fd.getAll("feeAmount");
+
+  for (let i = 0; i < feeLabels.length; i++) {
+    // ✅ FIX: Assign to variable first for proper type narrowing
+    const labelVal = feeLabels[i];
+    const amountVal = feeAmounts[i];
+    
+    const label = typeof labelVal === "string" ? labelVal.trim() : "";
+    const amountStr = typeof amountVal === "string" ? amountVal.trim() : "0";
+    const amountCents = Math.round(Number(amountStr) * 100);
+
+    // Only add if label is not empty and amount is valid
+    if (label && Number.isFinite(amountCents) && amountCents > 0) {
+      fees.push({ label, amountCents });
+    }
+  }
+
+  return fees;
+}
+
 export async function createService(formData: FormData) {
   try {
     await requireAdmin();
@@ -82,7 +111,7 @@ export async function createService(formData: FormData) {
     if (!slug) return { error: "Could not generate a slug." };
 
     const pricingStrategy = String(
-      formData.get("pricingStrategy") ?? "POINT_TO_POINT"
+      formData.get("pricingStrategy") ?? "POINT_TO_POINT",
     ) as ServicePricingStrategy;
 
     const minFareCents = moneyToCents(formData.get("minFare"));
@@ -91,13 +120,19 @@ export async function createService(formData: FormData) {
     const perMinuteCents = moneyToCents(formData.get("perMinute"));
     const perHourCents = moneyToCents(formData.get("perHour"));
 
+    // ✅ NEW: minHours for HOURLY services
+    const minHours =
+      pricingStrategy === "HOURLY" ? intFromForm(formData.get("minHours")) : 0;
+
     const sortOrder = intFromForm(formData.get("sortOrder"));
     const active = formData.get("active") === "on";
 
     const airportLeg = parseAirportLeg(formData.get("airportLeg"));
     const airportIds = airportIdsFromForm(formData);
 
-    // ✅ Validation (Option 4)
+    // ✅ NEW: Parse fees
+    const fees = parseFeesFromForm(formData);
+
     if (airportLeg !== AirportLeg.NONE && airportIds.length === 0) {
       return { error: "Select at least one airport for an airport service." };
     }
@@ -115,6 +150,7 @@ export async function createService(formData: FormData) {
         perMileCents,
         perMinuteCents,
         perHourCents,
+        minHours,
         sortOrder,
         active,
 
@@ -123,6 +159,19 @@ export async function createService(formData: FormData) {
           airportLeg === AirportLeg.NONE
             ? undefined
             : { connect: airportIds.map((id) => ({ id })) },
+
+        // ✅ NEW: Create fees
+        fees:
+          fees.length > 0
+            ? {
+                create: fees.map((fee, index) => ({
+                  label: fee.label,
+                  amountCents: fee.amountCents,
+                  sortOrder: index,
+                  active: true,
+                })),
+              }
+            : undefined,
       },
     });
 
@@ -145,7 +194,7 @@ export async function updateService(serviceId: string, formData: FormData) {
     if (!slug) return { error: "Could not generate a slug." };
 
     const pricingStrategy = String(
-      formData.get("pricingStrategy") ?? "POINT_TO_POINT"
+      formData.get("pricingStrategy") ?? "POINT_TO_POINT",
     ) as ServicePricingStrategy;
 
     const minFareCents = moneyToCents(formData.get("minFare"));
@@ -154,11 +203,18 @@ export async function updateService(serviceId: string, formData: FormData) {
     const perMinuteCents = moneyToCents(formData.get("perMinute"));
     const perHourCents = moneyToCents(formData.get("perHour"));
 
+    // ✅ NEW: minHours for HOURLY services
+    const minHours =
+      pricingStrategy === "HOURLY" ? intFromForm(formData.get("minHours")) : 0;
+
     const sortOrder = intFromForm(formData.get("sortOrder"));
     const active = formData.get("active") === "on";
 
     const airportLeg = parseAirportLeg(formData.get("airportLeg"));
     const airportIds = airportIdsFromForm(formData);
+
+    // ✅ NEW: Parse fees
+    const fees = parseFeesFromForm(formData);
 
     if (airportLeg !== AirportLeg.NONE && airportIds.length === 0) {
       return { error: "Select at least one airport for an airport service." };
@@ -169,27 +225,51 @@ export async function updateService(serviceId: string, formData: FormData) {
       return { error: "That slug is already in use." };
     }
 
-    await db.serviceType.update({
-      where: { id: serviceId },
-      data: {
-        name,
-        slug,
-        pricingStrategy,
-        minFareCents,
-        baseFeeCents,
-        perMileCents,
-        perMinuteCents,
-        perHourCents,
-        sortOrder,
-        active,
+    // ✅ NEW: Delete existing fees and recreate them
+    // This is simpler than tracking individual fee changes
+    await db.$transaction([
+      // Delete all existing fees for this service
+      db.serviceFee.deleteMany({
+        where: { serviceTypeId: serviceId },
+      }),
+      // Update the service
+      db.serviceType.update({
+        where: { id: serviceId },
+        data: {
+          name,
+          slug,
+          pricingStrategy,
+          minFareCents,
+          baseFeeCents,
+          perMileCents,
+          perMinuteCents,
+          perHourCents,
+          minHours,
+          sortOrder,
+          active,
 
-        airportLeg,
-        airports:
-          airportLeg === AirportLeg.NONE
-            ? { set: [] }
-            : { set: airportIds.map((id) => ({ id })) },
-      },
-    });
+          airportLeg,
+          airports:
+            airportLeg === AirportLeg.NONE
+              ? { set: [] }
+              : { set: airportIds.map((id) => ({ id })) },
+        },
+      }),
+      // Create new fees
+      ...(fees.length > 0
+        ? [
+            db.serviceFee.createMany({
+              data: fees.map((fee, index) => ({
+                serviceTypeId: serviceId,
+                label: fee.label,
+                amountCents: fee.amountCents,
+                sortOrder: index,
+                active: true,
+              })),
+            }),
+          ]
+        : []),
+    ]);
 
     revalidatePath("/admin/services");
     revalidatePath(`/admin/services/${serviceId}`);
@@ -199,7 +279,6 @@ export async function updateService(serviceId: string, formData: FormData) {
   }
 }
 
-// Keep toggle behavior (page.tsx calls with only the id)
 export async function toggleService(serviceId: string) {
   try {
     await requireAdmin();

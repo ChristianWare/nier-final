@@ -426,6 +426,14 @@ export default async function AdminBookingDetailPage({
           createdBy: { select: { name: true, email: true } },
         },
       },
+      fees: {
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          label: true,
+          amountCents: true,
+        },
+      },
     },
   });
 
@@ -730,6 +738,11 @@ export default async function AdminBookingDetailPage({
       }))
       .filter((s) => s.lat && s.lng) ?? [];
 
+  // ✅ NEW: Check if booking has fees
+  const hasFees = booking.fees && booking.fees.length > 0;
+  const totalFeesCents =
+    booking.fees?.reduce((sum, f) => sum + f.amountCents, 0) ?? 0;
+
   return (
     <section className='container'>
       <header className='header'>
@@ -914,7 +927,7 @@ export default async function AdminBookingDetailPage({
         <KeyVal k='Service' v={booking.serviceType.name} />
         <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
 
-        {/* ✅ NEW: Route Timeline with Stops */}
+        {/* ✅ Route Timeline with Stops */}
         {hasStops ? (
           <>
             <div className={styles.sectionDivider} />
@@ -992,6 +1005,36 @@ export default async function AdminBookingDetailPage({
           <>
             <KeyVal k='Pickup' v={booking.pickupAddress} />
             <KeyVal k='Dropoff' v={booking.dropoffAddress} />
+          </>
+        )}
+
+        {/* ✅ NEW: Service Fees Section */}
+        {hasFees && (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.feesSection}>
+              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                Service Fees
+              </div>
+              <div className={styles.feesList}>
+                {booking.fees.map((fee) => (
+                  <div key={fee.id} className={styles.feeRow}>
+                    <span className={styles.feeLabel}>{fee.label}</span>
+                    <span className={styles.feeAmount}>
+                      {formatMoney(fee.amountCents, booking.currency)}
+                    </span>
+                  </div>
+                ))}
+                {booking.fees.length > 1 && (
+                  <div className={styles.feeTotalRow}>
+                    <span>Total fees</span>
+                    <span className={styles.feeAmount}>
+                      {formatMoney(totalFeesCents, booking.currency)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </>
         )}
 

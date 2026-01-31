@@ -158,6 +158,84 @@
   margin-top: 5rem;
 }
 
+/* ✅ NEW: Service Fees Styles */
+.feesList {
+  display: grid;
+  gap: 12px;
+}
+
+.feeRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: start;
+  padding: 12px;
+  background: var(--gray50, #f9fafb);
+  border-radius: 8px;
+  border: 1px solid var(--stroke);
+}
+
+.feeInputs {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 10px;
+}
+
+.feeAmountWrapper {
+  position: relative;
+}
+
+.feeCurrency {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.feeRemoveBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.feeRemoveBtn:hover {
+  background: #fecaca;
+}
+
+.feeRemoveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.feesPreview {
+  padding: 12px;
+  background: #f0fdf4;
+  border-radius: 8px;
+  border: 1px solid #86efac;
+}
+
+.feePreviewRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 13px;
+}
+
+.feePreviewRow span:last-child {
+  font-weight: 600;
+  font-family: monospace;
+}
+
 @media screen and (max-width: 768px) {
   .grid2 {
     grid-template-columns: 1fr;
@@ -171,5 +249,16 @@
 
   .airportGrid {
     grid-template-columns: 1fr;
+  }
+  .feeInputs {
+    grid-template-columns: 1fr;
+  }
+
+  .feeRow {
+    grid-template-columns: 1fr;
+  }
+
+  .feeRemoveBtn {
+    justify-self: end;
   }
 }

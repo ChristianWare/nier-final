@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import styles from "./NewServiceForm.module.css";
@@ -22,6 +23,14 @@ type Props = {
 };
 
 type AirportLegUI = "NONE" | "PICKUP" | "DROPOFF";
+type PricingStrategyUI = "POINT_TO_POINT" | "HOURLY" | "FLAT";
+
+// ✅ NEW: Fee type for UI state
+type FeeUI = {
+  id: string; // Temporary ID for React keys
+  label: string;
+  amount: string; // Keep as string for input handling
+};
 
 export default function NewServiceForm({ action, airports }: Props) {
   const router = useRouter();
@@ -36,12 +45,38 @@ export default function NewServiceForm({ action, airports }: Props) {
   const [airportLeg, setAirportLeg] = useState<AirportLegUI>("NONE");
   const [selectedAirportIds, setSelectedAirportIds] = useState<string[]>([]);
 
+  // ✅ NEW: Track pricing strategy for conditional minHours display
+  const [pricingStrategy, setPricingStrategy] =
+    useState<PricingStrategyUI>("POINT_TO_POINT");
+
+  // ✅ NEW: Fees state
+  const [fees, setFees] = useState<FeeUI[]>([]);
+
   const showAirportConfig = airportLeg !== "NONE";
+  const showMinHours = pricingStrategy === "HOURLY";
 
   function toggleAirport(id: string) {
     setSelectedAirportIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
+  }
+
+  // ✅ NEW: Fee management functions
+  function addFee() {
+    setFees((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), label: "", amount: "" },
+    ]);
+  }
+
+  function updateFee(id: string, field: "label" | "amount", value: string) {
+    setFees((prev) =>
+      prev.map((fee) => (fee.id === id ? { ...fee, [field]: value } : fee)),
+    );
+  }
+
+  function removeFee(id: string) {
+    setFees((prev) => prev.filter((fee) => fee.id !== id));
   }
 
   return (
@@ -59,6 +94,14 @@ export default function NewServiceForm({ action, airports }: Props) {
 
         formData.set("airportLeg", airportLeg);
         selectedAirportIds.forEach((id) => formData.append("airportIds", id));
+
+        // ✅ NEW: Add fees to form data
+        fees.forEach((fee) => {
+          if (fee.label.trim() && fee.amount.trim()) {
+            formData.append("feeLabel", fee.label.trim());
+            formData.append("feeAmount", fee.amount.trim());
+          }
+        });
 
         startTransition(async () => {
           const res = await action(formData);
@@ -130,10 +173,9 @@ export default function NewServiceForm({ action, airports }: Props) {
         </div>
       </Field>
 
-      {/* ✅ Option 2a: simple, clear selector. If "Standard", airport UI stays hidden */}
       <Field
         label='Service kind'
-        hint='Choose “Standard” unless pickup or dropoff should be selected from an airport list.'
+        hint='Choose "Standard" unless pickup or dropoff should be selected from an airport list.'
       >
         <select
           className='inputBorder'
@@ -153,7 +195,6 @@ export default function NewServiceForm({ action, airports }: Props) {
         </select>
       </Field>
 
-      {/* ✅ Only shown when relevant */}
       {showAirportConfig ? (
         <Field
           label='Airports for this service'
@@ -236,12 +277,22 @@ export default function NewServiceForm({ action, airports }: Props) {
         </Field>
       ) : null}
 
-      <Select
-        label='Pricing strategy'
-        name='pricingStrategy'
-        options={["POINT_TO_POINT", "HOURLY", "FLAT"]}
-        disabled={isPending}
-      />
+      {/* ✅ UPDATED: Now controlled to track pricing strategy */}
+      <Field label='Pricing strategy'>
+        <select
+          name='pricingStrategy'
+          value={pricingStrategy}
+          onChange={(e) =>
+            setPricingStrategy(e.target.value as PricingStrategyUI)
+          }
+          className='inputBorder'
+          disabled={isPending}
+        >
+          <option value='POINT_TO_POINT'>POINT_TO_POINT</option>
+          <option value='HOURLY'>HOURLY</option>
+          <option value='FLAT'>FLAT</option>
+        </select>
+      </Field>
 
       <Grid2>
         <Field label='Min fare ($)'>
@@ -304,6 +355,25 @@ export default function NewServiceForm({ action, airports }: Props) {
           />
         </Field>
 
+        {/* ✅ NEW: Min hours field - only shown for HOURLY */}
+        {showMinHours && (
+          <Field
+            label='Minimum hours'
+            hint='Service-level minimum. Vehicle minimums may also apply.'
+          >
+            <input
+              type='number'
+              step='1'
+              inputMode='numeric'
+              name='minHours'
+              defaultValue='0'
+              min='0'
+              className='inputBorder'
+              disabled={isPending}
+            />
+          </Field>
+        )}
+
         <Field label='Sort order' hint='Lower shows first. Use 10, 20, 30...'>
           <input
             type='number'
@@ -316,6 +386,107 @@ export default function NewServiceForm({ action, airports }: Props) {
           />
         </Field>
       </Grid2>
+
+      {/* ✅ NEW: Service Fees Section */}
+      <Field
+        label='Service fees (optional)'
+        hint="Named fees shown as line items on invoices. E.g., 'Airport Fee', 'Meet & Greet'."
+      >
+        <div className={styles.airportBox}>
+          {fees.length === 0 ? (
+            <div className='miniNote'>
+              No fees added yet. Click below to add a fee.
+            </div>
+          ) : (
+            <div className={styles.feesList}>
+              {fees.map((fee, index) => (
+                <div key={fee.id} className={styles.feeRow}>
+                  <div className={styles.feeInputs}>
+                    <input
+                      type='text'
+                      placeholder='Fee name (e.g., Airport Fee)'
+                      value={fee.label}
+                      onChange={(e) =>
+                        updateFee(fee.id, "label", e.target.value)
+                      }
+                      className='inputBorder'
+                      disabled={isPending}
+                    />
+                    <div className={styles.feeAmountWrapper}>
+                      <span className={styles.feeCurrency}>$</span>
+                      <input
+                        type='number'
+                        step='0.01'
+                        inputMode='decimal'
+                        placeholder='0.00'
+                        value={fee.amount}
+                        onChange={(e) =>
+                          updateFee(fee.id, "amount", e.target.value)
+                        }
+                        className='inputBorder'
+                        style={{ paddingLeft: "24px" }}
+                        disabled={isPending}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type='button'
+                    onClick={() => removeFee(fee.id)}
+                    className={styles.feeRemoveBtn}
+                    disabled={isPending}
+                    title='Remove fee'
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className={styles.airportActions}>
+            <button
+              type='button'
+              className='tab tabActive'
+              onClick={addFee}
+              disabled={isPending}
+            >
+              + Add fee
+            </button>
+            {fees.length > 0 && (
+              <button
+                type='button'
+                className='tab'
+                onClick={() => setFees([])}
+                disabled={isPending}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+
+          {fees.length > 0 && (
+            <div className={styles.feesPreview}>
+              <div className='emptyTitle' style={{ marginBottom: 8 }}>
+                Preview on invoice:
+              </div>
+              {fees
+                .filter((f) => f.label.trim() && f.amount.trim())
+                .map((fee) => (
+                  <div key={fee.id} className={styles.feePreviewRow}>
+                    <span>{fee.label}</span>
+                    <span>${parseFloat(fee.amount || "0").toFixed(2)}</span>
+                  </div>
+                ))}
+              {fees.filter((f) => f.label.trim() && f.amount.trim()).length ===
+                0 && (
+                <div className='miniNote'>
+                  Fill in fee name and amount to see preview.
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </Field>
 
       <label className={styles.labelinputcheckbox}>
         <input
@@ -355,36 +526,6 @@ function Field({
       <label className='cardTitle h5'>{label}</label>
       {children}
       {hint ? <div className='miniNote'>{hint}</div> : null}
-    </div>
-  );
-}
-
-function Select({
-  label,
-  name,
-  options,
-  disabled,
-}: {
-  label: string;
-  name: string;
-  options: string[];
-  disabled?: boolean;
-}) {
-  return (
-    <div style={{ display: "grid", gap: 6 }}>
-      <label className='cardTitle h5'>{label}</label>
-      <select
-        name={name}
-        defaultValue={options[0]}
-        className='inputBorder'
-        disabled={disabled}
-      >
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
     </div>
   );
 }

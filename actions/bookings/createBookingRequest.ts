@@ -56,7 +56,7 @@ type CreateBookingRequestInput = {
   guestEmail?: string | null;
   guestPhone?: string | null;
 
-  // ✅ NEW: Phone for logged-in users
+  // Phone for logged-in users
   contactPhone?: string | null;
 };
 
@@ -99,7 +99,7 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       return { error: "Please enter your phone number." as const };
   }
 
-  // ✅ Validation for logged-in users - require phone
+  // Validation for logged-in users - require phone
   if (userId && !contactPhone) {
     return { error: "Please enter a phone number for this trip." as const };
   }
@@ -114,9 +114,22 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     };
   }
 
+  // ✅ UPDATED: Fetch service WITH fees
   const service = await db.serviceType.findUnique({
     where: { id: input.serviceTypeId },
+    include: {
+      fees: {
+        where: { active: true },
+        orderBy: { sortOrder: "asc" },
+        select: {
+          id: true,
+          label: true,
+          amountCents: true,
+        },
+      },
+    },
   });
+
   if (!service || !service.active)
     return { error: "Service not available" as const };
 
@@ -151,7 +164,13 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     } as const;
   }
 
-  // Calculate quote WITH stop count
+  // ✅ UPDATED: Prepare fees for quote calculation
+  const feesForQuote = service.fees.map((f) => ({
+    label: f.label,
+    amountCents: f.amountCents,
+  }));
+
+  // Calculate quote WITH stop count AND fees
   const quote = calcQuoteCents({
     pricingStrategy: service.pricingStrategy,
 
@@ -159,8 +178,10 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     durationMinutes,
     hoursRequested,
     stopCount,
+    fees: feesForQuote, // ✅ NEW
 
     vehicleMinHours: vehicle?.minHours ?? 0,
+    serviceMinHours: service.minHours ?? 0, // ✅ NEW
 
     serviceMinFareCents: service.minFareCents,
     serviceBaseFeeCents: service.baseFeeCents,
@@ -184,7 +205,7 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
   // Calculate stop surcharge separately for storage
   const stopSurchargeCents = stopCount * EXTRA_STOP_FEE_CENTS;
 
-  // Create booking with stops
+  // Create booking with stops AND fees
   const booking = await db.booking.create({
     data: {
       userId: userId ?? undefined,
@@ -246,11 +267,23 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
           waitTimeMinutes: 5,
         })),
       },
+
+      // ✅ NEW: Create fee snapshots as nested records
+      fees:
+        service.fees.length > 0
+          ? {
+              create: service.fees.map((fee) => ({
+                label: fee.label,
+                amountCents: fee.amountCents,
+                serviceFeeId: fee.id,
+              })),
+            }
+          : undefined,
     },
     select: { id: true, guestClaimToken: true },
   });
 
-  // ✅ Save phone to user profile if logged in and user doesn't have one yet
+  // Save phone to user profile if logged in and user doesn't have one yet
   if (userId && contactPhone) {
     try {
       const user = await db.user.findUnique({
@@ -271,8 +304,7 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     }
   }
 
-  // ✅ Send notifications IMMEDIATELY (no queue/cron needed)
-  // This sends email/SMS right away based on admin notification settings
+  // Send notifications IMMEDIATELY (no queue/cron needed)
   try {
     await sendAdminNotificationsForBookingEvent({
       event: "BOOKING_REQUESTED",
@@ -283,7 +315,7 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     console.error("Failed to send admin notifications:", e);
   }
 
-  // ✅ Send confirmation email to customer (guest or logged-in user)
+  // Send confirmation email to customer (guest or logged-in user)
   const customerEmail = userId
     ? (
         await db.user.findUnique({
