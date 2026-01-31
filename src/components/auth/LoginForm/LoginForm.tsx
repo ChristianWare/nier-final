@@ -126,7 +126,7 @@ export default function LoginForm() {
 
         <p className={styles.footerText}>
           Forgot password?{" "}
-          <Link href='/password-email-form' className={styles.link}>
+          <Link href='/forgot-password' className={styles.link}>
             Click here
           </Link>
         </p>

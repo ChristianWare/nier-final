@@ -56,7 +56,7 @@ const NAME_ADDR_RE = /^([^<>]+)<\s*([^<>@\s]+@[^<>@\s]+\.[^<>@\s]+)\s*>$/i;
 function normalizeFrom(brand: string, raw: string) {
   if (!raw) {
     throw new Error(
-      "RESEND_FROM (or CONTACT_FROM) is empty. Set an address like noreply@yourdomain.com or 'Name <noreply@yourdomain.com>'."
+      "RESEND_FROM (or CONTACT_FROM) is empty. Set an address like noreply@yourdomain.com or 'Name <noreply@yourdomain.com>'.",
     );
   }
 
@@ -70,7 +70,7 @@ function normalizeFrom(brand: string, raw: string) {
   }
 
   throw new Error(
-    `RESEND_FROM is invalid. Use 'email@example.com' or 'Name <email@example.com>'. Received: "${raw}"`
+    `RESEND_FROM is invalid. Use 'email@example.com' or 'Name <email@example.com>'. Received: "${raw}"`,
   );
 }
 
@@ -94,7 +94,7 @@ function emailHtmlReset(email: string, resetLink: string, submittedAt: string) {
         <td style="background:${brandBlue}; color:#fff; padding:20px 24px">
           <div style="font-size:14px; opacity:.9; letter-spacing:.08em; text-transform:uppercase;">Password Reset</div>
           <div style="font-size:20px; font-weight:700; margin-top:4px">${escapeHtml(
-            BRAND
+            BRAND,
           )} — Reset Your Password</div>
           <div style="font-size:12px; opacity:.9; margin-top:6px">${submittedAt}</div>
         </td>
@@ -102,20 +102,20 @@ function emailHtmlReset(email: string, resetLink: string, submittedAt: string) {
       <tr>
         <td style="padding:24px; color:${ink}">
           <p style="margin:0 0 12px; font-size:16px;">We received a request to reset the password for <strong>${escapeHtml(
-            email
+            email,
           )}</strong>.</p>
           <p style="margin:0 0 18px; font-size:14px; opacity:.9;">Click the button below to choose a new password. This link will expire in 1 hour.</p>
           <div style="margin:18px 0;">
             <a href="${escapeHtml(
-              resetLink
+              resetLink,
             )}" style="display:inline-block; padding:12px 18px; background:${brandBlue}; color:#fff; text-decoration:none; border-radius:10px; font-weight:600;">Reset password</a>
           </div>
           <p style="margin:18px 0 0; font-size:13px; line-height:1.6; opacity:.85;">If the button doesn’t work, copy and paste this URL into your browser:</p>
           <p style="margin:8px 0 18px; font-size:13px; word-break:break-all;">
             <a href="${escapeHtml(
-              resetLink
+              resetLink,
             )}" style="color:${brandBlue}; text-decoration:none;">${escapeHtml(
-              resetLink
+              resetLink,
             )}</a>
           </p>
           <div style="margin-top:16px; padding:12px 14px; background:#f8fbff; border:1px solid #e5f0ff; border-radius:12px; font-size:13px;">
@@ -126,7 +126,7 @@ function emailHtmlReset(email: string, resetLink: string, submittedAt: string) {
       <tr>
         <td style="background:#fafafa; padding:14px 24px; font-size:12px; color:#6b7280">
           © ${new Date().getFullYear()} ${escapeHtml(
-            BRAND
+            BRAND,
           )}. “Fonts” for design. “Footers” for the technical foundation.
         </td>
       </tr>
@@ -160,9 +160,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
     const from = normalizeFrom(BRAND, RAW_FROM);
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    const resetLink = `${BASE_URL.replace(/\/+$/, "")}/password-reset-form?token=${encodeURIComponent(
-      token
-    )}`;
+    const resetLink = `${BASE_URL.replace(/\/+$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
     const submittedAt = new Date().toLocaleString("en-US", {
       timeZone: "America/Phoenix",
       hour12: true,
@@ -196,7 +194,7 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
   } catch (err: any) {
     if (process.env.NODE_ENV !== "production") {
       const resetLink = `${BASE_URL.replace(/\/+$/, "")}/password-reset-form?token=${encodeURIComponent(
-        token
+        token,
       )}`;
       console.warn("[DEV] sendPasswordResetEmail caught:", err?.message || err);
       console.warn("[DEV] Password reset link:", resetLink);

@@ -48,8 +48,17 @@ export async function changePassword(formData: FormData) {
   const newPassword = str(formData.get("newPassword"));
   const confirmPassword = str(formData.get("confirmPassword"));
 
+  // Password requirements validation
   if (newPassword.length < 8) {
     toProfileErr("New password must be at least 8 characters");
+  }
+
+  if (!/[A-Z]/.test(newPassword)) {
+    toProfileErr("New password must contain at least one uppercase letter");
+  }
+
+  if (!/[0-9]/.test(newPassword)) {
+    toProfileErr("New password must contain at least one number");
   }
 
   if (newPassword !== confirmPassword) {
