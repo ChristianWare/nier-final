@@ -6,9 +6,6 @@ import AdminPageIntro from "@/components/admin/AdminPageIntro/AdminPageIntro";
 import AdminAlerts, {
   AlertItem,
 } from "@/components/admin/AdminAlerts/AdminAlerts";
-// import AdminUrgentQueue, {
-//   UrgentBookingItem,
-// } from "@/components/admin/AdminUrgentQueue/AdminUrgentQueue";
 import AdminScheduleSnapshot from "@/components/admin/AdminScheduleSnapshot/AdminScheduleSnapshot";
 import AdminDriverSnapshot from "@/components/admin/AdminDriverSnapshot/AdminDriverSnapshot";
 import AdminVehicleSnapshot, {
@@ -28,6 +25,8 @@ import AdminPaymentsSnapshot, {
   PaymentItem,
 } from "@/components/admin/AdminPaymentsSnapshot/AdminPaymentsSnapshot";
 import AdminTodaysRides from "@/components/admin/AdminTodaysRides/AdminTodaysRides";
+import AdminRideCalendar from "@/components/admin/AdminRideCalendar/AdminRideCalendar";
+
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
@@ -58,8 +57,8 @@ function startOfWeekPhoenix(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
   const phx = new Date(phxLocalMs);
 
-  const dayOfWeek = phx.getUTCDay(); // 0 = Sunday
-  const daysToSubtract = dayOfWeek; // Go back to Sunday
+  const dayOfWeek = phx.getUTCDay();
+  const daysToSubtract = dayOfWeek;
 
   const y = phx.getUTCFullYear();
   const m = phx.getUTCMonth();
@@ -126,6 +125,28 @@ function customerLabel(
 
 function statusLabel(status: string) {
   return status.replaceAll("_", " ").toLowerCase();
+}
+
+function monthKey(d: Date) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+function ymdFromUtcDate(d: Date) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(d.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function ymdInPhoenix(date: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: PHX_TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 /**
@@ -235,7 +256,7 @@ async function safePendingPaymentEstimate(): Promise<{
   }
 }
 
-// ✅ Transform payment data helper
+// Transform payment data helper
 function transformPayment(p: any, isLink = false): PaymentItem {
   const customerName =
     p.booking?.user?.name?.trim() || p.booking?.guestName?.trim() || "Customer";
@@ -271,13 +292,26 @@ export default async function AdminHome() {
   const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
   const verifiedCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-  const cancelledLike = [
-    "CANCELLED",
-    "COMPLETED",
-    "REFUNDED",
-    "NO_SHOW",
-  ] as const;
+  // Month boundaries (used for calendar and finance)
+  const baseMonth = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 12, 0, 0),
+  );
+  const monthStart = startOfMonthPhoenix(now);
+  const nextMonthStart = startOfNextMonthPhoenix(monthStart);
+  const prevMonthStart = startOfMonthPhoenix(
+    new Date(monthStart.getTime() - 1),
+  );
 
+  const cancelledLike = [
+  "CANCELLED",
+  "COMPLETED",
+  "REFUNDED",
+  "NO_SHOW",
+] as const;
+
+// For today's rides - we WANT to show completed rides
+const todayExcluded = ["CANCELLED", "REFUNDED", "NO_SHOW"] as const
+;
   const [
     pendingReview,
     pendingPayment,
@@ -289,6 +323,10 @@ export default async function AdminHome() {
     unassignedSoon,
     pendingPaymentSoon,
     stuckReview,
+
+    // All unassigned future bookings
+    allUnassignedCount,
+    allUnassignedBookings,
 
     todayTotal,
     todayConfirmed,
@@ -319,12 +357,13 @@ export default async function AdminHome() {
     newVerifiedUsersCount,
     latestVerifiedUser,
 
-    // ✅ New payment queries
     paymentsReceivedTodayRaw,
     paymentsReceivedWeekRaw,
     paymentLinksTodayRaw,
     paymentLinksWeekRaw,
     todaysRidesRaw,
+    calendarRidesRaw,
+    calendarBlackoutsRaw,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -419,6 +458,39 @@ export default async function AdminHome() {
         assignment: {
           select: { driver: { select: { name: true, email: true } } },
         },
+      },
+    }),
+
+    // ALL unassigned future bookings count
+    db.booking.count({
+      where: {
+        pickupAt: { gte: now },
+        assignment: { is: null },
+        NOT: { status: { in: cancelledLike as any } },
+      },
+    }),
+
+    // ALL unassigned future bookings list
+    db.booking.findMany({
+      where: {
+        pickupAt: { gte: now },
+        assignment: { is: null },
+        NOT: { status: { in: cancelledLike as any } },
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      take: 10,
+      select: {
+        id: true,
+        pickupAt: true,
+        createdAt: true,
+        status: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        guestPhone: true,
+        serviceType: { select: { name: true } },
       },
     }),
 
@@ -541,11 +613,11 @@ export default async function AdminHome() {
     // Upcoming rides - CONFIRMED bookings with pickup in the future
     db.booking.findMany({
       where: {
-        status: "CONFIRMED",
         pickupAt: { gte: now },
+        NOT: { status: { in: cancelledLike as any } }, // ✅ Shows all non-cancelled bookings
       },
       orderBy: [{ pickupAt: "asc" }],
-      take: 10,
+      take: 100,
       select: {
         id: true,
         status: true,
@@ -652,7 +724,7 @@ export default async function AdminHome() {
       select: { name: true, email: true, emailVerified: true },
     }),
 
-    // ✅ Payments received today
+    // Payments received today
     db.payment.findMany({
       where: {
         paidAt: { gte: todayStart, lt: tomorrowStart },
@@ -680,7 +752,7 @@ export default async function AdminHome() {
       },
     }),
 
-    // ✅ Payments received this week
+    // Payments received this week
     db.payment.findMany({
       where: {
         paidAt: { gte: weekStart, lt: tomorrowStart },
@@ -708,8 +780,7 @@ export default async function AdminHome() {
       },
     }),
 
-    // ✅ FIXED: Payment links sent today - use updatedAt instead of createdAt
-    // ✅ Payment links sent today
+    // Payment links sent today
     db.payment.findMany({
       where: {
         updatedAt: { gte: todayStart, lt: tomorrowStart },
@@ -738,7 +809,7 @@ export default async function AdminHome() {
       },
     }),
 
-    // ✅ Payment links sent this week (MUST COME BEFORE todaysRidesRaw)
+    // Payment links sent this week
     db.payment.findMany({
       where: {
         updatedAt: { gte: weekStart, lt: tomorrowStart },
@@ -767,11 +838,11 @@ export default async function AdminHome() {
       },
     }),
 
-    // ✅ Today's rides (MUST BE LAST to match destructuring)
+    // Today's rides
     db.booking.findMany({
       where: {
         pickupAt: { gte: todayStart, lt: tomorrowStart },
-        NOT: { status: { in: cancelledLike as any } },
+        NOT: { status: { in: todayExcluded as any } },
       },
       orderBy: [{ pickupAt: "asc" }],
       select: {
@@ -795,6 +866,26 @@ export default async function AdminHome() {
         },
       },
     }),
+
+    // Calendar: rides for current month
+    db.booking.findMany({
+      where: {
+        pickupAt: { gte: monthStart, lt: nextMonthStart },
+        NOT: { status: { in: cancelledLike as any } },
+      },
+      select: { pickupAt: true },
+    }),
+
+    // Calendar: blackout dates for current month
+    db.blackoutDate.findMany({
+      where: {
+        ymd: {
+          gte: ymdFromUtcDate(monthStart),
+          lt: ymdFromUtcDate(nextMonthStart),
+        },
+      },
+      select: { ymd: true },
+    }),
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
@@ -812,9 +903,14 @@ export default async function AdminHome() {
     }).format(date);
   }
 
+  // ==========================================
+  // BUILD ALERTS
+  // ==========================================
   const alerts: AlertItem[] = [];
 
-  // Unassigned bookings within 24 hours
+  // ==========================================
+  // CRITICAL: Unassigned bookings within 24 hours
+  // ==========================================
   if (unassignedWithin24hCount > 0) {
     const detailRows = (unassignedSoon as any[]).slice(0, 5).map((b) => {
       const customerName =
@@ -841,19 +937,71 @@ export default async function AdminHome() {
     alerts.push({
       id: "unassigned-24h",
       severity: unassignedWithin24hCount >= 3 ? "danger" : "warning",
-      message: `${unassignedWithin24hCount} booking(s) are unassigned within 24 hours`,
+      message: `🚨 ${unassignedWithin24hCount} booking(s) need drivers within 24 hours!`,
       href: "/admin/bookings?status=unassigned",
       ctaLabel: "View All Unassigned",
       details:
         unassignedWithin24hCount > 1
-          ? `These trips need drivers assigned before pickup. Click any row to assign a driver.`
-          : `This trip needs a driver assigned before pickup.`,
+          ? `These trips need drivers assigned urgently before pickup. Click any row to assign a driver.`
+          : `This trip needs a driver assigned urgently before pickup.`,
       detailRows,
-      timestamp: "Action needed",
+      timestamp: "Urgent - Action needed",
     });
   }
 
+  // ==========================================
+  // WARNING: All unassigned future bookings (beyond 24h)
+  // ==========================================
+  const unassignedBeyond24h = allUnassignedCount - unassignedWithin24hCount;
+  if (unassignedBeyond24h > 0) {
+    // Filter to only show bookings beyond 24h
+    const beyond24hBookings = (allUnassignedBookings as any[]).filter((b) => {
+      const pickupTime = new Date(b.pickupAt).getTime();
+      return pickupTime >= next24h.getTime();
+    });
+
+    const detailRows = beyond24hBookings.slice(0, 5).map((b) => {
+      const customerName =
+        b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+      const pickupDate = new Date(b.pickupAt);
+      const daysUntil = Math.ceil(
+        (pickupDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      return {
+        id: b.id,
+        href: `/admin/bookings/${b.id}#assign-section`,
+        badge: {
+          label: `In ${daysUntil}d`,
+          tone: "warning" as const,
+        },
+        cells: [
+          {
+            label: "Pickup",
+            value: formatAlertPickup(pickupDate, PHX_TZ),
+          },
+          { label: "Customer", value: customerName },
+          { label: "Service", value: b.serviceType?.name ?? "—" },
+          { label: "From", value: shortAddress(b.pickupAddress) },
+        ],
+      };
+    });
+
+    alerts.push({
+      id: "unassigned-future",
+      severity: unassignedBeyond24h >= 5 ? "warning" : "info",
+      message: `${unassignedBeyond24h} upcoming booking(s) still need driver assignments`,
+      href: "/admin/bookings?status=unassigned",
+      ctaLabel: "View All Unassigned",
+      details: `These trips are scheduled for more than 24 hours out but still need drivers assigned.`,
+      detailRows,
+      timestamp: "Plan ahead",
+    });
+  }
+
+  // ==========================================
   // Pending payment within 12 hours
+  // ==========================================
   if (pendingPaymentWithin12hCount > 0) {
     const detailRows = (pendingPaymentSoon as any[]).slice(0, 5).map((b) => {
       const customerName =
@@ -889,7 +1037,9 @@ export default async function AdminHome() {
     });
   }
 
+  // ==========================================
   // Stuck in review (older than 2 hours)
+  // ==========================================
   if (stuckReview.length > 0) {
     const detailRows = (stuckReview as any[]).slice(0, 5).map((b) => {
       const customerName =
@@ -928,26 +1078,31 @@ export default async function AdminHome() {
     });
   }
 
-  // New verified users
+  // ==========================================
+  // New verified users (last 24 hours)
+  // This alert automatically disappears after 24 hours from verification
+  // ==========================================
   if (newVerifiedUsersCount > 0) {
-    // For users, we'd need to fetch them - for now show a summary
-    // You can expand this to show actual user rows if you add a query
     alerts.push({
       id: "new-verified-users",
-      severity: newVerifiedUsersCount >= 10 ? "warning" : "info",
+      severity: "info",
       message: `${newVerifiedUsersCount} new verified user(s) in the last 24 hours`,
       href: "/admin/users",
       ctaLabel: "View All Users",
       details:
         newVerifiedUsersCount > 1
-          ? `${newVerifiedUsersCount} new customers have verified their email. Latest: ${latestVerifiedUser?.name?.trim() || latestVerifiedUser?.email || "Unknown"}`
-          : `A new customer has verified their email: ${latestVerifiedUser?.name?.trim() || latestVerifiedUser?.email || "Unknown"}`,
+          ? `${newVerifiedUsersCount} new customers have verified their email and can now book rides. Latest: ${latestVerifiedUser?.name?.trim() || latestVerifiedUser?.email || "Unknown"}`
+          : `A new customer has verified their email and can now book rides: ${latestVerifiedUser?.name?.trim() || latestVerifiedUser?.email || "Unknown"}`,
       timestamp: "Last 24 hours",
     });
   }
 
   // Add setup alerts at the beginning
   alerts.unshift(...setupAlerts);
+
+  // ==========================================
+  // TRANSFORM DATA
+  // ==========================================
 
   const recentBookingRequests: RecentBookingRequestItem[] =
     recentBookingRequestsRaw.map((b: any) => {
@@ -1005,7 +1160,7 @@ export default async function AdminHome() {
     };
   });
 
-  // ✅ Transform payment data
+  // Transform payment data
   const paymentsToday: PaymentItem[] = (paymentsReceivedTodayRaw as any[]).map(
     (p) => transformPayment(p),
   );
@@ -1141,12 +1296,6 @@ export default async function AdminHome() {
   /**
    * FINANCE SNAPSHOT DATA
    */
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = startOfNextMonthPhoenix(monthStart);
-  const prevMonthStart = startOfMonthPhoenix(
-    new Date(monthStart.getTime() - 1),
-  );
-
   const monthLabel = formatMonthLabelPhoenix(now);
 
   const [
@@ -1208,6 +1357,18 @@ export default async function AdminHome() {
     };
   });
 
+  // Transform calendar data
+  const countsByYmd: Record<string, number> = {};
+  for (const r of calendarRidesRaw) {
+    const key = ymdInPhoenix(r.pickupAt);
+    countsByYmd[key] = (countsByYmd[key] ?? 0) + 1;
+  }
+
+  const blackoutsByYmd: Record<string, boolean> = {};
+  for (const b of calendarBlackoutsRaw) {
+    blackoutsByYmd[b.ymd] = true;
+  }
+
   return (
     <section className={styles.content}>
       <AdminPageIntro
@@ -1219,7 +1380,6 @@ export default async function AdminHome() {
 
       <AdminAlerts alerts={alerts} />
 
-      {/* ✅ New Payments Snapshot - placed under alerts */}
       <AdminPaymentsSnapshot
         paymentsToday={paymentsToday}
         paymentsThisWeek={paymentsThisWeek}
@@ -1245,6 +1405,13 @@ export default async function AdminHome() {
         items={upcomingRides}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
+      />
+
+      <AdminRideCalendar
+        initialMonth={monthKey(baseMonth)}
+        countsByYmd={countsByYmd}
+        blackoutsByYmd={blackoutsByYmd}
+        todayYmd={ymdInPhoenix(now)}
       />
 
       <AdminScheduleSnapshot
@@ -1277,15 +1444,6 @@ export default async function AdminHome() {
       />
 
       <AdminActivityFeed items={activityTop10} timeZone={PHX_TZ} />
-
-      {/* <AdminUrgentQueue
-        unassignedSoon={unassignedSoon as unknown as UrgentBookingItem[]}
-        pendingPaymentSoon={
-          pendingPaymentSoon as unknown as UrgentBookingItem[]
-        }
-        stuckReview={stuckReview as unknown as UrgentBookingItem[]}
-        timeZone={PHX_TZ}
-      /> */}
     </section>
   );
 }
