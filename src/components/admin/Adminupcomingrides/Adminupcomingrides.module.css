@@ -69,10 +69,12 @@
 }
 
 .tr {
-  border-bottom: 1px solid var(--stroke);
+  /* border-bottom: 1px solid var(--stroke); */
   cursor: pointer;
   transition: all 0.3s ease-in;
   position: relative;
+  background: linear-gradient(135deg, #3b82f614 0%, #2563eb1f 100%);
+    /* border: 2px solid #3b82f64d; */
 }
 
 .tr:hover {

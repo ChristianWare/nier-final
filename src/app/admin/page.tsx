@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./AdminStyles.module.css";
+import { unstable_noStore as noStore } from "next/cache";
 import AdminPageIntro from "@/components/admin/AdminPageIntro/AdminPageIntro";
 import AdminAlerts, {
   AlertItem,
@@ -26,12 +27,15 @@ import AdminFinanceSnapshot from "@/components/admin/AdminFinanceSnapshot/AdminF
 import AdminPaymentsSnapshot, {
   PaymentItem,
 } from "@/components/admin/AdminPaymentsSnapshot/AdminPaymentsSnapshot";
+import AdminTodaysRides from "@/components/admin/AdminTodaysRides/AdminTodaysRides";
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 const PHX_TZ = "America/Phoenix";
 const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
@@ -254,18 +258,17 @@ function transformPayment(p: any, isLink = false): PaymentItem {
 }
 
 export default async function AdminHome() {
-  const now = new Date();
+  noStore();
 
+  const now = new Date();
   const todayStart = startOfDayPhoenix(now);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
   const dayAfterStart = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000);
   const weekStart = startOfWeekPhoenix(now);
-
   const next3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
   const next12h = new Date(now.getTime() + 12 * 60 * 60 * 1000);
   const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-
   const verifiedCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
   const cancelledLike = [
@@ -321,6 +324,7 @@ export default async function AdminHome() {
     paymentsReceivedWeekRaw,
     paymentLinksTodayRaw,
     paymentLinksWeekRaw,
+    todaysRidesRaw,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -705,6 +709,7 @@ export default async function AdminHome() {
     }),
 
     // ✅ FIXED: Payment links sent today - use updatedAt instead of createdAt
+    // ✅ Payment links sent today
     db.payment.findMany({
       where: {
         updatedAt: { gte: todayStart, lt: tomorrowStart },
@@ -733,7 +738,7 @@ export default async function AdminHome() {
       },
     }),
 
-    // ✅ FIXED: Payment links sent this week - use updatedAt instead of createdAt
+    // ✅ Payment links sent this week (MUST COME BEFORE todaysRidesRaw)
     db.payment.findMany({
       where: {
         updatedAt: { gte: weekStart, lt: tomorrowStart },
@@ -757,6 +762,35 @@ export default async function AdminHome() {
             guestName: true,
             guestEmail: true,
             serviceType: { select: { name: true } },
+          },
+        },
+      },
+    }),
+
+    // ✅ Today's rides (MUST BE LAST to match destructuring)
+    db.booking.findMany({
+      where: {
+        pickupAt: { gte: todayStart, lt: tomorrowStart },
+        NOT: { status: { in: cancelledLike as any } },
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      select: {
+        id: true,
+        status: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        totalCents: true,
+        currency: true,
+        user: { select: { name: true, email: true, phone: true } },
+        guestName: true,
+        guestEmail: true,
+        guestPhone: true,
+        serviceType: { select: { name: true } },
+        vehicle: { select: { name: true } },
+        assignment: {
+          select: {
+            driver: { select: { name: true, email: true } },
           },
         },
       },
@@ -1147,6 +1181,33 @@ export default async function AdminHome() {
 
   const snap = await getAdminFinanceSnapshot(now);
 
+  // Transform today's rides data
+  const todaysRides = (todaysRidesRaw as any[]).map((b) => {
+    const customerName =
+      b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+    const customerEmail = b.user?.email || b.guestEmail || null;
+    const customerPhone = b.user?.phone || b.guestPhone || null;
+    const driverName = b.assignment?.driver?.name?.trim() || null;
+
+    return {
+      id: b.id,
+      status: b.status,
+      pickupAtIso: new Date(b.pickupAt).toISOString(),
+      pickupAddress: b.pickupAddress,
+      dropoffAddress: b.dropoffAddress,
+      serviceName: b.serviceType?.name ?? "—",
+      vehicleName: b.vehicle?.name ?? null,
+      driverName,
+      totalCents: b.totalCents ?? 0,
+      currency: b.currency ?? "usd",
+      customer: {
+        name: customerName,
+        email: customerEmail,
+        phone: customerPhone,
+      },
+    };
+  });
+
   return (
     <section className={styles.content}>
       <AdminPageIntro
@@ -1170,6 +1231,12 @@ export default async function AdminHome() {
 
       <AdminRecentBookingRequests
         items={recentBookingRequests}
+        timeZone={PHX_TZ}
+        bookingHrefBase='/admin/bookings'
+      />
+
+      <AdminTodaysRides
+        items={todaysRides}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
