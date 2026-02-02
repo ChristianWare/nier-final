@@ -80,7 +80,7 @@ export default function FormField<T extends FieldValues>({
           autoCorrect='off'
           spellCheck={false}
           {...register(id as Path<T>)}
-          className={inputClassName}
+          className={`${inputClassName} inputBorder emptySmall`}
           name={id}
         />
         {eye && type === "password" && (
