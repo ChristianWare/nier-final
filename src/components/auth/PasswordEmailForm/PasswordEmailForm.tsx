@@ -1,7 +1,6 @@
 "use client";
 
 import styles from "./PasswordEmailForm.module.css";
-import Alert from "@/components/shared/Alert/Alert";
 import {
   PasswordEmailSchema,
   PasswordEmailSchemaType,
@@ -15,6 +14,8 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Button from "@/components/shared/Button/Button";
 import Link from "next/link";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import toast from "react-hot-toast";
+import Email from "@/components/shared/icons/Email/Email";
 
 export default function PasswordEmailForm() {
   const {
@@ -26,19 +27,31 @@ export default function PasswordEmailForm() {
   });
 
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | undefined>("");
-  const [success, setSuccess] = useState<string | undefined>("");
+  const [emailSent, setEmailSent] = useState(false);
 
   const onSubmit: SubmitHandler<PasswordEmailSchemaType> = (data) => {
-    setError("");
     startTransition(() => {
       passwordEmail(data).then((res) => {
         if (res?.error) {
-          setError(res.error);
+          toast.error(res.error, {
+            duration: 5000,
+            style: {
+              padding: "16px",
+              fontSize: "14px",
+            },
+          });
+          return;
         }
 
         if (res?.success) {
-          setSuccess(res.success);
+          setEmailSent(true);
+          toast.success(res.success, {
+            duration: 5000,
+            style: {
+              padding: "16px",
+              fontSize: "14px",
+            },
+          });
         }
       });
     });
@@ -49,50 +62,62 @@ export default function PasswordEmailForm() {
       <LayoutWrapper>
         <div className={styles.top}>
           <h1 className={`${styles.heading} heading`}>Forgot your password?</h1>
-          <p className={styles.copy}>
-            A code will be sent to your email to reset your password.
-          </p>
+          {emailSent ? (
+            <p className={styles.copyii}>
+              Check your email for a link to reset your password. If it
+              doesn&apos;t appear within a few minutes, check your spam folder.
+            </p>
+          ) : (
+            <p className={styles.copy}>
+              Enter your email address and we&apos;ll send you a link to reset
+              your password.
+            </p>
+          )}
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
-          <FormField
-            id='email'
-            register={register}
-            errors={errors}
-            placeholder='Enter your email address'
-            label='email'
-            disabled={isPending}
-          />
-
-          {error && (
-            <>
-              <br />
-              <Alert message={error} error />
-              <br />
-            </>
-          )}
-
-          {success && (
-            <>
-              <br />
-              <Alert message={success} success />
-              <br />
-            </>
-          )}
-
-          <div className={styles.btnContainer}>
-            <Button
-              type='submit'
-              btnType='redReg'
+        {!emailSent ? (
+          <form onSubmit={handleSubmit(onSubmit)} className={styles.form}>
+            <FormField
+              id='email'
+              register={register}
+              errors={errors}
+              placeholder='Enter your email address'
+              label='email'
               disabled={isPending}
-              text={isPending ? "Submitting..." : "Send reset email"}
             />
-            {/* <Button btnType='blackReg' href='/login' text='Back to login' /> */}
-            <Link href='/login' className='backBtn'>
-              <Arrow className={styles.arrow} />
-              Back to login
-            </Link>
+
+            <div className={styles.btnContainer}>
+              <Button
+                type='submit'
+                btnType='redReg'
+                disabled={isPending}
+                text={isPending ? "Sending..." : "Send reset email"}
+              />
+              <Link href='/login' className='backBtn'>
+                <Arrow className={styles.arrow} />
+                Back to login
+              </Link>
+            </div>
+          </form>
+        ) : (
+          <div className={styles.successState}>
+            <div className={styles.successIcon}>
+              <Email className={styles.emailIcon} />
+            </div>
+            <p className={styles.successText}>
+              We&apos;ve sent a password reset link to your email address.
+            </p>
+            <div className={styles.btnContainer}>
+              <Button btnType='redReg' href='/login' text='Back to login' />
+              <button
+                type='button'
+                className='backBtn'
+                onClick={() => setEmailSent(false)}
+              >
+                Didn&apos;t receive it? Try again
+              </button>
+            </div>
           </div>
-        </form>
+        )}
       </LayoutWrapper>
     </section>
   );

@@ -50,12 +50,15 @@
 
 .input {
   padding-left: 1.5rem;
-  background-color: var(--lightGray);
+  background-color: var(--lightGrayii);
   font-size: 1.6rem;
+  color: var(--black) !important;
   letter-spacing: normal;
   position: relative;
   width: 100%;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .input:focus {
