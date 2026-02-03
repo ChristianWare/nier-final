@@ -1822,12 +1822,12 @@ export default async function AdminHome() {
       />
      <AdminDriverSnapshot />
 
-      {/* <AdminVehicleSnapshot
+      <AdminVehicleSnapshot
         activeUnits={activeUnits}
         availableUnitsToday={availableUnitsToday}
         inactiveUnits={inactiveUnits}
         byCategory={byCategory}
-      /> */}
+      />
       <AdminActivityFeed items={activityTop10} timeZone={PHX_TZ} />
     </section>
   );
