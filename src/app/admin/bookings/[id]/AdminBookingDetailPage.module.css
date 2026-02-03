@@ -45,7 +45,7 @@
 
 .badge {
   /* margin-left: auto; */
-  width: 100%;
+  width: fit-content;
 }
 
 .card {
@@ -941,6 +941,17 @@
   margin-top: 4px;
 }
 
+@media screen and (max-width: 1468px) {
+  .parent {
+    grid-template-columns: 1fr;
+    grid-gap: 10rem;
+  }
+
+  .BookingCompletionChecklist {
+    order: -1;
+    position: static;
+  }
+}
 @media screen and (max-width: 1268px) {
   .box {
     grid-template-columns: repeat(1, 1fr);

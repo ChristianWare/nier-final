@@ -53,7 +53,7 @@
 
 .bookingTotalRef {
   grid-column: 1 / -1;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   color: #64748b;
   margin-bottom: 0;
 }
@@ -93,7 +93,7 @@
   background: #f3f4f6;
   color: #6b7280;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 1.4rem;
 }
 
 /* =============================================================================
@@ -107,7 +107,7 @@
 }
 
 .percentageLabel {
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #374151;
   text-transform: uppercase;
@@ -199,7 +199,7 @@
 }
 
 .earningsIcon {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
 }
 
 .earningsTitle {
@@ -266,6 +266,7 @@
 .earningsTotalLabel {
   font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
   color: var(--black);
 }
 
@@ -380,6 +381,167 @@
   flex-wrap: wrap;
   margin-top: 1rem;
   width: 100%;
+}
+
+/* =============================================================================
+   Tip Distribution Section
+   ============================================================================= */
+
+.tipDistributionSection {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+}
+
+.tipDistributionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.tipDistributionIcon {
+  font-size: 1.5rem;
+}
+
+.tipDistributionOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tipOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tipOption:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.tipOptionActive {
+  border-color: #f59e0b;
+  background: #fffbeb;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+.tipRadio {
+  margin-top: 3px;
+  accent-color: #f59e0b;
+  width: 18px;
+  height: 18px;
+}
+
+.tipOptionContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tipOptionLabel {
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: #1f2937;
+}
+
+.tipOptionAmount {
+  font-weight: 700;
+  letter-spacing: normal;
+  font-size: 1.5rem;
+  color: #059669;
+}
+
+.tipOptionDesc {
+  font-size: 1.4rem;
+  color: #6b7280;
+}
+
+.customTipInput {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tipMaxNote {
+  font-size: 1.4rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* =============================================================================
+   Updated Tip Badges
+   ============================================================================= */
+
+.tipBadgeReduced {
+  font-size: 1.4rem;
+  padding: 0.25rem 0.5rem;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: normal;
+}
+
+.earningsRowMuted {
+  opacity: 0.7;
+}
+
+.tipNotePartial {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 5px;
+  font-size: 1.4rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.tipNoteNone {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 5px;
+  font-size: 1.4rem;
+  color: #991b1b;
+  line-height: 1.5;
+}
+
+/* =============================================================================
+   Tip Distribution Responsive
+   ============================================================================= */
+
+@media screen and (max-width: 600px) {
+  .tipDistributionSection {
+    padding: 1rem;
+  }
+
+  .tipOption {
+    padding: 10px 12px;
+  }
+
+  .customTipInput {
+    flex-wrap: wrap;
+  }
+
+  .tipMaxNote {
+    width: 100%;
+    margin-top: 4px;
+  }
 }
 
 @media screen and (max-width: 600px) {

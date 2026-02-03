@@ -34,6 +34,8 @@ function dollarsToCents(dollars: string): number | null {
   return Math.round(num * 100);
 }
 
+type TipDistribution = "full" | "custom" | "none";
+
 export default function AssignBookingForm({
   bookingId,
   drivers,
@@ -41,6 +43,7 @@ export default function AssignBookingForm({
   currentDriverId,
   currentVehicleUnitId,
   currentDriverPaymentCents,
+  currentDriverTipCents,
   bookingTotalCents,
   currency = "USD",
   tipCents = 0,
@@ -64,6 +67,7 @@ export default function AssignBookingForm({
   currentDriverId?: string | null;
   currentVehicleUnitId?: string | null;
   currentDriverPaymentCents?: number | null;
+  currentDriverTipCents?: number | null;
   bookingTotalCents: number;
   currency?: string;
   tipCents?: number;
@@ -76,6 +80,27 @@ export default function AssignBookingForm({
     centsToDollars(currentDriverPaymentCents),
   );
   const [showUnassignModal, setShowUnassignModal] = useState(false);
+
+  // ✅ NEW: Tip distribution state
+  const getInitialTipDistribution = (): TipDistribution => {
+    if (currentDriverTipCents === null || currentDriverTipCents === undefined) {
+      return "full"; // Default to full tip
+    }
+    if (currentDriverTipCents === 0) return "none";
+    if (currentDriverTipCents === tipCents) return "full";
+    return "custom";
+  };
+
+  const [tipDistribution, setTipDistribution] = useState<TipDistribution>(
+    getInitialTipDistribution(),
+  );
+  const [customTipAmount, setCustomTipAmount] = useState<string>(
+    currentDriverTipCents &&
+      currentDriverTipCents !== tipCents &&
+      currentDriverTipCents !== 0
+      ? centsToDollars(currentDriverTipCents)
+      : "",
+  );
 
   // ✅ NEW: Track selected driver for schedule preview
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(
@@ -106,8 +131,27 @@ export default function AssignBookingForm({
   // Parse current input to cents for comparison
   const currentPaymentCents = dollarsToCents(driverPayment) ?? 0;
 
+  // ✅ Calculate actual driver tip based on distribution selection
+  const getDriverTipCents = (): number => {
+    if (tipCents === 0) return 0;
+    switch (tipDistribution) {
+      case "full":
+        return tipCents;
+      case "none":
+        return 0;
+      case "custom":
+        const customCents = dollarsToCents(customTipAmount);
+        // Cap at the actual tip amount
+        return Math.min(customCents ?? 0, tipCents);
+      default:
+        return tipCents;
+    }
+  };
+
+  const driverTipCents = getDriverTipCents();
+
   // Calculate total driver earnings (payment + tip)
-  const totalDriverEarnings = currentPaymentCents + tipCents;
+  const totalDriverEarnings = currentPaymentCents + driverTipCents;
 
   // Calculate percentage amounts (based on booking total, excluding tips)
   const percentageOptions = [
@@ -142,6 +186,8 @@ export default function AssignBookingForm({
       setShowUnassignModal(false);
       setDriverPayment(""); // Clear the payment field
       setSelectedDriverId(null); // Clear selected driver
+      setTipDistribution("full"); // Reset tip distribution
+      setCustomTipAmount(""); // Clear custom tip
       router.refresh();
     });
   }
@@ -160,6 +206,9 @@ export default function AssignBookingForm({
           if (paymentCents !== null) {
             fd.set("driverPaymentCents", String(paymentCents));
           }
+
+          // ✅ Add driver tip cents
+          fd.set("driverTipCents", String(driverTipCents));
 
           startTransition(() => {
             assignBooking(fd).then((res) => {
@@ -302,6 +351,114 @@ export default function AssignBookingForm({
           )}
         </div>
 
+        {/* ✅ NEW: Tip Distribution Section - Only show if there's a customer tip */}
+        {tipCents > 0 && (
+          <div className={styles.tipDistributionSection}>
+            <div className={styles.tipDistributionHeader}>
+              <span className={styles.tipDistributionIcon}>💰</span>
+              <div>
+                <label className='emptyTitle'>Customer Tip Distribution</label>
+                <span className='miniNote' style={{ marginLeft: "1rem" }}>
+                  Customer tipped {formatMoney(tipCents, currency)} during
+                  checkout
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.tipDistributionOptions}>
+              {/* Full tip option */}
+              <label
+                className={`${styles.tipOption} ${tipDistribution === "full" ? styles.tipOptionActive : ""}`}
+              >
+                <input
+                  type='radio'
+                  name='tipDistribution'
+                  value='full'
+                  checked={tipDistribution === "full"}
+                  onChange={() => setTipDistribution("full")}
+                  disabled={isPending}
+                  className={styles.tipRadio}
+                />
+                <div className={styles.tipOptionContent}>
+                  <span className={styles.tipOptionLabel}>Full Tip</span>
+                  <span className={styles.tipOptionAmount}>
+                    {formatMoney(tipCents, currency)}
+                  </span>
+                  <span className={styles.tipOptionDesc}>
+                    Driver receives the entire tip
+                  </span>
+                </div>
+              </label>
+
+              {/* Custom amount option */}
+              <label
+                className={`${styles.tipOption} ${tipDistribution === "custom" ? styles.tipOptionActive : ""}`}
+              >
+                <input
+                  type='radio'
+                  name='tipDistribution'
+                  value='custom'
+                  checked={tipDistribution === "custom"}
+                  onChange={() => setTipDistribution("custom")}
+                  disabled={isPending}
+                  className={styles.tipRadio}
+                />
+                <div className={styles.tipOptionContent}>
+                  <span className={styles.tipOptionLabel}>Custom Amount</span>
+                  {tipDistribution === "custom" && (
+                    <div className={styles.customTipInput}>
+                      <span className={styles.dollarSign}>$</span>
+                      <input
+                        type='text'
+                        inputMode='decimal'
+                        placeholder='0.00'
+                        value={customTipAmount}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9.]/g, "");
+                          setCustomTipAmount(val);
+                        }}
+                        disabled={isPending}
+                        className='inputBorder'
+                        style={{ width: "100px" }}
+                      />
+                      <span className={styles.tipMaxNote}>
+                        max {formatMoney(tipCents, currency)}
+                      </span>
+                    </div>
+                  )}
+                  <span className={styles.tipOptionDesc}>
+                    Specify how much of the tip goes to driver
+                  </span>
+                </div>
+              </label>
+
+              {/* No tip option */}
+              <label
+                className={`${styles.tipOption} ${tipDistribution === "none" ? styles.tipOptionActive : ""}`}
+              >
+                <input
+                  type='radio'
+                  name='tipDistribution'
+                  value='none'
+                  checked={tipDistribution === "none"}
+                  onChange={() => setTipDistribution("none")}
+                  disabled={isPending}
+                  className={styles.tipRadio}
+                />
+                <div className={styles.tipOptionContent}>
+                  <span className={styles.tipOptionLabel}>
+                    No Tip to Driver
+                  </span>
+                  <span className={styles.tipOptionAmount}>$0.00</span>
+                  <span className={styles.tipOptionDesc}>
+                    Company retains the full tip
+                  </span>
+                </div>
+              </label>
+            </div>
+          </div>
+        )}
+
         {/* Driver Earnings Summary Card */}
         <div className={styles.driverEarningsCard}>
           <div className={styles.earningsHeader}>
@@ -322,20 +479,39 @@ export default function AssignBookingForm({
               </span>
             </div>
 
-            {/* Customer Tip Row */}
+            {/* Customer Tip Row - Updated to show actual driver tip */}
             <div className={styles.earningsRow}>
               <span className={styles.earningsLabel}>
-                Customer Tip
-                {tipCents > 0 && (
-                  <span className={styles.tipBadge}>From checkout</span>
+                Driver Tip
+                {tipCents > 0 && driverTipCents < tipCents && (
+                  <span className={styles.tipBadgeReduced}>
+                    {driverTipCents === 0 ? "Not included" : "Partial"}
+                  </span>
+                )}
+                {tipCents > 0 && driverTipCents === tipCents && (
+                  <span className={styles.tipBadge}>Full tip</span>
                 )}
               </span>
               <span
-                className={`${styles.earningsValue} ${tipCents > 0 ? styles.tipValue : ""}`}
+                className={`${styles.earningsValue} ${driverTipCents > 0 ? styles.tipValue : ""}`}
               >
-                {tipCents > 0 ? formatMoney(tipCents, currency) : "—"}
+                {driverTipCents > 0
+                  ? formatMoney(driverTipCents, currency)
+                  : "—"}
               </span>
             </div>
+
+            {/* Show company retained tip if applicable */}
+            {tipCents > 0 && driverTipCents < tipCents && (
+              <div
+                className={`${styles.earningsRow} ${styles.earningsRowMuted}`}
+              >
+                <span className={styles.earningsLabel}>Company Retains</span>
+                <span className={styles.earningsValue}>
+                  {formatMoney(tipCents - driverTipCents, currency)}
+                </span>
+              </div>
+            )}
 
             {/* Divider */}
             <div className={styles.earningsDivider} />
@@ -353,12 +529,27 @@ export default function AssignBookingForm({
             </div>
           </div>
 
-          {/* Tip note */}
-          {tipCents > 0 && (
+          {/* Updated tip notes */}
+          {tipCents > 0 && driverTipCents === tipCents && (
             <div className={styles.tipNote}>
-              💡 The customer added a {formatMoney(tipCents, currency)} tip
-              during checkout. This should be passed directly to the driver in
-              addition to the company payment.
+              💡 The driver will receive the full{" "}
+              {formatMoney(tipCents, currency)} tip from the customer.
+            </div>
+          )}
+
+          {tipCents > 0 && driverTipCents > 0 && driverTipCents < tipCents && (
+            <div className={styles.tipNotePartial}>
+              ℹ️ The driver will receive {formatMoney(driverTipCents, currency)}{" "}
+              of the {formatMoney(tipCents, currency)} customer tip. The company
+              retains {formatMoney(tipCents - driverTipCents, currency)}.
+            </div>
+          )}
+
+          {tipCents > 0 && driverTipCents === 0 && (
+            <div className={styles.tipNoteNone}>
+              ⚠️ The driver will not receive any of the{" "}
+              {formatMoney(tipCents, currency)} customer tip. The company
+              retains the full amount.
             </div>
           )}
 

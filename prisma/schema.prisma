@@ -475,6 +475,7 @@ model Assignment {
 
   // ✅ NEW: Add this line - Amount to pay the driver (in cents)
   driverPaymentCents Int?
+  driverTipCents     Int?
 
   assignedAt DateTime @default(now())
 

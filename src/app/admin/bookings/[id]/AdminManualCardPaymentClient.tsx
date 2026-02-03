@@ -74,7 +74,7 @@ export default function AdminManualCardPaymentClient({
           background: "var(--warning50)",
           border: "1px solid var(--warning200)",
           borderRadius: 8,
-          fontSize: "0.9rem",
+          fontSize: "1.4rem",
           color: "var(--warning800)",
         }}
       >
@@ -143,7 +143,7 @@ export default function AdminManualCardPaymentClient({
               border: "1px solid #f59e0b",
               borderRadius: 8,
               padding: "10px 14px",
-              fontSize: "0.9rem",
+              fontSize: "1.4rem",
               color: "#92400e",
             }}
           >
@@ -152,7 +152,7 @@ export default function AdminManualCardPaymentClient({
             <span
               style={{
                 display: "block",
-                fontSize: "0.8rem",
+                fontSize: "1.4rem",
                 marginTop: 2,
                 opacity: 0.85,
               }}
@@ -292,7 +292,7 @@ function ManualPaymentInner({
   return (
     <div style={{ display: "grid", gap: 10, marginTop: 10 }}>
       {/* Show what we're charging */}
-      <div style={{ fontSize: "0.9rem", opacity: 0.8 }}>
+      <div style={{ fontSize: "1.4rem", opacity: 0.8 }}>
         {isBalancePayment
           ? `Charging balance of ${formatMoney(amountToCharge)}`
           : `Charging ${formatMoney(amountToCharge)}`}

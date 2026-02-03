@@ -47,7 +47,7 @@ export default function SendPaymentLinkButton({
           background: "var(--warning50)",
           border: "1px solid var(--warning200)",
           borderRadius: 8,
-          fontSize: "0.9rem",
+          fontSize: "1.4rem",
           color: "var(--warning800)",
         }}
       >
@@ -118,7 +118,7 @@ export default function SendPaymentLinkButton({
             border: "1px solid #f59e0b",
             borderRadius: 8,
             padding: "10px 14px",
-            fontSize: "0.9rem",
+            fontSize: "1.4rem",
             color: "#92400e",
           }}
         >
@@ -126,7 +126,7 @@ export default function SendPaymentLinkButton({
           <span
             style={{
               display: "block",
-              fontSize: "0.8rem",
+              fontSize: "1.4rem",
               marginTop: 2,
               opacity: 0.85,
             }}
@@ -147,7 +147,7 @@ export default function SendPaymentLinkButton({
       />
 
       {error && (
-        <p style={{ color: "#c00", fontSize: "0.9rem", margin: 0 }}>{error}</p>
+        <p style={{ color: "#c00", fontSize: "1.4rem", margin: 0 }}>{error}</p>
       )}
     </div>
   );
