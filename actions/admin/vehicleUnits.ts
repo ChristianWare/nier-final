@@ -72,7 +72,7 @@ const VehicleUnitSchema = z.object({
 });
 
 export async function createVehicleUnit(
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   try {
     await requireAdmin();
@@ -99,7 +99,7 @@ export async function createVehicleUnit(
 }
 
 export async function updateVehicleUnit(
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   try {
     await requireAdmin();
@@ -131,7 +131,7 @@ export async function updateVehicleUnit(
 
 export async function toggleVehicleUnit(
   id: string,
-  active: boolean
+  active: boolean,
 ): Promise<ActionResult> {
   try {
     await requireAdmin();
@@ -142,8 +142,82 @@ export async function toggleVehicleUnit(
     });
 
     revalidatePath("/admin/vehicles");
+    revalidatePath(`/admin/vehicles/${id}`);
     return { success: active ? "vehicle enabled" : "vehicle disabled" };
   } catch (e: any) {
     return { error: e?.message ?? "Failed to update vehicle." };
+  }
+}
+
+export async function updateVehicleUnitImage(
+  vehicleUnitId: string,
+  imageUrl: string,
+): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+
+    if (!vehicleUnitId) {
+      return { error: "Missing vehicle ID" };
+    }
+
+    // Verify vehicle exists
+    const vehicle = await db.vehicleUnit.findUnique({
+      where: { id: vehicleUnitId },
+      select: { id: true },
+    });
+
+    if (!vehicle) {
+      return { error: "Vehicle not found" };
+    }
+
+    // Update the database with the Cloudinary URL
+    await db.vehicleUnit.update({
+      where: { id: vehicleUnitId },
+      data: { image: imageUrl },
+    });
+
+    revalidatePath(`/admin/vehicles/${vehicleUnitId}`);
+    revalidatePath("/admin/vehicles");
+
+    return { success: "Vehicle image updated" };
+  } catch (e: any) {
+    console.error("Failed to update vehicle image:", e);
+    return { error: e?.message ?? "Failed to update image" };
+  }
+}
+
+export async function deleteVehicleUnitImage(
+  vehicleUnitId: string,
+): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+
+    if (!vehicleUnitId) {
+      return { error: "Missing vehicle ID" };
+    }
+
+    // Verify vehicle exists
+    const vehicle = await db.vehicleUnit.findUnique({
+      where: { id: vehicleUnitId },
+      select: { id: true, image: true },
+    });
+
+    if (!vehicle) {
+      return { error: "Vehicle not found" };
+    }
+
+    // Update the database (set image to null)
+    await db.vehicleUnit.update({
+      where: { id: vehicleUnitId },
+      data: { image: null },
+    });
+
+    revalidatePath(`/admin/vehicles/${vehicleUnitId}`);
+    revalidatePath("/admin/vehicles");
+
+    return { success: "Vehicle image removed" };
+  } catch (e: any) {
+    console.error("Failed to delete vehicle image:", e);
+    return { error: e?.message ?? "Failed to remove image" };
   }
 }

@@ -6,6 +6,7 @@
   border: 1px solid var(--stroke);
   border-radius: 10px;
   padding: 2rem;
+  background: var(--white);
 }
 
 .header {
@@ -29,19 +30,20 @@
 .controlsDesktop {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .controlsMobile {
   display: none;
   align-items: center;
-  gap: 8px;
+  gap: 1rem;
   width: 100%;
 }
 
 .monthLabel {
   font-weight: 700;
+  font-size: 1.4rem;
   font-family: var(--interTight);
 }
 
@@ -56,13 +58,9 @@
   appearance: none;
   line-height: 1;
   font-family: var(--interTight);
+  font-size: 1.4rem;
   white-space: nowrap;
 }
-
-/* .btn:hover {
-  background: #f7f7f7;
-  color: var(--black);
-} */
 
 .primary {
   background: #111;
@@ -100,6 +98,7 @@
   border: 1px solid rgba(0, 0, 0, 0.18);
   background: #fff;
   font-family: var(--interTight);
+  font-size: 1.4rem;
   line-height: 1;
 }
 
@@ -121,6 +120,7 @@
   text-align: center;
   font-family: var(--interTight);
   font-weight: 600;
+  font-size: 1.4rem;
   border-radius: 5px;
   height: fit-content;
 }
@@ -165,7 +165,7 @@
   font-family: var(--interTight);
   font-weight: 800;
   color: #222;
-  font-size: 14px;
+  font-size: 1.4rem;
   position: relative;
   z-index: 2;
 }
@@ -190,6 +190,11 @@
   outline-offset: 0;
 }
 
+.hasTrips {
+  background: rgba(22, 163, 74, 0.08);
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
 .countPill {
   position: absolute;
   left: 0;
@@ -209,39 +214,26 @@
   padding-bottom: 4px;
   font-family: var(--interTight);
   font-weight: 900;
-  font-size: 12px;
+  font-size: 1.4rem;
   line-height: 1;
   z-index: 3;
 }
 
-.blackout::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    135deg,
-    rgba(0, 0, 0, 0.08),
-    rgba(0, 0, 0, 0.08) 6px,
-    rgba(0, 0, 0, 0.02) 6px,
-    rgba(0, 0, 0, 0.02) 12px
-  );
-  z-index: 1;
+.monthStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 0 10px;
 }
 
-.blackoutBadge {
-  position: absolute;
-  left: 10px;
-  top: 10px;
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  border: 2px solid rgba(0, 0, 0, 0.28);
-  background: #fff;
-  display: grid;
-  place-items: center;
-  font-size: 14px;
-  line-height: 1;
-  z-index: 3;
+.monthStatsItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.monthStatsItem span {
+  white-space: nowrap;
 }
 
 .mobileLegend {
@@ -256,7 +248,7 @@
   align-items: center;
   gap: 8px;
   font-family: var(--interTight);
-  font-size: 12px;
+  font-size: 1.4rem;
   color: #333;
 }
 
@@ -273,13 +265,8 @@
 }
 
 .legendHas {
-  background: #111;
-  border-color: #111;
-}
-
-.legendBlackout {
-  background: rgba(0, 0, 0, 0.25);
-  border-color: rgba(0, 0, 0, 0.25);
+  background: rgba(22, 163, 74, 0.5);
+  border-color: rgba(22, 163, 74, 0.6);
 }
 
 @media screen and (max-width: 568px) {
@@ -313,11 +300,15 @@
   }
 
   .dayNum {
-    font-size: 13px;
+    font-size: 1.4rem;
   }
 
   .mobileLegend {
     display: flex;
+  }
+
+  .countPill {
+    font-size: 1.4rem;
   }
 }
 

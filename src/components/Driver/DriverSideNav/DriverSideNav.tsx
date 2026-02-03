@@ -5,21 +5,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
-
 import House from "@/components/shared/icons/House/House";
 import Calendar from "@/components/shared/icons/Calendar/Calendar";
 import Bell from "@/components/shared/icons/Bell/Bell";
-// import Wheel from "@/components/shared/icons/Wheel/Wheel";
 import Listing from "@/components/shared/icons/Listing/Listing";
 import Users from "@/components/shared/icons/Users/Users";
 import Cog from "@/components/shared/icons/Cog/Cog";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
-
-// Reuse the same badge component you already have.
-// If you later move it to a shared folder, just update this import.
 import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
+import Appointments from "@/components/shared/icons/Appointments/Appointments";
 
 const NAV_ITEMS = [
   {
@@ -32,7 +27,7 @@ const NAV_ITEMS = [
     title: "Trips",
     href: "/driver-dashboard/trips",
     key: "trips",
-    icon: <Calendar />,
+    icon: <Appointments />,
   },
   {
     title: "Notifications",
@@ -45,6 +40,12 @@ const NAV_ITEMS = [
     href: "/driver-dashboard/earnings",
     key: "earnings",
     icon: <Listing />,
+  },
+  {
+    title: "Schedule",
+    href: "/driver-dashboard/schedule",
+    key: "schedule",
+    icon: <Calendar />,
   },
   {
     title: "Profile",
@@ -136,12 +137,7 @@ export default function DriverSideNav({
                 </li>
               );
             })}
-
-            {/* <Link href='/' className={styles.homeBtn}>
-              Go Home <Arrow className={styles.arrow} />
-            </Link> */}
-
-            <button className={styles.signOutBtn} onClick={() => signOut()}>
+           <button className={styles.signOutBtn} onClick={() => signOut()}>
               Sign Out <Arrow className={styles.arrow} />
             </button>
           </div>

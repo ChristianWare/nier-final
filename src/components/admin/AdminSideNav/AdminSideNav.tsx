@@ -20,11 +20,12 @@ import Plane from "@/components/shared/icons/Plane/Plane";
 import Money from "@/components/shared/icons/Money/Money";
 import Report from "@/components/shared/icons/Report/Report";
 import Company from "@/components/shared/icons/Company/Company";
+import Appointments from "@/components/shared/icons/Appointments/Appointments";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
   { title: "Earnings", href: "/admin/earnings", icon: <Money /> },
-  { title: "Bookings", href: "/admin/bookings", icon: <Calendar /> },
+  { title: "Bookings", href: "/admin/bookings", icon: <Appointments /> },
   { title: "Services", href: "/admin/services", icon: <Bell /> },
   {
     title: "Vehicle Categories",

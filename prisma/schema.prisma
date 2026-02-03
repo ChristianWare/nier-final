@@ -226,6 +226,8 @@ model VehicleUnit {
   updatedAt   DateTime     @updatedAt
   assignments Assignment[]
 
+  image String?
+
   @@index([categoryId])
   @@index([active])
 }

@@ -15,6 +15,7 @@ import DriverUpcomingRides, {
 import DriverEarningsSnapshot, {
   DriverEarningsChartPoint,
 } from "@/components/Driver/DriverEarningsSnapshot/DriverEarningsSnapshot";
+import DriverRideCalendar from "@/components/Driver/DriverRideCalendar/DriverRideCalendar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,6 +74,21 @@ function getMonthLabel(d: Date): string {
     year: "numeric",
     timeZone: TIMEZONE,
   });
+}
+
+function monthKey(d: Date) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+function ymdInPhoenix(date: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 const TERMINAL: BookingStatus[] = [
@@ -167,6 +183,12 @@ export default async function DriverDashboardHome() {
   const monthStart = startOfMonthPhoenix(now);
   const monthEnd = endOfMonthPhoenix(now);
 
+  // Month boundaries for calendar (get 3 months of data for smooth navigation)
+  const calendarStart = new Date(monthStart);
+  calendarStart.setMonth(calendarStart.getMonth() - 1);
+  const calendarEnd = new Date(monthEnd);
+  calendarEnd.setMonth(calendarEnd.getMonth() + 2);
+
   // Fetch all upcoming trips (not completed/cancelled)
   const upcomingTrips = await db.booking.findMany({
     where: {
@@ -232,6 +254,29 @@ export default async function DriverDashboardHome() {
     0,
   );
 
+  // Fetch all trips for calendar (assigned to this driver)
+  const calendarTrips = await db.booking.findMany({
+    where: {
+      pickupAt: { gte: calendarStart, lte: calendarEnd },
+      status: {
+        notIn: [
+          BookingStatus.CANCELLED,
+          BookingStatus.REFUNDED,
+          BookingStatus.NO_SHOW,
+        ],
+      },
+      assignment: { driverId },
+    },
+    select: { pickupAt: true },
+  });
+
+  // Build countsByYmd for calendar
+  const countsByYmd: Record<string, number> = {};
+  for (const trip of calendarTrips) {
+    const ymd = ymdInPhoenix(trip.pickupAt);
+    countsByYmd[ymd] = (countsByYmd[ymd] ?? 0) + 1;
+  }
+
   // Aggregate daily earnings for chart
   const dailyEarningsMap = new Map<string, { amount: number; count: number }>();
 
@@ -275,11 +320,16 @@ export default async function DriverDashboardHome() {
   // Stats for header
   const activeCount = upcomingTrips.length;
 
+  // Calendar props
+  const baseMonth = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 12, 0, 0),
+  );
+
   return (
     <section className={styles.pageContainer}>
       {/* Page Header */}
       <header className={styles.pageHeader}>
-        <div className="header">
+        <div className='header'>
           <h1 className='heading h2'>Welcome back, {driverName}</h1>
           <p className='subheading'>
             {activeCount > 0
@@ -308,6 +358,13 @@ export default async function DriverDashboardHome() {
 
       {/* Next Trip */}
       <DriverNextTrip trip={nextTrip} timeZone={TIMEZONE} />
+
+      {/* Calendar */}
+      <DriverRideCalendar
+        initialMonth={monthKey(baseMonth)}
+        countsByYmd={countsByYmd}
+        todayYmd={ymdInPhoenix(now)}
+      />
 
       {/* Upcoming Rides Table */}
       <DriverUpcomingRides items={upcomingRideItems} timeZone={TIMEZONE} />
