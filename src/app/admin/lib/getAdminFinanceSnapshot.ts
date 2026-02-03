@@ -112,6 +112,7 @@ export type AdminFinanceSnapshotData = {
 /**
  * ✅ Daily chart points for Month-to-Date (Phoenix time).
  * Produces one point per day from month start → today (inclusive), filling gaps with zeros.
+ * Matches the working pattern from AdminEarningsPage.
  */
 async function getMonthToDateDailyChart(
   now: Date,
@@ -123,22 +124,24 @@ async function getMonthToDateDailyChart(
   const fromUtc = monthStart;
   const toUtc = tomorrowStart;
 
+  // ✅ Exactly matches working AdminEarningsPage chartAggDaily
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('day', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
-    WHERE "status" = 'PAID'
-      AND "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
+    WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
     GROUP BY 1
     ORDER BY 1 ASC
   `) as any[];
 
+  // ✅ Exactly matches working AdminEarningsPage chartAggDaily
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum
+      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COUNT(*) as count
     FROM "Payment"
     WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
       AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
@@ -152,10 +155,10 @@ async function getMonthToDateDailyChart(
     cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
   }
 
-  const ref = new Map<string, number>();
+  const ref = new Map<string, { sumCents: number; count: number }>();
   for (const r of refundRows) {
     const k = String(r.key);
-    ref.set(k, Number(r.sum || 0));
+    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
   }
 
   const points: AdminFinanceSnapshotChartPoint[] = [];
@@ -168,17 +171,15 @@ async function getMonthToDateDailyChart(
     const key = dayKeyFromDatePhoenix(d);
 
     const c = cap.get(key) ?? { sumCents: 0, count: 0 };
-    const r = ref.get(key) ?? 0;
-
-    // keep prior behavior: don't show negative net in the snapshot mini-chart
-    const net = Math.max(0, c.sumCents - r);
+    const r = ref.get(key) ?? { sumCents: 0, count: 0 };
+    const net = c.sumCents - r.sumCents;
 
     points.push({
       key,
       tick: dayTickPhoenix(d),
       label: dayLabelPhoenix(d),
       capturedCents: c.sumCents,
-      refundedCents: r,
+      refundedCents: r.sumCents,
       netCents: net,
       count: c.count,
     });
@@ -205,33 +206,34 @@ export async function getAdminFinanceSnapshot(
     pendingBookingAgg,
     chartData,
   ] = await Promise.all([
+    // ✅ Captured this month - filter by paidAt in range
     db.payment.aggregate({
       where: {
-        status: "PAID",
         paidAt: { gte: monthStart, lt: nextMonthStart },
       },
       _sum: { amountTotalCents: true },
       _count: { _all: true },
     }),
 
+    // ✅ Captured today - filter by paidAt in range
     db.payment.aggregate({
       where: {
-        status: "PAID",
         paidAt: { gte: todayStart, lt: tomorrowStart },
       },
       _sum: { amountTotalCents: true },
       _count: { _all: true },
     }),
 
+    // ✅ Captured previous month - filter by paidAt in range
     db.payment.aggregate({
       where: {
-        status: "PAID",
         paidAt: { gte: prevMonthStart, lt: monthStart },
       },
       _sum: { amountTotalCents: true },
       _count: { _all: true },
     }),
 
+    // ✅ Refunds this month
     db.payment.aggregate({
       where: {
         status: { in: ["REFUNDED", "PARTIALLY_REFUNDED"] as any },
@@ -241,6 +243,7 @@ export async function getAdminFinanceSnapshot(
       _count: { _all: true },
     }),
 
+    // Pending payment bookings
     db.booking.aggregate({
       where: {
         status: "PENDING_PAYMENT",
@@ -250,27 +253,29 @@ export async function getAdminFinanceSnapshot(
       _count: { _all: true },
     }),
 
-    // ✅ daily (month-to-date) chart instead of last-12-months monthly chart
+    // ✅ Daily (month-to-date) chart
     getMonthToDateDailyChart(now),
   ]);
 
-  const capturedMonthCents = Number(paidMonthAgg._sum.amountTotalCents ?? 0);
-  const paidCountMonth = Number(paidMonthAgg._count._all ?? 0);
+  const capturedMonthCents = Number(paidMonthAgg._sum?.amountTotalCents ?? 0);
+  const paidCountMonth = Number((paidMonthAgg._count as any)?._all ?? 0);
 
-  const capturedTodayCents = Number(paidTodayAgg._sum.amountTotalCents ?? 0);
+  const capturedTodayCents = Number(paidTodayAgg._sum?.amountTotalCents ?? 0);
 
-  const refundsMonthCents = Number(refundsMonthAgg._sum.amountTotalCents ?? 0);
-  const refundCountMonth = Number(refundsMonthAgg._count._all ?? 0);
+  const refundsMonthCents = Number(refundsMonthAgg._sum?.amountTotalCents ?? 0);
+  const refundCountMonth = Number((refundsMonthAgg._count as any)?._all ?? 0);
 
-  const pendingPaymentCount = Number(pendingBookingAgg._count._all ?? 0);
+  const pendingPaymentCount = Number(
+    (pendingBookingAgg._count as any)?._all ?? 0,
+  );
   const pendingPaymentAmountCents = Number(
-    pendingBookingAgg._sum.totalCents ?? 0,
+    pendingBookingAgg._sum?.totalCents ?? 0,
   );
 
   const avgOrderValueMonthCents =
     paidCountMonth > 0 ? Math.round(capturedMonthCents / paidCountMonth) : 0;
 
-  const prevMonthCents = Number(paidPrevMonthAgg._sum.amountTotalCents ?? 0);
+  const prevMonthCents = Number(paidPrevMonthAgg._sum?.amountTotalCents ?? 0);
   const monthOverMonthPct =
     prevMonthCents > 0
       ? ((capturedMonthCents - prevMonthCents) / prevMonthCents) * 100

@@ -3,6 +3,9 @@
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   gap: 3rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2rem;
 }
 
 .header {
@@ -146,7 +149,10 @@
 }
 
 .dayCell:hover {
-  background: #fff;
+  background: #eaf8ee;
+  border-color: #bfe8cc;
+  outline: 2px solid #4e94ec33;
+  outline-offset: 0;
   color: var(--black) !important;
 }
 
@@ -185,17 +191,21 @@
 
 .countPill {
   position: absolute;
-  left: 10px;
-  bottom: 10px;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 7px;
-  border-radius: 999px;
+  left: 0;
+  bottom: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 0;
   background-color: rgba(22, 163, 74, 0.5);
   color: var(--darkGreen);
-  border: 1px solid var(--darkGreen);
-  display: grid;
-  place-items: center;
+  border: none;
+  clip-path: polygon(0 0, 0 100%, 100% 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding-left: 6px;
+  padding-bottom: 4px;
   font-family: var(--interTight);
   font-weight: 900;
   font-size: 12px;

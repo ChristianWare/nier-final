@@ -303,15 +303,14 @@ export default async function AdminHome() {
   );
 
   const cancelledLike = [
-  "CANCELLED",
-  "COMPLETED",
-  "REFUNDED",
-  "NO_SHOW",
-] as const;
+    "CANCELLED",
+    "COMPLETED",
+    "REFUNDED",
+    "NO_SHOW",
+  ] as const;
 
-// For today's rides - we WANT to show completed rides
-const todayExcluded = ["CANCELLED", "REFUNDED", "NO_SHOW"] as const
-;
+  // For today's rides - we WANT to show completed rides
+  const todayExcluded = ["CANCELLED", "REFUNDED", "NO_SHOW"] as const;
   const [
     pendingReview,
     pendingPayment,
@@ -1376,10 +1375,16 @@ const todayExcluded = ["CANCELLED", "REFUNDED", "NO_SHOW"] as const
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
-      <AdminFinanceSnapshot {...snap} currency='USD' />
-
+      <div className={styles.graphCalendarContainer}>
+        <AdminFinanceSnapshot {...snap} currency='USD' />
+        <AdminRideCalendar
+          initialMonth={monthKey(baseMonth)}
+          countsByYmd={countsByYmd}
+          blackoutsByYmd={blackoutsByYmd}
+          todayYmd={ymdInPhoenix(now)}
+        />
+      </div>
       <AdminAlerts alerts={alerts} />
-
       <AdminPaymentsSnapshot
         paymentsToday={paymentsToday}
         paymentsThisWeek={paymentsThisWeek}
@@ -1388,30 +1393,20 @@ const todayExcluded = ["CANCELLED", "REFUNDED", "NO_SHOW"] as const
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
-
       <AdminRecentBookingRequests
         items={recentBookingRequests}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
-
       <AdminTodaysRides
         items={todaysRides}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
-
       <AdminUpcomingRides
         items={upcomingRides}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
-      />
-
-      <AdminRideCalendar
-        initialMonth={monthKey(baseMonth)}
-        countsByYmd={countsByYmd}
-        blackoutsByYmd={blackoutsByYmd}
-        todayYmd={ymdInPhoenix(now)}
       />
 
       <AdminScheduleSnapshot
@@ -1429,20 +1424,17 @@ const todayExcluded = ["CANCELLED", "REFUNDED", "NO_SHOW"] as const
         tripsNext3Hours={tripsNext3Hours}
         timeZone={PHX_TZ}
       />
-
       <AdminDriverSnapshot
         activeDrivers={activeDrivers}
         driversAssignedToday={driversAssignedToday}
         unassignedTripsToday={todayUnassigned}
       />
-
       <AdminVehicleSnapshot
         activeUnits={activeUnits}
         availableUnitsToday={availableUnitsToday}
         inactiveUnits={inactiveUnits}
         byCategory={byCategory}
       />
-
       <AdminActivityFeed items={activityTop10} timeZone={PHX_TZ} />
     </section>
   );

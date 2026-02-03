@@ -3,3 +3,16 @@
   grid-template-columns: repeat(1, 1fr);
   grid-gap: 5rem;
 }
+
+.graphCalendarContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+  margin-top: -2.5rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .graphCalendarContainer {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
