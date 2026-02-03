@@ -364,6 +364,8 @@ export default async function AdminHome() {
     calendarRidesRaw,
     calendarBlackoutsRaw,
     balanceDueBookingsRaw,
+    unpaidUpcomingTripsRaw,
+    upcomingAssignmentsForOverlapCheck,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -918,6 +920,101 @@ export default async function AdminHome() {
         },
       },
     }),
+    // Bookings with balance due (paid but total increased)
+    db.booking.findMany({
+      where: {
+        payment: {
+          status: "PAID",
+          amountPaidCents: { gt: 0 },
+        },
+        NOT: { status: { in: ["CANCELLED", "REFUNDED", "NO_SHOW"] as any } },
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      select: {
+        id: true,
+        pickupAt: true,
+        totalCents: true,
+        currency: true,
+        status: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        serviceType: { select: { name: true } },
+        payment: {
+          select: {
+            amountPaidCents: true,
+            amountTotalCents: true,
+          },
+        },
+      },
+    }),
+
+    // ADD: Trips starting within 24h with unpaid balance
+    db.booking.findMany({
+      where: {
+        pickupAt: { gte: now, lt: next24h },
+        payment: {
+          status: "PAID",
+          amountPaidCents: { gt: 0 },
+        },
+        NOT: { status: { in: ["CANCELLED", "REFUNDED", "NO_SHOW"] as any } },
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      take: 20,
+      select: {
+        id: true,
+        pickupAt: true,
+        totalCents: true,
+        durationMinutes: true,
+        currency: true,
+        status: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        serviceType: { select: { name: true } },
+        payment: {
+          select: {
+            amountPaidCents: true,
+          },
+        },
+      },
+    }),
+
+    // ADD: Upcoming assignments to check for driver overlaps
+    db.assignment.findMany({
+      where: {
+        booking: {
+          pickupAt: { gte: now },
+          NOT: {
+            status: {
+              in: ["CANCELLED", "REFUNDED", "NO_SHOW", "COMPLETED"] as any,
+            },
+          },
+        },
+      },
+      orderBy: { booking: { pickupAt: "asc" } },
+      select: {
+        id: true,
+        driverId: true,
+        driver: { select: { name: true, email: true } },
+        booking: {
+          select: {
+            id: true,
+            pickupAt: true,
+            durationMinutes: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            user: { select: { name: true, email: true } },
+            guestName: true,
+            serviceType: { select: { name: true } },
+          },
+        },
+      },
+    }),
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
@@ -1410,16 +1507,6 @@ export default async function AdminHome() {
     },
   );
 
-  console.log("Balance due raw:", balanceDueBookingsRaw.length);
-  console.log("Balance due filtered:", bookingsWithBalanceDue.length);
-  if (balanceDueBookingsRaw.length > 0) {
-    console.log("First booking:", {
-      id: balanceDueBookingsRaw[0].id,
-      totalCents: balanceDueBookingsRaw[0].totalCents,
-      paidCents: balanceDueBookingsRaw[0].payment?.amountPaidCents,
-    });
-  }
-
   // ==========================================
   // WARNING: Bookings with balance due
   // ==========================================
@@ -1475,6 +1562,210 @@ export default async function AdminHome() {
     });
   }
 
+  // ==========================================
+  // WARNING: Trips starting soon with unpaid balance
+  // ==========================================
+  const upcomingTripsWithBalance = (unpaidUpcomingTripsRaw as any[]).filter(
+    (b) => {
+      const paidCents = b.payment?.amountPaidCents ?? 0;
+      const totalCents = b.totalCents ?? 0;
+      return paidCents > 0 && totalCents > paidCents;
+    },
+  );
+
+  if (upcomingTripsWithBalance.length > 0) {
+    const totalBalanceCents = upcomingTripsWithBalance.reduce((sum, b) => {
+      const paidCents = b.payment?.amountPaidCents ?? 0;
+      const totalCents = b.totalCents ?? 0;
+      return sum + (totalCents - paidCents);
+    }, 0);
+
+    const detailRows = upcomingTripsWithBalance.slice(0, 5).map((b) => {
+      const customerName =
+        b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+      const paidCents = b.payment?.amountPaidCents ?? 0;
+      const totalCents = b.totalCents ?? 0;
+      const balanceCents = totalCents - paidCents;
+
+      return {
+        id: b.id,
+        href: `/admin/bookings/${b.id}#payment-section`,
+        badge: {
+          label: `$${(balanceCents / 100).toFixed(2)} due`,
+          tone: "danger" as const,
+        },
+        cells: [
+          {
+            label: "Pickup",
+            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+          },
+          { label: "Customer", value: customerName },
+          { label: "Service", value: b.serviceType?.name ?? "—" },
+          {
+            label: "Balance",
+            value: `$${(balanceCents / 100).toFixed(2)}`,
+            highlight: true,
+          },
+        ],
+      };
+    });
+
+    alerts.push({
+      id: "upcoming-unpaid-balance",
+      severity: "danger",
+      message: `⚠️ ${upcomingTripsWithBalance.length} trip(s) starting within 24h have unpaid balance ($${(totalBalanceCents / 100).toFixed(2)})`,
+      href: "/admin/bookings?filter=balance-due",
+      ctaLabel: "View All",
+      details: `These trips are starting soon but have an outstanding balance. Collect payment before pickup or the driver may need to collect on-site.`,
+      detailRows,
+      timestamp: "Urgent - Payment needed",
+    });
+  }
+
+  // ==========================================
+  // WARNING: Driver has overlapping assignments
+  // ==========================================
+  const BUFFER_MINUTES = 30; // Buffer time between trips
+
+  type DriverAssignmentData = {
+    driverName: string;
+    driverEmail: string;
+    assignments: {
+      bookingId: string;
+      pickupAt: Date;
+      endAt: Date;
+      pickupAddress: string;
+      dropoffAddress: string;
+      customerName: string;
+      serviceName: string;
+    }[];
+  };
+
+  const assignmentsByDriver = new Map<string, DriverAssignmentData>();
+
+  for (const a of upcomingAssignmentsForOverlapCheck as any[]) {
+    // Skip if booking doesn't exist
+    if (!a.booking) continue;
+
+    const driverId = a.driverId;
+    const pickupAt = new Date(a.booking.pickupAt);
+    const durationMinutes = a.booking.durationMinutes ?? 60; // Default 1 hour if not set
+    const endAt = new Date(
+      pickupAt.getTime() + (durationMinutes + BUFFER_MINUTES) * 60 * 1000,
+    );
+
+    const customerName =
+      a.booking.user?.name?.trim() || a.booking.guestName?.trim() || "Customer";
+
+    if (!assignmentsByDriver.has(driverId)) {
+      assignmentsByDriver.set(driverId, {
+        driverName: a.driver?.name?.trim() || "Driver",
+        driverEmail: a.driver?.email || "",
+        assignments: [],
+      });
+    }
+
+    assignmentsByDriver.get(driverId)!.assignments.push({
+      bookingId: a.booking.id,
+      pickupAt,
+      endAt,
+      pickupAddress: a.booking.pickupAddress,
+      dropoffAddress: a.booking.dropoffAddress,
+      customerName,
+      serviceName: a.booking.serviceType?.name ?? "—",
+    });
+  }
+
+  
+
+  // Find overlapping assignments
+  type OverlapInfo = {
+    driverId: string;
+    driverName: string;
+    booking1: {
+      id: string;
+      pickupAt: Date;
+      customerName: string;
+      serviceName: string;
+    };
+    booking2: {
+      id: string;
+      pickupAt: Date;
+      customerName: string;
+      serviceName: string;
+    };
+  };
+
+  const overlaps: OverlapInfo[] = [];
+
+  for (const [driverId, data] of assignmentsByDriver) {
+    const sorted = data.assignments.sort(
+      (a, b) => a.pickupAt.getTime() - b.pickupAt.getTime(),
+    );
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const current = sorted[i];
+      const next = sorted[i + 1];
+
+      // Check if current trip's end time overlaps with next trip's start
+      if (current.endAt > next.pickupAt) {
+        overlaps.push({
+          driverId,
+          driverName: data.driverName,
+          booking1: {
+            id: current.bookingId,
+            pickupAt: current.pickupAt,
+            customerName: current.customerName,
+            serviceName: current.serviceName,
+          },
+          booking2: {
+            id: next.bookingId,
+            pickupAt: next.pickupAt,
+            customerName: next.customerName,
+            serviceName: next.serviceName,
+          },
+        });
+      }
+    }
+  }
+
+  if (overlaps.length > 0) {
+    const detailRows = overlaps.slice(0, 5).map((o, idx) => {
+      const time1 = formatAlertPickup(o.booking1.pickupAt, PHX_TZ);
+      const time2 = formatAlertPickup(o.booking2.pickupAt, PHX_TZ);
+
+      return {
+        id: `overlap-${idx}`,
+        href: `/admin/bookings/${o.booking1.id}#assign-section`,
+        badge: {
+          label: "Overlap",
+          tone: "danger" as const,
+        },
+        cells: [
+          { label: "Driver", value: o.driverName },
+          { label: "Trip 1", value: `${time1}` },
+          { label: "Trip 2", value: `${time2}` },
+          {
+            label: "Action",
+            value: "Reassign needed",
+            highlight: true,
+          },
+        ],
+      };
+    });
+
+    alerts.push({
+      id: "driver-overlaps",
+      severity: "danger",
+      message: `🚗 ${overlaps.length} driver assignment conflict(s) detected`,
+      href: "/admin/bookings?status=CONFIRMED",
+      ctaLabel: "View Bookings",
+      details: `These drivers have overlapping trip assignments. Either reassign one of the trips to a different driver, or adjust the pickup times. Buffer time between trips: ${BUFFER_MINUTES} minutes.`,
+      detailRows,
+      timestamp: "Scheduling conflict",
+    });
+  }
+
   return (
     <section className={styles.content}>
       <AdminPageIntro
@@ -1482,9 +1773,6 @@ export default async function AdminHome() {
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
-      {/* <div className={styles.graphCalendarContainer}>
-        
-      </div> */}
       <AdminFinanceSnapshot {...snap} currency='USD' />
       <AdminRideCalendar
         initialMonth={monthKey(baseMonth)}
