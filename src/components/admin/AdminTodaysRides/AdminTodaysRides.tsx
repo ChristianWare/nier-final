@@ -224,6 +224,12 @@ export default function AdminTodaysRides({
             </div>
             <div className={styles.legendItem}>
               <span
+                className={`${styles.legendDot} ${styles.legendDot_inProgress}`}
+              />
+              <span>In progress</span>
+            </div>
+            <div className={styles.legendItem}>
+              <span
                 className={`${styles.legendDot} ${styles.legendDot_past}`}
               />
               <span>Completed</span>
@@ -272,10 +278,14 @@ export default function AdminTodaysRides({
                 const statusClass = statusTone(b.status);
                 const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}`;
 
+                // Determine row state - IN_PROGRESS overrides time-based urgency
+                const rowState =
+                  b.status === "IN_PROGRESS" ? "inProgress" : pickup.urgency;
+
                 return (
                   <tr
                     key={b.id}
-                    className={`${styles.tr} ${styles[`tr_${pickup.urgency}`]}`}
+                    className={`${styles.tr} ${styles[`tr_${rowState}`]}`}
                   >
                     <td className={styles.td} data-label='Time'>
                       <Link

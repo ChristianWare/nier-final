@@ -452,6 +452,48 @@
   border-radius: 8px;
 }
 
+/* Add after .tr_overdue */
+.tr_inProgress {
+  background: linear-gradient(135deg, #7c3aed14 0%, #8b5cf61f 100%);
+  border-left: 4px solid #7c3aed;
+  animation: rowPulseInProgress 3s infinite;
+}
+
+@keyframes rowPulseInProgress {
+  0%,
+  100% {
+    background: linear-gradient(135deg, #7c3aed14 0%, #8b5cf61f 100%);
+  }
+  50% {
+    background: linear-gradient(135deg, #7c3aed1f 0%, #8b5cf62a 100%);
+  }
+}
+
+/* Add after .timePill_overdue */
+.timePill_inProgress {
+  background: rgba(124, 58, 237, 0.15);
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.35);
+  font-weight: 800;
+}
+
+/* Add after .legendDot_overdue */
+.legendDot_inProgress {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3);
+  animation: pulseInProgress 2s infinite;
+}
+
+@keyframes pulseInProgress {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+  }
+}
+
 /* Mobile responsive */
 @media screen and (max-width: 768px) {
   .statsRow {
