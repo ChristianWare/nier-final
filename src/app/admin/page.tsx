@@ -363,6 +363,7 @@ export default async function AdminHome() {
     todaysRidesRaw,
     calendarRidesRaw,
     calendarBlackoutsRaw,
+    balanceDueBookingsRaw,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -885,6 +886,36 @@ export default async function AdminHome() {
       },
       select: { ymd: true },
     }),
+    // Bookings with balance due (paid but total increased)
+    db.booking.findMany({
+      where: {
+        payment: {
+          status: "PAID",
+          amountPaidCents: { gt: 0 },
+        },
+        NOT: { status: { in: ["CANCELLED", "REFUNDED", "NO_SHOW"] as any } },
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      select: {
+        id: true,
+        pickupAt: true,
+        totalCents: true,
+        currency: true,
+        status: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        serviceType: { select: { name: true } },
+        payment: {
+          select: {
+            amountPaidCents: true,
+            amountTotalCents: true,
+          },
+        },
+      },
+    }),
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
@@ -1366,6 +1397,80 @@ export default async function AdminHome() {
   const blackoutsByYmd: Record<string, boolean> = {};
   for (const b of calendarBlackoutsRaw) {
     blackoutsByYmd[b.ymd] = true;
+  }
+
+  // Filter to only bookings where totalCents > amountPaidCents
+  const bookingsWithBalanceDue = (balanceDueBookingsRaw as any[]).filter(
+    (b) => {
+      const paidCents = b.payment?.amountPaidCents ?? 0;
+      const totalCents = b.totalCents ?? 0;
+      return paidCents > 0 && totalCents > paidCents;
+    },
+  );
+
+  console.log("Balance due raw:", balanceDueBookingsRaw.length);
+  console.log("Balance due filtered:", bookingsWithBalanceDue.length);
+  if (balanceDueBookingsRaw.length > 0) {
+    console.log("First booking:", {
+      id: balanceDueBookingsRaw[0].id,
+      totalCents: balanceDueBookingsRaw[0].totalCents,
+      paidCents: balanceDueBookingsRaw[0].payment?.amountPaidCents,
+    });
+  }
+
+  // ==========================================
+  // WARNING: Bookings with balance due
+  // ==========================================
+  if (bookingsWithBalanceDue.length > 0) {
+    const totalBalanceDueCents = bookingsWithBalanceDue.reduce((sum, b) => {
+      const paidCents = b.payment?.amountPaidCents ?? 0;
+      const totalCents = b.totalCents ?? 0;
+      return sum + (totalCents - paidCents);
+    }, 0);
+
+    const detailRows = bookingsWithBalanceDue.slice(0, 5).map((b) => {
+      const customerName =
+        b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+      const paidCents = b.payment?.amountPaidCents ?? 0;
+      const totalCents = b.totalCents ?? 0;
+      const balanceCents = totalCents - paidCents;
+
+      return {
+        id: b.id,
+        href: `/admin/bookings/${b.id}#payment-section`,
+        badge: {
+          label: `$${(balanceCents / 100).toFixed(2)} due`,
+          tone: "warning" as const,
+        },
+        cells: [
+          {
+            label: "Pickup",
+            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+          },
+          { label: "Customer", value: customerName },
+          {
+            label: "Paid",
+            value: `$${(paidCents / 100).toFixed(2)}`,
+          },
+          {
+            label: "Total",
+            value: `$${(totalCents / 100).toFixed(2)}`,
+            highlight: true,
+          },
+        ],
+      };
+    });
+
+    alerts.push({
+      id: "balance-due",
+      severity: bookingsWithBalanceDue.length >= 3 ? "danger" : "warning",
+      message: `💳 ${bookingsWithBalanceDue.length} booking(s) have a balance due ($${(totalBalanceDueCents / 100).toFixed(2)} total)`,
+      href: "/admin/bookings?filter=balance-due",
+      ctaLabel: "View All",
+      details: `These bookings have been partially paid but the price was increased. Send a balance payment link to collect the remaining amount.`,
+      detailRows,
+      timestamp: "Payment required",
+    });
   }
 
   return (
