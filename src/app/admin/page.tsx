@@ -713,12 +713,14 @@ export default async function AdminHome() {
     db.user.count({
       where: {
         emailVerified: { not: null, gte: verifiedCutoff },
+        createdAt: { gte: verifiedCutoff },
       },
     }),
 
     db.user.findFirst({
       where: {
         emailVerified: { not: null, gte: verifiedCutoff },
+        createdAt: { gte: verifiedCutoff },
       },
       orderBy: [{ emailVerified: "desc" }],
       select: { name: true, email: true, emailVerified: true },

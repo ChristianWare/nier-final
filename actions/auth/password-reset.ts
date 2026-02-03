@@ -43,7 +43,6 @@ export const passwordReset = async (
     where: { id: user.id },
     data: {
       password: hashedPassword,
-      emailVerified: new Date(),
       email: existingToken.email,
     },
   });
