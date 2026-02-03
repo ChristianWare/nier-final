@@ -1375,15 +1375,10 @@ export default async function AdminHome() {
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
-      <div className={styles.graphCalendarContainer}>
-        <AdminFinanceSnapshot {...snap} currency='USD' />
-        <AdminRideCalendar
-          initialMonth={monthKey(baseMonth)}
-          countsByYmd={countsByYmd}
-          blackoutsByYmd={blackoutsByYmd}
-          todayYmd={ymdInPhoenix(now)}
-        />
-      </div>
+      {/* <div className={styles.graphCalendarContainer}>
+        
+      </div> */}
+      <AdminFinanceSnapshot {...snap} currency='USD' />
       <AdminAlerts alerts={alerts} />
       <AdminPaymentsSnapshot
         paymentsToday={paymentsToday}
@@ -1408,7 +1403,12 @@ export default async function AdminHome() {
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
-
+      <AdminRideCalendar
+        initialMonth={monthKey(baseMonth)}
+        countsByYmd={countsByYmd}
+        blackoutsByYmd={blackoutsByYmd}
+        todayYmd={ymdInPhoenix(now)}
+      />
       <AdminScheduleSnapshot
         today={{
           total: todayTotal,

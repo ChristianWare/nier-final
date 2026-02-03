@@ -362,7 +362,7 @@ function parseValue(str: string): {
 async function chartAggDaily(fromUtc: Date, toUtc: Date) {
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('day', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+      to_char(date_trunc('day', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
@@ -373,7 +373,7 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
 
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+      to_char(date_trunc('day', "updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
@@ -434,7 +434,7 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
 async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('month', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      to_char(date_trunc('month', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
@@ -445,7 +445,7 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
 
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('month', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      to_char(date_trunc('month', "updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"

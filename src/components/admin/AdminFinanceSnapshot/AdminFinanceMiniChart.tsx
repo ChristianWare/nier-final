@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -14,7 +13,6 @@ import {
   ReferenceLine,
   Cell,
   Rectangle,
-  Legend,
 } from "recharts";
 import styles from "./AdminFinanceSnapshot.module.css";
 
@@ -32,7 +30,7 @@ function NetBarShape(props: any) {
   const v = Number(payload?.netCents ?? 0);
 
   const radius: [number, number, number, number] =
-    v >= 0 ? [6, 6, 0, 0] : [0, 0, 6, 6];
+    v >= 0 ? [10, 10, 0, 0] : [0, 0, 10, 10];
 
   return (
     <Rectangle
@@ -43,42 +41,6 @@ function NetBarShape(props: any) {
       fill={fill}
       radius={radius}
     />
-  );
-}
-
-function CustomLegend() {
-  return (
-    <div className={styles.chartLegend}>
-      <div className={styles.legendItem}>
-        <span
-          className={styles.legendColor}
-          style={{ background: "var(--lightGreen)" }}
-        />
-        <span>Daily Net Earnings</span>
-      </div>
-      <div className={styles.legendItem}>
-        <span
-          className={styles.legendColor}
-          style={{
-            background: "var(--black)",
-            height: "3px",
-            borderRadius: "2px",
-          }}
-        />
-        <span>Captured</span>
-      </div>
-      <div className={styles.legendItem}>
-        <span
-          className={styles.legendColor}
-          style={{
-            background: "var(--red)",
-            height: "3px",
-            borderRadius: "2px",
-          }}
-        />
-        <span>Refunded</span>
-      </div>
-    </div>
   );
 }
 
@@ -97,179 +59,92 @@ export default function AdminFinanceMiniChart({
   }[];
   currency: string;
 }) {
-  // Calculate totals for the period
-  const totals = data.reduce(
-    (acc, d) => ({
-      captured: acc.captured + d.capturedCents,
-      refunded: acc.refunded + d.refundedCents,
-      net: acc.net + d.netCents,
-      payments: acc.payments + d.count,
-    }),
-    { captured: 0, refunded: 0, net: 0, payments: 0 },
-  );
-
   return (
-    <div className={styles.chartContainer}>
-      {/* Summary row */}
-      <div className={styles.chartSummary}>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>Total Captured</span>
-          <span className={styles.summaryValue}>
-            {formatMoney(totals.captured, currency)}
-          </span>
-        </div>
-        <div className={styles.summaryDivider} />
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>Total Refunded</span>
-          <span className={`${styles.summaryValue} ${styles.summaryRefund}`}>
-            {formatMoney(totals.refunded, currency)}
-          </span>
-        </div>
-        <div className={styles.summaryDivider} />
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>Net Earnings</span>
-          <span className={`${styles.summaryValue} ${styles.summaryNet}`}>
-            {formatMoney(totals.net, currency)}
-          </span>
-        </div>
-        <div className={styles.summaryDivider} />
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>Payments</span>
-          <span className={styles.summaryValue}>{totals.payments}</span>
-        </div>
-      </div>
+    <div className={styles.chartCanvas}>
+      <ResponsiveContainer width='100%' height='100%'>
+        <ComposedChart
+          data={data}
+          margin={{ top: 6, right: 10, bottom: 0, left: 10 }}
+        >
+          <CartesianGrid stroke='rgba(0,0,0,0.08)' vertical={false} />
+          <ReferenceLine y={0} stroke='rgba(0,0,0,0.12)' />
 
-      {/* Legend */}
-      <CustomLegend />
+          <XAxis
+            dataKey='tick'
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 12 }}
+            interval='preserveStartEnd'
+            minTickGap={14}
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 12 }}
+            width={56}
+            tickFormatter={(v) => formatMoney(Number(v || 0), currency)}
+          />
 
-      {/* Chart */}
-      <div className={styles.chartCanvas}>
-        <ResponsiveContainer width='100%' height='100%'>
-          <ComposedChart
-            data={data}
-            margin={{ top: 10, right: 10, bottom: 0, left: 10 }}
-          >
-            <CartesianGrid stroke='rgba(0,0,0,0.06)' vertical={false} />
-            <ReferenceLine y={0} stroke='rgba(0,0,0,0.15)' strokeWidth={1} />
-
-            <XAxis
-              dataKey='tick'
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 11, fill: "#666" }}
-              interval='preserveStartEnd'
-              minTickGap={20}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tick={{ fontSize: 11, fill: "#666" }}
-              width={60}
-              tickFormatter={(v) => formatMoney(Number(v || 0), currency)}
-            />
-
-            <Tooltip
-              cursor={{ fill: "rgba(0,0,0,0.04)" }}
-              content={({ active, payload }) => {
-                if (!active || !payload || payload.length === 0) return null;
-                const row = payload[0]?.payload as any;
-                const isPositive = (row.netCents ?? 0) >= 0;
-
-                return (
-                  <div className={styles.tooltip}>
-                    <div className={styles.tooltipTitle}>{row.label}</div>
-
-                    <div className={styles.tooltipSection}>
-                      <div className={styles.tooltipRow}>
-                        <span className={styles.tooltipLabel}>
-                          <span
-                            className={styles.tooltipDot}
-                            style={{
-                              background: isPositive
-                                ? "var(--lightGreen)"
-                                : "var(--red)",
-                            }}
-                          />
-                          Daily Net
-                        </span>
-                        <span
-                          className={`${styles.tooltipVal} ${isPositive ? styles.tooltipGood : styles.tooltipBad}`}
-                        >
-                          {formatMoney(row.netCents ?? 0, currency)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className={styles.tooltipDivider} />
-
-                    <div className={styles.tooltipSection}>
-                      <div className={styles.tooltipRow}>
-                        <span className={styles.tooltipLabel}>
-                          <span
-                            className={styles.tooltipDot}
-                            style={{ background: "var(--black)" }}
-                          />
-                          Captured
-                        </span>
-                        <span className={styles.tooltipVal}>
-                          {formatMoney(row.capturedCents ?? 0, currency)}
-                        </span>
-                      </div>
-                      <div className={styles.tooltipRow}>
-                        <span className={styles.tooltipLabel}>
-                          <span
-                            className={styles.tooltipDot}
-                            style={{ background: "var(--red)" }}
-                          />
-                          Refunded
-                        </span>
-                        <span className={styles.tooltipVal}>
-                          {formatMoney(row.refundedCents ?? 0, currency)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className={styles.tooltipDivider} />
-
-                    <div className={styles.tooltipRow}>
-                      <span className={styles.tooltipLabel}>Payments</span>
-                      <span className={styles.tooltipVal}>
-                        {row.count ?? 0}
-                      </span>
-                    </div>
+          <Tooltip
+            cursor={{ fill: "rgba(0,0,0,0.04)" }}
+            content={({ active, payload }) => {
+              if (!active || !payload || payload.length === 0) return null;
+              const row = payload[0]?.payload as any;
+              return (
+                <div className={styles.tooltip}>
+                  <div className={styles.tooltipTitle}>{row.label}</div>
+                  <div className={styles.tooltipRow}>
+                    <span className='miniNote'>Net</span>
+                    <span className={styles.tooltipVal}>
+                      {formatMoney(row.netCents ?? 0, currency)}
+                    </span>
                   </div>
-                );
-              }}
-            />
+                  <div className={styles.tooltipRow}>
+                    <span className='miniNote'>Captured</span>
+                    <span className={styles.tooltipVal}>
+                      {formatMoney(row.capturedCents ?? 0, currency)}
+                    </span>
+                  </div>
+                  <div className={styles.tooltipRow}>
+                    <span className='miniNote'>Refunded</span>
+                    <span className={styles.tooltipVal}>
+                      {formatMoney(row.refundedCents ?? 0, currency)}
+                    </span>
+                  </div>
+                  <div className={styles.tooltipRow}>
+                    <span className='miniNote'>Payments</span>
+                    <span className={styles.tooltipVal}>{row.count ?? 0}</span>
+                  </div>
+                </div>
+              );
+            }}
+          />
 
-            <Bar dataKey='netCents' shape={<NetBarShape />} barSize={24}>
-              {data.map((d, i) => (
-                <Cell
-                  key={`${d.key}-${i}`}
-                  fill={d.netCents < 0 ? "var(--red)" : "var(--lightGreen)"}
-                />
-              ))}
-            </Bar>
+          <Bar dataKey='netCents' shape={<NetBarShape />}>
+            {data.map((d, i) => (
+              <Cell
+                key={`${d.key}-${i}`}
+                fill={d.netCents < 0 ? "var(--red)" : "var(--lightGreen)"}
+              />
+            ))}
+          </Bar>
 
-            <Line
-              type='monotone'
-              dataKey='capturedCents'
-              stroke='var(--black)'
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, fill: "var(--black)" }}
-            />
-            <Line
-              type='monotone'
-              dataKey='refundedCents'
-              stroke='var(--red)'
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, fill: "var(--red)" }}
-            />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
+          <Line
+            type='monotone'
+            dataKey='capturedCents'
+            stroke='var(--black)'
+            strokeWidth={2}
+            dot={false}
+          />
+          <Line
+            type='monotone'
+            dataKey='refundedCents'
+            stroke='var(--red)'
+            strokeWidth={2}
+            dot={false}
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
     </div>
   );
 }

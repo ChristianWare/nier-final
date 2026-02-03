@@ -126,28 +126,28 @@ async function getMonthToDateDailyChart(
 
   // ✅ Exactly matches working AdminEarningsPage chartAggDaily
   const capturedRows = (await db.$queryRaw<any[]>`
-    SELECT
-      to_char(date_trunc('day', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
-      COUNT(*) as count
-    FROM "Payment"
-    WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
-    GROUP BY 1
-    ORDER BY 1 ASC
-  `) as any[];
+  SELECT
+    to_char(date_trunc('day', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+    COALESCE(SUM("amountTotalCents"), 0) as sum,
+    COUNT(*) as count
+  FROM "Payment"
+  WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
+  GROUP BY 1
+  ORDER BY 1 ASC
+`) as any[];
 
   // ✅ Exactly matches working AdminEarningsPage chartAggDaily
   const refundRows = (await db.$queryRaw<any[]>`
-    SELECT
-      to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
-      COUNT(*) as count
-    FROM "Payment"
-    WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
-      AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
-    GROUP BY 1
-    ORDER BY 1 ASC
-  `) as any[];
+  SELECT
+    to_char(date_trunc('day', "updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+    COALESCE(SUM("amountTotalCents"), 0) as sum,
+    COUNT(*) as count
+  FROM "Payment"
+  WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
+    AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
+  GROUP BY 1
+  ORDER BY 1 ASC
+`) as any[];
 
   const cap = new Map<string, { sumCents: number; count: number }>();
   for (const r of capturedRows) {
