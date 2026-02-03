@@ -1820,17 +1820,14 @@ export default async function AdminHome() {
         tripsNext3Hours={tripsNext3Hours}
         timeZone={PHX_TZ}
       />
-      <AdminDriverSnapshot
-        activeDrivers={activeDrivers}
-        driversAssignedToday={driversAssignedToday}
-        unassignedTripsToday={todayUnassigned}
-      />
-      <AdminVehicleSnapshot
+     <AdminDriverSnapshot />
+
+      {/* <AdminVehicleSnapshot
         activeUnits={activeUnits}
         availableUnitsToday={availableUnitsToday}
         inactiveUnits={inactiveUnits}
         byCategory={byCategory}
-      />
+      /> */}
       <AdminActivityFeed items={activityTop10} timeZone={PHX_TZ} />
     </section>
   );

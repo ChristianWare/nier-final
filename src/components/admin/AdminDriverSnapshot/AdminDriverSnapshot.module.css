@@ -1,59 +1,577 @@
 .container {
   display: grid;
-  gap: 1rem;
+  gap: 2rem;
   border: 1px solid var(--stroke);
   border-radius: 10px;
   padding: 2rem;
 }
 
 .header {
+  display: grid;
+  gap: 16px;
+}
+
+.titleRow {
   display: flex;
-  align-items: flex-end;
   justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dateLabel {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+}
+
+/* =============================================================================
+   Stats Row
+   ============================================================================= */
+
+.statsRow {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+  background: var(--lightGray);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.statNumber {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.statUpcoming {
+  color: #2563eb;
+}
+
+.statActive {
+  color: #7c3aed;
+}
+
+.statCompleted {
+  color: #16a34a;
+}
+
+.statDanger {
+  color: #dc2626;
+}
+
+.statCoverage {
+  color: #0891b2;
+}
+
+.statLabel {
+  font-size: 1.1rem;
+  color: var(--paragraph);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.statDivider {
+  width: 1px;
+  height: 32px;
+  background: var(--stroke);
+}
+
+/* =============================================================================
+   Legend
+   ============================================================================= */
+
+.legend {
+  display: flex;
+  align-items: center;
   gap: 1rem;
-}
-
-.title {
-  margin: 0;
-}
-
-.meta {
-  font-size: 1.25rem;
-  opacity: 0.85;
-}
-
-.metaStrong {
-  font-weight: 800;
-  opacity: 1;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-}
-
-.metric {
+  padding: 1rem 1.5rem;
+  background: var(--white);
   border: 1px solid var(--stroke);
-  border-radius: 5px;
-  padding: 1rem;
-  display: grid;
-  gap: 2rem;
+  border-radius: 8px;
+  flex-wrap: wrap;
 }
 
-.metricLabel {
-  font-size: 1.25rem;
-  opacity: 0.75;
+.legendTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.legendItems {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.2rem;
+  color: var(--paragraph);
+}
+
+.legendDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.legendDot_active {
+  background: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
+}
+
+.legendDot_idle {
+  background: #9ca3af;
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.2);
+}
+
+.legendDot_inProgress {
+  background: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1);
+  }
+}
+
+/* =============================================================================
+   Empty State
+   ============================================================================= */
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+}
+
+.emptyText {
+  font-size: 1.5rem;
+  color: var(--paragraph);
+}
+
+/* =============================================================================
+   Table
+   ============================================================================= */
+
+.tableCard {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+.thead {
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 2;
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tr {
+  cursor: pointer;
+  transition: all 0.3s ease-in;
+  position: relative;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.tr:hover {
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
+}
+
+/* Row states */
+.tr_active {
+  background: linear-gradient(135deg, #16a34a0a 0%, #22c55e14 100%);
+  border-left: 4px solid #16a34a;
+}
+
+.tr_inProgress {
+  background: linear-gradient(135deg, #7c3aed0a 0%, #8b5cf614 100%);
+  border-left: 4px solid #7c3aed;
+  animation: rowGlow 3s infinite;
+}
+
+@keyframes rowGlow {
+  0%,
+  100% {
+    background: linear-gradient(135deg, #7c3aed0a 0%, #8b5cf614 100%);
+  }
+  50% {
+    background: linear-gradient(135deg, #7c3aed14 0%, #8b5cf61f 100%);
+  }
+}
+
+.tr_idle {
+  background: var(--white);
+  border-left: 4px solid transparent;
+}
+
+.td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  position: relative;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cellInner {
+  position: relative;
+  z-index: 2;
+}
+
+.tdRight {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.cellStack {
+  display: grid;
+  gap: 0.25rem;
+}
+
+/* =============================================================================
+   Driver Cell
+   ============================================================================= */
+
+.driverName {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.driverEmail {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+}
+
+/* =============================================================================
+   Contact Cell
+   ============================================================================= */
+
+.phoneLink {
+  font-size: 1.3rem;
+  color: #2563eb;
+  text-decoration: none;
+  position: relative;
+  z-index: 3;
+}
+
+.phoneLink:hover {
+  text-decoration: underline;
+}
+
+.noPhone {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* =============================================================================
+   Count Cells
+   ============================================================================= */
+
+.countCell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 1.4rem;
   font-weight: 700;
 }
 
-.metricValue {
-  font-size: 1.4rem;
-  font-weight: 800;
+.countBadgeActive {
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.25);
 }
 
-@media screen and (max-width: 900px) {
-  .grid {
-    grid-template-columns: 1fr;
+.countBadgeZero {
+  background: var(--lightGray);
+  color: var(--paragraph);
+  border: 1px solid var(--stroke);
+}
+
+.completedNote {
+  font-size: 1.1rem;
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.monthCount {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.totalCount {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--paragraph);
+}
+
+/* =============================================================================
+   Status Badges
+   ============================================================================= */
+
+.statusBadge {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 5px 12px;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  width: fit-content;
+  white-space: nowrap;
+}
+
+.statusBadge_active {
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.28);
+}
+
+.statusBadge_inProgress {
+  background: rgba(124, 58, 237, 0.12);
+  color: #7c3aed;
+  border: 1px solid rgba(124, 58, 237, 0.35);
+}
+
+.statusBadge_idle {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--paragraph);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+/* =============================================================================
+   Driver Image
+   ============================================================================= */
+
+.driverImageWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--stroke);
+  flex-shrink: 0;
+}
+
+.driverImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Add to mobile styles - hide image column label on mobile */
+@media screen and (max-width: 768px) {
+  .td[data-label=""]::before {
+    display: none;
+  }
+  
+  .driverImageWrap {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media screen and (max-width: 768px) {
+  .statsRow {
+    justify-content: space-around;
+    padding: 1rem;
+  }
+
+  .statDivider {
+    display: none;
+  }
+
+  .legend {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .legendItems {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+    border-left-width: 4px;
+  }
+
+  .tr:hover {
+    background: var(--white);
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 900;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .tdRight {
+    text-align: left;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .titleRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .statsRow {
+    gap: 1rem;
+  }
+
+  .stat {
+    min-width: 60px;
+  }
+
+  .statNumber {
+    font-size: 1.6rem;
+  }
+
+  .statLabel {
+    font-size: 1rem;
+  }
+
+  .td::before {
+    font-size: 1rem;
+  }
+
+  .legendItem {
+    font-size: 1.1rem;
   }
 }
