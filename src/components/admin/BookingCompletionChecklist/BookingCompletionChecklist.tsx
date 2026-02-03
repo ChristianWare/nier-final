@@ -64,20 +64,39 @@ export default function BookingCompletionChecklist({
   isApproved,
   hasPaymentLinkSent,
 }: Props) {
-  // Don't show for terminal statuses
-  const terminalStatuses = [
-    "COMPLETED",
+  // Check if booking is actually completed (terminal status)
+  const isBookingCompleted = bookingStatus === "COMPLETED";
+
+  // Don't show for other terminal statuses (but DO show for COMPLETED)
+  const hideStatuses = [
     "CANCELLED",
     "REFUNDED",
     "PARTIALLY_REFUNDED",
     "NO_SHOW",
     "DECLINED",
   ];
-  if (terminalStatuses.includes(bookingStatus)) {
+  if (hideStatuses.includes(bookingStatus)) {
     return null;
   }
 
-  // Check if everything is complete
+  // If booking is completed, show simplified view
+  if (isBookingCompleted) {
+    return (
+      <div className={`${styles.container} ${styles.alert_complete}`}>
+        <div className={styles.header}>
+          <span className={styles.icon}>🎉</span>
+          <div className={styles.headerText}>
+            <h3 className={styles.title}>Booking Complete</h3>
+            <p className={styles.subtitle}>
+              This trip has been completed successfully
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if everything is complete (checklist-wise)
   const paymentComplete = isPaid || hasPaymentLinkSent;
   const allComplete =
     isApproved && paymentComplete && hasDriver && hasVehicleUnit;

@@ -1379,6 +1379,12 @@ export default async function AdminHome() {
         
       </div> */}
       <AdminFinanceSnapshot {...snap} currency='USD' />
+      <AdminRideCalendar
+        initialMonth={monthKey(baseMonth)}
+        countsByYmd={countsByYmd}
+        blackoutsByYmd={blackoutsByYmd}
+        todayYmd={ymdInPhoenix(now)}
+      />
       <AdminAlerts alerts={alerts} />
       <AdminPaymentsSnapshot
         paymentsToday={paymentsToday}
@@ -1403,12 +1409,7 @@ export default async function AdminHome() {
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
-      <AdminRideCalendar
-        initialMonth={monthKey(baseMonth)}
-        countsByYmd={countsByYmd}
-        blackoutsByYmd={blackoutsByYmd}
-        todayYmd={ymdInPhoenix(now)}
-      />
+
       <AdminScheduleSnapshot
         today={{
           total: todayTotal,

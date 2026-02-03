@@ -1,6 +1,20 @@
+.parent {
+  display: grid;
+  grid-template-columns: 4fr 2fr;
+  grid-gap: 2rem;
+}
+
+.BookingCompletionChecklist {
+  position: sticky;
+  top: 100px;
+  align-self: start;
+  z-index: 10;
+}
+
 .container {
   display: grid;
-  gap: 16px;
+  gap: 3rem;
+  width: 100%;
 }
 
 .header {
@@ -17,17 +31,20 @@
 .box {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  /* grid-template-columns: repeat(2, 1fr); */
   grid-gap: 2rem;
 }
 
 .boxRight {
-  margin-left: auto;
-  text-align: right;
+  margin-right: auto;
+  border: 1px solid var(--stroke);
+  padding: 1rem;
+  border-radius: 5px;
+  /* text-align: right; */
 }
 
 .badge {
-  margin-left: auto;
+  /* margin-left: auto; */
   width: 100%;
 }
 
@@ -141,7 +158,6 @@
   letter-spacing: normal;
 }
 
-/* ✅ Event details styling for metadata display */
 .eventDetails {
   color: #64748b;
   padding: 8px 12px;
@@ -170,7 +186,6 @@
   margin-top: 5rem;
 }
 
-/* Danger zone */
 .dangerCard {
   border: 1px solid rgba(255, 0, 0, 0.6);
   background: rgba(255, 0, 0, 0.03);
@@ -246,10 +261,6 @@
   margin-top: 1rem;
 }
 
-/* =============================================================================
-   Quick Actions
-   ============================================================================= */
-
 .quickActions {
   display: flex;
   flex-direction: column;
@@ -297,10 +308,6 @@
   background: var(--stroke);
   margin: 1rem 0;
 }
-
-/* =============================================================================
-   Notes Section
-   ============================================================================= */
 
 .notesSection {
   display: flex;
@@ -394,10 +401,6 @@
   text-decoration: underline;
 }
 
-/* =============================================================================
-   Edit Trip Details
-   ============================================================================= */
-
 .editTripToggle {
   display: flex;
   align-items: center;
@@ -485,10 +488,6 @@
   padding-top: 1rem;
 }
 
-/* =============================================================================
-   Flight Info Section
-   ============================================================================= */
-
 .flightSection {
   padding-top: 1rem;
 }
@@ -499,17 +498,9 @@
   margin: 1rem 0;
 }
 
-/* =============================================================================
-   Route Map Section
-   ============================================================================= */
-
 .routeMapSection {
   padding-top: 1rem;
 }
-
-/* =============================================================================
-   Pricing Comparison Section
-   ============================================================================= */
 
 .pricingComparison {
   margin-top: 1.5rem;
@@ -626,10 +617,6 @@
   opacity: 0.85;
 }
 
-/* =============================================================================
-   Customer History Link
-   ============================================================================= */
-
 .historyLink {
   display: inline-block;
   margin-top: 0.5rem;
@@ -644,19 +631,11 @@
   opacity: 1;
 }
 
-/* =============================================================================
-   Duplicate Booking
-   ============================================================================= */
-
 .duplicateSection {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
-
-/* =============================================================================
-   Error & Success States
-   ============================================================================= */
 
 .errorText {
   color: #c00;
@@ -669,10 +648,6 @@
   font-size: 1rem;
 }
 
-/* =============================================================================
-   Payment Info in Header
-   ============================================================================= */
-
 .paymentInfo {
   display: flex;
   flex-direction: column;
@@ -680,25 +655,17 @@
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 6px;
-  border: 1px solid var(--stroke);
-  padding: 1rem;
-  border-radius: 5px;
 }
 
 .paymentAmount {
   font-weight: 700;
   font-size: 1.4rem;
-  margin-left: auto;
 }
 
 .paymentDate {
   font-size: 1.4rem;
   opacity: 0.7;
 }
-
-/* =============================================================================
-   ✅ Balance Due Alert
-   ============================================================================= */
 
 .balanceDueAlert {
   margin-top: 10px;
@@ -721,10 +688,6 @@
   opacity: 0.85;
 }
 
-/* =============================================================================
-   ✅ Refund Due Alert
-   ============================================================================= */
-
 .refundDueAlert {
   margin-top: 10px;
   padding: 10px 14px;
@@ -746,10 +709,6 @@
   opacity: 0.85;
 }
 
-/* =============================================================================
-   ✅ NEW: Decline Reason Box (in header)
-   ============================================================================= */
-
 .declineReasonBox {
   margin-top: 12px;
   padding: 10px 14px;
@@ -765,11 +724,6 @@
   color: #7f1d1d;
 }
 
-/* ============================================
-   ADD THESE STYLES TO YOUR AdminBookingDetailPage.module.css
-   ============================================ */
-
-/* ✅ Tip display in header */
 .tipDisplay {
   display: flex;
   align-items: center;
@@ -797,7 +751,6 @@
   color: #78350f;
 }
 
-/* ✅ Tip breakdown card in Payment section */
 .tipBreakdownCard {
   margin: 16px 0;
   padding: 16px;
@@ -858,11 +811,6 @@
   border: 1px solid var(--stroke);
 }
 
-/* ============================================
-   ADD THESE STYLES TO AdminBookingDetailPage.module.css
-   ============================================ */
-
-/* Confirmation Number Display */
 .confirmationRow {
   display: flex;
   align-items: center;
@@ -884,7 +832,6 @@
   border: 1px solid var(--stroke);
 }
 
-/* Stops Section */
 .stopsSection {
   padding: 1rem 0;
 }
