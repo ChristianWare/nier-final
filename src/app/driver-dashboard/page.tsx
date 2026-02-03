@@ -47,8 +47,14 @@ function endOfMonthPhoenix(d: Date): Date {
   return new Date(year, month, 0, 23, 59, 59, 999);
 }
 
+// FIXED: Use Phoenix timezone for date key
 function formatDateKey(d: Date): string {
-  return d.toISOString().split("T")[0];
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
 function formatChartLabel(d: Date): string {
@@ -292,7 +298,9 @@ export default async function DriverDashboardHome() {
     dailyEarningsMap.entries(),
   )
     .map(([dateStr, data]) => {
-      const d = new Date(dateStr);
+      // Parse as noon local time to avoid timezone shift issues
+      const [year, month, day] = dateStr.split("-").map(Number);
+      const d = new Date(year, month - 1, day, 12, 0, 0);
       return {
         key: dateStr,
         tick: formatChartTick(d),
