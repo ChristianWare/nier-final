@@ -22,12 +22,16 @@
 
 .dayGroup {
   display: grid;
-  gap: 0.7rem;
+  gap: 1rem;
+  border: 2px solid var(--stroke);
+  padding: 2rem;
+  border-radius: 15px;
 }
 
 .dayHeading {
   font-weight: 900;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
+  letter-spacing: normal;
   opacity: 0.85;
 }
 
@@ -36,13 +40,13 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 10px;
+  gap: 1rem;
 }
 
 .activityItem {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 10px;
+  gap: 1rem;
   align-items: start;
   padding: 14px;
   border-radius: 12px;
@@ -153,4 +157,20 @@
   margin: 0;
   font-size: 12px;
   opacity: 0.75;
+}
+
+.urgentItem {
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+  animation: urgentPulse 2s ease-in-out infinite;
+}
+
+@keyframes urgentPulse {
+  0%,
+  100% {
+    background: rgba(239, 68, 68, 0.05);
+  }
+  50% {
+    background: rgba(239, 68, 68, 0.1);
+  }
 }

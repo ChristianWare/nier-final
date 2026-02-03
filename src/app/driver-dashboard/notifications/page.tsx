@@ -9,6 +9,8 @@ import { BookingStatus } from "@prisma/client";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const TIMEZONE = "America/Phoenix";
+
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
 type NotificationItem = {
@@ -19,7 +21,7 @@ type NotificationItem = {
   bookingId: string;
   bookingHref: string;
   links: { label: string; href: string }[];
-  tag: "Trip update"; // driver page = no payments
+  tag: "Trip update" | "New assignment" | "Reminder" | "Payment";
 };
 
 function getRoles(session: any): AppRole[] {
@@ -82,6 +84,30 @@ function statusLabel(status: BookingStatus) {
   }
 }
 
+function formatPickupTime(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: TIMEZONE,
+  }).format(date);
+}
+
+function formatMoney(cents: number, currency = "USD") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
+}
+
+function shortAddress(address: string) {
+  if (!address) return "";
+  return address.split(",")[0]?.trim() || address;
+}
+
 export default async function DriverNotificationsPage() {
   const session = await auth();
   if (!session) redirect("/login?next=/driver-dashboard/notifications");
@@ -102,33 +128,44 @@ export default async function DriverNotificationsPage() {
 
   const tripBase = "/driver-dashboard/trips";
 
-  // Heuristics window for “details changed” / “missing notes”
+  // Time windows
   const now = new Date();
-  const recentSince = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+  const recentSince = new Date(now.getTime() - 48 * 60 * 60 * 1000); // 48 hours ago
+  const assignmentsSince = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+  const upcomingWindow = new Date(now.getTime() + 24 * 60 * 60 * 1000); // next 24 hours
+  const soonWindow = new Date(now.getTime() + 3 * 60 * 60 * 1000); // next 3 hours
 
-  const [statusEvents, recentlyUpdatedTrips, missingNotesTrips] =
-    await Promise.all([
-      db.bookingStatusEvent.findMany({
-        where: { booking: bookingScopeWhere },
-        orderBy: { createdAt: "desc" },
-        take: 60,
-        include: {
-          booking: {
-            select: {
-              id: true,
-              pickupAddress: true,
-              dropoffAddress: true,
-            },
+  const [
+    statusEvents,
+    recentAssignments,
+    recentlyUpdatedTrips,
+    upcomingTrips,
+    tripsStartingSoon,
+  ] = await Promise.all([
+    // Status change events
+    db.bookingStatusEvent.findMany({
+      where: { booking: bookingScopeWhere },
+      orderBy: { createdAt: "desc" },
+      take: 60,
+      include: {
+        booking: {
+          select: {
+            id: true,
+            pickupAt: true,
+            pickupAddress: true,
+            dropoffAddress: true,
           },
-          createdBy: { select: { name: true } },
         },
-      }),
+        createdBy: { select: { name: true } },
+      },
+    }),
 
-      // catches pickup time/address/notes edits even if no status event was created
-      db.booking.findMany({
-        where: {
-          ...bookingScopeWhere,
-          updatedAt: { gte: recentSince },
+    // NEW: Recent assignments to this driver
+    db.assignment.findMany({
+      where: {
+        driverId: userId,
+        assignedAt: { gte: assignmentsSince },
+        booking: {
           status: {
             notIn: [
               "COMPLETED",
@@ -139,49 +176,125 @@ export default async function DriverNotificationsPage() {
             ],
           },
         },
-        orderBy: { updatedAt: "desc" },
-        take: 30,
-        select: {
-          id: true,
-          updatedAt: true,
-          pickupAddress: true,
-          dropoffAddress: true,
-        },
-      }),
-
-      // driver-only attention signal
-      db.booking.findMany({
-        where: {
-          ...bookingScopeWhere,
-          status: {
-            notIn: [
-              "COMPLETED",
-              "CANCELLED",
-              "REFUNDED",
-              "PARTIALLY_REFUNDED",
-              "NO_SHOW",
-            ],
+      },
+      orderBy: { assignedAt: "desc" },
+      take: 30,
+      include: {
+        booking: {
+          select: {
+            id: true,
+            pickupAt: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            user: { select: { name: true } },
+            guestName: true,
+            serviceType: { select: { name: true } },
           },
-          AND: [{ internalNotes: null }, { specialRequests: null }],
         },
-        orderBy: { pickupAt: "asc" },
-        take: 20,
-        select: {
-          id: true,
-          pickupAt: true,
-          pickupAddress: true,
-          dropoffAddress: true,
-        },
-      }),
-    ]);
+        assignedBy: { select: { name: true } },
+        vehicleUnit: { select: { name: true } },
+      },
+    }),
 
+    // Trip details updated (catches pickup time/address/notes edits)
+    db.booking.findMany({
+      where: {
+        ...bookingScopeWhere,
+        updatedAt: { gte: recentSince },
+        status: {
+          notIn: [
+            "COMPLETED",
+            "CANCELLED",
+            "REFUNDED",
+            "PARTIALLY_REFUNDED",
+            "NO_SHOW",
+          ],
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 30,
+      select: {
+        id: true,
+        updatedAt: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        serviceType: { select: { name: true } },
+      },
+    }),
+
+    // NEW: Upcoming trips within 24 hours (reminders)
+    db.booking.findMany({
+      where: {
+        ...bookingScopeWhere,
+        pickupAt: { gte: now, lte: upcomingWindow },
+        status: {
+          notIn: [
+            "COMPLETED",
+            "CANCELLED",
+            "REFUNDED",
+            "PARTIALLY_REFUNDED",
+            "NO_SHOW",
+            "IN_PROGRESS",
+          ],
+        },
+      },
+      orderBy: { pickupAt: "asc" },
+      take: 20,
+      select: {
+        id: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        user: { select: { name: true } },
+        guestName: true,
+        serviceType: { select: { name: true } },
+        assignment: {
+          select: { driverPaymentCents: true },
+        },
+      },
+    }),
+
+    // NEW: Trips starting very soon (urgent reminders)
+    db.booking.findMany({
+      where: {
+        ...bookingScopeWhere,
+        pickupAt: { gte: now, lte: soonWindow },
+        status: {
+          notIn: [
+            "COMPLETED",
+            "CANCELLED",
+            "REFUNDED",
+            "PARTIALLY_REFUNDED",
+            "NO_SHOW",
+            "IN_PROGRESS",
+            "EN_ROUTE",
+            "ARRIVED",
+          ],
+        },
+      },
+      orderBy: { pickupAt: "asc" },
+      take: 10,
+      select: {
+        id: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        user: { select: { name: true } },
+        guestName: true,
+        serviceType: { select: { name: true } },
+      },
+    }),
+  ]);
+
+  // Transform status events
   const statusItems: NotificationItem[] = statusEvents.map((e) => {
     const href = `${tripBase}/${e.booking.id}`;
     return {
       id: `se_${e.id}`,
       createdAt: e.createdAt.toISOString(),
       title: statusLabel(e.status),
-      subtitle: `${e.createdBy?.name ?? "Dispatch"} • ${e.booking.pickupAddress} → ${e.booking.dropoffAddress}`,
+      subtitle: `${e.createdBy?.name ?? "Dispatch"} • ${shortAddress(e.booking.pickupAddress)} → ${shortAddress(e.booking.dropoffAddress)}`,
       bookingId: e.booking.id,
       bookingHref: href,
       links: [{ label: "View trip", href }],
@@ -189,13 +302,35 @@ export default async function DriverNotificationsPage() {
     };
   });
 
+  // NEW: Transform assignments into notifications
+  const assignmentItems: NotificationItem[] = recentAssignments.map((a) => {
+    const href = `${tripBase}/${a.booking.id}`;
+    const customerName =
+      a.booking.user?.name?.trim() || a.booking.guestName?.trim() || "Customer";
+    const vehicleInfo = a.vehicleUnit?.name
+      ? ` • Vehicle: ${a.vehicleUnit.name}`
+      : "";
+
+    return {
+      id: `assign_${a.id}`,
+      createdAt: a.assignedAt.toISOString(),
+      title: "New ride assigned to you",
+      subtitle: `${customerName} • ${a.booking.serviceType?.name ?? "Trip"} • ${formatPickupTime(a.booking.pickupAt)}${vehicleInfo}`,
+      bookingId: a.booking.id,
+      bookingHref: href,
+      links: [{ label: "View trip", href }],
+      tag: "New assignment",
+    };
+  });
+
+  // Transform updated trips
   const updatedItems: NotificationItem[] = recentlyUpdatedTrips.map((t) => {
     const href = `${tripBase}/${t.id}`;
     return {
       id: `upd_${t.id}_${t.updatedAt.toISOString()}`,
       createdAt: t.updatedAt.toISOString(),
       title: "Trip details updated",
-      subtitle: `${t.pickupAddress} → ${t.dropoffAddress}`,
+      subtitle: `${t.serviceType?.name ?? "Trip"} • ${shortAddress(t.pickupAddress)} → ${shortAddress(t.dropoffAddress)} • Pickup: ${formatPickupTime(t.pickupAt)}`,
       bookingId: t.id,
       bookingHref: href,
       links: [{ label: "View trip", href }],
@@ -203,40 +338,114 @@ export default async function DriverNotificationsPage() {
     };
   });
 
-  const missingNotesItems: NotificationItem[] = missingNotesTrips.map((t) => {
+  // NEW: Transform upcoming trips into reminders
+  const upcomingItems: NotificationItem[] = upcomingTrips.map((t) => {
     const href = `${tripBase}/${t.id}`;
+    const customerName =
+      t.user?.name?.trim() || t.guestName?.trim() || "Customer";
+    const driverPay = t.assignment?.driverPaymentCents ?? 0;
+    const payInfo = driverPay > 0 ? ` • ${formatMoney(driverPay)}` : "";
+
+    // Calculate hours until pickup
+    const hoursUntil = Math.round(
+      (new Date(t.pickupAt).getTime() - now.getTime()) / (1000 * 60 * 60),
+    );
+    const timeLabel =
+      hoursUntil <= 1 ? "Starting soon" : `In ${hoursUntil} hours`;
+
     return {
-      id: `mn_${t.id}`,
-      createdAt: new Date(t.pickupAt).toISOString(),
-      title: "Missing trip notes",
-      subtitle: `${t.pickupAddress} → ${t.dropoffAddress}`,
+      id: `upcoming_${t.id}`,
+      createdAt: new Date(
+        now.getTime() - (24 - hoursUntil) * 60 * 60 * 1000,
+      ).toISOString(), // Sort by proximity
+      title: `Upcoming trip - ${timeLabel}`,
+      subtitle: `${customerName} • ${t.serviceType?.name ?? "Trip"} • ${formatPickupTime(t.pickupAt)}${payInfo}`,
       bookingId: t.id,
       bookingHref: href,
       links: [{ label: "View trip", href }],
-      tag: "Trip update",
+      tag: "Reminder",
     };
   });
 
-  // Dedupe (same booking update can appear multiple times)
+  // NEW: Transform trips starting soon into urgent reminders
+  const soonItems: NotificationItem[] = tripsStartingSoon.map((t) => {
+    const href = `${tripBase}/${t.id}`;
+    const customerName =
+      t.user?.name?.trim() || t.guestName?.trim() || "Customer";
+
+    // Calculate minutes until pickup
+    const minutesUntil = Math.round(
+      (new Date(t.pickupAt).getTime() - now.getTime()) / (1000 * 60),
+    );
+    const timeLabel =
+      minutesUntil <= 30
+        ? `Starting in ${minutesUntil} min`
+        : `Starting in ${Math.round(minutesUntil / 60)} hours`;
+
+    return {
+      id: `soon_${t.id}`,
+      createdAt: now.toISOString(), // Show at top
+      title: `🚨 ${timeLabel}`,
+      subtitle: `${customerName} • ${shortAddress(t.pickupAddress)} → ${shortAddress(t.dropoffAddress)}`,
+      bookingId: t.id,
+      bookingHref: href,
+      links: [{ label: "View trip", href }],
+      tag: "Reminder",
+    };
+  });
+
+  // Combine all items
+  const allItems = [
+    ...soonItems, // Urgent items first
+    ...assignmentItems,
+    ...statusItems,
+    ...updatedItems,
+    ...upcomingItems,
+  ];
+
+  // Dedupe (same booking can appear multiple times)
   const map = new Map<string, NotificationItem>();
-  [...statusItems, ...updatedItems, ...missingNotesItems].forEach((x) => {
-    // de-dupe by (bookingId + title) keeping newest
-    const k = `${x.bookingId}_${x.title}`;
+  allItems.forEach((x) => {
+    // Priority: soon > assignment > status > updated > upcoming
+    const priorityMap: Record<string, number> = {
+      Reminder: x.title.includes("🚨") ? 5 : 1,
+      "New assignment": 4,
+      "Trip update": 3,
+      Payment: 2,
+    };
+
+    const k = `${x.bookingId}_${x.tag}`;
     const existing = map.get(k);
-    if (!existing) map.set(k, x);
-    else if (
-      new Date(x.createdAt).getTime() > new Date(existing.createdAt).getTime()
-    ) {
+
+    if (!existing) {
       map.set(k, x);
+    } else {
+      const existingPriority = priorityMap[existing.tag] ?? 0;
+      const newPriority = priorityMap[x.tag] ?? 0;
+
+      // Keep higher priority or newer item of same priority
+      if (
+        newPriority > existingPriority ||
+        (newPriority === existingPriority &&
+          new Date(x.createdAt).getTime() >
+            new Date(existing.createdAt).getTime())
+      ) {
+        map.set(k, x);
+      }
     }
   });
 
   const items = Array.from(map.values())
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-    .slice(0, 80);
+    .sort((a, b) => {
+      // Urgent reminders (🚨) always first
+      const aUrgent = a.title.includes("🚨") ? 1 : 0;
+      const bUrgent = b.title.includes("🚨") ? 1 : 0;
+      if (aUrgent !== bUrgent) return bUrgent - aUrgent;
+
+      // Then by date
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })
+    .slice(0, 100);
 
   return (
     <section className={styles.container}>

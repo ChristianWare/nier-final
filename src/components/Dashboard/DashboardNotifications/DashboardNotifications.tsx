@@ -13,7 +13,7 @@ type NotificationItem = {
   bookingId: string;
   bookingHref: string;
   links: { label: string; href: string }[];
-  tag: "Trip update" | "Payment";
+  tag: "Trip update" | "Payment" | "New assignment" | "Reminder";
 };
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
@@ -140,24 +140,51 @@ function toneFromPaymentTitle(titleRaw: string): BadgeTone {
     return "warn";
   }
 
-  if (
-    t.includes("payment") &&
-    (t.includes("due") ||
-      t.includes("pending") ||
-      t.includes("link") ||
-      t.includes("need") ||
-      t.includes("required"))
-  ) {
+  return "warn";
+}
+
+function toneFromAssignmentTitle(titleRaw: string): BadgeTone {
+  const t = (titleRaw ?? "").trim().toLowerCase();
+
+  if (t.includes("new ride") || t.includes("assigned")) {
+    return "good";
+  }
+
+  if (t.includes("reassigned") || t.includes("changed")) {
+    return "accent";
+  }
+
+  if (t.includes("removed") || t.includes("unassigned")) {
+    return "bad";
+  }
+
+  return "good";
+}
+
+function toneFromReminderTitle(titleRaw: string): BadgeTone {
+  const t = (titleRaw ?? "").trim().toLowerCase();
+
+  // Urgent reminders
+  if (t.includes("🚨") || t.includes("starting in")) {
     return "warn";
   }
 
-  return "warn";
+  // Upcoming reminders
+  if (t.includes("upcoming") || t.includes("in ")) {
+    return "accent";
+  }
+
+  return "neutral";
 }
 
 function toneTag(it: NotificationItem): BadgeTone {
   switch (it.tag) {
     case "Payment":
       return toneFromPaymentTitle(it.title);
+    case "New assignment":
+      return toneFromAssignmentTitle(it.title);
+    case "Reminder":
+      return toneFromReminderTitle(it.title);
     case "Trip update":
     default:
       return toneFromTripTitle(it.title);
@@ -170,7 +197,7 @@ export default function DashboardNotifications({
   items: NotificationItem[];
 }) {
   const [lastSeenIso, setLastSeenIso] = useState<string | null>(() =>
-    readLastSeen()
+    readLastSeen(),
   );
 
   const lastSeenAt = useMemo(() => {
@@ -182,7 +209,7 @@ export default function DashboardNotifications({
   const unreadCount = useMemo(() => {
     if (!lastSeenAt) return items.length;
     return items.filter(
-      (x) => new Date(x.createdAt).getTime() > lastSeenAt.getTime()
+      (x) => new Date(x.createdAt).getTime() > lastSeenAt.getTime(),
     ).length;
   }, [items, lastSeenAt]);
 
@@ -198,7 +225,7 @@ export default function DashboardNotifications({
     }
 
     return Array.from(map.values()).sort(
-      (a, b) => b.date.getTime() - a.date.getTime()
+      (a, b) => b.date.getTime() - a.date.getTime(),
     );
   }, [items]);
 
@@ -213,9 +240,9 @@ export default function DashboardNotifications({
   return (
     <section className='container' aria-label='Notifications'>
       <header className='header'>
-        <h1 className='heading h2'>Notifications (Text)</h1>
+        <h1 className='heading h2'>Notifications</h1>
         <p className='subheading'>
-          Recent activity from trip updates and payments.
+          Trip assignments, status updates, and reminders.
         </p>
 
         <div className={styles.headerActions}>
@@ -235,19 +262,28 @@ export default function DashboardNotifications({
           <Link className='tab' href='/driver-dashboard/trips'>
             View trips
           </Link>
+
+          <Link className='tab' href='/driver-dashboard/schedule'>
+            View schedule
+          </Link>
         </div>
       </header>
 
       {items.length === 0 ? (
         <div className={styles.empty}>
-          <p className={styles.emptyTitle}>No notifications yet.</p>
+          <p className={styles.emptyTitle}>No notifications yet</p>
           <p className={styles.emptyCopy}>
-            When your trip status changes or a payment updates, it will show up
-            here.
+            When you get assigned a new trip or a trip status changes, it will
+            show up here.
           </p>
           <div className={styles.actionsRow}>
             <div className={styles.btnContainer}>
-              <Button href='/book' btnType='red' text='Book a ride' arrow />
+              <Button
+                href='/driver-dashboard'
+                btnType='red'
+                text='Go to dashboard'
+                arrow
+              />
             </div>
           </div>
         </div>
@@ -255,7 +291,7 @@ export default function DashboardNotifications({
         <div className={styles.feed}>
           {grouped.map((group) => (
             <section key={dateKey(group.date)} className={styles.dayGroup}>
-              <div className='emptyTitleSmall'>
+              <div className='cardTitle h4'>
                 {formatDateHeading(group.date)}
               </div>
 
@@ -265,9 +301,13 @@ export default function DashboardNotifications({
                   const isUnread =
                     !lastSeenAt || createdAt.getTime() > lastSeenAt.getTime();
                   const tone = toneTag(it);
+                  const isUrgent = it.title.includes("🚨");
 
                   return (
-                    <li key={it.id} className={styles.activityItem}>
+                    <li
+                      key={it.id}
+                      className={`${styles.activityItem} ${isUrgent ? styles.urgentItem : ""}`}
+                    >
                       <div className={styles.activityLeft}>
                         <div className={styles.tagRow}>
                           {isUnread ? <span className={styles.dot} /> : null}
@@ -285,40 +325,6 @@ export default function DashboardNotifications({
                         </div>
 
                         <div className='emptySmall'>{it.subtitle}</div>
-
-                        {/* {it.links.length ? (
-                          <div className={styles.actions}>
-                            {it.links.map((l) => {
-                              const isExternal = l.href.startsWith("http");
-                              const cls =
-                                l.label === "Continue checkout"
-                                  ? styles.primaryBtn
-                                  : l.label === "Open receipt"
-                                    ? styles.secondaryBtn
-                                    : styles.tertiaryBtn;
-
-                              return isExternal ? (
-                                <a
-                                  key={l.href + l.label}
-                                  className={cls}
-                                  href={l.href}
-                                  target='_blank'
-                                  rel='noreferrer'
-                                >
-                                  {l.label}
-                                </a>
-                              ) : (
-                                <Link
-                                  key={l.href + l.label}
-                                  className={cls}
-                                  href={l.href}
-                                >
-                                  {l.label}
-                                </Link>
-                              );
-                            })}
-                          </div>
-                        ) : null} */}
                       </div>
 
                       <Link className='primaryBtn' href={it.bookingHref}>
@@ -334,8 +340,7 @@ export default function DashboardNotifications({
       )}
 
       <p className='miniNote'>
-        Note: “Read” state is stored on this device only for now. If you want it
-        synced across devices, we’ll add a small Notification model.
+        Note: &quot;Read&quot; state is stored on this device only for now.
       </p>
     </section>
   );
