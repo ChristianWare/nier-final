@@ -75,10 +75,10 @@
   user-select: none;
 }
 
-.btn:hover {
+/* .btn:hover {
   background: #f7f7f7;
   color: var(--black);
-}
+} */
 
 .primary {
   background: #111;
@@ -164,10 +164,10 @@
   -webkit-user-select: none;
 }
 
-.dayCell:hover {
+/* .dayCell:hover {
   background: #fff;
   color: var(--black) !important;
-}
+} */
 
 .dayNum {
   font-family: var(--interTight);
@@ -176,9 +176,9 @@
   font-size: 14px;
 }
 
-.dayCell:hover .dayNum {
+/* .dayCell:hover .dayNum {
   color: var(--black);
-}
+} */
 
 .dayCellOther {
   background: #f2f4f7;
@@ -198,6 +198,7 @@
 
 .selected {
   background: var(--black);
+
 }
 
 .selected .dayNum {
@@ -209,9 +210,9 @@
   cursor: not-allowed;
 }
 
-.pastDay:hover {
+/* .pastDay:hover {
   background: var(--tan);
-}
+} */
 
 .blackout::before {
   content: "";
