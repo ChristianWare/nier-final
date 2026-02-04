@@ -5,11 +5,13 @@ import { Resend } from "resend";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+const CLIENT_NAME = process.env.CLIENT_NAME || "Nier Transportation";
+
 export async function GET() {
   const apiKey = process.env.RESEND_API_KEY;
   const from =
     process.env.EMAIL_FROM ||
-    "Nier Transportation <no-reply@niertransportation.com>";
+    `${CLIENT_NAME} <no-reply@niertransportation.com>`;
 
   console.log("Email Config:");
   console.log("  API Key:", apiKey ? `${apiKey.slice(0, 8)}...` : "MISSING");
@@ -21,8 +23,7 @@ export async function GET() {
     });
   }
 
-  // Replace with YOUR email to test
-  const testTo = "chris.ware.dev@gmail.com"; // Your email
+  const testTo = "chris.ware.dev@gmail.com";
 
   try {
     const resend = new Resend(apiKey);
@@ -30,7 +31,7 @@ export async function GET() {
     const result = await resend.emails.send({
       from,
       to: testTo,
-      subject: "Test Email from Nier Transportation 🚗",
+      subject: `Test Email from ${CLIENT_NAME} 🚗`,
       text: "If you're reading this, email notifications are working!",
     });
 

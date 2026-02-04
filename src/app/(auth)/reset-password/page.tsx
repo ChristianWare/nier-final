@@ -4,7 +4,8 @@ import Nav from "@/components/shared/Nav/Nav";
 import { getPasswordResetTokenByToken } from "@/lib/passwordResetToken";
 
 export const metadata = {
-  title: "Reset Password | Nier Transportation",
+  title: `Reset Password | ${process.env.CLIENT_NAME}`,
+  description: `Reset your ${process.env.CLIENT_NAME} account password.`,
 };
 
 type Props = {
@@ -23,7 +24,6 @@ export default async function ResetPasswordPage({ searchParams }: Props) {
   const tokenRecord = await getPasswordResetTokenByToken(token);
   const isValidToken =
     !!tokenRecord && new Date(tokenRecord.expires) > new Date();
-    
 
   return (
     <main>

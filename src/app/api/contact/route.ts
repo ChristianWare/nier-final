@@ -16,7 +16,7 @@ type ContactPayload = {
   services?: string[];
 };
 
-const BRAND = process.env.BRAND_NAME || "Nier Transportation";
+const BRAND = process.env.CLIENT_NAME || "Nier Transportation";
 const CONTACT_TO = process.env.CONTACT_TO || process.env.SMTP_USER;
 const CONTACT_FROM = process.env.CONTACT_FROM || process.env.SMTP_USER;
 
@@ -66,7 +66,7 @@ function emailHtml(payload: ContactPayload, submittedAt: string) {
         <td style="background:${brandBlue}; color:#fff; padding:20px 24px">
           <div style="font-size:14px; opacity:.9; letter-spacing:.08em; text-transform:uppercase;">New Inquiry</div>
           <div style="font-size:20px; font-weight:700; margin-top:4px">${escapeHtml(
-            BRAND
+            BRAND,
           )} — Contact Form</div>
           <div style="font-size:12px; opacity:.9; margin-top:6px">${submittedAt}</div>
         </td>
@@ -79,30 +79,30 @@ function emailHtml(payload: ContactPayload, submittedAt: string) {
             <tr>
               <td style="width:180px; padding:6px 0; opacity:.8">Name</td>
               <td style="padding:6px 0; font-weight:600">${escapeHtml(
-                `${firstName} ${lastName}`.trim()
+                `${firstName} ${lastName}`.trim(),
               )}</td>
             </tr>
             <tr>
               <td style="width:180px; padding:6px 0; opacity:.8">Email</td>
               <td style="padding:6px 0;">
                 <a href="mailto:${encodeURIComponent(email)}" style="color:${brandBlue}; text-decoration:none">${escapeHtml(
-                  email
+                  email,
                 )}</a>
               </td>
             </tr>
             ${
               company
                 ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Company</td><td style="padding:6px 0;">${escapeHtml(
-                    company
+                    company,
                   )}</td></tr>`
                 : ""
             }
             ${
               siteUrl
                 ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Current booking URL</td><td style="padding:6px 0;"><a href="${escapeHtml(
-                    siteUrl
+                    siteUrl,
                   )}" style="color:${brandBlue}; text-decoration:none">${escapeHtml(
-                    siteUrl
+                    siteUrl,
                   )}</a></td></tr>`
                 : ""
             }
@@ -122,11 +122,11 @@ function emailHtml(payload: ContactPayload, submittedAt: string) {
 
           <div style="margin-top:20px; padding:12px 14px; background:#f8fbff; border:1px solid #e5f0ff; border-radius:12px; font-size:13px; color:${ink}">
             <strong>Reply tip:</strong> hit reply to contact <a href="mailto:${encodeURIComponent(
-              email
+              email,
             )}" style="color:${brandBlue}; text-decoration:none">${escapeHtml(
-              email
+              email,
             )}</a>. This email was generated from the ${escapeHtml(
-              BRAND
+              BRAND,
             )} website contact form.
           </div>
         </td>
@@ -135,7 +135,7 @@ function emailHtml(payload: ContactPayload, submittedAt: string) {
       <tr>
         <td style="background:#fafafa; padding:14px 24px; font-size:12px; color:#6b7280">
           © ${new Date().getFullYear()} ${escapeHtml(
-            BRAND
+            BRAND,
           )}. “Fonts” for design. “Footers” for the technical foundation.
         </td>
       </tr>
@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
     if (errors.length) {
       return NextResponse.json(
         { error: "Missing required fields", fields: errors },
-        { status: 422 }
+        { status: 422 },
       );
     }
 
@@ -256,7 +256,7 @@ export async function POST(req: NextRequest) {
     console.error("CONTACT_POST_ERROR", err);
     return NextResponse.json(
       { error: "Internal error sending message" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

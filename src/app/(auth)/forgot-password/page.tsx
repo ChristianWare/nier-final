@@ -4,7 +4,8 @@ import PasswordEmailForm from "@/components/auth/PasswordEmailForm/PasswordEmail
 import Nav from "@/components/shared/Nav/Nav";
 
 export const metadata = {
-  title: "Forgot Password | Nier Transportation",
+  title: `Forgot Password | ${process.env.CLIENT_NAME}`,
+  description: `Reset your ${process.env.CLIENT_NAME} account password.`,
 };
 
 export default async function ForgotPasswordPage() {

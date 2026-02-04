@@ -32,6 +32,9 @@ type Post = {
   body?: any[];
 };
 
+const CLIENT_NAME = process.env.CLIENT_NAME || "Nier Transportation";
+
+
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://example.com";
 
@@ -82,7 +85,7 @@ export async function generateMetadata({
 
   if (!post?._id) {
     return {
-      title: "Post not found | Fonts & Footers",
+      title: `Post not found | ${CLIENT_NAME}`,
       robots: { index: false },
     };
   }
@@ -90,7 +93,7 @@ export async function generateMetadata({
   const title = `${post.title}`;
   const description =
     post.excerpt ||
-    "Read this article from Fonts & Footers on direct-booking websites and growth for service businesses.";
+    `Read this article from ${CLIENT_NAME} on direct-booking websites and growth for service businesses.`;
   const ogImage = post.coverImage
     ? urlFor(post.coverImage).width(1200).height(630).fit("crop").url()
     : `${SITE_URL}/og-image.png`;
@@ -231,7 +234,7 @@ export default async function BlogPostPage({
                       {t.slug?.current ? (
                         <SectionHeading text={t.name} dot />
                       ) : (
-                        <SectionHeading text='Nier Transportation' dot />
+                        <SectionHeading text={CLIENT_NAME} dot />
                       )}
                     </li>
                   ))}
@@ -289,12 +292,10 @@ export default async function BlogPostPage({
             </div>
           </div> */}
         </div>
-                <div className={styles.categoriesContainer}>
-                  <span className={`${styles.searchHeading} h3`}>
-                    Recent Posts
-                  </span>
-                  <MoreInsights currentSlug={post.slug.current} />
-                </div>
+        <div className={styles.categoriesContainer}>
+          <span className={`${styles.searchHeading} h3`}>Recent Posts</span>
+          <MoreInsights currentSlug={post.slug.current} />
+        </div>
       </LayoutWrapper>
     </main>
   );
