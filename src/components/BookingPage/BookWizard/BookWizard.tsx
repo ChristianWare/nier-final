@@ -667,7 +667,7 @@ export default function BookingWizard({
           ? `/book/success?id=${encodeURIComponent(String(bookingId))}&t=${encodeURIComponent(String(claimToken))}`
           : `/book/success?id=${encodeURIComponent(String(bookingId))}`
         : "/book/success";
-      router.replace(href);
+      window.location.href = href;
     } catch (e: any) {
       toast.error(e?.message ?? "Something went wrong. Please try again.");
       setSubmitting(false);
