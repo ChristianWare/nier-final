@@ -279,6 +279,11 @@ export default function BookingDateTimePicker({
               key={key}
               type='button'
               onClick={() => pickDay(d)}
+              onTouchEnd={(e) => {
+                if (disabled) return;
+                e.preventDefault();
+                pickDay(d);
+              }}
               className={`${styles.dayCell} ${
                 isOtherMonth ? styles.dayCellOther : ""
               } ${isToday ? styles.today : ""} ${

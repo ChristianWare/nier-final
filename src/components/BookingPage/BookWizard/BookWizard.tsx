@@ -774,7 +774,7 @@ export default function BookingWizard({
                       onChangeDate={(d) => {
                         setValue("pickupAtDate", d, {
                           shouldDirty: true,
-                          shouldValidate: true,
+                          shouldValidate: false,
                         });
                         clearErrors("pickupAtDate");
                       }}

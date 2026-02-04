@@ -70,6 +70,9 @@
   line-height: 1;
   font-family: var(--interTight);
   white-space: nowrap;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .btn:hover {
@@ -99,10 +102,9 @@
   line-height: 1;
   display: grid;
   place-items: center;
-}
-
-.iconBtn:active {
-  transform: translateY(1px);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .monthPicker {
@@ -156,15 +158,15 @@
   transition:
     transform 0.08s ease,
     background 0.12s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .dayCell:hover {
   background: #fff;
   color: var(--black) !important;
-}
-
-.dayCell:active {
-  transform: translateY(1px);
 }
 
 .dayNum {
@@ -298,10 +300,6 @@
   font-family: var(--interTight);
 }
 
-.timeTrigger:active {
-  transform: translateY(1px);
-}
-
 .timeValue {
   font-weight: 700;
   color: #111;
@@ -408,10 +406,6 @@
   font-weight: 900;
   text-align: center;
   line-height: 1;
-}
-
-.pinnedChip:active {
-  transform: translateY(1px);
 }
 
 .colList {
