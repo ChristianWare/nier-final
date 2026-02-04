@@ -1676,8 +1676,6 @@ export default async function AdminHome() {
     });
   }
 
-  
-
   // Find overlapping assignments
   type OverlapInfo = {
     driverId: string;
@@ -1773,22 +1771,8 @@ export default async function AdminHome() {
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
-      <AdminFinanceSnapshot {...snap} currency='USD' />
-      <AdminRideCalendar
-        initialMonth={monthKey(baseMonth)}
-        countsByYmd={countsByYmd}
-        blackoutsByYmd={blackoutsByYmd}
-        todayYmd={ymdInPhoenix(now)}
-      />
       <AdminAlerts alerts={alerts} />
-      <AdminPaymentsSnapshot
-        paymentsToday={paymentsToday}
-        paymentsThisWeek={paymentsThisWeek}
-        paymentLinksToday={paymentLinksToday}
-        paymentLinksThisWeek={paymentLinksThisWeek}
-        timeZone={PHX_TZ}
-        bookingHrefBase='/admin/bookings'
-      />
+      <AdminFinanceSnapshot {...snap} currency='USD' />
       <AdminRecentBookingRequests
         items={recentBookingRequests}
         timeZone={PHX_TZ}
@@ -1801,6 +1785,21 @@ export default async function AdminHome() {
       />
       <AdminUpcomingRides
         items={upcomingRides}
+        timeZone={PHX_TZ}
+        bookingHrefBase='/admin/bookings'
+      />
+      <AdminRideCalendar
+        initialMonth={monthKey(baseMonth)}
+        countsByYmd={countsByYmd}
+        blackoutsByYmd={blackoutsByYmd}
+        todayYmd={ymdInPhoenix(now)}
+      />
+      <AdminDriverSnapshot />
+      <AdminPaymentsSnapshot
+        paymentsToday={paymentsToday}
+        paymentsThisWeek={paymentsThisWeek}
+        paymentLinksToday={paymentLinksToday}
+        paymentLinksThisWeek={paymentLinksThisWeek}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
@@ -1820,7 +1819,6 @@ export default async function AdminHome() {
         tripsNext3Hours={tripsNext3Hours}
         timeZone={PHX_TZ}
       />
-     <AdminDriverSnapshot />
 
       <AdminVehicleSnapshot
         activeUnits={activeUnits}
