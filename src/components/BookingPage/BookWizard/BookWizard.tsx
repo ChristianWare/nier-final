@@ -682,6 +682,15 @@ export default function BookingWizard({
     flightTerminal ||
     flightGate;
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <section className={styles.container}>
       <LayoutWrapper>
@@ -689,7 +698,7 @@ export default function BookingWizard({
           <Stepper step={step} />
         </div> */}
         <div className={styles.content}>
-          <div className={styles.left}>
+          {!isMobile && (
             <div className={styles.routePickerContainer}>
               <Controller
                 name='route'
@@ -724,7 +733,8 @@ export default function BookingWizard({
                 )}
               />
             </div>
-          </div>
+          )}
+          {/* </div> */}
 
           <div className={styles.right}>
             <div ref={wizardTopRef} className={styles.wizardTop} />
@@ -880,43 +890,6 @@ export default function BookingWizard({
                   </Grid2>
 
                   <div className={styles.pickupDropoffContainer}>
-                    <div className={styles.routePickerContainerii}>
-                      <Controller
-                        name='route'
-                        control={control}
-                        rules={{
-                          validate: (v) => {
-                            if (!v?.pickup || !v?.dropoff)
-                              return "Please select pickup and dropoff.";
-                            if (
-                              selectedService?.pricingStrategy ===
-                              "POINT_TO_POINT"
-                            ) {
-                              const miles = toNumber(
-                                v.miles ?? v.distanceMiles ?? null,
-                              );
-                              if (!miles || miles <= 0)
-                                return "Route estimate missing (miles). Please re-check the route.";
-                            }
-                            return true;
-                          },
-                        }}
-                        render={({ field }) => (
-                          <RoutePicker
-                            value={field.value}
-                            onChange={(next) => {
-                              const prev = getValues("route");
-                              if (routeEquals(prev, next)) return;
-                              field.onChange(next);
-                              clearErrors("route");
-                            }}
-                            pickupInputRef={pickupInputRef}
-                            dropoffInputRef={dropoffInputRef}
-                            inputsKey={inputsKey}
-                          />
-                        )}
-                      />
-                    </div>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label
                         className={`cardTitle h5${usesPickupAirport ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
@@ -946,10 +919,12 @@ export default function BookingWizard({
                         </select>
                       ) : (
                         <input
+                          key={`pickup-input-${step}`}
                           ref={pickupInputRef}
                           placeholder='Enter pickup address'
                           autoComplete='off'
                           className='input emptySmall'
+                          defaultValue={route?.pickup?.address ?? ""}
                         />
                       )}
                     </div>
@@ -1137,10 +1112,12 @@ export default function BookingWizard({
                         </select>
                       ) : (
                         <input
+                          key={`dropoff-input-${step}`}
                           ref={dropoffInputRef}
                           placeholder='Enter dropoff address'
                           autoComplete='off'
                           className='input emptySmall'
+                          defaultValue={route?.dropoff?.address ?? ""}
                         />
                       )}
                     </div>
@@ -1160,6 +1137,83 @@ export default function BookingWizard({
                         )}{" "}
                         surcharge
                       </span>
+                    </div>
+                  )}
+                  {/* <div className={styles.routePickerContainerii}>
+                    <Controller
+                      name='route'
+                      control={control}
+                      rules={{
+                        validate: (v) => {
+                          if (!v?.pickup || !v?.dropoff)
+                            return "Please select pickup and dropoff.";
+                          if (
+                            selectedService?.pricingStrategy ===
+                            "POINT_TO_POINT"
+                          ) {
+                            const miles = toNumber(
+                              v.miles ?? v.distanceMiles ?? null,
+                            );
+                            if (!miles || miles <= 0)
+                              return "Route estimate missing (miles). Please re-check the route.";
+                          }
+                          return true;
+                        },
+                      }}
+                      render={({ field }) => (
+                        <RoutePicker
+                          value={field.value}
+                          onChange={(next) => {
+                            const prev = getValues("route");
+                            if (routeEquals(prev, next)) return;
+                            field.onChange(next);
+                            clearErrors("route");
+                          }}
+                          pickupInputRef={pickupInputRef}
+                          dropoffInputRef={dropoffInputRef}
+                          inputsKey={inputsKey}
+                        />
+                      )}
+                    />
+                  </div> */}
+
+                  {isMobile && (
+                    <div className={styles.routePickerContainer}>
+                      <Controller
+                        name='route'
+                        control={control}
+                        rules={{
+                          validate: (v) => {
+                            if (!v?.pickup || !v?.dropoff)
+                              return "Please select pickup and dropoff.";
+                            if (
+                              selectedService?.pricingStrategy ===
+                              "POINT_TO_POINT"
+                            ) {
+                              const miles = toNumber(
+                                v.miles ?? v.distanceMiles ?? null,
+                              );
+                              if (!miles || miles <= 0)
+                                return "Route estimate missing (miles). Please re-check the route.";
+                            }
+                            return true;
+                          },
+                        }}
+                        render={({ field }) => (
+                          <RoutePicker
+                            value={field.value}
+                            onChange={(next) => {
+                              const prev = getValues("route");
+                              if (routeEquals(prev, next)) return;
+                              field.onChange(next);
+                              clearErrors("route");
+                            }}
+                            pickupInputRef={pickupInputRef}
+                            dropoffInputRef={dropoffInputRef}
+                            inputsKey={inputsKey}
+                          />
+                        )}
+                      />
                     </div>
                   )}
 

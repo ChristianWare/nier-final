@@ -1,11 +1,30 @@
 .content {
   display: grid;
   grid-template-columns: 2fr 4fr;
+  grid-template-areas: "map wizard";
   grid-gap: 2rem;
   align-items: start;
 }
 
-.left,
+.routePickerContainer {
+  grid-area: map;
+  background-color: var(--cream);
+  padding: 1rem;
+  padding-top: 0rem;
+  border-radius: 20px;
+  position: sticky;
+  top: 78px;
+  z-index: 10;
+  height: fit-content;
+}
+
+.routePickerContainerMobile {
+  background-color: var(--cream);
+  padding: 1rem;
+  padding-top: 0rem;
+  border-radius: 20px;
+}
+
 .stepperContainer {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
@@ -17,19 +36,9 @@
   z-index: 10;
 }
 
-.stepperContainerii {
-  display: none;
-}
-
 .right {
+  grid-area: wizard;
   align-self: start;
-}
-
-.routePickerContainer {
-  background-color: var(--cream);
-  padding: 1rem;
-  padding-top: 0rem;
-  border-radius: 20px;
 }
 
 .contentBox {
@@ -139,10 +148,6 @@
   grid-gap: 3rem;
 }
 
-.routePickerContainerii {
-  display: none;
-}
-
 .flightInfoSection {
   margin-top: 1rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -180,6 +185,23 @@
   display: grid;
   gap: 1rem;
   animation: flightFieldsFadeIn 200ms ease-out;
+}
+
+@keyframes flightFieldsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flightInfoFields {
+    animation: none;
+  }
 }
 
 .stopsListWizard {
@@ -279,46 +301,19 @@
   color: #b45309;
 }
 
-@keyframes flightFieldsFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .flightInfoFields {
-    animation: none;
-  }
-}
-
 @media screen and (max-width: 768px) {
   .content {
     grid-template-columns: 1fr;
+    grid-template-areas: "wizard";
   }
 
-  .left {
-    position: static;
-    top: auto;
-  }
-
-  .routePickerContainer {
-    display: none;
-  }
-
-  .routePickerContainerii {
+  .contentBox {
     display: block;
+    display: flex;
+    flex-direction: column;
   }
 
   .stepperContainer {
     top: 45px;
-  }
-
-  .right {
-    order: -1;
   }
 }
