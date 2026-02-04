@@ -685,14 +685,11 @@ export default function BookingWizard({
   return (
     <section className={styles.container}>
       <LayoutWrapper>
-        <div className={styles.stepperContainerii}>
+        {/* <div className={styles.stepperContainerii}>
           <Stepper step={step} />
-        </div>
+        </div> */}
         <div className={styles.content}>
           <div className={styles.left}>
-            <div className={styles.stepperContainer}>
-              <Stepper step={step} />
-            </div>
             <div className={styles.routePickerContainer}>
               <Controller
                 name='route'
@@ -731,7 +728,9 @@ export default function BookingWizard({
 
           <div className={styles.right}>
             <div ref={wizardTopRef} className={styles.wizardTop} />
-
+            <div className={styles.stepperContainer}>
+              <Stepper step={step} />
+            </div>
             <div className={styles.wizard}>
               {/* STEP 1 */}
               {step === 1 ? (
@@ -740,7 +739,6 @@ export default function BookingWizard({
                   <p className='subheading'>
                     Please provide the details for your trip below
                   </p>
-
                   {hasNoServices ? (
                     <div
                       className='miniNote'
@@ -882,6 +880,43 @@ export default function BookingWizard({
                   </Grid2>
 
                   <div className={styles.pickupDropoffContainer}>
+                    <div className={styles.routePickerContainerii}>
+                      <Controller
+                        name='route'
+                        control={control}
+                        rules={{
+                          validate: (v) => {
+                            if (!v?.pickup || !v?.dropoff)
+                              return "Please select pickup and dropoff.";
+                            if (
+                              selectedService?.pricingStrategy ===
+                              "POINT_TO_POINT"
+                            ) {
+                              const miles = toNumber(
+                                v.miles ?? v.distanceMiles ?? null,
+                              );
+                              if (!miles || miles <= 0)
+                                return "Route estimate missing (miles). Please re-check the route.";
+                            }
+                            return true;
+                          },
+                        }}
+                        render={({ field }) => (
+                          <RoutePicker
+                            value={field.value}
+                            onChange={(next) => {
+                              const prev = getValues("route");
+                              if (routeEquals(prev, next)) return;
+                              field.onChange(next);
+                              clearErrors("route");
+                            }}
+                            pickupInputRef={pickupInputRef}
+                            dropoffInputRef={dropoffInputRef}
+                            inputsKey={inputsKey}
+                          />
+                        )}
+                      />
+                    </div>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label
                         className={`cardTitle h5${usesPickupAirport ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}

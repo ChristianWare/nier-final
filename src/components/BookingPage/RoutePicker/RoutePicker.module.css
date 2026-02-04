@@ -14,6 +14,16 @@
   border-radius: 7px;
 }
 
+.map {
+  width: 100%;
+  height: 420px;
+  border-radius: 14px;
+  border: 3px solid #bfe8cc;
+  overflow: hidden;
+  background: white;
+  outline: 2px solid #4e94ec33;
+}
+
 /* ============================================
    ADD THESE STYLES TO RoutePicker.module.css
    ============================================ */
@@ -124,4 +134,10 @@
   font-size: 1.4rem;
   opacity: 0.7;
   font-weight: 400;
+}
+
+@media screen and (max-width: 768px) {
+  .map {
+    height: 300px;
+  }
 }

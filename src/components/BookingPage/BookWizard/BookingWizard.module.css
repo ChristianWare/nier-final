@@ -5,13 +5,14 @@
   align-items: start;
 }
 
-.left {
+.left,
+.stepperContainer {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   grid-gap: 2rem;
   height: fit-content;
   position: sticky;
-  top: 80px;
+  top: 78px;
   align-self: start;
   z-index: 10;
 }
@@ -39,6 +40,10 @@
 
 .wizardTop {
   scroll-margin-top: 110px;
+}
+
+.wizard {
+  margin-top: 5rem;
 }
 
 .stepPane {
@@ -132,6 +137,10 @@
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   grid-gap: 3rem;
+}
+
+.routePickerContainerii {
+  display: none;
 }
 
 .flightInfoSection {
@@ -287,40 +296,29 @@
   }
 }
 
-/* @media screen and (max-width: 1068px) {
-  .content {
-    grid-template-columns: 1fr 1fr;
-  }
-} */
-
 @media screen and (max-width: 768px) {
   .content {
     grid-template-columns: 1fr;
   }
 
-  .stepperContainerii {
-    display: block;
-    margin-bottom: 5rem;
-    padding-top: 4rem;
-    padding-bottom: 2rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    background-color: var(--white);
-    z-index: 9999999999 !important;
-    position: sticky;
-    top: 40px;
-    align-self: start;
-    z-index: 10;
-    border-bottom: 2px solid var(--stroke);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  .stepperContainer {
-    display: none;
-  }
-
   .left {
     position: static;
     top: auto;
+  }
+
+  .routePickerContainer {
+    display: none;
+  }
+
+  .routePickerContainerii {
+    display: block;
+  }
+
+  .stepperContainer {
+    top: 45px;
+  }
+
+  .right {
+    order: -1;
   }
 }
