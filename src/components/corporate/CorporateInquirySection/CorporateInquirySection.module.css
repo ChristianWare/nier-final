@@ -1,0 +1,91 @@
+.container {
+  padding: 4rem 0 8rem;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: flex-start;
+}
+
+.left {
+  display: grid;
+  gap: 1.5rem;
+  position: sticky;
+  top: 120px;
+}
+
+.heading {
+  letter-spacing: -2.2px;
+}
+
+.copy {
+  color: var(--paragraph);
+  line-height: 1.6;
+  max-width: 480px;
+}
+
+.details {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.detailItem {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.detailNumber {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  background: var(--black);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.detailText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.detailTitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+.detailCopy {
+  font-size: 1.35rem;
+  color: var(--paragraph);
+  letter-spacing: -0.3px;
+  line-height: 1.5;
+}
+
+@media screen and (max-width: 968px) {
+  .content {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .left {
+    position: static;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    padding: 3rem 0 5rem;
+  }
+}

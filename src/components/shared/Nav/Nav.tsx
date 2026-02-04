@@ -126,6 +126,7 @@ export default function Nav({
     { text: "Services", href: "/services" },
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
+    { text: "Corporate", href: "/corporate" },
     { text: "Blog", href: "/blog" },
     { text: "Contact", href: "/contact" },
   ];

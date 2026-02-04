@@ -1,0 +1,88 @@
+.container {
+  padding: 10rem 0rem;
+}
+
+.content {
+  display: grid;
+  gap: 4rem;
+}
+
+.top {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 720px;
+}
+
+.heading {
+  letter-spacing: -2.2px;
+}
+
+.copy {
+  color: var(--paragraph);
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.btnContainer {
+  margin-top: 0.5rem;
+  display: flex;
+}
+
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.statCard {
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--white);
+}
+
+.statValue {
+  font-size: 3.2rem;
+  font-weight: 700;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  font-weight: 500;
+  letter-spacing: -0.3px;
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 6rem 0 3rem;
+  }
+
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    padding: 4rem 0 2rem;
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .statCard {
+    padding: 1.5rem 1rem;
+  }
+
+  .statValue {
+    font-size: 2.6rem;
+  }
+}

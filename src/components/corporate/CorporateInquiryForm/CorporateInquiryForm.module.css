@@ -1,0 +1,153 @@
+.form {
+  display: grid;
+  gap: 1.75rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2.5rem;
+  background: var(--white);
+}
+
+.formTitle {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -1px;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.labelInputBox {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.labelInputBox label {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: -0.3px;
+}
+
+.required {
+  color: var(--accent);
+}
+
+.labelInputBox input,
+.labelInputBox select,
+.labelInputBox textarea {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--black);
+  background: var(--white);
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.labelInputBox input:focus,
+.labelInputBox select:focus,
+.labelInputBox textarea:focus {
+  border-color: var(--black300);
+}
+
+.labelInputBox input::placeholder,
+.labelInputBox textarea::placeholder {
+  color: var(--black300);
+  font-weight: 400;
+}
+
+.labelInputBox select {
+  cursor: pointer;
+  color: var(--paragraph);
+}
+
+.labelInputBox textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.5;
+}
+
+.error {
+  font-size: 1.2rem;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.btnContainer {
+  margin-top: 0.5rem;
+}
+
+/* Success State */
+
+.successContainer {
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 3rem 2.5rem;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+}
+
+.successIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--lightGreen);
+  color: var(--darkGreen);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.successHeading {
+  font-size: 2.2rem;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+
+.successCopy {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  line-height: 1.6;
+  max-width: 400px;
+}
+
+.resetBtn {
+  margin-top: 0.5rem;
+  font-size: 1.35rem;
+  color: var(--blue);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  letter-spacing: -0.3px;
+}
+
+@media screen and (max-width: 568px) {
+  .form {
+    padding: 1.75rem 1.25rem;
+    gap: 1.5rem;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .successContainer {
+    padding: 2rem 1.25rem;
+  }
+}
