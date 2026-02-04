@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Cog from "@/components/shared/icons/Cog/Cog";
-import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
+// import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
 import Plane from "@/components/shared/icons/Plane/Plane";
 import Money from "@/components/shared/icons/Money/Money";
@@ -48,7 +48,7 @@ export type AdminSideNavProps = {
 };
 
 export default function AdminSideNav({
-  bookingNeedsAttentionCount = 0,
+  // bookingNeedsAttentionCount = 0,
 }: AdminSideNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
@@ -76,9 +76,9 @@ export default function AdminSideNav({
                 ? pathname === "/admin"
                 : pathname === href || pathname.startsWith(href + "/");
 
-              const showBookingsBadge = href === "/admin/bookings";
-              const showBadge =
-                showBookingsBadge && (bookingNeedsAttentionCount ?? 0) > 0;
+              // const showBookingsBadge = href === "/admin/bookings";
+              // const showBadge =
+              //   showBookingsBadge && (bookingNeedsAttentionCount ?? 0) > 0;
 
               return (
                 <li key={href}>
@@ -93,9 +93,9 @@ export default function AdminSideNav({
                     {icon}
                     {title}
 
-                    {showBadge ? (
+                    {/* {showBadge ? (
                       <BadgeCount value={bookingNeedsAttentionCount} max={99} />
-                    ) : null}
+                    ) : null} */}
                   </Link>
                 </li>
               );
