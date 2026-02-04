@@ -64,13 +64,62 @@ enum AddonType {
   OTHER
 }
 
-/**
- * ✅ NEW: airport behavior for service types
- */
 enum AirportLeg {
   NONE
   PICKUP
   DROPOFF
+}
+
+/**
+ * =========================
+ * CORPORATE ACCOUNT ENUMS
+ * =========================
+ */
+
+enum CorporateAccountStatus {
+  ACTIVE
+  SUSPENDED
+  CLOSED
+}
+
+enum CorporateContactRole {
+  PRIMARY // Main point of contact, receives invoices
+  ADMIN // Can book rides, manage passengers
+}
+
+enum PaymentTerms {
+  NET_15
+  NET_30
+  NET_45
+  DUE_ON_RECEIPT
+}
+
+enum CorporateBillingCycle {
+  MONTHLY // Aggregate rides, invoice at end of month
+  WEEKLY // Aggregate rides, invoice at end of week
+  PER_RIDE // Invoice generated immediately after ride completes
+}
+
+enum CorporatePaymentMethod {
+  INVOICE // Electronic invoice, pay via Stripe link
+  CHECK // Mail physical check to Nier
+  CARD_ON_FILE // Auto-charge saved card (future enhancement)
+}
+
+enum CorporateInquiryStatus {
+  PENDING
+  CONTACTED
+  APPROVED
+  DECLINED
+}
+
+enum CorporateInvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  PARTIALLY_PAID
+  OVERDUE
+  VOID
 }
 
 /**
@@ -101,8 +150,13 @@ model User {
   assignedByAdmin   Assignment[] @relation("AssignedByAdmin")
 
   statusEventsCreated BookingStatusEvent[] @relation("StatusEventsCreated")
-  // ✅ NEW: Notes created by this user
   bookingNotesCreated BookingNote[]        @relation("BookingNotesCreated")
+
+  // Corporate account relations
+  corporateContacts       CorporateContact[]
+  inquiriesReviewed       CorporateInquiry[]       @relation("InquiryReviewer")
+  invoiceEventsCreated    CorporateInvoiceEvent[]  @relation("InvoiceEventCreator")
+  invoicePaymentsRecorded CorporateInvoice[]       @relation("InvoicePaymentRecorder")
 
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
@@ -174,8 +228,6 @@ model PasswordResetToken {
  * =========================
  * BOOKING / OPERATIONS MODELS
  * =========================
- * Vehicle = "Vehicle Category" (SUV, Van, Bus)
- * VehicleUnit = individual unit (Escalade #1, Sprinter #2, etc)
  */
 
 model Vehicle {
@@ -186,7 +238,6 @@ model Vehicle {
   luggageCapacity Int
   imageUrl        String?
 
-  // Minimum billable hours for HOURLY services (SUV 2, Vans/Buses 3)
   minHours Int @default(0)
 
   // Pricing knobs (in cents)
@@ -198,7 +249,6 @@ model Vehicle {
   active    Boolean @default(true)
   sortOrder Int     @default(0)
 
-  // ✅ Units in this category
   units VehicleUnit[] @relation("VehicleCategoryUnits")
 
   bookings Booking[]
@@ -214,9 +264,8 @@ model VehicleUnit {
   id String @id @default(cuid())
 
   name  String
-  plate String? // optional for now ✅
+  plate String?
 
-  // Unit belongs to a Vehicle "category"
   categoryId String?
   category   Vehicle? @relation("VehicleCategoryUnits", fields: [categoryId], references: [id], onDelete: SetNull)
 
@@ -232,16 +281,12 @@ model VehicleUnit {
   @@index([active])
 }
 
-/**
- * ✅ NEW: Airports live here (addresses belong to airports, not services)
- */
 model Airport {
   id      String @id @default(cuid())
   name    String
   iata    String @unique
   address String
 
-  // Optional: helps your RoutePicker / maps integrations if you have it
   placeId String?
   lat     Decimal? @db.Decimal(10, 7)
   lng     Decimal? @db.Decimal(10, 7)
@@ -249,7 +294,6 @@ model Airport {
   active    Boolean @default(true)
   sortOrder Int     @default(0)
 
-  // Many-to-many with ServiceType
   services ServiceType[]
 
   createdAt DateTime @default(now())
@@ -267,16 +311,12 @@ model ServiceType {
 
   pricingStrategy ServicePricingStrategy @default(POINT_TO_POINT)
 
-  // ✅ NEW: airport behavior
   airportLeg AirportLeg @default(NONE)
 
-  // ✅ NEW: airports allowed for this service (only used when airportLeg != NONE)
   airports Airport[]
 
-  // ✅ NEW: Minimum hours for HOURLY services
   minHours Int @default(0)
 
-  // ✅ NEW: Named fees for this service
   fees ServiceFee[]
 
   // Pricing knobs (in cents)
@@ -307,7 +347,6 @@ model Booking {
   serviceTypeId String
   serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id])
 
-  // Selected category
   vehicleId String?
   vehicle   Vehicle? @relation(fields: [vehicleId], references: [id])
 
@@ -342,10 +381,10 @@ model Booking {
   specialRequests String? @db.Text
   internalNotes   String? @db.Text
 
-  // ✅ NEW: Flight information
+  // Flight information
   flightAirline     String?
   flightNumber      String?
-  flightScheduledAt DateTime? // Scheduled arrival/departure time
+  flightScheduledAt DateTime?
   flightTerminal    String?
   flightGate        String?
 
@@ -362,10 +401,9 @@ model Booking {
   assignment   Assignment?
   statusEvents BookingStatusEvent[]
 
-  // ✅ NEW: Admin notes
   notes BookingNote[]
 
-  // ✅ Extra stops
+  // Extra stops
   stops              BookingStop[]
   stopCount          Int           @default(0)
   stopSurchargeCents Int           @default(0)
@@ -373,26 +411,37 @@ model Booking {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Guest booking fields
   guestName            String?
   guestEmail           String?
   guestPhone           String?
   guestEmailVerifiedAt DateTime?
+  guestClaimToken      String?   @unique
 
-  guestClaimToken String? @unique
-
-  // ✅ NEW: Fees snapshot (copied from ServiceFee at booking time)
+  // Fees snapshot
   fees BookingFee[]
+
+  // Corporate account billing
+  corporateAccountId   String?
+  corporateAccount     CorporateAccount?   @relation(fields: [corporateAccountId], references: [id], onDelete: SetNull)
+
+  // Who is the passenger (from corporate roster)
+  corporatePassengerId String?
+  corporatePassenger   CorporatePassenger? @relation("BookedForPassenger", fields: [corporatePassengerId], references: [id], onDelete: SetNull)
+
+  // Cost tracking for corporate
+  costCenter  String?
+  projectCode String?
 
   @@index([userId])
   @@index([serviceTypeId])
   @@index([vehicleId])
   @@index([status])
   @@index([pickupAt])
+  @@index([corporateAccountId])
+  @@index([corporatePassengerId])
 }
 
-/**
- * ✅ NEW: Internal notes/comments for bookings
- */
 model BookingNote {
   id        String  @id @default(cuid())
   bookingId String
@@ -446,7 +495,7 @@ model Payment {
   amountPaidCents     Int @default(0)
   amountRefundedCents Int @default(0)
 
-  tipCents Int @default(0) // ✅ ADD THIS LINE
+  tipCents Int @default(0)
 
   currency String @default("usd")
 
@@ -464,18 +513,15 @@ model Assignment {
   bookingId String  @unique
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
-  // Assign a DRIVER user
   driverId String
   driver   User   @relation("DriverAssignments", fields: [driverId], references: [id], onDelete: Cascade)
 
-  // ✅ Optional: assign a specific vehicle unit too (recommended for dispatch)
   vehicleUnitId String?
   vehicleUnit   VehicleUnit? @relation(fields: [vehicleUnitId], references: [id], onDelete: SetNull)
 
   assignedById String?
   assignedBy   User?   @relation("AssignedByAdmin", fields: [assignedById], references: [id], onDelete: SetNull)
 
-  // ✅ NEW: Add this line - Amount to pay the driver (in cents)
   driverPaymentCents Int?
   driverTipCents     Int?
 
@@ -493,10 +539,8 @@ model BookingStatusEvent {
 
   status BookingStatus
 
-  // ✅ NEW: Event type for categorization
   eventType String @default("STATUS_CHANGE")
 
-  // ✅ NEW: JSON metadata for event details
   metadata Json?
 
   createdById String?
@@ -550,12 +594,9 @@ model AdminNotificationSettings {
   emailEnabled Boolean @default(true)
   smsEnabled   Boolean @default(false)
 
-  // optional overrides; if empty, we fall back to the admin user's email.
   emailTo String?
-  // must be E.164 for Twilio, e.g. +16025551234
   smsTo   String?
 
-  // Which events should send via each channel
   emailEvents NotificationEventType[] @default([])
   smsEvents   NotificationEventType[] @default([])
 
@@ -573,18 +614,15 @@ model NotificationJob {
   lastError String?
   sentAt    DateTime?
 
-  // delivery
   channel NotificationChannel
   event   NotificationEventType
   to      String
   subject String?
   body    String
 
-  // context
   bookingId String?
   userId    String?
 
-  // idempotency
   dedupeKey String @unique
 
   payload Json?
@@ -595,17 +633,15 @@ model BookingStop {
   bookingId String
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
-  stopOrder Int // 1, 2, 3... (order between pickup and dropoff)
+  stopOrder Int
   address   String
   placeId   String?
   lat       Decimal? @db.Decimal(10, 7)
   lng       Decimal? @db.Decimal(10, 7)
 
-  // Distance/duration FROM previous point TO this stop
   distanceFromPrevMiles   Decimal? @db.Decimal(8, 2)
   durationFromPrevMinutes Int?
 
-  // Estimated wait time at this stop (in minutes)
   waitTimeMinutes Int @default(5)
 
   createdAt DateTime @default(now())
@@ -616,41 +652,41 @@ model BookingStop {
 }
 
 model CompanySettings {
-  id String @id @default("default") // Single row
+  id String @id @default("default")
 
-  // Contact Info (shown on driver support page)
-  dispatchPhone     String? // (480) 555-0123
-  dispatchPhoneRaw  String? // 4805550123 (for tel: links)
-  emergencyPhone    String? // (480) 555-0911
-  emergencyPhoneRaw String? // 4805550911
-  supportEmail      String? // drivers@yourcompany.com
+  // Contact Info
+  dispatchPhone     String?
+  dispatchPhoneRaw  String?
+  emergencyPhone    String?
+  emergencyPhoneRaw String?
+  supportEmail      String?
 
-  // Office Info (optional - leave blank to hide from drivers)
-  officeName    String? // Main Office
-  officeAddress String? // 123 Driver Lane
-  officeCity    String? // Phoenix, AZ 85001
+  // Office Info
+  officeName    String?
+  officeAddress String?
+  officeCity    String?
 
-  // Office Hours - stored as JSON string
-  // Format: {"monday":{"enabled":true,"open":"08:00","close":"18:00"},...}
+  // Office Hours
   officeHours String? @db.Text
 
   // SMS Settings
-  smsFromNumber String? // Twilio phone number for this client, E.164 format (+15209992737)
+  smsFromNumber String?
+
+  // For corporate check payments
+  checkPayableTo      String? // "Nier Transportation LLC"
+  checkMailingAddress String? // Full mailing address for checks
 
   updatedAt DateTime @updatedAt
-  updatedBy String? // Admin who last updated
+  updatedBy String?
 }
 
-/**
- * ✅ NEW: Named fees for services (e.g., "Airport Fee", "Fuel Surcharge")
- */
 model ServiceFee {
   id            String      @id @default(cuid())
   serviceTypeId String
   serviceType   ServiceType @relation(fields: [serviceTypeId], references: [id], onDelete: Cascade)
 
-  label       String // "Airport Fee", "Meet & Greet", etc.
-  amountCents Int // 1200 = $12.00
+  label       String
+  amountCents Int
 
   active    Boolean @default(true)
   sortOrder Int     @default(0)
@@ -663,21 +699,250 @@ model ServiceFee {
   @@index([sortOrder])
 }
 
-/**
- * ✅ NEW: Fees snapshot for bookings (copied from ServiceFee at booking time)
- */
 model BookingFee {
   id        String  @id @default(cuid())
   bookingId String
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
-  label       String // Copied from ServiceFee.label
-  amountCents Int // Copied from ServiceFee.amountCents
+  label       String
+  amountCents Int
 
-  // Optional reference to original fee (for analytics)
   serviceFeeId String?
 
   createdAt DateTime @default(now())
 
   @@index([bookingId])
+}
+
+/**
+ * =========================
+ * CORPORATE ACCOUNT MODELS
+ * =========================
+ */
+
+// The company
+model CorporateAccount {
+  id   String @id @default(cuid())
+  name String // "Acme Inc."
+
+  // Billing contact info
+  billingEmail   String
+  billingAddress String?
+  billingCity    String?
+  billingState   String?
+  billingZip     String?
+
+  // Payment settings
+  billingCycle  CorporateBillingCycle  @default(MONTHLY)
+  paymentMethod CorporatePaymentMethod @default(INVOICE)
+  paymentTerms  PaymentTerms           @default(NET_30)
+
+  stripeCustomerId String? @unique
+
+  // For CHECK payments - who to make check payable to (overrides CompanySettings if set)
+  checkPayableTo String?
+
+  // Negotiated pricing
+  discountPercent Decimal? @db.Decimal(5, 2) // e.g., 10.00 = 10% off
+
+  // Spending controls
+  monthlyLimitCents Int? // Optional cap for all rides
+
+  status CorporateAccountStatus @default(ACTIVE)
+
+  // Internal notes (for Nier admin)
+  internalNotes String? @db.Text
+
+  contacts   CorporateContact[]
+  passengers CorporatePassenger[]
+  bookings   Booking[]
+  invoices   CorporateInvoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([name])
+}
+
+// People who can LOG IN and book rides (the corporate admins)
+model CorporateContact {
+  id String @id @default(cuid())
+
+  corporateAccountId String
+  corporateAccount   CorporateAccount @relation(fields: [corporateAccountId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role CorporateContactRole @default(ADMIN)
+
+  // Contact details (can differ from User record)
+  title String? // "Office Manager", "Executive Assistant"
+  phone String?
+
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([corporateAccountId, userId])
+  @@index([corporateAccountId])
+  @@index([userId])
+}
+
+// People rides can be booked FOR (just a roster, no login needed)
+model CorporatePassenger {
+  id String @id @default(cuid())
+
+  corporateAccountId String
+  corporateAccount   CorporateAccount @relation(fields: [corporateAccountId], references: [id], onDelete: Cascade)
+
+  name  String
+  email String?
+  phone String?
+
+  // Optional organizational info
+  department String?
+  employeeId String? // Company's internal employee ID
+
+  active Boolean @default(true)
+
+  // Bookings for this passenger
+  bookings Booking[] @relation("BookedForPassenger")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([corporateAccountId])
+  @@index([active])
+}
+
+// Inquiry form submissions
+model CorporateInquiry {
+  id String @id @default(cuid())
+
+  companyName String
+  contactName String
+  email       String
+  phone       String?
+
+  estimatedMonthlyRides String?  @db.Text // "1-10", "11-25", "26-50", "50+"
+  message               String?  @db.Text
+
+  status CorporateInquiryStatus @default(PENDING)
+
+  // Admin review
+  reviewedAt   DateTime?
+  reviewedById String?
+  reviewedBy   User?     @relation("InquiryReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  adminNotes String? @db.Text
+
+  // If approved, link to created account
+  corporateAccountId String? @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Invoices for corporate accounts
+model CorporateInvoice {
+  id String @id @default(cuid())
+
+  corporateAccountId String
+  corporateAccount   CorporateAccount @relation(fields: [corporateAccountId], references: [id], onDelete: Cascade)
+
+  // Invoice number (human readable, e.g., "INV-2026-0001")
+  invoiceNumber String @unique
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Totals (in cents)
+  subtotalCents   Int @default(0)
+  discountCents   Int @default(0)
+  totalCents      Int @default(0)
+  amountPaidCents Int @default(0)
+
+  status CorporateInvoiceStatus @default(DRAFT)
+
+  dueDate DateTime?
+  sentAt  DateTime?
+  paidAt  DateTime?
+
+  // Reminder tracking
+  lastReminderSentAt DateTime?
+  reminderCount      Int       @default(0)
+
+  // For CHECK payments
+  checkNumber       String?
+  checkReceivedAt   DateTime?
+  checkRecordedById String?
+
+  // Payment recording (for manual payments)
+  paymentNotes String? @db.Text
+  paidById     String?
+  paidBy       User?   @relation("InvoicePaymentRecorder", fields: [paidById], references: [id], onDelete: SetNull)
+
+  // Stripe invoice (if using Stripe invoicing)
+  stripeInvoiceId  String? @unique
+  stripeInvoiceUrl String?
+  stripePdfUrl     String?
+
+  // Line items
+  lineItems CorporateInvoiceLineItem[]
+
+  // Activity log
+  events CorporateInvoiceEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([corporateAccountId])
+  @@index([status])
+  @@index([periodStart])
+  @@index([dueDate])
+}
+
+model CorporateInvoiceLineItem {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   CorporateInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  // Link to original booking
+  bookingId String?
+
+  description String // "Jan 15 - Airport Pickup - John Smith"
+  amountCents Int
+
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([bookingId])
+}
+
+// Activity log for invoice events
+model CorporateInvoiceEvent {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   CorporateInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  eventType String // "CREATED", "SENT", "REMINDER_SENT", "PAYMENT_RECORDED", "VOIDED", "MARKED_OVERDUE"
+
+  metadata Json? // { checkNumber: "1234", amount: 50000, note: "..." }
+
+  createdById String?
+  createdBy   User?   @relation("InvoiceEventCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([eventType])
+  @@index([createdAt])
 }
