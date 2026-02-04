@@ -30,6 +30,7 @@ import AdminRideCalendar from "@/components/admin/AdminRideCalendar/AdminRideCal
 import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
+import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1771,13 +1772,16 @@ export default async function AdminHome() {
         pendingPayment={pendingPayment}
         confirmed={confirmed}
       />
-      <AdminAlerts alerts={alerts} />
       <AdminFinanceSnapshot {...snap} currency='USD' />
       <AdminRecentBookingRequests
         items={recentBookingRequests}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
+      <div className={styles.graphCalendarContainer}>
+        <AdminAlerts alerts={alerts} />
+        <AdminQuickActions />
+      </div>
       <AdminTodaysRides
         items={todaysRides}
         timeZone={PHX_TZ}
