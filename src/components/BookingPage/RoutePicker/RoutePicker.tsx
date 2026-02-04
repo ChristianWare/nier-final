@@ -437,7 +437,7 @@ export default function RoutePicker({
         ref={mapRef}
         style={{
           width: "100%",
-          height: 520,
+          height: 420,
           borderRadius: 14,
           border: "3px solid #bfe8cc",
           overflow: "hidden",

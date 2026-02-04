@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: 2fr 4fr;
   grid-gap: 2rem;
-  align-items: start; /* ✅ keeps both columns top-aligned */
+  align-items: start;
 }
 
 .left {
@@ -21,7 +21,7 @@
 }
 
 .right {
-  align-self: start; /* ✅ important for consistent top positioning */
+  align-self: start;
 }
 
 .routePickerContainer {
@@ -37,12 +37,10 @@
   grid-gap: 3rem;
 }
 
-/* ✅ scroll target offset (so scrollIntoView doesn't hide behind sticky nav) */
 .wizardTop {
   scroll-margin-top: 110px;
 }
 
-/* ✅ step fade-in */
 .stepPane {
   animation: stepFadeIn 220ms ease-out both;
 }
@@ -136,9 +134,6 @@
   grid-gap: 3rem;
 }
 
-/* Add these styles to your existing BookingWizard.module.css */
-
-/* ✅ Flight Information Section */
 .flightInfoSection {
   margin-top: 1rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -178,7 +173,6 @@
   animation: flightFieldsFadeIn 200ms ease-out;
 }
 
-/* Extra Stops in Wizard */
 .stopsListWizard {
   display: flex;
   flex-direction: column;
@@ -293,11 +287,11 @@
   }
 }
 
-@media screen and (max-width: 1068px) {
+/* @media screen and (max-width: 1068px) {
   .content {
     grid-template-columns: 1fr 1fr;
   }
-}
+} */
 
 @media screen and (max-width: 768px) {
   .content {
