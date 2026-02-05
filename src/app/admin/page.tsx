@@ -367,6 +367,7 @@ export default async function AdminHome() {
     balanceDueBookingsRaw,
     unpaidUpcomingTripsRaw,
     upcomingAssignmentsForOverlapCheck,
+    pendingCorporateInquiries,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -921,36 +922,6 @@ export default async function AdminHome() {
         },
       },
     }),
-    // Bookings with balance due (paid but total increased)
-    db.booking.findMany({
-      where: {
-        payment: {
-          status: "PAID",
-          amountPaidCents: { gt: 0 },
-        },
-        NOT: { status: { in: ["CANCELLED", "REFUNDED", "NO_SHOW"] as any } },
-      },
-      orderBy: [{ pickupAt: "asc" }],
-      select: {
-        id: true,
-        pickupAt: true,
-        totalCents: true,
-        currency: true,
-        status: true,
-        pickupAddress: true,
-        dropoffAddress: true,
-        user: { select: { name: true, email: true } },
-        guestName: true,
-        guestEmail: true,
-        serviceType: { select: { name: true } },
-        payment: {
-          select: {
-            amountPaidCents: true,
-            amountTotalCents: true,
-          },
-        },
-      },
-    }),
 
     // ADD: Trips starting within 24h with unpaid balance
     db.booking.findMany({
@@ -1015,6 +986,9 @@ export default async function AdminHome() {
           },
         },
       },
+    }),
+    db.corporateInquiry.count({
+      where: { status: "PENDING" },
     }),
   ]);
 
@@ -1762,6 +1736,24 @@ export default async function AdminHome() {
       details: `These drivers have overlapping trip assignments. Either reassign one of the trips to a different driver, or adjust the pickup times. Buffer time between trips: ${BUFFER_MINUTES} minutes.`,
       detailRows,
       timestamp: "Scheduling conflict",
+    });
+  }
+
+  // ==========================================
+  // INFO: Pending corporate inquiries
+  // ==========================================
+  if (pendingCorporateInquiries > 0) {
+    alerts.push({
+      id: "pending-corporate-inquiries",
+      severity: pendingCorporateInquiries >= 3 ? "warning" : "info",
+      message: `🏢 ${pendingCorporateInquiries} new corporate account inquiry(ies) awaiting review`,
+      href: "/admin/corporate/inquiries",
+      ctaLabel: "Review Inquiries",
+      details:
+        pendingCorporateInquiries > 1
+          ? `${pendingCorporateInquiries} companies have submitted corporate account inquiries. Review and reach out to discuss their needs.`
+          : `A company has submitted a corporate account inquiry. Review and reach out to discuss their needs.`,
+      timestamp: "Action needed",
     });
   }
 

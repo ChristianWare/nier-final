@@ -1303,7 +1303,6 @@ export default function BookingWizard({
                             }
                           }}
                         />
-                        {/* </Grid2> */}
                       </div>
                     </div>
                   )}
