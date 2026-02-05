@@ -177,7 +177,7 @@ export default async function AdminCorporateAccountsPage({
             <Button
               href='/admin/corporate/inquiries'
               text='View Inquiries'
-              btnType='black'
+              btnType='blackReg'
             />
           </div>
 
