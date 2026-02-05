@@ -208,6 +208,18 @@
   color: #b45309;
 }
 
+.flightInfoSection {
+  margin-top: 8px;
+}
+
+.flightInfoFields {
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  display: grid;
+  gap: 16px;
+}
 
 @media screen and (max-width: 1068px) {
   .content {

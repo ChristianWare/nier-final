@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import styles from "./FlightLookupInput.module.css";
 import Button from "@/components/shared/Button/Button";
 
+const MAX_FLIGHT_NUMBER_LENGTH = 10;
+
 type Props = {
   flightNumber: string;
   flightDate: string;
@@ -68,9 +70,7 @@ export default function FlightLookupInput({
     const clean = flightNumber.replace(/\s+/g, "").toUpperCase();
 
     if (!clean || clean.length < 3) {
-      toast.error(
-        "Please enter a valid flight number (at least 3 characters).",
-      );
+      setErrorMessage("Please enter a valid flight number (e.g., AA1234).");
       return;
     }
     if (!flightDate) {
@@ -80,7 +80,6 @@ export default function FlightLookupInput({
       return;
     }
     if (clean === lastLookedUp) {
-      // Already looked up - just return silently (data is already displayed)
       return;
     }
 
@@ -176,12 +175,14 @@ export default function FlightLookupInput({
           setFoundMessage(successMsg);
         }
       } else {
-        setErrorMessage(result.error ?? "Flight not found");
+        setErrorMessage(
+          result.error ?? "Flight not found. Please check the flight number.",
+        );
       }
     } catch (err) {
       console.error("Flight lookup error:", err);
       setErrorMessage(
-        "Could not look up flight. Please enter details manually.",
+        "Flight not found. Please check the flight number and try again.",
       );
     } finally {
       setLooking(false);
@@ -201,6 +202,24 @@ export default function FlightLookupInput({
     doLookup();
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.toUpperCase();
+
+    // Only allow letters and numbers
+    value = value.replace(/[^A-Z0-9]/g, "");
+
+    // Limit to max length
+    if (value.length > MAX_FLIGHT_NUMBER_LENGTH) {
+      value = value.slice(0, MAX_FLIGHT_NUMBER_LENGTH);
+    }
+
+    onFlightNumberChange(value);
+    setFoundMessage(null);
+    setErrorMessage(null);
+    setWarningMessage(null);
+    setLastLookedUp("");
+  };
+
   return (
     <div className={styles.container}>
       <label className='cardTitle h5'>Flight Number</label>
@@ -208,13 +227,7 @@ export default function FlightLookupInput({
         <input
           type='text'
           value={flightNumber}
-          onChange={(e) => {
-            onFlightNumberChange(e.target.value.toUpperCase());
-            setFoundMessage(null);
-            setErrorMessage(null);
-            setWarningMessage(null);
-            setLastLookedUp("");
-          }}
+          onChange={handleInputChange}
           onBlur={() => {
             if (flightNumber.replace(/\s+/g, "").length >= 3 && flightDate) {
               doLookup();
@@ -228,6 +241,7 @@ export default function FlightLookupInput({
           }}
           placeholder='e.g., AA1234'
           className={`input emptySmall ${styles.flightInput}`}
+          maxLength={MAX_FLIGHT_NUMBER_LENGTH}
         />
 
         <Button

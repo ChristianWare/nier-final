@@ -53,6 +53,12 @@ type AdminCreateBookingInput = {
 
   specialRequests?: string | null;
 
+  // ✅ Flight info
+  flightAirline?: string | null;
+  flightNumber?: string | null;
+  flightScheduledAt?: string | null;
+  flightTerminal?: string | null;
+
   // ✅ optional incoming status
   status?: AdminCreateBookingStatus;
 
@@ -190,6 +196,11 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
   );
   const stopCount = validStops.length;
 
+  // ✅ Parse flight scheduled time if provided
+  const flightScheduledAt = input.flightScheduledAt
+    ? new Date(input.flightScheduledAt)
+    : null;
+
   // --- quote ---
   const quote = calcQuoteCents({
     pricingStrategy: service.pricingStrategy,
@@ -262,6 +273,15 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
       hoursBilled: quote.billedHours ?? null,
 
       specialRequests: input.specialRequests ?? null,
+
+      // ✅ Flight info
+      flightAirline: input.flightAirline ?? null,
+      flightNumber: input.flightNumber ?? null,
+      flightScheduledAt:
+        flightScheduledAt && Number.isFinite(flightScheduledAt.getTime())
+          ? flightScheduledAt
+          : null,
+      flightTerminal: input.flightTerminal ?? null,
 
       // ✅ FIX: Access subtotalCents from the breakdown object
       subtotalCents: quote.breakdown.subtotalCents,

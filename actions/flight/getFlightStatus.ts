@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
@@ -35,6 +34,16 @@ export type FlightStatusResponse =
   | { ok: false; error: string };
 
 /**
+ * Check if a flight number looks valid (2-letter airline code + 1-4 digit number)
+ */
+function isValidFlightNumberFormat(flightNumber: string): boolean {
+  // Valid formats: AA1234, AA123, AA12, AA1, UAL1234, etc.
+  // Must start with 2-3 letters followed by 1-4 digits
+  const pattern = /^[A-Z]{2,3}\d{1,4}$/i;
+  return pattern.test(flightNumber.trim());
+}
+
+/**
  * Fetch flight status for a single flight.
  * Called from client components via server action.
  *
@@ -52,8 +61,19 @@ export async function getFlightStatus(
     return { ok: false, error: "Please enter a date." };
   }
 
+  const cleanFlightNumber = flightNumber.trim().toUpperCase();
+
+  // Validate flight number format before making API call
+  if (!isValidFlightNumberFormat(cleanFlightNumber)) {
+    return {
+      ok: false,
+      error:
+        "Invalid flight number. Please enter a valid flight number (e.g., AA1234).",
+    };
+  }
+
   try {
-    const result = await lookupFlightSingle(flightNumber.trim(), date.trim());
+    const result = await lookupFlightSingle(cleanFlightNumber, date.trim());
 
     if (!result.ok) {
       return { ok: false, error: result.error };
@@ -87,8 +107,19 @@ export async function getFlightStatus(
         arrivalDelayMinutes: f.arrivalDelayMinutes,
       },
     };
-  } catch (err: any) {
-    console.error("getFlightStatus error:", err?.message ?? err);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("getFlightStatus error:", message);
+
+    // Handle specific error types with user-friendly messages
+    if (message.includes("JSON") || message.includes("Unexpected")) {
+      return {
+        ok: false,
+        error:
+          "Flight not found. Please check the flight number and try again.",
+      };
+    }
+
     return {
       ok: false,
       error: "Flight not found. Please check the flight number and date.",
@@ -125,8 +156,18 @@ export async function lookupFlightForBooking(
     return { ok: false, error: "Flight number and date are required." };
   }
 
+  const cleanFlightNumber = flightNumber.trim().toUpperCase();
+
+  // Validate flight number format before making API call
+  if (!isValidFlightNumberFormat(cleanFlightNumber)) {
+    return {
+      ok: false,
+      error: "Invalid flight number. Please use format like AA1234.",
+    };
+  }
+
   try {
-    const result = await lookupFlightSingle(flightNumber.trim(), date.trim());
+    const result = await lookupFlightSingle(cleanFlightNumber, date.trim());
 
     if (!result.ok) {
       return { ok: false, error: result.error };
@@ -150,8 +191,19 @@ export async function lookupFlightForBooking(
       status: f.status,
       legType: isArrival ? "arrival" : "departure",
     };
-  } catch (err: any) {
-    console.error("lookupFlightForBooking error:", err?.message ?? err);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("lookupFlightForBooking error:", message);
+
+    // Handle specific error types with user-friendly messages
+    if (message.includes("JSON") || message.includes("Unexpected")) {
+      return {
+        ok: false,
+        error:
+          "Flight not found. Please check the flight number and try again.",
+      };
+    }
+
     return {
       ok: false,
       error: "Flight not found. Please check the flight number and date.",

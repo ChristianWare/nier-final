@@ -48,6 +48,8 @@ import {
 
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import Link from "next/link";
+import FlightLookupInput from "@/components/BookingPage/FlightLookupInput/FlightLookupInput";
+import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -341,6 +343,15 @@ export default function AdminNewBookingWizard({
   const [attemptTripNext, setAttemptTripNext] = useState(false);
   const [attemptVehicleNext, setAttemptVehicleNext] = useState(false);
 
+  // ✅ Flight info state
+  const [flightAirline, setFlightAirline] = useState<string>("");
+  const [flightNumber, setFlightNumber] = useState<string>("");
+  const [flightTerminal, setFlightTerminal] = useState<string>("");
+  const [flightScheduledAtDate, setFlightScheduledAtDate] =
+    useState<string>("");
+  const [flightScheduledAtTime, setFlightScheduledAtTime] =
+    useState<string>("");
+
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
     return serviceTypes.find((s) => s.id === serviceTypeId) ?? null;
@@ -354,6 +365,28 @@ export default function AdminNewBookingWizard({
   const serviceAirports = selectedService?.airports ?? [];
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
+  const isAirportService = usesPickupAirport || usesDropoffAirport;
+
+  // ✅ Get the selected airport's IATA for flight validation
+  const selectedAirportIata = useMemo(() => {
+    if (usesPickupAirport && pickupAirportId) {
+      return (
+        serviceAirports.find((a) => a.id === pickupAirportId)?.iata ?? null
+      );
+    }
+    if (usesDropoffAirport && dropoffAirportId) {
+      return (
+        serviceAirports.find((a) => a.id === dropoffAirportId)?.iata ?? null
+      );
+    }
+    return null;
+  }, [
+    usesPickupAirport,
+    usesDropoffAirport,
+    pickupAirportId,
+    dropoffAirportId,
+    serviceAirports,
+  ]);
 
   // scroll-to-top on step change
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
@@ -804,6 +837,19 @@ export default function AdminNewBookingWizard({
             : null,
         specialRequests: specialRequests || null,
 
+        // ✅ Flight info
+        flightAirline: flightAirline || null,
+        flightNumber: flightNumber || null,
+        flightScheduledAt:
+          flightScheduledAtDate && flightScheduledAtTime
+            ? new Date(
+                `${flightScheduledAtDate}T${flightScheduledAtTime}:00`,
+              ).toISOString()
+            : flightScheduledAtDate
+              ? new Date(`${flightScheduledAtDate}T00:00:00`).toISOString()
+              : null,
+        flightTerminal: flightTerminal || null,
+
         status: bookingStatus,
 
         customerKind,
@@ -1208,6 +1254,12 @@ export default function AdminNewBookingWizard({
                       setRoute(null);
                       setVehicleId("");
 
+                      setFlightAirline("");
+                      setFlightNumber("");
+                      setFlightTerminal("");
+                      setFlightScheduledAtDate("");
+                      setFlightScheduledAtTime("");
+
                       setServiceTypeId(next);
 
                       const svc = serviceTypes.find((s) => s.id === next);
@@ -1556,6 +1608,94 @@ export default function AdminNewBookingWizard({
                     />
                   </div>
                 ) : null}
+
+                {isAirportService && (
+                  <div className={styles.flightInfoSection}>
+                    <div className={styles.flightInfoFields}>
+                      <div
+                        className='cardTitle h5'
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        ✈️ Flight Information{" "}
+                        <span style={{ fontWeight: 400, opacity: 0.7 }}>
+                          (optional)
+                        </span>
+                      </div>
+                      <p
+                        className='miniNote'
+                        style={{ marginBottom: 16, marginTop: 8 }}
+                      >
+                        {usesPickupAirport
+                          ? "Provide flight details so we can monitor for delays and adjust pickup time if needed."
+                          : "Provide flight details so the driver knows which terminal to drop off at."}
+                      </p>
+
+                      <Grid2>
+                        <div style={{ display: "grid", gap: 8 }}>
+                          <label className='cardTitle h5'>Airline</label>
+                          <AirlineSelect
+                            value={flightAirline}
+                            onChange={(name) => {
+                              resetCreatedBooking();
+                              setFlightAirline(name);
+                            }}
+                            onAirlineCodeSelected={(iataCode) => {
+                              const current = flightNumber
+                                .replace(/\s+/g, "")
+                                .toUpperCase();
+                              if (!current || /^[A-Z]{2}$/.test(current)) {
+                                setFlightNumber(iataCode);
+                              } else if (/^[A-Z]{2}\d/.test(current)) {
+                                const digits = current.replace(/^[A-Z]{2}/, "");
+                                setFlightNumber(iataCode + digits);
+                              } else {
+                                setFlightNumber(iataCode + current);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        <FlightLookupInput
+                          flightNumber={flightNumber}
+                          flightDate={pickupAtDate}
+                          airportLeg={usesPickupAirport ? "PICKUP" : "DROPOFF"}
+                          airportIata={selectedAirportIata}
+                          onFlightNumberChange={(val) => {
+                            resetCreatedBooking();
+                            setFlightNumber(val);
+                          }}
+                          onFlightFound={(data) => {
+                            resetCreatedBooking();
+                            if (data.airline) setFlightAirline(data.airline);
+                            if (data.terminal) setFlightTerminal(data.terminal);
+                            if (data.scheduledDate)
+                              setFlightScheduledAtDate(data.scheduledDate);
+                            if (data.scheduledTime)
+                              setFlightScheduledAtTime(data.scheduledTime);
+                          }}
+                        />
+                      </Grid2>
+
+                      <div style={{ display: "grid", gap: 8 }}>
+                        <label className='cardTitle h5'>Terminal</label>
+                        <input
+                          type='text'
+                          value={flightTerminal}
+                          onChange={(e) => {
+                            resetCreatedBooking();
+                            setFlightTerminal(e.target.value);
+                          }}
+                          placeholder='e.g., Terminal 4'
+                          className='input emptySmall'
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className={styles.btnRow}>
                   <button
@@ -2146,6 +2286,64 @@ export default function AdminNewBookingWizard({
                         value={specialRequests.trim()}
                       />
                     ) : null}
+
+                    {/* ✅ Flight info in summary */}
+                    {(flightAirline || flightNumber || flightTerminal) && (
+                      <>
+                        <div
+                          style={{
+                            borderTop: "1px solid rgba(0,0,0,0.1)",
+                            marginTop: 12,
+                            paddingTop: 12,
+                          }}
+                        >
+                          <div
+                            className='cardTitle h6'
+                            style={{ marginBottom: 8, opacity: 0.7 }}
+                          >
+                            ✈️ Flight Information
+                          </div>
+                        </div>
+                        {flightAirline && (
+                          <SummaryRow label='Airline' value={flightAirline} />
+                        )}
+                        {flightNumber && (
+                          <SummaryRow
+                            label='Flight Number'
+                            value={flightNumber}
+                          />
+                        )}
+                        {flightScheduledAtDate && (
+                          <SummaryRow
+                            label={
+                              usesPickupAirport
+                                ? "Arrival Time"
+                                : "Departure Time"
+                            }
+                            value={(() => {
+                              try {
+                                const [y, m, d] =
+                                  flightScheduledAtDate.split("-");
+                                const datePart = `${m}/${d}/${y.slice(2)}`;
+                                if (!flightScheduledAtTime) return datePart;
+                                const [hStr, mStr] =
+                                  flightScheduledAtTime.split(":");
+                                let h = parseInt(hStr, 10);
+                                const ampm = h >= 12 ? "PM" : "AM";
+                                if (h === 0) h = 12;
+                                else if (h > 12) h -= 12;
+                                return `${datePart} @ ${h}:${mStr}${ampm}`;
+                              } catch {
+                                return flightScheduledAtDate;
+                              }
+                            })()}
+                          />
+                        )}
+                        {flightTerminal && (
+                          <SummaryRow label='Terminal' value={flightTerminal} />
+                        )}
+                      </>
+                    )}
                   </div>
                 )}
 
