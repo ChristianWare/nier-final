@@ -179,7 +179,6 @@ export default function BookingWizard({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  // const [showFlightInfo, setShowFlightInfo] = useState(false);
 
   const services = useMemo<ServiceTypeDTO[]>(
     () => serviceTypes ?? [],
@@ -265,12 +264,6 @@ export default function BookingWizard({
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
   const isAirportService = usesPickupAirport || usesDropoffAirport;
-
-  // useEffect(() => {
-  //   if (isAirportService) {
-  //     setShowFlightInfo(true);
-  //   }
-  // }, [isAirportService]);
 
   useEffect(() => {
     register("serviceTypeId", { required: "Please select a service." });
@@ -1142,43 +1135,6 @@ export default function BookingWizard({
                       </span>
                     </div>
                   )}
-                  {/* <div className={styles.routePickerContainerii}>
-                    <Controller
-                      name='route'
-                      control={control}
-                      rules={{
-                        validate: (v) => {
-                          if (!v?.pickup || !v?.dropoff)
-                            return "Please select pickup and dropoff.";
-                          if (
-                            selectedService?.pricingStrategy ===
-                            "POINT_TO_POINT"
-                          ) {
-                            const miles = toNumber(
-                              v.miles ?? v.distanceMiles ?? null,
-                            );
-                            if (!miles || miles <= 0)
-                              return "Route estimate missing (miles). Please re-check the route.";
-                          }
-                          return true;
-                        },
-                      }}
-                      render={({ field }) => (
-                        <RoutePicker
-                          value={field.value}
-                          onChange={(next) => {
-                            const prev = getValues("route");
-                            if (routeEquals(prev, next)) return;
-                            field.onChange(next);
-                            clearErrors("route");
-                          }}
-                          pickupInputRef={pickupInputRef}
-                          dropoffInputRef={dropoffInputRef}
-                          inputsKey={inputsKey}
-                        />
-                      )}
-                    />
-                  </div> */}
 
                   {isMobile && (
                     <div className={styles.routePickerContainer}>
@@ -1249,7 +1205,6 @@ export default function BookingWizard({
                   ) : null}
 
                   {/* Flight Information Section */}
-                  {/* Flight Information Section */}
                   {isAirportService && (
                     <div className={styles.flightInfoSection}>
                       <div
@@ -1277,172 +1232,77 @@ export default function BookingWizard({
                             ? "Provide your flight details so we can monitor for delays and adjust your pickup time if needed."
                             : "Provide your flight details so your driver knows which terminal to drop you off at."}
                         </p>
-                        <Grid2>
-                          <div style={{ display: "grid", gap: 8 }}>
-                            <label className='cardTitle h5'>Airline</label>
-                            <AirlineSelect
-                              value={flightAirline}
-                              onChange={(name) =>
-                                setValue("flightAirline", name, {
-                                  shouldDirty: true,
-                                })
-                              }
-                              onAirlineCodeSelected={(iataCode) => {
-                                // Pre-fill the IATA code into the flight number field
-                                // Only if the field is empty or starts with a different code
-                                const current = flightNumber
-                                  .replace(/\s+/g, "")
-                                  .toUpperCase();
-                                if (!current || /^[A-Z]{2}$/.test(current)) {
-                                  // Field is empty or just has a code — replace with new code
-                                  setValue("flightNumber", iataCode, {
-                                    shouldDirty: true,
-                                  });
-                                } else if (/^[A-Z]{2}\d/.test(current)) {
-                                  // Field has a full flight number — swap the code prefix
-                                  const digits = current.replace(
-                                    /^[A-Z]{2}/,
-                                    "",
-                                  );
-                                  setValue("flightNumber", iataCode + digits, {
-                                    shouldDirty: true,
-                                  });
-                                } else {
-                                  // Field has just numbers or something else — prepend the code
-                                  setValue("flightNumber", iataCode + current, {
-                                    shouldDirty: true,
-                                  });
-                                }
-                              }}
-                            />
-                          </div>
-                          <FlightLookupInput
-                            flightNumber={flightNumber}
-                            flightDate={pickupAtDate}
-                            airportLeg={
-                              usesPickupAirport ? "PICKUP" : "DROPOFF"
-                            }
-                            onFlightNumberChange={(val) =>
-                              setValue("flightNumber", val, {
+                        <div style={{ display: "grid", gap: 8 }}>
+                          <label className='cardTitle h5'>Airline</label>
+                          <AirlineSelect
+                            value={flightAirline}
+                            onChange={(name) =>
+                              setValue("flightAirline", name, {
                                 shouldDirty: true,
                               })
                             }
-                            onFlightFound={(data) => {
-                              if (data.airline) {
-                                setValue("flightAirline", data.airline, {
+                            onAirlineCodeSelected={(iataCode) => {
+                              const current = flightNumber
+                                .replace(/\s+/g, "")
+                                .toUpperCase();
+                              if (!current || /^[A-Z]{2}$/.test(current)) {
+                                setValue("flightNumber", iataCode, {
                                   shouldDirty: true,
                                 });
-                              }
-                              if (data.terminal) {
-                                setValue("flightTerminal", data.terminal, {
+                              } else if (/^[A-Z]{2}\d/.test(current)) {
+                                const digits = current.replace(/^[A-Z]{2}/, "");
+                                setValue("flightNumber", iataCode + digits, {
                                   shouldDirty: true,
                                 });
-                              }
-
-                              if (data.scheduledDate) {
-                                setValue(
-                                  "flightScheduledAtDate",
-                                  data.scheduledDate,
-                                  {
-                                    shouldDirty: true,
-                                  },
-                                );
-                              }
-                              if (data.scheduledTime) {
-                                setValue(
-                                  "flightScheduledAtTime",
-                                  data.scheduledTime,
-                                  {
-                                    shouldDirty: true,
-                                  },
-                                );
+                              } else {
+                                setValue("flightNumber", iataCode + current, {
+                                  shouldDirty: true,
+                                });
                               }
                             }}
                           />
-                        </Grid2>
-                        {/* <div style={{ display: "grid", gap: 8 }}>
-                          <label className='cardTitle h5'>
-                            {usesPickupAirport
-                              ? "Flight Arrival Time"
-                              : "Flight Departure Time"}
-                          </label>
-                          <Grid2>
-                            <input
-                              type='date'
-                              value={flightScheduledAtDate}
-                              onChange={(e) =>
-                                setValue(
-                                  "flightScheduledAtDate",
-                                  e.target.value,
-                                  { shouldDirty: true },
-                                )
-                              }
-                              className='input emptySmall'
-                            />
-                            <input
-                              type='time'
-                              value={flightScheduledAtTime}
-                              onChange={(e) =>
-                                setValue(
-                                  "flightScheduledAtTime",
-                                  e.target.value,
-                                  { shouldDirty: true },
-                                )
-                              }
-                              className='input emptySmall'
-                            />
-                          </Grid2>
-                        </div> */}
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <label className='cardTitle h5'>Terminal</label>
-                          <input
-                            type='text'
-                            value={flightTerminal}
-                            onChange={(e) =>
-                              setValue("flightTerminal", e.target.value, {
-                                shouldDirty: true,
-                              })
-                            }
-                            placeholder='e.g., Terminal 4'
-                            className='input emptySmall'
-                          />
                         </div>
-                        {/* <Grid2> */}
-                          {/* <div style={{ display: "grid", gap: 8 }}>
-                            <label className='cardTitle h5'>Terminal</label>
-                            <input
-                              type='text'
-                              value={flightTerminal}
-                              onChange={(e) =>
-                                setValue("flightTerminal", e.target.value, {
+                        <FlightLookupInput
+                          flightNumber={flightNumber}
+                          flightDate={pickupAtDate}
+                          airportLeg={usesPickupAirport ? "PICKUP" : "DROPOFF"}
+                          onFlightNumberChange={(val) =>
+                            setValue("flightNumber", val, {
+                              shouldDirty: true,
+                            })
+                          }
+                          onFlightFound={(data) => {
+                            if (data.airline) {
+                              setValue("flightAirline", data.airline, {
+                                shouldDirty: true,
+                              });
+                            }
+                            if (data.terminal) {
+                              setValue("flightTerminal", data.terminal, {
+                                shouldDirty: true,
+                              });
+                            }
+
+                            if (data.scheduledDate) {
+                              setValue(
+                                "flightScheduledAtDate",
+                                data.scheduledDate,
+                                {
                                   shouldDirty: true,
-                                })
-                              }
-                              placeholder='e.g., Terminal 4'
-                              className='input emptySmall'
-                            />
-                          </div> */}
-                          {/* <div style={{ display: "grid", gap: 8 }}>
-                            <label className='cardTitle h5'>
-                              Gate{" "}
-                              <span style={{ fontWeight: 400, opacity: 0.6 }}>
-                                (if known)
-                              </span>
-                            </label>
-                            <input
-                              type='text'
-                              value={flightGate}
-                              onChange={(e) =>
-                                setValue(
-                                  "flightGate",
-                                  e.target.value.toUpperCase(),
-                                  { shouldDirty: true },
-                                )
-                              }
-                              placeholder='e.g., B12'
-                              className='input emptySmall'
-                            />
-                          </div> */}
+                                },
+                              );
+                            }
+                            if (data.scheduledTime) {
+                              setValue(
+                                "flightScheduledAtTime",
+                                data.scheduledTime,
+                                {
+                                  shouldDirty: true,
+                                },
+                              );
+                            }
+                          }}
+                        />
                         {/* </Grid2> */}
                       </div>
                     </div>

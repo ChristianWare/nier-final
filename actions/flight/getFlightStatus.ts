@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use server";
 
@@ -51,49 +52,63 @@ export async function getFlightStatus(
     return { ok: false, error: "Please enter a date." };
   }
 
-  const result = await lookupFlightSingle(flightNumber.trim(), date.trim());
+  try {
+    const result = await lookupFlightSingle(flightNumber.trim(), date.trim());
 
-  if (!result.ok) {
-    return { ok: false, error: result.error };
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
+
+    const f = result.flight;
+
+    return {
+      ok: true,
+      flight: {
+        flightNumber: f.flightNumber,
+        status: f.status,
+        airline: f.airline,
+        departure: {
+          airport: f.departure.airport,
+          scheduledTime: f.departure.scheduledTime,
+          estimatedTime: f.departure.estimatedTime,
+          actualTime: f.departure.actualTime,
+          terminal: f.departure.terminal,
+          gate: f.departure.gate,
+        },
+        arrival: {
+          airport: f.arrival.airport,
+          scheduledTime: f.arrival.scheduledTime,
+          estimatedTime: f.arrival.estimatedTime,
+          actualTime: f.arrival.actualTime,
+          terminal: f.arrival.terminal,
+          gate: f.arrival.gate,
+        },
+        departureDelayMinutes: f.departureDelayMinutes,
+        arrivalDelayMinutes: f.arrivalDelayMinutes,
+      },
+    };
+  } catch (err: any) {
+    console.error("getFlightStatus error:", err?.message ?? err);
+    return {
+      ok: false,
+      error: "Flight not found. Please check the flight number and date.",
+    };
   }
-
-  const f = result.flight;
-
-  return {
-    ok: true,
-    flight: {
-      flightNumber: f.flightNumber,
-      status: f.status,
-      airline: f.airline,
-      departure: {
-        airport: f.departure.airport,
-        scheduledTime: f.departure.scheduledTime,
-        estimatedTime: f.departure.estimatedTime,
-        actualTime: f.departure.actualTime,
-        terminal: f.departure.terminal,
-        gate: f.departure.gate,
-      },
-      arrival: {
-        airport: f.arrival.airport,
-        scheduledTime: f.arrival.scheduledTime,
-        estimatedTime: f.arrival.estimatedTime,
-        actualTime: f.arrival.actualTime,
-        terminal: f.arrival.terminal,
-        gate: f.arrival.gate,
-      },
-      departureDelayMinutes: f.departureDelayMinutes,
-      arrivalDelayMinutes: f.arrivalDelayMinutes,
-    },
-  };
 }
 
 /**
  * Quick lookup to auto-fill booking wizard fields.
  * Returns just the fields needed for the form.
+ *
+ * @param flightNumber - e.g. "AA1234"
+ * @param date - YYYY-MM-DD format
+ * @param airportLeg - "PICKUP" means customer is arriving (use arrival data),
+ *                     "DROPOFF" means customer is departing (use departure data)
  */
 export async function lookupFlightForBooking(
   flightNumber: string,
   date: string,
+  airportLeg: "PICKUP" | "DROPOFF" = "PICKUP",
 ): Promise<{
   ok: boolean;
   error?: string;
@@ -104,28 +119,42 @@ export async function lookupFlightForBooking(
   departureAirport?: string;
   arrivalAirport?: string;
   status?: string;
+  legType?: "arrival" | "departure";
 }> {
   if (!flightNumber?.trim() || !date?.trim()) {
     return { ok: false, error: "Flight number and date are required." };
   }
 
-  const result = await lookupFlightSingle(flightNumber.trim(), date.trim());
+  try {
+    const result = await lookupFlightSingle(flightNumber.trim(), date.trim());
 
-  if (!result.ok) {
-    return { ok: false, error: result.error };
+    if (!result.ok) {
+      return { ok: false, error: result.error };
+    }
+
+    const f = result.flight;
+
+    // PICKUP = driver picks up customer at airport → customer is ARRIVING → use arrival leg
+    // DROPOFF = driver drops customer at airport → customer is DEPARTING → use departure leg
+    const isArrival = airportLeg === "PICKUP";
+    const relevantLeg = isArrival ? f.arrival : f.departure;
+
+    return {
+      ok: true,
+      airline: f.airline.name ?? undefined,
+      terminal: relevantLeg.terminal ?? undefined,
+      gate: relevantLeg.gate ?? undefined,
+      scheduledTime: relevantLeg.scheduledTime ?? undefined,
+      departureAirport: f.departure.airport.iata ?? undefined,
+      arrivalAirport: f.arrival.airport.iata ?? undefined,
+      status: f.status,
+      legType: isArrival ? "arrival" : "departure",
+    };
+  } catch (err: any) {
+    console.error("lookupFlightForBooking error:", err?.message ?? err);
+    return {
+      ok: false,
+      error: "Flight not found. Please check the flight number and date.",
+    };
   }
-
-  const f = result.flight;
-
-  return {
-    ok: true,
-    airline: f.airline.name ?? undefined,
-    terminal: f.arrival.terminal ?? f.departure.terminal ?? undefined,
-    gate: f.arrival.gate ?? f.departure.gate ?? undefined,
-    scheduledTime:
-      f.arrival.scheduledTime ?? f.departure.scheduledTime ?? undefined,
-    departureAirport: f.departure.airport.iata ?? undefined,
-    arrivalAirport: f.arrival.airport.iata ?? undefined,
-    status: f.status,
-  };
 }

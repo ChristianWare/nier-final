@@ -638,6 +638,7 @@ th {
   font-size: 1.6rem;
   color: var(--black);
   font-weight: 500;
+  width: 100%;
 }
 
 .inputBorder {

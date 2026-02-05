@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { lookupFlightForBooking } from "../../../../actions/flight/getFlightStatus";
 import toast from "react-hot-toast";
+import styles from "./FlightLookupInput.module.css";
+import Button from "@/components/shared/Button/Button";
 
 type Props = {
   flightNumber: string;
-  flightDate: string; // YYYY-MM-DD from pickupAtDate
+  flightDate: string;
   airportLeg: "PICKUP" | "DROPOFF";
+  airportIata?: string | null;
   onFlightFound: (data: {
     airline?: string;
     terminal?: string;
@@ -18,19 +21,15 @@ type Props = {
   onFlightNumberChange: (value: string) => void;
 };
 
-/**
- * Format a date + time into "MM/DD/YY @ h:mmAM/PM"
- */
 function formatFlightTime(date?: string, time?: string): string | null {
   if (!date) return null;
   try {
     const [year, month, day] = date.split("-");
-    const shortYear = year.slice(2); // "2026" → "26"
+    const shortYear = year.slice(2);
     const datePart = `${month}/${day}/${shortYear}`;
 
     if (!time) return datePart;
 
-    // Parse "HH:mm" into 12-hour format
     const [hStr, mStr] = time.split(":");
     let h = parseInt(hStr, 10);
     const m = mStr ?? "00";
@@ -48,6 +47,7 @@ export default function FlightLookupInput({
   flightNumber,
   flightDate,
   airportLeg,
+  airportIata,
   onFlightFound,
   onFlightNumberChange,
 }: Props) {
@@ -55,24 +55,46 @@ export default function FlightLookupInput({
   const [lastLookedUp, setLastLookedUp] = useState("");
   const [foundMessage, setFoundMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setFoundMessage(null);
+    setErrorMessage(null);
+    setWarningMessage(null);
+    setLastLookedUp("");
+  }, [airportLeg, airportIata]);
 
   const doLookup = useCallback(async () => {
     const clean = flightNumber.replace(/\s+/g, "").toUpperCase();
-    if (!clean || clean.length < 3) return;
+
+    if (!clean || clean.length < 3) {
+      toast.error(
+        "Please enter a valid flight number (at least 3 characters).",
+      );
+      return;
+    }
     if (!flightDate) {
       toast.error(
         "Please select a pickup date first so we can look up the flight.",
       );
       return;
     }
-    if (clean === lastLookedUp) return;
+    if (clean === lastLookedUp) {
+      // Already looked up - just return silently (data is already displayed)
+      return;
+    }
 
     setLooking(true);
     setFoundMessage(null);
     setErrorMessage(null);
+    setWarningMessage(null);
 
     try {
-      const result = await lookupFlightForBooking(clean, flightDate);
+      const result = await lookupFlightForBooking(
+        clean,
+        flightDate,
+        airportLeg,
+      );
 
       if (result.ok) {
         console.log(
@@ -109,47 +131,88 @@ export default function FlightLookupInput({
         });
         setLastLookedUp(clean);
 
-        // Build the green confirmation message
+        const selectedIata = airportIata?.toUpperCase().trim();
+        let mismatch = false;
+
+        if (selectedIata) {
+          if (airportLeg === "PICKUP") {
+            const flightArrival = result.arrivalAirport?.toUpperCase().trim();
+            if (flightArrival && flightArrival !== selectedIata) {
+              mismatch = true;
+              setWarningMessage(
+                `This flight arrives at ${flightArrival}, not ${selectedIata}. This looks like a departing flight — did you enter the correct flight number?`,
+              );
+            }
+          } else {
+            const flightDeparture = result.departureAirport
+              ?.toUpperCase()
+              .trim();
+            if (flightDeparture && flightDeparture !== selectedIata) {
+              mismatch = true;
+              setWarningMessage(
+                `This flight departs from ${flightDeparture}, not ${selectedIata}. This looks like an arriving flight — did you enter the correct flight number?`,
+              );
+            }
+          }
+        }
+
         const arrOrDep = airportLeg === "PICKUP" ? "Arriving" : "Departing";
         const formattedTime = formatFlightTime(scheduledDate, scheduledTime);
+        const terminalPart = result.terminal
+          ? ` · Terminal ${result.terminal}`
+          : "";
 
         if (result.status === "Cancelled") {
           setErrorMessage(`⚠️ Flight ${clean} is CANCELLED`);
         } else if (result.status === "Delayed") {
           const delayMsg = formattedTime
-            ? `⚠️ Flight ${clean} is delayed — ${arrOrDep} ${formattedTime}`
+            ? `⚠️ Flight ${clean} is delayed — ${arrOrDep} ${formattedTime}${terminalPart}`
             : `⚠️ Flight ${clean} is delayed`;
           setErrorMessage(delayMsg);
-        } else {
+        } else if (!mismatch) {
           const successMsg = formattedTime
-            ? `Flight found! ${arrOrDep} ${formattedTime}`
+            ? `Flight found! ${arrOrDep} ${formattedTime}${terminalPart}`
             : `Flight ${clean} found!`;
           setFoundMessage(successMsg);
         }
       } else {
         setErrorMessage(result.error ?? "Flight not found");
       }
-    } catch {
+    } catch (err) {
+      console.error("Flight lookup error:", err);
       setErrorMessage(
         "Could not look up flight. Please enter details manually.",
       );
     } finally {
       setLooking(false);
     }
-  }, [flightNumber, flightDate, lastLookedUp, airportLeg, onFlightFound]);
+  }, [
+    flightNumber,
+    flightDate,
+    lastLookedUp,
+    airportLeg,
+    airportIata,
+    onFlightFound,
+  ]);
+
+  const handleLookupClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    doLookup();
+  };
 
   return (
-    <div style={{ display: "grid", gap: 8 }}>
+    <div className={styles.container}>
       <label className='cardTitle h5'>Flight Number</label>
-      <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+      <div className={styles.inputWrapper}>
         <input
           type='text'
           value={flightNumber}
           onChange={(e) => {
             onFlightNumberChange(e.target.value.toUpperCase());
-            // Clear messages when user starts typing again
             setFoundMessage(null);
             setErrorMessage(null);
+            setWarningMessage(null);
             setLastLookedUp("");
           }}
           onBlur={() => {
@@ -164,58 +227,31 @@ export default function FlightLookupInput({
             }
           }}
           placeholder='e.g., AA1234'
-          className='input emptySmall'
-          style={{ flex: 1 }}
+          className={`input emptySmall ${styles.flightInput}`}
         />
-        <button
-          type='button'
-          onClick={doLookup}
+
+        <Button
+          btnType='blackReg'
+          text={looking ? "Looking up..." : "Look up"}
+          onClick={handleLookupClick}
           disabled={looking || !flightNumber.trim() || !flightDate}
-          style={{
-            padding: "0 14px",
-            borderRadius: 7,
-            border: "1px solid rgba(0,0,0,0.15)",
-            background: looking ? "#f1f5f9" : "white",
-            cursor: looking ? "not-allowed" : "pointer",
-            fontSize: "1.2rem",
-            fontWeight: 500,
-            color: "#475569",
-            whiteSpace: "nowrap",
-            transition: "all 0.15s ease",
-            opacity: !flightNumber.trim() || !flightDate ? 0.5 : 1,
-          }}
-        >
-          {looking ? "Looking up..." : "🔍 Look up"}
-        </button>
+        />
       </div>
 
-      {/* Status messages */}
+      {warningMessage && (
+        <div className={styles.warningMessage}>⚠️ {warningMessage}</div>
+      )}
+
       {foundMessage && (
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 600,
-            color: "#16a34a",
-            marginTop: 2,
-          }}
-        >
-          ✅ {foundMessage}
-        </div>
+        <div className={styles.successMessage}>✅ {foundMessage}</div>
       )}
+
       {errorMessage && (
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 600,
-            color: "#dc2626",
-            marginTop: 2,
-          }}
-        >
-          {errorMessage}
-        </div>
+        <div className={styles.errorMessage}>{errorMessage}</div>
       )}
-      {!foundMessage && !errorMessage && (
-        <div style={{ fontSize: 12, opacity: 0.6 }}>
+
+      {!foundMessage && !errorMessage && !warningMessage && (
+        <div className={styles.helperText}>
           Enter your flight number and{" "}
           {flightDate
             ? "press Look up or tab out to auto-fill flight details."

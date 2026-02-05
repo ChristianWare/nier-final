@@ -1,0 +1,116 @@
+.container {
+  position: relative;
+}
+
+.inputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.iataBadge {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #e0e7ff;
+  color: #3730a3;
+  font-weight: 700;
+  letter-spacing: normal;
+  font-size: 1.4rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.inputWithBadge {
+  padding-left: 5.5rem;
+  width: 100%;
+}
+
+.clearBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 3rem;
+  color: #94a3b8;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+.clearBtn:hover {
+  color: #64748b;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.noResults {
+  padding: 12px 14px;
+  font-size: 1.4rem;
+  color: #94a3b8;
+}
+
+.airlineItem {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.4rem;
+  background: transparent;
+  transition: background 0.1s ease;
+}
+
+.airlineItem:hover,
+.airlineItemHighlighted {
+  background: #f1f5f9;
+}
+
+.airlineItemSelected {
+  background: #f0f7ff;
+}
+
+.airlineCode {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  padding: 2px 6px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 700;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.airlineCodeSelected {
+  background: #3730a3;
+  color: white;
+}
+
+.airlineName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

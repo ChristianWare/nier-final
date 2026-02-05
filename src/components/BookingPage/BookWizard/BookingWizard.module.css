@@ -150,7 +150,7 @@
 
 .flightInfoSection {
   margin-top: 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 2px solid var(--stroke);
   border-radius: 12px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.5);

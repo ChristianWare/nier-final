@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AIRLINES, findAirlineByIata } from "@/lib/flight/airlineList";
 import type { Airline } from "@/lib/flight/airlineList";
+import styles from "./AirlineSelect.module.css";
 
 type Props = {
   /** Current airline name value */
@@ -121,29 +122,10 @@ export default function AirlineSelect({
     : null;
 
   return (
-    <div ref={containerRef} style={{ position: "relative" }}>
-      <div style={{ position: "relative" }}>
-        {/* IATA badge inside input */}
+    <div ref={containerRef} className={styles.container}>
+      <div className={styles.inputWrapper}>
         {selectedAirline && !open && (
-          <div
-            style={{
-              position: "absolute",
-              left: 10,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "#e0e7ff",
-              color: "#3730a3",
-              fontWeight: 700,
-              fontSize: "1.1rem",
-              padding: "2px 7px",
-              borderRadius: 4,
-              letterSpacing: "0.05em",
-              pointerEvents: "none",
-              zIndex: 2,
-            }}
-          >
-            {selectedAirline.iata}
-          </div>
+          <div className={styles.iataBadge}>{selectedAirline.iata}</div>
         )}
 
         <input
@@ -151,8 +133,7 @@ export default function AirlineSelect({
           type='text'
           value={displayValue}
           placeholder='Search airline...'
-          className='input emptySmall'
-          style={selectedAirline && !open ? { paddingLeft: 48 } : undefined}
+          className={`input emptySmall ${selectedAirline && !open ? styles.inputWithBadge : ""}`}
           onFocus={() => {
             setOpen(true);
             setSearch(value || "");
@@ -176,19 +157,7 @@ export default function AirlineSelect({
               inputRef.current?.focus();
               setOpen(true);
             }}
-            style={{
-              position: "absolute",
-              right: 8,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "1.4rem",
-              color: "#94a3b8",
-              padding: "2px 4px",
-              lineHeight: 1,
-            }}
+            className={styles.clearBtn}
             title='Clear airline'
           >
             ×
@@ -198,91 +167,33 @@ export default function AirlineSelect({
 
       {/* Dropdown list */}
       {open && (
-        <div
-          ref={listRef}
-          style={{
-            position: "absolute",
-            top: "100%",
-            left: 0,
-            right: 0,
-            maxHeight: 240,
-            overflowY: "auto",
-            background: "white",
-            border: "1px solid rgba(0,0,0,0.15)",
-            borderTop: "none",
-            borderRadius: "0 0 8px 8px",
-            zIndex: 100,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          }}
-        >
+        <div ref={listRef} className={styles.dropdown}>
           {filtered.length === 0 ? (
-            <div
-              style={{
-                padding: "12px 14px",
-                fontSize: "1.2rem",
-                color: "#94a3b8",
-              }}
-            >
+            <div className={styles.noResults}>
               No airlines match &ldquo;{search}&rdquo;
             </div>
           ) : (
-            filtered.map((airline, i) => (
-              <div
-                key={airline.iata}
-                data-airline-item
-                onClick={() => selectAirline(airline)}
-                onMouseEnter={() => setHighlightIndex(i)}
-                style={{
-                  padding: "10px 14px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  fontSize: "1.3rem",
-                  background:
-                    i === highlightIndex
-                      ? "#f1f5f9"
-                      : selectedAirline?.iata === airline.iata
-                        ? "#f0f7ff"
-                        : "transparent",
-                  transition: "background 0.1s ease",
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minWidth: 32,
-                    padding: "2px 6px",
-                    background:
-                      selectedAirline?.iata === airline.iata
-                        ? "#3730a3"
-                        : "#e2e8f0",
-                    color:
-                      selectedAirline?.iata === airline.iata
-                        ? "white"
-                        : "#475569",
-                    fontWeight: 700,
-                    fontSize: "1.1rem",
-                    borderRadius: 4,
-                    letterSpacing: "0.05em",
-                    flexShrink: 0,
-                  }}
+            filtered.map((airline, i) => {
+              const isHighlighted = i === highlightIndex;
+              const isSelected = selectedAirline?.iata === airline.iata;
+
+              return (
+                <div
+                  key={airline.iata}
+                  data-airline-item
+                  onClick={() => selectAirline(airline)}
+                  onMouseEnter={() => setHighlightIndex(i)}
+                  className={`${styles.airlineItem} ${isHighlighted ? styles.airlineItemHighlighted : ""} ${isSelected && !isHighlighted ? styles.airlineItemSelected : ""}`}
                 >
-                  {airline.iata}
-                </span>
-                <span
-                  style={{
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {airline.name}
-                </span>
-              </div>
-            ))
+                  <span
+                    className={`${styles.airlineCode} ${isSelected ? styles.airlineCodeSelected : ""}`}
+                  >
+                    {airline.iata}
+                  </span>
+                  <span className={styles.airlineName}>{airline.name}</span>
+                </div>
+              );
+            })
           )}
         </div>
       )}
