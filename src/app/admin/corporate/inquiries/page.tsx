@@ -1,14 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import styles from "./CorporateAccountsPage.module.css";
+import styles from "./CorporateInquiriesPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { CorporateAccountStatus, Prisma } from "@prisma/client";
-import Button from "@/components/shared/Button/Button";
+import { CorporateInquiryStatus, Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const STATUSES = ["ALL", "ACTIVE", "SUSPENDED", "CLOSED"] as const;
+const STATUSES = [
+  "ALL",
+  "PENDING",
+  "CONTACTED",
+  "APPROVED",
+  "DECLINED",
+] as const;
 type StatusFilter = (typeof STATUSES)[number];
 
 const PAGE_SIZE = 15;
@@ -39,58 +43,25 @@ function formatDate(d: Date) {
     month: "2-digit",
     day: "2-digit",
     year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   }).format(d);
 }
 
-function formatMoney(cents: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
-}
-
-function statusBadgeTone(status: CorporateAccountStatus) {
-  if (status === "ACTIVE") return "good";
-  if (status === "SUSPENDED") return "warn";
-  return "bad";
-}
-
-function paymentTermsLabel(terms: string) {
-  switch (terms) {
-    case "NET_15":
-      return "NET 15";
-    case "NET_30":
-      return "NET 30";
-    case "NET_45":
-      return "NET 45";
-    case "DUE_ON_RECEIPT":
-      return "Due on Receipt";
-    default:
-      return terms;
-  }
-}
-
-function billingCycleLabel(cycle: string) {
-  switch (cycle) {
-    case "MONTHLY":
-      return "Monthly";
-    case "WEEKLY":
-      return "Weekly";
-    case "PER_RIDE":
-      return "Per Ride";
-    default:
-      return cycle;
-  }
+function statusBadgeTone(status: CorporateInquiryStatus) {
+  if (status === "PENDING") return "warn";
+  if (status === "CONTACTED") return "accent";
+  if (status === "APPROVED") return "good";
+  if (status === "DECLINED") return "bad";
+  return "neutral";
 }
 
 type SearchParams = {
   status?: string;
-  q?: string;
   page?: string;
 };
 
-export default async function AdminCorporateAccountsPage({
+export default async function AdminCorporateInquiriesPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -99,39 +70,19 @@ export default async function AdminCorporateAccountsPage({
   const status: StatusFilter = STATUSES.includes(sp.status as StatusFilter)
     ? (sp.status as StatusFilter)
     : "ALL";
-  const q = (sp.q ?? "").trim();
   const page = clampPage(sp.page);
 
-  // Build where clause
-  const where: Prisma.CorporateAccountWhereInput = {};
-
+  const where: Prisma.CorporateInquiryWhereInput = {};
   if (status !== "ALL") {
-    where.status = status as CorporateAccountStatus;
+    where.status = status as CorporateInquiryStatus;
   }
 
-  if (q) {
-    where.OR = [
-      { name: { contains: q, mode: "insensitive" } },
-      { billingEmail: { contains: q, mode: "insensitive" } },
-    ];
-  }
-
-  // Parallel queries
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-  const [totalCount, accounts, statusCountsArr] = await Promise.all([
-    db.corporateAccount.count({ where }),
-    db.corporateAccount.findMany({
+  const [totalCount, inquiries, statusCountsArr] = await Promise.all([
+    db.corporateInquiry.count({ where }),
+    db.corporateInquiry.findMany({
       where,
       include: {
-        _count: {
-          select: {
-            contacts: true,
-            passengers: true,
-            bookings: { where: { pickupAt: { gte: monthStart } } },
-          },
-        },
+        reviewedBy: { select: { name: true } },
       },
       orderBy: { createdAt: "desc" },
       skip: (Math.max(page, 1) - 1) * PAGE_SIZE,
@@ -139,10 +90,8 @@ export default async function AdminCorporateAccountsPage({
     }),
     Promise.all(
       STATUSES.map(async (s) => {
-        const w = s === "ALL" ? {} : { status: s as CorporateAccountStatus };
-        const c = await db.corporateAccount.count({
-          where: { ...w, ...(q ? { OR: where.OR } : {}) },
-        });
+        const w = s === "ALL" ? {} : { status: s as CorporateInquiryStatus };
+        const c = await db.corporateInquiry.count({ where: w });
         return [s, c] as const;
       }),
     ),
@@ -157,7 +106,6 @@ export default async function AdminCorporateAccountsPage({
 
   const baseParams: Record<string, string | undefined> = {
     status: status === "ALL" ? undefined : status,
-    q: q || undefined,
   };
 
   const pageParams = {
@@ -170,20 +118,16 @@ export default async function AdminCorporateAccountsPage({
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <div className={styles.top}>
-            <h1 className={`${styles.heading} h2`}>Corporate Accounts</h1>
+            <h1 className={`${styles.heading} h2`}>Corporate Inquiries</h1>
           </div>
 
-          <div className={styles.headerActions}>
-            <Button
-              href='/admin/corporate/inquiries'
-              text='View Inquiries'
-              btnType='black'
-            />
-          </div>
+          <Link href='/admin/corporate' className='backBtn'>
+            ← Back to Accounts
+          </Link>
 
           <div className={styles.meta}>
-            <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong> account
-            {totalCount !== 1 ? "s" : ""}
+            <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong> inquir
+            {totalCount !== 1 ? "ies" : "y"}
             {totalCount > 0 && (
               <span className={styles.metaSep}>
                 • Page <strong className='emptyTitleSmall'>{safePage}</strong>{" "}
@@ -198,7 +142,7 @@ export default async function AdminCorporateAccountsPage({
             <div className={styles.filterTitle}>Status</div>
             <div className={styles.tabRow}>
               {STATUSES.map((s) => {
-                const href = buildHref("/admin/corporate", {
+                const href = buildHref("/admin/corporate/inquiries", {
                   ...baseParams,
                   status: s === "ALL" ? undefined : s,
                   page: undefined,
@@ -226,11 +170,11 @@ export default async function AdminCorporateAccountsPage({
         </div>
       </header>
 
-      {accounts.length === 0 ? (
+      {inquiries.length === 0 ? (
         <div className={styles.empty}>
-          <p className='emptyTitle'>No corporate accounts found.</p>
+          <p className='emptyTitle'>No inquiries found.</p>
           <p className='emptyCopy'>
-            Accounts are created when you approve a corporate inquiry.
+            Corporate inquiries submitted via the website will appear here.
           </p>
         </div>
       ) : (
@@ -240,21 +184,19 @@ export default async function AdminCorporateAccountsPage({
               <thead className={styles.thead}>
                 <tr className={styles.trHead}>
                   <th className={styles.th}>Company</th>
-                  <th className={styles.th}>Billing Email</th>
-                  <th className={styles.th}>Terms</th>
-                  <th className={styles.th}>Cycle</th>
-                  <th className={styles.th}>Discount</th>
-                  <th className={styles.th}>Rides (Month)</th>
-                  <th className={styles.th}>Contacts</th>
+                  <th className={styles.th}>Contact</th>
+                  <th className={styles.th}>Email</th>
+                  <th className={styles.th}>Phone</th>
+                  <th className={styles.th}>Est. Monthly Rides</th>
                   <th className={styles.th}>Status</th>
-                  <th className={styles.th}>Created</th>
+                  <th className={styles.th}>Submitted</th>
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((a) => {
-                  const href = `/admin/corporate/${a.id}`;
+                {inquiries.map((inq) => {
+                  const href = `/admin/corporate/inquiries/${inq.id}`;
                   return (
-                    <tr key={a.id} className={styles.tr}>
+                    <tr key={inq.id} className={styles.tr}>
                       <td
                         className={styles.td}
                         style={{ position: "relative" }}
@@ -262,7 +204,7 @@ export default async function AdminCorporateAccountsPage({
                         <Link href={href} className={styles.rowStretchedLink} />
                         <div className={styles.cellStrong}>
                           <Link href={href} className={styles.rowLink}>
-                            {a.name}
+                            {inq.companyName}
                           </Link>
                         </div>
                       </td>
@@ -276,7 +218,7 @@ export default async function AdminCorporateAccountsPage({
                           aria-hidden
                           tabIndex={-1}
                         />
-                        <div className={styles.cellSub}>{a.billingEmail}</div>
+                        {inq.contactName}
                       </td>
                       <td
                         className={styles.td}
@@ -288,7 +230,7 @@ export default async function AdminCorporateAccountsPage({
                           aria-hidden
                           tabIndex={-1}
                         />
-                        {paymentTermsLabel(a.paymentTerms)}
+                        <div className={styles.cellSub}>{inq.email}</div>
                       </td>
                       <td
                         className={styles.td}
@@ -300,7 +242,7 @@ export default async function AdminCorporateAccountsPage({
                           aria-hidden
                           tabIndex={-1}
                         />
-                        {billingCycleLabel(a.billingCycle)}
+                        {inq.phone || "—"}
                       </td>
                       <td
                         className={styles.td}
@@ -312,31 +254,7 @@ export default async function AdminCorporateAccountsPage({
                           aria-hidden
                           tabIndex={-1}
                         />
-                        {a.discountPercent ? `${a.discountPercent}%` : "—"}
-                      </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden
-                          tabIndex={-1}
-                        />
-                        <strong>{a._count.bookings}</strong>
-                      </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden
-                          tabIndex={-1}
-                        />
-                        {a._count.contacts}
+                        {inq.estimatedMonthlyRides || "—"}
                       </td>
                       <td
                         className={styles.td}
@@ -349,9 +267,9 @@ export default async function AdminCorporateAccountsPage({
                           tabIndex={-1}
                         />
                         <span
-                          className={`badge badge_${statusBadgeTone(a.status)}`}
+                          className={`badge badge_${statusBadgeTone(inq.status)}`}
                         >
-                          {a.status}
+                          {inq.status}
                         </span>
                       </td>
                       <td
@@ -364,7 +282,7 @@ export default async function AdminCorporateAccountsPage({
                           aria-hidden
                           tabIndex={-1}
                         />
-                        {formatDate(a.createdAt)}
+                        {formatDate(inq.createdAt)}
                       </td>
                     </tr>
                   );
@@ -400,12 +318,11 @@ function Pagination({
 
   const hasPrev = page > 1;
   const hasNext = page < totalPages;
-
-  const prevHref = buildHref("/admin/corporate", {
+  const prevHref = buildHref("/admin/corporate/inquiries", {
     ...current,
     page: page - 1 > 1 ? String(page - 1) : undefined,
   });
-  const nextHref = buildHref("/admin/corporate", {
+  const nextHref = buildHref("/admin/corporate/inquiries", {
     ...current,
     page: String(page + 1),
   });
