@@ -8,6 +8,7 @@ import styles from "./DriverTripDetailPage.module.css";
 import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
 import TripStatusStepper from "@/components/Driver/TripStatusStepper/TripStatusStepper";
+import FlightStatusCard from "@/components/admin/FlightStatusCard/FlightStatusCard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -131,7 +132,7 @@ export default async function DriverTripDetailPage({
     where: { id },
     include: {
       user: { select: { name: true, email: true, phone: true } },
-      serviceType: { select: { name: true, slug: true } },
+      serviceType: { select: { name: true, slug: true, airportLeg: true } },
       vehicle: { select: { name: true } },
       assignment: {
         include: {
@@ -186,6 +187,26 @@ export default async function DriverTripDetailPage({
 
   // Check if trip is active (not terminal)
   const isActive = !TERMINAL_STATUSES.includes(booking.status as BookingStatus);
+
+  // Flight tracking
+  const flightDateForLookup = booking.flightScheduledAt
+    ? new Intl.DateTimeFormat("en-CA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "America/Phoenix",
+      }).format(booking.flightScheduledAt)
+    : new Intl.DateTimeFormat("en-CA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "America/Phoenix",
+      }).format(booking.pickupAt);
+
+  const airportLeg = (booking.serviceType?.airportLeg ?? "NONE") as
+    | "PICKUP"
+    | "DROPOFF"
+    | "NONE";
 
   // Determine which address to show for navigation
   const currentStatus = booking.status as BookingStatus;
@@ -382,7 +403,7 @@ export default async function DriverTripDetailPage({
           </div>
         )}
 
-        {/* Flight Info */}
+        {/* Flight Info + Live Status */}
         {(booking.flightAirline || booking.flightNumber) && (
           <div className={styles.flightInfo}>
             <h2 className='cardTitle h4'>✈️ Flight Info</h2>
@@ -394,8 +415,16 @@ export default async function DriverTripDetailPage({
               {booking.flightTerminal && (
                 <span>Terminal {booking.flightTerminal}</span>
               )}
-              {booking.flightGate && <span>Gate {booking.flightGate}</span>}
             </div>
+            {booking.flightNumber && (
+              <div style={{ marginTop: 16 }}>
+                <FlightStatusCard
+                  flightNumber={booking.flightNumber}
+                  flightDate={flightDateForLookup}
+                  airportLeg={airportLeg}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

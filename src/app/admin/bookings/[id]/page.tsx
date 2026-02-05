@@ -19,6 +19,7 @@ import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay"
 import RefundButton from "@/components/admin/RefundButton/RefundButton";
 import ApprovalToggleClient from "./ApprovalToggleClient";
 import BookingCompletionChecklist from "@/components/admin/BookingCompletionChecklist/BookingCompletionChecklist";
+import FlightStatusCard from "@/components/admin/FlightStatusCard/FlightStatusCard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -713,6 +714,27 @@ export default async function AdminBookingDetailPage({
     booking.flightTerminal ||
     booking.flightGate;
 
+  // Extract flight date for API lookup (YYYY-MM-DD)
+  const flightDateForLookup = booking.flightScheduledAt
+    ? new Intl.DateTimeFormat("en-CA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "America/Phoenix",
+      }).format(booking.flightScheduledAt)
+    : new Intl.DateTimeFormat("en-CA", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "America/Phoenix",
+      }).format(booking.pickupAt);
+
+  // Determine airport leg from service type
+  const airportLeg = (booking.serviceType.airportLeg ?? "NONE") as
+    | "PICKUP"
+    | "DROPOFF"
+    | "NONE";
+
   // Check if we have route coordinates for map display
   const hasRouteCoordinates =
     booking.pickupLat &&
@@ -985,6 +1007,20 @@ export default async function AdminBookingDetailPage({
                 )}
                 {booking.flightGate && (
                   <KeyVal k='Gate' v={booking.flightGate} />
+                )}
+                {booking.flightGate && (
+                  <KeyVal k='Gate' v={booking.flightGate} />
+                )}
+
+                {/* ✅ Live Flight Tracking */}
+                {booking.flightNumber && (
+                  <div style={{ marginTop: 16 }}>
+                    <FlightStatusCard
+                      flightNumber={booking.flightNumber}
+                      flightDate={flightDateForLookup}
+                      airportLeg={airportLeg}
+                    />
+                  </div>
                 )}
               </div>
             </>

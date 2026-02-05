@@ -1,0 +1,284 @@
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f0f7ff 0%, #faf5ff 100%);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerIcon {
+  font-size: 1.6rem;
+}
+
+.headerTitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.refreshBtn {
+  padding: 6px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  background: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #475569;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading */
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px 18px;
+  font-size: 1.3rem;
+  color: #64748b;
+}
+
+.loadingDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3b82f6;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Error */
+.errorState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 18px;
+  font-size: 1.3rem;
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.errorIcon {
+  font-size: 1.4rem;
+}
+
+/* Body */
+.body {
+  padding: 16px 18px;
+  display: grid;
+  gap: 16px;
+}
+
+/* Status row */
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* Delay badges */
+.delayBadgeOnTime {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.delayBadgeMinor {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.delayBadgeModerate {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.delayBadgeSevere {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  background: #fecaca;
+  color: #991b1b;
+}
+
+/* Route row */
+.routeRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+.routeAirport {
+  text-align: center;
+  min-width: 80px;
+}
+
+.airportCode {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #1e293b;
+}
+
+.airportName {
+  font-size: 1.1rem;
+  color: #64748b;
+  margin-top: 2px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routeArrow {
+  font-size: 2rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* Times grid */
+.timesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.timeBlock {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.timeLabel {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.timeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+}
+
+.timeKey {
+  color: #64748b;
+}
+
+.timeVal {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.timeActual {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+/* Airline */
+.airlineRow {
+  font-size: 1.2rem;
+  color: #475569;
+  display: flex;
+  gap: 6px;
+}
+
+.airlineLabel {
+  font-weight: 600;
+}
+
+/* Footer */
+.footer {
+  padding: 8px 18px;
+  font-size: 1.1rem;
+  color: #94a3b8;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.4);
+}
+
+@media screen and (max-width: 768px) {
+  .timesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .routeRow {
+    gap: 10px;
+  }
+
+  .airportCode {
+    font-size: 1.6rem;
+  }
+}

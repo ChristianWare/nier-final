@@ -156,7 +156,7 @@
   background: rgba(255, 255, 255, 0.5);
 }
 
-.flightInfoToggle {
+/* .flightInfoToggle {
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -178,7 +178,7 @@
   font-weight: 300;
   opacity: 0.6;
   line-height: 1;
-}
+} */
 
 .flightInfoFields {
   padding: 0 1.25rem 1.25rem 1.25rem;
