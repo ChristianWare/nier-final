@@ -21,6 +21,8 @@ import Money from "@/components/shared/icons/Money/Money";
 import Report from "@/components/shared/icons/Report/Report";
 import Company from "@/components/shared/icons/Company/Company";
 import Appointments from "@/components/shared/icons/Appointments/Appointments";
+import Analytics from "@/components/shared/icons/Analytics/Analytics";
+import Business from "@/components/shared/icons/Business/Business";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
@@ -34,12 +36,12 @@ const NAV_ITEMS = [
   },
   { title: "Vehicles", href: "/admin/vehicles", icon: <Car /> },
   { title: "Users", href: "/admin/users", icon: <Users /> },
-  { title: "Corporate", href: "/admin/corporate", icon: <Company /> },
+  { title: "Corporate", href: "/admin/corporate", icon: <Business /> },
   { title: "Airports", href: "/admin/airports", icon: <Plane /> },
   { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
   { title: "Reports", href: "/admin/reports", icon: <Report /> },
   { title: "Company", href: "/admin/company", icon: <Company /> },
-  { title: "Website Analytics", href: "/admin/analytics", icon: <Company /> },
+  { title: "Website Analytics", href: "/admin/analytics", icon: <Analytics /> },
   { title: "Settings", href: "/admin/settings", icon: <Cog /> },
 ];
 
