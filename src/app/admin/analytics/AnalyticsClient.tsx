@@ -19,6 +19,8 @@ import type {
   TopPageData,
   TrafficSourceData,
   CountryData,
+  RegionData,
+  CityData,
   DeviceData,
   EntryPageData,
   ExitPageData,
@@ -38,6 +40,8 @@ export type AnalyticsClientProps = {
   topPages: TopPageData[];
   trafficSources: TrafficSourceData[];
   countries: CountryData[];
+  regions: RegionData[];
+  cities: CityData[];
   devices: DeviceData[];
   entryPages: EntryPageData[];
   exitPages: ExitPageData[];
@@ -294,6 +298,8 @@ export default function AnalyticsClient({
   topPages,
   trafficSources,
   countries,
+  regions,
+  cities,
   devices,
   entryPages,
   exitPages,
@@ -307,6 +313,9 @@ export default function AnalyticsClient({
   const [chartMetric, setChartMetric] = useState<
     "visitors" | "pageviews" | "visits"
   >("visitors");
+  const [locationTab, setLocationTab] = useState<
+    "countries" | "regions" | "cities"
+  >("countries");
 
   const toggleInsight = useCallback((key: string) => {
     setActiveInsight((prev) => (prev === key ? null : key));
@@ -1040,7 +1049,7 @@ export default function AnalyticsClient({
           </div>
         </div>
 
-        {/* Countries */}
+        {/* Locations (tabbed: Countries / Regions / Cities) */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
@@ -1051,6 +1060,25 @@ export default function AnalyticsClient({
                 onToggle={toggleInsight}
               />
             </div>
+            <div className={styles.metricToggles}>
+              {(["countries", "regions", "cities"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setLocationTab(tab)}
+                  className={
+                    locationTab === tab
+                      ? styles.metricToggleActive
+                      : styles.metricToggle
+                  }
+                >
+                  {tab === "countries"
+                    ? "Countries"
+                    : tab === "regions"
+                      ? "Regions"
+                      : "Cities"}
+                </button>
+              ))}
+            </div>
           </div>
           {activeInsight === "locations" && (
             <div style={{ padding: "0 14px 14px" }}>
@@ -1059,53 +1087,158 @@ export default function AnalyticsClient({
                 <div className={styles.insightBody}>
                   Where your visitors are physically located. For a
                   Phoenix-based car service, you want to see heavy US / Arizona
-                  traffic. Lots of traffic from irrelevant locations could mean
-                  ad targeting or SEO keywords need adjusting.
+                  traffic. Use the tabs to drill down from countries to states
+                  to individual cities. Lots of traffic from irrelevant
+                  locations could mean ad targeting or SEO keywords need
+                  adjusting.
                 </div>
                 <div className={styles.insightTip}>
                   💡 Focus your SEO on local terms like &quot;Phoenix black car
                   service&quot;, &quot;Scottsdale airport transfer&quot;, and
-                  &quot;Arizona executive transportation&quot;.
+                  &quot;Arizona executive transportation&quot;. Check the Cities
+                  tab to see if you&apos;re reaching neighborhoods you serve.
                 </div>
               </div>
             </div>
           )}
           <div className={styles.tableWrap}>
-            {countries.length > 0 ? (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Country</th>
-                    <th>Visitors</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {countries.map((c) => (
-                    <tr key={c.country}>
-                      <td style={{ fontWeight: 600 }}>{c.country}</td>
-                      <td>
-                        <div className={styles.barCell}>
-                          <div className={styles.barTrack}>
-                            <div
-                              className={styles.barFillPrimary}
-                              style={{
-                                width: `${Math.min(100, (c.visitors / (countries[0]?.visitors || 1)) * 100)}%`,
-                              }}
-                            />
-                          </div>
-                          <span className={styles.barValue}>
-                            {formatNumber(c.visitors)}
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className={styles.empty}>
-                <span className='miniNote'>No location data yet</span>
-              </div>
+            {/* Countries Tab */}
+            {locationTab === "countries" && (
+              <>
+                {countries.length > 0 ? (
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Country</th>
+                        <th>Visitors</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {countries.map((c) => (
+                        <tr key={c.country}>
+                          <td style={{ fontWeight: 600 }}>
+                            <span style={{ marginRight: 6 }}>{c.flag}</span>
+                            {c.country}
+                          </td>
+                          <td>
+                            <div className={styles.barCell}>
+                              <div className={styles.barTrack}>
+                                <div
+                                  className={styles.barFillPrimary}
+                                  style={{
+                                    width: `${Math.min(100, (c.visitors / (countries[0]?.visitors || 1)) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className={styles.barValue}>
+                                {formatNumber(c.visitors)}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className={styles.empty}>
+                    <span className='miniNote'>No country data yet</span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Regions Tab */}
+            {locationTab === "regions" && (
+              <>
+                {regions.length > 0 ? (
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Region</th>
+                        <th>Country</th>
+                        <th>Visitors</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {regions.map((r) => (
+                        <tr key={`${r.region}-${r.country}`}>
+                          <td style={{ fontWeight: 600 }}>
+                            <span style={{ marginRight: 6 }}>{r.flag}</span>
+                            {r.region}
+                          </td>
+                          <td className='miniNote'>{r.country}</td>
+                          <td>
+                            <div className={styles.barCell}>
+                              <div className={styles.barTrack}>
+                                <div
+                                  className={styles.barFillPrimary}
+                                  style={{
+                                    width: `${Math.min(100, (r.visitors / (regions[0]?.visitors || 1)) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className={styles.barValue}>
+                                {formatNumber(r.visitors)}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className={styles.empty}>
+                    <span className='miniNote'>No region data yet</span>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Cities Tab */}
+            {locationTab === "cities" && (
+              <>
+                {cities.length > 0 ? (
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>City</th>
+                        <th>Region</th>
+                        <th>Visitors</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cities.map((c) => (
+                        <tr key={`${c.city}-${c.region}`}>
+                          <td style={{ fontWeight: 600 }}>
+                            <span style={{ marginRight: 6 }}>{c.flag}</span>
+                            {c.city}
+                          </td>
+                          <td className='miniNote'>{c.region}</td>
+                          <td>
+                            <div className={styles.barCell}>
+                              <div className={styles.barTrack}>
+                                <div
+                                  className={styles.barFillPrimary}
+                                  style={{
+                                    width: `${Math.min(100, (c.visitors / (cities[0]?.visitors || 1)) * 100)}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className={styles.barValue}>
+                                {formatNumber(c.visitors)}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className={styles.empty}>
+                    <span className='miniNote'>No city data yet</span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

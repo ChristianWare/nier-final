@@ -10,7 +10,7 @@
 
 import { Suspense } from "react";
 import { unstable_noStore as noStore } from "next/cache";
-import AnalyticsClient from './AnalyticsClient'
+import AnalyticsClient from "./AnalyticsClient";
 import styles from "./AdminAnalyticsPage.module.css";
 
 import {
@@ -19,6 +19,8 @@ import {
   getTopPages,
   getTrafficSources,
   getCountries,
+  getRegions,
+  getCities,
   getDevices,
   getEntryPages,
   getExitPages,
@@ -91,6 +93,8 @@ async function AnalyticsContent({ range }: { range: ValidRange }) {
     topPages,
     trafficSources,
     countries,
+    regions,
+    cities,
     devices,
     entryPages,
     exitPages,
@@ -103,6 +107,8 @@ async function AnalyticsContent({ range }: { range: ValidRange }) {
     getTopPages(range, 10),
     getTrafficSources(range, 10),
     getCountries(range, 10),
+    getRegions(range, 10),
+    getCities(range, 10),
     getDevices(range),
     getEntryPages(range, 10),
     getExitPages(range, 10),
@@ -120,6 +126,8 @@ async function AnalyticsContent({ range }: { range: ValidRange }) {
       topPages={topPages}
       trafficSources={trafficSources}
       countries={countries}
+      regions={regions}
+      cities={cities}
       devices={devices}
       entryPages={entryPages}
       exitPages={exitPages}

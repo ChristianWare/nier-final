@@ -207,10 +207,23 @@ export async function getTrafficSources(
   }));
 }
 
+/* ── Flag Helper ──────────────────────────────── */
+
+/** Convert a 2-letter ISO country code (e.g. "US") to a flag emoji (🇺🇸) */
+export function countryCodeToFlag(code: string): string {
+  if (!code || code.length !== 2) return "";
+  const upper = code.toUpperCase();
+  const cp1 = 0x1f1e6 + (upper.charCodeAt(0) - 65);
+  const cp2 = 0x1f1e6 + (upper.charCodeAt(1) - 65);
+  return String.fromCodePoint(cp1, cp2);
+}
+
 /* ── Countries ────────────────────────────────── */
 
 export type CountryData = {
   country: string;
+  countryCode: string;
+  flag: string;
   visitors: number;
 };
 
@@ -221,17 +234,94 @@ export async function getCountries(
   const data = await queryV2({
     metrics: ["visitors"],
     date_range: dateRange,
-    dimensions: ["visit:country_name"],
+    dimensions: ["visit:country_name", "visit:country"],
     order_by: [["visitors", "desc"]],
     pagination: { limit },
   });
 
   if (!data?.results) return [];
 
-  return data.results.map((r: { dimensions: string[]; metrics: number[] }) => ({
-    country: r.dimensions[0] || "Unknown",
-    visitors: r.metrics[0] ?? 0,
-  }));
+  return data.results.map((r: { dimensions: string[]; metrics: number[] }) => {
+    const code = r.dimensions[1] || "";
+    return {
+      country: r.dimensions[0] || "Unknown",
+      countryCode: code,
+      flag: countryCodeToFlag(code),
+      visitors: r.metrics[0] ?? 0,
+    };
+  });
+}
+
+/* ── Regions (States/Provinces) ────────────────── */
+
+export type RegionData = {
+  region: string;
+  country: string;
+  countryCode: string;
+  flag: string;
+  visitors: number;
+};
+
+export async function getRegions(
+  dateRange: string | [string, string],
+  limit = 10,
+): Promise<RegionData[]> {
+  const data = await queryV2({
+    metrics: ["visitors"],
+    date_range: dateRange,
+    dimensions: ["visit:region_name", "visit:country_name", "visit:country"],
+    order_by: [["visitors", "desc"]],
+    pagination: { limit },
+  });
+
+  if (!data?.results) return [];
+
+  return data.results.map((r: { dimensions: string[]; metrics: number[] }) => {
+    const code = r.dimensions[2] || "";
+    return {
+      region: r.dimensions[0] || "Unknown",
+      country: r.dimensions[1] || "Unknown",
+      countryCode: code,
+      flag: countryCodeToFlag(code),
+      visitors: r.metrics[0] ?? 0,
+    };
+  });
+}
+
+/* ── Cities ───────────────────────────────────── */
+
+export type CityData = {
+  city: string;
+  region: string;
+  countryCode: string;
+  flag: string;
+  visitors: number;
+};
+
+export async function getCities(
+  dateRange: string | [string, string],
+  limit = 10,
+): Promise<CityData[]> {
+  const data = await queryV2({
+    metrics: ["visitors"],
+    date_range: dateRange,
+    dimensions: ["visit:city_name", "visit:region_name", "visit:country"],
+    order_by: [["visitors", "desc"]],
+    pagination: { limit },
+  });
+
+  if (!data?.results) return [];
+
+  return data.results.map((r: { dimensions: string[]; metrics: number[] }) => {
+    const code = r.dimensions[2] || "";
+    return {
+      city: r.dimensions[0] || "Unknown",
+      region: r.dimensions[1] || "Unknown",
+      countryCode: code,
+      flag: countryCodeToFlag(code),
+      visitors: r.metrics[0] ?? 0,
+    };
+  });
 }
 
 /* ── Devices ──────────────────────────────────── */
