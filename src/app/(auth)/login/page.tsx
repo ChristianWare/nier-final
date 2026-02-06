@@ -8,15 +8,14 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type AppRole = "USER" | "ADMIN" | "DRIVER";
+type AppRole = "USER" | "ADMIN" | "DRIVER" | "CORPORATE";
 
 function roleHomeFromRoles(roles: AppRole[]) {
-  // priority: ADMIN > DRIVER > USER
   if (roles.includes("ADMIN")) return "/admin";
   if (roles.includes("DRIVER")) return "/driver-dashboard";
+  if (roles.includes("CORPORATE")) return "/corporate";
   return "/dashboard";
 }
-
 export default async function LoginPage({
   searchParams,
 }: {

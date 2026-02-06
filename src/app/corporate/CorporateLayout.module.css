@@ -28,6 +28,13 @@
 /* .sideNavContainer {
 } */
 
+.sideNavContainer {
+  position: sticky;
+  top: 80px;
+  align-self: start;
+  z-index: 10;
+}
+
 .right {
   width: 100%;
 }

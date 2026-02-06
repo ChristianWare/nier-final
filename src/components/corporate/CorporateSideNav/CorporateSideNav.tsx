@@ -93,7 +93,9 @@ export default function CorporateSideNav({
                 </li>
               );
             })}
+          </div>
 
+          <div className={styles.btnContainer}>
             <Link href='/dashboard' className={styles.dshbrdBtn}>
               Personal Dashboard <Arrow className={styles.arrow} />
             </Link>

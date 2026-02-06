@@ -1,0 +1,276 @@
+/* CorporateEmployees.module.css */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.meta {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+  margin-top: 0.4rem;
+}
+
+.meta strong {
+  color: var(--black, #000);
+  font-size: 1.4rem;
+  letter-spacing: normal;
+}
+
+/* ─── Filters ─── */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 220px;
+  font-size: 1.4rem;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.selectInput {
+  font-size: 1.4rem;
+  min-width: 160px;
+}
+
+/* ─── Table Card ─── */
+.tableCard {
+  background: #fff;
+  border: 1px solid var(--stroke, #d8d6d2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.thead {
+  background: var(--cream, #eae9e6);
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke, #d8d6d2);
+}
+
+.th {
+  padding: 1rem 1.4rem;
+  text-align: left;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--black, #000);
+  white-space: nowrap;
+}
+
+.tr {
+  border-bottom: 1px solid var(--cream, #eae9e6);
+  transition: background 0.1s ease;
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.tr:hover {
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.td {
+  padding: 1rem 1.4rem;
+  font-size: 1.4rem;
+  color: var(--black, #000);
+  vertical-align: middle;
+  position: relative;
+}
+
+.cellStrong {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--black, #000);
+}
+
+.cellSub {
+  display: block;
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+}
+
+/* ─── Badges ─── */
+.badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+
+.badgeGreen {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+}
+
+.badgeNeutral {
+  background: var(--cream, #eae9e6);
+  color: var(--paragraph, #676767);
+}
+
+/* ─── Action Buttons ─── */
+.actionBtns {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.actionBtns button {
+  font-size: 1.4rem;
+  padding: 0.5rem 1rem;
+  white-space: nowrap;
+}
+
+/* ─── Table Footer ─── */
+.tableFooter {
+  padding: 1rem 1.4rem;
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+  border-top: 1px solid var(--cream, #eae9e6);
+}
+
+/* ─── Empty State ─── */
+.emptyState {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--stroke, #d8d6d2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.emptyTitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--black, #000);
+  margin: 0;
+}
+
+.emptySub {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+  margin: 0;
+  max-width: 360px;
+}
+
+/* ─── Modal ─── */
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.modalSub {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formField:first-child {
+  grid-column: span 2;
+}
+
+.formLabel {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--black, #000);
+}
+
+.modalActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .filters {
+    flex-direction: column;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .filterGroup {
+    width: 100%;
+  }
+
+  .selectInput {
+    flex: 1;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formField:first-child {
+    grid-column: span 1;
+  }
+
+  .th,
+  .td {
+    padding: 0.8rem 1rem;
+  }
+
+  .actionBtns {
+    flex-direction: column;
+  }
+}

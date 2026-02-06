@@ -83,6 +83,15 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
     return NextResponse.redirect(url);
   }
 
+  // Corporate users landing on /dashboard should go to /corporate
+  if (
+    isUserDashboard &&
+    hasAnyRole(req, ["CORPORATE"]) &&
+    !hasAnyRole(req, ["ADMIN"])
+  ) {
+    return NextResponse.redirect(new URL("/corporate", nextUrl));
+  }
+
   // Admin area requires ADMIN
   if (isAdminArea && !hasAnyRole(req, ["ADMIN"])) {
     return NextResponse.redirect(new URL("/", nextUrl));

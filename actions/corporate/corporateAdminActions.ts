@@ -98,72 +98,88 @@ export async function approveInquiryAndCreateAccount(
     if (inquiry.status === "APPROVED")
       return { ok: false, error: "Inquiry already approved." };
 
-    // ─── 1. Check if a user already exists with this email ───
-    let user = await db.user.findUnique({
-      where: { email: inquiry.email },
-      select: { id: true, roles: true },
-    });
-
-    if (user) {
-      // User exists — make sure they have the CORPORATE role
-      const currentRoles = (user.roles ?? []) as Role[];
-      if (!currentRoles.includes("CORPORATE" as Role)) {
-        await db.user.update({
-          where: { id: user.id },
-          data: { roles: [...currentRoles, "CORPORATE" as Role] },
-        });
-      }
-    } else {
-      // ─── 2. Create new user with no password, CORPORATE role ───
-      user = await db.user.create({
-        data: {
-          name: inquiry.contactName,
-          email: inquiry.email,
-          // password is null — they'll set it via the welcome email link
-          roles: ["CORPORATE" as Role],
-        },
+    // ─── Run all DB writes in a transaction ───
+    // If any step fails, everything rolls back — no orphaned records.
+    const { account, userId } = await db.$transaction(async (tx) => {
+      // ─── 1. Find or create user ───
+      let user = await tx.user.findUnique({
+        where: { email: inquiry.email },
         select: { id: true, roles: true },
       });
-    }
 
-    // ─── 3. Create the corporate account ───
-    const account = await db.corporateAccount.create({
-      data: {
-        name: inquiry.companyName,
-        billingEmail: inquiry.email,
-        billingCycle: data.billingCycle,
-        paymentMethod: data.paymentMethod,
-        paymentTerms: data.paymentTerms,
-        discountPercent: data.discountPercent ?? undefined,
-        monthlyLimitCents: data.monthlyLimitCents ?? undefined,
-        internalNotes: data.internalNotes ?? undefined,
-        status: "ACTIVE",
-      },
-    });
+      if (user) {
+        const currentRoles = (user.roles ?? []) as Role[];
+        if (!currentRoles.includes("CORPORATE")) {
+          await tx.user.update({
+            where: { id: user.id },
+            data: { roles: [...currentRoles, "CORPORATE"] },
+          });
+        }
+      } else {
+        user = await tx.user.create({
+          data: {
+            name: inquiry.contactName,
+            email: inquiry.email,
+            roles: ["CORPORATE"],
+          },
+          select: { id: true, roles: true },
+        });
+      }
 
-    // ─── 4. Create CorporateContact linking user → account ───
-    await db.corporateContact.create({
-      data: {
-        corporateAccountId: account.id,
-        userId: user.id,
-        phone: inquiry.phone ?? undefined,
-        role: "PRIMARY",
-      },
-    });
+      // ─── 2. Create the corporate account ───
+      const newAccount = await tx.corporateAccount.create({
+        data: {
+          name: inquiry.companyName,
+          billingEmail: inquiry.email,
+          billingCycle: data.billingCycle,
+          paymentMethod: data.paymentMethod,
+          paymentTerms: data.paymentTerms,
+          discountPercent: data.discountPercent ?? undefined,
+          monthlyLimitCents: data.monthlyLimitCents ?? undefined,
+          internalNotes: data.internalNotes ?? undefined,
+          status: "ACTIVE",
+        },
+      });
 
-    // ─── 5. Update inquiry to approved with link to account ───
-    await db.corporateInquiry.update({
-      where: { id: inquiryId },
-      data: {
-        status: "APPROVED",
-        reviewedAt: new Date(),
-        reviewedById: admin.id,
-        corporateAccountId: account.id,
-      },
+      // ─── 3. Create CorporateContact linking user → account ───
+      await tx.corporateContact.create({
+        data: {
+          corporateAccountId: newAccount.id,
+          userId: user.id,
+          phone: inquiry.phone ?? undefined,
+          role: "PRIMARY",
+        },
+      });
+
+      // ─── 4. Add primary contact to the passenger roster ───
+      await tx.corporatePassenger.create({
+        data: {
+          corporateAccountId: newAccount.id,
+          name: inquiry.contactName,
+          email: inquiry.email,
+          phone: inquiry.phone ?? null,
+          active: true,
+        },
+      });
+
+      // ─── 5. Mark inquiry as approved ───
+      await tx.corporateInquiry.update({
+        where: { id: inquiryId },
+        data: {
+          status: "APPROVED",
+          reviewedAt: new Date(),
+          reviewedById: admin.id,
+          corporateAccountId: newAccount.id,
+        },
+      });
+
+      return { account: newAccount, userId: user.id };
     });
 
     // ─── 6. Generate password-set token & send welcome email ───
-    const token = await generatePasswordSetToken(user.id);
+    // Done outside the transaction — if the email fails, the account
+    // still exists and admin can resend later.
+    const token = await generatePasswordSetToken(userId);
 
     const emailResult = await sendCorporateWelcomeEmail({
       to: inquiry.email,
@@ -181,7 +197,6 @@ export async function approveInquiryAndCreateAccount(
         "[approveInquiry] Welcome email failed:",
         emailResult.error,
       );
-      // Account is still created — admin can resend the email later
     }
 
     revalidatePath("/admin/corporate");
@@ -308,7 +323,6 @@ export async function resendCorporateWelcomeEmail(accountId: string) {
   if (!admin) return { ok: false, error: "Not authorized" };
 
   try {
-    // Get the account + primary contact
     const account = await db.corporateAccount.findUnique({
       where: { id: accountId },
       include: {
@@ -316,7 +330,7 @@ export async function resendCorporateWelcomeEmail(accountId: string) {
           where: { role: "PRIMARY" },
           include: {
             user: {
-              select: { id: true, name: true, email: true, password: true },
+              select: { id: true, password: true, email: true, name: true },
             },
           },
           take: 1,
@@ -331,17 +345,15 @@ export async function resendCorporateWelcomeEmail(accountId: string) {
     if (!contact.user)
       return { ok: false, error: "No user linked to contact." };
 
-    // Only resend if user hasn't set a password yet
     if (contact.user.password) {
       return { ok: false, error: "This user has already set their password." };
     }
 
-    // Generate new token and send email
     const token = await generatePasswordSetToken(contact.user.id);
 
     const emailResult = await sendCorporateWelcomeEmail({
       to: contact.user.email!,
-      contactName: contact.user.name ?? "",
+      contactName: contact.user.name ?? "there",
       companyName: account.name,
       billingCycle: account.billingCycle,
       paymentMethod: account.paymentMethod,
