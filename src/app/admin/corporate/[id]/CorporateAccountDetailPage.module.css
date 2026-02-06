@@ -24,11 +24,11 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
 .meta {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   opacity: 0.7;
 }
 
@@ -45,15 +45,15 @@
   padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 
 .kpiLabel {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
   opacity: 0.6;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 /* Cards */
@@ -66,7 +66,7 @@
 }
 
 .cardTop {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .cardTopRow {
@@ -108,9 +108,9 @@
 .miniTh {
   text-align: left;
   padding: 8px 10px;
-  font-size: 1.05rem;
+  font-size: 1.4rem;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: normal;
   opacity: 0.75;
   white-space: nowrap;
   border-bottom: 1px solid var(--stroke);
@@ -118,7 +118,7 @@
 
 .miniTd {
   padding: 10px 10px;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   vertical-align: middle;
 }
@@ -139,7 +139,7 @@
 }
 
 .routeCell {
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   opacity: 0.8;
   white-space: nowrap;
   overflow: hidden;
@@ -155,12 +155,12 @@
 
 .dangerTop {
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .actionsRow {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -168,33 +168,72 @@
 .modalContent {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
+  gap: 2rem;
 }
 
 .formField {
   display: grid;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 
 .formLabel {
-  font-size: 1.15rem;
+  font-size: 1.5rem;
   font-weight: 700;
   opacity: 0.7;
-  letter-spacing: 0.02em;
+  letter-spacing: normal;
   text-transform: uppercase;
 }
 
 .modalActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-wrap: wrap;
   margin-top: 1rem;
+}
+
+/* ─── Add these to CorporateAccountDetailPage.module.css ─── */
+
+.resendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 16px 20px;
+  margin: 0 0 16px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+}
+
+.resendInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.resendLabel {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.resendCopy {
+  font-size: 1.4rem;
+  color: #78350f;
+  line-height: 1.4;
+}
+
+@media (max-width: 600px) {
+  .resendRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 @media screen and (max-width: 768px) {
@@ -210,7 +249,7 @@
 
   .keyVal {
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 1rem;
   }
 
   .formGrid {

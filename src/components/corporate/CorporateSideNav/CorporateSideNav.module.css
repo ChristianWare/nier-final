@@ -1,0 +1,172 @@
+/* CorporateSideNav.module.css — matches AdminSideNav.module.css */
+
+.container {
+  width: 100%;
+}
+
+.statusBadge {
+  font-size: 1.15rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+.statusBadge[data-status="SUSPENDED"] {
+  background: rgba(245, 158, 11, 0.1);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.statusBadge[data-status="CLOSED"] {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.nav {
+  width: 100%;
+}
+
+.navLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.closeWrapper {
+  display: none;
+}
+
+.linksWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--paragraph, #676767);
+  text-decoration: none;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.navLink:hover {
+  background: var(--cream, #eae9e6);
+  color: var(--black, #000);
+}
+
+.navLinkActive {
+  background: var(--black, #000);
+  color: var(--white, #fff);
+}
+
+.navLinkActive:hover {
+  background: var(--black, #000);
+  color: var(--white, #fff);
+}
+
+.navLink svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.badge {
+  margin-left: auto;
+  background: var(--accent, #d0311e);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+  border-radius: 50px;
+  min-width: 22px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Dashboard + sign out links */
+.dshbrdBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--paragraph, #676767);
+  text-decoration: none;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--stroke, #d8d6d2);
+  padding-top: 1.5rem;
+  transition: color 0.15s ease;
+}
+
+.dshbrdBtn:hover {
+  color: var(--black, #000);
+}
+
+.arrow {
+  width: 14px;
+  height: 14px;
+}
+
+.signOutBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--paragraph, #676767);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: color 0.15s ease;
+  width: 100%;
+  text-align: left;
+}
+
+.signOutBtn:hover {
+  color: var(--accent, #d0311e);
+}
+
+.signOutLogo {
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 900px) {
+  .navLinks {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    background: var(--white, #fff);
+    z-index: 999;
+    padding: 2rem 1.5rem;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+    transition: left 0.25s ease;
+    overflow-y: auto;
+  }
+
+  .navLinks.open {
+    left: 0;
+  }
+
+  .closeWrapper {
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+}

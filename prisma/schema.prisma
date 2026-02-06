@@ -22,6 +22,7 @@ enum Role {
   USER
   ADMIN
   DRIVER
+  CORPORATE
 }
 
 enum BookingStatus {
@@ -139,6 +140,9 @@ model User {
   // Credentials auth support
   password String?
 
+  passwordSetToken       String?   @unique
+  passwordSetTokenExpiry DateTime?
+
   roles Role[] @default([USER])
 
   accounts Account[]
@@ -154,9 +158,9 @@ model User {
 
   // Corporate account relations
   corporateContacts       CorporateContact[]
-  inquiriesReviewed       CorporateInquiry[]       @relation("InquiryReviewer")
-  invoiceEventsCreated    CorporateInvoiceEvent[]  @relation("InvoiceEventCreator")
-  invoicePaymentsRecorded CorporateInvoice[]       @relation("InvoicePaymentRecorder")
+  inquiriesReviewed       CorporateInquiry[]      @relation("InquiryReviewer")
+  invoiceEventsCreated    CorporateInvoiceEvent[] @relation("InvoiceEventCreator")
+  invoicePaymentsRecorded CorporateInvoice[]      @relation("InvoicePaymentRecorder")
 
   createdAt                 DateTime                   @default(now())
   updatedAt                 DateTime                   @updatedAt
@@ -422,8 +426,8 @@ model Booking {
   fees BookingFee[]
 
   // Corporate account billing
-  corporateAccountId   String?
-  corporateAccount     CorporateAccount?   @relation(fields: [corporateAccountId], references: [id], onDelete: SetNull)
+  corporateAccountId String?
+  corporateAccount   CorporateAccount? @relation(fields: [corporateAccountId], references: [id], onDelete: SetNull)
 
   // Who is the passenger (from corporate roster)
   corporatePassengerId String?
@@ -827,8 +831,8 @@ model CorporateInquiry {
   email       String
   phone       String?
 
-  estimatedMonthlyRides String?  @db.Text // "1-10", "11-25", "26-50", "50+"
-  message               String?  @db.Text
+  estimatedMonthlyRides String? @db.Text // "1-10", "11-25", "26-50", "50+"
+  message               String? @db.Text
 
   status CorporateInquiryStatus @default(PENDING)
 

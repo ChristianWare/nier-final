@@ -30,13 +30,17 @@
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .meta {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   opacity: 0.75;
+}
+
+.meta strong {
+  font-size: 1.4rem;
 }
 
 .metaSep {
@@ -50,20 +54,20 @@
 
 .filterGroup {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .filterTitle {
-  font-size: 1.05rem;
+  font-size: 1.4rem;
   font-weight: 900;
   opacity: 0.6;
-  letter-spacing: 0.08em;
+  letter-spacing: normal;
   text-transform: uppercase;
 }
 
 .tabRow {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -109,18 +113,19 @@
 .th {
   text-align: left;
   padding: 12px 14px;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 900;
-  letter-spacing: 0.02em;
+  letter-spacing: normal;
   opacity: 0.85;
   white-space: nowrap;
 }
 
 .td {
   padding: 12px 14px;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   vertical-align: middle;
+  position: relative;
 }
 
 .tr {
@@ -155,7 +160,7 @@
 }
 
 .cellSub {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   opacity: 0.7;
 }
 
@@ -175,13 +180,13 @@
 }
 
 .paginationMeta {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   opacity: 0.8;
 }
 
 .paginationRight {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -194,7 +199,7 @@
   padding: 0 10px;
   border: 1px solid var(--stroke);
   border-radius: 6px;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 600;
   text-decoration: none;
   color: var(--black);

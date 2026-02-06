@@ -84,39 +84,44 @@ export default async function CorporateAccountDetailPage({
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [account, recentBookings, bookingsThisMonth, totalBookings, invoiceSummary] =
-    await Promise.all([
-      db.corporateAccount.findUnique({
-        where: { id },
-        include: {
-          contacts: {
-            include: { user: { select: { name: true, email: true } } },
-            orderBy: { createdAt: "asc" },
-          },
-          passengers: {
-            orderBy: [{ active: "desc" }, { name: "asc" }],
-          },
+  const [
+    account,
+    recentBookings,
+    bookingsThisMonth,
+    totalBookings,
+    invoiceSummary,
+  ] = await Promise.all([
+    db.corporateAccount.findUnique({
+      where: { id },
+      include: {
+        contacts: {
+          include: { user: { select: { name: true, email: true } } },
+          orderBy: { createdAt: "asc" },
         },
-      }),
-      db.booking.findMany({
-        where: { corporateAccountId: id },
-        include: {
-          serviceType: { select: { name: true } },
-          corporatePassenger: { select: { name: true } },
+        passengers: {
+          orderBy: [{ active: "desc" }, { name: "asc" }],
         },
-        orderBy: { pickupAt: "desc" },
-        take: 10,
-      }),
-      db.booking.count({
-        where: { corporateAccountId: id, pickupAt: { gte: monthStart } },
-      }),
-      db.booking.count({ where: { corporateAccountId: id } }),
-      db.corporateInvoice.aggregate({
-        where: { corporateAccountId: id },
-        _sum: { totalCents: true, amountPaidCents: true },
-        _count: true,
-      }),
-    ]);
+      },
+    }),
+    db.booking.findMany({
+      where: { corporateAccountId: id },
+      include: {
+        serviceType: { select: { name: true } },
+        corporatePassenger: { select: { name: true } },
+      },
+      orderBy: { pickupAt: "desc" },
+      take: 10,
+    }),
+    db.booking.count({
+      where: { corporateAccountId: id, pickupAt: { gte: monthStart } },
+    }),
+    db.booking.count({ where: { corporateAccountId: id } }),
+    db.corporateInvoice.aggregate({
+      where: { corporateAccountId: id },
+      _sum: { totalCents: true, amountPaidCents: true },
+      _count: true,
+    }),
+  ]);
 
   if (!account) return notFound();
 
@@ -124,9 +129,16 @@ export default async function CorporateAccountDetailPage({
   const totalPaid = invoiceSummary._sum.amountPaidCents ?? 0;
   const outstandingBalance = totalInvoiced - totalPaid;
 
+  const primaryContact = await db.corporateContact.findFirst({
+    where: { corporateAccountId: account.id, role: "PRIMARY" },
+    include: { user: { select: { password: true } } },
+  });
+
+  const primaryContactHasPassword = !!primaryContact?.user?.password;
+
   return (
     <section className={styles.container}>
-      <Link href="/admin/corporate" className="backBtn">
+      <Link href='/admin/corporate' className='backBtn'>
         ← Back to Accounts
       </Link>
 
@@ -139,7 +151,9 @@ export default async function CorporateAccountDetailPage({
           <span className={`badge badge_${statusBadgeTone(account.status)}`}>
             {account.status}
           </span>
-          <span className={styles.meta}>Created {formatDate(account.createdAt)}</span>
+          <span className={styles.meta}>
+            Created {formatDate(account.createdAt)}
+          </span>
         </div>
       </header>
 
@@ -147,52 +161,85 @@ export default async function CorporateAccountDetailPage({
       <div className={styles.kpiRow}>
         <div className={styles.kpiCard}>
           <div className={styles.kpiLabel}>Rides This Month</div>
-          <div className="kpiValue">{bookingsThisMonth}</div>
+          <div className='kpiValue'>{bookingsThisMonth}</div>
         </div>
         <div className={styles.kpiCard}>
           <div className={styles.kpiLabel}>Total Rides</div>
-          <div className="kpiValue">{totalBookings}</div>
+          <div className='kpiValue'>{totalBookings}</div>
         </div>
         <div className={styles.kpiCard}>
           <div className={styles.kpiLabel}>Total Invoiced</div>
-          <div className="kpiValue">{formatMoney(totalInvoiced)}</div>
+          <div className='kpiValue'>{formatMoney(totalInvoiced)}</div>
         </div>
         <div className={styles.kpiCard}>
           <div className={styles.kpiLabel}>Outstanding</div>
-          <div className={`kpiValue ${outstandingBalance > 0 ? "colorRed" : ""}`}>
+          <div
+            className={`kpiValue ${outstandingBalance > 0 ? "colorRed" : ""}`}
+          >
             {formatMoney(outstandingBalance)}
           </div>
         </div>
       </div>
 
       {/* Account Details */}
-      <Card title="Account Details">
+      <Card title='Account Details'>
         <div className={styles.kvGrid}>
-          <KeyVal k="Company Name" v={account.name} />
-          <KeyVal k="Billing Email" v={account.billingEmail} />
-          <KeyVal k="Billing Address" v={[account.billingAddress, account.billingCity, account.billingState, account.billingZip].filter(Boolean).join(", ") || "—"} />
-          <KeyVal k="Internal Notes" v={account.internalNotes || "—"} />
+          <KeyVal k='Company Name' v={account.name} />
+          <KeyVal k='Billing Email' v={account.billingEmail} />
+          <KeyVal
+            k='Billing Address'
+            v={
+              [
+                account.billingAddress,
+                account.billingCity,
+                account.billingState,
+                account.billingZip,
+              ]
+                .filter(Boolean)
+                .join(", ") || "—"
+            }
+          />
+          <KeyVal k='Internal Notes' v={account.internalNotes || "—"} />
         </div>
       </Card>
 
       {/* Payment Settings */}
-      <Card title="Payment Settings">
+      <Card title='Payment Settings'>
         <div className={styles.kvGrid}>
-          <KeyVal k="Billing Cycle" v={billingCycleLabel(account.billingCycle)} />
-          <KeyVal k="Payment Method" v={paymentMethodLabel(account.paymentMethod)} />
-          <KeyVal k="Payment Terms" v={paymentTermsLabel(account.paymentTerms)} />
-          <KeyVal k="Discount" v={account.discountPercent ? `${account.discountPercent}%` : "None"} />
-          <KeyVal k="Monthly Limit" v={account.monthlyLimitCents ? formatMoney(account.monthlyLimitCents) : "No limit"} />
+          <KeyVal
+            k='Billing Cycle'
+            v={billingCycleLabel(account.billingCycle)}
+          />
+          <KeyVal
+            k='Payment Method'
+            v={paymentMethodLabel(account.paymentMethod)}
+          />
+          <KeyVal
+            k='Payment Terms'
+            v={paymentTermsLabel(account.paymentTerms)}
+          />
+          <KeyVal
+            k='Discount'
+            v={account.discountPercent ? `${account.discountPercent}%` : "None"}
+          />
+          <KeyVal
+            k='Monthly Limit'
+            v={
+              account.monthlyLimitCents
+                ? formatMoney(account.monthlyLimitCents)
+                : "No limit"
+            }
+          />
           {account.paymentMethod === "CHECK" && (
-            <KeyVal k="Check Payable To" v={account.checkPayableTo || "—"} />
+            <KeyVal k='Check Payable To' v={account.checkPayableTo || "—"} />
           )}
         </div>
       </Card>
 
       {/* Contacts */}
-      <Card title="Contacts (Admins)">
+      <Card title='Contacts (Admins)'>
         {account.contacts.length === 0 ? (
-          <p className="subheading">No contacts added yet.</p>
+          <p className='subheading'>No contacts added yet.</p>
         ) : (
           <div className={styles.miniTableWrap}>
             <table className={styles.miniTable}>
@@ -211,11 +258,13 @@ export default async function CorporateAccountDetailPage({
                     <td className={styles.miniTd}>{c.user.name || "—"}</td>
                     <td className={styles.miniTd}>{c.user.email}</td>
                     <td className={styles.miniTd}>
-                      <span className="badge badge_neutral">{c.role}</span>
+                      <span className='badge badge_neutral'>{c.role}</span>
                     </td>
                     <td className={styles.miniTd}>{c.title || "—"}</td>
                     <td className={styles.miniTd}>
-                      <span className={`badge badge_${c.active ? "good" : "bad"}`}>
+                      <span
+                        className={`badge badge_${c.active ? "good" : "bad"}`}
+                      >
                         {c.active ? "Active" : "Inactive"}
                       </span>
                     </td>
@@ -231,9 +280,9 @@ export default async function CorporateAccountDetailPage({
       <div className={styles.card}>
         <div className={styles.cardTop}>
           <div className={styles.cardTopRow}>
-            <div className="cardTitle h4">
+            <div className='cardTitle h4'>
               Passengers
-              <span className="countPill" style={{ marginLeft: "0.5rem" }}>
+              <span className='countPill' style={{ marginLeft: "0.5rem" }}>
                 {account.passengers.length}
               </span>
             </div>
@@ -241,7 +290,7 @@ export default async function CorporateAccountDetailPage({
           </div>
         </div>
         {account.passengers.length === 0 ? (
-          <p className="subheading">No passengers added yet.</p>
+          <p className='subheading'>No passengers added yet.</p>
         ) : (
           <div className={styles.miniTableWrap}>
             <table className={styles.miniTable}>
@@ -263,12 +312,17 @@ export default async function CorporateAccountDetailPage({
                     <td className={styles.miniTd}>{p.phone || "—"}</td>
                     <td className={styles.miniTd}>{p.department || "—"}</td>
                     <td className={styles.miniTd}>
-                      <span className={`badge badge_${p.active ? "good" : "bad"}`}>
+                      <span
+                        className={`badge badge_${p.active ? "good" : "bad"}`}
+                      >
                         {p.active ? "Active" : "Inactive"}
                       </span>
                     </td>
                     <td className={styles.miniTd}>
-                      <TogglePassengerBtn passengerId={p.id} active={p.active} />
+                      <TogglePassengerBtn
+                        passengerId={p.id}
+                        active={p.active}
+                      />
                     </td>
                   </tr>
                 ))}
@@ -279,9 +333,9 @@ export default async function CorporateAccountDetailPage({
       </div>
 
       {/* Recent Bookings */}
-      <Card title="Recent Bookings">
+      <Card title='Recent Bookings'>
         {recentBookings.length === 0 ? (
-          <p className="subheading">No bookings yet.</p>
+          <p className='subheading'>No bookings yet.</p>
         ) : (
           <div className={styles.miniTableWrap}>
             <table className={styles.miniTable}>
@@ -298,33 +352,77 @@ export default async function CorporateAccountDetailPage({
               <tbody>
                 {recentBookings.map((b) => (
                   <tr key={b.id} className={styles.miniTrClickable}>
-                    <td className={styles.miniTd} style={{ position: "relative" }}>
+                    <td
+                      className={styles.miniTd}
+                      style={{ position: "relative" }}
+                    >
                       <Link
                         href={`/admin/bookings/${b.id}`}
                         className={styles.rowStretchedLink}
                       />
                       {formatDate(b.pickupAt)}
                     </td>
-                    <td className={styles.miniTd} style={{ position: "relative" }}>
-                      <Link href={`/admin/bookings/${b.id}`} className={styles.rowStretchedLink} aria-hidden tabIndex={-1} />
+                    <td
+                      className={styles.miniTd}
+                      style={{ position: "relative" }}
+                    >
+                      <Link
+                        href={`/admin/bookings/${b.id}`}
+                        className={styles.rowStretchedLink}
+                        aria-hidden
+                        tabIndex={-1}
+                      />
                       {b.serviceType.name}
                     </td>
-                    <td className={styles.miniTd} style={{ position: "relative" }}>
-                      <Link href={`/admin/bookings/${b.id}`} className={styles.rowStretchedLink} aria-hidden tabIndex={-1} />
+                    <td
+                      className={styles.miniTd}
+                      style={{ position: "relative" }}
+                    >
+                      <Link
+                        href={`/admin/bookings/${b.id}`}
+                        className={styles.rowStretchedLink}
+                        aria-hidden
+                        tabIndex={-1}
+                      />
                       {b.corporatePassenger?.name || "—"}
                     </td>
-                    <td className={styles.miniTd} style={{ position: "relative" }}>
-                      <Link href={`/admin/bookings/${b.id}`} className={styles.rowStretchedLink} aria-hidden tabIndex={-1} />
+                    <td
+                      className={styles.miniTd}
+                      style={{ position: "relative" }}
+                    >
+                      <Link
+                        href={`/admin/bookings/${b.id}`}
+                        className={styles.rowStretchedLink}
+                        aria-hidden
+                        tabIndex={-1}
+                      />
                       <div className={styles.routeCell}>
-                        {b.pickupAddress?.split(",")[0]} → {b.dropoffAddress?.split(",")[0]}
+                        {b.pickupAddress?.split(",")[0]} →{" "}
+                        {b.dropoffAddress?.split(",")[0]}
                       </div>
                     </td>
-                    <td className={styles.miniTd} style={{ position: "relative" }}>
-                      <Link href={`/admin/bookings/${b.id}`} className={styles.rowStretchedLink} aria-hidden tabIndex={-1} />
-                      <span className="badge badge_neutral">{b.status}</span>
+                    <td
+                      className={styles.miniTd}
+                      style={{ position: "relative" }}
+                    >
+                      <Link
+                        href={`/admin/bookings/${b.id}`}
+                        className={styles.rowStretchedLink}
+                        aria-hidden
+                        tabIndex={-1}
+                      />
+                      <span className='badge badge_neutral'>{b.status}</span>
                     </td>
-                    <td className={styles.miniTd} style={{ position: "relative" }}>
-                      <Link href={`/admin/bookings/${b.id}`} className={styles.rowStretchedLink} aria-hidden tabIndex={-1} />
+                    <td
+                      className={styles.miniTd}
+                      style={{ position: "relative" }}
+                    >
+                      <Link
+                        href={`/admin/bookings/${b.id}`}
+                        className={styles.rowStretchedLink}
+                        aria-hidden
+                        tabIndex={-1}
+                      />
                       {formatMoney(b.totalCents)}
                     </td>
                   </tr>
@@ -335,8 +433,11 @@ export default async function CorporateAccountDetailPage({
         )}
       </Card>
 
-      {/* Account Status (Danger Zone) */}
-      <AccountStatusClient accountId={account.id} currentStatus={account.status} />
+      <AccountStatusClient
+        accountId={account.id}
+        currentStatus={account.status}
+        primaryContactHasPassword={primaryContactHasPassword}
+      />
     </section>
   );
 }

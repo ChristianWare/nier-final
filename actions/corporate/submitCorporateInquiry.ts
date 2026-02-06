@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { sendCorporateInquiryConfirmationEmail } from "@/lib/corporateOnboarding";
 
 interface InquiryInput {
   companyName: string;
@@ -62,8 +63,20 @@ export async function submitCorporateInquiry(data: InquiryInput) {
       },
     });
 
-    // TODO: Send notification email to Nier admin
-    // await sendAdminNotification("NEW_CORPORATE_INQUIRY", { ... });
+    // Send confirmation email (non-blocking — don't fail the inquiry if email fails)
+    try {
+      await sendCorporateInquiryConfirmationEmail({
+        to: data.email.trim().toLowerCase(),
+        contactName: data.contactName.trim(),
+        companyName: data.companyName.trim(),
+        estimatedMonthlyRides: data.estimatedMonthlyRides,
+      });
+    } catch (emailErr) {
+      console.error(
+        "[CorporateInquiry] Confirmation email failed (inquiry still saved):",
+        emailErr,
+      );
+    }
 
     return { success: true };
   } catch (error) {

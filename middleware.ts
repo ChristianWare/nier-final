@@ -6,7 +6,7 @@ import authConfig from "./auth.config";
 
 export const { auth: withAuth } = NextAuth(authConfig);
 
-type AppRole = "USER" | "ADMIN" | "DRIVER";
+type AppRole = "USER" | "ADMIN" | "DRIVER" | "CORPORATE";
 
 /**
  * NextAuth middleware (Edge) exposes auth in slightly different shapes.
@@ -31,6 +31,7 @@ function hasAnyRole(req: any, allowed: AppRole[]) {
 function roleHome(req: any) {
   if (hasAnyRole(req, ["ADMIN"])) return "/admin";
   if (hasAnyRole(req, ["DRIVER"])) return "/driver-dashboard";
+  if (hasAnyRole(req, ["CORPORATE"])) return "/corporate";
   return "/dashboard";
 }
 
@@ -46,6 +47,10 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
 
   const authPages = new Set(["/login", "/register", "/password-email"]);
 
+  // ✅ Public pages that don't require authentication
+  const publicPages = new Set(["/set-password", "/reset-password"]);
+  if (publicPages.has(pathname)) return NextResponse.next();
+
   const isSettings =
     pathname === "/settings" || pathname.startsWith("/settings/");
   const isAdminArea = pathname === "/admin" || pathname.startsWith("/admin/");
@@ -54,9 +59,15 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
     pathname.startsWith("/driver-dashboard/");
   const isUserDashboard =
     pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isCorporateArea =
+    pathname === "/corporate" || pathname.startsWith("/corporate/");
 
   const authedOnly =
-    isSettings || isAdminArea || isDriverDashboard || isUserDashboard;
+    isSettings ||
+    isAdminArea ||
+    isDriverDashboard ||
+    isUserDashboard ||
+    isCorporateArea;
 
   const isLoggedIn = Boolean((req as any).auth?.user);
 
@@ -79,6 +90,11 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
 
   // Driver dashboard allows DRIVER or ADMIN
   if (isDriverDashboard && !hasAnyRole(req, ["DRIVER", "ADMIN"])) {
+    return NextResponse.redirect(new URL("/", nextUrl));
+  }
+
+  // Corporate area requires CORPORATE or ADMIN
+  if (isCorporateArea && !hasAnyRole(req, ["CORPORATE", "ADMIN"])) {
     return NextResponse.redirect(new URL("/", nextUrl));
   }
 

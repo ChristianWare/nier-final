@@ -182,7 +182,7 @@ export default async function AdminCorporateAccountsPage({
           </div>
 
           <div className={styles.meta}>
-            <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong> account
+            <strong>{totalCount}</strong> account
             {totalCount !== 1 ? "s" : ""}
             {totalCount > 0 && (
               <span className={styles.metaSep}>
@@ -255,10 +255,7 @@ export default async function AdminCorporateAccountsPage({
                   const href = `/admin/corporate/${a.id}`;
                   return (
                     <tr key={a.id} className={styles.tr}>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link href={href} className={styles.rowStretchedLink} />
                         <div className={styles.cellStrong}>
                           <Link href={href} className={styles.rowLink}>
@@ -266,10 +263,7 @@ export default async function AdminCorporateAccountsPage({
                           </Link>
                         </div>
                       </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
@@ -278,10 +272,7 @@ export default async function AdminCorporateAccountsPage({
                         />
                         <div className={styles.cellSub}>{a.billingEmail}</div>
                       </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
@@ -290,10 +281,7 @@ export default async function AdminCorporateAccountsPage({
                         />
                         {paymentTermsLabel(a.paymentTerms)}
                       </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
@@ -302,10 +290,7 @@ export default async function AdminCorporateAccountsPage({
                         />
                         {billingCycleLabel(a.billingCycle)}
                       </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
@@ -314,10 +299,7 @@ export default async function AdminCorporateAccountsPage({
                         />
                         {a.discountPercent ? `${a.discountPercent}%` : "—"}
                       </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
@@ -326,10 +308,7 @@ export default async function AdminCorporateAccountsPage({
                         />
                         <strong>{a._count.bookings}</strong>
                       </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
@@ -338,10 +317,7 @@ export default async function AdminCorporateAccountsPage({
                         />
                         {a._count.contacts}
                       </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
@@ -354,10 +330,7 @@ export default async function AdminCorporateAccountsPage({
                           {a.status}
                         </span>
                       </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td}>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}

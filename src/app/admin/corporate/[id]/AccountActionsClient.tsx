@@ -9,6 +9,7 @@ import {
   updateAccountStatus,
   addCorporatePassenger,
   togglePassengerActive,
+  resendCorporateWelcomeEmail,
 } from "../../../../../actions/corporate/corporateAdminActions";
 
 /* ─────────────────────────────────────────────
@@ -18,9 +19,11 @@ import {
 export function AccountStatusClient({
   accountId,
   currentStatus,
+  primaryContactHasPassword,
 }: {
   accountId: string;
   currentStatus: string;
+  primaryContactHasPassword: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -49,6 +52,24 @@ export function AccountStatusClient({
     });
   }
 
+  function handleResendWelcome() {
+    if (
+      !window.confirm(
+        "Resend the welcome email with a new password setup link?",
+      )
+    )
+      return;
+
+    startTransition(async () => {
+      const res = await resendCorporateWelcomeEmail(accountId);
+      if (res.ok) {
+        toast.success("Welcome email sent! Link is valid for 48 hours.");
+      } else {
+        toast.error(res.error ?? "Failed to send email.");
+      }
+    });
+  }
+
   return (
     <div className={`${styles.card} ${styles.dangerCard}`}>
       <div className={styles.dangerTop}>
@@ -57,6 +78,27 @@ export function AccountStatusClient({
           Manage the status of this corporate account.
         </p>
       </div>
+
+      {/* Resend welcome email — only shown if they haven't set a password yet */}
+      {!primaryContactHasPassword && (
+        <div className={styles.resendRow}>
+          <div className={styles.resendInfo}>
+            <span className={styles.resendLabel}>⚠️ Password not set</span>
+            <span className={styles.resendCopy}>
+              The primary contact hasn&apos;t set their password yet. Resend the
+              welcome email with a new setup link.
+            </span>
+          </div>
+          <button
+            className='primaryBtn'
+            onClick={handleResendWelcome}
+            disabled={isPending}
+          >
+            {isPending ? "Sending..." : "Resend Welcome Email"}
+          </button>
+        </div>
+      )}
+
       <div className={styles.actionsRow}>
         {currentStatus !== "ACTIVE" && (
           <button
