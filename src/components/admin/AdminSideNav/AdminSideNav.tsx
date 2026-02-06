@@ -39,6 +39,7 @@ const NAV_ITEMS = [
   { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
   { title: "Reports", href: "/admin/reports", icon: <Report /> },
   { title: "Company", href: "/admin/company", icon: <Company /> },
+  { title: "Website Analytics", href: "/admin/analytics", icon: <Company /> },
   { title: "Settings", href: "/admin/settings", icon: <Cog /> },
 ];
 
