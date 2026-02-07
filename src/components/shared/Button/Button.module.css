@@ -17,6 +17,7 @@
   cursor: pointer;
   text-transform: capitalize;
   line-height: 1;
+  user-select: none;
 }
 
 .btn:link,

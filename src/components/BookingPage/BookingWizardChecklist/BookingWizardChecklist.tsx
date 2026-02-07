@@ -2,6 +2,7 @@
 
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import styles from "./BookingWizardChecklist.module.css";
+import Check from "@/components/shared/icons/Check/Check";
 
 type Props = {
   currentStep: 1 | 2 | 3;
@@ -187,10 +188,11 @@ export default function BookingWizardChecklist({
               >
                 <div
                   className={`${styles.stepNumber} ${isCurrentStep ? styles.stepNumberActive : ""} ${stepComplete ? styles.stepNumberComplete : ""}`}
-                >
-                  {stepComplete ? "✓" : stepNum}
-                </div>
-                <span className={styles.stepLabel}>{stepLabels[stepNum]}</span>
+                ></div>
+                <span className={styles.stepLabel}>
+                  <div className={styles.stepNum}>{stepNum}.</div>
+                  {stepLabels[stepNum]}
+                </span>
                 {isCurrentStep && (
                   <span className={styles.currentBadge}>Current</span>
                 )}
@@ -223,7 +225,11 @@ export default function BookingWizardChecklist({
                       }}
                     >
                       <div className={styles.checkIcon}>
-                        {item.isComplete ? "✓" : "○"}
+                        {item.isComplete ? (
+                          <Check className={styles.checkIcon} />
+                        ) : (
+                          <Check className={styles.checkIconGhost} />
+                        )}
                       </div>
                       <div className={styles.checkContent}>
                         <div className={styles.checkLabel}>{item.label}</div>

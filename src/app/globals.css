@@ -16,6 +16,8 @@
   --lightBlue: #2563eb33;
   --green: rgb(22, 163, 74);
   --lightGreen: #16a34a4d;
+  --lighterGreen: #bfe8cc;
+  --lightestGreen: #4e94ec33;
   --darkGreen: #0b7547;
   --red: #dc2626;
   --darkRed: #8b1a1a;
@@ -783,4 +785,3 @@ th {
     border-color: var(--stroke);
   }
 }
-
