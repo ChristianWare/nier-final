@@ -1,0 +1,271 @@
+.container {
+  border-radius: 14px;
+  padding: 1.25rem;
+  background: var(--cream, #fafaf8);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  height: fit-content;
+}
+
+/* ── Header ── */
+.header {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.subtitle {
+  font-size: 1.3rem;
+  color: #6b7280;
+}
+
+/* ── Progress bar ── */
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: #22c55e;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+
+/* ── Checklist layout ── */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Step groups ── */
+.stepGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.stepNumber {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  background: #e5e7eb;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.stepNumberActive {
+  background: #111827;
+  color: white;
+}
+
+.stepNumberComplete {
+  background: #22c55e;
+  color: white;
+}
+
+.stepLabel {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.stepHeaderActive .stepLabel {
+  color: #111827;
+}
+
+.stepHeaderComplete .stepLabel {
+  color: #15803d;
+}
+
+.currentBadge {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: #111827;
+  color: white;
+  margin-left: auto;
+}
+
+/* ── Individual check items ── */
+.stepItems {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 10px;
+  border-left: 2px solid #e5e7eb;
+  margin-left: 10px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.checkItem.complete {
+  opacity: 0.75;
+}
+
+.checkItem.incomplete {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* ── Check icon ── */
+.checkIcon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.complete .checkIcon {
+  background: #22c55e;
+  color: white;
+}
+
+.incomplete .checkIcon {
+  background: #e5e7eb;
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+/* ── Content ── */
+.checkContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.checkLabel {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.complete .checkLabel {
+  color: #374151;
+}
+
+.checkValue {
+  font-size: 1.2rem;
+  color: #22c55e;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+.checkDescription {
+  font-size: 1.2rem;
+  color: #9ca3af;
+  line-height: 1.3;
+}
+
+/* ── Clickable / navigation ── */
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.clickable:active {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.goToArrow {
+  margin-left: auto;
+  font-size: 1.4rem;
+  color: #94a3b8;
+  font-weight: 600;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.clickable:hover .goToArrow {
+  transform: translateX(3px);
+  color: #64748b;
+}
+
+/* ── Mobile: horizontal compact layout ── */
+@media screen and (max-width: 768px) {
+  .container {
+    border-radius: 12px;
+    padding: 1rem;
+  }
+
+  .stepItems {
+    padding-left: 8px;
+    margin-left: 8px;
+  }
+
+  .checkItem {
+    padding: 6px 8px;
+  }
+
+  .checkLabel {
+    font-size: 1.2rem;
+  }
+
+  .checkValue,
+  .checkDescription {
+    font-size: 1.1rem;
+  }
+
+  .checkValue {
+    max-width: 180px;
+  }
+}

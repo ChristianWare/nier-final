@@ -1,21 +1,26 @@
 .content {
   display: grid;
-  grid-template-columns: 2fr 4fr;
-  grid-template-areas: "map wizard";
+  grid-template-columns: 280px 1fr;
+  grid-template-areas: "checklist wizard";
   grid-gap: 2rem;
   align-items: start;
 }
 
-.routePickerContainer {
-  grid-area: map;
-  background-color: var(--cream);
-  padding: 1rem;
-  padding-top: 0rem;
-  border-radius: 20px;
+/* ✅ NEW: Checklist replaces the old routePickerContainer */
+.checklistContainer {
+  grid-area: checklist;
   position: sticky;
   top: 78px;
   z-index: 10;
   height: fit-content;
+}
+
+/* ✅ RoutePicker now lives inline in step 1 */
+.routePickerInline {
+  margin-top: 1rem;
+  background-color: var(--cream);
+  padding: 1rem;
+  border-radius: 14px;
 }
 
 .routePickerContainerMobile {
@@ -23,17 +28,6 @@
   padding: 1rem;
   padding-top: 0rem;
   border-radius: 20px;
-}
-
-.stepperContainer {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 2rem;
-  height: fit-content;
-  position: sticky;
-  top: 78px;
-  align-self: start;
-  z-index: 10;
 }
 
 .right {
@@ -51,9 +45,9 @@
   scroll-margin-top: 110px;
 }
 
-.wizard {
-  margin-top: 5rem;
-}
+/* .wizard { */
+  /* No top margin needed — stepper is gone */
+/* } */
 
 .stepPane {
   animation: stepFadeIn 220ms ease-out both;
@@ -155,30 +149,6 @@
   overflow: hidden;
   background: rgba(255, 255, 255, 0.5);
 }
-
-/* .flightInfoToggle {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.25rem;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.15s ease;
-}
-
-.flightInfoToggle:hover {
-  background: rgba(0, 0, 0, 0.03);
-}
-
-.flightInfoToggleIcon {
-  font-size: 1.5rem;
-  font-weight: 300;
-  opacity: 0.6;
-  line-height: 1;
-} */
 
 .flightInfoFields {
   padding: 0 1.25rem 1.25rem 1.25rem;
@@ -307,13 +277,30 @@
     grid-template-areas: "wizard";
   }
 
-  .contentBox {
+  /* Hide desktop checklist on mobile */
+  .checklistContainer {
+    display: none;
+  }
+
+  /* Show mobile checklist inline */
+  .checklistMobile {
     display: block;
+    margin-bottom: 1.5rem;
+  }
+
+  .contentBox {
     display: flex;
     flex-direction: column;
   }
 
-  .stepperContainer {
-    top: 45px;
+  .routePickerInline {
+    padding: 0.75rem;
+  }
+}
+
+/* Hide mobile checklist on desktop */
+@media screen and (min-width: 769px) {
+  .checklistMobile {
+    display: none;
   }
 }
