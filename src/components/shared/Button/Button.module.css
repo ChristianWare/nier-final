@@ -266,9 +266,9 @@
 }
 
 .grayReg {
-  background-color: var(--black400);
-  color: var(--white) !important;
-  border: 1px solid var(--black400);
+  background-color: var(--black300);
+  color: var(--black) !important;
+  border: 1px solid var(--black300);
   border-radius: 5px;
   display: flex;
   justify-content: center;

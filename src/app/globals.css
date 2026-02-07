@@ -643,6 +643,10 @@ th {
   width: 100%;
 }
 
+.input::placeholder {
+  opacity: 0.4;
+}
+
 .inputBorder {
   padding: 0.75rem 1rem;
   border-radius: 5px;

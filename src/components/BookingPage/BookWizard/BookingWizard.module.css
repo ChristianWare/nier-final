@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: 2fr 4fr;
   grid-template-areas: "checklist wizard";
-  grid-gap: 2rem;
+  grid-gap: 15rem;
   align-items: start;
 }
 
@@ -263,6 +263,12 @@
 .stopSurchargeAmount {
   font-weight: 600;
   color: #b45309;
+}
+
+@media screen and (max-width: 1268px) {
+  .content {
+    grid-gap: 2rem;
+  }
 }
 
 @media screen and (max-width: 768px) {

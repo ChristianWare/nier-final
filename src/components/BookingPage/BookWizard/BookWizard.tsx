@@ -181,6 +181,21 @@ function shortAddress(addr: string | null | undefined, maxLen = 35): string {
   return addr.length > maxLen ? addr.slice(0, maxLen) + "…" : addr;
 }
 
+/** Validate a US phone number — must be 10 digits, not obviously fake */
+function isValidPhone(raw: string | null | undefined): boolean | string {
+  if (!raw) return "Please enter a phone number.";
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length < 10) return "Phone number must be 10 digits.";
+  if (digits.length > 10) return "Phone number must be 10 digits.";
+  // Block 555 numbers
+  if (digits.slice(3, 6) === "555") return "Please enter a real phone number.";
+  // Block all same digit (e.g. 0000000000, 1111111111)
+  if (/^(\d)\1{9}$/.test(digits)) return "Please enter a real phone number.";
+  // Block sequential (1234567890)
+  if (digits === "1234567890") return "Please enter a real phone number.";
+  return true;
+}
+
 export default function BookingWizard({
   serviceTypes,
   vehicles,
@@ -228,7 +243,7 @@ export default function BookingWizard({
       serviceTypeId: "",
       pickupAtDate: "",
       pickupAtTime: "",
-      passengers: 1,
+      passengers: 0,
       luggage: 0,
       pickupAirportId: "",
       dropoffAirportId: "",
@@ -337,14 +352,16 @@ export default function BookingWizard({
         return true;
       },
     });
-    register("guestPhone", {
-      validate: (v) =>
-        isAuthed ? true : v.trim() ? true : "Please enter your phone number.",
-    });
+   register("guestPhone", {
+     validate: (v) => {
+       if (isAuthed) return true;
+       return isValidPhone(v);
+     },
+   });
     register("contactPhone", {
       validate: (v) => {
         if (!isAuthed) return true;
-        return v?.trim() ? true : "Please enter a phone number for this trip.";
+        return isValidPhone(v);
       },
     });
     register("flightAirline");
@@ -716,16 +733,16 @@ export default function BookingWizard({
     ? Boolean(watch("contactPhone")?.trim())
     : Boolean(guestName.trim() && guestEmail.trim() && guestPhone.trim());
 
- const contactPhone = watch("contactPhone");
+  const contactPhone = watch("contactPhone");
 
- const contactLabel = useMemo(() => {
-   if (isAuthed) {
-     const phone = contactPhone?.trim();
-     if (!phone) return null;
-     return formatPhone(phone);
-   }
-   return guestName.trim() || null;
- }, [isAuthed, contactPhone, guestName]);
+  const contactLabel = useMemo(() => {
+    if (isAuthed) {
+      const phone = contactPhone?.trim();
+      if (!phone) return null;
+      return formatPhone(phone);
+    }
+    return guestName.trim() || null;
+  }, [isAuthed, contactPhone, guestName]);
 
   const checklistDateTimeLabel = useMemo(() => {
     if (!pickupAtDate || !pickupAtTime) return null;
@@ -755,6 +772,12 @@ export default function BookingWizard({
       serviceName={selectedService?.name ?? null}
       hasDateTime={Boolean(pickupAtDate && pickupAtTime)}
       dateTimeLabel={checklistDateTimeLabel}
+      hasPassengersLuggage={passengers >= 1}
+      passengersLuggageLabel={
+        passengers >= 1
+          ? `${passengers} passenger${passengers !== 1 ? "s" : ""}, ${luggage} bag${luggage !== 1 ? "s" : ""}`
+          : null
+      }
       hasPickup={hasPickup}
       pickupLabel={shortAddress(
         usesPickupAirport
@@ -814,7 +837,12 @@ export default function BookingWizard({
 
                   <div
                     id='wizard-field-service'
-                    style={{ display: "grid", gap: 8, marginBottom: 50 }}
+                    style={{
+                      display: "grid",
+                      gap: 8,
+                      marginBottom: 50,
+                      padding: "1rem",
+                    }}
                   >
                     <label className={labelCx(Boolean(errors.serviceTypeId))}>
                       Service
@@ -871,7 +899,7 @@ export default function BookingWizard({
 
                   <div
                     id='wizard-field-datetime'
-                    style={{ display: "grid", gap: 8 }}
+                    style={{ display: "grid", gap: 8, padding: "1rem" }}
                   >
                     {" "}
                     <label
@@ -901,50 +929,53 @@ export default function BookingWizard({
                       }}
                     />
                   </div>
-
-                  <Grid2>
-                    <div style={{ display: "grid", gap: 8 }}>
-                      <label className={labelCx(Boolean(errors.passengers))}>
-                        Passengers
-                      </label>
-                      <input
-                        type='number'
-                        min={1}
-                        value={passengers}
-                        onChange={(e) => {
-                          setValue("passengers", Number(e.target.value), {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          clearErrors("passengers");
-                        }}
-                        className='input emptySmall'
-                      />
-                    </div>
-                    <div style={{ display: "grid", gap: 8 }}>
-                      <label className={labelCx(Boolean(errors.luggage))}>
-                        Luggage
-                      </label>
-                      <input
-                        type='number'
-                        min={0}
-                        value={luggage}
-                        onChange={(e) => {
-                          setValue("luggage", Number(e.target.value), {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          clearErrors("luggage");
-                        }}
-                        className='input emptySmall'
-                      />
-                    </div>
-                  </Grid2>
-
+                  <div
+                    id='wizard-field-passengers-luggage'
+                    style={{ padding: "1rem" }}
+                  >
+                    <Grid2>
+                      <div style={{ display: "grid", gap: 8 }}>
+                        <label className={labelCx(Boolean(errors.passengers))}>
+                          Passengers
+                        </label>
+                        <input
+                          type='number'
+                          min={1}
+                          value={passengers}
+                          onChange={(e) => {
+                            setValue("passengers", Number(e.target.value), {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            clearErrors("passengers");
+                          }}
+                          className='input emptySmall'
+                        />
+                      </div>
+                      <div style={{ display: "grid", gap: 8 }}>
+                        <label className={labelCx(Boolean(errors.luggage))}>
+                          Luggage
+                        </label>
+                        <input
+                          type='number'
+                          min={0}
+                          value={luggage}
+                          onChange={(e) => {
+                            setValue("luggage", Number(e.target.value), {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            clearErrors("luggage");
+                          }}
+                          className='input emptySmall'
+                        />
+                      </div>
+                    </Grid2>
+                  </div>
                   <div className={styles.pickupDropoffContainer}>
                     <div
                       id='wizard-field-pickup'
-                      style={{ display: "grid", gap: 8 }}
+                      style={{ display: "grid", gap: 8, padding: "1rem" }}
                     >
                       <label
                         className={`cardTitle h5${usesPickupAirport ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
@@ -1139,7 +1170,7 @@ export default function BookingWizard({
 
                     <div
                       id='wizard-field-dropoff'
-                      style={{ display: "grid", gap: 8 }}
+                      style={{ display: "grid", gap: 8, padding: "1rem" }}
                     >
                       <label
                         className={`cardTitle h5${usesDropoffAirport ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
@@ -1382,7 +1413,7 @@ export default function BookingWizard({
                 <div
                   id='wizard-field-vehicle'
                   className={styles.stepPane}
-                  style={{ display: "grid", gap: 14 }}
+                  style={{ display: "grid", gap: 14, padding: "1rem" }}
                 >
                   <h2 className='underline'>Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
@@ -1726,7 +1757,7 @@ export default function BookingWizard({
                   {!isAuthed ? (
                     <div
                       id='wizard-field-contact'
-                      style={{ display: "grid", gap: 10 }}
+                      style={{ display: "grid", gap: 10, padding: "1rem" }}
                     >
                       <div style={{ display: "grid", gap: 20 }}>
                         <label className={labelCx(Boolean(errors.guestName))}>
@@ -1773,9 +1804,12 @@ export default function BookingWizard({
                             Phone
                           </label>
                           <input
-                            value={guestPhone}
+                            value={formatPhone(guestPhone) || ""}
                             onChange={(e) => {
-                              setValue("guestPhone", e.target.value, {
+                              const digits = e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 10);
+                              setValue("guestPhone", digits, {
                                 shouldDirty: true,
                                 shouldValidate: true,
                               });
@@ -1792,7 +1826,7 @@ export default function BookingWizard({
                     // For authenticated users:
                     <div
                       id='wizard-field-contact'
-                      style={{ display: "grid", gap: 10 }}
+                      style={{ display: "grid", gap: 10, padding: "1rem" }}
                     >
                       <div style={{ display: "grid", gap: 8 }}>
                         <label
@@ -1801,9 +1835,13 @@ export default function BookingWizard({
                           Phone number for this trip
                         </label>
                         <input
-                          value={watch("contactPhone") ?? ""}
+                          value={formatPhone(watch("contactPhone")) || ""}
                           onChange={(e) => {
-                            setValue("contactPhone", e.target.value, {
+                            // Store raw digits only
+                            const digits = e.target.value
+                              .replace(/\D/g, "")
+                              .slice(0, 10);
+                            setValue("contactPhone", digits, {
                               shouldDirty: true,
                               shouldValidate: true,
                             });

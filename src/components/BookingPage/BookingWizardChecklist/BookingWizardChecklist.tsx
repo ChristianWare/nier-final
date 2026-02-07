@@ -16,6 +16,8 @@ type Props = {
   pickupLabel: string | null;
   hasDropoff: boolean;
   dropoffLabel: string | null;
+  hasPassengersLuggage: boolean;
+  passengersLuggageLabel: string | null;
   // Step 2
   hasVehicle: boolean;
   vehicleName: string | null;
@@ -81,6 +83,8 @@ export default function BookingWizardChecklist({
   estimateLabel,
   hasContactInfo,
   contactLabel,
+  hasPassengersLuggage,
+  passengersLuggageLabel,
 }: Props) {
   const checklist: ChecklistItem[] = [
     {
@@ -102,6 +106,16 @@ export default function BookingWizardChecklist({
       step: 1,
       priority: "critical",
       sectionId: "wizard-field-datetime",
+    },
+    {
+      key: "passengers-luggage",
+      label: "Passengers & Luggage",
+      description: "How many passengers and bags?",
+      isComplete: hasPassengersLuggage,
+      value: passengersLuggageLabel,
+      step: 1,
+      priority: "critical",
+      sectionId: "wizard-field-passengers-luggage",
     },
     {
       key: "pickup",
