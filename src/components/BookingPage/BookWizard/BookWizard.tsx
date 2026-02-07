@@ -108,6 +108,19 @@ function centsToUsd(cents: number) {
   return (cents / 100).toFixed(2);
 }
 
+/** Format a phone string as (XXX) XXX-XXXX if 10 digits */
+function formatPhone(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+  return raw;
+}
+
 function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
@@ -197,6 +210,7 @@ export default function BookingWizard({
 
   const pickupInputRef = useRef<HTMLInputElement | null>(null);
   const dropoffInputRef = useRef<HTMLInputElement | null>(null);
+  const phoneWasPrefilled = useRef(Boolean(userPhone?.trim()));
 
   const {
     control,
@@ -702,9 +716,16 @@ export default function BookingWizard({
     ? Boolean(watch("contactPhone")?.trim())
     : Boolean(guestName.trim() && guestEmail.trim() && guestPhone.trim());
 
-  const contactLabel = isAuthed
-    ? watch("contactPhone")?.trim() || null
-    : guestName.trim() || null;
+ const contactPhone = watch("contactPhone");
+
+ const contactLabel = useMemo(() => {
+   if (isAuthed) {
+     const phone = contactPhone?.trim();
+     if (!phone) return null;
+     return formatPhone(phone);
+   }
+   return guestName.trim() || null;
+ }, [isAuthed, contactPhone, guestName]);
 
   const checklistDateTimeLabel = useMemo(() => {
     if (!pickupAtDate || !pickupAtTime) return null;
@@ -792,12 +813,8 @@ export default function BookingWizard({
                   ) : null}
 
                   <div
-                    style={{
-                      display: "grid",
-                      gap: 8,
-                      // marginTop: 50,
-                      marginBottom: 50,
-                    }}
+                    id='wizard-field-service'
+                    style={{ display: "grid", gap: 8, marginBottom: 50 }}
                   >
                     <label className={labelCx(Boolean(errors.serviceTypeId))}>
                       Service
@@ -852,7 +869,11 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  <div style={{ display: "grid", gap: 8 }}>
+                  <div
+                    id='wizard-field-datetime'
+                    style={{ display: "grid", gap: 8 }}
+                  >
+                    {" "}
                     <label
                       className={labelCx(
                         Boolean(errors.pickupAtDate) ||
@@ -921,7 +942,10 @@ export default function BookingWizard({
                   </Grid2>
 
                   <div className={styles.pickupDropoffContainer}>
-                    <div style={{ display: "grid", gap: 8 }}>
+                    <div
+                      id='wizard-field-pickup'
+                      style={{ display: "grid", gap: 8 }}
+                    >
                       <label
                         className={`cardTitle h5${usesPickupAirport ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
                       >
@@ -1113,7 +1137,10 @@ export default function BookingWizard({
                       </span>
                     </button>
 
-                    <div style={{ display: "grid", gap: 8 }}>
+                    <div
+                      id='wizard-field-dropoff'
+                      style={{ display: "grid", gap: 8 }}
+                    >
                       <label
                         className={`cardTitle h5${usesDropoffAirport ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
                       >
@@ -1353,6 +1380,7 @@ export default function BookingWizard({
               {/* STEP 2 */}
               {step === 2 ? (
                 <div
+                  id='wizard-field-vehicle'
                   className={styles.stepPane}
                   style={{ display: "grid", gap: 14 }}
                 >
@@ -1528,8 +1556,8 @@ export default function BookingWizard({
                       label='Phone'
                       value={
                         isAuthed
-                          ? watch("contactPhone") || "—"
-                          : guestPhone || "—"
+                          ? formatPhone(watch("contactPhone")) || "—"
+                          : formatPhone(guestPhone) || "—"
                       }
                     />
                     <SummaryRow
@@ -1696,7 +1724,10 @@ export default function BookingWizard({
                   </div>
 
                   {!isAuthed ? (
-                    <div style={{ display: "grid", gap: 10 }}>
+                    <div
+                      id='wizard-field-contact'
+                      style={{ display: "grid", gap: 10 }}
+                    >
                       <div style={{ display: "grid", gap: 20 }}>
                         <label className={labelCx(Boolean(errors.guestName))}>
                           Full name
@@ -1758,7 +1789,11 @@ export default function BookingWizard({
                       </Grid2>
                     </div>
                   ) : (
-                    <div style={{ display: "grid", gap: 10 }}>
+                    // For authenticated users:
+                    <div
+                      id='wizard-field-contact'
+                      style={{ display: "grid", gap: 10 }}
+                    >
                       <div style={{ display: "grid", gap: 8 }}>
                         <label
                           className={labelCx(Boolean(errors.contactPhone))}
@@ -1781,6 +1816,12 @@ export default function BookingWizard({
                         <p className='miniNote'>
                           Your driver will use this number to contact you about
                           pickup.
+                          {phoneWasPrefilled.current &&
+                            watch("contactPhone")?.trim() && (
+                              <span style={{ marginLeft: 6, fontWeight: 600 }}>
+                                (already on file)
+                              </span>
+                            )}
                         </p>
                       </div>
                     </div>

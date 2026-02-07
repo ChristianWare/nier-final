@@ -33,7 +33,37 @@ type ChecklistItem = {
   value: string | null;
   step: 1 | 2 | 3;
   priority: "critical" | "important";
+  sectionId: string;
 };
+
+/** Scroll to a form section and apply a green highlight pulse */
+function scrollToSection(sectionId: string) {
+  const el = document.getElementById(sectionId);
+  if (!el) return;
+
+  const yOffset = -120;
+  const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+  window.scrollTo({ top: y, behavior: "smooth" });
+
+  // Remove any existing highlight first
+  el.classList.remove("wizard-field-highlight", "wizard-field-highlight-fade");
+
+  // Force reflow so re-adding the class triggers animation
+  void el.offsetWidth;
+
+  el.classList.add("wizard-field-highlight");
+
+  setTimeout(() => {
+    el.classList.add("wizard-field-highlight-fade");
+  }, 4000);
+
+  setTimeout(() => {
+    el.classList.remove(
+      "wizard-field-highlight",
+      "wizard-field-highlight-fade",
+    );
+  }, 5000);
+}
 
 export default function BookingWizardChecklist({
   currentStep,
@@ -61,6 +91,7 @@ export default function BookingWizardChecklist({
       value: serviceName,
       step: 1,
       priority: "critical",
+      sectionId: "wizard-field-service",
     },
     {
       key: "datetime",
@@ -70,6 +101,7 @@ export default function BookingWizardChecklist({
       value: dateTimeLabel,
       step: 1,
       priority: "critical",
+      sectionId: "wizard-field-datetime",
     },
     {
       key: "pickup",
@@ -79,6 +111,7 @@ export default function BookingWizardChecklist({
       value: pickupLabel,
       step: 1,
       priority: "critical",
+      sectionId: "wizard-field-pickup",
     },
     {
       key: "dropoff",
@@ -88,6 +121,7 @@ export default function BookingWizardChecklist({
       value: dropoffLabel,
       step: 1,
       priority: "critical",
+      sectionId: "wizard-field-dropoff",
     },
     {
       key: "vehicle",
@@ -101,6 +135,7 @@ export default function BookingWizardChecklist({
         : null,
       step: 2,
       priority: "critical",
+      sectionId: "wizard-field-vehicle",
     },
     {
       key: "contact",
@@ -110,22 +145,31 @@ export default function BookingWizardChecklist({
       value: contactLabel,
       step: 3,
       priority: "important",
+      sectionId: "wizard-field-contact",
     },
   ];
 
-  const completedCount = checklist.filter((item) => item.isComplete).length;
-  const totalCount = checklist.length;
-  const allComplete = completedCount === totalCount;
-  const progressPercent = Math.round((completedCount / totalCount) * 100);
+  // ✅ Only show items as "visually complete" (green) if we've reached that step
+  function isVisuallyComplete(item: ChecklistItem): boolean {
+    if (item.step > currentStep) return false;
+    return item.isComplete;
+  }
 
-  // Determine if a step is navigable (can only go to steps that are <= current or already unlocked)
+  const visuallyCompleteCount = checklist.filter((item) =>
+    isVisuallyComplete(item),
+  ).length;
+  const totalCount = checklist.length;
+  const allComplete =
+    currentStep === 3 && checklist.every((item) => item.isComplete);
+  const progressPercent = Math.round(
+    (visuallyCompleteCount / totalCount) * 100,
+  );
+
   function canNavigate(item: ChecklistItem): boolean {
     if (item.step <= currentStep) return true;
-    // Allow going to step 2 if step 1 items are all complete
     if (item.step === 2) {
       return checklist.filter((c) => c.step === 1).every((c) => c.isComplete);
     }
-    // Allow going to step 3 if step 1 & 2 items are all complete
     if (item.step === 3) {
       return checklist.filter((c) => c.step <= 2).every((c) => c.isComplete);
     }
@@ -133,9 +177,18 @@ export default function BookingWizardChecklist({
   }
 
   function handleClick(item: ChecklistItem) {
-    if (item.isComplete && item.step === currentStep) return;
-    if (canNavigate(item)) {
+    const navigable = canNavigate(item);
+    if (!navigable) return;
+
+    if (item.step === currentStep) {
+      // Same step — just scroll + highlight
+      scrollToSection(item.sectionId);
+    } else {
+      // Switch step, then scroll after render
       onGoToStep(item.step);
+      setTimeout(() => {
+        scrollToSection(item.sectionId);
+      }, 300);
     }
   }
 
@@ -145,7 +198,6 @@ export default function BookingWizardChecklist({
     3: "Confirm",
   };
 
-  // Group items by step
   const steps = [1, 2, 3] as const;
 
   return (
@@ -161,11 +213,10 @@ export default function BookingWizardChecklist({
             <p className={styles.subtitle}>
               {allComplete
                 ? "All details filled — review and submit"
-                : `${completedCount} of ${totalCount} completed`}
+                : `${visuallyCompleteCount} of ${totalCount} completed`}
             </p>
           </div>
         </div>
-        {/* Progress bar */}
         <div className={styles.progressBar}>
           <div
             className={styles.progressFill}
@@ -179,7 +230,9 @@ export default function BookingWizardChecklist({
         {steps.map((stepNum) => {
           const stepItems = checklist.filter((item) => item.step === stepNum);
           const isCurrentStep = stepNum === currentStep;
-          const stepComplete = stepItems.every((item) => item.isComplete);
+          const stepComplete =
+            stepNum <= currentStep &&
+            stepItems.every((item) => item.isComplete);
 
           return (
             <div key={stepNum} className={styles.stepGroup}>
@@ -200,18 +253,15 @@ export default function BookingWizardChecklist({
 
               <div className={styles.stepItems}>
                 {stepItems.map((item) => {
+                  const visualComplete = isVisuallyComplete(item);
                   const navigable = canNavigate(item);
-                  const isClickable = navigable && !item.isComplete;
-                  const isOnDifferentStep = item.step !== currentStep;
+                  const isClickable = navigable;
 
                   return (
                     <div
                       key={item.key}
-                      className={`${styles.checkItem} ${item.isComplete ? styles.complete : styles.incomplete} ${isClickable || (navigable && isOnDifferentStep) ? styles.clickable : ""}`}
-                      onClick={() =>
-                        (isClickable || (navigable && isOnDifferentStep)) &&
-                        handleClick(item)
-                      }
+                      className={`${styles.checkItem} ${visualComplete ? styles.complete : styles.incomplete} ${isClickable ? styles.clickable : ""}`}
+                      onClick={() => isClickable && handleClick(item)}
                       role={isClickable ? "button" : undefined}
                       tabIndex={isClickable ? 0 : undefined}
                       onKeyDown={(e) => {
@@ -225,7 +275,7 @@ export default function BookingWizardChecklist({
                       }}
                     >
                       <div className={styles.checkIcon}>
-                        {item.isComplete ? (
+                        {visualComplete ? (
                           <Check className={styles.checkIcon} />
                         ) : (
                           <Check className={styles.checkIconGhost} />
@@ -233,7 +283,7 @@ export default function BookingWizardChecklist({
                       </div>
                       <div className={styles.checkContent}>
                         <div className={styles.checkLabel}>{item.label}</div>
-                        {item.isComplete ? (
+                        {visualComplete ? (
                           <div className={styles.checkValue}>{item.value}</div>
                         ) : (
                           <div className={styles.checkDescription}>
@@ -241,7 +291,7 @@ export default function BookingWizardChecklist({
                           </div>
                         )}
                       </div>
-                      {(isClickable || (navigable && isOnDifferentStep)) && (
+                      {isClickable && (
                         <div className={styles.goToArrow}>
                           <Arrow className={styles.arrow} />
                         </div>

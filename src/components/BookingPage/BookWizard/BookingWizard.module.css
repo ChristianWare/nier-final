@@ -9,7 +9,7 @@
 .checklistContainer {
   grid-area: checklist;
   position: sticky;
-  top: 78px;
+  top: 85px;
   z-index: 10;
   height: fit-content;
 }

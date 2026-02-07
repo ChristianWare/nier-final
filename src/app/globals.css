@@ -785,3 +785,21 @@ th {
     border-color: var(--stroke);
   }
 }
+
+/* ============================================
+   Wizard Field Highlight Animation
+   ============================================ */
+
+.wizard-field-highlight {
+  border-radius: 10px;
+  outline: 4px solid var(--lightestGreen);
+  background-color: var(--lighterGreen);
+  transition:
+    outline-color 1s ease,
+    background-color 1s ease;
+}
+
+.wizard-field-highlight-fade {
+  outline-color: transparent;
+  background-color: transparent;
+}
