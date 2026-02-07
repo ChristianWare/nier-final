@@ -18,7 +18,7 @@
 .meta {
   font-size: 1.4rem;
   color: var(--paragraph, #676767);
-  margin-top: 0.4rem;
+  margin-top: 1rem;
 }
 
 .meta strong {
@@ -120,6 +120,7 @@
   display: block;
   font-size: 1.4rem;
   color: var(--paragraph, #676767);
+  margin-top: 1rem;
 }
 
 /* ─── Badges ─── */

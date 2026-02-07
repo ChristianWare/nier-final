@@ -5,7 +5,6 @@
   gap: 1.4rem;
 }
 
-/* ─── Suspended Banner ─── */
 .suspendedBanner {
   display: flex;
   align-items: flex-start;
@@ -101,7 +100,6 @@
   width: var(--limit-pct, 0%);
 }
 
-
 .limitFill_ok {
   background-color: #16a34a;
 }
@@ -156,7 +154,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
   border-bottom: 1px solid var(--stroke);
 }
 
@@ -176,7 +173,6 @@
   color: var(--black);
 }
 
-/* ─── Table (matches admin pattern) ─── */
 .empty {
   background: var(--white);
   border: 1px solid var(--stroke);
@@ -191,6 +187,9 @@
   border: 1px solid var(--stroke);
   border-radius: 12px;
   overflow: hidden;
+  padding: 2rem;
+  display: grid;
+  grid-gap: 2rem;
 }
 
 .tableWrap {
@@ -408,7 +407,6 @@
   color: #15803d;
 }
 
-/* ─── Mobile ─── */
 @media (max-width: 968px) {
   .kpiGrid {
     grid-template-columns: repeat(2, 1fr);

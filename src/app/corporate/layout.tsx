@@ -84,8 +84,10 @@ export default async function CorporateLayout({
         <section className={styles.container}>
           <div className={styles.content}>
             <div className={styles.left}>
+              <p className={styles.companyLabel}>
+                {account.name} — Corporate Dashboard
+              </p>
               <h1 className={`${styles.heading} h2`}>Welcome {displayName}!</h1>
-              <p className={styles.companyLabel}>{account.name}</p>
 
               <div className={styles.sideNavContainer}>
                 <CorporateSideNav

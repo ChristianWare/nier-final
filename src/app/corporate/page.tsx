@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
+import CorpAdminPageIntro from "@/components/corporate/CorpAdminPageIntro/CorpAdminPageIntro";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -237,9 +238,7 @@ export default async function CorporateDashboardPage() {
     }),
   ]);
 
-  const spendThisMonthCents = Number(
-    spendThisMonthAgg?._sum?.totalCents ?? 0,
-  );
+  const spendThisMonthCents = Number(spendThisMonthAgg?._sum?.totalCents ?? 0);
 
   // Monthly limit progress
   const monthlyLimitCents = account.monthlyLimitCents
@@ -252,6 +251,8 @@ export default async function CorporateDashboardPage() {
 
   return (
     <section className={styles.container}>
+      <CorpAdminPageIntro companyName={account.name} />
+
       {/* ─── Account suspended banner ─── */}
       {account.status === "SUSPENDED" && (
         <div className={styles.suspendedBanner}>
@@ -286,7 +287,11 @@ export default async function CorporateDashboardPage() {
               <div className={styles.limitTrack}>
                 <div
                   className={`${styles.limitFill} ${styles[`limitFill_${limitLevel(limitPercent)}`]}`}
-                  style={{ '--limit-pct': `${Math.min(limitPercent, 100)}%` } as React.CSSProperties}
+                  style={
+                    {
+                      "--limit-pct": `${Math.min(limitPercent, 100)}%`,
+                    } as React.CSSProperties
+                  }
                 />
               </div>
               <span className={styles.limitText}>
@@ -316,19 +321,19 @@ export default async function CorporateDashboardPage() {
 
       {/* ─── Quick Actions ─── */}
       <div className={styles.quickActions}>
-        <Link href="/corporate/bookings" className={styles.quickAction}>
+        <Link href='/corporate/bookings' className={styles.quickAction}>
           <span className={styles.qaIcon}>🚗</span>
           Book a Ride
         </Link>
-        <Link href="/corporate/employees" className={styles.quickAction}>
+        <Link href='/corporate/employees' className={styles.quickAction}>
           <span className={styles.qaIcon}>👥</span>
           Manage Employees
         </Link>
-        <Link href="/corporate/billing" className={styles.quickAction}>
+        <Link href='/corporate/billing' className={styles.quickAction}>
           <span className={styles.qaIcon}>💳</span>
           View Billing
         </Link>
-        <Link href="/corporate/reports" className={styles.quickAction}>
+        <Link href='/corporate/reports' className={styles.quickAction}>
           <span className={styles.qaIcon}>📊</span>
           View Reports
         </Link>
@@ -337,16 +342,18 @@ export default async function CorporateDashboardPage() {
       {/* ─── Upcoming Rides ─── */}
       <div className={styles.tableCard}>
         <div className={styles.sectionHeader}>
-          <h2 className={`${styles.sectionTitle} h4`}>Upcoming Rides</h2>
-          <Link href="/corporate/bookings" className={styles.sectionLink}>
+          <h2 className={`${styles.sectionTitle} cardTitle h4`}>
+            Upcoming Rides
+          </h2>
+          <Link href='/corporate/bookings' className={styles.sectionLink}>
             View All →
           </Link>
         </div>
 
         {upcomingRides.length === 0 ? (
           <div className={styles.empty}>
-            <p className="emptyTitle">No upcoming rides scheduled.</p>
-            <Link href="/corporate/bookings" className="neutralBtn">
+            <p className='emptyTitle'>No upcoming rides scheduled.</p>
+            <Link href='/corporate/bookings' className='neutralBtn'>
               Book a Ride
             </Link>
           </div>
@@ -406,12 +413,14 @@ export default async function CorporateDashboardPage() {
       {/* ─── Recent Activity ─── */}
       <div className={styles.tableCard}>
         <div className={styles.sectionHeader}>
-          <h2 className={`${styles.sectionTitle} h4`}>Recent Activity</h2>
+          <h2 className={`${styles.sectionTitle} cardTitle h4`}>
+            Recent Activity
+          </h2>
         </div>
 
         {recentBookings.length === 0 ? (
           <div className={styles.empty}>
-            <p className="emptyTitle">No booking activity yet.</p>
+            <p className='emptyTitle'>No booking activity yet.</p>
           </div>
         ) : (
           <div className={styles.activityList}>
