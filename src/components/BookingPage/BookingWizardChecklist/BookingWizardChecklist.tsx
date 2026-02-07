@@ -1,5 +1,6 @@
 "use client";
 
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import styles from "./BookingWizardChecklist.module.css";
 
 type Props = {
@@ -235,7 +236,9 @@ export default function BookingWizardChecklist({
                         )}
                       </div>
                       {(isClickable || (navigable && isOnDifferentStep)) && (
-                        <div className={styles.goToArrow}>→</div>
+                        <div className={styles.goToArrow}>
+                          <Arrow className={styles.arrow} />
+                        </div>
                       )}
                     </div>
                   );

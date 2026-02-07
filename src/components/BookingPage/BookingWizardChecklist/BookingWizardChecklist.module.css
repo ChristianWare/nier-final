@@ -143,8 +143,8 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  padding: 1rem;
+  border-radius: 7px;
   background: transparent;
   transition: all 0.15s ease;
 }
@@ -186,7 +186,7 @@
 .checkContent {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 1rem;
   min-width: 0;
 }
 
@@ -231,9 +231,7 @@
 
 .goToArrow {
   margin-left: auto;
-  font-size: 1.4rem;
   color: #94a3b8;
-  font-weight: 600;
   flex-shrink: 0;
   transition: transform 0.15s ease, color 0.15s ease;
 }
@@ -241,6 +239,10 @@
 .clickable:hover .goToArrow {
   transform: translateX(3px);
   color: #64748b;
+}
+
+.arrow {
+transform: rotate(90deg);
 }
 
 /* ── Mobile: horizontal compact layout ── */

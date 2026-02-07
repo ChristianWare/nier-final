@@ -1,12 +1,11 @@
 .content {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 2fr 4fr;
   grid-template-areas: "checklist wizard";
   grid-gap: 2rem;
   align-items: start;
 }
 
-/* ✅ NEW: Checklist replaces the old routePickerContainer */
 .checklistContainer {
   grid-area: checklist;
   position: sticky;
@@ -15,7 +14,6 @@
   height: fit-content;
 }
 
-/* ✅ RoutePicker now lives inline in step 1 */
 .routePickerInline {
   margin-top: 1rem;
   background-color: var(--cream);
@@ -44,10 +42,6 @@
 .wizardTop {
   scroll-margin-top: 110px;
 }
-
-/* .wizard { */
-  /* No top margin needed — stepper is gone */
-/* } */
 
 .stepPane {
   animation: stepFadeIn 220ms ease-out both;
@@ -298,7 +292,6 @@
   }
 }
 
-/* Hide mobile checklist on desktop */
 @media screen and (min-width: 769px) {
   .checklistMobile {
     display: none;
