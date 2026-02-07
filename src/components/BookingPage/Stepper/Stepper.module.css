@@ -51,38 +51,50 @@
 }
 
 /* Second step - align center */
-.step:nth-child(2) {
+.step:nth-child(2),
+.step:nth-child(5) {
   align-items: center;
 }
 
-.step:nth-child(2) .stepDetails {
+.step:nth-child(2) .stepDetails,
+.step:nth-child(5) .stepDetails {
   align-items: center;
 }
 
-.step:nth-child(2) .right {
+.step:nth-child(2) .right,
+.step:nth-child(5) .right {
   align-items: center;
   text-align: center;
 }
 
-.step:nth-child(2) .marker {
+.step:nth-child(2) .marker,
+.step:nth-child(5) .marker {
   justify-content: center;
 }
 
 /* Third step - align right */
-.step:nth-child(3) {
+.step:nth-child(3),
+.step:nth-child(6) {
   align-items: flex-end;
 }
 
-.step:nth-child(3) .stepDetails {
+.step:nth-child(3) .stepDetails,
+.step:nth-child(6) .stepDetails
+
+{
   align-items: flex-end;
 }
 
-.step:nth-child(3) .right {
+.step:nth-child(3) .right,
+.step:nth-child(6) .right
+
+{
   align-items: flex-end;
   text-align: right;
 }
 
-.step:nth-child(3) .marker {
+.step:nth-child(3) .marker,
+.step:nth-child(6) .marker {
   justify-content: flex-end;
 }
 

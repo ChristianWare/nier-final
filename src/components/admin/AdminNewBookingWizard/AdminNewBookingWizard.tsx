@@ -999,16 +999,6 @@ export default function AdminNewBookingWizard({
       <div className={styles.content}>
         <div className={styles.left}>
           <AdminBookingStepper step={step} />
-
-          <div className={styles.routePickerContainer}>
-            <RoutePicker
-              value={route}
-              onChange={handleRouteChange}
-              pickupInputRef={pickupInputRef}
-              dropoffInputRef={dropoffInputRef}
-              inputsKey={inputsKey}
-            />
-          </div>
         </div>
 
         <div className={styles.right}>
@@ -1696,6 +1686,16 @@ export default function AdminNewBookingWizard({
                     </div>
                   </div>
                 )}
+
+                <div className={styles.routePickerContainer}>
+                  <RoutePicker
+                    value={route}
+                    onChange={handleRouteChange}
+                    pickupInputRef={pickupInputRef}
+                    dropoffInputRef={dropoffInputRef}
+                    inputsKey={inputsKey}
+                  />
+                </div>
 
                 <div className={styles.btnRow}>
                   <button
