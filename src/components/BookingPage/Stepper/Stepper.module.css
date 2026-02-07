@@ -4,12 +4,13 @@
   grid-row-gap: 5rem;
   grid-column-gap: 0rem;
   align-items: flex-start;
-  background-color: var(--white);
+  background-color: var(--cream);
   box-shadow: 0 10px 10px -1px rgba(0, 0, 0, 0.3);
   padding: 2rem;
+  padding-top: 4rem;
   border-radius: 10px;
-  border-top-right-radius: 0px;
-  border-top-left-radius: 0px;
+  /* border-top-right-radius: 0px; */
+  /* border-top-left-radius: 0px; */
 }
 
 .step {
@@ -101,7 +102,7 @@
 .stepDetails {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 4rem;
   width: 100%;
 }
 

@@ -232,29 +232,10 @@
 }
 
 /* ── Mobile: horizontal compact layout ── */
-@media screen and (max-width: 768px) {
-  .container {
-    border-radius: 12px;
-    padding: 1rem;
-  }
-
-  .stepItems {
-    padding-left: 1rem;
-    margin-left: 1rem;
-  }
-
-  .checkItem {
-    padding: 0.5rem 1rem;
-  }
-
-  .checkLabel {
-    font-size: 1.4rem;
-  }
-
-  .checkValue,
-  .checkDescription {
-    font-size: 1.4rem;
-  }
+@media screen and (max-width: 1068px) {
+  /* .checkItem {
+    display: none;
+  } */
 
   .checkValue {
     max-width: 180px;

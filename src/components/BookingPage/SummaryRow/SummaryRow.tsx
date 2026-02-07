@@ -12,7 +12,7 @@ export default function SummaryRow({
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, borderBottom: '1px solid var(--black300)', paddingBottom: 8, marginBottom: 8 }}>
       <div className='emptyTitleSmall'>{label}</div>
-      <div style={{ fontSize: 13, fontWeight: strong ? 800 : 500 }}>
+      <div style={{ fontSize: strong ? 20 : 13, fontWeight: strong ? 800 : 500, textAlign: "right", color: strong ? "var(--darkGreen)" : "var(--black)" }}>
         {value}
       </div>
     </div>

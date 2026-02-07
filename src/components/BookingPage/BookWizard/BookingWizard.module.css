@@ -1,17 +1,24 @@
 .content {
   display: grid;
   grid-template-columns: 2fr 4fr;
-  grid-template-areas: "checklist wizard";
   grid-gap: 15rem;
   align-items: start;
 }
 
-.checklistContainer {
-  grid-area: checklist;
+.checklistContainer,
+.checklistMobile {
   position: sticky;
   top: 85px;
   z-index: 10;
   height: fit-content;
+}
+
+.sectionBox {
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  display: grid;
+  grid-gap: 1rem;
+  padding: 2rem;
 }
 
 .routePickerInline {
@@ -29,7 +36,6 @@
 }
 
 .right {
-  grid-area: wizard;
   align-self: start;
 }
 
@@ -271,21 +277,20 @@
   }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1068px) {
   .content {
     grid-template-columns: 1fr;
-    grid-template-areas: "wizard";
+    grid-gap: 7rem;
   }
 
-  /* Hide desktop checklist on mobile */
-  .checklistContainer {
-    display: none;
+  .wizard {
+    margin-top: 5rem;
+    padding: .5rem;
   }
 
-  /* Show mobile checklist inline */
   .checklistMobile {
     display: block;
-    margin-bottom: 1.5rem;
+    top: 54px;
   }
 
   .contentBox {
@@ -298,8 +303,14 @@
   }
 }
 
-@media screen and (min-width: 769px) {
+@media screen and (min-width: 1069px) {
   .checklistMobile {
     display: none;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .checklistMobile {
+    top: 45px;
   }
 }

@@ -28,6 +28,7 @@ import { ServicePricingStrategy } from "@prisma/client";
 import FlightLookupInput from "../FlightLookupInput/FlightLookupInput";
 import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect";
 import { extractIataFromFlightNumber } from "@/lib/flight/airlineList";
+import Stepper from "../Stepper/Stepper";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -352,12 +353,12 @@ export default function BookingWizard({
         return true;
       },
     });
-   register("guestPhone", {
-     validate: (v) => {
-       if (isAuthed) return true;
-       return isValidPhone(v);
-     },
-   });
+    register("guestPhone", {
+      validate: (v) => {
+        if (isAuthed) return true;
+        return isValidPhone(v);
+      },
+    });
     register("contactPhone", {
       validate: (v) => {
         if (!isAuthed) return true;
@@ -715,7 +716,7 @@ export default function BookingWizard({
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
+    const checkMobile = () => setIsMobile(window.innerWidth <= 1068);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -814,14 +815,16 @@ export default function BookingWizard({
 
             {/* ✅ Mobile checklist (shown above wizard on mobile) */}
             {isMobile && (
-              <div className={styles.checklistMobile}>{checklistNode}</div>
+              <div className={styles.checklistMobile}>
+                <Stepper step={step} />
+              </div>
             )}
 
             <div className={styles.wizard}>
               {/* STEP 1 */}
               {step === 1 ? (
                 <div className={`${styles.contentBox} ${styles.stepPane}`}>
-                  <h2 className='underline'>Trip details</h2>
+                  <h2 className='underline'>1. Trip details</h2>
                   <p className='subheading'>
                     Please provide the details for your trip below
                   </p>
@@ -897,10 +900,7 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  <div
-                    id='wizard-field-datetime'
-                    style={{ display: "grid", gap: 8, padding: "1rem" }}
-                  >
+                  <div id='wizard-field-datetime' className={styles.sectionBox}>
                     {" "}
                     <label
                       className={labelCx(
@@ -938,9 +938,7 @@ export default function BookingWizard({
                         <label className={labelCx(Boolean(errors.passengers))}>
                           Passengers
                         </label>
-                        <input
-                          type='number'
-                          min={1}
+                        <select
                           value={passengers}
                           onChange={(e) => {
                             setValue("passengers", Number(e.target.value), {
@@ -950,15 +948,22 @@ export default function BookingWizard({
                             clearErrors("passengers");
                           }}
                           className='input emptySmall'
-                        />
+                        >
+                          <option value={0}>Select...</option>
+                          {Array.from({ length: 56 }, (_, i) => i + 1).map(
+                            (n) => (
+                              <option key={n} value={n}>
+                                {n}
+                              </option>
+                            ),
+                          )}
+                        </select>
                       </div>
                       <div style={{ display: "grid", gap: 8 }}>
                         <label className={labelCx(Boolean(errors.luggage))}>
                           Luggage
                         </label>
-                        <input
-                          type='number'
-                          min={0}
+                        <select
                           value={luggage}
                           onChange={(e) => {
                             setValue("luggage", Number(e.target.value), {
@@ -968,7 +973,16 @@ export default function BookingWizard({
                             clearErrors("luggage");
                           }}
                           className='input emptySmall'
-                        />
+                        >
+                          <option value={0}>Select...</option>
+                          {Array.from({ length: 56 }, (_, i) => i + 1).map(
+                            (n) => (
+                              <option key={n} value={n}>
+                                {n}
+                              </option>
+                            ),
+                          )}
+                        </select>
                       </div>
                     </Grid2>
                   </div>
@@ -1415,7 +1429,7 @@ export default function BookingWizard({
                   className={styles.stepPane}
                   style={{ display: "grid", gap: 14, padding: "1rem" }}
                 >
-                  <h2 className='underline'>Choose a vehicle</h2>
+                  <h2 className='underline'>2. Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
                   <label className={labelCx(Boolean(errors.vehicleId))}>
                     Vehicle category
@@ -1566,7 +1580,7 @@ export default function BookingWizard({
                   className={styles.stepPane}
                   style={{ display: "grid", gap: 30 }}
                 >
-                  <h2 className='underline'>Confirm</h2>
+                  <h2 className='underline'>3. Confirm</h2>
                   <p className='subheading'>Overview</p>
                   <div className='box'>
                     <SummaryRow
