@@ -624,7 +624,13 @@ export default async function UserDetailPage({
             <h2 className='cardTitle h4'>Manage Roles</h2>
           </div>
           <div className={styles.cardBody}>
-            <RoleCheckboxForm userId={user.id} initialRoles={roles} />
+            <RoleCheckboxForm
+              userId={user.id}
+              initialRoles={roles.filter(
+                (r): r is "USER" | "ADMIN" | "DRIVER" =>
+                  ["USER", "ADMIN", "DRIVER"].includes(r),
+              )}
+            />{" "}
           </div>
         </div>
       </div>
