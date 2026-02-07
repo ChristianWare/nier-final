@@ -841,11 +841,9 @@ export default function BookingWizard({
                   <div
                     id='wizard-field-service'
                     style={{
-                      display: "grid",
-                      gap: 8,
                       marginBottom: 50,
-                      padding: "1rem",
                     }}
+                    className={styles.sectionBox}
                   >
                     <label className={labelCx(Boolean(errors.serviceTypeId))}>
                       Service
@@ -931,7 +929,7 @@ export default function BookingWizard({
                   </div>
                   <div
                     id='wizard-field-passengers-luggage'
-                    style={{ padding: "1rem" }}
+                    className={styles.sectionBox}
                   >
                     <Grid2>
                       <div style={{ display: "grid", gap: 8 }}>
@@ -987,10 +985,7 @@ export default function BookingWizard({
                     </Grid2>
                   </div>
                   <div className={styles.pickupDropoffContainer}>
-                    <div
-                      id='wizard-field-pickup'
-                      style={{ display: "grid", gap: 8, padding: "1rem" }}
-                    >
+                    <div id='wizard-field-pickup' className={styles.sectionBox}>
                       <label
                         className={`cardTitle h5${usesPickupAirport ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
                       >
@@ -1184,7 +1179,7 @@ export default function BookingWizard({
 
                     <div
                       id='wizard-field-dropoff'
-                      style={{ display: "grid", gap: 8, padding: "1rem" }}
+                      className={styles.sectionBox}
                     >
                       <label
                         className={`cardTitle h5${usesDropoffAirport ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
@@ -1324,7 +1319,8 @@ export default function BookingWizard({
                             gap: 8,
                           }}
                         >
-                          ✈️ Flight Information{" "}
+                          <span style={{ marginRight: 8 }}>✈️</span>
+                          Flight Information{" "}
                           <span style={{ fontWeight: 400, opacity: 0.7 }}>
                             (optional)
                           </span>
@@ -1424,136 +1420,142 @@ export default function BookingWizard({
 
               {/* STEP 2 */}
               {step === 2 ? (
-                <div
-                  id='wizard-field-vehicle'
-                  className={styles.stepPane}
-                  style={{ display: "grid", gap: 14, padding: "1rem" }}
-                >
+                <div id='wizard-field-vehicle' className={styles.stepPane}>
                   <h2 className='underline'>2. Choose a vehicle</h2>
                   <p className='subheading'>Choose a vehicle category</p>
-                  <label className={labelCx(Boolean(errors.vehicleId))}>
-                    Vehicle category
-                  </label>
-                  <div style={{ display: "grid", gap: 10 }}>
-                    {vehicleOptions.map((v) => {
-                      const isSelected = v.id === vehicleId;
-                      const rowQuote = selectedService
-                        ? calcQuoteCents({
-                            pricingStrategy: toStrategy(
-                              selectedService.pricingStrategy,
-                            ),
-                            distanceMiles:
-                              selectedService.pricingStrategy ===
-                              "POINT_TO_POINT"
-                                ? distanceMiles
-                                : null,
-                            durationMinutes:
-                              selectedService.pricingStrategy ===
-                              "POINT_TO_POINT"
-                                ? durationMinutes
-                                : null,
-                            hoursRequested:
-                              selectedService.pricingStrategy === "HOURLY"
-                                ? hoursRequested
-                                : null,
-                            stopCount: route?.stops?.length ?? 0,
-                            fees: (selectedService.fees ?? []).map((f) => ({
-                              label: f.label,
-                              amountCents: f.amountCents,
-                            })),
-                            vehicleMinHours: v.minHours ?? 0,
-                            serviceMinHours: selectedService.minHours ?? 0,
-                            serviceMinFareCents: selectedService.minFareCents,
-                            serviceBaseFeeCents: selectedService.baseFeeCents,
-                            servicePerMileCents: selectedService.perMileCents,
-                            servicePerMinuteCents:
-                              selectedService.perMinuteCents,
-                            servicePerHourCents: selectedService.perHourCents,
-                            vehicleBaseFareCents: v.baseFareCents ?? 0,
-                            vehiclePerMileCents: v.perMileCents ?? 0,
-                            vehiclePerMinuteCents: v.perMinuteCents ?? 0,
-                            vehiclePerHourCents: v.perHourCents ?? 0,
-                          })
-                        : null;
-                      const rowEstimateCents = rowQuote?.totalCents ?? 0;
-                      const rowMinHours =
-                        selectedService?.pricingStrategy === "HOURLY"
-                          ? v.minHours
+                  <br />
+                  <div className={styles.sectionBox}>
+                    <label className={labelCx(Boolean(errors.vehicleId))}>
+                      Vehicle category
+                    </label>
+                    <div style={{ display: "grid", gap: 10 }}>
+                      {vehicleOptions.map((v) => {
+                        const isSelected = v.id === vehicleId;
+                        const rowQuote = selectedService
+                          ? calcQuoteCents({
+                              pricingStrategy: toStrategy(
+                                selectedService.pricingStrategy,
+                              ),
+                              distanceMiles:
+                                selectedService.pricingStrategy ===
+                                "POINT_TO_POINT"
+                                  ? distanceMiles
+                                  : null,
+                              durationMinutes:
+                                selectedService.pricingStrategy ===
+                                "POINT_TO_POINT"
+                                  ? durationMinutes
+                                  : null,
+                              hoursRequested:
+                                selectedService.pricingStrategy === "HOURLY"
+                                  ? hoursRequested
+                                  : null,
+                              stopCount: route?.stops?.length ?? 0,
+                              fees: (selectedService.fees ?? []).map((f) => ({
+                                label: f.label,
+                                amountCents: f.amountCents,
+                              })),
+                              vehicleMinHours: v.minHours ?? 0,
+                              serviceMinHours: selectedService.minHours ?? 0,
+                              serviceMinFareCents: selectedService.minFareCents,
+                              serviceBaseFeeCents: selectedService.baseFeeCents,
+                              servicePerMileCents: selectedService.perMileCents,
+                              servicePerMinuteCents:
+                                selectedService.perMinuteCents,
+                              servicePerHourCents: selectedService.perHourCents,
+                              vehicleBaseFareCents: v.baseFareCents ?? 0,
+                              vehiclePerMileCents: v.perMileCents ?? 0,
+                              vehiclePerMinuteCents: v.perMinuteCents ?? 0,
+                              vehiclePerHourCents: v.perHourCents ?? 0,
+                            })
                           : null;
-                      const rowBillable =
-                        selectedService?.pricingStrategy === "HOURLY"
-                          ? Math.max(
-                              Math.ceil(hoursRequested || 0),
-                              Math.ceil(v.minHours || 0),
-                            )
-                          : null;
-                      return (
-                        <button
-                          key={v.id}
-                          type='button'
-                          onClick={() => {
-                            setValue("vehicleId", v.id, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            });
-                            clearErrors("vehicleId");
-                            if (selectedService?.pricingStrategy === "HOURLY") {
-                              setValue(
-                                "hoursRequested",
-                                Math.max(hoursRequested || 1, v.minHours || 0),
-                                { shouldDirty: true, shouldValidate: true },
-                              );
-                            }
-                          }}
-                          style={{
-                            textAlign: "left",
-                            padding: 14,
-                            borderRadius: 7,
-                            border: isSelected
-                              ? "2px solid rgba(0,0,0,0.6)"
-                              : "1px solid rgba(0,0,0,0.25)",
-                            background: "white",
-                            cursor: "pointer",
-                            display: "grid",
-                            gap: 6,
-                          }}
-                        >
-                          <div
+                        const rowEstimateCents = rowQuote?.totalCents ?? 0;
+                        const rowMinHours =
+                          selectedService?.pricingStrategy === "HOURLY"
+                            ? v.minHours
+                            : null;
+                        const rowBillable =
+                          selectedService?.pricingStrategy === "HOURLY"
+                            ? Math.max(
+                                Math.ceil(hoursRequested || 0),
+                                Math.ceil(v.minHours || 0),
+                              )
+                            : null;
+                        return (
+                          <button
+                            key={v.id}
+                            type='button'
+                            onClick={() => {
+                              setValue("vehicleId", v.id, {
+                                shouldDirty: true,
+                                shouldValidate: true,
+                              });
+                              clearErrors("vehicleId");
+                              if (
+                                selectedService?.pricingStrategy === "HOURLY"
+                              ) {
+                                setValue(
+                                  "hoursRequested",
+                                  Math.max(
+                                    hoursRequested || 1,
+                                    v.minHours || 0,
+                                  ),
+                                  { shouldDirty: true, shouldValidate: true },
+                                );
+                              }
+                            }}
                             style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              gap: 12,
+                              textAlign: "left",
+                              padding: 14,
+                              borderRadius: 7,
+                              border: isSelected
+                                ? "2px solid rgba(0,0,0,0.6)"
+                                : "1px solid rgba(0,0,0,0.25)",
+                              background: "white",
+                              cursor: "pointer",
+                              display: "grid",
+                              gap: 6,
                             }}
                           >
-                            <div className='emptyTitle'>{v.name}</div>
-                            <div className='emptyTitleSmall'>
-                              ${centsToUsd(rowEstimateCents)}
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                gap: 12,
+                              }}
+                            >
+                              <div className='emptyTitle'>{v.name}</div>
+                              <div className='emptyTitleSmall'>
+                                ${centsToUsd(rowEstimateCents)}
+                              </div>
                             </div>
-                          </div>
-                          <div className='val'>
-                            Capacity: {v.capacity} • Luggage:{" "}
-                            {v.luggageCapacity}
-                            {rowMinHours !== null
-                              ? ` • Min hours: ${rowMinHours}`
-                              : ""}
-                            {rowBillable !== null
-                              ? ` • Billable hours: ${rowBillable}`
-                              : ""}
-                          </div>
-                          {v.description ? (
-                            <div style={{ fontSize: 12, opacity: 0.75 }}>
-                              {v.description}
+                            <div className='val'>
+                              Capacity: {v.capacity} • Luggage:{" "}
+                              {v.luggageCapacity}
+                              {rowMinHours !== null
+                                ? ` • Min hours: ${rowMinHours}`
+                                : ""}
+                              {rowBillable !== null
+                                ? ` • Billable hours: ${rowBillable}`
+                                : ""}
                             </div>
-                          ) : null}
-                        </button>
-                      );
-                    })}
+                            {v.description ? (
+                              <div style={{ fontSize: 12, opacity: 0.75 }}>
+                                {v.description}
+                              </div>
+                            ) : null}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
+
                   <div
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
                       gap: 10,
+                      marginTop: 20,
                     }}
                   >
                     <button
@@ -1771,7 +1773,7 @@ export default function BookingWizard({
                   {!isAuthed ? (
                     <div
                       id='wizard-field-contact'
-                      style={{ display: "grid", gap: 10, padding: "1rem" }}
+                      className={styles.sectionBox}
                     >
                       <div style={{ display: "grid", gap: 20 }}>
                         <label className={labelCx(Boolean(errors.guestName))}>
@@ -1840,7 +1842,7 @@ export default function BookingWizard({
                     // For authenticated users:
                     <div
                       id='wizard-field-contact'
-                      style={{ display: "grid", gap: 10, padding: "1rem" }}
+                      className={styles.sectionBox}
                     >
                       <div style={{ display: "grid", gap: 8 }}>
                         <label
