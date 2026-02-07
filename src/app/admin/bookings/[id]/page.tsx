@@ -770,6 +770,99 @@ export default async function AdminBookingDetailPage({
       <div className={styles.container}>
         <header className='header'>
           <h1 className={`heading h2`}>Booking Details</h1>
+          <div className={styles.boxRight}>
+            <div className='emptyTitle'>Booking ID:</div>
+            <p className='emptySmall'>{booking.id}</p>
+
+            {/* Current status badge */}
+            <div style={{ marginTop: 30 }}>
+              <div className='emptyTitle'>Current Status:</div>
+              <div style={{ marginTop: 6 }}>
+                <span
+                  className={`badge badge_${currentStatusTone} ${styles.badge}`}
+                >
+                  {currentStatusLabel}
+                </span>
+              </div>
+            </div>
+
+            {/* Show decline reason if applicable */}
+            {isDeclined && booking.declineReason && (
+              <div className={styles.declineReasonBox}>
+                <strong>Decline Reason:</strong> {booking.declineReason}
+              </div>
+            )}
+
+            {/* Updated Payment status with balance display */}
+            <div style={{ marginTop: 30 }}>
+              <div className='emptyTitle'>Payment:</div>
+              <div className={styles.paymentInfo}>
+                <span
+                  className={`badge badge_${paymentStatusDisplay.tone} ${styles.badge}`}
+                >
+                  {paymentStatusDisplay.label}
+                </span>
+                {booking.totalCents > 0 && (
+                  <span className={styles.paymentAmount}>
+                    {formatMoney(booking.totalCents, booking.currency)}
+                  </span>
+                )}
+                {booking.payment?.paidAt && (
+                  <span className='miniNote'>
+                    on {formatDateTime(booking.payment.paidAt)}
+                  </span>
+                )}
+              </div>
+
+              {/* Show tip amount if present */}
+              {tipCents > 0 && (
+                <div className={styles.tipDisplay}>
+                  <span className={styles.tipIcon}>💰</span>
+                  <span className={styles.tipLabel}>Driver Tip:</span>
+                  <span className={styles.tipAmount}>
+                    {formatMoney(tipCents, booking.currency)}
+                  </span>
+                </div>
+              )}
+
+              {/* Show balance due if applicable */}
+              {paymentStatusDisplay.hasBalanceDue && (
+                <div className={styles.balanceDueAlert}>
+                  <strong>Balance Due:</strong>{" "}
+                  {formatMoney(
+                    paymentStatusDisplay.balanceDueCents,
+                    booking.currency,
+                  )}
+                  <span className={styles.balanceDetail}>
+                    (Paid: {formatMoney(amountPaidCents, booking.currency)} of{" "}
+                    {formatMoney(booking.totalCents, booking.currency)})
+                  </span>
+                </div>
+              )}
+
+              {/* Show refund due if applicable */}
+              {paymentStatusDisplay.hasRefundDue && (
+                <div className={styles.refundDueAlert}>
+                  <strong>Refund Due:</strong>{" "}
+                  {formatMoney(
+                    paymentStatusDisplay.refundDueCents,
+                    booking.currency,
+                  )}
+                  <span className={styles.refundDetail}>
+                    (Paid: {formatMoney(amountPaidCents, booking.currency)}
+                    {amountRefundedCents > 0 && (
+                      <>
+                        , Refunded:{" "}
+                        {formatMoney(amountRefundedCents, booking.currency)}
+                      </>
+                    )}
+                    , New Total:{" "}
+                    {formatMoney(booking.totalCents, booking.currency)})
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
           <div className={styles.box}>
             <ApprovalToggleClient
               bookingId={booking.id}
@@ -1356,101 +1449,8 @@ export default async function AdminBookingDetailPage({
           vehicleCategoryName={booking.vehicle?.name ?? null}
           isPaid={isPaid}
           isApproved={isApproved}
-          hasPaymentLinkSent={hasPaymentLinkSent} // ✅ NEW PROP
+          hasPaymentLinkSent={hasPaymentLinkSent}
         />
-        <div className={styles.boxRight}>
-          <div className='emptyTitle'>Booking ID:</div>
-          <p className='emptySmall'>{booking.id}</p>
-
-          {/* Current status badge */}
-          <div style={{ marginTop: 30 }}>
-            <div className='emptyTitle'>Current Status:</div>
-            <div style={{ marginTop: 6 }}>
-              <span
-                className={`badge badge_${currentStatusTone} ${styles.badge}`}
-              >
-                {currentStatusLabel}
-              </span>
-            </div>
-          </div>
-
-          {/* Show decline reason if applicable */}
-          {isDeclined && booking.declineReason && (
-            <div className={styles.declineReasonBox}>
-              <strong>Decline Reason:</strong> {booking.declineReason}
-            </div>
-          )}
-
-          {/* Updated Payment status with balance display */}
-          <div style={{ marginTop: 30 }}>
-            <div className='emptyTitle'>Payment:</div>
-            <div className={styles.paymentInfo}>
-              <span
-                className={`badge badge_${paymentStatusDisplay.tone} ${styles.badge}`}
-              >
-                {paymentStatusDisplay.label}
-              </span>
-              {booking.totalCents > 0 && (
-                <span className={styles.paymentAmount}>
-                  {formatMoney(booking.totalCents, booking.currency)}
-                </span>
-              )}
-              {booking.payment?.paidAt && (
-                <span className='miniNote'>
-                  on {formatDateTime(booking.payment.paidAt)}
-                </span>
-              )}
-            </div>
-
-            {/* Show tip amount if present */}
-            {tipCents > 0 && (
-              <div className={styles.tipDisplay}>
-                <span className={styles.tipIcon}>💰</span>
-                <span className={styles.tipLabel}>Driver Tip:</span>
-                <span className={styles.tipAmount}>
-                  {formatMoney(tipCents, booking.currency)}
-                </span>
-              </div>
-            )}
-
-            {/* Show balance due if applicable */}
-            {paymentStatusDisplay.hasBalanceDue && (
-              <div className={styles.balanceDueAlert}>
-                <strong>Balance Due:</strong>{" "}
-                {formatMoney(
-                  paymentStatusDisplay.balanceDueCents,
-                  booking.currency,
-                )}
-                <span className={styles.balanceDetail}>
-                  (Paid: {formatMoney(amountPaidCents, booking.currency)} of{" "}
-                  {formatMoney(booking.totalCents, booking.currency)})
-                </span>
-              </div>
-            )}
-
-            {/* Show refund due if applicable */}
-            {paymentStatusDisplay.hasRefundDue && (
-              <div className={styles.refundDueAlert}>
-                <strong>Refund Due:</strong>{" "}
-                {formatMoney(
-                  paymentStatusDisplay.refundDueCents,
-                  booking.currency,
-                )}
-                <span className={styles.refundDetail}>
-                  (Paid: {formatMoney(amountPaidCents, booking.currency)}
-                  {amountRefundedCents > 0 && (
-                    <>
-                      , Refunded:{" "}
-                      {formatMoney(amountRefundedCents, booking.currency)}
-                    </>
-                  )}
-                  , New Total:{" "}
-                  {formatMoney(booking.totalCents, booking.currency)})
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </section>
   );

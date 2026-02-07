@@ -40,6 +40,7 @@
   border: 1px solid var(--stroke);
   padding: 1rem;
   border-radius: 5px;
+  width: 100%;
   /* text-align: right; */
 }
 
