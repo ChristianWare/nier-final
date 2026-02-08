@@ -25,6 +25,7 @@
   margin-top: 1rem;
   background-color: var(--cream);
   padding: 1rem;
+  padding-top: 0rem;
   border-radius: 14px;
 }
 
