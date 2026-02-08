@@ -50,6 +50,7 @@ import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import Link from "next/link";
 import FlightLookupInput from "@/components/BookingPage/FlightLookupInput/FlightLookupInput";
 import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect";
+import BookingWizardChecklist from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -997,15 +998,113 @@ export default function AdminNewBookingWizard({
 
   const [stops, setStops] = useState<RoutePickerStop[]>([]);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 1068);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  function shortAddress(addr: string | null | undefined, maxLen = 35): string {
+    if (!addr) return "";
+    return addr.length > maxLen ? addr.slice(0, maxLen) + "…" : addr;
+  }
+
+  const hasPickup = usesPickupAirport
+    ? Boolean(pickupAirportId)
+    : Boolean(route?.pickup?.address);
+  const hasDropoff = usesDropoffAirport
+    ? Boolean(dropoffAirportId)
+    : Boolean(route?.dropoff?.address);
+
+  const hasContactInfo =
+    customerKind === "account"
+      ? Boolean(selectedUser)
+      : Boolean(
+          customerName.trim() && customerEmail.trim() && customerPhone.trim(),
+        );
+
+  const contactLabel = useMemo(() => {
+    if (customerKind === "account") {
+      return selectedUser?.name?.trim() || selectedUser?.email || null;
+    }
+    return customerName.trim() || null;
+  }, [customerKind, selectedUser, customerName]);
+
+  const checklistDateTimeLabel = useMemo(() => {
+    if (!pickupAtDate || !pickupAtTime) return null;
+    try {
+      const [y, m, d] = pickupAtDate.split("-");
+      const [hStr, mStr] = pickupAtTime.split(":");
+      let h = parseInt(hStr, 10);
+      const ampm = h >= 12 ? "PM" : "AM";
+      if (h === 0) h = 12;
+      else if (h > 12) h -= 12;
+      return `${m}/${d} @ ${h}:${mStr}${ampm}`;
+    } catch {
+      return `${pickupAtDate} ${pickupAtTime}`;
+    }
+  }, [pickupAtDate, pickupAtTime]);
+
+  const checklistEstimateLabel = useMemo(() => {
+    if (!selectedVehicle || estimateCents <= 0) return null;
+    return `$${centsToUsd(estimateCents)}`;
+  }, [selectedVehicle, estimateCents]);
+
+  const checklistNode = (
+    <BookingWizardChecklist
+      currentStep={Math.min(step, 3) as 1 | 2 | 3}
+      onGoToStep={(s) => {
+        if (s === 1) setStep(1);
+        else if (s === 2) setStep(2);
+      }}
+      hasService={Boolean(selectedService)}
+      serviceName={selectedService?.name ?? null}
+      hasDateTime={Boolean(pickupAtDate && pickupAtTime)}
+      dateTimeLabel={checklistDateTimeLabel}
+      hasPassengersLuggage={passengers >= 1}
+      passengersLuggageLabel={
+        passengers >= 1
+          ? `${passengers} passenger${passengers !== 1 ? "s" : ""}, ${luggage} bag${luggage !== 1 ? "s" : ""}`
+          : null
+      }
+      hasPickup={hasPickup}
+      pickupLabel={shortAddress(
+        usesPickupAirport
+          ? (serviceAirports.find((a) => a.id === pickupAirportId)?.name ??
+              null)
+          : (route?.pickup?.address ?? null),
+      )}
+      hasDropoff={hasDropoff}
+      dropoffLabel={shortAddress(
+        usesDropoffAirport
+          ? (serviceAirports.find((a) => a.id === dropoffAirportId)?.name ??
+              null)
+          : (route?.dropoff?.address ?? null),
+      )}
+      hasVehicle={Boolean(selectedVehicle)}
+      vehicleName={selectedVehicle?.name ?? null}
+      estimateLabel={checklistEstimateLabel}
+      hasContactInfo={hasContactInfo}
+      contactLabel={contactLabel}
+    />
+  );
+
   return (
     <section className={styles.container}>
       <div className={styles.content}>
-        <div className={styles.left}>
-          <AdminBookingStepper step={step} />
-        </div>
+        {!isMobile && <div className={styles.left}>{checklistNode}</div>}
 
         <div className={styles.right}>
           <div ref={wizardTopRef} className={styles.wizardTop} />
+
+          {isMobile && (
+            <div style={{ marginBottom: 20 }}>
+              <AdminBookingStepper step={step} />
+            </div>
+          )}
 
           <div className={styles.wizard}>
             {/* STEP 1: Trip */}
@@ -2603,7 +2702,7 @@ function AdminBookingStepper({ step }: { step: AdminWizardStep }) {
 
               <div className={stepperStyles.right}>
                 <div className={stepperStyles.label}>{it.label}</div>
-                <p className={stepperStyles.copy}>{it.copy}</p>
+                {/* <p className={stepperStyles.copy}>{it.copy}</p> */}
               </div>
             </div>
           </div>
