@@ -944,6 +944,12 @@
 
 @media screen and (max-width: 1468px) {
   .parent {
+    grid-template-columns: 4fr 3fr;
+  }
+}
+
+@media screen and (max-width: 1268px) {
+  .parent {
     grid-template-columns: 1fr;
     grid-gap: 10rem;
   }

@@ -37,7 +37,7 @@ export default function Stepper({ step }: { step: WizardStep }) {
 
               <div className={styles.right}>
                 <div className={styles.label}>{it.label}</div>
-                <p className={styles.copy}>{it.copy}</p>
+                {/* <p className={styles.copy}>{it.copy}</p> */}
               </div>
             </div>
           </div>

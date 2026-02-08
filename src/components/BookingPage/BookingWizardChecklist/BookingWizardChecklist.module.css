@@ -15,12 +15,12 @@
 .headerTop {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 1rem;
   margin-bottom: 12px;
 }
 
 .icon {
-  font-size: 22px;
+  font-size: 3.2rem;
   flex-shrink: 0;
 }
 
@@ -32,8 +32,8 @@
 
 .title {
   font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: normal;
+  /* font-size: 1.5rem; */
+  /* letter-spacing: normal; */
   color: #111827;
 }
 

@@ -274,6 +274,7 @@
 @media screen and (max-width: 1268px) {
   .content {
     grid-gap: 2rem;
+    grid-template-columns: 1.5fr 2fr;
   }
 }
 
@@ -285,7 +286,7 @@
 
   .wizard {
     margin-top: 5rem;
-    padding: .5rem;
+    padding: 0.5rem;
   }
 
   .checklistMobile {
