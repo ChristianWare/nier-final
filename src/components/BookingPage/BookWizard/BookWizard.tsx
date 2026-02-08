@@ -297,6 +297,19 @@ export default function BookingWizard({
     [vehicleOptions, vehicleId],
   );
 
+  const filteredVehicles = useMemo(() => {
+    if (passengers <= 0) return vehicleOptions;
+    return vehicleOptions.filter((v) => v.capacity >= passengers);
+  }, [vehicleOptions, passengers]);
+
+  useEffect(() => {
+    if (!vehicleId) return;
+    const selected = vehicleOptions.find((v) => v.id === vehicleId);
+    if (selected && passengers > 0 && selected.capacity < passengers) {
+      setValue("vehicleId", "", { shouldDirty: true });
+    }
+  }, [passengers, vehicleId, vehicleOptions, setValue]);
+
   const serviceAirports = selectedService?.airports ?? [];
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
@@ -1476,7 +1489,7 @@ export default function BookingWizard({
                       Vehicle category
                     </label>
                     <div style={{ display: "grid", gap: 10 }}>
-                      {vehicleOptions.map((v) => {
+                      {filteredVehicles.map((v) => {
                         const isSelected = v.id === vehicleId;
                         const rowQuote = selectedService
                           ? calcQuoteCents({
@@ -1594,6 +1607,16 @@ export default function BookingWizard({
                           </button>
                         );
                       })}
+                      {filteredVehicles.length === 0 && passengers > 0 && (
+                        <div className='miniNote' style={{ marginTop: 8 }}>
+                          No vehicles available for {passengers} passengers.
+                          Please adjust your party size or{" "}
+                          <a href='tel:+4803004885' className='inlineLink'>
+                            contact us
+                          </a>{" "}
+                          for a custom quote.
+                        </div>
+                      )}
                     </div>
                   </div>
 
