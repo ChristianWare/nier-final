@@ -1,0 +1,277 @@
+/* CorporateBookings.module.css */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.meta {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+  margin-top: 0.4rem;
+}
+
+.meta strong {
+  color: var(--black, #000);
+  font-size: 1.4rem;
+  letter-spacing: normal;
+}
+
+/* ─── Status Tabs ─── */
+.tabRow {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ─── Filters ─── */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 220px;
+  font-size: 1.4rem;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.selectInput {
+  font-size: 1.4rem;
+  min-width: 160px;
+}
+
+.dateInput {
+  font-size: 1.4rem;
+  min-width: 140px;
+}
+
+/* ─── Table Card ─── */
+.tableCard {
+  background: #fff;
+  border: 1px solid var(--stroke, #d8d6d2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.thead {
+  background: var(--cream, #eae9e6);
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke, #d8d6d2);
+}
+
+.th {
+  padding: 1rem 1.4rem;
+  text-align: left;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--black, #000);
+  white-space: nowrap;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--cream, #eae9e6);
+  transition: background 0.1s ease;
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.tr:hover {
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.td {
+  padding: 1rem 1.4rem;
+  font-size: 1.4rem;
+  color: var(--black, #000);
+  vertical-align: middle;
+}
+
+.tdRight {
+  text-align: right;
+}
+
+.cellStrong {
+  display: block;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--black, #000);
+}
+
+.cellSub {
+  display: block;
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+}
+
+.cellMuted {
+  color: var(--paragraph, #676767);
+  font-style: italic;
+}
+
+/* ─── Badges ─── */
+.badge {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+
+.badgeGreen {
+  background: rgba(22, 163, 74, 0.1);
+  color: #15803d;
+}
+
+.badgeAmber {
+  background: rgba(245, 158, 11, 0.1);
+  color: #b45309;
+}
+
+.badgeBlue {
+  background: rgba(37, 99, 235, 0.1);
+  color: #1d4ed8;
+}
+
+.badgeRed {
+  background: rgba(220, 38, 38, 0.1);
+  color: #b91c1c;
+}
+
+.badgeNeutral {
+  background: var(--cream, #eae9e6);
+  color: var(--paragraph, #676767);
+}
+
+/* ─── Table Footer / Pagination ─── */
+.tableFooter {
+  padding: 1rem 1.4rem;
+  border-top: 1px solid var(--cream, #eae9e6);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.paginationMeta {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+}
+
+.paginationBtns {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.paginationBtns button {
+  font-size: 1.4rem;
+  padding: 0.5rem 1rem;
+}
+
+/* ─── Empty State ─── */
+.emptyState {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #fff;
+  border: 1px solid var(--stroke, #d8d6d2);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.emptyTitle {
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--black, #000);
+  margin: 0;
+}
+
+.emptySub {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+  margin: 0;
+  max-width: 400px;
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  .filterGroup {
+    flex-direction: column;
+  }
+
+  .selectInput,
+  .dateInput {
+    width: 100%;
+  }
+
+  .th,
+  .td {
+    padding: 0.8rem 1rem;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
