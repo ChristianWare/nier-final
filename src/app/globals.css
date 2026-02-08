@@ -807,3 +807,7 @@ th {
   outline-color: transparent;
   background-color: transparent;
 }
+
+.rotateArrow {
+  transform: rotate(90deg);
+}

@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { unstable_noStore as noStore } from "next/cache";
 import Link from "next/link";
 import CorpAdminPageIntro from "@/components/corporate/CorpAdminPageIntro/CorpAdminPageIntro";
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import Button from "@/components/shared/Button/Button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -319,43 +321,44 @@ export default async function CorporateDashboardPage() {
         </div>
       </div>
 
-      {/* ─── Quick Actions ─── */}
-      <div className={styles.quickActions}>
-        <Link href='/corporate/bookings' className={styles.quickAction}>
-          <span className={styles.qaIcon}>🚗</span>
-          Book a Ride
-        </Link>
-        <Link href='/corporate/employees' className={styles.quickAction}>
-          <span className={styles.qaIcon}>👥</span>
-          Manage Employees
-        </Link>
-        <Link href='/corporate/billing' className={styles.quickAction}>
-          <span className={styles.qaIcon}>💳</span>
-          View Billing
-        </Link>
-        <Link href='/corporate/reports' className={styles.quickAction}>
-          <span className={styles.qaIcon}>📊</span>
-          View Reports
-        </Link>
+      <div className={styles.tableCard}>
+        <h2 className={`${styles.sectionTitle} cardTitle h4`}>Quick Actions</h2>
+        <div className={styles.quickActions}>
+          <Link href='/corporate/bookings' className={styles.quickAction}>
+            <span className={styles.qaIcon}>🚗</span>
+            Book a Ride
+          </Link>
+          <Link href='/corporate/employees' className={styles.quickAction}>
+            <span className={styles.qaIcon}>👥</span>
+            Manage Employees
+          </Link>
+          <Link href='/corporate/billing' className={styles.quickAction}>
+            <span className={styles.qaIcon}>💳</span>
+            View Billing
+          </Link>
+          <Link href='/corporate/reports' className={styles.quickAction}>
+            <span className={styles.qaIcon}>📊</span>
+            View Reports
+          </Link>
+        </div>
       </div>
 
       {/* ─── Upcoming Rides ─── */}
       <div className={styles.tableCard}>
-        <div className={styles.sectionHeader}>
-          <h2 className={`${styles.sectionTitle} cardTitle h4`}>
-            Upcoming Rides
-          </h2>
-          <Link href='/corporate/bookings' className={styles.sectionLink}>
-            View All →
-          </Link>
-        </div>
+        <h2 className={`${styles.sectionTitle} cardTitle h4`}>
+          Upcoming Rides
+        </h2>
+        <Link href='/corporate/bookings' className='backBtn'>
+          View All <Arrow className='rotateArrow' />
+        </Link>
 
         {upcomingRides.length === 0 ? (
           <div className={styles.empty}>
             <p className='emptyTitle'>No upcoming rides scheduled.</p>
-            <Link href='/corporate/bookings' className='neutralBtn'>
+            {/* <Link href='/corporate/bookings' className='neutralBtn'>
               Book a Ride
-            </Link>
+            </Link> */}
+            <Button href='/book' text='Book a Ride' btnType='red' arrow />
           </div>
         ) : (
           <div className={styles.tableWrap}>

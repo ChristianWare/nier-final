@@ -2,7 +2,7 @@
 
 .container {
   display: grid;
-  gap: 1.4rem;
+  gap: 2rem;
 }
 
 .suspendedBanner {
@@ -11,14 +11,14 @@
   gap: 1rem;
   padding: 16px 20px;
   background: rgba(239, 68, 68, 0.06);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
 }
 
 .suspendedIcon {
-  font-size: 20px;
+  font-size: 2rem;
   flex-shrink: 0;
-  margin-top: 1px;
+  margin-top: 1rem;
 }
 
 .suspendedBanner strong {
@@ -27,7 +27,7 @@
   font-weight: 700;
   letter-spacing: normal;
   color: #991b1b;
-  margin-bottom: 2px;
+  margin-bottom: 1rem;
 }
 
 .suspendedBanner p {
@@ -47,8 +47,8 @@
 
 .kpiCard {
   background: var(--white);
-  border: 1px solid var(--stroke);
-  border-radius: 12px;
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
   padding: 1.4rem 1.6rem;
   display: flex;
   flex-direction: column;
@@ -58,9 +58,9 @@
 .kpiLabel {
   font-size: 1.4rem;
   font-weight: 900;
+  letter-spacing: normal;
   color: var(--paragraph);
   text-transform: uppercase;
-  letter-spacing: normal;
 }
 
 .kpiValue {
@@ -74,7 +74,7 @@
 .kpiSub {
   font-size: 1.4rem;
   color: var(--paragraph);
-  margin-top: 2px;
+  margin-top: 1rem;
 }
 
 /* Monthly limit bar */
@@ -82,7 +82,7 @@
   margin-top: 6px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: .5rem;
 }
 
 .limitTrack {
@@ -128,7 +128,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.4rem;
+  padding: 1.5rem 2rem;
   background: var(--white);
   border: 1px solid var(--stroke);
   border-radius: 10px;
@@ -145,7 +145,7 @@
 }
 
 .qaIcon {
-  font-size: 18px;
+  font-size: 1.8rem;
   flex-shrink: 0;
 }
 
@@ -174,18 +174,21 @@
 }
 
 .empty {
-  background: var(--white);
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 2rem;
-  display: grid;
+  /* background: var(--white); */
+  /* border: 1px solid var(--stroke); */
+  /* border-radius: 10px; */
+  /* padding: 2rem; */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 1rem;
 }
 
 .tableCard {
   background: var(--white);
   border: 1px solid var(--stroke);
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
   padding: 2rem;
   display: grid;
@@ -406,6 +409,7 @@
 .green {
   color: #15803d;
 }
+
 
 @media (max-width: 968px) {
   .kpiGrid {
