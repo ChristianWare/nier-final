@@ -321,7 +321,7 @@ export default function AdminNewBookingWizard({
   const [serviceTypeId, setServiceTypeId] = useState<string>("");
   const [pickupAtDate, setPickupAtDate] = useState<string>("");
   const [pickupAtTime, setPickupAtTime] = useState<string>("");
-  const [passengers, setPassengers] = useState<number>(1);
+  const [passengers, setPassengers] = useState<number>(0);
   const [luggage, setLuggage] = useState<number>(0);
   const [hoursRequested, setHoursRequested] = useState<number>(2);
 
@@ -1001,7 +1001,7 @@ export default function AdminNewBookingWizard({
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth <= 1068);
+    const checkMobile = () => setIsMobile(window.innerWidth <= 1268);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -1053,42 +1053,169 @@ export default function AdminNewBookingWizard({
     return `$${centsToUsd(estimateCents)}`;
   }, [selectedVehicle, estimateCents]);
 
+  const adminStepLabels: Record<number, string> = {
+    1: "Trip Details",
+    2: "Vehicle",
+    3: "Approve & Price",
+    4: "Assign",
+    5: "Confirm",
+    6: "Payment",
+  };
+
+  const adminChecklistItems: import("@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist").ChecklistItem[] =
+    [
+      {
+        key: "customer",
+        label: "Customer",
+        description: "Select or enter customer info",
+        isComplete: hasContactInfo,
+        value: contactLabel,
+        step: 1,
+        priority: "critical",
+        sectionId: "wizard-field-customer",
+      },
+      {
+        key: "service",
+        label: "Service Type",
+        description: "Choose a service for this trip",
+        isComplete: Boolean(selectedService),
+        value: selectedService?.name ?? null,
+        step: 1,
+        priority: "critical",
+        sectionId: "wizard-field-service",
+      },
+      {
+        key: "datetime",
+        label: "Date & Time",
+        description: "Select pickup date and time",
+        isComplete: Boolean(pickupAtDate && pickupAtTime),
+        value: checklistDateTimeLabel,
+        step: 1,
+        priority: "critical",
+        sectionId: "wizard-field-datetime",
+      },
+      {
+        key: "passengers-luggage",
+        label: "Passengers & Luggage",
+        description: "How many passengers and bags?",
+        isComplete: passengers >= 1,
+        value:
+          passengers >= 1
+            ? `${passengers} passenger${passengers !== 1 ? "s" : ""}, ${luggage} bag${luggage !== 1 ? "s" : ""}`
+            : null,
+        step: 1,
+        priority: "critical",
+        sectionId: "wizard-field-passengers",
+      },
+      {
+        key: "pickup",
+        label: "Pickup Location",
+        description: "Enter pickup address",
+        isComplete: hasPickup,
+        value: shortAddress(
+          usesPickupAirport
+            ? (serviceAirports.find((a) => a.id === pickupAirportId)?.name ??
+                null)
+            : (route?.pickup?.address ?? null),
+        ),
+        step: 1,
+        priority: "critical",
+        sectionId: "wizard-field-pickup",
+      },
+      {
+        key: "dropoff",
+        label: "Dropoff Location",
+        description: "Enter destination",
+        isComplete: hasDropoff,
+        value: shortAddress(
+          usesDropoffAirport
+            ? (serviceAirports.find((a) => a.id === dropoffAirportId)?.name ??
+                null)
+            : (route?.dropoff?.address ?? null),
+        ),
+        step: 1,
+        priority: "critical",
+        sectionId: "wizard-field-dropoff",
+      },
+      {
+        key: "vehicle",
+        label: "Vehicle",
+        description: "Choose a vehicle category",
+        isComplete: Boolean(selectedVehicle),
+        value: selectedVehicle
+          ? checklistEstimateLabel
+            ? `${selectedVehicle.name} · ${checklistEstimateLabel}`
+            : selectedVehicle.name
+          : null,
+        step: 2,
+        priority: "critical",
+        sectionId: "wizard-field-vehicle",
+      },
+      {
+        key: "price",
+        label: "Approve Price",
+        description: "Review and approve pricing",
+        isComplete: Boolean(bookingId && bookingData),
+        value: bookingData ? `$${centsToUsd(bookingData.totalCents)}` : null,
+        step: 3,
+        priority: "critical",
+        sectionId: "wizard-field-price",
+      },
+      {
+        key: "assign",
+        label: "Assign",
+        description: "Assign driver and vehicle unit",
+        isComplete: Boolean(assignedDriverId),
+        value: assignedDriver
+          ? assignedDriver.name?.trim() || assignedDriver.email
+          : null,
+        step: 4,
+        priority: "important",
+        sectionId: "wizard-field-assign",
+      },
+      {
+        key: "confirm",
+        label: "Confirm",
+        description: "Final review of all details",
+        isComplete: step >= 6,
+        value: step >= 6 ? "Reviewed" : null,
+        step: 5,
+        priority: "important",
+        sectionId: "wizard-field-confirm",
+      },
+      {
+        key: "payment",
+        label: "Payment",
+        description: "Collect or send payment",
+        isComplete: bookingData?.paymentStatus === "PAID",
+        value: bookingData?.paymentStatus === "PAID" ? "Paid" : null,
+        step: 6,
+        priority: "important",
+        sectionId: "wizard-field-payment",
+      },
+    ];
+
   const checklistNode = (
     <BookingWizardChecklist
-      currentStep={Math.min(step, 3) as 1 | 2 | 3}
-      onGoToStep={(s) => {
-        if (s === 1) setStep(1);
-        else if (s === 2) setStep(2);
-      }}
+      currentStep={step}
+      onGoToStep={(s) => setStep(s as AdminWizardStep)}
       hasService={Boolean(selectedService)}
       serviceName={selectedService?.name ?? null}
       hasDateTime={Boolean(pickupAtDate && pickupAtTime)}
       dateTimeLabel={checklistDateTimeLabel}
       hasPassengersLuggage={passengers >= 1}
-      passengersLuggageLabel={
-        passengers >= 1
-          ? `${passengers} passenger${passengers !== 1 ? "s" : ""}, ${luggage} bag${luggage !== 1 ? "s" : ""}`
-          : null
-      }
+      passengersLuggageLabel={null}
       hasPickup={hasPickup}
-      pickupLabel={shortAddress(
-        usesPickupAirport
-          ? (serviceAirports.find((a) => a.id === pickupAirportId)?.name ??
-              null)
-          : (route?.pickup?.address ?? null),
-      )}
+      pickupLabel={null}
       hasDropoff={hasDropoff}
-      dropoffLabel={shortAddress(
-        usesDropoffAirport
-          ? (serviceAirports.find((a) => a.id === dropoffAirportId)?.name ??
-              null)
-          : (route?.dropoff?.address ?? null),
-      )}
+      dropoffLabel={null}
       hasVehicle={Boolean(selectedVehicle)}
-      vehicleName={selectedVehicle?.name ?? null}
-      estimateLabel={checklistEstimateLabel}
+      vehicleName={null}
+      estimateLabel={null}
       hasContactInfo={hasContactInfo}
       contactLabel={contactLabel}
+      customItems={adminChecklistItems}
+      customStepLabels={adminStepLabels}
     />
   );
 
@@ -1115,7 +1242,11 @@ export default function AdminNewBookingWizard({
                   Customer, service, date/time, and route.
                 </p>
 
-                <div style={{ display: "grid", gap: 10 }}>
+                <div
+                  id='wizard-field-customer'
+                  style={{ display: "grid", gap: 10 }}
+                  className={styles.sectionBox}
+                >
                   <label className='cardTitle h5'>Customer type</label>
                   <select
                     className='input emptySmall'
@@ -1128,204 +1259,211 @@ export default function AdminNewBookingWizard({
                     <option value='account'>Account (existing user)</option>
                     <option value='guest'>Guest (no account)</option>
                   </select>
-                </div>
-
-                {customerKind === "account" ? (
-                  <div style={{ display: "grid", gap: 10 }}>
-                    <label
-                      className={cx(
-                        "cardTitle h5",
-                        tripErrors.attachUser && "redBorder",
-                      )}
-                    >
-                      Attach to user
-                    </label>
-
-                    {selectedUser ? (
-                      <div
-                        style={{
-                          border: "1px solid rgba(0,0,0,0.12)",
-                          borderRadius: 10,
-                          padding: 12,
-                          background: "white",
-                          display: "grid",
-                          gap: 6,
-                        }}
-                      >
-                        <div className='emptyTitle'>
-                          {(selectedUser.name ?? "").trim() || "Unnamed user"}
-                        </div>
-                        <div
-                          className='miniNote'
-                          style={{ marginBottom: "4rem" }}
-                        >
-                          {selectedUser.email}
-                        </div>
-                        <div className='miniNote'>
-                          {selectedUser.phone
-                            ? `📞 ${selectedUser.phone}`
-                            : "📞 No phone on file"}
-                        </div>
-                        <div
-                          style={{ display: "flex", gap: 10, flexWrap: "wrap" }}
-                        >
-                          <span
-                            className={`badge badge_${selectedUser.emailVerified ? "good" : "warn"}`}
-                          >
-                            {selectedUser.emailVerified
-                              ? "Verified"
-                              : "Not verified"}
-                          </span>
-                          <button
-                            type='button'
-                            className='secondaryBtn'
-                            onClick={clearSelectedUser}
-                          >
-                            Change user
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ display: "grid", gap: 8 }}>
-                        <input
-                          className='input emptySmall'
-                          value={userQuery}
-                          onChange={handleUserQueryChange}
-                          placeholder='Search by email or name…'
-                          autoComplete='off'
-                        />
-
-                        {userSearching ? (
-                          <div className='miniNote'>Searching…</div>
-                        ) : null}
-
-                        {userQuery.trim().length >= 2 &&
-                        !userSearching &&
-                        userResults.length === 0 ? (
-                          <div className='miniNote'>No users found.</div>
-                        ) : null}
-
-                        {userResults.length > 0 ? (
-                          <div
-                            style={{
-                              border: "1px solid rgba(0,0,0,0.12)",
-                              borderRadius: 10,
-                              overflow: "hidden",
-                              background: "white",
-                            }}
-                          >
-                            {userResults.map((u) => (
-                              <button
-                                key={u.id}
-                                type='button'
-                                onClick={() => selectUser(u)}
-                                style={{
-                                  width: "100%",
-                                  textAlign: "left",
-                                  padding: 12,
-                                  display: "grid",
-                                  gap: 4,
-                                  border: "none",
-                                  background: "white",
-                                  cursor: "pointer",
-                                  borderBottom: "1px solid rgba(0,0,0,0.08)",
-                                }}
-                              >
-                                <div className='emptyTitle'>
-                                  {(u.name ?? "").trim() || "Unnamed user"}
-                                </div>
-                                <div className='miniNote'>{u.email}</div>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    gap: 8,
-                                    flexWrap: "wrap",
-                                  }}
-                                >
-                                  <span
-                                    className={`badge badge_${u.emailVerified ? "good" : "warn"}`}
-                                  >
-                                    {u.emailVerified
-                                      ? "Verified"
-                                      : "Not verified"}
-                                  </span>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <Grid2>
-                      <div style={{ display: "grid", gap: 8 }}>
-                        <label
-                          className={cx(
-                            "cardTitle h5",
-                            tripErrors.guestEmail && "redBorder",
-                          )}
-                        >
-                          Customer email
-                        </label>
-                        <input
-                          className='input emptySmall'
-                          value={customerEmail}
-                          onChange={(e) => {
-                            resetCreatedBooking();
-                            setCustomerEmail(e.target.value);
-                          }}
-                          placeholder='customer@email.com'
-                          inputMode='email'
-                        />
-                      </div>
-
-                      <div style={{ display: "grid", gap: 8 }}>
-                        <label
-                          className={cx(
-                            "cardTitle h5",
-                            tripErrors.guestName && "redBorder",
-                          )}
-                        >
-                          Customer name
-                        </label>
-                        <input
-                          className='input emptySmall'
-                          value={customerName}
-                          onChange={(e) => {
-                            resetCreatedBooking();
-                            setCustomerName(e.target.value);
-                          }}
-                          placeholder='Required for guest'
-                        />
-                      </div>
-                    </Grid2>
-
-                    <div style={{ display: "grid", gap: 8 }}>
+                  {customerKind === "account" ? (
+                    <div style={{ display: "grid", gap: 10 }}>
                       <label
                         className={cx(
                           "cardTitle h5",
-                          tripErrors.guestPhone && "redBorder",
+                          tripErrors.attachUser && "redBorder",
                         )}
                       >
-                        Customer phone
+                        Attach to user
                       </label>
-                      <input
-                        className='input emptySmall'
-                        value={customerPhone}
-                        onChange={(e) => {
-                          resetCreatedBooking();
-                          setCustomerPhone(e.target.value);
-                        }}
-                        placeholder='(602) 555-1234'
-                        inputMode='tel'
-                      />
-                    </div>
-                  </>
-                )}
 
-                <div style={{ display: "grid", gap: 8 }}>
+                      {selectedUser ? (
+                        <div
+                          style={{
+                            border: "1px solid rgba(0,0,0,0.12)",
+                            borderRadius: 10,
+                            padding: 12,
+                            background: "white",
+                            display: "grid",
+                            gap: 6,
+                          }}
+                        >
+                          <div className='emptyTitle'>
+                            {(selectedUser.name ?? "").trim() || "Unnamed user"}
+                          </div>
+                          <div
+                            className='miniNote'
+                            style={{ marginBottom: "4rem" }}
+                          >
+                            {selectedUser.email}
+                          </div>
+                          <div className='miniNote'>
+                            {selectedUser.phone
+                              ? `📞 ${selectedUser.phone}`
+                              : "📞 No phone on file"}
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 10,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <span
+                              className={`badge badge_${selectedUser.emailVerified ? "good" : "warn"}`}
+                            >
+                              {selectedUser.emailVerified
+                                ? "Verified"
+                                : "Not verified"}
+                            </span>
+                            <button
+                              type='button'
+                              className='secondaryBtn'
+                              onClick={clearSelectedUser}
+                            >
+                              Change user
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ display: "grid", gap: 8 }}>
+                          <input
+                            className='input emptySmall'
+                            value={userQuery}
+                            onChange={handleUserQueryChange}
+                            placeholder='Search by email or name…'
+                            autoComplete='off'
+                          />
+
+                          {userSearching ? (
+                            <div className='miniNote'>Searching…</div>
+                          ) : null}
+
+                          {userQuery.trim().length >= 2 &&
+                          !userSearching &&
+                          userResults.length === 0 ? (
+                            <div className='miniNote'>No users found.</div>
+                          ) : null}
+
+                          {userResults.length > 0 ? (
+                            <div
+                              style={{
+                                border: "1px solid rgba(0,0,0,0.12)",
+                                borderRadius: 10,
+                                overflow: "hidden",
+                                background: "white",
+                              }}
+                            >
+                              {userResults.map((u) => (
+                                <button
+                                  key={u.id}
+                                  type='button'
+                                  onClick={() => selectUser(u)}
+                                  style={{
+                                    width: "100%",
+                                    textAlign: "left",
+                                    padding: 12,
+                                    display: "grid",
+                                    gap: 4,
+                                    border: "none",
+                                    background: "white",
+                                    cursor: "pointer",
+                                    borderBottom: "1px solid rgba(0,0,0,0.08)",
+                                  }}
+                                >
+                                  <div className='emptyTitle'>
+                                    {(u.name ?? "").trim() || "Unnamed user"}
+                                  </div>
+                                  <div className='miniNote'>{u.email}</div>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      gap: 8,
+                                      flexWrap: "wrap",
+                                    }}
+                                  >
+                                    <span
+                                      className={`badge badge_${u.emailVerified ? "good" : "warn"}`}
+                                    >
+                                      {u.emailVerified
+                                        ? "Verified"
+                                        : "Not verified"}
+                                    </span>
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <Grid2>
+                        <div style={{ display: "grid", gap: 8 }}>
+                          <label
+                            className={cx(
+                              "cardTitle h5",
+                              tripErrors.guestEmail && "redBorder",
+                            )}
+                          >
+                            Customer email
+                          </label>
+                          <input
+                            className='input emptySmall'
+                            value={customerEmail}
+                            onChange={(e) => {
+                              resetCreatedBooking();
+                              setCustomerEmail(e.target.value);
+                            }}
+                            placeholder='customer@email.com'
+                            inputMode='email'
+                          />
+                        </div>
+
+                        <div style={{ display: "grid", gap: 8 }}>
+                          <label
+                            className={cx(
+                              "cardTitle h5",
+                              tripErrors.guestName && "redBorder",
+                            )}
+                          >
+                            Customer name
+                          </label>
+                          <input
+                            className='input emptySmall'
+                            value={customerName}
+                            onChange={(e) => {
+                              resetCreatedBooking();
+                              setCustomerName(e.target.value);
+                            }}
+                            placeholder='Required for guest'
+                          />
+                        </div>
+                      </Grid2>
+
+                      <div style={{ display: "grid", gap: 8 }}>
+                        <label
+                          className={cx(
+                            "cardTitle h5",
+                            tripErrors.guestPhone && "redBorder",
+                          )}
+                        >
+                          Customer phone
+                        </label>
+                        <input
+                          className='input emptySmall'
+                          value={customerPhone}
+                          onChange={(e) => {
+                            resetCreatedBooking();
+                            setCustomerPhone(e.target.value);
+                          }}
+                          placeholder='(602) 555-1234'
+                          inputMode='tel'
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div
+                  id='wizard-field-service'
+                  style={{ display: "grid", gap: 8 }}
+                  className={styles.sectionBox}
+                >
                   <label
                     className={cx(
                       "cardTitle h5",
@@ -1386,67 +1524,74 @@ export default function AdminNewBookingWizard({
                     first.
                   </div>
                 ) : null}
+                <div className={styles.sectionBox} id='wizard-field-datetime'>
+                  {attemptTripNext && tripErrors.routeDistance ? (
+                    <div
+                      className='miniNote'
+                      style={{ color: "rgba(180,0,0,0.85)" }}
+                    >
+                      Route estimate is missing distance (miles). Re-check the
+                      route picker selection.
+                    </div>
+                  ) : null}
 
-                {attemptTripNext && tripErrors.routeDistance ? (
-                  <div
-                    className='miniNote'
-                    style={{ color: "rgba(180,0,0,0.85)" }}
+                  <label
+                    className={cx(
+                      "cardTitle h5",
+                      tripErrors.dateTime && "redBorder",
+                      // styles.sectionBox,
+                    )}
                   >
-                    Route estimate is missing distance (miles). Re-check the
-                    route picker selection.
-                  </div>
-                ) : null}
+                    Pickup date & time
+                  </label>
+                  <BookingDateTimePicker
+                    date={pickupAtDate}
+                    time={pickupAtTime}
+                    onChangeDate={pickDate}
+                    onChangeTime={(t) => {
+                      resetCreatedBooking();
+                      setPickupAtTime(t);
+                    }}
+                  />
+                </div>
+                <div className={styles.sectionBox} id='wizard-field-passengers'>
+                  <Grid2>
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Passengers</label>
+                      <input
+                        type='number'
+                        min={1}
+                        value={passengers}
+                        onChange={(e) => {
+                          resetCreatedBooking();
+                          setPassengers(Number(e.target.value));
+                        }}
+                        className='input emptySmall'
+                      />
+                    </div>
 
-                <label
-                  className={cx(
-                    "cardTitle h5",
-                    tripErrors.dateTime && "redBorder",
-                  )}
-                >
-                  Pickup date & time
-                </label>
-                <BookingDateTimePicker
-                  date={pickupAtDate}
-                  time={pickupAtTime}
-                  onChangeDate={pickDate}
-                  onChangeTime={(t) => {
-                    resetCreatedBooking();
-                    setPickupAtTime(t);
-                  }}
-                />
-
-                <Grid2>
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <label className='cardTitle h5'>Passengers</label>
-                    <input
-                      type='number'
-                      min={1}
-                      value={passengers}
-                      onChange={(e) => {
-                        resetCreatedBooking();
-                        setPassengers(Number(e.target.value));
-                      }}
-                      className='input emptySmall'
-                    />
-                  </div>
-
-                  <div style={{ display: "grid", gap: 8 }}>
-                    <label className='cardTitle h5'>Luggage</label>
-                    <input
-                      type='number'
-                      min={0}
-                      value={luggage}
-                      onChange={(e) => {
-                        resetCreatedBooking();
-                        setLuggage(Number(e.target.value));
-                      }}
-                      className='input emptySmall'
-                    />
-                  </div>
-                </Grid2>
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>Luggage</label>
+                      <input
+                        type='number'
+                        min={0}
+                        value={luggage}
+                        onChange={(e) => {
+                          resetCreatedBooking();
+                          setLuggage(Number(e.target.value));
+                        }}
+                        className='input emptySmall'
+                      />
+                    </div>
+                  </Grid2>
+                </div>
 
                 <div className={styles.pickupDropoffContainer}>
-                  <div style={{ display: "grid", gap: 8 }}>
+                  <div
+                    id='wizard-field-pickup'
+                    style={{ display: "grid", gap: 8 }}
+                    className={styles.sectionBox}
+                  >
                     <label
                       className={cx(
                         "cardTitle h5",
@@ -1642,7 +1787,11 @@ export default function AdminNewBookingWizard({
                     </div>
                   )}
 
-                  <div style={{ display: "grid", gap: 8 }}>
+                  <div
+                    id='wizard-field-dropoff'
+                    style={{ display: "grid", gap: 8 }}
+                    className={styles.sectionBox}
+                  >
                     <label
                       className={cx(
                         "cardTitle h5",
@@ -1871,7 +2020,8 @@ export default function AdminNewBookingWizard({
             {/* STEP 2: Vehicle + Special requests */}
             {step === 2 ? (
               <div
-                className={`${styles.stepPane}`}
+                id='wizard-field-vehicle'
+                className={`${styles.sectionBox} ${styles.stepPane}`}
                 style={{ display: "grid", gap: 14 }}
               >
                 <h2 className='underline'>Choose a vehicle</h2>
@@ -2042,7 +2192,7 @@ export default function AdminNewBookingWizard({
                 className={`${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
-                <h2 className='underline'>Approve price</h2>
+                <h2 className='underline'>Approve booking & set price</h2>
                 <p className='subheading'>Approve & price the booking.</p>
 
                 {!bookingId ? (
@@ -2124,7 +2274,8 @@ export default function AdminNewBookingWizard({
             {/* STEP 4: Assign (+ status AFTER assign UI) */}
             {step === 4 ? (
               <div
-                className={`${styles.stepPane}`}
+                id='wizard-field-assign'
+                className={`${styles.sectionBox} ${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
                 <h2 className='underline'>Assign</h2>
@@ -2255,7 +2406,8 @@ export default function AdminNewBookingWizard({
             {/* STEP 5: Confirm */}
             {step === 5 ? (
               <div
-                className={`${styles.stepPane}`}
+                id='wizard-field-confirm'
+                className={`${styles.sectionBox} ${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
                 <h2 className='underline'>Confirm</h2>
@@ -2527,7 +2679,8 @@ export default function AdminNewBookingWizard({
             {/* STEP 6: Payment */}
             {step === 6 ? (
               <div
-                className={`${styles.stepPane}`}
+                id='wizard-field-payment'
+                className={`${styles.sectionBox} ${styles.stepPane}`}
                 style={{ display: "grid", gap: 18 }}
               >
                 <h2 className='underline'>Payment</h2>

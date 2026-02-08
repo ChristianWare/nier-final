@@ -771,7 +771,7 @@ export default function BookingWizard({
   const checklistNode = (
     <BookingWizardChecklist
       currentStep={step}
-      onGoToStep={(s) => setStep(s)}
+      onGoToStep={(s) => setStep(s as 1 | 2 | 3)}
       hasService={Boolean(selectedService)}
       serviceName={selectedService?.name ?? null}
       hasDateTime={Boolean(pickupAtDate && pickupAtTime)}

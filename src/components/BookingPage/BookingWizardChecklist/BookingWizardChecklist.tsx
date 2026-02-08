@@ -4,9 +4,20 @@ import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import styles from "./BookingWizardChecklist.module.css";
 import Check from "@/components/shared/icons/Check/Check";
 
+export type ChecklistItem = {
+  key: string;
+  label: string;
+  description: string;
+  isComplete: boolean;
+  value: string | null;
+  step: number;
+  priority: "critical" | "important";
+  sectionId: string;
+};
+
 type Props = {
-  currentStep: 1 | 2 | 3;
-  onGoToStep: (step: 1 | 2 | 3) => void;
+  currentStep: number;
+  onGoToStep: (step: number) => void;
   // Step 1 fields
   hasService: boolean;
   serviceName: string | null;
@@ -25,17 +36,9 @@ type Props = {
   // Step 3
   hasContactInfo: boolean;
   contactLabel: string | null;
-};
-
-type ChecklistItem = {
-  key: string;
-  label: string;
-  description: string;
-  isComplete: boolean;
-  value: string | null;
-  step: 1 | 2 | 3;
-  priority: "critical" | "important";
-  sectionId: string;
+  // Optional overrides for admin wizard
+  customItems?: ChecklistItem[];
+  customStepLabels?: Record<number, string>;
 };
 
 /** Scroll to a form section and apply a green highlight pulse */
@@ -85,8 +88,11 @@ export default function BookingWizardChecklist({
   contactLabel,
   hasPassengersLuggage,
   passengersLuggageLabel,
+  customItems,
+  customStepLabels,
 }: Props) {
-  const checklist: ChecklistItem[] = [
+  // Default 3-step checklist for customer-facing wizard
+  const defaultChecklist: ChecklistItem[] = [
     {
       key: "service",
       label: "Service Type",
@@ -163,31 +169,41 @@ export default function BookingWizardChecklist({
     },
   ];
 
+  const defaultStepLabels: Record<number, string> = {
+    1: "Trip Details",
+    2: "Vehicle",
+    3: "Confirm",
+  };
+
+  // Use custom items/labels if provided (admin wizard), otherwise defaults
+  const allItems = customItems ?? defaultChecklist;
+  const activeStepLabels = customStepLabels ?? defaultStepLabels;
+  const stepNums = [...new Set(allItems.map((i) => i.step))].sort(
+    (a, b) => a - b,
+  );
+  const maxStep = stepNums[stepNums.length - 1] ?? 3;
+
   // ✅ Only show items as "visually complete" (green) if we've reached that step
   function isVisuallyComplete(item: ChecklistItem): boolean {
     if (item.step > currentStep) return false;
     return item.isComplete;
   }
 
-  const visuallyCompleteCount = checklist.filter((item) =>
+  const visuallyCompleteCount = allItems.filter((item) =>
     isVisuallyComplete(item),
   ).length;
-  const totalCount = checklist.length;
+  const totalCount = allItems.length;
   const allComplete =
-    currentStep === 3 && checklist.every((item) => item.isComplete);
+    currentStep >= maxStep && allItems.every((item) => item.isComplete);
   const progressPercent = Math.round(
     (visuallyCompleteCount / totalCount) * 100,
   );
 
   function canNavigate(item: ChecklistItem): boolean {
     if (item.step <= currentStep) return true;
-    if (item.step === 2) {
-      return checklist.filter((c) => c.step === 1).every((c) => c.isComplete);
-    }
-    if (item.step === 3) {
-      return checklist.filter((c) => c.step <= 2).every((c) => c.isComplete);
-    }
-    return false;
+    // Can navigate to the next step only if all previous steps are complete
+    const previousItems = allItems.filter((c) => c.step < item.step);
+    return previousItems.every((c) => c.isComplete);
   }
 
   function handleClick(item: ChecklistItem) {
@@ -205,14 +221,6 @@ export default function BookingWizardChecklist({
       }, 300);
     }
   }
-
-  const stepLabels: Record<number, string> = {
-    1: "Trip Details",
-    2: "Vehicle",
-    3: "Confirm",
-  };
-
-  const steps = [1, 2, 3] as const;
 
   return (
     <div className={styles.container}>
@@ -241,8 +249,8 @@ export default function BookingWizardChecklist({
 
       {/* Checklist grouped by step */}
       <div className={styles.checklist}>
-        {steps.map((stepNum) => {
-          const stepItems = checklist.filter((item) => item.step === stepNum);
+        {stepNums.map((stepNum) => {
+          const stepItems = allItems.filter((item) => item.step === stepNum);
           const isCurrentStep = stepNum === currentStep;
           const stepComplete =
             stepNum <= currentStep &&
@@ -258,7 +266,7 @@ export default function BookingWizardChecklist({
                 ></div>
                 <span className={styles.stepLabel}>
                   <div className={styles.stepNum}>{stepNum}.</div>
-                  {stepLabels[stepNum]}
+                  {activeStepLabels[stepNum] ?? `Step ${stepNum}`}
                 </span>
                 {isCurrentStep && (
                   <span className={styles.currentBadge}>Current</span>
