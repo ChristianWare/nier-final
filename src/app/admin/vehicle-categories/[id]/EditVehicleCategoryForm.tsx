@@ -63,25 +63,7 @@ export default function EditVehicleCategoryForm({
             disabled={isPending}
           />
         </Field>
-
-        {/* <Field label='Image URL (optional)'>
-          <input
-            name='imageUrl'
-            defaultValue={category.imageUrl ?? ""}
-            className='inputBorder'
-            disabled={isPending}
-          />
-        </Field> */}
       </Grid2>
-
-      {/* <Field label='Description (optional)'>
-        <input
-          name='description'
-          defaultValue={category.description ?? ""}
-          className='inputBorder'
-          disabled={isPending}
-        />
-      </Field> */}
 
       <Grid3>
         <Field label='Capacity (pax)'>
@@ -122,9 +104,9 @@ export default function EditVehicleCategoryForm({
       </Field>
 
       <div style={{ display: "grid", gap: 6 }}>
-        <label className='cardTitle h5'>Pricing (cents)</label>
+        <label className='cardTitle h5'>Pricing (USD)</label>
         <div className='miniNote' style={{ marginTop: -2 }}>
-          Enter values in cents (example: 15000 = $150.00).
+          Enter values in dollars (example: 150.00 = $150.00).
         </div>
       </div>
 
@@ -132,7 +114,7 @@ export default function EditVehicleCategoryForm({
         <Field label='Base fare'>
           <input
             name='baseFareCents'
-            defaultValue={String(category.baseFareCents)}
+            defaultValue={(category.baseFareCents / 100).toFixed(2)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -141,7 +123,7 @@ export default function EditVehicleCategoryForm({
         <Field label='Per mile'>
           <input
             name='perMileCents'
-            defaultValue={String(category.perMileCents)}
+            defaultValue={(category.perMileCents / 100).toFixed(2)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -150,7 +132,7 @@ export default function EditVehicleCategoryForm({
         <Field label='Per minute'>
           <input
             name='perMinuteCents'
-            defaultValue={String(category.perMinuteCents)}
+            defaultValue={(category.perMinuteCents / 100).toFixed(2)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -159,7 +141,7 @@ export default function EditVehicleCategoryForm({
         <Field label='Per hour'>
           <input
             name='perHourCents'
-            defaultValue={String(category.perHourCents)}
+            defaultValue={(category.perHourCents / 100).toFixed(2)}
             className='inputBorder'
             disabled={isPending}
           />

@@ -58,6 +58,7 @@ type CreateBookingRequestInput = {
 
   // Phone for logged-in users
   contactPhone?: string | null;
+  eventType?: string | null;
 };
 
 const PHX_TZ = "America/Phoenix";
@@ -209,7 +210,7 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
   const booking = await db.booking.create({
     data: {
       userId: userId ?? undefined,
-
+      eventType: input.eventType?.trim() || null,
       guestName: userId ? undefined : guestName,
       guestEmail: userId ? undefined : guestEmail,
       guestPhone: userId ? undefined : guestPhone,

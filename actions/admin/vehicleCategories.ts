@@ -12,6 +12,11 @@ function toInt(v: FormDataEntryValue | null, fallback = 0) {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
+function toCents(v: FormDataEntryValue | null, fallback = 0) {
+  const n = parseFloat((v ?? fallback).toString());
+  return Number.isFinite(n) ? Math.round(n * 100) : fallback;
+}
+
 function toString(v: FormDataEntryValue | null) {
   const s = (v ?? "").toString().trim();
   return s.length ? s : null;
@@ -60,10 +65,10 @@ export async function createVehicleCategory(formData: FormData) {
 
   const active = formData.get("active") === "on";
 
-  const baseFareCents = toInt(formData.get("baseFareCents"), 0);
-  const perMileCents = toInt(formData.get("perMileCents"), 0);
-  const perMinuteCents = toInt(formData.get("perMinuteCents"), 0);
-  const perHourCents = toInt(formData.get("perHourCents"), 0);
+  const baseFareCents = toCents(formData.get("baseFareCents"), 0);
+  const perMileCents = toCents(formData.get("perMileCents"), 0);
+  const perMinuteCents = toCents(formData.get("perMinuteCents"), 0);
+  const perHourCents = toCents(formData.get("perHourCents"), 0);
 
   await db.vehicle.create({
     data: {
@@ -104,10 +109,10 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
 
   const active = formData.get("active") === "on";
 
-  const baseFareCents = toInt(formData.get("baseFareCents"), 0);
-  const perMileCents = toInt(formData.get("perMileCents"), 0);
-  const perMinuteCents = toInt(formData.get("perMinuteCents"), 0);
-  const perHourCents = toInt(formData.get("perHourCents"), 0);
+  const baseFareCents = toCents(formData.get("baseFareCents"), 0);
+  const perMileCents = toCents(formData.get("perMileCents"), 0);
+  const perMinuteCents = toCents(formData.get("perMinuteCents"), 0);
+  const perHourCents = toCents(formData.get("perHourCents"), 0);
 
   await db.vehicle.update({
     where: { id },

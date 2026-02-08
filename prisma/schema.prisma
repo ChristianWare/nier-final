@@ -437,6 +437,8 @@ model Booking {
   costCenter  String?
   projectCode String?
 
+  eventType String?
+
   @@index([userId])
   @@index([serviceTypeId])
   @@index([vehicleId])

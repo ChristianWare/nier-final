@@ -103,6 +103,7 @@ type FormValues = {
   guestEmail: string;
   guestPhone: string;
   contactPhone: string;
+  eventType: string;
 };
 
 function centsToUsd(cents: number) {
@@ -251,6 +252,7 @@ export default function BookingWizard({
       hoursRequested: 2,
       route: null,
       vehicleId: "",
+      eventType: "",
       specialRequests: "",
       flightAirline: "",
       flightNumber: "",
@@ -682,6 +684,7 @@ export default function BookingWizard({
         guestName: isAuthed ? null : v.guestName.trim(),
         guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
         guestPhone: isAuthed ? null : v.guestPhone.trim(),
+        eventType: v.eventType || null,
       });
       const data = res as any;
       if (data?.error) {
@@ -1304,6 +1307,50 @@ export default function BookingWizard({
                     </div>
                   ) : null}
 
+                  {selectedService?.pricingStrategy === "HOURLY" ? (
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <label className='cardTitle h5'>
+                        Event type (optional)
+                      </label>
+                      <select
+                        value={
+                          watch("eventType")?.startsWith("Other:")
+                            ? "Other"
+                            : watch("eventType")
+                        }
+                        onChange={(e) =>
+                          setValue("eventType", e.target.value, {
+                            shouldDirty: true,
+                          })
+                        }
+                        className='input emptySmall'
+                      >
+                        <option value=''>Select...</option>
+                        <option value='Wedding'>Wedding</option>
+                        <option value='Corporate'>Corporate</option>
+                        <option value='Night Out'>Night Out</option>
+                        <option value='Other'>Other</option>
+                      </select>
+                      {(watch("eventType") === "Other" ||
+                        watch("eventType")?.startsWith("Other:")) && (
+                        <input
+                          defaultValue=''
+                          onChange={(e) =>
+                            setValue(
+                              "eventType",
+                              e.target.value
+                                ? `Other: ${e.target.value}`
+                                : "Other",
+                              { shouldDirty: true },
+                            )
+                          }
+                          className='input emptySmall'
+                          placeholder='Describe the event...'
+                        />
+                      )}
+                    </div>
+                  ) : null}
+
                   {/* Flight Information Section */}
                   {isAirportService && (
                     <div className={styles.flightInfoSection}>
@@ -1683,6 +1730,12 @@ export default function BookingWizard({
                           label='Billable hours (min applied)'
                           value={String(billableHours ?? hoursRequested)}
                         />
+                        {watch("eventType") && (
+                          <SummaryRow
+                            label='Event type'
+                            value={watch("eventType")}
+                          />
+                        )}
                       </>
                     ) : null}
                     {hasFlightInfo && (

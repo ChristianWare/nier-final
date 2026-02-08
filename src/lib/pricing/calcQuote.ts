@@ -2,7 +2,8 @@
  * Pricing calculation for booking quotes
  * Location: lib/pricing/calcQuote.ts
  *
- * ✅ UPDATED: Added support for extra stops AND service fees
+ * ✅ UPDATED: Vehicle base fare now acts as a minimum floor, not additive.
+ * ✅ Includes support for extra stops AND service fees.
  */
 
 import { ServicePricingStrategy } from "@prisma/client";
@@ -13,7 +14,7 @@ export const EXTRA_STOP_FEE_CENTS = 1500; // $15.00 per stop
 // ✅ Estimated wait time per stop (in minutes) - for display purposes
 export const STOP_WAIT_TIME_MINUTES = 5;
 
-// ✅ NEW: Fee input type
+// ✅ Fee input type
 export interface FeeInput {
   label: string;
   amountCents: number;
@@ -30,13 +31,13 @@ export interface CalcQuoteInput {
   // Extra stops
   stopCount?: number; // Number of extra stops (0 = direct route)
 
-  // ✅ NEW: Service fees
+  // ✅ Service fees
   fees?: FeeInput[];
 
   // Vehicle constraints
   vehicleMinHours: number;
 
-  // ✅ NEW: Service-level minimum hours (for HOURLY services)
+  // Service-level minimum hours (for HOURLY services)
   serviceMinHours?: number;
 
   // Service pricing (in cents)
@@ -46,7 +47,9 @@ export interface CalcQuoteInput {
   servicePerMinuteCents: number;
   servicePerHourCents: number;
 
-  // Vehicle pricing (in cents) - these ADD to service pricing
+  // Vehicle pricing (in cents)
+  // baseFareCents = minimum fare floor for this vehicle
+  // perMile/perMinute/perHour ADD to service rates
   vehicleBaseFareCents: number;
   vehiclePerMileCents: number;
   vehiclePerMinuteCents: number;
@@ -65,7 +68,7 @@ export interface CalcQuoteResult {
     stopCount: number;
     stopSurchargeCents: number;
     stopWaitTimeMinutes: number;
-    // ✅ NEW: Service fees
+    // Service fees
     fees: FeeInput[];
     totalFeesCents: number;
     // Totals
@@ -78,10 +81,11 @@ export interface CalcQuoteResult {
 /**
  * Calculate quote for a booking
  *
- * ✅ Now includes:
- * - Extra stop surcharges ($15 per stop)
- * - Named service fees (Airport Fee, etc.)
- * - Service-level minimum hours for HOURLY
+ * Vehicle base fare is treated as a MINIMUM FLOOR for the trip portion,
+ * not an additive charge. For example:
+ *   - SUV base fare = $55, per mile = $5
+ *   - 2 mile trip: 2 × $5 = $10 → below $55 floor → charge $55
+ *   - 38 mile trip: 38 × $5 = $190 → above $55 floor → charge $190
  */
 export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
   const {
@@ -104,12 +108,16 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
     vehiclePerHourCents,
   } = input;
 
-  // Combine service + vehicle pricing
-  const minFareCents = serviceMinFareCents;
-  const baseFeeCents = serviceBaseFeeCents + vehicleBaseFareCents;
+  // Service-level base fee (additive — e.g. airport fee)
+  const baseFeeCents = serviceBaseFeeCents;
+
+  // Combine service + vehicle per-unit rates
   const perMileCents = servicePerMileCents + vehiclePerMileCents;
   const perMinuteCents = servicePerMinuteCents + vehiclePerMinuteCents;
   const perHourCents = servicePerHourCents + vehiclePerHourCents;
+
+  // Service-level minimum fare
+  const minFareCents = serviceMinFareCents;
 
   let baseCharge = 0;
   let distanceCharge = 0;
@@ -121,12 +129,12 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
   const stopSurchargeCents = stopCount * EXTRA_STOP_FEE_CENTS;
   const stopWaitTimeMinutes = stopCount * STOP_WAIT_TIME_MINUTES;
 
-  // ✅ NEW: Calculate total service fees
+  // Calculate total service fees
   const totalFeesCents = fees.reduce((sum, fee) => sum + fee.amountCents, 0);
 
   switch (pricingStrategy) {
     case ServicePricingStrategy.POINT_TO_POINT: {
-      // Base fee + (distance × per mile rate) + (time × per minute rate)
+      // Service base fee (e.g. airport surcharge)
       baseCharge = baseFeeCents;
 
       if (distanceMiles != null && distanceMiles > 0) {
@@ -139,15 +147,24 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
         timeCharge = Math.round(totalMinutes * perMinuteCents);
       }
 
+      // Vehicle base fare acts as a minimum floor for the trip portion
+      // (distance + time). If the calculated trip cost is below the
+      // vehicle's base fare, bump it up to the base fare.
+      const tripCharge = distanceCharge + timeCharge;
+      if (tripCharge < vehicleBaseFareCents) {
+        distanceCharge = vehicleBaseFareCents;
+        timeCharge = 0;
+      }
+
       break;
     }
 
     case ServicePricingStrategy.HOURLY: {
-      // Base fee + (billable hours × per hour rate)
+      // Service base fee
       baseCharge = baseFeeCents;
 
       const requested = hoursRequested ?? 0;
-      // ✅ NEW: Use max of service minHours and vehicle minHours
+      // Use max of service minHours and vehicle minHours
       const effectiveMinHours = Math.max(serviceMinHours, vehicleMinHours);
       const billable = Math.max(
         Math.ceil(requested),
@@ -161,12 +178,19 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
         timeCharge = Math.round(billable * perHourCents);
       }
 
+      // Vehicle base fare acts as a minimum floor for the time charge
+      if (timeCharge < vehicleBaseFareCents) {
+        timeCharge = vehicleBaseFareCents;
+      }
+
       break;
     }
 
     case ServicePricingStrategy.FLAT: {
-      // Just the base fee (flat rate)
+      // Service base fee
       baseCharge = baseFeeCents;
+      // For flat rate, vehicle base fare IS the charge
+      timeCharge = vehicleBaseFareCents;
       break;
     }
   }
@@ -179,8 +203,7 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
     stopSurchargeCents +
     totalFeesCents;
 
-  // Apply minimum fare if calculated amount is less than minimum
-  // Note: Fees and stop surcharges are INCLUDED before min fare check
+  // Apply service-level minimum fare if calculated amount is less
   let minFareApplied = false;
   if (subtotalCents < minFareCents) {
     subtotalCents = minFareCents;
@@ -198,7 +221,6 @@ export function calcQuoteCents(input: CalcQuoteInput): CalcQuoteResult {
       stopCount,
       stopSurchargeCents,
       stopWaitTimeMinutes,
-      // ✅ NEW: Include fees in breakdown
       fees,
       totalFeesCents,
       subtotalCents,

@@ -20,14 +20,14 @@ type AirportDTO = {
 type AirportLegUI = "NONE" | "PICKUP" | "DROPOFF";
 type PricingStrategyUI = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 
-// ✅ NEW: Fee DTO from database
+// Fee DTO from database
 type ServiceFeeDTO = {
   id: string;
   label: string;
   amountCents: number;
 };
 
-// ✅ NEW: Fee type for UI state
+// Fee type for UI state
 type FeeUI = {
   id: string;
   label: string;
@@ -44,12 +44,12 @@ type ServiceTypeDTO = {
   perMileCents: number;
   perMinuteCents: number;
   perHourCents: number;
-  minHours: number; // ✅ NEW
+  minHours: number;
   sortOrder: number;
   active: boolean;
   airportLeg: AirportLegUI;
   airportIds: string[];
-  fees: ServiceFeeDTO[]; // ✅ NEW
+  fees: ServiceFeeDTO[];
 };
 
 type Props = {
@@ -85,12 +85,11 @@ export default function EditServiceForm({
     Array.isArray(service.airportIds) ? service.airportIds : [],
   );
 
-  // ✅ NEW: Track pricing strategy for conditional minHours display
   const [pricingStrategy, setPricingStrategy] = useState<PricingStrategyUI>(
     service.pricingStrategy,
   );
 
-  // ✅ NEW: Initialize fees from service data
+  // Initialize fees from service data
   const [fees, setFees] = useState<FeeUI[]>(
     service.fees.map((f) => ({
       id: f.id,
@@ -110,7 +109,6 @@ export default function EditServiceForm({
     );
   }
 
-  // ✅ NEW: Fee management functions
   function addFee() {
     setFees((prev) => [
       ...prev,
@@ -163,7 +161,7 @@ export default function EditServiceForm({
               formData.append("airportIds", id),
             );
 
-            // ✅ NEW: Add fees to form data
+            // Add fees to form data
             fees.forEach((fee) => {
               if (fee.label.trim() && fee.amount.trim()) {
                 formData.append("feeLabel", fee.label.trim());
@@ -347,7 +345,6 @@ export default function EditServiceForm({
             </Field>
           ) : null}
 
-          {/* ✅ UPDATED: Now controlled to track pricing strategy */}
           <Field label='Pricing strategy'>
             <select
               name='pricingStrategy'
@@ -364,68 +361,15 @@ export default function EditServiceForm({
             </select>
           </Field>
 
+          {/* Hidden inputs to send $0 for removed pricing fields */}
+          <input type='hidden' name='minFare' value='0' />
+          <input type='hidden' name='baseFee' value='0' />
+          <input type='hidden' name='perMile' value='0' />
+          <input type='hidden' name='perMinute' value='0' />
+          <input type='hidden' name='perHour' value='0' />
+
           <Grid2>
-            <Field label='Min fare ($)'>
-              <input
-                type='number'
-                step='0.01'
-                inputMode='decimal'
-                name='minFare'
-                defaultValue={centsToDollarsInput(service.minFareCents)}
-                className='inputBorder'
-                disabled={isPending}
-              />
-            </Field>
-
-            <Field label='Base fee ($)'>
-              <input
-                type='number'
-                step='0.01'
-                inputMode='decimal'
-                name='baseFee'
-                defaultValue={centsToDollarsInput(service.baseFeeCents)}
-                className='inputBorder'
-                disabled={isPending}
-              />
-            </Field>
-
-            <Field label='Per mile ($)'>
-              <input
-                type='number'
-                step='0.01'
-                inputMode='decimal'
-                name='perMile'
-                defaultValue={centsToDollarsInput(service.perMileCents)}
-                className='inputBorder'
-                disabled={isPending}
-              />
-            </Field>
-
-            <Field label='Per minute ($)'>
-              <input
-                type='number'
-                step='0.01'
-                inputMode='decimal'
-                name='perMinute'
-                defaultValue={centsToDollarsInput(service.perMinuteCents)}
-                className='inputBorder'
-                disabled={isPending}
-              />
-            </Field>
-
-            <Field label='Per hour ($)'>
-              <input
-                type='number'
-                step='0.01'
-                inputMode='decimal'
-                name='perHour'
-                defaultValue={centsToDollarsInput(service.perHourCents)}
-                className='inputBorder'
-                disabled={isPending}
-              />
-            </Field>
-
-            {/* ✅ NEW: Min hours field - only shown for HOURLY */}
+            {/* Min hours field - only shown for HOURLY */}
             {showMinHours && (
               <Field
                 label='Minimum hours'
@@ -460,10 +404,18 @@ export default function EditServiceForm({
             </Field>
           </Grid2>
 
-          {/* ✅ NEW: Service Fees Section */}
+          <div className='miniNote'>
+            💡 Per-mile, per-hour, and base fare pricing is managed on each{" "}
+            <Link href='/admin/vehicle-categories' style={{ fontWeight: 600 }}>
+              Vehicle Category
+            </Link>
+            .
+          </div>
+
+          {/* Service Fees Section */}
           <Field
             label='Service fees (optional)'
-            hint="Named fees shown as line items on invoices. E.g., 'Airport Fee', 'Meet & Greet'."
+            hint="Flat fees shown as line items on invoices. E.g., 'Airport Fee', 'Meet & Greet'."
           >
             <div className={styles.airportBox}>
               {fees.length === 0 ? (
