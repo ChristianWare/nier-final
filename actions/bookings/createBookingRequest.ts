@@ -115,6 +115,14 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     };
   }
 
+  // ✅ 36-hour minimum booking window
+  const minBookingTime = new Date(Date.now() + 36 * 60 * 60 * 1000);
+  if (pickupAtDate < minBookingTime) {
+    return {
+      error: "Bookings must be made at least 36 hours in advance." as const,
+    };
+  }
+
   // ✅ UPDATED: Fetch service WITH fees
   const service = await db.serviceType.findUnique({
     where: { id: input.serviceTypeId },
@@ -179,10 +187,10 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     durationMinutes,
     hoursRequested,
     stopCount,
-    fees: feesForQuote, // ✅ NEW
+    fees: feesForQuote,
 
     vehicleMinHours: vehicle?.minHours ?? 0,
-    serviceMinHours: service.minHours ?? 0, // ✅ NEW
+    serviceMinHours: service.minHours ?? 0,
 
     serviceMinFareCents: service.minFareCents,
     serviceBaseFeeCents: service.baseFeeCents,

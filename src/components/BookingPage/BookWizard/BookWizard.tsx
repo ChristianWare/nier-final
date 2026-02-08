@@ -270,6 +270,14 @@ export default function BookingWizard({
   const serviceTypeId = watch("serviceTypeId");
   const pickupAtDate = watch("pickupAtDate");
   const pickupAtTime = watch("pickupAtTime");
+
+  const pickupTooSoon = useMemo(() => {
+    if (!pickupAtDate || !pickupAtTime) return false;
+    const pickupAt = new Date(`${pickupAtDate}T${pickupAtTime}:00`);
+    const minTime = new Date(Date.now() + 36 * 60 * 60 * 1000);
+    return pickupAt < minTime;
+  }, [pickupAtDate, pickupAtTime]);
+
   const passengers = watch("passengers");
   const luggage = watch("luggage");
   const hoursRequested = watch("hoursRequested");
@@ -555,6 +563,10 @@ export default function BookingWizard({
   }
 
   async function goStep2() {
+    if (pickupTooSoon) {
+      toast.error("Bookings must be made at least 36 hours in advance.");
+      return;
+    }
     if (
       selectedService &&
       selectedService.airportLeg !== "NONE" &&
@@ -857,7 +869,7 @@ export default function BookingWizard({
                   <div
                     id='wizard-field-service'
                     style={{
-                      marginBottom: 50,
+                      marginBottom: 20,
                     }}
                     className={styles.sectionBox}
                   >
@@ -942,6 +954,22 @@ export default function BookingWizard({
                         clearErrors("pickupAtTime");
                       }}
                     />
+                    {pickupTooSoon && (
+                      <div
+                        className='miniNote'
+                        style={{
+                          color: "rgba(180,0,0,0.85)",
+                          marginTop: 8,
+                          fontWeight: 700,
+                          fontSize: 16,
+                          letterSpacing: "normal",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        Bookings must be made at least 36 hours in advance.
+                        Please choose a later date or time.
+                      </div>
+                    )}
                   </div>
                   <div
                     id='wizard-field-passengers-luggage'
