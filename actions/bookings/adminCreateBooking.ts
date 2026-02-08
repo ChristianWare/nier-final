@@ -58,7 +58,7 @@ type AdminCreateBookingInput = {
   flightNumber?: string | null;
   flightScheduledAt?: string | null;
   flightTerminal?: string | null;
-
+  eventType?: string | null;
   // ✅ optional incoming status
   status?: AdminCreateBookingStatus;
 
@@ -282,7 +282,7 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
           ? flightScheduledAt
           : null,
       flightTerminal: input.flightTerminal ?? null,
-
+      eventType: input.eventType?.trim() || null,
       // ✅ FIX: Access subtotalCents from the breakdown object
       subtotalCents: quote.breakdown.subtotalCents,
       totalCents: quote.totalCents,

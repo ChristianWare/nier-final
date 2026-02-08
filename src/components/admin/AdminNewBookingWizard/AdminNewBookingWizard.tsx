@@ -352,6 +352,8 @@ export default function AdminNewBookingWizard({
   const [flightScheduledAtTime, setFlightScheduledAtTime] =
     useState<string>("");
 
+  const [eventType, setEventType] = useState<string>("");
+
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
     return serviceTypes.find((s) => s.id === serviceTypeId) ?? null;
@@ -849,6 +851,7 @@ export default function AdminNewBookingWizard({
               ? new Date(`${flightScheduledAtDate}T00:00:00`).toISOString()
               : null,
         flightTerminal: flightTerminal || null,
+        eventType: eventType || null,
 
         status: bookingStatus,
 
@@ -1249,6 +1252,7 @@ export default function AdminNewBookingWizard({
                       setFlightTerminal("");
                       setFlightScheduledAtDate("");
                       setFlightScheduledAtTime("");
+                      setEventType("");
 
                       setServiceTypeId(next);
 
@@ -1596,6 +1600,50 @@ export default function AdminNewBookingWizard({
                       }}
                       className='input emptySmall'
                     />
+                  </div>
+                ) : null}
+
+                {selectedService?.pricingStrategy === "HOURLY" ? (
+                  <div style={{ display: "grid", gap: 8 }}>
+                    <label className='cardTitle h5'>
+                      Event type (optional)
+                    </label>
+                    <select
+                      value={
+                        eventType.startsWith("Other:") ? "Other" : eventType
+                      }
+                      onChange={(e) => {
+                        resetCreatedBooking();
+                        setEventType(e.target.value);
+                      }}
+                      className='input emptySmall'
+                    >
+                      <option value=''>Select...</option>
+                      <option value='Wedding'>Wedding</option>
+                      <option value='Corporate'>Corporate</option>
+                      <option value='Night Out'>Night Out</option>
+                      <option value='Other'>Other</option>
+                    </select>
+                    {(eventType === "Other" ||
+                      eventType.startsWith("Other:")) && (
+                      <input
+                        defaultValue={
+                          eventType.startsWith("Other:")
+                            ? eventType.slice(7).trim()
+                            : ""
+                        }
+                        onChange={(e) => {
+                          resetCreatedBooking();
+                          setEventType(
+                            e.target.value
+                              ? `Other: ${e.target.value}`
+                              : "Other",
+                          );
+                        }}
+                        className='input emptySmall'
+                        placeholder='Describe the event...'
+                      />
+                    )}
                   </div>
                 ) : null}
 
@@ -2238,6 +2286,9 @@ export default function AdminNewBookingWizard({
                           label='Billable hours'
                           value={String(billableHours ?? hoursRequested)}
                         />
+                        {eventType && (
+                          <SummaryRow label='Event type' value={eventType} />
+                        )}
                       </>
                     ) : null}
 
