@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./BookingsPage.module.css";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import Button from "@/components/shared/Button/Button";
 import CustomRangeFormClient from "./CustomRangeFormClient";
 import SearchFormClient from "./SearchFormClient";
 import ClearFiltersButton from "@/components/admin/Clearfiltersbutton/Clearfiltersbutton";
+import FilterSelectClient from "./FilterSelectClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,18 +58,15 @@ type SearchParams = {
   status?: StatusFilter;
   range?: RangeFilter;
   q?: string;
-
   unassigned?: "1";
   paid?: "1";
   stuck?: "1";
-
   from?: string;
   to?: string;
-
   sort?: SortColumn;
   order?: SortOrder;
-
   page?: string;
+  customerType?: "all" | "guest" | "account" | "corporate";
 };
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
@@ -79,7 +77,11 @@ const PAGE_SIZE = 10;
 function toPhoenixParts(dateUtc: Date) {
   const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
   const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
+  return {
+    y: phx.getUTCFullYear(),
+    m: phx.getUTCMonth(),
+    d: phx.getUTCDate(),
+  };
 }
 
 function startOfDayPhoenix(dateUtc: Date) {
@@ -289,13 +291,6 @@ function badgeTone(status: BookingStatus): BadgeTone {
   return "neutral";
 }
 
-function fmtPersonLine(p: { name?: string | null; email?: string | null }) {
-  const name = (p.name ?? "").trim();
-  const email = (p.email ?? "").trim();
-  if (name && email) return `${name} • ${email}`;
-  return name || email || "";
-}
-
 type BookingRow = Prisma.BookingGetPayload<{
   include: {
     user: { select: { name: true; email: true } };
@@ -331,6 +326,11 @@ function safeOrder(v: any): SortOrder {
   return SORT_ORDERS.includes(v) ? v : "desc";
 }
 
+function safeCustomerType(v: any): "all" | "guest" | "account" | "corporate" {
+  const valid = ["all", "guest", "account", "corporate"];
+  return valid.includes(v) ? v : "all";
+}
+
 function buildWhere(args: {
   now: Date;
   status: StatusFilter;
@@ -341,6 +341,7 @@ function buildWhere(args: {
   fromYmd: string;
   toYmd: string;
   q?: string;
+  customerType?: string;
 }) {
   const { now, status, range, unassigned, paid, stuck, fromYmd, toYmd, q } =
     args;
@@ -459,10 +460,22 @@ function buildWhere(args: {
     ];
   }
 
+  // Customer type filter
+  const ct = args.customerType ?? "all";
+  if (ct === "guest") {
+    where.userId = null;
+    where.corporateAccountId = null;
+  } else if (ct === "account") {
+    where.userId = { not: null };
+    where.corporateAccountId = null;
+  } else if (ct === "corporate") {
+    where.corporateAccountId = { not: null };
+  }
+
   return where;
 }
 
-// ✅ UPDATED: Build orderBy for ALL columns
+// ✅ Build orderBy for ALL columns
 function buildOrderBy(
   sort: SortColumn | undefined,
   order: SortOrder,
@@ -524,6 +537,7 @@ export default async function AdminBookingsPage({
   const range = safeRange(sp.range) as RangeFilter;
   const sort = safeSort(sp.sort);
   const order = safeOrder(sp.order);
+  const customerType = safeCustomerType(sp.customerType);
 
   const unassigned = sp.unassigned === "1";
   const paid = sp.paid === "1";
@@ -549,6 +563,7 @@ export default async function AdminBookingsPage({
     fromYmd,
     toYmd,
     q,
+    customerType,
   });
 
   const orderBy = buildOrderBy(sort, order, status, stuck);
@@ -593,6 +608,7 @@ export default async function AdminBookingsPage({
     fromYmd?: string;
     toYmd?: string;
     q?: string;
+    customerType?: string;
   }) {
     const w = buildWhere({
       now,
@@ -605,6 +621,7 @@ export default async function AdminBookingsPage({
       fromYmd: next.fromYmd ?? fromYmd,
       toYmd: next.toYmd ?? toYmd,
       q: next.q ?? q,
+      customerType: next.customerType ?? customerType,
     });
     return db.booking.count({ where: w });
   }
@@ -656,6 +673,7 @@ export default async function AdminBookingsPage({
     q: q.length ? q : undefined,
     sort: sort,
     order: sort ? order : undefined,
+    customerType: customerType !== "all" ? customerType : undefined,
   };
 
   // ✅ Check if any filters are active
@@ -666,7 +684,8 @@ export default async function AdminBookingsPage({
     paid ||
     stuck ||
     q.length > 0 ||
-    sort !== undefined;
+    sort !== undefined ||
+    customerType !== "all";
 
   const pageParams: Record<string, string | undefined> = {
     ...baseParams,
@@ -701,31 +720,83 @@ export default async function AdminBookingsPage({
         </div>
 
         <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <div className={styles.filterTitle}>Time</div>
-            <RangeTabs
-              active={range}
+          {/* ✅ Dropdown row: Time · Status · Customer type */}
+          <div className={styles.filterRow}>
+            <FilterSelectClient
+              label='Time'
+              paramName='range'
+              defaultValue='month'
               current={baseParams}
-              counts={rangeCounts}
+              options={[
+                {
+                  value: "month",
+                  label: "Current month",
+                  count: rangeCounts.month,
+                },
+                {
+                  value: "year",
+                  label: "Current year",
+                  count: rangeCounts.year,
+                },
+                {
+                  value: "today",
+                  label: "Today",
+                  count: rangeCounts.today,
+                },
+                {
+                  value: "next24",
+                  label: "Next 24h",
+                  count: rangeCounts.next24,
+                },
+                {
+                  value: "next7",
+                  label: "Next 7 days",
+                  count: rangeCounts.next7,
+                },
+                {
+                  value: "range",
+                  label: "Custom range",
+                  count: rangeCounts.range,
+                },
+              ]}
             />
-            {range === "range" ? (
-              <CustomRangeFormClient
-                current={baseParams}
-                defaultFrom={defaultFrom}
-                defaultTo={defaultTo}
-              />
-            ) : null}
+
+            <FilterSelectClient
+              label='Status'
+              paramName='status'
+              defaultValue='ALL'
+              current={baseParams}
+              options={STATUSES.map((s) => ({
+                value: s,
+                label: statusTabLabel(s),
+                count: statusCounts[s],
+              }))}
+            />
+
+            <FilterSelectClient
+              label='Customer type'
+              paramName='customerType'
+              defaultValue='all'
+              current={baseParams}
+              options={[
+                { value: "all", label: "All customers" },
+                { value: "guest", label: "Guest" },
+                { value: "account", label: "Account" },
+                { value: "corporate", label: "Corporate" },
+              ]}
+            />
           </div>
 
-          <div className={styles.filterGroup}>
-            <div className={styles.filterTitle}>Status</div>
-            <StatusTabs
-              active={status}
+          {/* ✅ Custom date range (only when "Custom range" is selected) */}
+          {range === "range" ? (
+            <CustomRangeFormClient
               current={baseParams}
-              counts={statusCounts}
+              defaultFrom={defaultFrom}
+              defaultTo={defaultTo}
             />
-          </div>
+          ) : null}
 
+          {/* ✅ Quick filters remain as toggle chips */}
           <div className={styles.filterGroup}>
             <div className={styles.filterTitle}>Quick filters</div>
             <ToggleChips
@@ -777,7 +848,6 @@ export default async function AdminBookingsPage({
             <table className={styles.table}>
               <thead className={styles.thead}>
                 <tr className={styles.trHead}>
-                  {/* ✅ ALL headers are now sortable */}
                   <SortableHeader
                     label='Created'
                     column='created'
@@ -903,7 +973,6 @@ export default async function AdminBookingsPage({
                       key={b.id}
                       className={`${styles.tr} ${isCorporate ? styles.trCorporate : ""}`}
                     >
-                      {" "}
                       {/* Created */}
                       <td
                         className={styles.td}
@@ -1144,94 +1213,6 @@ function SortableHeader({
         {indicator}
       </Link>
     </th>
-  );
-}
-
-function StatusTabs({
-  active,
-  current,
-  counts,
-}: {
-  active: StatusFilter;
-  current: Record<string, string | undefined>;
-  counts: Record<StatusFilter, number>;
-}) {
-  return (
-    <div className={styles.tabRow}>
-      {STATUSES.map((s) => {
-        const href = buildHref("/admin/bookings", {
-          ...current,
-          status: s,
-          stuck: s !== "PENDING_REVIEW" ? undefined : current.stuck,
-          page: undefined,
-        });
-        const isActive = s === active;
-
-        return (
-          <Link
-            key={s}
-            href={href}
-            className={`tab ${isActive ? "tabActive" : ""}`}
-          >
-            {statusTabLabel(s)}
-            <span
-              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
-            >
-              {counts[s] ?? 0}
-            </span>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-function RangeTabs({
-  active,
-  current,
-  counts,
-}: {
-  active: RangeFilter;
-  current: Record<string, string | undefined>;
-  counts: Record<RangeFilter, number>;
-}) {
-  const items: { label: string; value: RangeFilter }[] = [
-    { label: "Current month", value: "month" },
-    { label: "Current year", value: "year" },
-    { label: "Today", value: "today" },
-    { label: "Next 24h", value: "next24" },
-    { label: "Next 7d", value: "next7" },
-    { label: "Custom range", value: "range" },
-  ];
-
-  return (
-    <div className={styles.tabRow}>
-      {items.map((x) => {
-        const href = buildHref("/admin/bookings", {
-          ...current,
-          range: x.value === "month" ? undefined : x.value,
-          from: x.value === "range" ? (current.from ?? undefined) : undefined,
-          to: x.value === "range" ? (current.to ?? undefined) : undefined,
-          page: undefined,
-        });
-        const isActive = x.value === active;
-
-        return (
-          <Link
-            key={x.value}
-            href={href}
-            className={`tab ${isActive ? "tabActive" : ""}`}
-          >
-            {x.label}
-            <span
-              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
-            >
-              {counts[x.value] ?? 0}
-            </span>
-          </Link>
-        );
-      })}
-    </div>
   );
 }
 
