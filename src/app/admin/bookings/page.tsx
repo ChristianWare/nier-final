@@ -420,6 +420,29 @@ function buildWhere(args: {
       { dropoffAddress: { contains: needle, mode: "insensitive" } },
       { user: { is: { name: { contains: needle, mode: "insensitive" } } } },
       { user: { is: { email: { contains: needle, mode: "insensitive" } } } },
+      // Corporate booking search
+      {
+        corporateAccount: {
+          is: { name: { contains: needle, mode: "insensitive" } },
+        },
+      },
+      {
+        corporatePassenger: {
+          is: { name: { contains: needle, mode: "insensitive" } },
+        },
+      },
+      {
+        corporatePassenger: {
+          is: { email: { contains: needle, mode: "insensitive" } },
+        },
+      },
+      {
+        corporatePassenger: {
+          is: { phone: { contains: needle, mode: "insensitive" } },
+        },
+      },
+      { costCenter: { contains: needle, mode: "insensitive" } },
+      { projectCode: { contains: needle, mode: "insensitive" } },
     ];
 
     if (isConfirmationCode) {
@@ -546,6 +569,8 @@ export default async function AdminBookingsPage({
       assignment: {
         include: { driver: { select: { name: true, email: true } } },
       },
+      corporateAccount: { select: { name: true } },
+      corporatePassenger: { select: { name: true, email: true, phone: true } },
       statusEvents: {
         orderBy: { createdAt: "asc" },
         take: 1,
@@ -829,9 +854,18 @@ export default async function AdminBookingsPage({
 
                   const confirmationCode = getConfirmationCode(b.id);
 
+                  const isCorporate = Boolean((b as any).corporateAccount);
+
                   const customerName =
-                    b.user?.name?.trim() || b.guestName?.trim() || "Guest";
-                  const customerEmail = b.user?.email ?? b.guestEmail ?? "";
+                    b.user?.name?.trim() ||
+                    b.guestName?.trim() ||
+                    (b as any).corporatePassenger?.name?.trim() ||
+                    "Guest";
+                  const customerEmail =
+                    b.user?.email ??
+                    b.guestEmail ??
+                    (b as any).corporatePassenger?.email ??
+                    "";
 
                   const driverName = b.assignment?.driver?.name?.trim() || "";
                   const driverEmail = b.assignment?.driver?.email ?? "";
@@ -865,7 +899,11 @@ export default async function AdminBookingsPage({
                   }
 
                   return (
-                    <tr key={b.id} className={styles.tr}>
+                    <tr
+                      key={b.id}
+                      className={`${styles.tr} ${isCorporate ? styles.trCorporate : ""}`}
+                    >
+                      {" "}
                       {/* Created */}
                       <td
                         className={styles.td}
@@ -893,7 +931,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-
                       {/* Created by */}
                       <td
                         className={styles.td}
@@ -913,7 +950,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-
                       {/* Pickup */}
                       <td
                         className={styles.td}
@@ -936,7 +972,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-
                       {/* Status */}
                       <td
                         className={styles.td}
@@ -956,7 +991,6 @@ export default async function AdminBookingsPage({
                           </span>
                         </div>
                       </td>
-
                       {/* Customer */}
                       <td
                         className={styles.td}
@@ -977,7 +1011,6 @@ export default async function AdminBookingsPage({
                           <div className={styles.cellSub}>{customerEmail}</div>
                         </div>
                       </td>
-
                       {/* Service */}
                       <td
                         className={styles.td}
@@ -997,7 +1030,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-
                       {/* Vehicle */}
                       <td
                         className={styles.td}
@@ -1017,7 +1049,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-
                       {/* Driver */}
                       <td
                         className={`${styles.td} ${!b.assignment?.driver ? styles.unassignedCell : ""}`}
@@ -1042,7 +1073,6 @@ export default async function AdminBookingsPage({
                           <div className={styles.cellSub}>Unassigned</div>
                         )}
                       </td>
-
                       {/* Total */}
                       <td
                         className={`${styles.td} ${styles.tdRight}`}

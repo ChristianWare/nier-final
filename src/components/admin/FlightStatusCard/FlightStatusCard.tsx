@@ -285,9 +285,11 @@ export default function FlightStatusCard({
           <div className={styles.statusRow}>
             <div
               className={styles.statusBadge}
-              style={{ background: getStatusColor(derivedStatus) }}
+              style={{ background: getStatusColor(derivedStatus), color: "white" }}
             >
-              <span>{getStatusEmoji(derivedStatus)}</span>
+              <span>
+                {getStatusEmoji(derivedStatus)}
+              </span>
               <span>{getStatusLabel(derivedStatus)}</span>
             </div>
             <TimingPill

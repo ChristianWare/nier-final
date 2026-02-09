@@ -162,7 +162,7 @@ export default function BookingCompletionChecklist({
         ]),
     {
       key: "vehicle_category",
-      label: "Vehicle Category",
+      label: "Trip + Vehicle Details",
       description: "Select which type of vehicle (SUV, Van, etc.)",
       isComplete: hasVehicleCategory,
       value: vehicleCategoryName,
@@ -234,12 +234,12 @@ export default function BookingCompletionChecklist({
         {checklist.map((item) => (
           <div
             key={item.key}
-            className={`${styles.checkItem} ${item.isComplete ? styles.complete : styles.incomplete} ${!item.isComplete && item.priority === "critical" ? styles.critical : ""} ${!item.isComplete ? styles.clickable : ""}`}
-            onClick={() => !item.isComplete && scrollToSection(item.sectionId)}
-            role={!item.isComplete ? "button" : undefined}
-            tabIndex={!item.isComplete ? 0 : undefined}
+            className={`${styles.checkItem} ${item.isComplete ? styles.complete : styles.incomplete} ${!item.isComplete && item.priority === "critical" ? styles.critical : ""} ${styles.clickable}`}
+            onClick={() => scrollToSection(item.sectionId)}
+            role='button'
+            tabIndex={0}
             onKeyDown={(e) => {
-              if (!item.isComplete && (e.key === "Enter" || e.key === " ")) {
+              if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 scrollToSection(item.sectionId);
               }

@@ -816,9 +816,13 @@ export default async function AdminBookingDetailPage({
           </h1>
 
           <div className={styles.boxRight}>
+              <div className='emptyTitle'>Date:</div>
+              <p className='emptySmall'>{formatDateTime(booking.pickupAt)}</p>
+
+            <div style={{ marginTop: 30 }}>
             <div className='emptyTitle'>Booking ID:</div>
             <p className='emptySmall'>{booking.id}</p>
-
+            </div>
             {/* Current status badge */}
             <div style={{ marginTop: 30 }}>
               <div className='emptyTitle'>Current Status:</div>
