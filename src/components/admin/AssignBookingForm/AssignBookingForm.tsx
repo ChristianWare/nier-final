@@ -250,7 +250,7 @@ export default function AssignBookingForm({
             disabled={isPending}
             type='submit'
             text={isPending ? "Saving..." : "Assign Driver & Vehicle"}
-            btnType='blackReg'
+            btnType='greenReg'
           />
 
           {/* Unassign Button - only show if there's a current assignment */}
