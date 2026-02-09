@@ -427,6 +427,24 @@ export default async function AdminBookingDetailPage({
           createdBy: { select: { name: true, email: true } },
         },
       },
+      corporateAccount: {
+        select: {
+          id: true,
+          name: true,
+          billingCycle: true,
+          paymentTerms: true,
+          discountPercent: true,
+        },
+      },
+      corporatePassenger: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          department: true,
+        },
+      },
       fees: {
         orderBy: { createdAt: "asc" },
         select: {
@@ -538,14 +556,26 @@ export default async function AdminBookingDetailPage({
     });
   }
 
+  const isCorporateBooking = Boolean(booking.corporateAccountId);
+
   const customerName =
-    booking.user?.name?.trim() || booking.guestName?.trim() || "—";
-  const customerEmailDisplay = booking.user?.email || booking.guestEmail || "—";
-  // ✅ Get phone from user profile OR guest phone
+    booking.user?.name?.trim() ||
+    booking.guestName?.trim() ||
+    booking.corporatePassenger?.name?.trim() ||
+    "—";
+  const customerEmailDisplay =
+    booking.user?.email ||
+    booking.guestEmail ||
+    booking.corporatePassenger?.email ||
+    "—";
   const customerPhone =
-    booking.user?.phone?.trim() || booking.guestPhone?.trim() || null;
-  const customerLine = booking.user
-    ? `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${customerPhone}` : ""}`
+    booking.user?.phone?.trim() ||
+    booking.guestPhone?.trim() ||
+    booking.corporatePassenger?.phone?.trim() ||
+    null;
+
+  const customerLine = isCorporateBooking
+    ? `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${customerPhone}` : ""}${booking.corporatePassenger?.department ? ` • ${booking.corporatePassenger.department}` : ""} — 🏢 ${booking.corporateAccount?.name ?? "Corporate"}`
     : `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${customerPhone}` : ""}`;
 
   const createdAtLabel = formatDateTime(booking.createdAt);
@@ -608,13 +638,15 @@ export default async function AdminBookingDetailPage({
     booking.payment?.status === "REFUNDED" ||
     booking.payment?.status === "PARTIALLY_REFUNDED";
 
-  const paymentIndicator: IndicatorStatus = isPaidOrRefunded
+  const paymentIndicator: IndicatorStatus = isCorporateBooking
     ? "complete"
-    : hasPaymentLinkSent
+    : isPaidOrRefunded
       ? "complete"
-      : isApproved
-        ? "warning"
-        : "warning";
+      : hasPaymentLinkSent
+        ? "complete"
+        : isApproved
+          ? "warning"
+          : "warning";
 
   // Assign card - green if driver AND vehicle assigned, warning otherwise
   const hasDriver = !!booking.assignment?.driverId;
@@ -769,7 +801,20 @@ export default async function AdminBookingDetailPage({
     <section className={styles.parent}>
       <div className={styles.container}>
         <header className='header'>
-          <h1 className={`heading h2`}>Booking Details</h1>
+          <h1 className={`heading h2`}>
+            Booking Details{" "}
+            {isCorporateBooking && (
+              <span
+                style={{
+                  color: "rgb(124, 58, 237)",
+                  textTransform: "lowercase",
+                }}
+              >
+                (corporate)
+              </span>
+            )}
+          </h1>
+
           <div className={styles.boxRight}>
             <div className='emptyTitle'>Booking ID:</div>
             <p className='emptySmall'>{booking.id}</p>
@@ -878,7 +923,6 @@ export default async function AdminBookingDetailPage({
 
             {/* Approval Toggle in boxRight */}
           </div>
-
           {/* Quick Actions at the top */}
           <Card title='Quick Actions'>
             <QuickActionsClient
@@ -1140,93 +1184,139 @@ export default async function AdminBookingDetailPage({
         </Card>
 
         <Card title='Payment' indicator={paymentIndicator} id='payment-section'>
-          <div className={styles.paymentBlock}>
-            <div className={styles.paymentStatus}>
-              Payment status:{" "}
-              <strong>{booking.payment?.status ?? "NONE"}</strong>
-              {amountPaidCents > 0 && (
-                <span style={{ marginLeft: 10 }}>
-                  (Paid: {formatMoney(amountPaidCents, booking.currency)}
-                  {amountRefundedCents > 0 && (
-                    <>
-                      , Refunded:{" "}
-                      {formatMoney(amountRefundedCents, booking.currency)}
-                    </>
-                  )}
-                  {tipCents > 0 && (
-                    <>, Tip: {formatMoney(tipCents, booking.currency)}</>
-                  )}
-                  )
-                </span>
+          {isCorporateBooking ? (
+            <div
+              style={{
+                display: "grid",
+                gap: 12,
+                textAlign: "center",
+                padding: "20px 0",
+              }}
+            >
+              <div style={{ fontSize: 32 }}>🏢</div>
+              <div className='emptyTitle'>
+                Billed to{" "}
+                {booking.corporateAccount?.name ?? "corporate account"}
+              </div>
+              <div className='miniNote'>
+                This ride will appear on the next{" "}
+                <strong>
+                  {(booking.corporateAccount?.billingCycle ?? "MONTHLY")
+                    .replaceAll("_", " ")
+                    .toLowerCase()}
+                </strong>{" "}
+                invoice.
+              </div>
+              {booking.corporateAccount?.discountPercent &&
+              Number(booking.corporateAccount.discountPercent) > 0 ? (
+                <div className='miniNote'>
+                  Corporate discount of{" "}
+                  <strong>
+                    {Number(booking.corporateAccount.discountPercent)}%
+                  </strong>{" "}
+                  has been applied.
+                </div>
+              ) : null}
+              {booking.costCenter && (
+                <div className='miniNote'>
+                  Cost center: <strong>{booking.costCenter}</strong>
+                </div>
+              )}
+              {booking.projectCode && (
+                <div className='miniNote'>
+                  Project code: <strong>{booking.projectCode}</strong>
+                </div>
               )}
             </div>
-
-            {/* Tip breakdown in Payment card */}
-            {tipCents > 0 && (
-              <div className={styles.tipBreakdownCard}>
-                <div className={styles.tipBreakdownHeader}>
-                  <span className={styles.tipBreakdownIcon}>💰</span>
-                  <span className={styles.tipBreakdownTitle}>
-                    Driver Tip Received
+          ) : (
+            <div className={styles.paymentBlock}>
+              <div className={styles.paymentStatus}>
+                Payment status:{" "}
+                <strong>{booking.payment?.status ?? "NONE"}</strong>
+                {amountPaidCents > 0 && (
+                  <span style={{ marginLeft: 10 }}>
+                    (Paid: {formatMoney(amountPaidCents, booking.currency)}
+                    {amountRefundedCents > 0 && (
+                      <>
+                        , Refunded:{" "}
+                        {formatMoney(amountRefundedCents, booking.currency)}
+                      </>
+                    )}
+                    {tipCents > 0 && (
+                      <>, Tip: {formatMoney(tipCents, booking.currency)}</>
+                    )}
+                    )
                   </span>
-                </div>
-                <div className={styles.tipBreakdownAmount}>
-                  {formatMoney(tipCents, booking.currency)}
-                </div>
-                <div className={styles.tipBreakdownNote}>
-                  This tip was added by the customer during checkout and should
-                  be passed to the assigned driver.
-                </div>
+                )}
               </div>
-            )}
 
-            {/* Send Payment Link Button - now checks isApproved */}
-            <SendPaymentLinkButton
-              bookingId={booking.id}
-              totalCents={booking.totalCents}
-              amountPaidCents={amountPaidCents}
-              currency={booking.currency}
-              isApproved={isApproved}
-            />
+              {/* Tip breakdown in Payment card */}
+              {tipCents > 0 && (
+                <div className={styles.tipBreakdownCard}>
+                  <div className={styles.tipBreakdownHeader}>
+                    <span className={styles.tipBreakdownIcon}>💰</span>
+                    <span className={styles.tipBreakdownTitle}>
+                      Driver Tip Received
+                    </span>
+                  </div>
+                  <div className={styles.tipBreakdownAmount}>
+                    {formatMoney(tipCents, booking.currency)}
+                  </div>
+                  <div className={styles.tipBreakdownNote}>
+                    This tip was added by the customer during checkout and
+                    should be passed to the assigned driver.
+                  </div>
+                </div>
+              )}
 
-            {booking.payment?.checkoutUrl ? (
-              <div className={styles.checkoutUrl}>
-                Latest checkout URL: <br />
-                <Link
-                  href={booking.payment.checkoutUrl}
-                  className='backBtn emptyTitleSmall'
-                  style={{ marginTop: "1rem", display: "inline-block" }}
-                  target='_blank'
-                  rel='noopener noreferrer'
+              {/* Send Payment Link Button - now checks isApproved */}
+              <SendPaymentLinkButton
+                bookingId={booking.id}
+                totalCents={booking.totalCents}
+                amountPaidCents={amountPaidCents}
+                currency={booking.currency}
+                isApproved={isApproved}
+              />
+
+              {booking.payment?.checkoutUrl ? (
+                <div className={styles.checkoutUrl}>
+                  Latest checkout URL: <br />
+                  <Link
+                    href={booking.payment.checkoutUrl}
+                    className='backBtn emptyTitleSmall'
+                    style={{ marginTop: "1rem", display: "inline-block" }}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                  >
+                    Payment Link
+                  </Link>
+                </div>
+              ) : null}
+
+              <div style={{ marginTop: 18 }}>
+                <div className='cardTitle h5'>Take card payment (manual)</div>
+                <div
+                  className='miniNote'
+                  style={{ marginTop: 6, marginBottom: "30px" }}
                 >
-                  Payment Link
-                </Link>
-              </div>
-            ) : null}
+                  Card-only checkout. After success, the button turns green and
+                  says &ldquo;Payment successful&rdquo;.
+                </div>
 
-            <div style={{ marginTop: 18 }}>
-              <div className='cardTitle h5'>Take card payment (manual)</div>
-              <div
-                className='miniNote'
-                style={{ marginTop: 6, marginBottom: "30px" }}
-              >
-                Card-only checkout. After success, the button turns green and
-                says &ldquo;Payment successful&rdquo;.
-              </div>
-
-              <div style={{ marginTop: 10 }}>
-                {/* Manual payment - now checks isApproved */}
-                <AdminManualCardPaymentClient
-                  bookingId={booking.id}
-                  amountCents={booking.totalCents}
-                  currency={booking.currency}
-                  isPaid={isPaid}
-                  isApproved={isApproved}
-                  amountPaidCents={amountPaidCents}
-                />
+                <div style={{ marginTop: 10 }}>
+                  {/* Manual payment - now checks isApproved */}
+                  <AdminManualCardPaymentClient
+                    bookingId={booking.id}
+                    amountCents={booking.totalCents}
+                    currency={booking.currency}
+                    isPaid={isPaid}
+                    isApproved={isApproved}
+                    amountPaidCents={amountPaidCents}
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </Card>
 
         <Card
@@ -1447,9 +1537,11 @@ export default async function AdminBookingDetailPage({
           vehicleUnitName={booking.assignment?.vehicleUnit?.name ?? null}
           hasVehicleCategory={!!booking.vehicleId}
           vehicleCategoryName={booking.vehicle?.name ?? null}
-          isPaid={isPaid}
+          isPaid={isCorporateBooking ? true : isPaid}
           isApproved={isApproved}
-          hasPaymentLinkSent={hasPaymentLinkSent}
+          hasPaymentLinkSent={isCorporateBooking ? true : hasPaymentLinkSent}
+          isCorporateBooking={isCorporateBooking}
+          corporateAccountName={booking.corporateAccount?.name ?? null}
         />
       </div>
     </section>

@@ -17,6 +17,9 @@ type Props = {
   isApproved: boolean;
   // Payment link sent
   hasPaymentLinkSent: boolean;
+  // Corporate
+  isCorporateBooking?: boolean;
+  corporateAccountName?: string | null;
 };
 
 type ChecklistItem = {
@@ -63,6 +66,8 @@ export default function BookingCompletionChecklist({
   isPaid,
   isApproved,
   hasPaymentLinkSent,
+  isCorporateBooking = false,
+  corporateAccountName = null,
 }: Props) {
   // Check if booking is actually completed (terminal status)
   const isBookingCompleted = bookingStatus === "COMPLETED";
@@ -97,7 +102,7 @@ export default function BookingCompletionChecklist({
   }
 
   // Check if everything is complete (checklist-wise)
-  const paymentComplete = isPaid || hasPaymentLinkSent;
+  const paymentComplete = isCorporateBooking || isPaid || hasPaymentLinkSent;
   const allComplete =
     isApproved && paymentComplete && hasDriver && hasVehicleUnit;
 
@@ -111,34 +116,50 @@ export default function BookingCompletionChecklist({
       priority: "critical",
       sectionId: "approval-section",
     },
-    // Payment link - only show if approved and not yet paid
-    ...(isApproved && !isPaid
+    // Corporate billing — always complete
+    ...(isCorporateBooking
       ? [
           {
-            key: "payment_link",
-            label: "Payment Link Sent",
-            description: "Send payment link to customer or take manual payment",
-            isComplete: hasPaymentLinkSent,
-            value: hasPaymentLinkSent ? "Sent" : null,
-            priority: "critical" as const,
-            sectionId: "payment-section",
-          },
-        ]
-      : []),
-    // Show "Payment Received" instead when paid
-    ...(isPaid
-      ? [
-          {
-            key: "payment_received",
-            label: "Payment Received",
-            description: "Customer has completed payment",
+            key: "payment_corporate",
+            label: "Corporate Billing",
+            description: "Billed to corporate account",
             isComplete: true,
-            value: "Paid",
+            value: `Billed to ${corporateAccountName ?? "corporate account"}`,
             priority: "critical" as const,
             sectionId: "payment-section",
           },
         ]
-      : []),
+      : [
+          // Payment link - only show if approved and not yet paid
+          ...(isApproved && !isPaid
+            ? [
+                {
+                  key: "payment_link",
+                  label: "Payment Link Sent",
+                  description:
+                    "Send payment link to customer or take manual payment",
+                  isComplete: hasPaymentLinkSent,
+                  value: hasPaymentLinkSent ? "Sent" : null,
+                  priority: "critical" as const,
+                  sectionId: "payment-section",
+                },
+              ]
+            : []),
+          // Show "Payment Received" instead when paid
+          ...(isPaid
+            ? [
+                {
+                  key: "payment_received",
+                  label: "Payment Received",
+                  description: "Customer has completed payment",
+                  isComplete: true,
+                  value: "Paid",
+                  priority: "critical" as const,
+                  sectionId: "payment-section",
+                },
+              ]
+            : []),
+        ]),
     {
       key: "vehicle_category",
       label: "Vehicle Category",

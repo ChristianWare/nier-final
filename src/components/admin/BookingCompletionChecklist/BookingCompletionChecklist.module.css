@@ -5,6 +5,10 @@
   height: fit-content;
 }
 
+/* .alert_complete {
+  border: 1px solid var(--green) !important;
+} */
+
 .alert_critical {
   background: rgba(239, 68, 68, 0.08);
   border: 2px solid rgba(239, 68, 68, 0.3);
@@ -71,6 +75,7 @@
 
 .checkItem.complete {
   opacity: 0.7;
+  border: 1px solid var(--green) !important;
 }
 
 .checkItem.incomplete {
