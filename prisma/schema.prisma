@@ -437,6 +437,9 @@ model Booking {
   costCenter  String?
   projectCode String?
 
+  routeApproved Boolean @default(false)
+  priceApproved Boolean @default(false)
+
   eventType String?
 
   @@index([userId])

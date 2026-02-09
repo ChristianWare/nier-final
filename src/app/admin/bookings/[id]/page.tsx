@@ -20,6 +20,9 @@ import RefundButton from "@/components/admin/RefundButton/RefundButton";
 import ApprovalToggleClient from "./ApprovalToggleClient";
 import BookingCompletionChecklist from "@/components/admin/BookingCompletionChecklist/BookingCompletionChecklist";
 import FlightStatusCard from "@/components/admin/FlightStatusCard/FlightStatusCard";
+import ApproveRouteClient from "./ApproveRouteClient";
+import ApprovePriceClient from "./ApprovePriceClient";
+import DriverPayForm from "@/components/admin/DriverPayForm/DriverPayForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -143,6 +146,14 @@ function formatMoney(cents: number | null | undefined, currency = "USD") {
     currency,
     maximumFractionDigits: 2,
   }).format(n);
+}
+
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  const d =
+    digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  if (d.length !== 10) return raw;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
 function getEventActorLabel(
@@ -402,7 +413,6 @@ export default async function AdminBookingDetailPage({
       serviceType: true,
       vehicle: true,
       payment: true,
-      // ✅ NEW: Include stops
       stops: {
         orderBy: { stopOrder: "asc" },
       },
@@ -463,15 +473,16 @@ export default async function AdminBookingDetailPage({
     where: { bookingId: booking.id },
     orderBy: { createdAt: "asc" },
     include: {
-      createdBy: { select: { id: true, name: true, email: true, roles: true } },
+      createdBy: {
+        select: { id: true, name: true, email: true, roles: true },
+      },
     },
   });
 
   // Get the month/year from the booking's pickup date
-  const pickupMonth = booking.pickupAt.getMonth(); // 0-11
+  const pickupMonth = booking.pickupAt.getMonth();
   const pickupYear = booking.pickupAt.getFullYear();
 
-  // Start and end of the pickup month
   const monthStart = new Date(pickupYear, pickupMonth, 1);
   const monthEnd = new Date(pickupYear, pickupMonth + 1, 0, 23, 59, 59, 999);
 
@@ -501,10 +512,8 @@ export default async function AdminBookingDetailPage({
     take: 300,
   });
 
-  // Format month label (e.g., "01/26")
   const monthLabel = `${String(pickupMonth + 1).padStart(2, "0")}/${String(pickupYear).slice(-2)}`;
 
-  // Transform to include ride count
   const drivers = driversRaw.map((d) => ({
     id: d.id,
     name: d.name,
@@ -512,6 +521,7 @@ export default async function AdminBookingDetailPage({
     rideCount: d.driverAssignments.length,
     monthLabel,
   }));
+
   // Fetch ALL active vehicle units, with category info
   const vehicleUnitsRaw = await db.vehicleUnit.findMany({
     where: { active: true },
@@ -526,7 +536,6 @@ export default async function AdminBookingDetailPage({
     take: 300,
   });
 
-  // Sort: matching category first, then others
   const vehicleUnits = vehicleUnitsRaw
     .map((u) => ({
       id: u.id,
@@ -538,10 +547,8 @@ export default async function AdminBookingDetailPage({
         : false,
     }))
     .sort((a, b) => {
-      // Matching category first
       if (a.isMatchingCategory && !b.isMatchingCategory) return -1;
       if (!a.isMatchingCategory && b.isMatchingCategory) return 1;
-      // Then alphabetical
       return (a.name ?? "").localeCompare(b.name ?? "");
     });
 
@@ -575,8 +582,8 @@ export default async function AdminBookingDetailPage({
     null;
 
   const customerLine = isCorporateBooking
-    ? `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${customerPhone}` : ""}${booking.corporatePassenger?.department ? ` • ${booking.corporatePassenger.department}` : ""} — 🏢 ${booking.corporateAccount?.name ?? "Corporate"}`
-    : `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${customerPhone}` : ""}`;
+    ? `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${formatPhone(customerPhone)}` : ""}${booking.corporatePassenger?.department ? ` • ${booking.corporatePassenger.department}` : ""} — 🏢 ${booking.corporateAccount?.name ?? "Corporate"}`
+    : `${customerName} (${customerEmailDisplay})`;
 
   const createdAtLabel = formatDateTime(booking.createdAt);
   const actor = createdEvent?.createdBy ?? null;
@@ -611,28 +618,30 @@ export default async function AdminBookingDetailPage({
   const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
   const tipCents = booking.payment?.tipCents ?? 0;
 
-  // Determine if booking is approved (not in PENDING_REVIEW, DRAFT, or DECLINED)
   const isApproved =
     booking.status !== "PENDING_REVIEW" &&
     booking.status !== "DRAFT" &&
     booking.status !== "DECLINED";
 
-  // Determine if booking is declined
   const isDeclined = booking.status === "DECLINED";
 
   const hasPaymentLinkSent = booking.statusEvents.some(
     (e) => (e as any).eventType === "PAYMENT_LINK_SENT",
   );
 
-  // ✅ Determine card indicator statuses
+  // ✅ Card indicator statuses
 
-  // Trip card is always complete (has required info)
-  const tripIndicator: IndicatorStatus = "complete";
+  // Trip card — green if route approved, warning otherwise
+  const tripIndicator: IndicatorStatus = booking.routeApproved
+    ? "complete"
+    : "warning";
 
-  // Price card - always has a price
-  const priceIndicator: IndicatorStatus = "complete";
+  // Price card — green if price approved
+  const priceIndicator: IndicatorStatus = booking.priceApproved
+    ? "complete"
+    : "warning";
 
-  // Payment card - green if paid/refunded, warning if approved but not paid
+  // Payment card
   const isPaidOrRefunded =
     booking.payment?.status === "PAID" ||
     booking.payment?.status === "REFUNDED" ||
@@ -648,13 +657,20 @@ export default async function AdminBookingDetailPage({
           ? "warning"
           : "warning";
 
-  // Assign card - green if driver AND vehicle assigned, warning otherwise
+  // Assign card — green if driver AND vehicle assigned
   const hasDriver = !!booking.assignment?.driverId;
   const hasVehicleUnit = !!booking.assignment?.vehicleUnitId;
   const assignIndicator: IndicatorStatus =
     hasDriver && hasVehicleUnit ? "complete" : "warning";
 
-  // 4. UPDATE THE Card FUNCTION to accept an optional indicator prop:
+  // Driver pay card — green if driver pay is set
+  const hasDriverPay = Boolean(
+    booking.assignment?.driverPaymentCents &&
+    booking.assignment.driverPaymentCents > 0,
+  );
+  const driverPayIndicator: IndicatorStatus = hasDriverPay
+    ? "complete"
+    : "warning";
 
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
@@ -672,7 +688,6 @@ export default async function AdminBookingDetailPage({
     ? "good"
     : badgeTone(currentStatus);
 
-  // Updated payment status display with balance and refund handling
   const paymentStatusDisplay = getPaymentStatusDisplay(
     booking.payment?.status,
     booking.totalCents,
@@ -680,7 +695,7 @@ export default async function AdminBookingDetailPage({
     amountRefundedCents,
   );
 
-  // Prepare data for EditTripDetailsClient (with route data)
+  // Prepare data for EditTripDetailsClient
   const tripEditData = {
     pickupAt: formatDateTimeLocal(booking.pickupAt),
     pickupAddress: booking.pickupAddress,
@@ -711,19 +726,16 @@ export default async function AdminBookingDetailPage({
       ? {
           pricingStrategy: booking.serviceType
             .pricingStrategy as PricingData["pricingStrategy"],
-          // Service pricing
           serviceMinFareCents: booking.serviceType.minFareCents ?? 0,
           serviceBaseFeeCents: booking.serviceType.baseFeeCents ?? 0,
           servicePerMileCents: booking.serviceType.perMileCents ?? 0,
           servicePerMinuteCents: booking.serviceType.perMinuteCents ?? 0,
           servicePerHourCents: booking.serviceType.perHourCents ?? 0,
-          // Vehicle pricing
           vehicleBaseFareCents: booking.vehicle.baseFareCents ?? 0,
           vehiclePerMileCents: booking.vehicle.perMileCents ?? 0,
           vehiclePerMinuteCents: booking.vehicle.perMinuteCents ?? 0,
           vehiclePerHourCents: booking.vehicle.perHourCents ?? 0,
           vehicleMinHours: booking.vehicle.minHours ?? 0,
-          // Current booking
           currentTotalCents: booking.totalCents,
           hoursRequested: decimalToNumber(booking.hoursRequested),
           currency: booking.currency,
@@ -746,7 +758,7 @@ export default async function AdminBookingDetailPage({
     booking.flightTerminal ||
     booking.flightGate;
 
-  // Extract flight date for API lookup (YYYY-MM-DD)
+  // Extract flight date for API lookup
   const flightDateForLookup = booking.flightScheduledAt
     ? new Intl.DateTimeFormat("en-CA", {
         year: "numeric",
@@ -774,14 +786,14 @@ export default async function AdminBookingDetailPage({
     booking.dropoffLat &&
     booking.dropoffLng;
 
-  // ✅ NEW: Check if booking has stops
+  // Check if booking has stops
   const hasStops = booking.stops && booking.stops.length > 0;
   const stopCount = booking.stops?.length ?? 0;
   const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
   const totalWaitTimeMinutes =
     booking.stops?.reduce((sum, s) => sum + (s.waitTimeMinutes ?? 5), 0) ?? 0;
 
-  // ✅ NEW: Prepare stops for map display
+  // Prepare stops for map display
   const stopsForMap =
     booking.stops
       ?.map((s) => ({
@@ -792,7 +804,7 @@ export default async function AdminBookingDetailPage({
       }))
       .filter((s) => s.lat && s.lng) ?? [];
 
-  // ✅ NEW: Check if booking has fees
+  // Check if booking has fees
   const hasFees = booking.fees && booking.fees.length > 0;
   const totalFeesCents =
     booking.fees?.reduce((sum, f) => sum + f.amountCents, 0) ?? 0;
@@ -816,12 +828,12 @@ export default async function AdminBookingDetailPage({
           </h1>
 
           <div className={styles.boxRight}>
-              <div className='emptyTitle'>Date:</div>
-              <p className='emptySmall'>{formatDateTime(booking.pickupAt)}</p>
+            <div className='emptyTitle'>Date:</div>
+            <p className='emptySmall'>{formatDateTime(booking.pickupAt)}</p>
 
             <div style={{ marginTop: 30 }}>
-            <div className='emptyTitle'>Booking ID:</div>
-            <p className='emptySmall'>{booking.id}</p>
+              <div className='emptyTitle'>Booking ID:</div>
+              <p className='emptySmall'>{booking.id}</p>
             </div>
             {/* Current status badge */}
             <div style={{ marginTop: 30 }}>
@@ -912,33 +924,11 @@ export default async function AdminBookingDetailPage({
               )}
             </div>
           </div>
-          <div className={styles.box}>
-            <ApprovalToggleClient
-              bookingId={booking.id}
-              isApproved={isApproved}
-              isDeclined={isDeclined}
-              isPaid={isPaid}
-              bookingStatus={booking.status}
-              declineReason={booking.declineReason}
-            />
-            {/* <div className={styles.boxLeft}> */}
-
-            {/* </div> */}
-
-            {/* Approval Toggle in boxRight */}
-          </div>
-          {/* Quick Actions at the top */}
-          <Card title='Quick Actions'>
-            <QuickActionsClient
-              bookingId={booking.id}
-              currentStatus={currentStatus}
-              pickupAt={booking.pickupAt.toISOString()}
-            />
-            <div className={styles.quickActionsDivider} />
-            <DuplicateBookingClient bookingId={booking.id} />
-          </Card>
         </header>
 
+        {/* ═══════════════════════════════════════════════════════════════════
+            TRIP CARD
+            ═══════════════════════════════════════════════════════════════════ */}
         <Card title='Trip' indicator={tripIndicator} id='trip-section'>
           <div className={styles.confirmationRow}>
             <div className='emptyTitle'>Confirmation #</div>
@@ -981,12 +971,16 @@ export default async function AdminBookingDetailPage({
           </div>
           <KeyVal
             k='Phone'
-            v={customerPhone ? `📞 ${customerPhone}` : "No phone on file"}
+            v={
+              customerPhone
+                ? `📞 ${formatPhone(customerPhone)}`
+                : "No phone on file"
+            }
           />
           <KeyVal k='Service' v={booking.serviceType.name} />
           <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
 
-          {/* ✅ Route Timeline with Stops */}
+          {/* Route Timeline with Stops */}
           {hasStops ? (
             <>
               <div className={styles.sectionDivider} />
@@ -1067,7 +1061,7 @@ export default async function AdminBookingDetailPage({
             </>
           )}
 
-          {/* ✅ NEW: Service Fees Section */}
+          {/* Service Fees Section */}
           {hasFees && (
             <>
               <div className={styles.sectionDivider} />
@@ -1149,11 +1143,8 @@ export default async function AdminBookingDetailPage({
                 {booking.flightGate && (
                   <KeyVal k='Gate' v={booking.flightGate} />
                 )}
-                {booking.flightGate && (
-                  <KeyVal k='Gate' v={booking.flightGate} />
-                )}
 
-                {/* ✅ Live Flight Tracking */}
+                {/* Live Flight Tracking */}
                 {booking.flightNumber && (
                   <div style={{ marginTop: 16 }}>
                     <FlightStatusCard
@@ -1166,17 +1157,33 @@ export default async function AdminBookingDetailPage({
               </div>
             </>
           )}
-          {/* Edit Trip Details */}
+
+          {/* ✅ Approve Route + Edit Trip Details — side by side */}
           <div className={styles.sectionDivider} />
-          <EditTripDetailsClient
-            bookingId={booking.id}
-            initialData={tripEditData}
-            pricingData={pricingData}
-          />
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              alignItems: "flex-start",
+              flexWrap: "wrap",
+            }}
+          >
+            <ApproveRouteClient
+              bookingId={booking.id}
+              isApproved={booking.routeApproved}
+            />
+            <EditTripDetailsClient
+              bookingId={booking.id}
+              initialData={tripEditData}
+              pricingData={pricingData}
+            />
+          </div>
         </Card>
 
-        {/* Separated Price Card */}
-        <Card title='Price' indicator={priceIndicator}>
+        {/* ═══════════════════════════════════════════════════════════════════
+            PRICE CARD
+            ═══════════════════════════════════════════════════════════════════ */}
+        <Card title='Price' indicator={priceIndicator} id='price-section'>
           <PriceForm
             bookingId={booking.id}
             currency={booking.currency}
@@ -1185,8 +1192,129 @@ export default async function AdminBookingDetailPage({
             taxesCents={booking.taxesCents}
             totalCents={booking.totalCents}
           />
+          {/* ✅ Approve Price button */}
+          <div
+            style={{
+              marginTop: 16,
+              paddingTop: 16,
+              borderTop: "1px solid var(--stroke)",
+            }}
+          >
+            <ApprovePriceClient
+              bookingId={booking.id}
+              isApproved={booking.priceApproved}
+            />
+          </div>
         </Card>
 
+        {/* ═══════════════════════════════════════════════════════════════════
+            DRIVER + VEHICLE ASSIGNMENT CARD (no driver pay)
+            ═══════════════════════════════════════════════════════════════════ */}
+        <Card
+          title='Driver + Vehicle Assignment'
+          indicator={assignIndicator}
+          id='assign-section'
+        >
+          {drivers.length === 0 ? (
+            <div className={styles.muted}>
+              No drivers yet. Create users and assign DRIVER role in{" "}
+              <Link className={styles.inlineLink} href='/admin/users'>
+                Users
+              </Link>
+              .
+            </div>
+          ) : (
+            <>
+              <AssignBookingForm
+                bookingId={booking.id}
+                drivers={drivers}
+                vehicleUnits={vehicleUnits}
+                currentDriverId={booking.assignment?.driverId ?? null}
+                currentVehicleUnitId={booking.assignment?.vehicleUnitId ?? null}
+                currentDriverPaymentCents={
+                  booking.assignment?.driverPaymentCents ?? null
+                }
+                currentDriverTipCents={
+                  booking.assignment?.driverTipCents ?? null
+                }
+                bookingTotalCents={booking.totalCents}
+                currency={booking.currency}
+                tipCents={tipCents}
+                pickupAt={booking.pickupAt.toISOString()}
+              />
+
+              {booking.assignment ? (
+                <div
+                  className={styles.assignmentInfo}
+                  style={{
+                    marginTop: 20,
+                    paddingTop: 20,
+                    borderTop: "1px solid rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                    Current assignment
+                  </div>
+                  <KeyVal
+                    k='Driver'
+                    v={`${booking.assignment.driver.name ?? "Driver"} (${
+                      booking.assignment.driver.email
+                    })`}
+                  />
+                  {booking.assignment.vehicleUnit ? (
+                    <KeyVal
+                      k='Vehicle'
+                      v={`${booking.assignment.vehicleUnit.name}${
+                        booking.assignment.vehicleUnit.plate
+                          ? ` (${booking.assignment.vehicleUnit.plate})`
+                          : ""
+                      }`}
+                    />
+                  ) : null}
+                </div>
+              ) : null}
+            </>
+          )}
+        </Card>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            DRIVER PAY CARD (separated)
+            ═══════════════════════════════════════════════════════════════════ */}
+        <Card
+          title='Driver Pay'
+          indicator={driverPayIndicator}
+          id='driver-pay-section'
+        >
+          <DriverPayForm
+            bookingId={booking.id}
+            currentDriverPaymentCents={
+              booking.assignment?.driverPaymentCents ?? null
+            }
+            currentDriverTipCents={booking.assignment?.driverTipCents ?? null}
+            bookingTotalCents={booking.totalCents}
+            currency={booking.currency}
+            tipCents={tipCents}
+            hasDriver={hasDriver}
+          />
+        </Card>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            APPROVAL TOGGLE
+            ═══════════════════════════════════════════════════════════════════ */}
+        <div className={styles.box} id='approval-section'>
+          <ApprovalToggleClient
+            bookingId={booking.id}
+            isApproved={isApproved}
+            isDeclined={isDeclined}
+            isPaid={isPaid}
+            bookingStatus={booking.status}
+            declineReason={booking.declineReason}
+          />
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            PAYMENT CARD
+            ═══════════════════════════════════════════════════════════════════ */}
         <Card title='Payment' indicator={paymentIndicator} id='payment-section'>
           {isCorporateBooking ? (
             <div
@@ -1273,7 +1401,7 @@ export default async function AdminBookingDetailPage({
                 </div>
               )}
 
-              {/* Send Payment Link Button - now checks isApproved */}
+              {/* Send Payment Link Button */}
               <SendPaymentLinkButton
                 bookingId={booking.id}
                 totalCents={booking.totalCents}
@@ -1308,7 +1436,6 @@ export default async function AdminBookingDetailPage({
                 </div>
 
                 <div style={{ marginTop: 10 }}>
-                  {/* Manual payment - now checks isApproved */}
                   <AdminManualCardPaymentClient
                     bookingId={booking.id}
                     amountCents={booking.totalCents}
@@ -1323,94 +1450,15 @@ export default async function AdminBookingDetailPage({
           )}
         </Card>
 
-        <Card
-          title='Assign (allowed before payment)'
-          indicator={assignIndicator}
-          id='assign-section'
-        >
-          {drivers.length === 0 ? (
-            <div className={styles.muted}>
-              No drivers yet. Create users and assign DRIVER role in{" "}
-              <Link className={styles.inlineLink} href='/admin/users'>
-                Users
-              </Link>
-              .
-            </div>
-          ) : (
-            <>
-              <AssignBookingForm
-                bookingId={booking.id}
-                drivers={drivers}
-                vehicleUnits={vehicleUnits}
-                currentDriverId={booking.assignment?.driverId ?? null}
-                currentVehicleUnitId={booking.assignment?.vehicleUnitId ?? null}
-                currentDriverPaymentCents={
-                  booking.assignment?.driverPaymentCents ?? null
-                }
-                bookingTotalCents={booking.totalCents}
-                currency={booking.currency}
-                tipCents={tipCents}
-                pickupAt={booking.pickupAt.toISOString()} // ✅ ADD THIS LINE
-              />
-
-              {booking.assignment ? (
-                <div
-                  className={styles.assignmentInfo}
-                  style={{
-                    marginTop: 20,
-                    paddingTop: 20,
-                    borderTop: "1px solid rgba(0,0,0,0.1)",
-                  }}
-                >
-                  <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                    Current assignment
-                  </div>
-                  <KeyVal
-                    k='Driver'
-                    v={`${booking.assignment.driver.name ?? "Driver"} (${
-                      booking.assignment.driver.email
-                    })`}
-                  />
-                  {booking.assignment.vehicleUnit ? (
-                    <KeyVal
-                      k='Vehicle'
-                      v={`${booking.assignment.vehicleUnit.name}${
-                        booking.assignment.vehicleUnit.plate
-                          ? ` (${booking.assignment.vehicleUnit.plate})`
-                          : ""
-                      }`}
-                    />
-                  ) : null}
-                  {booking.assignment.driverPaymentCents != null ? (
-                    <KeyVal
-                      k='Driver payment'
-                      v={formatMoney(
-                        booking.assignment.driverPaymentCents,
-                        booking.currency,
-                      )}
-                    />
-                  ) : null}
-                  {/* Show tip for driver in assignment section */}
-                  {tipCents > 0 && (
-                    <KeyVal
-                      k='Customer tip'
-                      v={formatMoney(tipCents, booking.currency)}
-                    />
-                  )}
-                </div>
-              ) : null}
-            </>
-          )}
-        </Card>
-
-        {/* Activity Timeline with event types and metadata */}
+        {/* ═══════════════════════════════════════════════════════════════════
+            ACTIVITY TIMELINE
+            ═══════════════════════════════════════════════════════════════════ */}
         <Card title='Activity Timeline'>
           {booking.statusEvents.length === 0 ? (
             <div className={styles.muted}>No activity yet.</div>
           ) : (
             <ul className={styles.eventsList}>
               {booking.statusEvents.map((e) => {
-                // Extract eventType and metadata from the event
                 const eventType = (e as any).eventType ?? "STATUS_CHANGE";
                 const metadata = (e as any).metadata as Record<
                   string,
@@ -1421,7 +1469,6 @@ export default async function AdminBookingDetailPage({
                   Boolean(mostRecentConfirmedEventId) &&
                   e.id === mostRecentConfirmedEventId;
 
-                // Determine badge tone and label based on event type
                 let tone: BadgeTone = isPaidConfirmed
                   ? "good"
                   : badgeTone(e.status as BookingStatus);
@@ -1429,7 +1476,6 @@ export default async function AdminBookingDetailPage({
                   ? "Payment received"
                   : statusLabel(e.status as BookingStatus);
 
-                // Override label and tone for specific event types
                 if (eventType === "PAYMENT_RECEIVED") {
                   tone = "good";
                   const method = metadata?.method;
@@ -1473,8 +1519,6 @@ export default async function AdminBookingDetailPage({
                 }
 
                 const actorLabel = getEventActorLabel(e.createdBy, e.status);
-
-                // Build event details based on metadata
                 const eventDetails = getEventDetails(
                   eventType,
                   metadata,
@@ -1486,7 +1530,6 @@ export default async function AdminBookingDetailPage({
                     <div className={styles.eventLeft}>
                       <span className={`badge badge_${tone}`}>{label}</span>
                       <span className={styles.eventActor}>{actorLabel}</span>
-                      {/* Show event details if available */}
                       {eventDetails && (
                         <div className={`${styles.eventDetails} miniNote`}>
                           {eventDetails}
@@ -1531,22 +1574,48 @@ export default async function AdminBookingDetailPage({
         {/* Danger Zone */}
         <DeleteBookingDangerZoneClient bookingId={booking.id} />
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════════════
+          RIGHT SIDEBAR — CHECKLIST + QUICK ACTIONS
+          ═══════════════════════════════════════════════════════════════════ */}
       <div className={styles.BookingCompletionChecklist}>
         <BookingCompletionChecklist
           bookingId={booking.id}
           bookingStatus={booking.status}
+          isRouteApproved={booking.routeApproved}
+          serviceName={booking.serviceType?.name ?? null}
+          distanceMiles={decimalToNumber(booking.distanceMiles)}
+          isPriceApproved={booking.priceApproved}
           hasDriver={hasDriver}
           driverName={booking.assignment?.driver?.name ?? null}
           hasVehicleUnit={hasVehicleUnit}
           vehicleUnitName={booking.assignment?.vehicleUnit?.name ?? null}
           hasVehicleCategory={!!booking.vehicleId}
           vehicleCategoryName={booking.vehicle?.name ?? null}
+          hasDriverPay={hasDriverPay}
+          driverPayDisplay={
+            booking.assignment?.driverPaymentCents
+              ? formatMoney(
+                  booking.assignment.driverPaymentCents,
+                  booking.currency,
+                )
+              : null
+          }
           isPaid={isCorporateBooking ? true : isPaid}
           isApproved={isApproved}
           hasPaymentLinkSent={isCorporateBooking ? true : hasPaymentLinkSent}
           isCorporateBooking={isCorporateBooking}
           corporateAccountName={booking.corporateAccount?.name ?? null}
         />
+        <Card title='Quick Actions'>
+          <QuickActionsClient
+            bookingId={booking.id}
+            currentStatus={currentStatus}
+            pickupAt={booking.pickupAt.toISOString()}
+          />
+          <div className={styles.quickActionsDivider} />
+          <DuplicateBookingClient bookingId={booking.id} />
+        </Card>
       </div>
     </section>
   );
@@ -1558,18 +1627,18 @@ function Card({
   borderWarn,
   stylesWarn,
   indicator,
-  id, // ✅ ADD THIS
+  id,
 }: {
   title: string;
   children: ReactNode;
   borderWarn?: boolean;
   stylesWarn?: boolean;
   indicator?: IndicatorStatus;
-  id?: string; // ✅ ADD THIS
+  id?: string;
 }) {
   return (
     <div
-      id={id} // ✅ ADD THIS
+      id={id}
       className={`${styles.card} ${borderWarn ? styles.borderWarn : ""}`}
     >
       {indicator && <CardIndicator status={indicator} />}

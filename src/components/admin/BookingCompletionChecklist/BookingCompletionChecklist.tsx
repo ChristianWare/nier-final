@@ -5,13 +5,22 @@ import styles from "./BookingCompletionChecklist.module.css";
 type Props = {
   bookingId: string;
   bookingStatus: string;
-  // Assignment info
+  // Trip / Route
+  isRouteApproved: boolean;
+  serviceName: string | null;
+  distanceMiles: number | null;
+  // Pricing
+  isPriceApproved: boolean;
+  // Assignment info (combined)
   hasDriver: boolean;
   driverName: string | null;
   hasVehicleUnit: boolean;
   vehicleUnitName: string | null;
   hasVehicleCategory: boolean;
   vehicleCategoryName: string | null;
+  // Driver Pay
+  hasDriverPay: boolean;
+  driverPayDisplay: string | null;
   // Payment info
   isPaid: boolean;
   isApproved: boolean;
@@ -57,12 +66,16 @@ function scrollToSection(sectionId: string) {
 
 export default function BookingCompletionChecklist({
   bookingStatus,
+  isRouteApproved,
+  serviceName,
+  distanceMiles,
+  isPriceApproved,
   hasDriver,
   driverName,
   hasVehicleUnit,
   vehicleUnitName,
-  hasVehicleCategory,
-  vehicleCategoryName,
+  hasDriverPay,
+  driverPayDisplay,
   isPaid,
   isApproved,
   hasPaymentLinkSent,
@@ -101,12 +114,80 @@ export default function BookingCompletionChecklist({
     );
   }
 
+  // Format distance display
+  const distanceDisplay =
+    distanceMiles != null ? `${Number(distanceMiles).toFixed(1)} mi` : "—";
+
+  // Build trip details value string
+  const tripValue = isRouteApproved
+    ? `${serviceName ?? "—"} • ${distanceDisplay}`
+    : null;
+
   // Check if everything is complete (checklist-wise)
   const paymentComplete = isCorporateBooking || isPaid || hasPaymentLinkSent;
+  const driverVehicleComplete = hasDriver && hasVehicleUnit;
+
   const allComplete =
-    isApproved && paymentComplete && hasDriver && hasVehicleUnit;
+    isRouteApproved &&
+    isPriceApproved &&
+    driverVehicleComplete &&
+    hasDriverPay &&
+    isApproved &&
+    paymentComplete;
 
   const checklist: ChecklistItem[] = [
+    // 1. Trip Details — manual approval via "Approve Route"
+    {
+      key: "trip_details",
+      label: "Trip Details",
+      description:
+        "Review the route, service type, and trip details, then approve",
+      isComplete: isRouteApproved,
+      value: tripValue,
+      priority: "critical",
+      sectionId: "trip-section",
+    },
+
+    // 2. Pricing — manual approval via "Approve Price"
+    {
+      key: "pricing",
+      label: "Pricing",
+      description: "Review and approve the booking price",
+      isComplete: isPriceApproved,
+      value: isPriceApproved ? "Price approved" : null,
+      priority: "critical",
+      sectionId: "price-section",
+    },
+
+    // 3. Driver + Vehicle (combined)
+    {
+      key: "driver_vehicle",
+      label: "Driver + Vehicle Assignment",
+      description: "Assign a driver and vehicle unit for this trip",
+      isComplete: driverVehicleComplete,
+      value: driverVehicleComplete
+        ? `${driverName ?? "—"} • ${vehicleUnitName ?? "—"}`
+        : hasDriver
+          ? `${driverName ?? "—"} (no vehicle)`
+          : hasVehicleUnit
+            ? `(no driver) • ${vehicleUnitName ?? "—"}`
+            : null,
+      priority: "critical",
+      sectionId: "assign-section",
+    },
+
+    // 4. Driver Pay
+    {
+      key: "driver_pay",
+      label: "Driver Pay",
+      description: "Set the driver payment amount for this trip",
+      isComplete: hasDriverPay,
+      value: driverPayDisplay,
+      priority: "important",
+      sectionId: "driver-pay-section",
+    },
+
+    // 5. Booking Approved
     {
       key: "approved",
       label: "Booking Approved",
@@ -116,7 +197,8 @@ export default function BookingCompletionChecklist({
       priority: "critical",
       sectionId: "approval-section",
     },
-    // Corporate billing — always complete
+
+    // 6. Payment — corporate or standard
     ...(isCorporateBooking
       ? [
           {
@@ -160,35 +242,6 @@ export default function BookingCompletionChecklist({
               ]
             : []),
         ]),
-    {
-      key: "vehicle_category",
-      label: "Trip + Vehicle Details",
-      description: "Select which type of vehicle (SUV, Van, etc.)",
-      isComplete: hasVehicleCategory,
-      value: vehicleCategoryName,
-      priority: "important",
-      sectionId: "trip-section",
-    },
-    {
-      key: "driver",
-      label: "Driver Assigned",
-      description:
-        "Driver needs assignment to see this trip in their dashboard",
-      isComplete: hasDriver,
-      value: driverName,
-      priority: "critical",
-      sectionId: "assign-section",
-    },
-    {
-      key: "vehicle_unit",
-      label: "Vehicle Unit Assigned",
-      description:
-        "Specific vehicle (e.g., Escalade #1) for dispatch and customer confirmation",
-      isComplete: hasVehicleUnit,
-      value: vehicleUnitName,
-      priority: "important",
-      sectionId: "assign-section",
-    },
   ];
 
   const incompleteItems = checklist.filter((item) => !item.isComplete);
