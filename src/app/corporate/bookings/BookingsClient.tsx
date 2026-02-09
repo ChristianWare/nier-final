@@ -149,8 +149,7 @@ export default function BookingsClient({
     const all = totalCount;
     const now = new Date();
     const upcoming = bookings.filter(
-      (b) =>
-        new Date(b.pickupAt) >= now && !CANCELLED_STATUSES.has(b.status),
+      (b) => new Date(b.pickupAt) >= now && !CANCELLED_STATUSES.has(b.status),
     ).length;
 
     const map: Record<string, number> = { ALL: all, UPCOMING: upcoming };
@@ -223,22 +222,20 @@ export default function BookingsClient({
 
   return (
     <div className={styles.content}>
-      {/* ─── Header ─── */}
-      <div className={styles.header}>
+      <div className='heading'>
         <div>
-          <h2 className="heading h3">Bookings</h2>
-          <p className={styles.meta}>
-            <strong>{totalCount}</strong> total bookings
-            {spendThisMonthCents > 0 && (
-              <>
-                {" "}
-                · <strong>{formatMoney(spendThisMonthCents)}</strong> this
-                month
-              </>
-            )}
-          </p>
+          <h1 className='h3'>Bookings</h1>
         </div>
       </div>
+      <p className={styles.meta}>
+        <strong>{totalCount}</strong> total bookings
+        {spendThisMonthCents > 0 && (
+          <>
+            {" "}
+            · <strong>{formatMoney(spendThisMonthCents)}</strong> this month
+          </>
+        )}
+      </p>
 
       {/* ─── Status Tabs ─── */}
       <div className={styles.tabRow}>
@@ -269,22 +266,21 @@ export default function BookingsClient({
       {/* ─── Filters ─── */}
       <div className={styles.filters}>
         <input
-          type="text"
-          placeholder="Search passenger, address, service…"
+          type='text'
+          placeholder='Search passenger, address, service…'
           value={search}
           onChange={(e) => updateFilter(setSearch)(e.target.value)}
-          className={`formInput ${styles.searchInput}`}
+          className='inputBorder'
         />
 
         <div className={styles.filterGroup}>
           <select
             value={passengerFilter}
-            onChange={(e) =>
-              updateFilter(setPassengerFilter)(e.target.value)
-            }
-            className={`formInput ${styles.selectInput}`}
+            onChange={(e) => updateFilter(setPassengerFilter)(e.target.value)}
+            // className={`formInput ${styles.selectInput}`}
+            className='selectBorder'
           >
-            <option value="ALL">All passengers</option>
+            <option value='ALL'>All passengers</option>
             {passengers.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -293,18 +289,18 @@ export default function BookingsClient({
           </select>
 
           <input
-            type="date"
+            type='date'
             value={dateFrom}
             onChange={(e) => updateFilter(setDateFrom)(e.target.value)}
-            className={`formInput ${styles.dateInput}`}
-            title="From date"
+            className='inputBorder'
+            title='From date'
           />
           <input
-            type="date"
+            type='date'
             value={dateTo}
             onChange={(e) => updateFilter(setDateTo)(e.target.value)}
-            className={`formInput ${styles.dateInput}`}
-            title="To date"
+            className='inputBorder'
+            title='To date'
           />
 
           {(search ||
@@ -313,7 +309,7 @@ export default function BookingsClient({
             dateFrom ||
             dateTo) && (
             <button
-              className="neutralBtn"
+              className='neutralBtn'
               onClick={() => {
                 setSearch("");
                 setStatusTab("ALL");
@@ -425,7 +421,7 @@ export default function BookingsClient({
               {totalPages > 1 && (
                 <div className={styles.paginationBtns}>
                   <button
-                    className="neutralBtn"
+                    className='neutralBtn'
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={safePage <= 1}
                   >
@@ -435,10 +431,8 @@ export default function BookingsClient({
                     Page {safePage} of {totalPages}
                   </span>
                   <button
-                    className="neutralBtn"
-                    onClick={() =>
-                      setPage((p) => Math.min(totalPages, p + 1))
-                    }
+                    className='neutralBtn'
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={safePage >= totalPages}
                   >
                     Next

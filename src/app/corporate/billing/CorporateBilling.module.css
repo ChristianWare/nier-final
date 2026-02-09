@@ -1,4 +1,4 @@
-/* CorporateBookings.module.css */
+/* CorporateBilling.module.css */
 
 .content {
   display: flex;
@@ -9,63 +9,119 @@
 /* ─── Header ─── */
 .header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .meta {
   font-size: 1.4rem;
   color: var(--paragraph, #676767);
-  margin-top: 0.4rem;
 }
 
-.meta strong {
-  color: var(--black, #000);
-  font-size: 1.4rem;
+/* ─── KPI Grid ─── */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.kpiCard {
+  background: #fff;
+  border: 1px solid var(--stroke, #d8d6d2);
+  border-radius: 12px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.kpiLabel {
+  font-size: 1.2rem;
+  font-weight: 600;
   letter-spacing: normal;
+  color: var(--paragraph, #676767);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
-/* ─── Status Tabs ─── */
+.kpiValue {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--black, #000);
+}
+
+.kpiWarn {
+  color: #b45309;
+}
+
+.kpiSub {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+}
+
+/* ─── Monthly Limit Bar ─── */
+.limitCard {
+  background: #fff;
+  border: 1px solid var(--stroke, #d8d6d2);
+  border-radius: 12px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.limitTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.limitLabel {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--black, #000);
+}
+
+.limitValue {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+}
+
+.limitBarBg {
+  height: 8px;
+  background: var(--cream, #eae9e6);
+  border-radius: 50px;
+  overflow: hidden;
+}
+
+.limitBarFill {
+  height: 100%;
+  width: var(--limit-pct, 0%);
+  background: #16a34a;
+  border-radius: 50px;
+  transition: width 0.3s ease;
+}
+
+/* ─── Section Header ─── */
+.sectionHeader {
+  padding-top: 0.4rem;
+}
+
+.sectionTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--black, #000);
+  margin: 0;
+}
+
+/* ─── Tabs ─── */
 .tabRow {
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
-}
-
-/* ─── Filters ─── */
-.filters {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.searchInput {
-  flex: 1;
-  min-width: 220px;
-  font-size: 1.4rem;
-}
-
-.filterGroup {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  align-items: center;
-  height: 100%;
-  
-}
-
-.selectInput {
-  font-size: 1.4rem;
-  min-width: 160px;
-}
-
-.dateInput {
-  font-size: 1.4rem;
-  min-width: 140px;
 }
 
 /* ─── Table Card ─── */
@@ -90,7 +146,7 @@
 }
 
 .trHead {
-  border-bottom: 1px solid var(--stroke);
+  border-bottom: 1px solid var(--stroke, #d8d6d2);
 }
 
 .th {
@@ -145,9 +201,10 @@
   color: var(--paragraph, #676767);
 }
 
-.cellMuted {
-  color: var(--paragraph, #676767);
-  font-style: italic;
+.textRed {
+  color: #b91c1c;
+  font-weight: 600;
+  letter-spacing: normal;
 }
 
 /* ─── Badges ─── */
@@ -186,36 +243,6 @@
   color: var(--paragraph, #676767);
 }
 
-/* ─── Table Footer / Pagination ─── */
-.tableFooter {
-  padding: 1rem 1.4rem;
-  border-top: 1px solid var(--cream, #eae9e6);
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.paginationMeta {
-  font-size: 1.4rem;
-  color: var(--paragraph, #676767);
-}
-
-.paginationBtns {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.paginationBtns button {
-  font-size: 1.4rem;
-  padding: 0.5rem 1rem;
-}
-
 /* ─── Empty State ─── */
 .emptyState {
   padding: 4rem 2rem;
@@ -244,37 +271,24 @@
   max-width: 400px;
 }
 
+.emptySub strong {
+  letter-spacing: normal;
+}
+
 /* ─── Mobile ─── */
 @media (max-width: 768px) {
-  .header {
-    flex-direction: column;
-  }
-
-  .filters {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .searchInput {
-    width: 100%;
-  }
-
-  .filterGroup {
-    flex-direction: column;
-  }
-
-  .selectInput,
-  .dateInput {
-    width: 100%;
+  .kpiGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .th,
   .td {
     padding: 0.8rem 1rem;
   }
+}
 
-  .pagination {
-    flex-direction: column;
-    align-items: flex-start;
+@media (max-width: 480px) {
+  .kpiGrid {
+    grid-template-columns: 1fr;
   }
 }

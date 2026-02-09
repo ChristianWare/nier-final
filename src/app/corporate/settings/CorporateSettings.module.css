@@ -1,0 +1,176 @@
+/* CorporateSettings.module.css */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* ─── Header ─── */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.meta {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+}
+
+/* ─── Grid ─── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+/* ─── Card ─── */
+.card {
+  background: #fff;
+  border: 1px solid var(--stroke, #d8d6d2);
+  border-radius: 12px;
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cardTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--black, #000);
+  margin: 0;
+}
+
+.cardSub {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+  margin: 0;
+}
+
+.cardNote {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cream, #eae9e6);
+  font-style: italic;
+}
+
+.cardActions {
+  display: flex;
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+.cardActions button {
+  font-size: 1.4rem;
+  padding: 0.5rem 1.2rem;
+}
+
+.readOnlyBadge {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--paragraph, #676767);
+  background: var(--cream, #eae9e6);
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  white-space: nowrap;
+}
+
+/* ─── Key-Value Rows ─── */
+.keyValList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.keyVal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.keyVal:last-child {
+  border-bottom: none;
+}
+
+.keyLabel {
+  font-size: 1.4rem;
+  color: var(--paragraph, #676767);
+}
+
+.keyValue {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--black, #000);
+  text-align: right;
+}
+
+/* ─── Forms ─── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.formRow {
+  display: grid;
+  gap: 1rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+.formLabel {
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  color: var(--black, #000);
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 1268px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .fullWidth {
+    grid-column: span 1;
+  }
+
+  .keyVal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .keyValue {
+    text-align: left;
+  }
+}

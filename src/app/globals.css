@@ -649,10 +649,14 @@ th {
 
 .inputBorder {
   padding: 0.75rem 1rem;
-  border-radius: 5px;
-  border: 1px solid var(--stroke);
+  border-radius: 7px;
+  border: 3px solid var(--stroke);
   background: white;
   color: var(--paragraph);
+}
+
+.inputBorder::placeholder {
+  opacity: 0.4;
 }
 
 .select {
@@ -661,9 +665,21 @@ th {
   background: var(--white);
   color: var(--paragraph);
   font-size: 1.6rem;
-  /* color: var(--black); */
   font-weight: 500;
   border-radius: 5px;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.selectBorder {
+  width: 100%;
+  border: 1px solid var(--black400);
+  background: var(--white);
+  color: var(--paragraph);
+  font-size: 1.6rem;
+  font-weight: 500;
+  border-radius: 7px;
   padding: 0.75rem 1rem;
   font-family: inherit;
   cursor: pointer;

@@ -914,7 +914,8 @@ export default function BookingWizard({
                           );
                         }
                       }}
-                      className='input emptySmall'
+                      // className='input emptySmall'
+                      className='selectBorder'
                       disabled={hasNoServices}
                     >
                       <option value=''>Select a service...</option>
