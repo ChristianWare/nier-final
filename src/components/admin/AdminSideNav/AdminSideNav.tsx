@@ -36,7 +36,7 @@ const NAV_ITEMS = [
   },
   { title: "Vehicles", href: "/admin/vehicles", icon: <Car /> },
   { title: "Users", href: "/admin/users", icon: <Users /> },
-  { title: "Corporate", href: "/admin/corporate", icon: <Business /> },
+  { title: "Corporate Acct's", href: "/admin/corporate", icon: <Business /> },
   { title: "Airports", href: "/admin/airports", icon: <Plane /> },
   { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
   { title: "Reports", href: "/admin/reports", icon: <Report /> },
