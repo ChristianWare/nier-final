@@ -143,6 +143,12 @@ export default async function DriverTripDetailPage({
       stops: {
         orderBy: { stopOrder: "asc" },
       },
+      corporateAccount: {
+        select: { name: true },
+      },
+      corporatePassenger: {
+        select: { name: true, email: true, phone: true, department: true },
+      },
       statusEvents: {
         where: { status: BookingStatus.ARRIVED },
         orderBy: { createdAt: "desc" },
@@ -160,10 +166,25 @@ export default async function DriverTripDetailPage({
   }
 
   // Customer info
+  const isCorporateBooking = Boolean(booking.corporateAccountId);
   const customerName =
-    booking.user?.name?.trim() || booking.guestName?.trim() || "Customer";
-  const customerPhone = booking.user?.phone || booking.guestPhone || null;
-  const customerEmail = booking.user?.email || booking.guestEmail || null;
+    booking.user?.name?.trim() ||
+    booking.guestName?.trim() ||
+    (booking as any).corporatePassenger?.name?.trim() ||
+    "Customer";
+  const customerPhone =
+    booking.user?.phone ||
+    booking.guestPhone ||
+    (booking as any).corporatePassenger?.phone ||
+    null;
+  const customerEmail =
+    booking.user?.email ||
+    booking.guestEmail ||
+    (booking as any).corporatePassenger?.email ||
+    null;
+  const corporateAccountName = (booking as any).corporateAccount?.name ?? null;
+  const corporatePassengerDepartment =
+    (booking as any).corporatePassenger?.department ?? null;
 
   // Vehicle unit info
   const vehicleUnit = booking.assignment?.vehicleUnit;
@@ -284,8 +305,52 @@ export default async function DriverTripDetailPage({
       {/* Customer Contact */}
       <div className={styles.card}>
         <h2 className='cardTitle h4'>Customer Details</h2>
+
+        {isCorporateBooking && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 10,
+              marginBottom: 16,
+              padding: "8px 14px",
+              borderRadius: 5,
+              background: "rgba(124, 58, 237, 0.08)",
+              border: "1px solid rgba(124, 58, 237, 0.2)",
+            }}
+          >
+            <span style={{ fontSize: 18 }}>🏢</span>
+            <div>
+              <div
+                style={{
+                  fontSize: "1.3rem",
+                  fontWeight: 700,
+                  color: "rgb(124, 58, 237)",
+                }}
+              >
+                Corporate Client — {corporateAccountName}
+              </div>
+              {corporatePassengerDepartment && (
+                <div
+                  style={{
+                    fontSize: "1.2rem",
+                    color: "rgb(124, 58, 237, 0.7)",
+                    marginTop: 2,
+                  }}
+                >
+                  {corporatePassengerDepartment}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className={styles.customerInfo}>
           <div className={styles.customerName}>{customerName}</div>
+          {/* {customerEmail && (
+            <div className={styles.phoneDisplay}>{customerEmail}</div>
+          )} */}
           {customerPhone && (
             <div className={styles.contactButtons}>
               <a href={`tel:${customerPhone}`} className={styles.contactButton}>
