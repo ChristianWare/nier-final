@@ -140,7 +140,7 @@ export default function SettingsClient({ account, contact }: Props) {
         {/* ─── Account Overview (read-only) ─── */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h3 className="cardTitle">Account Overview</h3>
+            <h3 className="cardTitle h4">Account Overview</h3>
           </div>
           <div className={styles.keyValList}>
             <KeyVal k="Company Name" v={account.name} />
@@ -160,7 +160,7 @@ export default function SettingsClient({ account, contact }: Props) {
         {/* ─── Payment Terms (read-only) ─── */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h3 className="cardTitle">Payment Terms</h3>
+            <h3 className="cardTitle h4">Payment Terms</h3>
             {/* <span className={styles.readOnlyBadge}>Set by Nier</span> */}
           </div>
           <div className={styles.keyValList}>
@@ -201,7 +201,7 @@ export default function SettingsClient({ account, contact }: Props) {
         {/* ─── Billing Email (editable) ─── */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h3 className="cardTitle">Billing Email</h3>
+            <h3 className="cardTitle h4">Billing Email</h3>
           </div>
           <p className={styles.cardSub}>
             Invoices and billing notifications are sent to this address.
@@ -231,7 +231,7 @@ export default function SettingsClient({ account, contact }: Props) {
         {/* ─── Billing Address (editable) ─── */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h3 className="cardTitle">Billing Address</h3>
+            <h3 className="cardTitle h4">Billing Address</h3>
           </div>
           <div className={styles.formGrid}>
             <div className={`${styles.formField} ${styles.fullWidth}`}>
@@ -289,7 +289,7 @@ export default function SettingsClient({ account, contact }: Props) {
         {/* ─── Contact Info (editable) ─── */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h3 className="cardTitle">Your Contact Info</h3>
+            <h3 className="cardTitle h4">Your Contact Info</h3>
           </div>
           <div className={styles.formGrid}>
             <div className={styles.formField}>

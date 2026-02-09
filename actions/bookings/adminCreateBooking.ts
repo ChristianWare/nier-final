@@ -3,8 +3,8 @@
 
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
-import { calcQuoteCents } from "@/lib/pricing/calcQuote";
-import { BookingStatus } from "@prisma/client";
+import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
+import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
 // ✅ Allowed statuses for admin-created bookings
@@ -43,7 +43,7 @@ type AdminCreateBookingInput = {
   dropoffLat?: number | null;
   dropoffLng?: number | null;
 
-  // ✅ Extra stops
+  // Extra stops
   stops?: StopInput[];
 
   distanceMiles?: number | null;
@@ -53,23 +53,36 @@ type AdminCreateBookingInput = {
 
   specialRequests?: string | null;
 
-  // ✅ Flight info
+  // Flight info
   flightAirline?: string | null;
   flightNumber?: string | null;
   flightScheduledAt?: string | null;
   flightTerminal?: string | null;
+  flightGate?: string | null;
+
+  // Event type (hourly bookings)
   eventType?: string | null;
-  // ✅ optional incoming status
+
+  // Optional incoming status
   status?: AdminCreateBookingStatus;
 
-  customerKind: "account" | "guest";
+  customerKind: "account" | "guest" | "corporate";
   customerUserId?: string | null;
 
-  // note: for "account", we'll override this with the user's email for safety
+  // For "account", we override this with the user's email for safety
   customerEmail: string;
 
   customerName?: string | null;
   customerPhone?: string | null;
+
+  // ─── Corporate booking fields ───
+  corporateAccountId?: string | null;
+  corporatePassengerId?: string | null;
+  costCenter?: string | null;
+  projectCode?: string | null;
+  corporateNewPassengerName?: string | null;
+  corporateNewPassengerEmail?: string | null;
+  corporateNewPassengerPhone?: string | null;
 };
 
 function isValidEmail(v: string) {
@@ -125,6 +138,9 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
   // --- service / vehicle ---
   const service = await db.serviceType.findUnique({
     where: { id: input.serviceTypeId },
+    include: {
+      fees: { where: { active: true }, orderBy: { sortOrder: "asc" } },
+    },
   });
   if (!service || !service.active)
     return { error: "Service not available" as const };
@@ -137,19 +153,33 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     return { error: "Vehicle not available" as const };
   }
 
-  // ✅ status (runtime guard + default)
+  // --- status (runtime guard + default) ---
   if (input.status != null && !isAllowedStatus(input.status)) {
     return { error: "Invalid status." as const };
   }
   const status: AdminCreateBookingStatus = input.status ?? "DRAFT";
 
-  // --- customer ---
+  // --- point-to-point distance guard ---
+  const distanceMiles = input.distanceMiles ?? null;
+  const durationMinutes = input.durationMinutes ?? null;
+  const hoursRequested = input.hoursRequested ?? null;
+
+  if (
+    service.pricingStrategy === ServicePricingStrategy.POINT_TO_POINT &&
+    (!distanceMiles || distanceMiles <= 0)
+  ) {
+    return {
+      error:
+        "Missing route distance. Please re-check the route estimate (miles) before submitting.",
+    } as const;
+  }
+
+  // --- customer resolution ---
   let userId: string | null = null;
   let guestName: string | null = null;
   let guestEmail: string | null = null;
   let guestPhone: string | null = null;
 
-  // we will finalize `email` depending on customerKind
   let email = (input.customerEmail ?? "").trim().toLowerCase();
 
   if (input.customerKind === "account") {
@@ -164,12 +194,16 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     if (!u) return { error: "Selected user not found." as const };
 
     userId = u.id;
-
-    // ✅ override with canonical email from DB (more reliable)
+    // Override with canonical email from DB (more reliable)
     email = (u.email ?? "").trim().toLowerCase();
     if (!email || !isValidEmail(email))
       return { error: "Selected user has an invalid email." as const };
+  } else if (input.customerKind === "corporate") {
+    // Corporate bookings don't require a userId — billing goes to the account.
+    // Email is optional, captured for reference only.
+    email = email || "";
   } else {
+    // Guest
     email = (input.customerEmail ?? "").trim().toLowerCase();
     if (!email || !isValidEmail(email))
       return { error: "Enter a valid customer email." as const };
@@ -185,7 +219,64 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     guestPhone = p;
   }
 
-  // ✅ Process stops - filter to only valid ones
+  // ─── Corporate account handling ───
+  let resolvedCorporateAccountId: string | null = null;
+  let resolvedCorporatePassengerId: string | null = null;
+  let corporateDiscountPercent: number | null = null;
+
+  if (input.customerKind === "corporate") {
+    if (!input.corporateAccountId) {
+      return { error: "Please select a corporate account." as const };
+    }
+
+    const corpAccount = await db.corporateAccount.findUnique({
+      where: { id: input.corporateAccountId },
+      select: {
+        id: true,
+        status: true,
+        discountPercent: true,
+      },
+    });
+
+    if (!corpAccount || corpAccount.status !== "ACTIVE") {
+      return { error: "Corporate account not found or inactive." as const };
+    }
+
+    resolvedCorporateAccountId = corpAccount.id;
+    corporateDiscountPercent = corpAccount.discountPercent
+      ? Number(corpAccount.discountPercent)
+      : null;
+
+    // Existing passenger from roster
+    if (input.corporatePassengerId) {
+      const passenger = await db.corporatePassenger.findUnique({
+        where: { id: input.corporatePassengerId },
+        select: { id: true, corporateAccountId: true },
+      });
+
+      if (!passenger || passenger.corporateAccountId !== corpAccount.id) {
+        return { error: "Passenger not found on this account." as const };
+      }
+
+      resolvedCorporatePassengerId = passenger.id;
+    }
+    // New passenger — add to roster on the fly
+    else if (input.corporateNewPassengerName?.trim()) {
+      const newPassenger = await db.corporatePassenger.create({
+        data: {
+          corporateAccountId: corpAccount.id,
+          name: input.corporateNewPassengerName.trim(),
+          email: input.corporateNewPassengerEmail?.trim() || null,
+          phone: input.corporateNewPassengerPhone?.trim() || null,
+        },
+      });
+      resolvedCorporatePassengerId = newPassenger.id;
+    } else {
+      return { error: "Please select or add a passenger." as const };
+    }
+  }
+
+  // --- process stops ---
   const validStops = (input.stops ?? []).filter(
     (s) =>
       s.address?.trim() &&
@@ -196,19 +287,19 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
   );
   const stopCount = validStops.length;
 
-  // ✅ Parse flight scheduled time if provided
-  const flightScheduledAt = input.flightScheduledAt
-    ? new Date(input.flightScheduledAt)
-    : null;
-
   // --- quote ---
   const quote = calcQuoteCents({
     pricingStrategy: service.pricingStrategy,
-    distanceMiles: input.distanceMiles ?? null,
-    durationMinutes: input.durationMinutes ?? null,
-    hoursRequested: input.hoursRequested ?? null,
-    stopCount, // ✅ Pass stop count for pricing
+    distanceMiles,
+    durationMinutes,
+    hoursRequested,
+    stopCount,
+    fees: (service.fees ?? []).map((f) => ({
+      label: f.label,
+      amountCents: f.amountCents,
+    })),
     vehicleMinHours: vehicle?.minHours ?? 0,
+    serviceMinHours: service.minHours ?? 0,
 
     serviceMinFareCents: service.minFareCents,
     serviceBaseFeeCents: service.baseFeeCents,
@@ -222,18 +313,38 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     vehiclePerHourCents: vehicle?.perHourCents ?? 0,
   });
 
+  // ─── Apply corporate discount ───
+  let finalSubtotalCents = quote.breakdown.subtotalCents;
+  let finalTotalCents = quote.totalCents;
+
+  if (corporateDiscountPercent && corporateDiscountPercent > 0) {
+    const discountCents = Math.round(
+      finalTotalCents * (corporateDiscountPercent / 100),
+    );
+    finalTotalCents = finalTotalCents - discountCents;
+    finalSubtotalCents = finalSubtotalCents - discountCents;
+  }
+
+  // Parse flight scheduled time if provided
+  const flightScheduledAt = input.flightScheduledAt
+    ? new Date(input.flightScheduledAt)
+    : null;
+
+  // Calculate stop surcharge for storage
+  const stopSurchargeCents = stopCount * EXTRA_STOP_FEE_CENTS;
+
+  // --- create booking ---
   const booking = await db.booking.create({
     data: {
       userId: userId ?? undefined,
 
-      guestName: userId ? undefined : (guestName ?? undefined),
-      guestEmail: userId ? undefined : (guestEmail ?? undefined),
-      guestPhone: userId ? undefined : (guestPhone ?? undefined),
+      guestName: userId ? undefined : guestName,
+      guestEmail: userId ? undefined : guestEmail,
+      guestPhone: userId ? undefined : guestPhone,
 
       serviceTypeId: service.id,
       vehicleId: vehicle?.id ?? null,
 
-      // ✅ allowed subset cast to Prisma enum
       status: status as BookingStatus,
 
       pickupAt: pickupAtDate,
@@ -250,11 +361,44 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
       dropoffLat: input.dropoffLat ?? null,
       dropoffLng: input.dropoffLng ?? null,
 
-      // ✅ Create stops as nested records
+      distanceMiles,
+      durationMinutes,
+
+      hoursRequested: quote.requestedHours ?? hoursRequested ?? null,
+      hoursBilled: quote.billedHours ?? null,
+
+      specialRequests: input.specialRequests ?? null,
+      eventType: input.eventType?.trim() || null,
+
+      // Flight info
+      flightAirline: input.flightAirline?.trim() || null,
+      flightNumber: input.flightNumber?.trim().toUpperCase() || null,
+      flightScheduledAt:
+        flightScheduledAt && Number.isFinite(flightScheduledAt.getTime())
+          ? flightScheduledAt
+          : null,
+      flightTerminal: input.flightTerminal?.trim() || null,
+      flightGate: input.flightGate?.trim().toUpperCase() || null,
+
+      // Stop count and surcharge
+      stopCount,
+      stopSurchargeCents,
+
+      // Pricing (with corporate discount applied)
+      subtotalCents: finalSubtotalCents,
+      totalCents: finalTotalCents,
+
+      // Corporate fields
+      corporateAccountId: resolvedCorporateAccountId,
+      corporatePassengerId: resolvedCorporatePassengerId,
+      costCenter: input.costCenter?.trim() || null,
+      projectCode: input.projectCode?.trim() || null,
+
+      // Create stops as nested records
       stops: {
         create: validStops.map((stop, index) => ({
           stopOrder: index + 1,
-          address: stop.address.trim(),
+          address: stop.address,
           placeId: stop.placeId ?? null,
           lat: stop.lat ?? null,
           lng: stop.lng ?? null,
@@ -262,36 +406,22 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
         })),
       },
 
-      // ✅ Store stop count and surcharge
-      stopCount,
-      stopSurchargeCents: quote.breakdown.stopSurchargeCents,
-
-      distanceMiles: input.distanceMiles ?? null,
-      durationMinutes: input.durationMinutes ?? null,
-
-      hoursRequested: quote.requestedHours ?? input.hoursRequested ?? null,
-      hoursBilled: quote.billedHours ?? null,
-
-      specialRequests: input.specialRequests ?? null,
-
-      // ✅ Flight info
-      flightAirline: input.flightAirline ?? null,
-      flightNumber: input.flightNumber ?? null,
-      flightScheduledAt:
-        flightScheduledAt && Number.isFinite(flightScheduledAt.getTime())
-          ? flightScheduledAt
-          : null,
-      flightTerminal: input.flightTerminal ?? null,
-      eventType: input.eventType?.trim() || null,
-      // ✅ FIX: Access subtotalCents from the breakdown object
-      subtotalCents: quote.breakdown.subtotalCents,
-      totalCents: quote.totalCents,
+      // Create fee snapshots as nested records
+      fees:
+        service.fees.length > 0
+          ? {
+              create: service.fees.map((fee) => ({
+                label: fee.label,
+                amountCents: fee.amountCents,
+                serviceFeeId: fee.id,
+              })),
+            }
+          : undefined,
     },
     select: { id: true },
   });
 
-  // ✅ Send notifications IMMEDIATELY (no queue/cron needed)
-  // Only send for CONFIRMED bookings
+  // Send notifications for CONFIRMED bookings
   if (status === "CONFIRMED") {
     try {
       await sendAdminNotificationsForBookingEvent({
@@ -299,7 +429,7 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
         bookingId: booking.id,
       });
     } catch (e) {
-      // Non-critical - log but don't fail the booking
+      // Non-critical — log but don't fail the booking
       console.error("Failed to send admin notifications:", e);
     }
   }

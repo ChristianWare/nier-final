@@ -36,100 +36,130 @@ function decToNumber(v: any): number | null {
 }
 
 export default async function AdminNewBookingPage() {
-  const [serviceTypesRaw, vehicles, blackoutRows, drivers, vehicleUnits] =
-    await Promise.all([
-      db.serviceType.findMany({
-        where: { active: true },
-        orderBy: [{ sortOrder: "asc" }],
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          pricingStrategy: true,
-          minFareCents: true,
-          baseFeeCents: true,
-          perMileCents: true,
-          perMinuteCents: true,
-          perHourCents: true,
-          minHours: true, // ✅ NEW
-          active: true,
-          sortOrder: true,
-          airportLeg: true,
-          airports: {
-            select: {
-              id: true,
-              name: true,
-              iata: true,
-              address: true,
-              placeId: true,
-              lat: true, // Decimal
-              lng: true, // Decimal
-            },
-          },
-          // ✅ NEW: Include fees
-          fees: {
-            where: { active: true },
-            orderBy: { sortOrder: "asc" },
-            select: {
-              id: true,
-              label: true,
-              amountCents: true,
-            },
+  const [
+    serviceTypesRaw,
+    vehicles,
+    blackoutRows,
+    drivers,
+    vehicleUnits,
+    corporateAccountsRaw,
+  ] = await Promise.all([
+    db.serviceType.findMany({
+      where: { active: true },
+      orderBy: [{ sortOrder: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        pricingStrategy: true,
+        minFareCents: true,
+        baseFeeCents: true,
+        perMileCents: true,
+        perMinuteCents: true,
+        perHourCents: true,
+        minHours: true,
+        active: true,
+        sortOrder: true,
+        airportLeg: true,
+        airports: {
+          select: {
+            id: true,
+            name: true,
+            iata: true,
+            address: true,
+            placeId: true,
+            lat: true,
+            lng: true,
           },
         },
-      }),
-
-      db.vehicle.findMany({
-        where: { active: true },
-        orderBy: [{ sortOrder: "asc" }],
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          capacity: true,
-          luggageCapacity: true,
-          imageUrl: true,
-          minHours: true,
-          baseFareCents: true,
-          perMileCents: true,
-          perMinuteCents: true,
-          perHourCents: true,
-          active: true,
-          sortOrder: true,
-        },
-      }),
-
-      db.blackoutDate.findMany({
-        where: {
-          ymd: {
-            gte: ymdInPhoenix(new Date()),
-            lt: ymdInPhoenix(addDays(new Date(), 365)),
+        fees: {
+          where: { active: true },
+          orderBy: { sortOrder: "asc" },
+          select: {
+            id: true,
+            label: true,
+            amountCents: true,
           },
         },
-        select: { ymd: true },
-      }),
+      },
+    }),
 
-      // ✅ Drivers for Assign step
-      db.user.findMany({
-        where: { roles: { has: "DRIVER" } },
-        select: { id: true, name: true, email: true },
-        orderBy: { createdAt: "desc" },
-        take: 300,
-      }),
+    db.vehicle.findMany({
+      where: { active: true },
+      orderBy: [{ sortOrder: "asc" }],
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        capacity: true,
+        luggageCapacity: true,
+        imageUrl: true,
+        minHours: true,
+        baseFareCents: true,
+        perMileCents: true,
+        perMinuteCents: true,
+        perHourCents: true,
+        active: true,
+        sortOrder: true,
+      },
+    }),
 
-      // ✅ Vehicle units for Assign step
-      db.vehicleUnit.findMany({
-        where: { active: true },
-        select: {
-          id: true,
-          name: true,
-          plate: true,
-          categoryId: true,
+    db.blackoutDate.findMany({
+      where: {
+        ymd: {
+          gte: ymdInPhoenix(new Date()),
+          lt: ymdInPhoenix(addDays(new Date(), 365)),
         },
-        orderBy: { name: "asc" },
-        take: 500,
-      }),
-    ]);
+      },
+      select: { ymd: true },
+    }),
+
+    // ✅ Drivers for Assign step
+    db.user.findMany({
+      where: { roles: { has: "DRIVER" } },
+      select: { id: true, name: true, email: true },
+      orderBy: { createdAt: "desc" },
+      take: 300,
+    }),
+
+    // ✅ Vehicle units for Assign step
+    db.vehicleUnit.findMany({
+      where: { active: true },
+      select: {
+        id: true,
+        name: true,
+        plate: true,
+        categoryId: true,
+      },
+      orderBy: { name: "asc" },
+      take: 500,
+    }),
+
+    // ✅ Corporate accounts with active passengers
+    db.corporateAccount.findMany({
+      where: { status: "ACTIVE" },
+      orderBy: { name: "asc" },
+      select: {
+        id: true,
+        name: true,
+        discountPercent: true,
+        billingCycle: true,
+        paymentTerms: true,
+        status: true,
+        passengers: {
+          where: { active: true },
+          orderBy: { name: "asc" },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            department: true,
+          },
+        },
+      },
+    }),
+  ]);
 
   // ✅ Convert Decimal -> number BEFORE passing into Client Component
   const serviceTypes = serviceTypesRaw.map((s) => ({
@@ -139,8 +169,24 @@ export default async function AdminNewBookingPage() {
       lat: decToNumber(a.lat),
       lng: decToNumber(a.lng),
     })),
-    // ✅ NEW: Include fees (already plain objects, no conversion needed)
     fees: s.fees ?? [],
+  }));
+
+  // ✅ Serialize corporate accounts (Decimal -> number for discountPercent)
+  const corporateAccounts = corporateAccountsRaw.map((a) => ({
+    id: a.id,
+    name: a.name,
+    discountPercent: decToNumber(a.discountPercent),
+    billingCycle: a.billingCycle,
+    paymentTerms: a.paymentTerms,
+    status: a.status,
+    passengers: a.passengers.map((p) => ({
+      id: p.id,
+      name: p.name,
+      email: p.email,
+      phone: p.phone,
+      department: p.department,
+    })),
   }));
 
   const blackoutsByYmd: Record<string, boolean> = {};
@@ -161,6 +207,7 @@ export default async function AdminNewBookingPage() {
         blackoutsByYmd={blackoutsByYmd}
         drivers={drivers as any}
         vehicleUnits={vehicleUnits as any}
+        corporateAccounts={corporateAccounts}
       />
     </section>
   );

@@ -110,11 +110,30 @@ type UserLite = {
 };
 
 type DriverLite = { id: string; name: string | null; email: string };
+
 type VehicleUnitLite = {
   id: string;
   name: string;
   plate: string | null;
   categoryId: string | null;
+};
+
+type CorporateAccountDTO = {
+  id: string;
+  name: string;
+  discountPercent: number | null;
+  billingCycle: string;
+  paymentTerms: string;
+  status: string;
+  passengers: CorporatePassengerDTO[];
+};
+
+type CorporatePassengerDTO = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  department: string | null;
 };
 
 type WizardBookingData = {
@@ -286,12 +305,14 @@ export default function AdminNewBookingWizard({
   blackoutsByYmd,
   drivers,
   vehicleUnits,
+  corporateAccounts = [],
 }: {
   serviceTypes: ServiceTypeDTO[];
   vehicles: VehicleDTO[];
   blackoutsByYmd: Record<string, boolean>;
   drivers: DriverLite[];
   vehicleUnits: VehicleUnitLite[];
+  corporateAccounts?: CorporateAccountDTO[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -305,9 +326,9 @@ export default function AdminNewBookingWizard({
   );
   const [bookingDataLoading, setBookingDataLoading] = useState(false);
 
-  const [customerKind, setCustomerKind] = useState<"account" | "guest">(
-    "account",
-  );
+  const [customerKind, setCustomerKind] = useState<
+    "account" | "guest" | "corporate"
+  >("account");
 
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerName, setCustomerName] = useState("");
@@ -355,6 +376,15 @@ export default function AdminNewBookingWizard({
 
   const [eventType, setEventType] = useState<string>("");
 
+  // ─── Corporate booking state ───
+  const [corporateAccountId, setCorporateAccountId] = useState<string>("");
+  const [corporatePassengerId, setCorporatePassengerId] = useState<string>("");
+  const [costCenter, setCostCenter] = useState<string>("");
+  const [projectCode, setProjectCode] = useState<string>("");
+  const [newPassengerMode, setNewPassengerMode] = useState(false);
+  const [newPassengerName, setNewPassengerName] = useState("");
+  const [newPassengerEmail, setNewPassengerEmail] = useState("");
+  const [newPassengerPhone, setNewPassengerPhone] = useState("");
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
     return serviceTypes.find((s) => s.id === serviceTypeId) ?? null;
@@ -369,6 +399,24 @@ export default function AdminNewBookingWizard({
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
   const isAirportService = usesPickupAirport || usesDropoffAirport;
+
+  // ─── Corporate derived state ───
+  const selectedCorporateAccount = useMemo(() => {
+    if (!corporateAccountId) return null;
+    return corporateAccounts.find((a) => a.id === corporateAccountId) ?? null;
+  }, [corporateAccounts, corporateAccountId]);
+
+  const corporatePassengers = selectedCorporateAccount?.passengers ?? [];
+
+  const isCorporateBooking =
+    customerKind === "corporate" && Boolean(corporateAccountId);
+
+  // Auto-set status to CONFIRMED for corporate bookings
+  useEffect(() => {
+    if (isCorporateBooking) {
+      setBookingStatus("CONFIRMED");
+    }
+  }, [isCorporateBooking]);
 
   // ✅ Get the selected airport's IATA for flight validation
   const selectedAirportIata = useMemo(() => {
@@ -412,18 +460,44 @@ export default function AdminNewBookingWizard({
   }, [bookingId, bookingData]);
 
   // customerKind switching behavior
+  // customerKind switching behavior
   useEffect(() => {
     if (customerKind === "guest") {
       setSelectedUser(null);
       setUserQuery("");
       setUserResults([]);
       setUserSearching(false);
+      setCorporateAccountId("");
+      setCorporatePassengerId("");
+      setCostCenter("");
+      setProjectCode("");
+      setNewPassengerMode(false);
+      setCustomerEmail("");
+      setCustomerName("");
+      setCustomerPhone("");
+      resetCreatedBooking();
+      return;
+    }
+
+    if (customerKind === "corporate") {
+      setSelectedUser(null);
+      setUserQuery("");
+      setUserResults([]);
+      setUserSearching(false);
+      setCustomerEmail("");
+      setCustomerName("");
+      setCustomerPhone("");
       resetCreatedBooking();
       return;
     }
 
     if (customerKind === "account") {
       setCustomerPhone("");
+      setCorporateAccountId("");
+      setCorporatePassengerId("");
+      setCostCenter("");
+      setProjectCode("");
+      setNewPassengerMode(false);
       if (selectedUser) {
         setCustomerEmail(selectedUser.email);
         setCustomerName((selectedUser.name ?? "").trim());
@@ -609,6 +683,9 @@ export default function AdminNewBookingWizard({
       guestName: false,
       guestPhone: false,
 
+      corporateAccount: false,
+      corporatePassenger: false,
+
       service: false,
       dateTime: false,
 
@@ -626,6 +703,12 @@ export default function AdminNewBookingWizard({
 
     if (customerKind === "account") {
       if (!selectedUser) e.attachUser = true;
+    } else if (customerKind === "corporate") {
+      if (!corporateAccountId) e.corporateAccount = true;
+      if (!corporatePassengerId && !newPassengerMode)
+        e.corporatePassenger = true;
+      if (newPassengerMode && !newPassengerName.trim())
+        e.corporatePassenger = true;
     } else {
       const email = customerEmail.trim().toLowerCase();
       if (!email || !isValidEmail(email)) e.guestEmail = true;
@@ -676,6 +759,10 @@ export default function AdminNewBookingWizard({
     customerEmail,
     customerName,
     customerPhone,
+    corporateAccountId,
+    corporatePassengerId,
+    newPassengerMode,
+    newPassengerName,
     selectedService,
     pickupAtDate,
     pickupAtTime,
@@ -781,6 +868,30 @@ export default function AdminNewBookingWizard({
       }
       customerUserId = selectedUser.id;
       email = selectedUser.email.trim().toLowerCase();
+    } else if (customerKind === "corporate") {
+      if (!corporateAccountId) {
+        setAttemptTripNext(true);
+        toast.error("Please select a corporate account.");
+        setStep(1);
+        return null;
+      }
+      if (!corporatePassengerId && !newPassengerMode) {
+        setAttemptTripNext(true);
+        toast.error("Please select a passenger.");
+        setStep(1);
+        return null;
+      }
+      if (newPassengerMode && !newPassengerName.trim()) {
+        setAttemptTripNext(true);
+        toast.error("Please enter the passenger name.");
+        setStep(1);
+        return null;
+      }
+      // Corporate bookings don't require email — billing goes to account
+      email =
+        selectedCorporateAccount?.passengers.find(
+          (p) => p.id === corporatePassengerId,
+        )?.email ?? "";
     } else {
       email = customerEmail.trim().toLowerCase();
       if (
@@ -861,6 +972,35 @@ export default function AdminNewBookingWizard({
         customerEmail: email,
         customerName: customerKind === "guest" ? customerName.trim() : null,
         customerPhone: customerKind === "guest" ? customerPhone.trim() : null,
+
+        // Corporate fields
+        corporateAccountId:
+          customerKind === "corporate" ? corporateAccountId : null,
+        corporatePassengerId:
+          customerKind === "corporate" && !newPassengerMode
+            ? corporatePassengerId
+            : null,
+        costCenter:
+          customerKind === "corporate" && costCenter.trim()
+            ? costCenter.trim()
+            : null,
+        projectCode:
+          customerKind === "corporate" && projectCode.trim()
+            ? projectCode.trim()
+            : null,
+        // One-off passenger (not on roster)
+        corporateNewPassengerName:
+          customerKind === "corporate" && newPassengerMode
+            ? newPassengerName.trim()
+            : null,
+        corporateNewPassengerEmail:
+          customerKind === "corporate" && newPassengerMode
+            ? newPassengerEmail.trim() || null
+            : null,
+        corporateNewPassengerPhone:
+          customerKind === "corporate" && newPassengerMode
+            ? newPassengerPhone.trim() || null
+            : null,
       });
 
       if ((res as any)?.error) {
@@ -1022,16 +1162,39 @@ export default function AdminNewBookingWizard({
   const hasContactInfo =
     customerKind === "account"
       ? Boolean(selectedUser)
-      : Boolean(
-          customerName.trim() && customerEmail.trim() && customerPhone.trim(),
-        );
+      : customerKind === "corporate"
+        ? Boolean(
+            corporateAccountId && (corporatePassengerId || newPassengerMode),
+          )
+        : Boolean(
+            customerName.trim() && customerEmail.trim() && customerPhone.trim(),
+          );
 
   const contactLabel = useMemo(() => {
     if (customerKind === "account") {
       return selectedUser?.name?.trim() || selectedUser?.email || null;
     }
+    if (customerKind === "corporate") {
+      if (!selectedCorporateAccount) return null;
+      const passengerName = newPassengerMode
+        ? newPassengerName.trim()
+        : (corporatePassengers.find((p) => p.id === corporatePassengerId)
+            ?.name ?? null);
+      return passengerName
+        ? `${selectedCorporateAccount.name} · ${passengerName}`
+        : selectedCorporateAccount.name;
+    }
     return customerName.trim() || null;
-  }, [customerKind, selectedUser, customerName]);
+  }, [
+    customerKind,
+    selectedUser,
+    customerName,
+    selectedCorporateAccount,
+    corporatePassengerId,
+    corporatePassengers,
+    newPassengerMode,
+    newPassengerName,
+  ]);
 
   const checklistDateTimeLabel = useMemo(() => {
     if (!pickupAtDate || !pickupAtTime) return null;
@@ -1242,11 +1405,7 @@ export default function AdminNewBookingWizard({
                   Customer, service, date/time, and route.
                 </p>
 
-                <div
-                  id='wizard-field-customer'
-                  style={{ display: "grid", gap: 10 }}
-                  className={styles.sectionBox}
-                >
+                <div id='wizard-field-customer' className={styles.sectionBox}>
                   <label className='cardTitle h5'>Customer type</label>
                   <select
                     className='input emptySmall'
@@ -1258,6 +1417,9 @@ export default function AdminNewBookingWizard({
                   >
                     <option value='account'>Account (existing user)</option>
                     <option value='guest'>Guest (no account)</option>
+                    {corporateAccounts.length > 0 && (
+                      <option value='corporate'>Corporate account</option>
+                    )}
                   </select>
                   {customerKind === "account" ? (
                     <div style={{ display: "grid", gap: 10 }}>
@@ -1392,69 +1554,308 @@ export default function AdminNewBookingWizard({
                     </div>
                   ) : (
                     <>
-                      <Grid2>
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <label
-                            className={cx(
-                              "cardTitle h5",
-                              tripErrors.guestEmail && "redBorder",
-                            )}
-                          >
-                            Customer email
-                          </label>
-                          <input
-                            className='input emptySmall'
-                            value={customerEmail}
-                            onChange={(e) => {
-                              resetCreatedBooking();
-                              setCustomerEmail(e.target.value);
-                            }}
-                            placeholder='customer@email.com'
-                            inputMode='email'
-                          />
-                        </div>
+                      {customerKind === "corporate" ? (
+                        <div style={{ display: "grid", gap: 20 }}>
+                          {/* Corporate Account Picker */}
+                          <div style={{ display: "grid", gap: 8 }}>
+                            <label
+                              className={cx(
+                                "cardTitle h5",
+                                tripErrors.corporateAccount && "redBorder",
+                              )}
+                            >
+                              Corporate account
+                            </label>
+                            <select
+                              value={corporateAccountId}
+                              onChange={(e) => {
+                                resetCreatedBooking();
+                                setCorporateAccountId(e.target.value);
+                                setCorporatePassengerId("");
+                                setNewPassengerMode(false);
+                              }}
+                              className='input emptySmall'
+                            >
+                              <option value=''>Select an account...</option>
+                              {corporateAccounts.map((a) => (
+                                <option key={a.id} value={a.id}>
+                                  {a.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
 
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <label
-                            className={cx(
-                              "cardTitle h5",
-                              tripErrors.guestName && "redBorder",
-                            )}
-                          >
-                            Customer name
-                          </label>
-                          <input
-                            className='input emptySmall'
-                            value={customerName}
-                            onChange={(e) => {
-                              resetCreatedBooking();
-                              setCustomerName(e.target.value);
-                            }}
-                            placeholder='Required for guest'
-                          />
-                        </div>
-                      </Grid2>
-
-                      <div style={{ display: "grid", gap: 8 }}>
-                        <label
-                          className={cx(
-                            "cardTitle h5",
-                            tripErrors.guestPhone && "redBorder",
+                          {/* Account info badge */}
+                          {selectedCorporateAccount && (
+                            <div
+                              style={{
+                                border: "1px solid rgba(0,0,0,0.12)",
+                                borderRadius: 10,
+                                padding: 12,
+                                background: "white",
+                                display: "flex",
+                                gap: 8,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              {selectedCorporateAccount.discountPercent ? (
+                                <span className='badge badge_good'>
+                                  {selectedCorporateAccount.discountPercent}%
+                                  discount
+                                </span>
+                              ) : null}
+                              <span className='badge'>
+                                {selectedCorporateAccount.billingCycle
+                                  .replaceAll("_", " ")
+                                  .toLowerCase()
+                                  .replace(/\b\w/g, (c: string) =>
+                                    c.toUpperCase(),
+                                  )}
+                              </span>
+                              <span className='badge'>
+                                {selectedCorporateAccount.paymentTerms
+                                  .replaceAll("_", " ")
+                                  .toLowerCase()
+                                  .replace(/\b\w/g, (c: string) =>
+                                    c.toUpperCase(),
+                                  )}
+                              </span>
+                              <span className='badge'>
+                                {corporatePassengers.length} employee
+                                {corporatePassengers.length !== 1 ? "s" : ""}
+                              </span>
+                            </div>
                           )}
-                        >
-                          Customer phone
-                        </label>
-                        <input
-                          className='input emptySmall'
-                          value={customerPhone}
-                          onChange={(e) => {
-                            resetCreatedBooking();
-                            setCustomerPhone(e.target.value);
-                          }}
-                          placeholder='(602) 555-1234'
-                          inputMode='tel'
-                        />
-                      </div>
+
+                          {/* Passenger Picker */}
+                          {selectedCorporateAccount && (
+                            <div style={{ display: "grid", gap: 8 }}>
+                              <label
+                                className={cx(
+                                  "cardTitle h5",
+                                  tripErrors.corporatePassenger && "redBorder",
+                                )}
+                              >
+                                Passenger
+                              </label>
+
+                              {!newPassengerMode ? (
+                                <>
+                                  <select
+                                    value={corporatePassengerId}
+                                    onChange={(e) => {
+                                      resetCreatedBooking();
+                                      setCorporatePassengerId(e.target.value);
+                                    }}
+                                    className='input emptySmall'
+                                  >
+                                    <option value=''>
+                                      Select a passenger...
+                                    </option>
+                                    {corporatePassengers.map((p) => (
+                                      <option key={p.id} value={p.id}>
+                                        {p.name}
+                                        {p.department
+                                          ? ` — ${p.department}`
+                                          : ""}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    type='button'
+                                    className='secondaryBtn'
+                                    style={{ justifySelf: "start" }}
+                                    onClick={() => {
+                                      resetCreatedBooking();
+                                      setNewPassengerMode(true);
+                                      setCorporatePassengerId("");
+                                    }}
+                                  >
+                                    + New passenger (one-time)
+                                  </button>
+                                </>
+                              ) : (
+                                <div style={{ display: "grid", gap: 10 }}>
+                                  <div className='miniNote'>
+                                    This passenger will be added to the roster
+                                    automatically.
+                                  </div>
+                                  <Grid2>
+                                    <div style={{ display: "grid", gap: 8 }}>
+                                      <label className='cardTitle h5'>
+                                        Name *
+                                      </label>
+                                      <input
+                                        className='input emptySmall'
+                                        value={newPassengerName}
+                                        onChange={(e) => {
+                                          resetCreatedBooking();
+                                          setNewPassengerName(e.target.value);
+                                        }}
+                                        placeholder='Passenger name'
+                                      />
+                                    </div>
+                                    <div style={{ display: "grid", gap: 8 }}>
+                                      <label className='cardTitle h5'>
+                                        Email
+                                      </label>
+                                      <input
+                                        className='input emptySmall'
+                                        value={newPassengerEmail}
+                                        onChange={(e) => {
+                                          resetCreatedBooking();
+                                          setNewPassengerEmail(e.target.value);
+                                        }}
+                                        placeholder='Optional'
+                                        inputMode='email'
+                                      />
+                                    </div>
+                                  </Grid2>
+                                  <div style={{ display: "grid", gap: 8 }}>
+                                    <label className='cardTitle h5'>
+                                      Phone
+                                    </label>
+                                    <input
+                                      className='input emptySmall'
+                                      value={newPassengerPhone}
+                                      onChange={(e) => {
+                                        resetCreatedBooking();
+                                        setNewPassengerPhone(e.target.value);
+                                      }}
+                                      placeholder='Optional'
+                                      inputMode='tel'
+                                    />
+                                  </div>
+                                  <button
+                                    type='button'
+                                    className='secondaryBtn'
+                                    style={{ justifySelf: "start" }}
+                                    onClick={() => {
+                                      resetCreatedBooking();
+                                      setNewPassengerMode(false);
+                                      setNewPassengerName("");
+                                      setNewPassengerEmail("");
+                                      setNewPassengerPhone("");
+                                    }}
+                                  >
+                                    ← Pick from roster instead
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Cost Center & Project Code */}
+                          {selectedCorporateAccount && (
+                            <Grid2>
+                              <div style={{ display: "grid", gap: 8 }}>
+                                <label className='cardTitle h5'>
+                                  Cost center{" "}
+                                  <span
+                                    style={{ fontWeight: 400, opacity: 0.5 }}
+                                  >
+                                    (optional)
+                                  </span>
+                                </label>
+                                <input
+                                  className='input emptySmall'
+                                  value={costCenter}
+                                  onChange={(e) => {
+                                    resetCreatedBooking();
+                                    setCostCenter(e.target.value);
+                                  }}
+                                  placeholder='e.g., MKTG-001'
+                                />
+                              </div>
+                              <div style={{ display: "grid", gap: 8 }}>
+                                <label className='cardTitle h5'>
+                                  Project code{" "}
+                                  <span
+                                    style={{ fontWeight: 400, opacity: 0.5 }}
+                                  >
+                                    (optional)
+                                  </span>
+                                </label>
+                                <input
+                                  className='input emptySmall'
+                                  value={projectCode}
+                                  onChange={(e) => {
+                                    resetCreatedBooking();
+                                    setProjectCode(e.target.value);
+                                  }}
+                                  placeholder='e.g., Q1-LAUNCH'
+                                />
+                              </div>
+                            </Grid2>
+                          )}
+                        </div>
+                      ) : (
+                        <>
+                          <Grid2>
+                            <div style={{ display: "grid", gap: 8 }}>
+                              <label
+                                className={cx(
+                                  "cardTitle h5",
+                                  tripErrors.guestEmail && "redBorder",
+                                )}
+                              >
+                                Customer email
+                              </label>
+                              <input
+                                className='input emptySmall'
+                                value={customerEmail}
+                                onChange={(e) => {
+                                  resetCreatedBooking();
+                                  setCustomerEmail(e.target.value);
+                                }}
+                                placeholder='customer@email.com'
+                                inputMode='email'
+                              />
+                            </div>
+
+                            <div style={{ display: "grid", gap: 8 }}>
+                              <label
+                                className={cx(
+                                  "cardTitle h5",
+                                  tripErrors.guestName && "redBorder",
+                                )}
+                              >
+                                Customer name
+                              </label>
+                              <input
+                                className='input emptySmall'
+                                value={customerName}
+                                onChange={(e) => {
+                                  resetCreatedBooking();
+                                  setCustomerName(e.target.value);
+                                }}
+                                placeholder='Required for guest'
+                              />
+                            </div>
+                          </Grid2>
+
+                          <div style={{ display: "grid", gap: 10 }}>
+                            <label
+                              className={cx(
+                                "cardTitle h5",
+                                tripErrors.guestPhone && "redBorder",
+                              )}
+                            >
+                              Customer phone
+                            </label>
+                            <input
+                              className='input emptySmall'
+                              value={customerPhone}
+                              onChange={(e) => {
+                                resetCreatedBooking();
+                                setCustomerPhone(e.target.value);
+                              }}
+                              placeholder='(602) 555-1234'
+                              inputMode='tel'
+                            />
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -2022,7 +2423,7 @@ export default function AdminNewBookingWizard({
               <div
                 id='wizard-field-vehicle'
                 className={`${styles.sectionBox} ${styles.stepPane}`}
-                style={{ display: "grid", gap: 14 }}
+                style={{ display: "grid", gap: 20 }}
               >
                 <h2 className='underline'>Choose a vehicle</h2>
                 <p className='subheading'>
@@ -2322,7 +2723,7 @@ export default function AdminNewBookingWizard({
                       }
                     />
 
-                    <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+                    <div style={{ marginTop: 20, display: "grid", gap: 20 }}>
                       <label className='cardTitle h5'>Initial status</label>
                       <select
                         className='input emptySmall'
@@ -2440,10 +2841,57 @@ export default function AdminNewBookingWizard({
                               : "—"
                           }
                         />
-                        {/* ✅ Show phone for account users */}
                         <SummaryRow
                           label='Phone'
                           value={selectedUser?.phone || "No phone on file"}
+                        />
+                      </>
+                    ) : customerKind === "corporate" ? (
+                      <>
+                        <SummaryRow
+                          label='Corporate account'
+                          value={selectedCorporateAccount?.name ?? "—"}
+                          strong
+                        />
+                        <SummaryRow
+                          label='Passenger'
+                          value={
+                            newPassengerMode
+                              ? `${newPassengerName.trim()} (new)`
+                              : (corporatePassengers.find(
+                                  (p) => p.id === corporatePassengerId,
+                                )?.name ?? "—")
+                          }
+                        />
+                        {selectedCorporateAccount?.discountPercent ? (
+                          <SummaryRow
+                            label='Corporate discount'
+                            value={`${selectedCorporateAccount.discountPercent}%`}
+                          />
+                        ) : null}
+                        {costCenter.trim() ? (
+                          <SummaryRow
+                            label='Cost center'
+                            value={costCenter.trim()}
+                          />
+                        ) : null}
+                        {projectCode.trim() ? (
+                          <SummaryRow
+                            label='Project code'
+                            value={projectCode.trim()}
+                          />
+                        ) : null}
+                        <SummaryRow
+                          label='Billing'
+                          value={`${selectedCorporateAccount?.billingCycle
+                            .replaceAll("_", " ")
+                            .toLowerCase()
+                            .replace(/\b\w/g, (c: string) =>
+                              c.toUpperCase(),
+                            )} · ${selectedCorporateAccount?.paymentTerms
+                            .replaceAll("_", " ")
+                            .toLowerCase()
+                            .replace(/\b\w/g, (c: string) => c.toUpperCase())}`}
                         />
                       </>
                     ) : (
@@ -2685,10 +3133,67 @@ export default function AdminNewBookingWizard({
               >
                 <h2 className='underline'>Payment</h2>
                 <p className='subheading'>
-                  Send a payment link or take a card payment.
+                  {isCorporateBooking
+                    ? "This booking will be billed to the corporate account."
+                    : "Send a payment link or take a card payment."}
                 </p>
 
-                {!bookingId ? (
+                {isCorporateBooking && bookingId ? (
+                  <div className='box'>
+                    <div
+                      style={{
+                        display: "grid",
+                        gap: 12,
+                        textAlign: "center",
+                        padding: "20px 0",
+                      }}
+                    >
+                      <div style={{ fontSize: 32 }}>🏢</div>
+                      <div className='emptyTitle'>
+                        Billed to{" "}
+                        {selectedCorporateAccount?.name ?? "corporate account"}
+                      </div>
+                      <div className='miniNote'>
+                        This ride will appear on the next{" "}
+                        <strong>
+                          {(selectedCorporateAccount?.billingCycle ?? "MONTHLY")
+                            .replaceAll("_", " ")
+                            .toLowerCase()}
+                        </strong>{" "}
+                        invoice. No payment collection needed.
+                      </div>
+                      {selectedCorporateAccount?.discountPercent ? (
+                        <div className='miniNote'>
+                          Corporate discount of{" "}
+                          <strong>
+                            {selectedCorporateAccount.discountPercent}%
+                          </strong>{" "}
+                          has been applied.
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                        marginTop: 10,
+                      }}
+                    >
+                      <button
+                        type='button'
+                        className='secondaryBtn'
+                        onClick={() =>
+                          router.push(`/admin/bookings/${bookingId}`)
+                        }
+                      >
+                        Open booking
+                      </button>
+                    </div>
+                  </div>
+                ) : !bookingId ? (
                   <div
                     className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
