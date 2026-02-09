@@ -41,7 +41,7 @@
 
 .filters {
   display: grid;
-  gap: 1.2rem;
+  gap: 2rem;
 }
 
 .filterGroup {

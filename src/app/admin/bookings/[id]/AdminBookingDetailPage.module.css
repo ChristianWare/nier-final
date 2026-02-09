@@ -406,7 +406,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding-top: 1rem;
+  /* padding-top: 1rem; */
 }
 
 .editTripForm {
@@ -497,6 +497,7 @@
   height: 1px;
   background: var(--stroke);
   margin: 1rem 0;
+  width: 100%;
 }
 
 .routeMapSection {

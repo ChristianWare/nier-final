@@ -70,6 +70,7 @@ export default function PriceForm({
   feesCents,
   taxesCents,
   totalCents,
+  extraAction,
 }: {
   bookingId: string;
   currency: string;
@@ -77,6 +78,7 @@ export default function PriceForm({
   feesCents: number;
   taxesCents: number;
   totalCents: number;
+  extraAction?: React.ReactNode;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -187,15 +189,24 @@ export default function PriceForm({
           highlight
         />
       </Grid2>
-
+      <div className='sectionDivider' />
       <div className={styles.btnContainer}>
-        <Button
-          disabled={isPending}
-          type='submit'
-          text={isPending ? "Saving..." : "Update Price"}
-          btnType='blackReg'
-          
-        />
+        <div
+          style={{
+            display: "flex",
+            gap: "1rem",
+            alignItems: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          {extraAction}
+          <Button
+            disabled={isPending}
+            type='submit'
+            text={isPending ? "Saving..." : "Update Price"}
+            btnType='blackReg'
+          />
+        </div>
       </div>
     </form>
   );

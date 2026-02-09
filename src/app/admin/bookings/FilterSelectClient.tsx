@@ -64,7 +64,8 @@ export default function FilterSelectClient({
     <div className={styles.filterGroup}>
       <div className={styles.filterTitle}>{label}</div>
       <select
-        className={styles.filterSelect}
+        // className={styles.filterSelect}
+        className='selectBorder'
         value={activeValue}
         onChange={onChange}
       >

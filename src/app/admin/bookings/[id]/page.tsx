@@ -1191,20 +1191,13 @@ export default async function AdminBookingDetailPage({
             feesCents={booking.feesCents}
             taxesCents={booking.taxesCents}
             totalCents={booking.totalCents}
+            extraAction={
+              <ApprovePriceClient
+                bookingId={booking.id}
+                isApproved={booking.priceApproved}
+              />
+            }
           />
-          {/* ✅ Approve Price button */}
-          <div
-            style={{
-              marginTop: 16,
-              paddingTop: 16,
-              borderTop: "1px solid var(--stroke)",
-            }}
-          >
-            <ApprovePriceClient
-              bookingId={booking.id}
-              isApproved={booking.priceApproved}
-            />
-          </div>
         </Card>
 
         {/* ═══════════════════════════════════════════════════════════════════
