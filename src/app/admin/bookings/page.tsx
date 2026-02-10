@@ -1,4 +1,3 @@
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./BookingsPage.module.css";
 import Link from "next/link";
@@ -960,6 +959,8 @@ export default async function AdminBookingsPage({
 
                   if (actor?.roles?.includes(Role.ADMIN)) {
                     createdByTop = "Admin";
+                  } else if (isCorporate) {
+                    createdByTop = "Corp Admin";
                   } else if (actor) {
                     createdByTop = "User account";
                   } else if (b.user) {
@@ -1077,7 +1078,12 @@ export default async function AdminBookingsPage({
                           <Link href={href} className={styles.rowLink}>
                             {customerName}
                           </Link>
-                          <div className={styles.cellSub}>{customerEmail}</div>
+                          <div className={styles.cellSub}>
+                            {isCorporate
+                              ? ((b as any).corporateAccount?.name ??
+                                customerEmail)
+                              : customerEmail}
+                          </div>
                         </div>
                       </td>
                       {/* Service */}

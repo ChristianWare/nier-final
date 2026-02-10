@@ -33,6 +33,12 @@ export type RecentBookingRequestItem = {
         name: string;
         email: string | null;
         verified: boolean;
+      }
+    | {
+        kind: "corporate";
+        name: string;
+        email: string | null;
+        accountName: string;
       };
 };
 
@@ -43,7 +49,7 @@ type Props = {
 };
 
 type Bucket = "review" | "payment" | "all";
-type CustomerFilter = "all" | "guests" | "accounts";
+type CustomerFilter = "all" | "guests" | "accounts" | "corporate";
 
 function shortAddress(address: string) {
   if (!address) return "";
@@ -101,10 +107,13 @@ export default function AdminRecentBookingRequests({
   const counts = useMemo(() => {
     const total = items.length;
     const guests = items.filter((x) => x.customer.kind === "guest").length;
-    const accounts = total - guests;
+    const corporate = items.filter(
+      (x) => x.customer.kind === "corporate",
+    ).length;
+    const accounts = total - guests - corporate;
     const review = items.filter((x) => x.status === "PENDING_REVIEW").length;
     const pay = items.filter((x) => x.status === "PENDING_PAYMENT").length;
-    return { total, guests, accounts, review, pay };
+    return { total, guests, accounts, corporate, review, pay };
   }, [items]);
 
   const filtered = useMemo(() => {
@@ -119,6 +128,8 @@ export default function AdminRecentBookingRequests({
       list = list.filter((x) => x.customer.kind === "guest");
     if (customerFilter === "accounts")
       list = list.filter((x) => x.customer.kind === "account");
+    if (customerFilter === "corporate")
+      list = list.filter((x) => x.customer.kind === "corporate");
 
     list.sort((a, b) => {
       const aw =
@@ -157,6 +168,7 @@ export default function AdminRecentBookingRequests({
             <span className={styles.kpi}>Total: {counts.total}</span>
             <span className={styles.kpi}>Guests: {counts.guests}</span>
             <span className={styles.kpi}>Accounts: {counts.accounts}</span>
+            <span className={styles.kpi}>Corporate: {counts.corporate}</span>
             <span className={styles.kpi}>Needs review: {counts.review}</span>
             <span className={styles.kpi}>Awaiting payment: {counts.pay}</span>
           </div>
@@ -217,6 +229,13 @@ export default function AdminRecentBookingRequests({
             >
               Accounts
             </button>
+            <button
+              type='button'
+              className={`tab ${customerFilter === "corporate" ? "tabActive" : ""}`}
+              onClick={() => setCustomerFilter("corporate")}
+            >
+              Corporate
+            </button>
           </div>
         </div>
       </header>
@@ -253,7 +272,16 @@ export default function AdminRecentBookingRequests({
                     ? `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}${
                         b.customer.phone ? ` • ${b.customer.phone}` : ""
                       }`
-                    : `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}`;
+                    : b.customer.kind === "corporate"
+                      ? `${b.customer.name} • ${b.customer.accountName}`
+                      : `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}`;
+
+                const customerKindLabel =
+                  b.customer.kind === "guest"
+                    ? "Guest"
+                    : b.customer.kind === "corporate"
+                      ? "Corporate"
+                      : "Account";
 
                 const primaryCta =
                   b.status === "PENDING_REVIEW"
@@ -329,7 +357,7 @@ export default function AdminRecentBookingRequests({
                         className={`${styles.cellStack} ${styles.cellInner}`}
                       >
                         <Link href={href} className={styles.rowLink}>
-                          {b.customer.kind === "guest" ? "Guest" : "Account"}
+                          {customerKindLabel}
                         </Link>
                         <div className={styles.cellSub}>{customerLine}</div>
                       </div>

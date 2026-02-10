@@ -292,6 +292,8 @@ export default async function AdminHome() {
   const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
   const verifiedCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const corporate48hCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
 
   // Month boundaries (used for calendar and finance)
   const baseMonth = new Date(
@@ -589,10 +591,17 @@ export default async function AdminHome() {
       distinct: ["id"],
     }),
 
-    // Recent booking requests - only PENDING_REVIEW
+    // Recent booking requests - PENDING_REVIEW + recent corporate bookings
     db.booking.findMany({
       where: {
-        status: "PENDING_REVIEW",
+        OR: [
+          { status: "PENDING_REVIEW" },
+          {
+            corporateAccountId: { not: null },
+            status: "CONFIRMED",
+            createdAt: { gte: corporate48hCutoff },
+          },
+        ],
       },
       orderBy: [{ createdAt: "desc" }],
       take: 25,
@@ -605,12 +614,15 @@ export default async function AdminHome() {
         dropoffAddress: true,
         specialRequests: true,
         userId: true,
+        corporateAccountId: true,
         user: { select: { name: true, email: true, emailVerified: true } },
         guestName: true,
         guestEmail: true,
         guestPhone: true,
         serviceType: { select: { name: true, airportLeg: true } },
         vehicle: { select: { name: true } },
+        corporateAccount: { select: { name: true } },
+        corporatePassenger: { select: { name: true, email: true } },
       },
     }),
 
@@ -1210,7 +1222,34 @@ export default async function AdminHome() {
 
   const recentBookingRequests: RecentBookingRequestItem[] =
     recentBookingRequestsRaw.map((b: any) => {
+      const isCorporate = Boolean(b.corporateAccountId);
       const isAccount = Boolean(b.userId);
+
+      let customer: RecentBookingRequestItem["customer"];
+
+      if (isCorporate) {
+        customer = {
+          kind: "corporate",
+          name:
+            (b.corporatePassenger?.name ?? "").trim() || "Corporate passenger",
+          email: b.corporatePassenger?.email ?? null,
+          accountName: b.corporateAccount?.name ?? "Corporate",
+        };
+      } else if (isAccount) {
+        customer = {
+          kind: "account",
+          name: (b.user?.name ?? "").trim() || b.user?.email || "Account",
+          email: b.user?.email ?? null,
+          verified: Boolean(b.user?.emailVerified),
+        };
+      } else {
+        customer = {
+          kind: "guest",
+          name: (b.guestName ?? "").trim() || "Guest",
+          email: b.guestEmail ?? null,
+          phone: b.guestPhone ?? null,
+        };
+      }
 
       return {
         id: b.id,
@@ -1223,19 +1262,7 @@ export default async function AdminHome() {
         vehicleName: b.vehicle?.name ?? null,
         airportLeg: (b.serviceType?.airportLeg ?? "NONE") as any,
         specialRequests: b.specialRequests ?? null,
-        customer: isAccount
-          ? {
-              kind: "account",
-              name: (b.user?.name ?? "").trim() || b.user?.email || "Account",
-              email: b.user?.email ?? null,
-              verified: Boolean(b.user?.emailVerified),
-            }
-          : {
-              kind: "guest",
-              name: (b.guestName ?? "").trim() || "Guest",
-              email: b.guestEmail ?? null,
-              phone: b.guestPhone ?? null,
-            },
+        customer,
       };
     });
 
