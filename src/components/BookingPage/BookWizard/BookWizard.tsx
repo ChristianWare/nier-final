@@ -12,6 +12,10 @@ import RoutePicker, {
   RoutePickerValue,
 } from "@/components/BookingPage/RoutePicker/RoutePicker";
 import { createBookingRequest } from "../../../../actions/bookings/createBookingRequest";
+import {
+  createTripGroupBooking,
+  type CreateTripGroupInput,
+} from "../../../../actions/bookings/createTripGroupBooking";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Grid2 from "../Grid2/Grid2";
 import BookingWizardChecklist from "../BookingWizardChecklist/BookingWizardChecklist";
@@ -104,6 +108,48 @@ type FormValues = {
   guestPhone: string;
   contactPhone: string;
   eventType: string;
+};
+
+/** A completed leg stored in state before group submission */
+type SavedLeg = {
+  id: string;
+  serviceTypeId: string;
+  serviceName: string;
+  vehicleId: string;
+  vehicleName: string;
+  pickupAt: string;
+  pickupAtDate: string;
+  pickupAtTime: string;
+  passengers: number;
+  luggage: number;
+  pickupAddress: string;
+  pickupPlaceId: string | null;
+  pickupLat: number | null;
+  pickupLng: number | null;
+  dropoffAddress: string;
+  dropoffPlaceId: string | null;
+  dropoffLat: number | null;
+  dropoffLng: number | null;
+  stops: StopInput[];
+  distanceMiles: number | null;
+  durationMinutes: number | null;
+  hoursRequested: number | null;
+  specialRequests: string | null;
+  flightAirline: string | null;
+  flightNumber: string | null;
+  flightScheduledAt: string | null;
+  flightTerminal: string | null;
+  flightGate: string | null;
+  eventType: string | null;
+  estimateCents: number;
+  contactPhone: string | null;
+};
+
+type StopInput = {
+  address: string;
+  placeId?: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 function centsToUsd(cents: number) {
@@ -214,6 +260,7 @@ export default function BookingWizard({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [savedLegs, setSavedLegs] = useState<SavedLeg[]>([]);
 
   const services = useMemo<ServiceTypeDTO[]>(
     () => serviceTypes ?? [],
@@ -463,6 +510,11 @@ export default function BookingWizard({
     route?.stops?.length,
   ]);
 
+  // ─── Multi-leg helpers ───
+  const isMultiLeg = savedLegs.length > 0;
+  const savedLegsTotal = savedLegs.reduce((sum, l) => sum + l.estimateCents, 0);
+  const groupEstimateTotal = savedLegsTotal + estimateCents;
+
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
 
@@ -606,6 +658,131 @@ export default function BookingWizard({
     setStep(3);
   }
 
+  /** Save current leg to the savedLegs array and reset wizard to step 1 */
+  async function addAnotherRide() {
+    const fields: (keyof FormValues)[] = [
+      "serviceTypeId",
+      "pickupAtDate",
+      "pickupAtTime",
+      "passengers",
+      "luggage",
+      "route",
+      "vehicleId",
+    ];
+    if (usesPickupAirport) fields.push("pickupAirportId");
+    if (usesDropoffAirport) fields.push("dropoffAirportId");
+    if (selectedService?.pricingStrategy === "HOURLY")
+      fields.push("hoursRequested");
+
+    const ok = await trigger(fields, { shouldFocus: false });
+    if (!ok) {
+      toast.error(firstErrorMessage());
+      return;
+    }
+
+    const v = getValues();
+    if (!selectedService || !v.route?.pickup || !v.route?.dropoff) {
+      toast.error("Please complete pickup and dropoff.");
+      return;
+    }
+
+    if (selectedService.pricingStrategy === "POINT_TO_POINT") {
+      const miles = routeMiles(v.route);
+      if (!miles || miles <= 0) {
+        toast.error("Route estimate missing. Please re-check the route.");
+        return;
+      }
+    }
+
+    const pickupAtIso = new Date(
+      `${v.pickupAtDate}T${v.pickupAtTime}:00`,
+    ).toISOString();
+
+    let flightScheduledAtIso: string | null = null;
+    if (v.flightScheduledAtDate && v.flightScheduledAtTime) {
+      flightScheduledAtIso = new Date(
+        `${v.flightScheduledAtDate}T${v.flightScheduledAtTime}:00`,
+      ).toISOString();
+    } else if (v.flightScheduledAtDate) {
+      flightScheduledAtIso = new Date(
+        `${v.flightScheduledAtDate}T00:00:00`,
+      ).toISOString();
+    }
+
+    const newLeg: SavedLeg = {
+      id: `leg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      serviceTypeId: selectedService.id,
+      serviceName: selectedService.name,
+      vehicleId: v.vehicleId,
+      vehicleName: selectedVehicle?.name ?? "Standard",
+      pickupAt: pickupAtIso,
+      pickupAtDate: v.pickupAtDate,
+      pickupAtTime: v.pickupAtTime,
+      passengers: v.passengers,
+      luggage: v.luggage,
+      pickupAddress: v.route.pickup.address,
+      pickupPlaceId: v.route.pickup.placeId ?? null,
+      pickupLat: v.route.pickup.location?.lat ?? null,
+      pickupLng: v.route.pickup.location?.lng ?? null,
+      dropoffAddress: v.route.dropoff.address,
+      dropoffPlaceId: v.route.dropoff.placeId ?? null,
+      dropoffLat: v.route.dropoff.location?.lat ?? null,
+      dropoffLng: v.route.dropoff.location?.lng ?? null,
+      stops: (v.route.stops ?? []).map((s) => ({
+        address: s.address,
+        placeId: s.placeId ?? null,
+        lat: s.location?.lat ?? null,
+        lng: s.location?.lng ?? null,
+      })),
+      distanceMiles: toNumber(v.route.miles ?? v.route.distanceMiles ?? null),
+      durationMinutes: toNumber(
+        v.route.minutes ?? v.route.durationMinutes ?? null,
+      ),
+      hoursRequested:
+        selectedService.pricingStrategy === "HOURLY" ? v.hoursRequested : null,
+      specialRequests: v.specialRequests || null,
+      flightAirline: v.flightAirline || null,
+      flightNumber: v.flightNumber || null,
+      flightScheduledAt: flightScheduledAtIso,
+      flightTerminal: v.flightTerminal || null,
+      flightGate: v.flightGate || null,
+      eventType: v.eventType || null,
+      estimateCents: estimateCents,
+      contactPhone: isAuthed ? v.contactPhone?.trim() || null : null,
+    };
+
+    setSavedLegs((prev) => [...prev, newLeg]);
+
+    // Reset wizard fields for the next leg (keep contact info)
+    setValue("serviceTypeId", "", { shouldDirty: false });
+    setValue("pickupAtDate", "", { shouldDirty: false });
+    setValue("pickupAtTime", "", { shouldDirty: false });
+    setValue("passengers", 0, { shouldDirty: false });
+    setValue("luggage", 0, { shouldDirty: false });
+    setValue("pickupAirportId", "", { shouldDirty: false });
+    setValue("dropoffAirportId", "", { shouldDirty: false });
+    setValue("hoursRequested", 2, { shouldDirty: false });
+    setValue("route", null, { shouldDirty: false });
+    setValue("vehicleId", "", { shouldDirty: false });
+    setValue("specialRequests", "", { shouldDirty: false });
+    setValue("flightAirline", "", { shouldDirty: false });
+    setValue("flightNumber", "", { shouldDirty: false });
+    setValue("flightScheduledAtDate", "", { shouldDirty: false });
+    setValue("flightScheduledAtTime", "", { shouldDirty: false });
+    setValue("flightTerminal", "", { shouldDirty: false });
+    setValue("flightGate", "", { shouldDirty: false });
+    setValue("eventType", "", { shouldDirty: false });
+    clearErrors();
+
+    toast.success(`Ride ${savedLegs.length + 1} added to your trip!`);
+    setStep(1);
+  }
+
+  function removeSavedLeg(legId: string) {
+    setSavedLegs((prev) => prev.filter((l) => l.id !== legId));
+    toast.success("Ride removed from trip.");
+  }
+
   async function handleSubmit() {
     if (submitting || submitted) return;
     if (
@@ -671,6 +848,118 @@ export default function BookingWizard({
     try {
       const pickup = v.route.pickup;
       const dropoff = v.route.dropoff;
+
+      // ─── Multi-leg: submit as trip group ───
+      if (savedLegs.length > 0) {
+        let flightScheduledAtIsoGroup: string | null = null;
+        if (v.flightScheduledAtDate && v.flightScheduledAtTime) {
+          flightScheduledAtIsoGroup = new Date(
+            `${v.flightScheduledAtDate}T${v.flightScheduledAtTime}:00`,
+          ).toISOString();
+        } else if (v.flightScheduledAtDate) {
+          flightScheduledAtIsoGroup = new Date(
+            `${v.flightScheduledAtDate}T00:00:00`,
+          ).toISOString();
+        }
+
+        const currentLeg = {
+          serviceTypeId: selectedService!.id,
+          vehicleId: v.vehicleId,
+          pickupAt: pickupAtIso,
+          passengers: v.passengers,
+          luggage: v.luggage,
+          pickupAddress: pickup.address,
+          pickupPlaceId: pickup.placeId ?? null,
+          pickupLat: pickup.location?.lat ?? null,
+          pickupLng: pickup.location?.lng ?? null,
+          dropoffAddress: dropoff.address,
+          dropoffPlaceId: dropoff.placeId ?? null,
+          dropoffLat: dropoff.location?.lat ?? null,
+          dropoffLng: dropoff.location?.lng ?? null,
+          stops: (v.route?.stops ?? []).map((s) => ({
+            address: s.address,
+            placeId: s.placeId ?? null,
+            lat: s.location?.lat ?? null,
+            lng: s.location?.lng ?? null,
+          })),
+          distanceMiles: toNumber(
+            v.route!.miles ?? v.route!.distanceMiles ?? null,
+          ),
+          durationMinutes: toNumber(
+            v.route!.minutes ?? v.route!.durationMinutes ?? null,
+          ),
+          hoursRequested:
+            selectedService!.pricingStrategy === "HOURLY"
+              ? v.hoursRequested
+              : null,
+          specialRequests: v.specialRequests || null,
+          flightAirline: v.flightAirline || null,
+          flightNumber: v.flightNumber || null,
+          flightScheduledAt: flightScheduledAtIsoGroup,
+          flightTerminal: v.flightTerminal || null,
+          flightGate: v.flightGate || null,
+          eventType: v.eventType || null,
+        };
+
+        const allLegs = [
+          ...savedLegs.map((sl) => ({
+            serviceTypeId: sl.serviceTypeId,
+            vehicleId: sl.vehicleId,
+            pickupAt: sl.pickupAt,
+            passengers: sl.passengers,
+            luggage: sl.luggage,
+            pickupAddress: sl.pickupAddress,
+            pickupPlaceId: sl.pickupPlaceId,
+            pickupLat: sl.pickupLat,
+            pickupLng: sl.pickupLng,
+            dropoffAddress: sl.dropoffAddress,
+            dropoffPlaceId: sl.dropoffPlaceId,
+            dropoffLat: sl.dropoffLat,
+            dropoffLng: sl.dropoffLng,
+            stops: sl.stops,
+            distanceMiles: sl.distanceMiles,
+            durationMinutes: sl.durationMinutes,
+            hoursRequested: sl.hoursRequested,
+            specialRequests: sl.specialRequests,
+            flightAirline: sl.flightAirline,
+            flightNumber: sl.flightNumber,
+            flightScheduledAt: sl.flightScheduledAt,
+            flightTerminal: sl.flightTerminal,
+            flightGate: sl.flightGate,
+            eventType: sl.eventType,
+          })),
+          currentLeg,
+        ];
+
+        const groupInput: CreateTripGroupInput = {
+          legs: allLegs,
+          guestName: isAuthed ? null : v.guestName.trim(),
+          guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
+          guestPhone: isAuthed ? null : v.guestPhone.trim(),
+          contactPhone: isAuthed ? v.contactPhone?.trim() : null,
+        };
+
+        const groupRes = await createTripGroupBooking(groupInput);
+        const groupData = groupRes as any;
+        if (groupData?.error) {
+          toast.error(groupData.error);
+          setSubmitting(false);
+          return;
+        }
+        setSubmitted(true);
+        toast.success(`Multi-day trip submitted! (${allLegs.length} rides)`);
+        const groupBookingId = groupData?.firstBookingId ?? null;
+        const groupClaimToken = groupData?.claimToken ?? null;
+        const groupHref = groupBookingId
+          ? groupClaimToken
+            ? `/book/success?id=${encodeURIComponent(String(groupBookingId))}&t=${encodeURIComponent(String(groupClaimToken))}`
+            : `/book/success?id=${encodeURIComponent(String(groupBookingId))}`
+          : "/book/success";
+        window.location.href = groupHref;
+        return;
+      }
+
+      // ─── Single ride: existing flow ───
       const res = await createBookingRequest({
         serviceTypeId: selectedService.id,
         vehicleId: v.vehicleId,
@@ -854,8 +1143,30 @@ export default function BookingWizard({
                 <div className={`${styles.contentBox} ${styles.stepPane}`}>
                   <h2 className='underline'>1. Trip details</h2>
                   <p className='subheading'>
-                    Please provide the details for your trip below
+                    {isMultiLeg
+                      ? `Adding ride ${savedLegs.length + 1} to your trip`
+                      : "Please provide the details for your trip below"}
                   </p>
+                  {isMultiLeg && (
+                    <div
+                      style={{
+                        background: "rgba(0,0,0,0.04)",
+                        border: "1px solid rgba(0,0,0,0.1)",
+                        borderRadius: 8,
+                        padding: "10px 14px",
+                        marginBottom: 12,
+                        fontSize: "1.4rem",
+                      }}
+                    >
+                      <strong>
+                        🗓️ {savedLegs.length} ride
+                        {savedLegs.length > 1 ? "s" : ""} added
+                      </strong>
+                      <span style={{ opacity: 0.7, marginLeft: 8 }}>
+                        (${centsToUsd(savedLegsTotal)} so far)
+                      </span>
+                    </div>
+                  )}
                   {hasNoServices ? (
                     <div
                       className='miniNote'
@@ -1875,6 +2186,121 @@ export default function BookingWizard({
                     </div>
                   </div>
 
+                  {/* ─── Saved legs summary (multi-day trip) ─── */}
+                  {savedLegs.length > 0 && (
+                    <div
+                      className='box'
+                      style={{ background: "rgba(0,0,0,0.02)" }}
+                    >
+                      <div
+                        className='cardTitle h5'
+                        style={{ marginBottom: 12 }}
+                      >
+                        🗓️ Your multi-day trip ({savedLegs.length + 1} rides)
+                      </div>
+                      {savedLegs.map((leg, idx) => (
+                        <div
+                          key={leg.id}
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            padding: "10px 0",
+                            borderBottom: "1px solid rgba(0,0,0,0.08)",
+                            gap: 12,
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div
+                              style={{ fontWeight: 600, fontSize: "1.4rem" }}
+                            >
+                              Ride {idx + 1}: {leg.serviceName}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "1.3rem",
+                                opacity: 0.7,
+                                marginTop: 2,
+                              }}
+                            >
+                              {leg.pickupAtDate} @ {leg.pickupAtTime} ·{" "}
+                              {leg.vehicleName}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "1.2rem",
+                                opacity: 0.6,
+                                marginTop: 2,
+                              }}
+                            >
+                              {shortAddress(leg.pickupAddress, 45)} →{" "}
+                              {shortAddress(leg.dropoffAddress, 45)}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <span
+                              style={{ fontWeight: 700, fontSize: "1.4rem" }}
+                            >
+                              ${centsToUsd(leg.estimateCents)}
+                            </span>
+                            <button
+                              type='button'
+                              onClick={() => removeSavedLeg(leg.id)}
+                              title='Remove this ride'
+                              style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: 16,
+                                opacity: 0.5,
+                                padding: "2px 6px",
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                      <div
+                        style={{
+                          padding: "10px 0",
+                          fontWeight: 600,
+                          fontSize: "1.4rem",
+                        }}
+                      >
+                        Ride {savedLegs.length + 1}:{" "}
+                        {selectedService?.name ?? "—"}{" "}
+                        <span style={{ fontWeight: 400, opacity: 0.7 }}>
+                          (this ride)
+                        </span>
+                        <span style={{ float: "right", fontWeight: 700 }}>
+                          ${centsToUsd(estimateCents)}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          borderTop: "2px solid rgba(0,0,0,0.12)",
+                          marginTop: 8,
+                          paddingTop: 12,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          fontWeight: 700,
+                          fontSize: "1.6rem",
+                        }}
+                      >
+                        <span>Trip total estimate</span>
+                        <span>${centsToUsd(groupEstimateTotal)}</span>
+                      </div>
+                    </div>
+                  )}
+
                   {!isAuthed ? (
                     <div
                       id='wizard-field-contact'
@@ -2003,6 +2429,26 @@ export default function BookingWizard({
                     />
                   </div>
 
+                  {/* "Add another ride" button */}
+                  <button
+                    type='button'
+                    onClick={addAnotherRide}
+                    className='secondaryBtn'
+                    disabled={submitting || submitted}
+                    style={{ width: "100%", textAlign: "center" }}
+                  >
+                    ➕ Add another ride to this trip
+                  </button>
+                  {savedLegs.length === 0 && (
+                    <div
+                      className='miniNote'
+                      style={{ textAlign: "center", marginTop: -4 }}
+                    >
+                      Need rides on multiple days? Add them all here and submit
+                      as one trip.
+                    </div>
+                  )}
+
                   <div
                     style={{
                       display: "flex",
@@ -2028,7 +2474,9 @@ export default function BookingWizard({
                         ? "Submitted"
                         : submitting
                           ? "Submitting..."
-                          : "Submit request"}
+                          : isMultiLeg
+                            ? `Submit ${savedLegs.length + 1} rides`
+                            : "Submit request"}
                     </button>
                   </div>
                 </div>

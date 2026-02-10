@@ -1,0 +1,231 @@
+/* components/admin/TripGroupCard/TripGroupCard.module.css */
+
+.card {
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  gap: 12px;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.label {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  font-style: italic;
+}
+
+/* ─── Legs list ─── */
+
+.legs {
+  display: grid;
+  gap: 0;
+}
+
+.leg {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  transition: background 0.15s;
+}
+
+.leg:last-child {
+  border-bottom: none;
+}
+
+.leg:hover {
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.legCurrent {
+  background: rgba(0, 0, 0, 0.04);
+  border-left: 3px solid var(--black);
+}
+
+.legNumber {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--black);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.legContent {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.legTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.legService {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.legDate {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  white-space: nowrap;
+}
+
+.legRoute {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.priceApproved {
+  font-size: 1.2rem;
+  color: #065f46;
+  font-weight: 600;
+}
+
+.pricePending {
+  font-size: 1.2rem;
+  color: #92400e;
+  font-weight: 600;
+}
+
+.driver {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+}
+
+.legAction {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.currentBadge {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--paragraph);
+}
+
+.viewLink {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--black);
+  text-decoration: none;
+  padding: 3px 10px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.viewLink:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ─── Footer ─── */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: rgba(0, 0, 0, 0.03);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  gap: 12px;
+}
+
+.footerLeft {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.footerLabel {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  font-weight: 600;
+}
+
+.footerAmount {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.footerRight {
+  display: flex;
+  align-items: center;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 640px) {
+  .leg {
+    padding: 12px 14px;
+  }
+
+  .legTop {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .legRoute {
+    white-space: normal;
+  }
+}
