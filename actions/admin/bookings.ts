@@ -11,6 +11,7 @@ import { revalidatePath } from "next/cache";
 import { BookingStatus } from "@prisma/client";
 import { sendBookingDeclinedEmail } from "@/lib/email/sendBookingDeclinedEmail";
 import { sendDriverAssignedEmail } from "@/lib/email/sendDriverAssignedEmail";
+import { generateCorporateInvoiceForBooking } from "../../src/lib/corporate/generateCorporateInvoice";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -951,6 +952,17 @@ export async function updateBookingStatus(formData: FormData) {
       event: "TRIP_COMPLETED",
       bookingId,
     });
+
+    // ─── Auto-generate corporate invoice for PER_RIDE accounts ───
+    try {
+      await generateCorporateInvoiceForBooking(bookingId);
+    } catch (e) {
+      console.error(
+        "[updateBookingStatus] Corporate invoice generation failed:",
+        e,
+      );
+      // Non-critical — don't fail the status change
+    }
   } else if (status === "EN_ROUTE") {
     await queueAdminNotificationsForBookingEvent({
       event: "DRIVER_EN_ROUTE",

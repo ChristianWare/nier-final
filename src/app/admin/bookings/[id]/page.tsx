@@ -688,13 +688,21 @@ export default async function AdminBookingDetailPage({
     ? "good"
     : badgeTone(currentStatus);
 
-  const paymentStatusDisplay = getPaymentStatusDisplay(
-    booking.payment?.status,
-    booking.totalCents,
-    amountPaidCents,
-    amountRefundedCents,
-  );
-
+ const paymentStatusDisplay = isCorporateBooking
+   ? {
+       label: "Corporate Billing",
+       tone: "accent" as BadgeTone,
+       hasBalanceDue: false,
+       balanceDueCents: 0,
+       hasRefundDue: false,
+       refundDueCents: 0,
+     }
+   : getPaymentStatusDisplay(
+       booking.payment?.status,
+       booking.totalCents,
+       amountPaidCents,
+       amountRefundedCents,
+     );
   // Prepare data for EditTripDetailsClient
   const tripEditData = {
     pickupAt: formatDateTimeLocal(booking.pickupAt),

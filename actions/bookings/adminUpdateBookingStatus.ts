@@ -3,7 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
-import { handleCorporateBookingCompleted } from "@/lib/invoice/generateCorporateInvoice";
+import { handleCorporateBookingCompleted } from "@/lib/corporate/generateCorporateInvoice";
 
 export async function adminUpdateBookingStatus({
   bookingId,

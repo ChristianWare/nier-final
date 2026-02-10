@@ -1,3 +1,4 @@
+// lib/corporate/generateCorporateInvoice.ts
 import { db } from "@/lib/db";
 import Stripe from "stripe";
 
@@ -372,13 +373,13 @@ export async function generateCorporateInvoice(
 }
 
 /* ─────────────────────────────────────────────
-   Handle corporate booking completion
+   Generate invoice for a corporate booking
    
    Call this whenever a corporate booking
    transitions to COMPLETED status.
    ───────────────────────────────────────────── */
 
-export async function handleCorporateBookingCompleted(
+export async function generateCorporateInvoiceForBooking(
   bookingId: string,
   adminUserId?: string,
 ): Promise<InvoiceResult> {
