@@ -227,7 +227,7 @@ async function safePendingPaymentEstimate(): Promise<{
     const agg = await (db.payment as any).aggregate({
       where: {
         paidAt: null,
-        stripeCheckoutSessionId: { not: null },
+        checkoutUrl: { not: null },
         booking: { status: "PENDING_PAYMENT" },
       },
       _sum: { amountCents: true },
@@ -238,7 +238,7 @@ async function safePendingPaymentEstimate(): Promise<{
     const rows = await (db.payment as any).findMany({
       where: {
         paidAt: null,
-        stripeCheckoutSessionId: { not: null },
+        checkoutUrl: { not: null },
         booking: { status: "PENDING_PAYMENT" },
       },
     });
@@ -293,7 +293,6 @@ export default async function AdminHome() {
   const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
   const verifiedCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const corporate48hCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
-
 
   // Month boundaries (used for calendar and finance)
   const baseMonth = new Date(
@@ -802,15 +801,16 @@ export default async function AdminHome() {
     db.payment.findMany({
       where: {
         updatedAt: { gte: todayStart, lt: tomorrowStart },
-        stripeCheckoutSessionId: { not: null },
-        paidAt: null,
+        checkoutUrl: { not: null },
       },
       orderBy: [{ updatedAt: "desc" }],
       take: 20,
       select: {
         id: true,
+        paidAt: true,
         updatedAt: true,
         amountTotalCents: true,
+        amountPaidCents: true,
         tipCents: true,
         currency: true,
         booking: {
@@ -831,15 +831,16 @@ export default async function AdminHome() {
     db.payment.findMany({
       where: {
         updatedAt: { gte: weekStart, lt: tomorrowStart },
-        stripeCheckoutSessionId: { not: null },
-        paidAt: null,
+        checkoutUrl: { not: null },
       },
       orderBy: [{ updatedAt: "desc" }],
       take: 50,
       select: {
         id: true,
+        paidAt: true,
         updatedAt: true,
         amountTotalCents: true,
+        amountPaidCents: true,
         tipCents: true,
         currency: true,
         booking: {
@@ -855,7 +856,6 @@ export default async function AdminHome() {
         },
       },
     }),
-
     // Today's rides
     db.booking.findMany({
       where: {
