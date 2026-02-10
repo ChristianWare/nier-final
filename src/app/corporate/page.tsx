@@ -324,22 +324,26 @@ export default async function CorporateDashboardPage() {
       <div className={styles.tableCard}>
         <h2 className={`${styles.sectionTitle} cardTitle h4`}>Quick Actions</h2>
         <div className={styles.quickActions}>
-          <Link href='/corporate/bookings' className={styles.quickAction}>
-            <span className={styles.qaIcon}>🚗</span>
-            Book a Ride
-          </Link>
-          <Link href='/corporate/employees' className={styles.quickAction}>
-            <span className={styles.qaIcon}>👥</span>
-            Manage Employees
-          </Link>
-          <Link href='/corporate/billing' className={styles.quickAction}>
-            <span className={styles.qaIcon}>💳</span>
-            View Billing
-          </Link>
-          <Link href='/corporate/reports' className={styles.quickAction}>
-            <span className={styles.qaIcon}>📊</span>
-            View Reports
-          </Link>
+          <Button
+            href='/corporate/bookings'
+            text='Book a Ride'
+            btnType='blackReg'
+          />
+          <Button
+            href='/corporate/employees'
+            text='Manage Employees'
+            btnType='blackReg'
+          />
+          <Button
+            href='/corporate/billing'
+            text='View Billing'
+            btnType='blackReg'
+          />
+          <Button
+            href='/corporate/bookings'
+            text='View Reports'
+            btnType='blackReg'
+          />
         </div>
       </div>
 

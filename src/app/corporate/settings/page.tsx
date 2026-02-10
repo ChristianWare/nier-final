@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { unstable_noStore as noStore } from "next/cache";
 import SettingsClient from "./SettingsClient";
+import { getCardOnFile } from "../../../../actions/corporate/corporateSettingsActions";
 
 export const metadata = { title: "Settings | Corporate" };
 export const runtime = "nodejs";
@@ -49,6 +50,9 @@ export default async function CorporateSettingsPage() {
 
   const account = contact.corporateAccount;
 
+  // Fetch card on file from Stripe
+  const cardOnFile = await getCardOnFile(account.id);
+
   return (
     <SettingsClient
       account={{
@@ -79,6 +83,7 @@ export default async function CorporateSettingsPage() {
         userName: contact.user?.name ?? "",
         userEmail: contact.user?.email ?? "",
       }}
+      cardOnFile={cardOnFile}
     />
   );
 }

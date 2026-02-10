@@ -7,6 +7,7 @@ import {
   AccountStatusClient,
   AddPassengerClient,
   TogglePassengerBtn,
+  EditPaymentSettingsClient,
 } from "./AccountActionsClient";
 
 export const runtime = "nodejs";
@@ -48,29 +49,42 @@ function statusBadgeTone(status: string) {
 
 function paymentTermsLabel(terms: string) {
   switch (terms) {
-    case "NET_15": return "NET 15";
-    case "NET_30": return "NET 30";
-    case "NET_45": return "NET 45";
-    case "DUE_ON_RECEIPT": return "Due on Receipt";
-    default: return terms;
+    case "NET_15":
+      return "NET 15";
+    case "NET_30":
+      return "NET 30";
+    case "NET_45":
+      return "NET 45";
+    case "DUE_ON_RECEIPT":
+      return "Due on Receipt";
+    default:
+      return terms;
   }
 }
 
 function billingCycleLabel(cycle: string) {
   switch (cycle) {
-    case "MONTHLY": return "Monthly";
-    case "WEEKLY": return "Weekly";
-    case "PER_RIDE": return "Per Ride";
-    default: return cycle;
+    case "MONTHLY":
+      return "Monthly";
+    case "WEEKLY":
+      return "Weekly";
+    case "PER_RIDE":
+      return "Per Ride";
+    default:
+      return cycle;
   }
 }
 
 function paymentMethodLabel(method: string) {
   switch (method) {
-    case "INVOICE": return "Electronic Invoice";
-    case "CHECK": return "Physical Check";
-    case "CARD_ON_FILE": return "Card on File";
-    default: return method;
+    case "INVOICE":
+      return "Electronic Invoice";
+    case "CHECK":
+      return "Physical Check";
+    case "CARD_ON_FILE":
+      return "Card on File";
+    default:
+      return method;
   }
 }
 
@@ -203,8 +217,13 @@ export default async function CorporateAccountDetailPage({
         </div>
       </Card>
 
-      {/* Payment Settings */}
-      <Card title='Payment Settings'>
+      {/* Payment Settings — with inline edit */}
+      <div className={styles.card}>
+        <div className={styles.cardTop}>
+          <div className={styles.cardTopRow}>
+            <div className='cardTitle h4'>Payment Settings</div>
+          </div>
+        </div>
         <div className={styles.kvGrid}>
           <KeyVal
             k='Billing Cycle'
@@ -234,7 +253,18 @@ export default async function CorporateAccountDetailPage({
             <KeyVal k='Check Payable To' v={account.checkPayableTo || "—"} />
           )}
         </div>
-      </Card>
+        <EditPaymentSettingsClient
+          accountId={account.id}
+          currentBillingCycle={account.billingCycle}
+          currentPaymentMethod={account.paymentMethod}
+          currentPaymentTerms={account.paymentTerms}
+          currentDiscountPercent={
+            account.discountPercent ? Number(account.discountPercent) : null
+          }
+          currentMonthlyLimitCents={account.monthlyLimitCents}
+          currentCheckPayableTo={account.checkPayableTo}
+        />
+      </div>
 
       {/* Contacts */}
       <Card title='Contacts (Admins)'>
@@ -321,6 +351,7 @@ export default async function CorporateAccountDetailPage({
                     <td className={styles.miniTd}>
                       <TogglePassengerBtn
                         passengerId={p.id}
+                        passengerName={p.name}
                         active={p.active}
                       />
                     </td>
@@ -442,11 +473,17 @@ export default async function CorporateAccountDetailPage({
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Card({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className={styles.card}>
       <div className={styles.cardTop}>
-        <div className="cardTitle h4">{title}</div>
+        <div className='cardTitle h4'>{title}</div>
       </div>
       {children}
     </div>
@@ -456,8 +493,8 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function KeyVal({ k, v }: { k: string; v: string }) {
   return (
     <div className={styles.keyVal}>
-      <div className="emptyTitle">{k}</div>
-      <p className="subheading">{v}</p>
+      <div className='emptyTitle'>{k}</div>
+      <p className='subheading'>{v}</p>
     </div>
   );
 }
