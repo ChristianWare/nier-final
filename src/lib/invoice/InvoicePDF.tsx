@@ -90,6 +90,27 @@ const styles = StyleSheet.create({
     textAlign: "right",
   },
 
+  // Status Badge
+  statusBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+    fontSize: 8,
+    fontWeight: 700,
+  },
+  statusPaid: {
+    backgroundColor: "#dcfce7",
+    color: "#166534",
+  },
+  statusSent: {
+    backgroundColor: "#dbeafe",
+    color: "#1e40af",
+  },
+  statusOverdue: {
+    backgroundColor: "#fee2e2",
+    color: "#991b1b",
+  },
+
   // Bill To
   billTo: {
     marginBottom: 24,
@@ -108,6 +129,35 @@ const styles = StyleSheet.create({
   customerInfo: {
     fontSize: 10,
     color: "#333333",
+  },
+
+  // Payment Info Section
+  paymentSection: {
+    backgroundColor: "#f8f9fa",
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    borderRadius: 4,
+    padding: 12,
+    marginBottom: 24,
+  },
+  paymentGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  paymentItem: {
+    width: "33%",
+    marginBottom: 4,
+  },
+  paymentLabel: {
+    fontSize: 7,
+    color: "#888888",
+    fontWeight: 700,
+    marginBottom: 2,
+  },
+  paymentValue: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: "#222222",
   },
 
   // Trip Section
@@ -313,10 +363,29 @@ const styles = StyleSheet.create({
   },
 });
 
+function StatusBadge({ status }: { status: string }) {
+  const badgeStyle =
+    status === "PAID"
+      ? styles.statusPaid
+      : status === "OVERDUE"
+        ? styles.statusOverdue
+        : styles.statusSent;
+
+  return <Text style={[styles.statusBadge, badgeStyle]}>{status}</Text>;
+}
+
 export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
   const hasStops = invoice.trip.stops.length > 0;
   const hasRefund = invoice.amountRefundedCents > 0;
   const hasTip = invoice.tipCents > 0;
+  const isCorporate = !!(
+    invoice.paymentMethod ||
+    invoice.paymentTerms ||
+    invoice.poNumber
+  );
+  const showPaidStamp = !!(
+    invoice.paidDate || invoice.invoiceStatus === "PAID"
+  );
 
   return (
     <Document>
@@ -344,14 +413,36 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
               <Text style={styles.metaLabel}>Invoice #</Text>
               <Text style={styles.metaValue}>{invoice.invoiceNumber}</Text>
             </View>
+            {invoice.bookingConfirmation && (
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Booking</Text>
+                <Text style={styles.metaValue}>
+                  #{invoice.bookingConfirmation}
+                </Text>
+              </View>
+            )}
             <View style={styles.metaRow}>
               <Text style={styles.metaLabel}>Date</Text>
               <Text style={styles.metaValue}>{invoice.invoiceDate}</Text>
             </View>
+            {invoice.dueDate && (
+              <View style={styles.metaRow}>
+                <Text style={styles.metaLabel}>Due</Text>
+                <Text style={styles.metaValue}>{invoice.dueDate}</Text>
+              </View>
+            )}
             {invoice.paidDate && (
               <View style={styles.metaRow}>
                 <Text style={styles.metaLabel}>Paid</Text>
                 <Text style={styles.metaValue}>{invoice.paidDate}</Text>
+              </View>
+            )}
+            {invoice.invoiceStatus && (
+              <View style={[styles.metaRow, { marginTop: 4 }]}>
+                <Text style={styles.metaLabel}></Text>
+                <View style={{ width: 90, alignItems: "flex-end" }}>
+                  <StatusBadge status={invoice.invoiceStatus} />
+                </View>
               </View>
             )}
           </View>
@@ -366,6 +457,37 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
             <Text style={styles.customerInfo}>{invoice.customer.phone}</Text>
           )}
         </View>
+
+        {/* Payment Info (corporate only) */}
+        {isCorporate && (
+          <View style={styles.paymentSection}>
+            <Text style={styles.sectionTitle}>PAYMENT INFORMATION</Text>
+            <View style={styles.paymentGrid}>
+              {invoice.paymentMethod && (
+                <View style={styles.paymentItem}>
+                  <Text style={styles.paymentLabel}>PAYMENT METHOD</Text>
+                  <Text style={styles.paymentValue}>
+                    {invoice.paymentMethod}
+                  </Text>
+                </View>
+              )}
+              {invoice.paymentTerms && (
+                <View style={styles.paymentItem}>
+                  <Text style={styles.paymentLabel}>PAYMENT TERMS</Text>
+                  <Text style={styles.paymentValue}>
+                    {invoice.paymentTerms}
+                  </Text>
+                </View>
+              )}
+              {invoice.poNumber && (
+                <View style={styles.paymentItem}>
+                  <Text style={styles.paymentLabel}>PO NUMBER</Text>
+                  <Text style={styles.paymentValue}>{invoice.poNumber}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Trip Details */}
         <View style={styles.tripSection}>
@@ -396,6 +518,12 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
                 <Text style={styles.tripValue}>
                   {invoice.trip.distanceMiles.toFixed(1)} miles
                 </Text>
+              </View>
+            )}
+            {invoice.driverName && (
+              <View style={styles.tripItem}>
+                <Text style={styles.tripLabel}>DRIVER</Text>
+                <Text style={styles.tripValue}>{invoice.driverName}</Text>
               </View>
             )}
           </View>
@@ -531,14 +659,16 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
         </View>
 
         {/* Paid Stamp */}
-        <View style={styles.paidStampContainer}>
-          <View style={styles.paidStamp}>
-            <Text style={styles.paidText}>PAID</Text>
-            {invoice.paidDate && (
-              <Text style={styles.paidDate}>{invoice.paidDate}</Text>
-            )}
+        {showPaidStamp && (
+          <View style={styles.paidStampContainer}>
+            <View style={styles.paidStamp}>
+              <Text style={styles.paidText}>PAID</Text>
+              {invoice.paidDate && (
+                <Text style={styles.paidDate}>{invoice.paidDate}</Text>
+              )}
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Footer */}
         <View style={styles.footer}>

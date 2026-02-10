@@ -772,6 +772,8 @@ model CorporateAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  poNumber String?
+
   @@index([status])
   @@index([name])
 }

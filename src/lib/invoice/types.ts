@@ -60,6 +60,34 @@ export type InvoiceData = {
 
   // Currency
   currency: string;
+
+  // ─── Corporate-specific fields (optional) ───
+  // These are only populated for corporate invoices.
+  // Regular customer invoices leave them undefined.
+
+  /** e.g. "Card on File (Visa ····4242)" or "Invoice / Check" */
+  paymentMethod?: string;
+
+  /** e.g. "Due on Receipt", "Net 30" */
+  paymentTerms?: string;
+
+  /** Formatted due date string */
+  dueDate?: string;
+
+  /** Invoice status: "PAID", "SENT", "OVERDUE", "DRAFT" */
+  invoiceStatus?: string;
+
+  /** Corporate PO number for AP departments */
+  poNumber?: string;
+
+  /** Driver who completed the trip */
+  driverName?: string;
+
+  /** Booking confirmation code e.g. "CMLFV6RJ" */
+  bookingConfirmation?: string;
+
+  /** Corporate account name (if different from customer name) */
+  corporateAccountName?: string;
 };
 
 export function formatMoney(

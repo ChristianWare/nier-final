@@ -1,24 +1,23 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/app/dashboard/trips/[id]/page.tsx
+// src/app/corporate/bookings/[id]/page.tsx
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { BookingStatus } from "@prisma/client";
 import type { ReactNode } from "react";
 
-import styles from "./UserTripDetailPage.module.css";
+import styles from "./CorporateBookingDetailPage.module.css";
 import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import DefaultProfileImg from "../../../../../public/images/mesaii.jpg";
 import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
-import UserTripPaymentClient from "./UserTripPaymentClient";
-import UserCancelTripClient from "./UserCancelTripClient";
-import InvoiceSection from "./InvoiceSection";
-import type { InvoiceData, InvoiceLineItem } from "@/lib/invoice/types";
-import { formatInvoiceDate, formatTripDateTime } from "@/lib/invoice/types";
+import InvoiceSection from "@/app/dashboard/trips/[id]/InvoiceSection";
+import { getCorporateInvoiceData } from "../../../../../actions/corporate/getCorporateInvoiceData";
+import type { InvoiceData } from "@/lib/invoice/types";
 
+export const metadata = { title: "Booking Details | Corporate" };
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -106,54 +105,15 @@ function badgeTone(status: BookingStatus): BadgeTone {
   return "neutral";
 }
 
-function getPaymentStatusDisplay(
-  paymentStatus: string | null | undefined,
-  totalCents: number,
-  amountPaidCents: number,
-): {
-  label: string;
-  tone: BadgeTone;
-} {
-  if (paymentStatus === "REFUNDED") {
-    return { label: "Refunded", tone: "neutral" };
-  }
-  if (paymentStatus === "PARTIALLY_REFUNDED") {
-    return { label: "Partially Refunded", tone: "neutral" };
-  }
-  if (paymentStatus === "PAID") {
-    if (amountPaidCents < totalCents) {
-      return { label: "Partial Payment", tone: "warn" };
-    }
-    return { label: "Paid", tone: "good" };
-  }
-  if (paymentStatus === "PENDING") {
-    return { label: "Pending", tone: "warn" };
-  }
-  if (paymentStatus === "FAILED") {
-    return { label: "Failed", tone: "bad" };
-  }
-  return { label: "Not Paid", tone: "bad" };
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  const d =
+    digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  if (d.length !== 10) return raw;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
 }
 
-async function resolveSessionUserId(session: any) {
-  const direct =
-    (session?.user?.id as string | undefined) ??
-    (session?.user?.userId as string | undefined);
-
-  if (direct) return direct;
-
-  const email = session?.user?.email ?? null;
-  if (!email) return null;
-
-  const u = await db.user.findUnique({
-    where: { email },
-    select: { id: true },
-  });
-
-  return u?.id ?? null;
-}
-
-export default async function UserTripDetailPage({
+export default async function CorporateBookingDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -161,27 +121,23 @@ export default async function UserTripDetailPage({
   const { id } = await params;
 
   const session = await auth();
-  if (!session) redirect("/login?next=/dashboard/trips");
+  if (!session?.user?.id) redirect("/login");
 
-  const userId = await resolveSessionUserId(session);
-  if (!userId) redirect("/login?next=/dashboard/trips");
+  // Verify user is a corporate contact
+  const contact = await db.corporateContact.findFirst({
+    where: { userId: session.user.id, active: true },
+    select: { corporateAccountId: true, role: true },
+  });
+
+  if (!contact) redirect("/");
+
+  const accountId = contact.corporateAccountId;
 
   const booking = await db.booking.findUnique({
     where: { id },
     include: {
-      user: { select: { id: true, name: true, email: true, phone: true } },
       serviceType: { select: { name: true, slug: true } },
       vehicle: { select: { name: true } },
-      payment: {
-        select: {
-          status: true,
-          checkoutUrl: true,
-          amountPaidCents: true,
-          amountRefundedCents: true,
-          tipCents: true,
-          paidAt: true,
-        },
-      },
       assignment: {
         include: {
           driver: {
@@ -199,39 +155,42 @@ export default async function UserTripDetailPage({
       stops: {
         orderBy: { stopOrder: "asc" },
       },
+      corporateAccount: {
+        select: {
+          id: true,
+          name: true,
+          billingCycle: true,
+          paymentTerms: true,
+          discountPercent: true,
+        },
+      },
+      corporatePassenger: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          department: true,
+        },
+      },
     },
   });
 
   if (!booking) return notFound();
 
-  // Verify this user owns the booking
-  if (booking.userId !== userId) {
-    redirect("/dashboard/trips");
+  // Verify this booking belongs to the contact's corporate account
+  if (booking.corporateAccountId !== accountId) {
+    redirect("/corporate/bookings");
   }
 
   const currentStatus = booking.status as BookingStatus;
-  const isPaid = booking.payment?.status === "PAID";
-  const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
-  const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
-  const tipCents = booking.payment?.tipCents ?? 0;
 
-  // Current status display
-  const currentStatusIsPaidConfirmed =
-    isPaid &&
-    (currentStatus === "CONFIRMED" || currentStatus === "PENDING_PAYMENT");
-  const currentStatusLabel = currentStatusIsPaidConfirmed
-    ? "Payment received"
-    : statusLabel(currentStatus);
-  const currentStatusTone: BadgeTone = currentStatusIsPaidConfirmed
-    ? "good"
-    : badgeTone(currentStatus);
+  // Status display
+  const currentStatusLabel = statusLabel(currentStatus);
+  const currentStatusTone: BadgeTone = badgeTone(currentStatus);
 
-  // Payment status display
-  const paymentStatusDisplay = getPaymentStatusDisplay(
-    booking.payment?.status,
-    booking.totalCents,
-    amountPaidCents,
-  );
+  // Declined
+  const isDeclined = currentStatus === "DECLINED";
 
   // Driver info
   const hasDriver = !!booking.assignment?.driver;
@@ -245,6 +204,13 @@ export default async function UserTripDetailPage({
   const vehicleUnitDisplay = vehicleUnit
     ? `${vehicleUnit.name}${vehicleUnit.plate ? ` (${vehicleUnit.plate})` : ""}`
     : null;
+
+  // Passenger info
+  const passengerName =
+    booking.corporatePassenger?.name?.trim() || "—";
+  const passengerEmail = booking.corporatePassenger?.email || null;
+  const passengerPhone = booking.corporatePassenger?.phone || null;
+  const passengerDepartment = booking.corporatePassenger?.department || null;
 
   // Check for stops
   const hasStops = booking.stops && booking.stops.length > 0;
@@ -279,141 +245,40 @@ export default async function UserTripDetailPage({
       }))
       .filter((s) => s.lat && s.lng) ?? [];
 
-  // Show payment section if pending payment
-  const showPaymentSection = currentStatus === "PENDING_PAYMENT";
-
-  // Can cancel if not paid and not in terminal/active status
-  const canCancel =
-    !isPaid &&
-    amountPaidCents === 0 &&
-    ![
-      "COMPLETED",
-      "CANCELLED",
-      "NO_SHOW",
-      "REFUNDED",
-      "PARTIALLY_REFUNDED",
-      "IN_PROGRESS",
-    ].includes(currentStatus);
-
-  // Declined
-  const isDeclined = currentStatus === "DECLINED";
-
-  // Prepare stops for payment client
-  const stopsForPayment = booking.stops.map((s) => ({
-    id: s.id,
-    stopOrder: s.stopOrder,
-    address: s.address,
-  }));
-
-  // Build invoice data if paid
+  // ─── Corporate invoice lookup ───
   let invoiceData: InvoiceData | null = null;
+  let corporateInvoiceId: string | null = null;
 
-  if (isPaid) {
-    // Get company settings for invoice
-    const companySettings = await getCompanySettings();
+  const invoiceLineItem = await db.corporateInvoiceLineItem.findFirst({
+    where: { bookingId: booking.id },
+    select: { invoiceId: true },
+  });
 
-    const invoiceNumber = booking.id.slice(0, 8).toUpperCase();
-    const invoiceDate = formatInvoiceDate(booking.createdAt);
-    const paidDate = booking.payment?.paidAt
-      ? formatInvoiceDate(booking.payment.paidAt)
-      : null;
-
-    // Build line items
-    const lineItems: InvoiceLineItem[] = [];
-
-    // Base fare (subtotal minus stop surcharge)
-    const baseFareCents = booking.subtotalCents - stopSurchargeCents;
-
-    lineItems.push({
-      description: `${booking.serviceType?.name ?? "Transportation"} - ${booking.vehicle?.name ?? "Vehicle"}`,
-      amount: baseFareCents,
-    });
-
-    // Stop surcharge
-    if (stopCount > 0 && stopSurchargeCents > 0) {
-      lineItems.push({
-        description: `Extra Stop${stopCount > 1 ? "s" : ""} (${stopCount} × $15.00)`,
-        amount: stopSurchargeCents,
-      });
+  if (invoiceLineItem) {
+    corporateInvoiceId = invoiceLineItem.invoiceId;
+    const result = await getCorporateInvoiceData(invoiceLineItem.invoiceId);
+    if (result.ok) {
+      invoiceData = result.data;
     }
-
-    // Fees
-    if (booking.feesCents > 0) {
-      lineItems.push({
-        description: "Service Fee",
-        amount: booking.feesCents,
-      });
-    }
-
-    // Taxes
-    if (booking.taxesCents > 0) {
-      lineItems.push({
-        description: "Tax",
-        amount: booking.taxesCents,
-      });
-    }
-
-    invoiceData = {
-      invoiceNumber,
-      invoiceDate,
-      paidDate,
-
-      company: {
-        name: companySettings.officeName || "Nier Transportation",
-        address: companySettings.officeAddress || "",
-        city: companySettings.officeCity || "",
-        phone: companySettings.dispatchPhone || "",
-        email: companySettings.supportEmail || "",
-      },
-
-      customer: {
-        name: booking.user?.name?.trim() || booking.user?.email || "Customer",
-        email: booking.user?.email || "",
-        phone: booking.user?.phone || null,
-      },
-
-      trip: {
-        date: formatTripDateTime(booking.pickupAt),
-        pickupAddress: booking.pickupAddress,
-        dropoffAddress: booking.dropoffAddress,
-        stops: booking.stops.map((s) => ({
-          address: s.address,
-          stopOrder: s.stopOrder,
-        })),
-        serviceName: booking.serviceType?.name ?? "Transportation",
-        vehicleName: booking.vehicle?.name ?? "Vehicle",
-        passengers: booking.passengers,
-        luggage: booking.luggage,
-        distanceMiles: toNumber(booking.distanceMiles),
-        durationMinutes: booking.durationMinutes,
-      },
-
-      lineItems,
-
-      subtotalCents: booking.subtotalCents,
-      feesCents: booking.feesCents,
-      taxesCents: booking.taxesCents,
-      totalCents: booking.totalCents,
-      tipCents: tipCents,
-      amountPaidCents: amountPaidCents,
-      amountRefundedCents: amountRefundedCents,
-
-      currency: booking.currency,
-    };
   }
+
+  // Company settings for help section
+  const companySettings = await getCompanySettings();
+  const supportPhone = companySettings.dispatchPhone || "";
+  const supportEmail = companySettings.supportEmail || "";
 
   return (
     <section className={styles.container}>
-      <header className='header'>
-        <Link href='/dashboard/trips' className='backBtn'>
-          ← Back to My Trips
+      <header className="header">
+        <Link href="/corporate/bookings" className="backBtn">
+          ← Back to Bookings
         </Link>
         <div className={styles.headerTop}>
           <div className={styles.headerTopLeft}>
-            <h1 className={`${styles.heading} h2`}>Trip Details</h1>
+            <h1 className={`${styles.heading} h2`}>Booking Details</h1>
           </div>
           <div className={styles.headerTopRight}>
-            <div className='emptyTitle'>Confirmation #</div>
+            <div className="emptyTitle">Confirmation #</div>
             <div className={styles.confirmationValue}>
               {getConfirmationCode(booking.id)}
             </div>
@@ -423,7 +288,7 @@ export default async function UserTripDetailPage({
         <div className={styles.box}>
           <div className={styles.boxLeft}>
             <div style={{ marginTop: 12 }}>
-              <div className='emptyTitle'>Current Status:</div>
+              <div className="emptyTitle">Current Status:</div>
               <div style={{ marginTop: 6 }}>
                 <span className={`badge badge_${currentStatusTone}`}>
                   {currentStatusLabel}
@@ -431,7 +296,6 @@ export default async function UserTripDetailPage({
               </div>
             </div>
 
-            {/* Show decline reason if applicable */}
             {isDeclined && booking.declineReason && (
               <div className={styles.declineReasonBox}>
                 <strong>Decline Reason:</strong> {booking.declineReason}
@@ -439,61 +303,63 @@ export default async function UserTripDetailPage({
             )}
           </div>
 
-          {/* Cancel button in boxRight if allowed */}
           <div className={styles.boxRight}>
-            {/* {canCancel && <UserCancelTripClient bookingId={booking.id} />} */}
-            {/* Payment status */}
+            {/* Payment / billing status */}
             <div style={{ marginTop: 12 }}>
-              <div className='emptyTitle'>Payment:</div>
+              <div className="emptyTitle">Billing:</div>
               <div className={styles.paymentInfo}>
-                <span className={`badge badge_${paymentStatusDisplay.tone}`}>
-                  {paymentStatusDisplay.label}
-                </span>
+                <span className="badge badge_accent">Corporate Billing</span>
                 {booking.totalCents > 0 && (
                   <span className={styles.paymentAmount}>
                     {formatMoney(booking.totalCents, booking.currency)}
                   </span>
                 )}
-                {booking.payment?.paidAt && (
-                  <span className='miniNote'>
-                    on {formatDateTime(booking.payment.paidAt)}
-                  </span>
-                )}
               </div>
 
-              {/* Show tip amount if present */}
-              {tipCents > 0 && (
-                <div className={styles.tipDisplay}>
-                  <span className={styles.tipIcon}>💰</span>
-                  <span className={styles.tipLabel}>Driver Tip:</span>
-                  <span className={styles.tipAmount}>
-                    {formatMoney(tipCents, booking.currency)}
+              {/* Discount info */}
+              {booking.discountCents && booking.discountCents > 0 ? (
+                <div className={styles.discountDisplay}>
+                  <span style={{ color: "#15803d", fontWeight: 600 }}>
+                    −{formatMoney(booking.discountCents, booking.currency)} off
+                    {booking.corporateAccount?.discountPercent
+                      ? ` (${Number(booking.corporateAccount.discountPercent)}%)`
+                      : ""}
+                  </span>
+                  <span className="miniNote" style={{ marginLeft: 8 }}>
+                    was{" "}
+                    {formatMoney(
+                      booking.totalCents + booking.discountCents,
+                      booking.currency,
+                    )}
                   </span>
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
       </header>
 
-      {/* Payment Section (if pending payment) */}
-      {showPaymentSection && (
-        <Card title='Complete Your Payment'>
-          <UserTripPaymentClient
-            bookingId={booking.id}
-            serviceName={booking.serviceType?.name ?? "Transportation"}
-            vehicleName={booking.vehicle?.name ?? "Vehicle"}
-            baseFareCents={booking.totalCents}
-            currency={booking.currency}
-            stops={stopsForPayment}
-            stopSurchargeCents={stopSurchargeCents}
-          />
-        </Card>
-      )}
+      {/* ─── Passenger Card ─── */}
+      <Card title="Passenger">
+        <KeyVal k="Name" v={passengerName} />
+        {passengerEmail && <KeyVal k="Email" v={passengerEmail} />}
+        {passengerPhone && (
+          <KeyVal k="Phone" v={`📞 ${formatPhone(passengerPhone)}`} />
+        )}
+        {passengerDepartment && (
+          <KeyVal k="Department" v={passengerDepartment} />
+        )}
+        {booking.costCenter && (
+          <KeyVal k="Cost Center" v={booking.costCenter} />
+        )}
+        {booking.projectCode && (
+          <KeyVal k="Project Code" v={booking.projectCode} />
+        )}
+      </Card>
 
-      {/* Driver Card (if assigned) */}
+      {/* ─── Driver Card (if assigned) ─── */}
       {hasDriver && (
-        <Card title='Your Driver'>
+        <Card title="Your Driver">
           <div className={styles.driverSection}>
             <div className={styles.driverImageWrap}>
               <Image
@@ -505,9 +371,9 @@ export default async function UserTripDetailPage({
               />
             </div>
             <div className={styles.driverInfo}>
-              <KeyVal k='Driver' v={driverName} />
+              <KeyVal k="Driver" v={driverName} />
               {vehicleUnitDisplay && (
-                <KeyVal k='Vehicle' v={vehicleUnitDisplay} />
+                <KeyVal k="Vehicle" v={vehicleUnitDisplay} />
               )}
               {driverPhone && (
                 <div className={styles.driverContact}>
@@ -530,30 +396,54 @@ export default async function UserTripDetailPage({
         </Card>
       )}
 
-      {/* Trip Details Card */}
-      <Card title='Trip'>
-        <KeyVal k='Date' v={formatDateTime(booking.pickupAt)} />
+      {/* ─── Trip Details Card ─── */}
+      <Card title="Trip">
+        <KeyVal k="Date" v={formatDateTime(booking.pickupAt)} />
         <KeyVal
-          k='Distance / duration'
+          k="Distance / duration"
           v={`${toNumber(booking.distanceMiles) ?? "—"} mi • ${booking.durationMinutes ?? "—"} min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
         />
         <KeyVal
-          k='Amount'
+          k="Amount"
           v={formatMoney(booking.totalCents, booking.currency)}
         />
+        {booking.discountCents && booking.discountCents > 0 ? (
+          <div className={styles.keyVal}>
+            <div className="emptyTitle">Corporate discount</div>
+            <p className="subheading" style={{ color: "#15803d" }}>
+              −{formatMoney(booking.discountCents, booking.currency)} off
+              {booking.corporateAccount?.discountPercent
+                ? ` (${Number(booking.corporateAccount.discountPercent)}%)`
+                : ""}
+              <span
+                style={{
+                  marginLeft: 8,
+                  color: "var(--paragraph)",
+                  fontWeight: 400,
+                }}
+              >
+                was{" "}
+                {formatMoney(
+                  booking.totalCents + booking.discountCents,
+                  booking.currency,
+                )}
+              </span>
+            </p>
+          </div>
+        ) : null}
         {booking.specialRequests && (
-          <KeyVal k='Special requests' v={booking.specialRequests} />
+          <KeyVal k="Special requests" v={booking.specialRequests} />
         )}
-        <KeyVal k='Booked' v={formatDateTime(booking.createdAt)} />
-        <KeyVal k='Service' v={booking.serviceType?.name ?? "—"} />
-        <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
+        <KeyVal k="Booked" v={formatDateTime(booking.createdAt)} />
+        <KeyVal k="Service" v={booking.serviceType?.name ?? "—"} />
+        <KeyVal k="Vehicle category" v={booking.vehicle?.name ?? "—"} />
 
         {/* Route Timeline with Stops */}
         {hasStops ? (
           <>
             <div className={styles.sectionDivider} />
             <div className={styles.stopsSection}>
-              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+              <div className="cardTitle h5" style={{ marginBottom: 10 }}>
                 <span style={{ marginRight: "2rem" }}>🛑</span>Route with{" "}
                 {stopCount} Extra Stop{stopCount > 1 ? "s" : ""}
               </div>
@@ -567,8 +457,8 @@ export default async function UserTripDetailPage({
                     A
                   </div>
                   <div className={styles.routeAddress}>
-                    <div className='emptyTitle'>Pickup</div>
-                    <p className='subheading'>{booking.pickupAddress}</p>
+                    <div className="emptyTitle">Pickup</div>
+                    <p className="subheading">{booking.pickupAddress}</p>
                   </div>
                 </div>
 
@@ -582,9 +472,9 @@ export default async function UserTripDetailPage({
                       {index + 1}
                     </div>
                     <div className={styles.routeAddress}>
-                      <div className='emptyTitle'>Stop {index + 1}</div>
-                      <p className='subheading'>{stop.address}</p>
-                      <span className='miniNote'>
+                      <div className="emptyTitle">Stop {index + 1}</div>
+                      <p className="subheading">{stop.address}</p>
+                      <span className="miniNote">
                         ~{stop.waitTimeMinutes ?? 5} min wait
                       </span>
                     </div>
@@ -600,8 +490,8 @@ export default async function UserTripDetailPage({
                     B
                   </div>
                   <div className={styles.routeAddress}>
-                    <div className='emptyTitle'>Dropoff</div>
-                    <p className='subheading'>{booking.dropoffAddress}</p>
+                    <div className="emptyTitle">Dropoff</div>
+                    <p className="subheading">{booking.dropoffAddress}</p>
                   </div>
                 </div>
               </div>
@@ -623,13 +513,13 @@ export default async function UserTripDetailPage({
           </>
         ) : (
           <>
-            <KeyVal k='Pickup' v={booking.pickupAddress} />
-            <KeyVal k='Dropoff' v={booking.dropoffAddress} />
+            <KeyVal k="Pickup" v={booking.pickupAddress} />
+            <KeyVal k="Dropoff" v={booking.dropoffAddress} />
           </>
         )}
 
         <KeyVal
-          k='Passengers / luggage'
+          k="Passengers / luggage"
           v={`${booking.passengers} / ${booking.luggage}`}
         />
 
@@ -638,7 +528,7 @@ export default async function UserTripDetailPage({
           <>
             <div className={styles.sectionDivider} />
             <div className={styles.routeMapSection}>
-              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+              <div className="cardTitle h5" style={{ marginBottom: 10 }}>
                 Route Map
               </div>
               <RouteMapDisplay
@@ -659,50 +549,57 @@ export default async function UserTripDetailPage({
           <>
             <div className={styles.sectionDivider} />
             <div className={styles.flightSection}>
-              <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+              <div className="cardTitle h5" style={{ marginBottom: 10 }}>
                 ✈️ Flight Information
               </div>
               {booking.flightAirline && (
-                <KeyVal k='Airline' v={booking.flightAirline} />
+                <KeyVal k="Airline" v={booking.flightAirline} />
               )}
               {booking.flightNumber && (
-                <KeyVal k='Flight Number' v={booking.flightNumber} />
+                <KeyVal k="Flight Number" v={booking.flightNumber} />
               )}
               {booking.flightScheduledAt && (
                 <KeyVal
-                  k='Scheduled Time'
+                  k="Scheduled Time"
                   v={formatDateTime(booking.flightScheduledAt)}
                 />
               )}
               {booking.flightTerminal && (
-                <KeyVal k='Terminal' v={booking.flightTerminal} />
+                <KeyVal k="Terminal" v={booking.flightTerminal} />
               )}
-              {booking.flightGate && <KeyVal k='Gate' v={booking.flightGate} />}
+              {booking.flightGate && (
+                <KeyVal k="Gate" v={booking.flightGate} />
+              )}
             </div>
           </>
         )}
       </Card>
-      {/* Invoice Section (if paid) */}
-      {isPaid && invoiceData && (
-        <Card title='Invoice'>
+
+      {/* ─── Invoice Section ─── */}
+      {invoiceData && (
+        <Card title="Invoice">
           <InvoiceSection invoice={invoiceData} bookingId={booking.id} />
         </Card>
       )}
 
-      {/* Help Section */}
-      <Card title='Need Help?'>
+      {/* ─── Help Section ─── */}
+      <Card title="Need Help?">
         <div className={styles.helpContent}>
-          <p className='subheading'>
-            If you have questions about your booking or need to make changes,
+          <p className="subheading">
+            If you have questions about this booking or need to make changes,
             please contact us.
           </p>
           <div className={styles.helpActions}>
-            <a href='tel:+14805551234' className={styles.helpButton}>
-              📞 Call Support
-            </a>
-            <a href='mailto:support@example.com' className={styles.helpButton}>
-              ✉️ Email Us
-            </a>
+            {supportPhone && (
+              <a href={`tel:${supportPhone}`} className={styles.helpButton}>
+                📞 Call Support
+              </a>
+            )}
+            {supportEmail && (
+              <a href={`mailto:${supportEmail}`} className={styles.helpButton}>
+                ✉️ Email Us
+              </a>
+            )}
           </div>
         </div>
       </Card>
@@ -714,7 +611,7 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className={styles.card}>
       <div className={styles.cardTop}>
-        <div className='cardTitle h4'>{title}</div>
+        <div className="cardTitle h4">{title}</div>
       </div>
       {children}
     </div>
@@ -724,8 +621,8 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 function KeyVal({ k, v }: { k: string; v: string }) {
   return (
     <div className={styles.keyVal}>
-      <div className='emptyTitle'>{k}</div>
-      <p className='subheading'>{v}</p>
+      <div className="emptyTitle">{k}</div>
+      <p className="subheading">{v}</p>
     </div>
   );
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 // actions/corporate/getCorporateInvoiceData.ts
 "use server";
 
@@ -18,6 +17,53 @@ function toNumber(val: unknown): number | null {
   const n = Number(val);
   return Number.isFinite(n) ? n : null;
 }
+
+/* ─────────────────────────────────────────────
+   Human-readable labels
+   ───────────────────────────────────────────── */
+
+function paymentMethodLabel(method: string, cardLast4?: string | null): string {
+  switch (method) {
+    case "CARD_ON_FILE":
+      return cardLast4 ? `Card on File (····${cardLast4})` : "Card on File";
+    case "INVOICE":
+      return "Invoice";
+    case "CHECK":
+      return "Check";
+    case "ACH":
+      return "ACH Transfer";
+    default:
+      return method;
+  }
+}
+
+function paymentTermsLabel(terms: string): string {
+  switch (terms) {
+    case "DUE_ON_RECEIPT":
+      return "Due on Receipt";
+    case "NET_15":
+      return "Net 15";
+    case "NET_30":
+      return "Net 30";
+    case "NET_45":
+      return "Net 45";
+    default:
+      return terms;
+  }
+}
+
+function invoiceStatusLabel(status: string, dueDate: Date | null): string {
+  if (status === "PAID") return "PAID";
+  if (status === "SENT" && dueDate && dueDate < new Date()) return "OVERDUE";
+  if (status === "SENT") return "SENT";
+  if (status === "DRAFT") return "DRAFT";
+  if (status === "VOID") return "VOID";
+  return status;
+}
+
+/* ─────────────────────────────────────────────
+   Main action
+   ───────────────────────────────────────────── */
 
 export async function getCorporateInvoiceData(
   invoiceId: string,
@@ -39,97 +85,85 @@ export async function getCorporateInvoiceData(
 
     const isAdmin = user?.roles?.includes("ADMIN") ?? false;
 
+    // Load invoice with account and line items.
+    // CorporateInvoiceLineItem.bookingId is a plain String (no Prisma relation),
+    // so we query the booking separately below.
     const invoice = await db.corporateInvoice.findUnique({
       where: { id: invoiceId },
       include: {
-        corporateAccount: {
-          select: {
-            id: true,
-            name: true,
-            billingEmail: true,
-            billingAddress: true,
-            billingCity: true,
-            billingState: true,
-            billingZip: true,
-            discountPercent: true,
-          },
-        },
-        lineItems: {
-          orderBy: { createdAt: "asc" },
-        },
+        corporateAccount: true,
+        lineItems: true,
       },
     });
 
     if (!invoice) return { ok: false, error: "Invoice not found." };
 
-    // Auth: admin or corporate contact
+    // Authorization: admin or corporate contact for this account
     if (!isAdmin) {
       const contact = await db.corporateContact.findFirst({
         where: {
           userId,
           corporateAccountId: invoice.corporateAccountId,
+          active: true,
         },
       });
-      if (!contact) return { ok: false, error: "Forbidden." };
+      if (!contact) return { ok: false, error: "Not authorized." };
     }
 
-    // Fetch bookings linked to line items
-    const bookingIds = invoice.lineItems
-      .map((li) => li.bookingId)
-      .filter(Boolean) as string[];
-
-    const bookings = await db.booking.findMany({
-      where: { id: { in: bookingIds } },
-      include: {
-        serviceType: { select: { name: true } },
-        vehicle: { select: { name: true } },
-        corporatePassenger: { select: { name: true } },
-        stops: {
-          orderBy: { stopOrder: "asc" },
-          select: { address: true, stopOrder: true },
-        },
-      },
-    });
-
+    // Company settings
     const companySettings = await getCompanySettings();
 
-    // Build line items — prepend booking confirmation to each description
-    const bookingMap = new Map(bookings.map((b) => [b.id, b]));
+    // Load the first booking for trip details
+    // (bookingId is a plain string on line items, not a Prisma relation)
+    const firstLineItem = invoice.lineItems[0] ?? null;
+    const firstBooking = firstLineItem?.bookingId
+      ? await db.booking.findUnique({
+          where: { id: firstLineItem.bookingId },
+          include: {
+            serviceType: { select: { name: true } },
+            vehicle: { select: { name: true } },
+            assignment: {
+              include: {
+                driver: { select: { name: true } },
+              },
+            },
+            stops: {
+              orderBy: { stopOrder: "asc" },
+              select: { address: true, stopOrder: true },
+            },
+            corporatePassenger: { select: { name: true } },
+          },
+        })
+      : null;
 
-    const lineItems: InvoiceLineItem[] = invoice.lineItems.map((li) => {
-      const confirmationCode = li.bookingId
-        ? li.bookingId.slice(0, 8).toUpperCase()
-        : null;
-      const prefix = confirmationCode ? `[#${confirmationCode}] ` : "";
+    // Build line items
+    const lineItems: InvoiceLineItem[] = invoice.lineItems.map((li) => ({
+      description: li.description,
+      amount: li.amountCents,
+    }));
 
-      return {
-        description: `${prefix}${li.description}`,
-        amount: li.amountCents,
-      };
-    });
-
+    // Add discount line if applicable
     if (invoice.discountCents > 0) {
+      const discountPercent = invoice.corporateAccount?.discountPercent
+        ? Number(invoice.corporateAccount.discountPercent)
+        : null;
+
       lineItems.push({
-        description: `Corporate Discount (${invoice.corporateAccount?.discountPercent ?? ""}%)`,
+        description: discountPercent
+          ? `Corporate Discount (${discountPercent}%)`
+          : "Corporate Discount",
         amount: -invoice.discountCents,
       });
     }
 
-    const firstBooking = bookings[0] ?? null;
     const account = invoice.corporateAccount;
 
-    // Build booking confirmation for the invoice header
-    const firstBookingId = invoice.lineItems[0]?.bookingId ?? null;
-    const bookingConfirmation = firstBookingId
-      ? firstBookingId.slice(0, 8).toUpperCase()
+    // Booking confirmation code
+    const bookingConfirmation = firstLineItem?.bookingId
+      ? firstLineItem.bookingId.slice(0, 8).toUpperCase()
       : null;
 
-    // Format invoice number to include booking confirmation
-    // e.g. "INV-2026-0001 | Booking #CMLFV6RJ"
-    const displayInvoiceNumber = bookingConfirmation
-      ? `${invoice.invoiceNumber}  ·  Booking #${bookingConfirmation}`
-      : invoice.invoiceNumber;
-
+    // Build billing address
     const billingAddress = [
       account?.billingAddress,
       account?.billingCity,
@@ -139,8 +173,28 @@ export async function getCorporateInvoiceData(
       .filter(Boolean)
       .join(", ");
 
+    // Card last4 placeholder — uncomment Stripe calls below if you want to show last4
+    const cardLast4: string | null = null;
+    // if (account?.paymentMethod === "CARD_ON_FILE" && firstBooking) {
+    //   const payment = await db.payment.findUnique({
+    //     where: { bookingId: firstBooking.id },
+    //     select: { stripePaymentIntentId: true },
+    //   });
+    //   if (payment?.stripePaymentIntentId) {
+    //     const pi = await stripe.paymentIntents.retrieve(payment.stripePaymentIntentId);
+    //     const pm = await stripe.paymentMethods.retrieve(pi.payment_method as string);
+    //     cardLast4 = pm.card?.last4 ?? null;
+    //   }
+    // }
+
+    // Determine invoice status
+    const invoiceStatus = invoiceStatusLabel(invoice.status, invoice.dueDate);
+
+    // Driver name comes from booking → assignment → driver (not a direct booking.driver field)
+    const driverName = firstBooking?.assignment?.driver?.name ?? undefined;
+
     const data: InvoiceData = {
-      invoiceNumber: displayInvoiceNumber,
+      invoiceNumber: invoice.invoiceNumber,
       invoiceDate: formatInvoiceDate(invoice.createdAt),
       paidDate: invoice.paidAt ? formatInvoiceDate(invoice.paidAt) : null,
 
@@ -198,6 +252,20 @@ export async function getCorporateInvoiceData(
       amountRefundedCents: 0,
 
       currency: "usd",
+
+      // ─── Corporate-specific fields ───
+      paymentMethod: account
+        ? paymentMethodLabel(account.paymentMethod, cardLast4)
+        : undefined,
+      paymentTerms: account
+        ? paymentTermsLabel(account.paymentTerms)
+        : undefined,
+      dueDate: invoice.dueDate ? formatInvoiceDate(invoice.dueDate) : undefined,
+      invoiceStatus,
+      poNumber: account?.poNumber ?? undefined,
+      driverName,
+      bookingConfirmation: bookingConfirmation ?? undefined,
+      corporateAccountName: account?.name ?? undefined,
     };
 
     return { ok: true, data };

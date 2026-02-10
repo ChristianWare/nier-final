@@ -20,6 +20,11 @@ export default function InvoicePreview({
   const hasStops = invoice.trip.stops.length > 0;
   const hasRefund = invoice.amountRefundedCents > 0;
   const hasTip = invoice.tipCents > 0;
+  const isCorporate = !!(
+    invoice.paymentMethod ||
+    invoice.paymentTerms ||
+    invoice.poNumber
+  );
 
   return (
     <div className={styles.container}>
@@ -49,14 +54,44 @@ export default function InvoicePreview({
                   {invoice.invoiceNumber}
                 </span>
               </div>
+              {invoice.bookingConfirmation && (
+                <div className={styles.metaRow}>
+                  <span className={styles.metaLabel}>Booking</span>
+                  <span className={styles.metaValue}>
+                    #{invoice.bookingConfirmation}
+                  </span>
+                </div>
+              )}
               <div className={styles.metaRow}>
                 <span className={styles.metaLabel}>Date</span>
                 <span className={styles.metaValue}>{invoice.invoiceDate}</span>
               </div>
+              {invoice.dueDate && (
+                <div className={styles.metaRow}>
+                  <span className={styles.metaLabel}>Due</span>
+                  <span className={styles.metaValue}>{invoice.dueDate}</span>
+                </div>
+              )}
               {invoice.paidDate && (
                 <div className={styles.metaRow}>
                   <span className={styles.metaLabel}>Paid</span>
                   <span className={styles.metaValue}>{invoice.paidDate}</span>
+                </div>
+              )}
+              {invoice.invoiceStatus && (
+                <div className={styles.metaRow}>
+                  <span className={styles.metaLabel}>Status</span>
+                  <span
+                    className={`${styles.statusBadge} ${
+                      invoice.invoiceStatus === "PAID"
+                        ? styles.statusPaid
+                        : invoice.invoiceStatus === "OVERDUE"
+                          ? styles.statusOverdue
+                          : styles.statusSent
+                    }`}
+                  >
+                    {invoice.invoiceStatus}
+                  </span>
                 </div>
               )}
             </div>
@@ -72,6 +107,39 @@ export default function InvoicePreview({
             {invoice.customer.phone && <p>{invoice.customer.phone}</p>}
           </div>
         </section>
+
+        {/* Payment & Billing Info (corporate only) */}
+        {isCorporate && (
+          <section className={styles.paymentSection}>
+            <h2 className={styles.sectionTitle}>Payment Information</h2>
+            <div className={styles.paymentGrid}>
+              {invoice.paymentMethod && (
+                <div className={styles.paymentItem}>
+                  <span className={styles.paymentLabel}>Payment Method</span>
+                  <span className={styles.paymentValue}>
+                    {invoice.paymentMethod}
+                  </span>
+                </div>
+              )}
+              {invoice.paymentTerms && (
+                <div className={styles.paymentItem}>
+                  <span className={styles.paymentLabel}>Payment Terms</span>
+                  <span className={styles.paymentValue}>
+                    {invoice.paymentTerms}
+                  </span>
+                </div>
+              )}
+              {invoice.poNumber && (
+                <div className={styles.paymentItem}>
+                  <span className={styles.paymentLabel}>PO Number</span>
+                  <span className={styles.paymentValue}>
+                    {invoice.poNumber}
+                  </span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Trip Details */}
         <section className={styles.tripSection}>
@@ -105,6 +173,12 @@ export default function InvoicePreview({
                 <span className={styles.tripValue}>
                   {invoice.trip.distanceMiles.toFixed(1)} miles
                 </span>
+              </div>
+            )}
+            {invoice.driverName && (
+              <div className={styles.tripRow}>
+                <span className={styles.tripLabel}>Driver</span>
+                <span className={styles.tripValue}>{invoice.driverName}</span>
               </div>
             )}
           </div>
@@ -218,12 +292,14 @@ export default function InvoicePreview({
         </section>
 
         {/* Paid Stamp */}
-        <div className={styles.paidStamp}>
-          <span className={styles.paidText}>PAID</span>
-          {invoice.paidDate && (
-            <span className={styles.paidDate}>{invoice.paidDate}</span>
-          )}
-        </div>
+        {(invoice.paidDate || invoice.invoiceStatus === "PAID") && (
+          <div className={styles.paidStamp}>
+            <span className={styles.paidText}>PAID</span>
+            {invoice.paidDate && (
+              <span className={styles.paidDate}>{invoice.paidDate}</span>
+            )}
+          </div>
+        )}
 
         {/* Footer */}
         <footer className={styles.footer}>

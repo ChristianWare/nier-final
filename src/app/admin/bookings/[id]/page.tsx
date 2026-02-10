@@ -23,7 +23,11 @@ import FlightStatusCard from "@/components/admin/FlightStatusCard/FlightStatusCa
 import ApproveRouteClient from "./ApproveRouteClient";
 import ApprovePriceClient from "./ApprovePriceClient";
 import DriverPayForm from "@/components/admin/DriverPayForm/DriverPayForm";
-
+import InvoiceSection from "@/app/dashboard/trips/[id]/InvoiceSection";
+import { getCorporateInvoiceData } from "../../../../../actions/corporate/getCorporateInvoiceData";
+import type { InvoiceData, InvoiceLineItem } from "@/lib/invoice/types";
+import { formatInvoiceDate, formatTripDateTime } from "@/lib/invoice/types";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -468,6 +472,41 @@ export default async function AdminBookingDetailPage({
 
   if (!booking) return notFound();
 
+  const isCorporateBooking = Boolean(booking.corporateAccountId);
+
+  // ─── Corporate invoice lookup (via line item bookingId) ───
+  let corporateInvoice: {
+    id: string;
+    invoiceNumber: string;
+    status: string;
+    totalCents: number;
+    amountPaidCents: number;
+    dueDate: Date | null;
+    paidAt: Date | null;
+  } | null = null;
+
+  if (isCorporateBooking) {
+    const invoiceLineItem = await db.corporateInvoiceLineItem.findFirst({
+      where: { bookingId: booking.id },
+      select: { invoiceId: true },
+    });
+    if (invoiceLineItem) {
+      corporateInvoice = await db.corporateInvoice.findUnique({
+        where: { id: invoiceLineItem.invoiceId },
+        select: {
+          id: true,
+          invoiceNumber: true,
+          status: true,
+          totalCents: true,
+          amountPaidCents: true,
+          dueDate: true,
+          paidAt: true,
+        },
+      });
+    }
+  }
+
+  // Earliest status event for "created by"
   // Earliest status event for "created by"
   const createdEvent = await db.bookingStatusEvent.findFirst({
     where: { bookingId: booking.id },
@@ -562,8 +601,6 @@ export default async function AdminBookingDetailPage({
       },
     });
   }
-
-  const isCorporateBooking = Boolean(booking.corporateAccountId);
 
   const customerName =
     booking.user?.name?.trim() ||
@@ -688,21 +725,21 @@ export default async function AdminBookingDetailPage({
     ? "good"
     : badgeTone(currentStatus);
 
- const paymentStatusDisplay = isCorporateBooking
-   ? {
-       label: "Corporate Billing",
-       tone: "accent" as BadgeTone,
-       hasBalanceDue: false,
-       balanceDueCents: 0,
-       hasRefundDue: false,
-       refundDueCents: 0,
-     }
-   : getPaymentStatusDisplay(
-       booking.payment?.status,
-       booking.totalCents,
-       amountPaidCents,
-       amountRefundedCents,
-     );
+  const paymentStatusDisplay = isCorporateBooking
+    ? {
+        label: "Corporate Billing",
+        tone: "accent" as BadgeTone,
+        hasBalanceDue: false,
+        balanceDueCents: 0,
+        hasRefundDue: false,
+        refundDueCents: 0,
+      }
+    : getPaymentStatusDisplay(
+        booking.payment?.status,
+        booking.totalCents,
+        amountPaidCents,
+        amountRefundedCents,
+      );
   // Prepare data for EditTripDetailsClient
   const tripEditData = {
     pickupAt: formatDateTimeLocal(booking.pickupAt),
@@ -811,6 +848,105 @@ export default async function AdminBookingDetailPage({
         stopOrder: s.stopOrder,
       }))
       .filter((s) => s.lat && s.lng) ?? [];
+
+  // Check if booking has fees
+  // ─── Build invoiceData for preview + PDF download ───
+  let invoiceData: InvoiceData | null = null;
+
+  if (isCorporateBooking && corporateInvoice) {
+    // Corporate: use the dedicated action
+    const result = await getCorporateInvoiceData(corporateInvoice.id);
+    if (result.ok) {
+      invoiceData = result.data;
+    }
+  } else if (isPaid) {
+    // Regular (guest / account): build inline when paid
+    const companySettings = await getCompanySettings();
+    const baseFareCents =
+      booking.subtotalCents - (booking.stopSurchargeCents ?? stopCount * 1500);
+
+    const invoiceLineItems: InvoiceLineItem[] = [];
+
+    invoiceLineItems.push({
+      description: `${booking.serviceType?.name ?? "Transportation"} - ${booking.vehicle?.name ?? "Vehicle"}`,
+      amount: baseFareCents,
+    });
+
+    if (stopCount > 0 && stopSurchargeCents > 0) {
+      invoiceLineItems.push({
+        description: `Extra Stop${stopCount > 1 ? "s" : ""} (${stopCount} × $15.00)`,
+        amount: stopSurchargeCents,
+      });
+    }
+
+    if (booking.feesCents > 0) {
+      invoiceLineItems.push({
+        description: "Service Fee",
+        amount: booking.feesCents,
+      });
+    }
+
+    if (booking.taxesCents > 0) {
+      invoiceLineItems.push({
+        description: "Tax",
+        amount: booking.taxesCents,
+      });
+    }
+
+    invoiceData = {
+      invoiceNumber: booking.id.slice(0, 8).toUpperCase(),
+      invoiceDate: formatInvoiceDate(booking.createdAt),
+      paidDate: booking.payment?.paidAt
+        ? formatInvoiceDate(booking.payment.paidAt)
+        : null,
+
+      company: {
+        name: companySettings.officeName || "Nier Transportation",
+        address: companySettings.officeAddress || "",
+        city: companySettings.officeCity || "",
+        phone: companySettings.dispatchPhone || "",
+        email: companySettings.supportEmail || "",
+      },
+
+      customer: {
+        name:
+          booking.user?.name?.trim() ||
+          booking.guestName?.trim() ||
+          booking.user?.email ||
+          "Customer",
+        email: booking.user?.email || booking.guestEmail || "",
+        phone: booking.user?.phone || booking.guestPhone || null,
+      },
+
+      trip: {
+        date: formatTripDateTime(booking.pickupAt),
+        pickupAddress: booking.pickupAddress,
+        dropoffAddress: booking.dropoffAddress,
+        stops: booking.stops.map((s) => ({
+          address: s.address,
+          stopOrder: s.stopOrder,
+        })),
+        serviceName: booking.serviceType?.name ?? "Transportation",
+        vehicleName: booking.vehicle?.name ?? "Vehicle",
+        passengers: booking.passengers,
+        luggage: booking.luggage,
+        distanceMiles: decimalToNumber(booking.distanceMiles),
+        durationMinutes: booking.durationMinutes,
+      },
+
+      lineItems: invoiceLineItems,
+
+      subtotalCents: booking.subtotalCents,
+      feesCents: booking.feesCents,
+      taxesCents: booking.taxesCents,
+      totalCents: booking.totalCents,
+      tipCents,
+      amountPaidCents,
+      amountRefundedCents,
+
+      currency: booking.currency,
+    };
+  }
 
   // Check if booking has fees
   const hasFees = booking.fees && booking.fees.length > 0;
@@ -1474,6 +1610,15 @@ export default async function AdminBookingDetailPage({
             </div>
           )}
         </Card>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            INVOICE PREVIEW
+            ═══════════════════════════════════════════════════════════════════ */}
+        {invoiceData && (
+          <Card title='Invoice'>
+            <InvoiceSection invoice={invoiceData} bookingId={booking.id} />
+          </Card>
+        )}
 
         {/* ═══════════════════════════════════════════════════════════════════
             ACTIVITY TIMELINE

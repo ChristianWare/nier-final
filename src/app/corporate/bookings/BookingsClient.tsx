@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./CorporateBookings.module.css";
 
 /* ─────────────────────────────────────────────
@@ -137,8 +138,10 @@ export default function BookingsClient({
   spendThisMonthCents,
 }: Props) {
   // ─── Filters ───
-  const [search, setSearch] = useState("");
-  const [statusTab, setStatusTab] = useState<StatusTab>("ALL");
+const router = useRouter();
+
+// ─── Filters ───
+const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = useState<StatusTab>("ALL");
   const [passengerFilter, setPassengerFilter] = useState("ALL");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -352,7 +355,13 @@ export default function BookingsClient({
               </thead>
               <tbody>
                 {pageBookings.map((b) => (
-                  <tr key={b.id} className={styles.tr}>
+                  <tr
+                    key={b.id}
+                    className={styles.tr}
+                    onClick={() => router.push(`/corporate/bookings/${b.id}`)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {" "}
                     {/* Date & Time */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
@@ -362,14 +371,12 @@ export default function BookingsClient({
                         {formatPickupTime(b.pickupAt)}
                       </span>
                     </td>
-
                     {/* Passenger */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
                         {b.passengerName}
                       </span>
                     </td>
-
                     {/* Route */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
@@ -379,17 +386,14 @@ export default function BookingsClient({
                         → {shortAddress(b.dropoffAddress)}
                       </span>
                     </td>
-
                     {/* Service */}
                     <td className={styles.td}>{b.service}</td>
-
                     {/* Driver */}
                     <td className={styles.td}>
                       {b.driverName || (
                         <span className={styles.cellMuted}>Unassigned</span>
                       )}
                     </td>
-
                     {/* Status */}
                     <td className={styles.td}>
                       <span
@@ -398,7 +402,6 @@ export default function BookingsClient({
                         {statusLabel(b.status)}
                       </span>
                     </td>
-
                     {/* Fare */}
                     <td className={`${styles.td} ${styles.tdRight}`}>
                       {b.totalCents > 0 ? formatMoney(b.totalCents) : "—"}
