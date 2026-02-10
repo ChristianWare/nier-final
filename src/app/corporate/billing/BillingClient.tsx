@@ -4,7 +4,7 @@ import { useState, useMemo, useTransition } from "react";
 import styles from "./CorporateBilling.module.css";
 import Modal from "@/components/shared/Modal/Modal";
 import InvoicePreview from "@/components/Dashboard/InvoicePreview/InvoicePreview";
-import { getCorporateInvoiceData } from "../../../../actions/corporate/getCorporateInvoiceData"; 
+import { getCorporateInvoiceData } from "../../../../actions/corporate/getCorporateInvoiceData";
 import type { InvoiceData } from "@/lib/invoice/types";
 import toast from "react-hot-toast";
 
@@ -23,6 +23,8 @@ type AccountBilling = {
 
 type Invoice = {
   id: string;
+  invoiceNumber: string;
+  bookingConfirmation: string | null;
   status: string;
   totalCents: number;
   amountPaidCents: number;
@@ -152,7 +154,6 @@ export default function BillingClient({
     for (const inv of invoices) {
       map[inv.status] = (map[inv.status] ?? 0) + 1;
     }
-    // Merge PARTIALLY_PAID into SENT for display
     if (map.PARTIALLY_PAID) {
       map.SENT = (map.SENT ?? 0) + map.PARTIALLY_PAID;
     }
@@ -362,14 +363,16 @@ export default function BillingClient({
                     className={`${styles.tr} ${styles.trClickable}`}
                     onClick={() => handleInvoiceClick(inv.id)}
                   >
-                    {/* Invoice ID */}
+                    {/* Invoice # + Booking Confirmation */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
-                        {inv.id.slice(-8).toUpperCase()}
+                        {inv.invoiceNumber}
                       </span>
-                      <span className={styles.cellSub}>
-                        Created {formatDate(inv.createdAt)}
-                      </span>
+                      {inv.bookingConfirmation && (
+                        <span className={styles.cellSub}>
+                          Booking #{inv.bookingConfirmation}
+                        </span>
+                      )}
                     </td>
 
                     {/* Period */}

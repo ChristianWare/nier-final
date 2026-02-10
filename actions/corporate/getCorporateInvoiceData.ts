@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // actions/corporate/getCorporateInvoiceData.ts
 "use server";
 
@@ -92,11 +93,20 @@ export async function getCorporateInvoiceData(
 
     const companySettings = await getCompanySettings();
 
-    // Build line items
-    const lineItems: InvoiceLineItem[] = invoice.lineItems.map((li) => ({
-      description: li.description,
-      amount: li.amountCents,
-    }));
+    // Build line items — prepend booking confirmation to each description
+    const bookingMap = new Map(bookings.map((b) => [b.id, b]));
+
+    const lineItems: InvoiceLineItem[] = invoice.lineItems.map((li) => {
+      const confirmationCode = li.bookingId
+        ? li.bookingId.slice(0, 8).toUpperCase()
+        : null;
+      const prefix = confirmationCode ? `[#${confirmationCode}] ` : "";
+
+      return {
+        description: `${prefix}${li.description}`,
+        amount: li.amountCents,
+      };
+    });
 
     if (invoice.discountCents > 0) {
       lineItems.push({
@@ -108,6 +118,18 @@ export async function getCorporateInvoiceData(
     const firstBooking = bookings[0] ?? null;
     const account = invoice.corporateAccount;
 
+    // Build booking confirmation for the invoice header
+    const firstBookingId = invoice.lineItems[0]?.bookingId ?? null;
+    const bookingConfirmation = firstBookingId
+      ? firstBookingId.slice(0, 8).toUpperCase()
+      : null;
+
+    // Format invoice number to include booking confirmation
+    // e.g. "INV-2026-0001 | Booking #CMLFV6RJ"
+    const displayInvoiceNumber = bookingConfirmation
+      ? `${invoice.invoiceNumber}  ·  Booking #${bookingConfirmation}`
+      : invoice.invoiceNumber;
+
     const billingAddress = [
       account?.billingAddress,
       account?.billingCity,
@@ -118,7 +140,7 @@ export async function getCorporateInvoiceData(
       .join(", ");
 
     const data: InvoiceData = {
-      invoiceNumber: invoice.invoiceNumber,
+      invoiceNumber: displayInvoiceNumber,
       invoiceDate: formatInvoiceDate(invoice.createdAt),
       paidDate: invoice.paidAt ? formatInvoiceDate(invoice.paidAt) : null,
 

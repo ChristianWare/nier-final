@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/app/api/corporate-invoices/[invoiceId]/download/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "../../../../../../auth";
@@ -35,7 +34,6 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is admin OR corporate contact for this invoice
     const userId =
       (session.user as { id?: string }).id ??
       (session.user as { userId?: string }).userId;
@@ -68,9 +66,6 @@ export async function GET(
           },
         },
         lineItems: {
-          include: {
-            // We need booking details for each line item
-          },
           orderBy: { createdAt: "asc" },
         },
       },
@@ -111,16 +106,21 @@ export async function GET(
       },
     });
 
-    const bookingMap = new Map(bookings.map((b) => [b.id, b]));
-
     // Get company settings
     const companySettings = await getCompanySettings();
 
-    // Build line items for invoice
-    const lineItems: InvoiceLineItem[] = invoice.lineItems.map((li) => ({
-      description: li.description,
-      amount: li.amountCents,
-    }));
+    // Build line items — prepend booking confirmation to each description
+    const lineItems: InvoiceLineItem[] = invoice.lineItems.map((li) => {
+      const confirmationCode = li.bookingId
+        ? li.bookingId.slice(0, 8).toUpperCase()
+        : null;
+      const prefix = confirmationCode ? `[#${confirmationCode}] ` : "";
+
+      return {
+        description: `${prefix}${li.description}`,
+        amount: li.amountCents,
+      };
+    });
 
     // If there's a discount, add it as a line item
     if (invoice.discountCents > 0) {
@@ -130,10 +130,20 @@ export async function GET(
       });
     }
 
-    // Use the first booking for trip details (PER_RIDE invoices have one booking)
+    // Use the first booking for trip details
     const firstBooking = bookings[0] ?? null;
-
     const account = invoice.corporateAccount;
+
+    // Build booking confirmation for invoice header
+    const firstBookingId = invoice.lineItems[0]?.bookingId ?? null;
+    const bookingConfirmation = firstBookingId
+      ? firstBookingId.slice(0, 8).toUpperCase()
+      : null;
+
+    const displayInvoiceNumber = bookingConfirmation
+      ? `${invoice.invoiceNumber}  ·  Booking #${bookingConfirmation}`
+      : invoice.invoiceNumber;
+
     const billingAddress = [
       account?.billingAddress,
       account?.billingCity,
@@ -144,7 +154,7 @@ export async function GET(
       .join(", ");
 
     const invoiceData: InvoiceData = {
-      invoiceNumber: invoice.invoiceNumber,
+      invoiceNumber: displayInvoiceNumber,
       invoiceDate: formatInvoiceDate(invoice.createdAt),
       paidDate: invoice.paidAt ? formatInvoiceDate(invoice.paidAt) : null,
 

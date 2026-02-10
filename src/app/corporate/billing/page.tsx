@@ -64,12 +64,13 @@ export default async function CorporateBillingPage() {
   // ─── Parallel data fetching ───
   const [invoices, spendThisMonthAgg, spendAllTimeAgg, ridesThisMonth] =
     await Promise.all([
-      // All invoices
+      // All invoices — include first line item to get booking ID
       db.corporateInvoice.findMany({
         where: { corporateAccountId: account.id },
         orderBy: { createdAt: "desc" },
         select: {
           id: true,
+          invoiceNumber: true,
           status: true,
           totalCents: true,
           amountPaidCents: true,
@@ -80,6 +81,11 @@ export default async function CorporateBillingPage() {
           paidAt: true,
           createdAt: true,
           _count: { select: { lineItems: true } },
+          lineItems: {
+            select: { bookingId: true },
+            orderBy: { createdAt: "asc" },
+            take: 1,
+          },
         },
       }),
 
@@ -123,19 +129,27 @@ export default async function CorporateBillingPage() {
     return sum;
   }, 0);
 
-  const serializedInvoices = invoices.map((inv) => ({
-    id: inv.id,
-    status: inv.status,
-    totalCents: Number(inv.totalCents),
-    amountPaidCents: Number(inv.amountPaidCents ?? 0),
-    periodStart: inv.periodStart?.toISOString() ?? "",
-    periodEnd: inv.periodEnd?.toISOString() ?? "",
-    dueDate: inv.dueDate?.toISOString() ?? "",
-    sentAt: inv.sentAt?.toISOString() ?? "",
-    paidAt: inv.paidAt?.toISOString() ?? "",
-    createdAt: inv.createdAt.toISOString(),
-    lineItemCount: inv._count.lineItems,
-  }));
+  const serializedInvoices = invoices.map((inv) => {
+    const firstBookingId = inv.lineItems[0]?.bookingId ?? null;
+
+    return {
+      id: inv.id,
+      invoiceNumber: inv.invoiceNumber,
+      bookingConfirmation: firstBookingId
+        ? firstBookingId.slice(0, 8).toUpperCase()
+        : null,
+      status: inv.status,
+      totalCents: Number(inv.totalCents),
+      amountPaidCents: Number(inv.amountPaidCents ?? 0),
+      periodStart: inv.periodStart?.toISOString() ?? "",
+      periodEnd: inv.periodEnd?.toISOString() ?? "",
+      dueDate: inv.dueDate?.toISOString() ?? "",
+      sentAt: inv.sentAt?.toISOString() ?? "",
+      paidAt: inv.paidAt?.toISOString() ?? "",
+      createdAt: inv.createdAt.toISOString(),
+      lineItemCount: inv._count.lineItems,
+    };
+  });
 
   return (
     <BillingClient
