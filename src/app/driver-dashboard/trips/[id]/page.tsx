@@ -9,6 +9,7 @@ import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
 import TripStatusStepper from "@/components/Driver/TripStatusStepper/TripStatusStepper";
 import FlightStatusCard from "@/components/admin/FlightStatusCard/FlightStatusCard";
+import Button from "@/components/shared/Button/Button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -516,6 +517,29 @@ export default async function DriverTripDetailPage({
           </div>
         </div>
       )}
+
+      {/* Greetsign */}
+      <div className={styles.card}>
+        <h2 className='cardTitle h4'>🪧 Meet & Greet</h2>
+        <p
+          style={{
+            fontSize: "1.25rem",
+            opacity: 0.7,
+            marginTop: 8,
+            marginBottom: 16,
+          }}
+        >
+          Display a full-screen sign with the passenger&apos;s name for airport
+          pickups.
+        </p>
+       
+        <Button
+          href={`/driver-dashboard/trips/${booking.id}/greetsign`}
+          text='Open Greetsign'
+          btnType='black'
+          arrow
+        />
+      </div>
 
       {/* Admin Link (for admins only) */}
       {isAdmin && (
