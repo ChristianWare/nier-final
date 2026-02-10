@@ -1,7 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import styles from "./CorporateBilling.module.css";
+import Modal from "@/components/shared/Modal/Modal";
+import InvoicePreview from "@/components/Dashboard/InvoicePreview/InvoicePreview";
+import { getCorporateInvoiceData } from "../../../../actions/corporate/getCorporateInvoiceData"; 
+import type { InvoiceData } from "@/lib/invoice/types";
+import toast from "react-hot-toast";
 
 /* ─────────────────────────────────────────────
    Types
@@ -134,6 +139,13 @@ export default function BillingClient({
 }: Props) {
   const [statusTab, setStatusTab] = useState<StatusTab>("ALL");
 
+  // Invoice preview modal state
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<InvoiceData | null>(null);
+  const [previewInvoiceId, setPreviewInvoiceId] = useState<string | null>(null);
+  const [isLoadingPreview, startPreviewTransition] = useTransition();
+  const [isDownloading, setIsDownloading] = useState(false);
+
   // Tab counts
   const tabCounts = useMemo(() => {
     const map: Record<string, number> = { ALL: invoices.length };
@@ -156,6 +168,58 @@ export default function BillingClient({
       );
     return invoices.filter((i) => i.status === statusTab);
   }, [invoices, statusTab]);
+
+  // Open invoice preview
+  function handleInvoiceClick(invoiceId: string) {
+    setPreviewInvoiceId(invoiceId);
+    setPreviewData(null);
+    setPreviewOpen(true);
+
+    startPreviewTransition(async () => {
+      const result = await getCorporateInvoiceData(invoiceId);
+      if (result.ok) {
+        setPreviewData(result.data);
+      } else {
+        toast.error(result.error ?? "Failed to load invoice.");
+        setPreviewOpen(false);
+      }
+    });
+  }
+
+  // Download PDF
+  async function handleDownload() {
+    if (!previewInvoiceId || !previewData) return;
+
+    setIsDownloading(true);
+
+    try {
+      const response = await fetch(
+        `/api/corporate-invoices/${previewInvoiceId}/download`,
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to download invoice");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${previewData.invoiceNumber}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to download invoice",
+      );
+    } finally {
+      setIsDownloading(false);
+    }
+  }
 
   return (
     <div className={styles.content}>
@@ -293,7 +357,11 @@ export default function BillingClient({
               </thead>
               <tbody>
                 {filtered.map((inv) => (
-                  <tr key={inv.id} className={styles.tr}>
+                  <tr
+                    key={inv.id}
+                    className={`${styles.tr} ${styles.trClickable}`}
+                    onClick={() => handleInvoiceClick(inv.id)}
+                  >
                     {/* Invoice ID */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
@@ -354,6 +422,31 @@ export default function BillingClient({
           </div>
         </div>
       )}
+
+      {/* ─── Invoice Preview Modal ─── */}
+      <Modal
+        isOpen={previewOpen}
+        onClose={() => {
+          setPreviewOpen(false);
+          setPreviewData(null);
+          setPreviewInvoiceId(null);
+        }}
+      >
+        <div className={styles.invoiceModalContent}>
+          {isLoadingPreview || !previewData ? (
+            <div className={styles.invoiceLoading}>
+              <div className={styles.spinner} />
+              <span>Loading invoice…</span>
+            </div>
+          ) : (
+            <InvoicePreview
+              invoice={previewData}
+              onDownload={handleDownload}
+              isDownloading={isDownloading}
+            />
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }
