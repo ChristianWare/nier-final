@@ -3,8 +3,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
-import { handleCorporateBookingCompleted } from "@/lib/corporate/generateCorporateInvoice";
-
+import { generateCorporateInvoiceForBooking } from "@/lib/corporate/generateCorporateInvoice";
 export async function adminUpdateBookingStatus({
   bookingId,
   status,
@@ -24,7 +23,7 @@ export async function adminUpdateBookingStatus({
 
     // Generate corporate invoice when ride completes
     if (status === "COMPLETED" && booking.corporateAccountId) {
-      const result = await handleCorporateBookingCompleted(bookingId);
+      const result = await generateCorporateInvoiceForBooking(bookingId);
       if (!result.ok) {
         console.error(
           `[adminUpdateBookingStatus] Invoice generation failed for ${bookingId}:`,
