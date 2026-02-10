@@ -1,0 +1,291 @@
+.container {
+  display: grid;
+  gap: 2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2rem;
+}
+
+.header {
+  display: grid;
+  gap: 12px;
+}
+
+.titleRow {
+  display: grid;
+  gap: 10px;
+}
+
+.orangeBorder {
+  border-left: 4px solid #f97316;
+  padding-left: 12px;
+}
+
+.kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  opacity: 0.8;
+  font-size: 12px;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 1rem;
+}
+
+.kpi {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.02);
+  font-weight: 700;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tableCard {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.thead {
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 2;
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: all 0.3s ease-in;
+  position: relative;
+}
+
+.tr:hover {
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
+}
+
+.td {
+  padding: 12px 14px;
+  vertical-align: top;
+  position: relative;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cellInner {
+  position: relative;
+  z-index: 2;
+}
+
+.tdRight {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rowLink {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+}
+
+.cellStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.cellSub {
+  font-size: 1.15rem;
+  opacity: 0.7;
+  line-height: 1.25;
+}
+
+.cellMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.route {
+  font-size: 1.15rem;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 520px;
+}
+
+.missingPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.missingPill {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  background: rgba(249, 115, 22, 0.14);
+  border: 1px solid rgba(249, 115, 22, 0.45);
+  color: #9a3412;
+}
+
+.pill {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  white-space: nowrap;
+}
+
+@media screen and (max-width: 768px) {
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+  }
+
+  .tr:hover {
+    background: var(--white);
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 900;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .tdRight {
+    text-align: left;
+  }
+
+  .route {
+    max-width: 100%;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.25;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .kpis {
+    gap: 8px;
+  }
+
+  .kpi {
+    padding: 6px 9px;
+  }
+
+  .td::before {
+    font-size: 1rem;
+  }
+
+  .cellSub {
+    font-size: 1.05rem;
+  }
+
+  .pill {
+    font-size: 11px;
+    padding: 4px 7px;
+  }
+
+  .missingPill {
+    font-size: 10px;
+    padding: 3px 7px;
+  }
+}

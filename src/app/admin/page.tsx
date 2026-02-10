@@ -31,6 +31,9 @@ import { db } from "@/lib/db";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
 import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
+import AdminIncompleteApprovals, {
+  IncompleteApprovalItem,
+} from "@/components/admin/AdminIncompleteApprovals/AdminIncompleteApprovals";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -369,6 +372,7 @@ export default async function AdminHome() {
     unpaidUpcomingTripsRaw,
     upcomingAssignmentsForOverlapCheck,
     pendingCorporateInquiries,
+    incompleteApprovalsRaw,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -1002,6 +1006,56 @@ export default async function AdminHome() {
     db.corporateInquiry.count({
       where: { status: "PENDING" },
     }),
+    // Bookings with incomplete approvals (future, non-cancelled)
+    db.booking.findMany({
+      where: {
+        pickupAt: { gte: now },
+        NOT: { status: { in: cancelledLike as any } },
+        OR: [
+          { routeApproved: false },
+          { priceApproved: false },
+          { assignment: { is: null } },
+        ],
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      take: 50,
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        totalCents: true,
+        currency: true,
+        routeApproved: true,
+        priceApproved: true,
+        userId: true,
+        corporateAccountId: true,
+        user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        serviceType: { select: { name: true } },
+        vehicle: { select: { name: true } },
+        assignment: {
+          select: {
+            driverId: true,
+            vehicleUnitId: true,
+            driverPaymentCents: true,
+          },
+        },
+        payment: {
+          select: { status: true, checkoutUrl: true },
+        },
+        corporateAccount: { select: { name: true } },
+        corporatePassenger: { select: { name: true, email: true } },
+        statusEvents: {
+          where: { eventType: "PAYMENT_LINK_SENT" },
+          take: 1,
+          select: { id: true },
+        },
+      },
+    }),
   ]);
 
   const driversAssignedToday = driversAssignedTodayDistinct.length;
@@ -1263,6 +1317,59 @@ export default async function AdminHome() {
         airportLeg: (b.serviceType?.airportLeg ?? "NONE") as any,
         specialRequests: b.specialRequests ?? null,
         customer,
+      };
+    });
+
+    const incompleteApprovals: IncompleteApprovalItem[] = (
+      incompleteApprovalsRaw as any[]
+    ).map((b) => {
+      const isCorporate = Boolean(b.corporateAccountId);
+      const isPaid = b.payment?.status === "PAID";
+      const hasPaymentLink =
+        Boolean(b.payment?.checkoutUrl) || (b.statusEvents?.length ?? 0) > 0;
+
+      return {
+        id: b.id,
+        status: b.status,
+        createdAtIso: new Date(b.createdAt).toISOString(),
+        pickupAtIso: new Date(b.pickupAt).toISOString(),
+        pickupAddress: b.pickupAddress,
+        dropoffAddress: b.dropoffAddress,
+        serviceName: b.serviceType?.name ?? "—",
+        vehicleName: b.vehicle?.name ?? null,
+        totalCents: b.totalCents ?? 0,
+        currency: b.currency ?? "usd",
+        customer: isCorporate
+          ? {
+              name: b.corporatePassenger?.name?.trim() || "Corporate passenger",
+              email: b.corporatePassenger?.email ?? null,
+              kind: "corporate" as const,
+              accountName: b.corporateAccount?.name ?? "Corporate",
+            }
+          : b.userId
+            ? {
+                name: (b.user?.name ?? "").trim() || b.user?.email || "Account",
+                email: b.user?.email ?? null,
+                kind: "account" as const,
+              }
+            : {
+                name: (b.guestName ?? "").trim() || "Guest",
+                email: b.guestEmail ?? null,
+                kind: "guest" as const,
+              },
+        approvals: {
+          routeApproved: Boolean(b.routeApproved),
+          priceApproved: Boolean(b.priceApproved),
+          hasDriver: Boolean(b.assignment?.driverId),
+          hasVehicleUnit: Boolean(b.assignment?.vehicleUnitId),
+          hasDriverPay: Boolean(
+            b.assignment?.driverPaymentCents &&
+            b.assignment.driverPaymentCents > 0,
+          ),
+          isPaid,
+          hasPaymentLink,
+          isCorporate,
+        },
       };
     });
 
@@ -1808,6 +1915,11 @@ export default async function AdminHome() {
       />
       <AdminUpcomingRides
         items={upcomingRides}
+        timeZone={PHX_TZ}
+        bookingHrefBase='/admin/bookings'
+      />
+      <AdminIncompleteApprovals
+        items={incompleteApprovals}
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
