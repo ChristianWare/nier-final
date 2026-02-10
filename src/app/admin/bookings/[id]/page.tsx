@@ -947,6 +947,30 @@ export default async function AdminBookingDetailPage({
             k='Amount due'
             v={formatMoney(booking.totalCents, booking.currency)}
           />
+          {booking.discountCents && booking.discountCents > 0 ? (
+            <div className={styles.keyVal}>
+              <div className='emptyTitle'>Corporate discount</div>
+              <p className='subheading' style={{ color: "#15803d" }}>
+                −{formatMoney(booking.discountCents, booking.currency)} off
+                {booking.corporateAccount?.discountPercent
+                  ? ` (${Number(booking.corporateAccount.discountPercent)}%)`
+                  : ""}
+                <span
+                  style={{
+                    marginLeft: 8,
+                    color: "var(--paragraph)",
+                    fontWeight: 400,
+                  }}
+                >
+                  was{" "}
+                  {formatMoney(
+                    booking.totalCents + booking.discountCents,
+                    booking.currency,
+                  )}
+                </span>
+              </p>
+            </div>
+          ) : null}
           {booking.specialRequests ? (
             <KeyVal k='Special requests' v={booking.specialRequests} />
           ) : null}

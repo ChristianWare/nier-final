@@ -442,6 +442,8 @@ model Booking {
 
   eventType String?
 
+  discountCents Int?
+
   @@index([userId])
   @@index([serviceTypeId])
   @@index([vehicleId])

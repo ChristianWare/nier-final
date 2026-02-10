@@ -316,13 +316,14 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
   // ─── Apply corporate discount ───
   let finalSubtotalCents = quote.breakdown.subtotalCents;
   let finalTotalCents = quote.totalCents;
+  let appliedDiscountCents = 0;
 
   if (corporateDiscountPercent && corporateDiscountPercent > 0) {
-    const discountCents = Math.round(
+    appliedDiscountCents = Math.round(
       finalTotalCents * (corporateDiscountPercent / 100),
     );
-    finalTotalCents = finalTotalCents - discountCents;
-    finalSubtotalCents = finalSubtotalCents - discountCents;
+    finalTotalCents = finalTotalCents - appliedDiscountCents;
+    finalSubtotalCents = finalSubtotalCents - appliedDiscountCents;
   }
 
   // Parse flight scheduled time if provided
@@ -387,6 +388,9 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
       // Pricing (with corporate discount applied)
       subtotalCents: finalSubtotalCents,
       totalCents: finalTotalCents,
+
+      // ✅ Store the discount so we can track it
+      discountCents: appliedDiscountCents > 0 ? appliedDiscountCents : null,
 
       // Corporate fields
       corporateAccountId: resolvedCorporateAccountId,

@@ -91,7 +91,7 @@ async function chargeCardOnFile(
   amountCents: number,
   invoiceNumber: string,
   companyName: string,
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; stripePaymentIntentId?: string; error?: string }> {
   try {
     // Get the default payment method
     const customer = (await stripe.customers.retrieve(
@@ -133,7 +133,7 @@ async function chargeCardOnFile(
     });
 
     if (intent.status === "succeeded") {
-      return { ok: true };
+      return { ok: true, stripePaymentIntentId: intent.id };
     }
 
     return {
@@ -191,12 +191,15 @@ export async function generateCorporateInvoice(
     const account = booking.corporateAccount;
 
     // ─── 2. Calculate amounts ───
-    const subtotalCents = booking.totalCents;
-    const discountPercent = account.discountPercent
-      ? Number(account.discountPercent)
-      : 0;
-    const discountCents = Math.round(subtotalCents * (discountPercent / 100));
-    const totalCents = subtotalCents - discountCents;
+    // IMPORTANT: booking.totalCents already has the corporate discount applied
+    // (applied during booking creation in adminCreateBooking).
+    // The discount was stored in booking.discountCents.
+    // We reconstruct the pre-discount subtotal for the invoice display.
+
+    const storedDiscountCents = booking.discountCents ?? 0;
+    const subtotalCents = booking.totalCents + storedDiscountCents; // pre-discount amount
+    const discountCents = storedDiscountCents;
+    const totalCents = booking.totalCents; // already discounted
 
     // ─── 3. Generate invoice number + due date ───
     const invoiceNumber = await nextInvoiceNumber();
@@ -276,6 +279,7 @@ export async function generateCorporateInvoice(
         charged = true;
 
         await db.$transaction(async (tx) => {
+          // ✅ Mark the invoice as PAID
           await tx.corporateInvoice.update({
             where: { id: invoice.id },
             data: {
@@ -285,6 +289,7 @@ export async function generateCorporateInvoice(
             },
           });
 
+          // ✅ Create invoice payment event
           await tx.corporateInvoiceEvent.create({
             data: {
               invoiceId: invoice.id,
@@ -294,6 +299,45 @@ export async function generateCorporateInvoice(
                 method: "CARD_ON_FILE",
                 amountCents: totalCents,
                 stripeCustomerId: account.stripeCustomerId,
+                stripePaymentIntentId:
+                  chargeResult.stripePaymentIntentId ?? null,
+              },
+            },
+          });
+
+          // ✅ Create / update the booking's Payment record
+          // so the admin booking detail page shows "Paid"
+          await tx.payment.upsert({
+            where: { bookingId: booking.id },
+            create: {
+              bookingId: booking.id,
+              status: "PAID",
+              amountPaidCents: totalCents,
+              tipCents: 0,
+              amountRefundedCents: 0,
+              paidAt: new Date(),
+              stripePaymentIntentId: chargeResult.stripePaymentIntentId ?? null,
+            },
+            update: {
+              status: "PAID",
+              amountPaidCents: totalCents,
+              paidAt: new Date(),
+              stripePaymentIntentId: chargeResult.stripePaymentIntentId ?? null,
+            },
+          });
+
+          // ✅ Create a booking status event for the payment
+          await tx.bookingStatusEvent.create({
+            data: {
+              bookingId: booking.id,
+              status: booking.status,
+              eventType: "PAYMENT_RECEIVED",
+              createdById: adminUserId ?? null,
+              metadata: {
+                method: "corporate_card_on_file",
+                amountCents: totalCents,
+                invoiceNumber,
+                corporateAccountName: account.name,
               },
             },
           });

@@ -649,6 +649,15 @@ export default function AdminNewBookingWizard({
 
   const estimateCents = selectedQuote?.totalCents ?? 0;
 
+  // Corporate discount applied client-side for display
+  const corporateDiscountPercent = isCorporateBooking
+    ? (selectedCorporateAccount?.discountPercent ?? 0)
+    : 0;
+  const discountAmountCents =
+    corporateDiscountPercent > 0
+      ? Math.round(estimateCents * (corporateDiscountPercent / 100))
+      : 0;
+  const displayTotalCents = estimateCents - discountAmountCents;
   function pickDate(val: string) {
     resetCreatedBooking();
     if (val && blackoutsByYmd[val]) {
@@ -1213,8 +1222,8 @@ export default function AdminNewBookingWizard({
 
   const checklistEstimateLabel = useMemo(() => {
     if (!selectedVehicle || estimateCents <= 0) return null;
-    return `$${centsToUsd(estimateCents)}`;
-  }, [selectedVehicle, estimateCents]);
+    return `$${centsToUsd(displayTotalCents)}`;
+  }, [selectedVehicle, displayTotalCents]);
 
   const adminStepLabels: Record<number, string> = {
     1: "Trip Details",
@@ -2469,7 +2478,13 @@ export default function AdminNewBookingWizard({
                       : null;
 
                     const rowEstimateCents = rowQuote?.totalCents ?? 0;
-
+                    const rowDiscountCents =
+                      corporateDiscountPercent > 0
+                        ? Math.round(
+                            rowEstimateCents * (corporateDiscountPercent / 100),
+                          )
+                        : 0;
+                    const rowDisplayCents = rowEstimateCents - rowDiscountCents;
                     const rowMinHours =
                       selectedService?.pricingStrategy === "HOURLY"
                         ? v.minHours
@@ -2506,7 +2521,24 @@ export default function AdminNewBookingWizard({
                         <div className={styles.vehicleTop}>
                           <div className='emptyTitle'>{v.name}</div>
                           <div className='emptyTitleSmall'>
-                            ${centsToUsd(rowEstimateCents)}
+                            {rowDiscountCents > 0 ? (
+                              <>
+                                <span
+                                  style={{
+                                    textDecoration: "line-through",
+                                    opacity: 0.5,
+                                    marginRight: 6,
+                                  }}
+                                >
+                                  ${centsToUsd(rowEstimateCents)}
+                                </span>
+                                <span style={{ color: "#15803d" }}>
+                                  ${centsToUsd(rowDisplayCents)}
+                                </span>
+                              </>
+                            ) : (
+                              `$${centsToUsd(rowEstimateCents)}`
+                            )}
                           </div>
                         </div>
 
@@ -3003,9 +3035,26 @@ export default function AdminNewBookingWizard({
                       label='Taxes'
                       value={`$${centsToUsd(bookingData?.taxesCents ?? 0)}`}
                     />
+                    {(bookingData?.discountCents ?? discountAmountCents) >
+                      0 && (
+                      <>
+                        <SummaryRow
+                          label='Pre-discount total'
+                          value={`$${centsToUsd(
+                            (bookingData?.totalCents ?? displayTotalCents) +
+                              (bookingData?.discountCents ??
+                                discountAmountCents),
+                          )}`}
+                        />
+                        <SummaryRow
+                          label={`Corporate discount (${corporateDiscountPercent}%)`}
+                          value={`−$${centsToUsd(bookingData?.discountCents ?? discountAmountCents)}`}
+                        />
+                      </>
+                    )}
                     <SummaryRow
                       label='Total'
-                      value={`$${centsToUsd(bookingData?.totalCents ?? estimateCents)}`}
+                      value={`$${centsToUsd(bookingData?.totalCents ?? displayTotalCents)}`}
                       strong
                     />
 
