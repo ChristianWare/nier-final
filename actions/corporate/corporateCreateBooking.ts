@@ -3,7 +3,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { auth } from "../../auth"; 
+import { auth } from "../../auth";
 import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
 import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
@@ -144,6 +144,14 @@ export async function corporateCreateBooking(
   const pickupAtDate = new Date(input.pickupAt);
   if (!Number.isFinite(pickupAtDate.getTime()))
     return { error: "Invalid pickup time." as const };
+
+  // ─── 36-hour advance booking requirement ───
+  const minPickupAt = new Date(Date.now() + 36 * 60 * 60 * 1000);
+  if (pickupAtDate < minPickupAt) {
+    return {
+      error: "Bookings must be made at least 36 hours in advance." as const,
+    };
+  }
 
   // ─── Blackout check ───
   const ymd = ymdInPhoenix(pickupAtDate);

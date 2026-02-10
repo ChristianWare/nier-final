@@ -191,7 +191,7 @@ export default function CorporateNewBookingWizard({
   const [serviceTypeId, setServiceTypeId] = useState<string>("");
   const [pickupAtDate, setPickupAtDate] = useState<string>("");
   const [pickupAtTime, setPickupAtTime] = useState<string>("");
-  const [passengers_count, setPassengersCount] = useState<number>(1);
+  const [passengers_count, setPassengersCount] = useState<number>(0);
   const [luggage, setLuggage] = useState<number>(0);
   const [hoursRequested, setHoursRequested] = useState<number>(2);
 
@@ -387,6 +387,7 @@ export default function CorporateNewBookingWizard({
       passenger: false,
       service: false,
       dateTime: false,
+      tooSoon: false,
       pickup: false,
       dropoff: false,
       pickupAirport: false,
@@ -403,6 +404,12 @@ export default function CorporateNewBookingWizard({
     const hasDateTime = Boolean(pickupAtDate) && Boolean(pickupAtTime);
     const dateBlocked = pickupAtDate && blackoutsByYmd[pickupAtDate];
     if (!hasDateTime || dateBlocked) e.dateTime = true;
+
+    if (hasDateTime && !e.dateTime) {
+      const selectedDt = new Date(`${pickupAtDate}T${pickupAtTime}:00`);
+      const minAllowed = new Date(Date.now() + 36 * 60 * 60 * 1000);
+      if (selectedDt < minAllowed) e.tooSoon = true;
+    }
 
     if (selectedService) {
       if (
@@ -622,7 +629,11 @@ export default function CorporateNewBookingWizard({
               hasDropoff={Boolean(route?.dropoff)}
               dropoffLabel={shortAddress(route?.dropoff?.address) || null}
               hasPassengersLuggage={passengers_count >= 1}
-              passengersLuggageLabel={`${passengers_count} pax, ${luggage} bags`}
+              passengersLuggageLabel={
+                passengers_count >= 1
+                  ? `${passengers_count} pax, ${luggage} bags`
+                  : null
+              }
               hasVehicle={Boolean(vehicleId)}
               vehicleName={selectedVehicle?.name ?? null}
               estimateLabel={
@@ -641,6 +652,101 @@ export default function CorporateNewBookingWizard({
                 3: "Review",
                 4: "Confirmed",
               }}
+              customItems={[
+                {
+                  key: "service",
+                  label: "Service Type",
+                  description: "Choose a service for your trip",
+                  isComplete: Boolean(selectedService),
+                  value: selectedService?.name ?? null,
+                  step: 1,
+                  priority: "critical",
+                  sectionId: "wizard-field-service",
+                },
+                {
+                  key: "passenger",
+                  label: "Passenger",
+                  description: "Select an employee from your roster",
+                  isComplete: Boolean(
+                    corporatePassengerId ||
+                    (newPassengerMode && newPassengerName.trim()),
+                  ),
+                  value: selectedPassenger?.name ?? null,
+                  step: 1,
+                  priority: "critical",
+                  sectionId: "wizard-field-passenger",
+                },
+                {
+                  key: "datetime",
+                  label: "Date & Time",
+                  description: "Select your pickup date and time",
+                  isComplete: Boolean(pickupAtDate && pickupAtTime),
+                  value:
+                    pickupAtDate && pickupAtTime
+                      ? `${pickupAtDate} @ ${pickupAtTime}`
+                      : null,
+                  step: 1,
+                  priority: "critical",
+                  sectionId: "wizard-field-datetime",
+                },
+                {
+                  key: "passengers-luggage",
+                  label: "Passengers & Luggage",
+                  description: "How many passengers and bags?",
+                  isComplete: passengers_count >= 1,
+                  value:
+                    passengers_count >= 1
+                      ? `${passengers_count} pax, ${luggage} bags`
+                      : null,
+                  step: 1,
+                  priority: "critical",
+                  sectionId: "wizard-field-passengers-luggage",
+                },
+                {
+                  key: "pickup",
+                  label: "Pickup Location",
+                  description: "Enter your pickup address",
+                  isComplete: Boolean(route?.pickup),
+                  value: shortAddress(route?.pickup?.address) || null,
+                  step: 1,
+                  priority: "critical",
+                  sectionId: "wizard-field-pickup",
+                },
+                {
+                  key: "dropoff",
+                  label: "Dropoff Location",
+                  description: "Enter your destination",
+                  isComplete: Boolean(route?.dropoff),
+                  value: shortAddress(route?.dropoff?.address) || null,
+                  step: 1,
+                  priority: "critical",
+                  sectionId: "wizard-field-dropoff",
+                },
+                {
+                  key: "vehicle",
+                  label: "Vehicle",
+                  description: "Choose a vehicle category",
+                  isComplete: Boolean(vehicleId),
+                  value: selectedVehicle
+                    ? displayTotalCents > 0
+                      ? `${selectedVehicle.name} · $${centsToUsd(displayTotalCents)}`
+                      : selectedVehicle.name
+                    : null,
+                  step: 2,
+                  priority: "critical",
+                  sectionId: "wizard-field-vehicle",
+                },
+                {
+                  key: "confirm",
+                  label: "Confirm",
+                  description: "Final review of all details",
+                  isComplete: step >= 3,
+                  value: step >= 3 ? "Ready to submit" : null,
+                  step: 3,
+                  priority: "critical",
+                  sectionId: "wizard-field-confirm",
+                },
+              ]}
             />
           </div>
           <div className={styles.mobileOnly}>
@@ -662,7 +768,7 @@ export default function CorporateNewBookingWizard({
                 </p>
 
                 {/* Service */}
-                <div className={styles.sectionBox}>
+                <div id='wizard-field-service' className={styles.sectionBox}>
                   <label
                     className={cx(
                       "cardTitle h5",
@@ -732,7 +838,7 @@ export default function CorporateNewBookingWizard({
                 </div>
 
                 {/* Passenger */}
-                <div className={styles.sectionBox}>
+                <div id='wizard-field-passenger' className={styles.sectionBox}>
                   <label
                     className={cx(
                       "cardTitle h5",
@@ -885,7 +991,7 @@ export default function CorporateNewBookingWizard({
                 )}
 
                 {/* Date & Time */}
-                <div className={styles.sectionBox}>
+                <div id='wizard-field-datetime' className={styles.sectionBox}>
                   <label
                     className={cx(
                       "cardTitle h5",
@@ -902,8 +1008,22 @@ export default function CorporateNewBookingWizard({
                   />
                 </div>
 
+                {attemptTripNext && tripErrors.tooSoon && (
+                  <div
+                    className='miniNote'
+                    style={{ color: "rgba(180,0,0,0.85)" }}
+                  >
+                    Bookings must be made at least 36 hours in advance. Please
+                    select a later date/time.
+                  </div>
+                )}
+
                 {/* Passengers & Luggage */}
-                <div className={styles.sectionBox}>
+                <div
+                  id='wizard-field-passengers-luggage'
+                  className={styles.sectionBox}
+                >
+                  {" "}
                   <Grid2>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>Passengers</label>
@@ -932,7 +1052,7 @@ export default function CorporateNewBookingWizard({
 
                 {/* Pickup & Dropoff */}
                 <div className={styles.pickupDropoffContainer}>
-                  <div className={styles.sectionBox}>
+                  <div id='wizard-field-pickup' className={styles.sectionBox}>
                     <label
                       className={cx(
                         "cardTitle h5",
@@ -1114,7 +1234,7 @@ export default function CorporateNewBookingWizard({
                     </div>
                   )}
 
-                  <div className={styles.sectionBox}>
+                  <div id='wizard-field-dropoff' className={styles.sectionBox}>
                     <label
                       className={cx(
                         "cardTitle h5",
@@ -1332,6 +1452,7 @@ export default function CorporateNewBookingWizard({
                 </p>
 
                 <label
+                  id='wizard-field-vehicle'
                   className={cx(
                     "cardTitle h5",
                     vehicleErrors.vehicle && "redBorder",
