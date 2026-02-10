@@ -28,6 +28,8 @@ import { getCorporateInvoiceData } from "../../../../../actions/corporate/getCor
 import type { InvoiceData, InvoiceLineItem } from "@/lib/invoice/types";
 import { formatInvoiceDate, formatTripDateTime } from "@/lib/invoice/types";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import { getTripGroupForBooking } from "@/lib/tripGroup/getTripGroupForBooking";
+import TripGroupCard from "@/components/admin/TripGroupCard/TripGroupCard";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -471,6 +473,8 @@ export default async function AdminBookingDetailPage({
   });
 
   if (!booking) return notFound();
+
+  const tripGroupData = await getTripGroupForBooking(id);
 
   const isCorporateBooking = Boolean(booking.corporateAccountId);
 
@@ -1069,6 +1073,17 @@ export default async function AdminBookingDetailPage({
             </div>
           </div>
         </header>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            TRIP GROUP CARD (only shows for multi-leg bookings)
+            ═══════════════════════════════════════════════════════════════════ */}
+        {tripGroupData && (
+          <TripGroupCard
+            tripGroup={tripGroupData.tripGroup}
+            siblings={tripGroupData.siblings}
+            currentBookingId={id}
+          />
+        )}
 
         {/* ═══════════════════════════════════════════════════════════════════
             TRIP CARD

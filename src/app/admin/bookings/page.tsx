@@ -8,6 +8,7 @@ import CustomRangeFormClient from "./CustomRangeFormClient";
 import SearchFormClient from "./SearchFormClient";
 import ClearFiltersButton from "@/components/admin/Clearfiltersbutton/Clearfiltersbutton";
 import FilterSelectClient from "./FilterSelectClient";
+import TripGroupBadge from "@/components/admin/TripGroupBadge/TripGroupBadge";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -592,6 +593,15 @@ export default async function AdminBookingsPage({
           createdBy: { select: { name: true, email: true, roles: true } },
         },
       },
+      tripGroup: {
+        select: {
+          legCount: true,
+          bookings: {
+            select: { id: true },
+            orderBy: { pickupAt: "asc" },
+          },
+        },
+      },
     },
     orderBy,
     skip,
@@ -925,6 +935,12 @@ export default async function AdminBookingsPage({
 
                   const isCorporate = Boolean((b as any).corporateAccount);
 
+                  const tripGroup = (b as any).tripGroup ?? null;
+                  const legNumber = tripGroup
+                    ? tripGroup.bookings.findIndex(
+                        (bg: any) => bg.id === b.id,
+                      ) + 1
+                    : 0;
                   const customerName =
                     b.user?.name?.trim() ||
                     b.guestName?.trim() ||
@@ -1059,6 +1075,12 @@ export default async function AdminBookingsPage({
                           <span className={`badge badge_${statusTone}`}>
                             {statusDisplay}
                           </span>
+                          {tripGroup && legNumber > 0 && (
+                            <TripGroupBadge
+                              legNumber={legNumber}
+                              totalLegs={tripGroup.legCount}
+                            />
+                          )}
                         </div>
                       </td>
                       {/* Customer */}
