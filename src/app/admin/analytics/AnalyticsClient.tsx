@@ -12,6 +12,7 @@ import {
   Tooltip,
 } from "recharts";
 import styles from "./AdminAnalyticsPage.module.css";
+import CountUp from "@/components/shared/CountUp/CountUp";
 
 import type {
   AggregateStats,
@@ -397,9 +398,9 @@ export default function AnalyticsClient({
       <div className={styles.kpiGrid}>
         {/* Unique Visitors */}
         <div className={styles.kpiCard}>
-          <div className={styles.kpiTop}>
+          <div className={`${styles.kpiTop} underline`}>
             <span className={styles.kpiLabel}>
-              <span className='miniNote'>Unique Visitors</span>
+              <span className='emptyTitle'>Unique Visitors</span>
               <InfoButton
                 metricKey='visitors'
                 activeInsight={activeInsight}
@@ -412,7 +413,13 @@ export default function AnalyticsClient({
             />
           </div>
           <span className={styles.kpiValue}>
-            {formatNumber(current.visitors)}
+            <CountUp
+              from={0}
+              to={current.visitors}
+              duration={1.5}
+              separator=','
+              delay={0.1}
+            />{" "}
           </span>
           {activeInsight === "visitors" && (
             <InsightPanel metricKey='visitors' />
@@ -421,9 +428,9 @@ export default function AnalyticsClient({
 
         {/* Total Pageviews */}
         <div className={styles.kpiCard}>
-          <div className={styles.kpiTop}>
+          <div className={`${styles.kpiTop} underline`}>
             <span className={styles.kpiLabel}>
-              <span className='miniNote'>Pageviews</span>
+              <span className='emptyTitle'>Pageviews</span>
               <InfoButton
                 metricKey='pageviews'
                 activeInsight={activeInsight}
@@ -436,7 +443,13 @@ export default function AnalyticsClient({
             />
           </div>
           <span className={styles.kpiValue}>
-            {formatNumber(current.pageviews)}
+            <CountUp
+              from={0}
+              to={current.pageviews}
+              duration={1.5}
+              separator=','
+              delay={0.1}
+            />
           </span>
           {activeInsight === "pageviews" && (
             <InsightPanel metricKey='pageviews' />
@@ -445,9 +458,9 @@ export default function AnalyticsClient({
 
         {/* Bounce Rate */}
         <div className={styles.kpiCard}>
-          <div className={styles.kpiTop}>
+          <div className={`${styles.kpiTop} underline`}>
             <span className={styles.kpiLabel}>
-              <span className='miniNote'>Bounce Rate</span>
+              <span className='emptyTitle'>Bounce Rate</span>
               <InfoButton
                 metricKey='bounceRate'
                 activeInsight={activeInsight}
@@ -462,7 +475,14 @@ export default function AnalyticsClient({
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
             <span className={styles.kpiValue}>
-              {current.bounceRate.toFixed(1)}%
+              <CountUp
+                from={0}
+                to={current.bounceRate}
+                duration={1.5}
+                // decimals={1}
+                delay={0.1}
+              />
+              <span>%</span>
             </span>
             <span className={bounceHealth.className}>{bounceHealth.label}</span>
           </div>
@@ -473,9 +493,9 @@ export default function AnalyticsClient({
 
         {/* Visit Duration */}
         <div className={styles.kpiCard}>
-          <div className={styles.kpiTop}>
+          <div className={`${styles.kpiTop} underline`}>
             <span className={styles.kpiLabel}>
-              <span className='miniNote'>Avg. Visit Duration</span>
+              <span className='emptyTitle'>Avg. Visit Duration</span>
               <InfoButton
                 metricKey='visitDuration'
                 activeInsight={activeInsight}
@@ -502,9 +522,9 @@ export default function AnalyticsClient({
 
         {/* Pages Per Visit */}
         <div className={styles.kpiCard}>
-          <div className={styles.kpiTop}>
+          <div className={`${styles.kpiTop} underline`}>
             <span className={styles.kpiLabel}>
-              <span className='miniNote'>Pages / Visit</span>
+              <span className='emptyTitle'>Pages / Visit</span>
               <InfoButton
                 metricKey='viewsPerVisit'
                 activeInsight={activeInsight}
@@ -518,7 +538,13 @@ export default function AnalyticsClient({
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
             <span className={styles.kpiValue}>
-              {current.viewsPerVisit.toFixed(1)}
+              <CountUp
+                from={0}
+                to={current.viewsPerVisit}
+                duration={1.5}
+                // decimals={1}
+                delay={0.1}
+              />
             </span>
             <span className={viewsHealth.className}>{viewsHealth.label}</span>
           </div>
@@ -529,9 +555,9 @@ export default function AnalyticsClient({
 
         {/* Total Visits */}
         <div className={styles.kpiCard}>
-          <div className={styles.kpiTop}>
+          <div className={`${styles.kpiTop} underline`}>
             <span className={styles.kpiLabel}>
-              <span className='miniNote'>Total Visits</span>
+              <span className='emptyTitle'>Total Visits</span>
               <InfoButton
                 metricKey='visits'
                 activeInsight={activeInsight}
@@ -544,7 +570,13 @@ export default function AnalyticsClient({
             />
           </div>
           <span className={styles.kpiValue}>
-            {formatNumber(current.visits)}
+            <CountUp
+              from={0}
+              to={current.visits}
+              duration={1.5}
+              separator=','
+              delay={0.1}
+            />
           </span>
           {activeInsight === "visits" && <InsightPanel metricKey='visits' />}
         </div>
@@ -633,19 +665,19 @@ export default function AnalyticsClient({
                               {formatChartTick(row.date)}
                             </div>
                             <div className={styles.tooltipRow}>
-                              <span className='miniNote'>Visitors</span>
+                              <span className='emptyTitle'>Visitors</span>
                               <span className={styles.tooltipVal}>
                                 {formatNumber(row.visitors)}
                               </span>
                             </div>
                             <div className={styles.tooltipRow}>
-                              <span className='miniNote'>Pageviews</span>
+                              <span className='emptyTitle'>Pageviews</span>
                               <span className={styles.tooltipVal}>
                                 {formatNumber(row.pageviews)}
                               </span>
                             </div>
                             <div className={styles.tooltipRow}>
-                              <span className='miniNote'>Visits</span>
+                              <span className='emptyTitle'>Visits</span>
                               <span className={styles.tooltipVal}>
                                 {formatNumber(row.visits)}
                               </span>
@@ -668,7 +700,7 @@ export default function AnalyticsClient({
               ) : (
                 <div className={styles.empty}>
                   <span className={styles.emptyTitle}>No data yet</span>
-                  <span className='miniNote'>
+                  <span className='emptyTitle'>
                     Traffic data will appear here once visitors start coming in.
                   </span>
                 </div>
@@ -758,7 +790,7 @@ export default function AnalyticsClient({
               </table>
             ) : (
               <div className={styles.empty}>
-                <span className='miniNote'>No page data yet</span>
+                <span className='emptyTitle'>No page data yet</span>
               </div>
             )}
           </div>
@@ -838,7 +870,7 @@ export default function AnalyticsClient({
               </table>
             ) : (
               <div className={styles.empty}>
-                <span className='miniNote'>No source data yet</span>
+                <span className='emptyTitle'>No source data yet</span>
               </div>
             )}
           </div>
@@ -910,7 +942,7 @@ export default function AnalyticsClient({
               </table>
             ) : (
               <div className={styles.empty}>
-                <span className='miniNote'>No entry page data yet</span>
+                <span className='emptyTitle'>No entry page data yet</span>
               </div>
             )}
           </div>
@@ -979,7 +1011,7 @@ export default function AnalyticsClient({
               </table>
             ) : (
               <div className={styles.empty}>
-                <span className='miniNote'>No exit page data yet</span>
+                <span className='emptyTitle'>No exit page data yet</span>
               </div>
             )}
           </div>
@@ -1043,7 +1075,7 @@ export default function AnalyticsClient({
               ))
             ) : (
               <div className={styles.empty}>
-                <span className='miniNote'>No device data yet</span>
+                <span className='emptyTitle'>No device data yet</span>
               </div>
             )}
           </div>
@@ -1141,7 +1173,7 @@ export default function AnalyticsClient({
                   </table>
                 ) : (
                   <div className={styles.empty}>
-                    <span className='miniNote'>No country data yet</span>
+                    <span className='emptyTitle'>No country data yet</span>
                   </div>
                 )}
               </>
@@ -1188,7 +1220,7 @@ export default function AnalyticsClient({
                   </table>
                 ) : (
                   <div className={styles.empty}>
-                    <span className='miniNote'>No region data yet</span>
+                    <span className='emptyTitle'>No region data yet</span>
                   </div>
                 )}
               </>
@@ -1235,7 +1267,7 @@ export default function AnalyticsClient({
                   </table>
                 ) : (
                   <div className={styles.empty}>
-                    <span className='miniNote'>No city data yet</span>
+                    <span className='emptyTitle'>No city data yet</span>
                   </div>
                 )}
               </>
@@ -1306,7 +1338,7 @@ export default function AnalyticsClient({
               </table>
             ) : (
               <div className={styles.empty}>
-                <span className='miniNote'>No browser data yet</span>
+                <span className='emptyTitle'>No browser data yet</span>
               </div>
             )}
           </div>
