@@ -33,6 +33,7 @@ import FlightLookupInput from "../FlightLookupInput/FlightLookupInput";
 import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect";
 import { extractIataFromFlightNumber } from "@/lib/flight/airlineList";
 import Stepper from "../Stepper/Stepper";
+import Modal from "@/components/shared/Modal/Modal";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -261,6 +262,7 @@ export default function BookingWizard({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [savedLegs, setSavedLegs] = useState<SavedLeg[]>([]);
+  const [removeLegId, setRemoveLegId] = useState<string | null>(null);
 
   const services = useMemo<ServiceTypeDTO[]>(
     () => serviceTypes ?? [],
@@ -778,8 +780,10 @@ export default function BookingWizard({
     setStep(1);
   }
 
-  function removeSavedLeg(legId: string) {
-    setSavedLegs((prev) => prev.filter((l) => l.id !== legId));
+  function confirmRemoveLeg() {
+    if (!removeLegId) return;
+    setSavedLegs((prev) => prev.filter((l) => l.id !== removeLegId));
+    setRemoveLegId(null);
     toast.success("Ride removed from trip.");
   }
 
@@ -1288,7 +1292,7 @@ export default function BookingWizard({
                     className={styles.sectionBox}
                   >
                     <Grid2>
-                      <div style={{ display: "grid", gap: 8 }}>
+                      <div style={{ display: "grid", gap: 20 }}>
                         <label className={labelCx(Boolean(errors.passengers))}>
                           Passengers
                         </label>
@@ -1301,7 +1305,7 @@ export default function BookingWizard({
                             });
                             clearErrors("passengers");
                           }}
-                          className='input emptySmall'
+                          className='selectBorder'
                         >
                           <option value={0}>Select...</option>
                           {Array.from({ length: 56 }, (_, i) => i + 1).map(
@@ -1313,7 +1317,7 @@ export default function BookingWizard({
                           )}
                         </select>
                       </div>
-                      <div style={{ display: "grid", gap: 8 }}>
+                      <div style={{ display: "grid", gap: 20 }}>
                         <label className={labelCx(Boolean(errors.luggage))}>
                           Luggage
                         </label>
@@ -1326,7 +1330,7 @@ export default function BookingWizard({
                             });
                             clearErrors("luggage");
                           }}
-                          className='input emptySmall'
+                          className='selectBorder'
                         >
                           <option value={0}>Select...</option>
                           {Array.from({ length: 56 }, (_, i) => i + 1).map(
@@ -2196,7 +2200,8 @@ export default function BookingWizard({
                         className='cardTitle h5'
                         style={{ marginBottom: 12 }}
                       >
-                        🗓️ Your multi-day trip ({savedLegs.length + 1} rides)
+                        <span style={{ marginRight: 10 }}>🗓️</span> Your
+                        multi-day trip ({savedLegs.length + 1} rides)
                       </div>
                       {savedLegs.map((leg, idx) => (
                         <div
@@ -2252,7 +2257,7 @@ export default function BookingWizard({
                             </span>
                             <button
                               type='button'
-                              onClick={() => removeSavedLeg(leg.id)}
+                              onClick={() => setRemoveLegId(leg.id)}
                               title='Remove this ride'
                               style={{
                                 background: "none",
@@ -2485,6 +2490,37 @@ export default function BookingWizard({
           </div>
         </div>
       </LayoutWrapper>
+
+      {/* Remove ride confirmation modal */}
+      <Modal isOpen={removeLegId !== null} onClose={() => setRemoveLegId(null)}>
+        <div className={styles.modalContent}>
+          <div className='cardTitle h5'>Remove this ride?</div>
+          <p className='paragraph'>
+            Are you sure you want to remove this ride from your trip?
+            <br />
+            <span className={styles.modalSubnote}>
+              You can always add it back later.
+            </span>
+          </p>
+          <div className={styles.modalActions}>
+            <button
+              type='button'
+              className='secondaryBtn'
+              onClick={() => setRemoveLegId(null)}
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='primaryBtn'
+              style={{ background: "rgba(180,0,0,0.85)" }}
+              onClick={confirmRemoveLeg}
+            >
+              Yes, remove ride
+            </button>
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 }

@@ -320,7 +320,7 @@ export default function BookingDateTimePicker({
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
         >
           <select
-            className='input emptySmall'
+            className='selectBorder'
             value={selectedHH}
             onChange={onHourChange}
             aria-label='Select hour'
@@ -334,7 +334,7 @@ export default function BookingDateTimePicker({
           </select>
 
           <select
-            className='input emptySmall'
+            className='selectBorder'
             value={selectedMM}
             onChange={onMinuteChange}
             aria-label='Select minutes'
