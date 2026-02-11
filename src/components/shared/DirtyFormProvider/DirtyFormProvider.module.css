@@ -39,6 +39,19 @@
   margin-bottom: 0;
 }
 
+.changedFieldsList {
+  margin: 0.4rem 0 0.25rem 0;
+  padding-left: 1.25rem;
+  font-size: 1.3rem;
+  opacity: 0.85;
+  list-style: disc;
+  line-height: 1.5;
+}
+
+.changedFieldsList li {
+  margin-bottom: 0.25rem;
+}
+
 .scrollLink {
   background: none;
   border: none;

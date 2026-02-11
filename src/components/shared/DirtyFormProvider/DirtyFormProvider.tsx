@@ -15,7 +15,12 @@ import Button from "@/components/shared/Button/Button";
 import styles from "./DirtyFormProvider.module.css";
 
 type DirtyFormContextType = {
-  register: (id: string, dirty: boolean, scrollTo?: string) => void;
+  register: (
+    id: string,
+    dirty: boolean,
+    scrollTo?: string,
+    changedFields?: string[],
+  ) => void;
   unregister: (id: string) => void;
 };
 
@@ -24,13 +29,22 @@ const DirtyFormContext = createContext<DirtyFormContextType>({
   unregister: () => {},
 });
 
-export function useDirtyForm(id: string, isDirty: boolean, scrollTo?: string) {
+export function useDirtyForm(
+  id: string,
+  isDirty: boolean,
+  scrollTo?: string,
+  changedFields?: string[],
+) {
   const { register, unregister } = useContext(DirtyFormContext);
 
+  // Stabilize the array reference so useEffect doesn't re-fire on every render
+  const fieldsKey = changedFields?.join("|") ?? "";
+
   useEffect(() => {
-    register(id, isDirty, scrollTo);
+    register(id, isDirty, scrollTo, changedFields);
     return () => unregister(id);
-  }, [id, isDirty, scrollTo, register, unregister]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, isDirty, scrollTo, fieldsKey, register, unregister]);
 }
 
 export default function DirtyFormProvider({
@@ -39,15 +53,26 @@ export default function DirtyFormProvider({
   children: React.ReactNode;
 }) {
   const [dirtyMap, setDirtyMap] = useState<
-    Record<string, { dirty: boolean; scrollTo?: string }>
+    Record<
+      string,
+      { dirty: boolean; scrollTo?: string; changedFields?: string[] }
+    >
   >({});
   const [showModal, setShowModal] = useState(false);
   const pendingHref = useRef<string | null>(null);
   const router = useRouter();
 
   const register = useCallback(
-    (id: string, dirty: boolean, scrollTo?: string) => {
-      setDirtyMap((prev) => ({ ...prev, [id]: { dirty, scrollTo } }));
+    (
+      id: string,
+      dirty: boolean,
+      scrollTo?: string,
+      changedFields?: string[],
+    ) => {
+      setDirtyMap((prev) => ({
+        ...prev,
+        [id]: { dirty, scrollTo, changedFields },
+      }));
     },
     [],
   );
@@ -180,8 +205,8 @@ export default function DirtyFormProvider({
           <div className='cardTitle h5'>Unsaved Changes</div>
 
           <p className='paragraph'>
-            You have <strong>unsaved changes</strong> that will be lost if you
-            leave this page.
+            You made changes but <strong>did not save</strong>. These will be
+            lost if you leave this page.
           </p>
 
           <div className={styles.warningBox}>
@@ -199,6 +224,13 @@ export default function DirtyFormProvider({
                     </button>
                   ) : (
                     formatFormName(id)
+                  )}
+                  {entry.changedFields && entry.changedFields.length > 0 && (
+                    <ul className={styles.changedFieldsList}>
+                      {entry.changedFields.map((field) => (
+                        <li key={field}>{field}</li>
+                      ))}
+                    </ul>
                   )}
                 </li>
               ))}

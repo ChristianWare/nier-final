@@ -10,6 +10,7 @@ import EditServiceForm, {
   type ActionResult,
 } from "@/components/admin/EditServiceForm/EditServiceForm";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -119,28 +120,30 @@ export default async function EditServicePage({
   }
 
   return (
-    <section className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.titleBlock}>
-          <h1 className={`${styles.heading} h2`}>Edit service</h1>
-          <div className={styles.meta}>
-            {/* <span className={styles.mono}>{service.id}</span> */}
+    <DirtyFormProvider>
+      <section className={styles.container}>
+        <header className={styles.header}>
+          <div className={styles.titleBlock}>
+            <h1 className={`${styles.heading} h2`}>Edit service</h1>
+            <div className={styles.meta}>
+              {/* <span className={styles.mono}>{service.id}</span> */}
+            </div>
           </div>
-        </div>
 
-        <div className={styles.headerActions}>
-          <Link href='/admin/services' className='backBtn'>
-            <Arrow className='backArrow' /> Back
-          </Link>
-        </div>
-      </header>
+          <div className={styles.headerActions}>
+            <Link href='/admin/services' className='backBtn'>
+              <Arrow className='backArrow' /> Back
+            </Link>
+          </div>
+        </header>
 
-      <EditServiceForm
-        service={service}
-        airports={airports}
-        onUpdate={updateAction}
-        onDelete={deleteAction}
-      />
-    </section>
+        <EditServiceForm
+          service={service}
+          airports={airports}
+          onUpdate={updateAction}
+          onDelete={deleteAction}
+        />
+      </section>
+    </DirtyFormProvider>
   );
 }

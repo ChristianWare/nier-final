@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { slugify } from "@/lib/slugify";
 import Modal from "@/components/shared/Modal/Modal";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export type ActionResult = { success?: string; error?: string };
 
@@ -103,6 +104,44 @@ export default function EditServiceForm({
   const showAirportConfig = airportLeg !== "NONE";
   const showMinHours = pricingStrategy === "HOURLY";
 
+  const isDirty = useMemo(() => {
+    if (name !== service.name) return true;
+    if (slug !== service.slug) return true;
+    if (pricingStrategy !== service.pricingStrategy) return true;
+    if (airportLeg !== (service.airportLeg ?? "NONE")) return true;
+
+    // Airport selection changed
+    const origIds = [...(service.airportIds ?? [])].sort();
+    const currIds = [...selectedAirportIds].sort();
+    if (
+      origIds.length !== currIds.length ||
+      origIds.some((id, i) => id !== currIds[i])
+    )
+      return true;
+
+    // Fees changed
+    const origFees = service.fees;
+    if (fees.length !== origFees.length) return true;
+    for (let i = 0; i < fees.length; i++) {
+      const orig = origFees[i];
+      const curr = fees[i];
+      if (!orig || curr.label !== orig.label) return true;
+      if (curr.amount !== centsToDollarsInput(orig.amountCents)) return true;
+    }
+
+    return false;
+  }, [
+    name,
+    slug,
+    pricingStrategy,
+    airportLeg,
+    selectedAirportIds,
+    fees,
+    service,
+  ]);
+
+  useDirtyForm("service-settings", isDirty, "service-form");
+
   function toggleAirport(id: string) {
     setSelectedAirportIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
@@ -142,7 +181,8 @@ export default function EditServiceForm({
 
   return (
     <>
-      <div className={styles.form}>
+      <div className={styles.form} id='service-form'>
+        {" "}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -530,7 +570,6 @@ export default function EditServiceForm({
             </button>
           </div>
         </form>
-
         <div className={styles.airportBox}>
           <div style={{ display: "grid", gap: 10 }}>
             <div className='cardTitle h5'>Danger zone</div>
