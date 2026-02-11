@@ -4,6 +4,7 @@ import EditVehicleCategoryForm from "./EditVehicleCategoryForm";
 import styles from "./EditVehicleCategoryPage.module.css";
 import Link from "next/link";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,14 +29,16 @@ export default async function EditVehicleCategoryPage({
   if (!category) return notFound();
 
   return (
-    <section className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={`${styles.heading} h2`}>Edit vehicle category</h1>
-        <Link href='/admin/vehicle-categories' className='backBtn'>
-        <Arrow className="backArrow" /> Back
-        </Link>
-      </div>
-      <EditVehicleCategoryForm category={category} />
-    </section>
+    <DirtyFormProvider>
+      <section className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={`${styles.heading} h2`}>Edit vehicle category</h1>
+          <Link href='/admin/vehicle-categories' className='backBtn'>
+            <Arrow className='backArrow' /> Back
+          </Link>
+        </div>
+        <EditVehicleCategoryForm category={category} />
+      </section>
+    </DirtyFormProvider>
   );
 }

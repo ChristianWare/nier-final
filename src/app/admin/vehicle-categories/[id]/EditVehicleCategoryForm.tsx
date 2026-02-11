@@ -3,9 +3,10 @@
 
 import styles from "./EditVehicleCategoryPage.module.css";
 import { useRouter } from "next/navigation";
-import React, { useTransition } from "react";
+import React, { useState, useMemo, useTransition } from "react";
 import toast from "react-hot-toast";
 import { updateVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 type Category = {
   id: string;
@@ -31,8 +32,71 @@ export default function EditVehicleCategoryForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  // Controlled state for all fields
+  const [name, setName] = useState(category.name);
+  const [capacity, setCapacity] = useState(String(category.capacity));
+  const [luggageCapacity, setLuggageCapacity] = useState(
+    String(category.luggageCapacity),
+  );
+  const [sortOrder, setSortOrder] = useState(String(category.sortOrder));
+  const [minHours, setMinHours] = useState(String(category.minHours ?? 0));
+  const [baseFare, setBaseFare] = useState(
+    (category.baseFareCents / 100).toFixed(2),
+  );
+  const [perMile, setPerMile] = useState(
+    (category.perMileCents / 100).toFixed(2),
+  );
+  const [perMinute, setPerMinute] = useState(
+    (category.perMinuteCents / 100).toFixed(2),
+  );
+  const [perHour, setPerHour] = useState(
+    (category.perHourCents / 100).toFixed(2),
+  );
+  const [active, setActive] = useState(category.active);
+
+  // Track which fields changed for the dirty form modal
+  const changedFields = useMemo(() => {
+    const fields: string[] = [];
+    if (name !== category.name) fields.push("Name");
+    if (capacity !== String(category.capacity)) fields.push("Capacity");
+    if (luggageCapacity !== String(category.luggageCapacity))
+      fields.push("Luggage Capacity");
+    if (sortOrder !== String(category.sortOrder)) fields.push("Sort Order");
+    if (minHours !== String(category.minHours ?? 0)) fields.push("Min Hours");
+    if (baseFare !== (category.baseFareCents / 100).toFixed(2))
+      fields.push("Base Fare");
+    if (perMile !== (category.perMileCents / 100).toFixed(2))
+      fields.push("Per Mile");
+    if (perMinute !== (category.perMinuteCents / 100).toFixed(2))
+      fields.push("Per Minute");
+    if (perHour !== (category.perHourCents / 100).toFixed(2))
+      fields.push("Per Hour");
+    if (active !== category.active) fields.push("Active Status");
+    return fields;
+  }, [
+    name,
+    capacity,
+    luggageCapacity,
+    sortOrder,
+    minHours,
+    baseFare,
+    perMile,
+    perMinute,
+    perHour,
+    active,
+    category,
+  ]);
+
+  useDirtyForm(
+    "vehicle-category",
+    changedFields.length > 0,
+    "vehicle-category-form",
+    changedFields,
+  );
+
   return (
     <form
+      id='vehicle-category-form'
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
@@ -58,7 +122,8 @@ export default function EditVehicleCategoryForm({
         <Field label='Name'>
           <input
             name='name'
-            defaultValue={category.name}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -69,7 +134,8 @@ export default function EditVehicleCategoryForm({
         <Field label='Capacity (pax)'>
           <input
             name='capacity'
-            defaultValue={String(category.capacity)}
+            value={capacity}
+            onChange={(e) => setCapacity(e.target.value)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -78,7 +144,8 @@ export default function EditVehicleCategoryForm({
         <Field label='Luggage capacity'>
           <input
             name='luggageCapacity'
-            defaultValue={String(category.luggageCapacity)}
+            value={luggageCapacity}
+            onChange={(e) => setLuggageCapacity(e.target.value)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -87,7 +154,8 @@ export default function EditVehicleCategoryForm({
         <Field label='Sort order'>
           <input
             name='sortOrder'
-            defaultValue={String(category.sortOrder)}
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -97,7 +165,8 @@ export default function EditVehicleCategoryForm({
       <Field label='Min hours (HOURLY)'>
         <input
           name='minHours'
-          defaultValue={String(category.minHours ?? 0)}
+          value={minHours}
+          onChange={(e) => setMinHours(e.target.value)}
           className='inputBorder'
           disabled={isPending}
         />
@@ -114,7 +183,8 @@ export default function EditVehicleCategoryForm({
         <Field label='Base fare'>
           <input
             name='baseFareCents'
-            defaultValue={(category.baseFareCents / 100).toFixed(2)}
+            value={baseFare}
+            onChange={(e) => setBaseFare(e.target.value)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -123,7 +193,8 @@ export default function EditVehicleCategoryForm({
         <Field label='Per mile'>
           <input
             name='perMileCents'
-            defaultValue={(category.perMileCents / 100).toFixed(2)}
+            value={perMile}
+            onChange={(e) => setPerMile(e.target.value)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -132,7 +203,8 @@ export default function EditVehicleCategoryForm({
         <Field label='Per minute'>
           <input
             name='perMinuteCents'
-            defaultValue={(category.perMinuteCents / 100).toFixed(2)}
+            value={perMinute}
+            onChange={(e) => setPerMinute(e.target.value)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -141,7 +213,8 @@ export default function EditVehicleCategoryForm({
         <Field label='Per hour'>
           <input
             name='perHourCents'
-            defaultValue={(category.perHourCents / 100).toFixed(2)}
+            value={perHour}
+            onChange={(e) => setPerHour(e.target.value)}
             className='inputBorder'
             disabled={isPending}
           />
@@ -152,7 +225,8 @@ export default function EditVehicleCategoryForm({
         <input
           type='checkbox'
           name='active'
-          defaultChecked={category.active}
+          checked={active}
+          onChange={(e) => setActive(e.target.checked)}
           disabled={isPending}
           className={styles.labelinputcheckbox}
         />
