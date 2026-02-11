@@ -170,7 +170,6 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-  
 }
 
 .pill {
@@ -368,7 +367,7 @@
 
   .td {
     padding: 10px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid var(--stroke);
   }
 
   .td:last-child {

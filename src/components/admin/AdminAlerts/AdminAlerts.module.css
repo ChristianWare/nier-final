@@ -141,7 +141,9 @@
   background: var(--lightGray);
   opacity: 0;
   transform: translateY(-10px);
-  transition: opacity 0.25s ease 0.05s, transform 0.25s ease 0.05s;
+  transition:
+    opacity 0.25s ease 0.05s,
+    transform 0.25s ease 0.05s;
 }
 
 .drawerOpen .detailsPanel {
@@ -377,7 +379,7 @@
 
   .detailsTd {
     padding: 8px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid var(--stroke);
   }
 
   .detailsTd:last-child {

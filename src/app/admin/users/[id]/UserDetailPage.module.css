@@ -72,7 +72,7 @@
   align-items: center;
   gap: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--stroke);
 }
 
 .infoRow:last-child {
@@ -394,7 +394,7 @@
 
   .td {
     padding: 8px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid var(--stroke);
   }
 
   .td:last-child {

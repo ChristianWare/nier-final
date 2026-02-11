@@ -100,7 +100,7 @@
   align-items: center;
   gap: 1rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--stroke);
 }
 
 .infoRow:last-child {
@@ -350,7 +350,11 @@
   justify-content: space-between;
   gap: 1.5rem;
   padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(37, 99, 235, 0.08) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.08) 0%,
+    rgba(37, 99, 235, 0.08) 100%
+  );
   border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: 10px;
 }
@@ -419,7 +423,7 @@
 
   .td {
     padding: 8px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 1px solid var(--stroke);
   }
 
   .td:last-child {

@@ -1,20 +1,203 @@
-import { db } from "@/lib/db";
-import { notFound } from "next/navigation";
-import EditVehicleCategoryForm from "./EditVehicleCategoryForm";
-import styles from "./EditVehicleCategoryPage.module.css";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Link from "next/link";
+import { notFound } from "next/navigation";
+import { db } from "@/lib/db";
+import { updateVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
+import EditVehicleCategoryForm from "./EditVehicleCategoryForm";
+import VehicleUsageChart from "@/components/admin/VehicleUsageChart/VehicleUsageChart";
+import styles from "./EditVehicleCategoryPage.module.css";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import Button from "@/components/shared/Button/Button";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const PHX_TZ = "America/Phoenix";
+const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
+
+function toPhoenixParts(dateUtc: Date) {
+  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+  return {
+    y: phx.getUTCFullYear(),
+    m: phx.getUTCMonth(),
+    d: phx.getUTCDate(),
+  };
+}
+
+function startOfMonthPhoenix(dateUtc: Date) {
+  const { y, m } = toPhoenixParts(dateUtc);
+  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
+  return new Date(startLocalMs - PHX_OFFSET_MS);
+}
+
+function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
+  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
+  const phx = new Date(phxLocalMs);
+  const y = phx.getUTCFullYear();
+  const m = phx.getUTCMonth();
+  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
+  return new Date(nextStartLocalMs - PHX_OFFSET_MS);
+}
+
+function monthKeyFromDatePhoenix(dateUtc: Date) {
+  const { y, m } = toPhoenixParts(dateUtc);
+  return `${y}-${String(m + 1).padStart(2, "0")}`;
+}
+
+function monthStartFromKeyPhoenix(key: string) {
+  const match = /^(\d{4})-(\d{2})$/.exec(key.trim());
+  if (!match) return null;
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12)
+    return null;
+  const startLocalMs = Date.UTC(y, m - 1, 1, 0, 0, 0);
+  return new Date(startLocalMs - PHX_OFFSET_MS);
+}
+
+function formatMonthLabelPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    year: "numeric",
+    timeZone: PHX_TZ,
+  }).format(dateUtc);
+}
+
+function formatMonthTickPhoenix(dateUtc: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    year: "2-digit",
+    timeZone: PHX_TZ,
+  }).format(dateUtc);
+}
+
+function formatDate(d: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "2-digit",
+    day: "2-digit",
+    year: "numeric",
+  }).format(d);
+}
+
+function formatDateTime(d: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: PHX_TZ,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(d);
+}
+
+function formatEta(at: Date, now: Date) {
+  const diffMs = at.getTime() - now.getTime();
+  const absMs = Math.abs(diffMs);
+  const mins = Math.round(absMs / (60 * 1000));
+  const hours = Math.round(absMs / (60 * 60 * 1000));
+  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
+  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
+  if (diffMs >= 0) return `in ${label}`;
+  return `${label} ago`;
+}
+
+function formatMoney(cents: number, currency = "USD") {
+  const n = (cents || 0) / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
+function formatMoneyShort(cents: number, currency = "USD") {
+  const n = (cents || 0) / 100;
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    PENDING_REVIEW: "Pending review",
+    PENDING_PAYMENT: "Payment due",
+    CONFIRMED: "Confirmed",
+    ASSIGNED: "Driver assigned",
+    EN_ROUTE: "Driver en route",
+    ARRIVED: "Driver arrived",
+    IN_PROGRESS: "In progress",
+    COMPLETED: "Completed",
+    CANCELLED: "Cancelled",
+    NO_SHOW: "No-show",
+    REFUNDED: "Refunded",
+    PARTIALLY_REFUNDED: "Partially refunded",
+    DRAFT: "Draft",
+  };
+  return labels[status] || String(status).replaceAll("_", " ");
+}
+
+function badgeTone(status: string) {
+  if (status === "PENDING_PAYMENT") return "warn";
+  if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
+  if (status === "CONFIRMED" || status === "ASSIGNED" || status === "COMPLETED")
+    return "good";
+  if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
+    return "accent";
+  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
+  return "neutral";
+}
+
+async function chartAggMonthlyCategoryUsage(
+  vehicleCategoryId: string,
+  fromUtc: Date,
+  toUtc: Date,
+) {
+  const rows = await db.$queryRaw<any[]>`
+    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      COUNT(*) as count
+    FROM "Booking" b
+    WHERE b."vehicleId" = ${vehicleCategoryId}
+      AND b.status NOT IN ('CANCELLED', 'NO_SHOW', 'DRAFT')
+      AND b."pickupAt" >= ${fromUtc}
+      AND b."pickupAt" < ${toUtc}
+    GROUP BY 1 ORDER BY 1 ASC`;
+
+  const bucket = new Map<string, number>();
+  for (const r of rows) {
+    bucket.set(String(r.key), Number(r.count || 0));
+  }
+
+  const months: string[] = [];
+  for (
+    let ms = startOfMonthPhoenix(fromUtc);
+    ms.getTime() < toUtc.getTime();
+    ms = addMonthsPhoenix(ms, 1)
+  ) {
+    months.push(monthKeyFromDatePhoenix(ms));
+  }
+
+  return months.map((k) => {
+    const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
+    return {
+      key: k,
+      tick: formatMonthTickPhoenix(ms),
+      label: formatMonthLabelPhoenix(ms),
+      tripCount: bucket.get(k) ?? 0,
+    };
+  });
+}
 
 type Params = { id?: string };
 
 export default async function EditVehicleCategoryPage({
   params,
 }: {
-  // Works whether Next passes params as an object OR a Promise
   params: Params | Promise<Params>;
 }) {
   const resolvedParams = await Promise.resolve(params);
@@ -22,22 +205,593 @@ export default async function EditVehicleCategoryPage({
 
   if (!id) return notFound();
 
+  const now = new Date();
+
   const category = await db.vehicle.findUnique({
     where: { id },
+    include: {
+      units: {
+        orderBy: [{ active: "desc" }, { name: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          plate: true,
+          active: true,
+          _count: { select: { assignments: true } },
+        },
+      },
+      _count: {
+        select: {
+          bookings: true,
+          units: true,
+        },
+      },
+    },
   });
 
   if (!category) return notFound();
 
+  const categoryId = category.id;
+
+  // Count completed bookings for this category
+  const completedBookings = await db.booking.count({
+    where: {
+      vehicleId: category.id,
+      status: "COMPLETED",
+    },
+  });
+
+  // Count bookings this month
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const bookingsThisMonth = await db.booking.count({
+    where: {
+      vehicleId: category.id,
+      pickupAt: { gte: startOfMonth },
+      status: { notIn: ["CANCELLED", "NO_SHOW", "DRAFT"] },
+    },
+  });
+
+  // Total revenue for this category
+  const revenueAgg = await db.booking.aggregate({
+    where: {
+      vehicleId: category.id,
+      status: { in: ["COMPLETED", "CONFIRMED", "ASSIGNED", "IN_PROGRESS"] },
+    },
+    _sum: { totalCents: true },
+  });
+  const totalRevenueCents = revenueAgg._sum.totalCents ?? 0;
+
+  // Recent bookings for this category
+  const recentBookings = await db.booking.findMany({
+    where: { vehicleId: category.id },
+    orderBy: { pickupAt: "desc" },
+    take: 10,
+    select: {
+      id: true,
+      pickupAt: true,
+      pickupAddress: true,
+      dropoffAddress: true,
+      status: true,
+      totalCents: true,
+      currency: true,
+      serviceType: { select: { name: true } },
+      user: { select: { name: true, email: true } },
+      guestName: true,
+      guestEmail: true,
+    },
+  });
+
+  // Chart data (last 12 months)
+  const usageChartFromUtc = addMonthsPhoenix(startOfMonthPhoenix(now), -11);
+  const usageChartToUtc = addMonthsPhoenix(startOfMonthPhoenix(now), 1);
+  const usageChartData = await chartAggMonthlyCategoryUsage(
+    category.id,
+    usageChartFromUtc,
+    usageChartToUtc,
+  );
+
+  // Active units count
+  const activeUnits = category.units.filter((u) => u.active).length;
+
   return (
     <DirtyFormProvider>
       <section className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={`${styles.heading} h2`}>Edit vehicle category</h1>
-          <Link href='/admin/vehicle-categories' className='backBtn'>
-            <Arrow className='backArrow' /> Back
+        {/* Header */}
+        <header className={styles.header}>
+          <Link
+            href='/admin/vehicle-categories'
+            className={`${styles.backBtn} backBtn`}
+          >
+            <Arrow className='backArrow' /> Back to categories
           </Link>
+          <div className={styles.headerTop}>
+            <div className={styles.top}>
+              <div className={styles.profileInfo}>
+                <h1 className={`${styles.heading} h2`}>Category: <b>{category.name}</b></h1>
+                <div className={styles.badgesRow}>
+                  <span
+                    className={`badge ${category.active ? "badge_good" : "badge_neutral"}`}
+                  >
+                    {category.active ? "Active" : "Inactive"}
+                  </span>
+                  <span className='badge badge_accent'>
+                    {category.capacity} pax
+                  </span>
+                  {category.luggageCapacity > 0 && (
+                    <span className='badge badge_neutral'>
+                      {category.luggageCapacity} bags
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Info + Stats + Edit grid */}
+        <div className={styles.grid}>
+          {/* Category Details Card */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className='cardTitle h4'>Category Details</h2>
+            </div>
+            <div className={styles.cardBody}>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Name</span>
+                <span className={styles.infoValue}>{category.name}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Capacity</span>
+                <span className={styles.infoValue}>
+                  {category.capacity} passengers
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Luggage</span>
+                <span className={styles.infoValue}>
+                  {category.luggageCapacity} bags
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Min Hours</span>
+                <span className={styles.infoValue}>
+                  {category.minHours > 0 ? `${category.minHours}h` : "—"}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Status</span>
+                <span
+                  className={`badge ${category.active ? "badge_good" : "badge_neutral"}`}
+                >
+                  {category.active ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Sort Order</span>
+                <span className={styles.infoValue}>{category.sortOrder}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Added</span>
+                <span className={styles.infoValue}>
+                  {formatDateTime(category.createdAt)}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Category ID</span>
+                <span className={`${styles.infoValue} ${styles.mono}`}>
+                  {category.id}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pricing Card */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className='cardTitle h4'>Pricing</h2>
+            </div>
+            <div className={styles.cardBody}>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Base Fare</span>
+                <span className={styles.infoValue}>
+                  {formatMoney(category.baseFareCents)}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Per Mile</span>
+                <span className={styles.infoValue}>
+                  {formatMoney(category.perMileCents)}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Per Minute</span>
+                <span className={styles.infoValue}>
+                  {formatMoney(category.perMinuteCents)}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Per Hour</span>
+                <span className={styles.infoValue}>
+                  {formatMoney(category.perHourCents)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Statistics Card */}
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className='cardTitle h4'>Statistics</h2>
+            </div>
+            <div className={styles.cardBody}>
+              <div className={styles.statsGrid}>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>
+                    {category._count.units}
+                  </div>
+                  <div className={styles.statLabel}>
+                    Fleet Units ({activeUnits} active)
+                  </div>
+                </div>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>
+                    {category._count.bookings}
+                  </div>
+                  <div className={styles.statLabel}>Total Bookings</div>
+                </div>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>{completedBookings}</div>
+                  <div className={styles.statLabel}>Completed</div>
+                </div>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>{bookingsThisMonth}</div>
+                  <div className={styles.statLabel}>This Month</div>
+                </div>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>
+                    {formatMoneyShort(totalRevenueCents)}
+                  </div>
+                  <div className={styles.statLabel}>Total Revenue</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <EditVehicleCategoryForm category={category} />
+
+        {/* Monthly Usage Chart */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className='cardTitle h4'>Monthly Usage</h2>
+            <p className='miniNote'>
+              Bookings for this vehicle category over the last 12 months
+            </p>
+          </div>
+          <div className={styles.chartCard}>
+            <div className={styles.cardHeader}>
+              <h3 className='cardTitle h4'>Bookings per Month</h3>
+              <div className='miniNote'>Last 12 months</div>
+            </div>
+            <div className={styles.chartWrap}>
+              <VehicleUsageChart data={usageChartData} />
+            </div>
+          </div>
+        </div>
+
+        {/* Fleet - Vehicle Units */}
+        {category.units.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className='cardTitle h4'>Fleet</h2>
+              <p className='miniNote'>
+                Vehicle units assigned to this category
+              </p>
+            </div>
+            <div className={styles.tableCard}>
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead className={styles.thead}>
+                    <tr className={styles.trHead}>
+                      <th className={styles.th}>Name</th>
+                      <th className={styles.th}>Plate</th>
+                      <th className={styles.th}>Status</th>
+                      <th className={`${styles.th} ${styles.thRight}`}>
+                        Assignments
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {category.units.map((unit) => {
+                      const href = `/admin/vehicles/${unit.id}`;
+                      return (
+                        <tr
+                          key={unit.id}
+                          className={`${styles.tr} ${!unit.active ? styles.trInactive : ""}`}
+                        >
+                          <td
+                            className={styles.td}
+                            data-label='Name'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-label='Open vehicle'
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <Link href={href} className={styles.rowLink}>
+                              {unit.name}
+                            </Link>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Plate'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <span className={styles.plateCell}>
+                              {unit.plate || "—"}
+                            </span>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Status'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <span
+                              className={`badge ${unit.active ? "badge_good" : "badge_neutral"}`}
+                            >
+                              {unit.active ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td
+                            className={`${styles.td} ${styles.tdRight}`}
+                            data-label='Assignments'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            {unit._count.assignments}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className={styles.actionsRow}>
+              <Button
+                href='/admin/vehicles'
+                text='Manage All Vehicles'
+                btnType='black'
+                arrow
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Recent Bookings */}
+        {recentBookings.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className='cardTitle h4'>Recent Bookings</h2>
+              <p className='miniNote'>
+                Bookings that used this vehicle category
+              </p>
+            </div>
+            <div className={styles.tableCard}>
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead className={styles.thead}>
+                    <tr className={styles.trHead}>
+                      <th className={styles.th}>Pickup</th>
+                      <th className={styles.th}>Status</th>
+                      <th className={styles.th}>Customer</th>
+                      <th className={styles.th}>Service</th>
+                      <th className={`${styles.th} ${styles.thRight}`}>
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentBookings.map((b) => {
+                      const href = `/admin/bookings/${b.id}`;
+                      const customerName =
+                        b.user?.name?.trim() ||
+                        b.guestName?.trim() ||
+                        b.user?.email ||
+                        b.guestEmail ||
+                        "Guest";
+
+                      return (
+                        <tr key={b.id} className={styles.tr}>
+                          <td
+                            className={styles.td}
+                            data-label='Pickup'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-label='Open booking'
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <Link href={href} className={styles.rowLink}>
+                              {formatDate(b.pickupAt)}
+                            </Link>
+                            <div className={styles.pickupMeta}>
+                              <span className={styles.pill}>
+                                {formatEta(b.pickupAt, now)}
+                              </span>
+                            </div>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Status'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <span
+                              className={`badge badge_${badgeTone(b.status)}`}
+                            >
+                              {statusLabel(b.status)}
+                            </span>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Customer'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <div className={styles.cellStrong}>
+                              {customerName}
+                            </div>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Service'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            {b.serviceType?.name ?? "—"}
+                          </td>
+                          <td
+                            className={`${styles.td} ${styles.tdRight}`}
+                            data-label='Total'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            {formatMoneyShort(
+                              b.totalCents ?? 0,
+                              b.currency ?? "USD",
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className={styles.actionsRow}>
+              <Button
+                href={`/admin/bookings?vehicle=${encodeURIComponent(category.id)}`}
+                text='View All Bookings'
+                btnType='black'
+                arrow
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Edit Form */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className='cardTitle h4'>Edit Category</h2>
+            <p className='miniNote'>
+              Update category details, pricing, and status
+            </p>
+          </div>
+          <div className={styles.card}>
+            <div className={styles.cardBody}>
+              <EditVehicleCategoryForm
+                category={{
+                  id: category.id,
+                  name: category.name,
+                  imageUrl: category.imageUrl,
+                  description: category.description,
+                  capacity: category.capacity,
+                  luggageCapacity: category.luggageCapacity,
+                  sortOrder: category.sortOrder,
+                  minHours: category.minHours,
+                  baseFareCents: category.baseFareCents,
+                  perMileCents: category.perMileCents,
+                  perMinuteCents: category.perMinuteCents,
+                  perHourCents: category.perHourCents,
+                  active: category.active,
+                }}
+              />
+            </div>
+          </div>
+        </div>
       </section>
     </DirtyFormProvider>
   );

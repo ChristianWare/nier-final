@@ -173,7 +173,7 @@ export default function EditVehicleCategoryForm({
       </Field>
 
       <div style={{ display: "grid", gap: 6 }}>
-        <label className='cardTitle h5'>Pricing (USD)</label>
+        <label className='h4 underline'>Pricing (USD)</label>
         <div className='miniNote' style={{ marginTop: -2 }}>
           Enter values in dollars (example: 150.00 = $150.00).
         </div>
@@ -261,7 +261,7 @@ function Field({
 }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <label className='cardTitle h5'>{label}</label>
+      <label className='emptyTitle'>{label}</label>
       {children}
       {hint ? <div className='miniNote'>{hint}</div> : null}
     </div>
