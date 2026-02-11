@@ -271,7 +271,7 @@ export default function DriverEarningsControls({
           <label className={styles.rangeField}>
             <span className='miniNote'>From</span>
             <input
-              className={styles.rangeInput}
+              className='selectBorder'
               type='date'
               name='from'
               defaultValue={urlRange.from}
@@ -282,7 +282,7 @@ export default function DriverEarningsControls({
           <label className={styles.rangeField}>
             <span className='miniNote'>To</span>
             <input
-              className={styles.rangeInput}
+              className='selectBorder'
               type='date'
               name='to'
               defaultValue={urlRange.to}

@@ -59,7 +59,7 @@ export default function CustomRangeFormClient({
       <label className={styles.rangeField}>
         <span className='miniNote'>From</span>
         <input
-          className={styles.rangeInput}
+          className='selectBorder'
           type='date'
           value={from}
           onChange={(e) => setFrom(e.target.value)}
@@ -69,7 +69,7 @@ export default function CustomRangeFormClient({
       <label className={styles.rangeField}>
         <span className='miniNote'>To</span>
         <input
-          className={styles.rangeInput}
+          className='selectBorder'
           type='date'
           value={to}
           onChange={(e) => setTo(e.target.value)}
