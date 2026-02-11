@@ -20,46 +20,37 @@
   color: #3b82f6;
 }
 
-/* .title {
-  font-size: 28px;
-  font-weight: 700;
-letter-spacing: normal;
-  color: #111827;
-  margin: 0;
-} */
-
-/* Stepper Section */
 .stepperSection {
   margin-bottom: 24px;
 }
 
-/* Navigation Section */
 .navigationSection {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 24px;
+  border: 2px solid #3b82f64d;
+  border-radius: 12px;
+  border-radius: 10px;
+  padding: 2rem;
+  margin-bottom: 2rem;
   color: white;
+  background: linear-gradient(135deg, #3b82f614 0%, #2563eb1f 100%);
 }
 
 .navigationSection .sectionTitle {
-  color: white;
   margin-bottom: 12px;
 }
 
 .addressDisplay {
-  background: rgba(255, 255, 255, 0.15);
   border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f614 0%, #2563eb1f 100%);
+  border: 2px solid #3b82f64d;
   padding: 12px;
   margin-bottom: 16px;
 }
 
 .addressText {
   margin: 0;
-  font-size: 15px;
+  font-size: 2.5rem;
   line-height: 1.4;
   letter-spacing: normal;
-  color: var(--white);
 }
 
 .navButtons {
@@ -76,7 +67,8 @@ letter-spacing: normal;
   padding: 12px 8px;
   background: white;
   color: #111827;
-  border-radius: 5px;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
   text-decoration: none;
   font-size: 1.4rem;
   font-weight: 700;

@@ -266,7 +266,7 @@ export default async function DriverTripDetailPage({
       {isActive && navAddress && (
         <div className={styles.navigationSection}>
           <h2 className={styles.sectionTitle}>
-            🗺️ Navigate to {showPickupNav ? "Pickup" : "Dropoff"}
+             Navigate to {showPickupNav ? "Pickup" : "Dropoff"}:
           </h2>
           <div className={styles.addressDisplay}>
             <p className={styles.addressText}>{navAddress}</p>
