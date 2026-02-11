@@ -92,7 +92,6 @@
 .rangePillActive {
   display: inline-flex;
   align-items: center;
-  /* height: 40px; */
   padding: 1rem 2rem;
   border-radius: 999px;
   border: 1px solid var(--stroke);
@@ -239,11 +238,11 @@
 
 /* ── Info Tooltip ─────────────────────────────── */
 
-.infoBtn {
+.infoBtn, .infoBtnActive {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1px solid var(--stroke);
+  border: 1px solid var(--black);
   background: rgba(0, 0, 0, 0.04);
   display: inline-flex;
   align-items: center;
@@ -252,7 +251,7 @@
   font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: normal;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--black);
   transition:
     background 0.15s,
     color 0.15s;
@@ -351,10 +350,9 @@
 
 .chartHeader {
   padding: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
 }
 
 .chartHeaderLeft {
@@ -364,7 +362,7 @@
 }
 
 .chartWrap {
-  padding: 0 14px 14px;
+  padding: 0 2rem 2rem;
 }
 
 .chartInner {
@@ -426,7 +424,8 @@
 .metricToggle,
 .metricToggleActive {
   font-size: 1.4rem;
-  padding: 4px 10px;
+  padding: 1rem 2rem;
+
   border-radius: 999px;
   border: 1px solid var(--stroke);
   background: transparent;
@@ -505,10 +504,9 @@
 
 .cardHeader {
   padding: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
 }
 
 .cardHeaderLeft {
