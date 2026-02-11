@@ -331,6 +331,18 @@
   gap: 2rem;
 }
 
+.editLink {
+  color: var(--black);
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
 /* Responsive */
 @media screen and (max-width: 768px) {
   .statsRow {

@@ -1,5 +1,6 @@
 import styles from "./ServicesPage.module.css";
 import { db } from "@/lib/db";
+import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
 import ServiceActionsClient from "./ServiceActionsClient";
 
@@ -14,66 +15,148 @@ export default async function AdminServicesPage() {
   return (
     <section className={styles.container}>
       <header className={styles.header}>
-        <h1 className={`${styles.heading} h2`}>Services</h1>
-        <Button
-          href='/admin/services/new'
-          text='New service'
-          btnType='greenReg'
-        />
+        <div className={styles.headerTop}>
+          <div className={styles.top}>
+            <h1 className={`${styles.heading} h2`}>Services</h1>
+          </div>
+
+          <div className={styles.headerActions}>
+            <Button
+              href='/admin/services/new'
+              text='New Service'
+              btnType='greenReg'
+            />
+          </div>
+
+          <div className={styles.meta}>
+            <strong style={{ fontSize: "1.4rem" }}>{services.length}</strong>{" "}
+            total
+          </div>
+        </div>
       </header>
 
-      <div className={styles.tableCard}>
-        <table className={styles.table}>
-          <thead>
-            <tr className={styles.theadRow}>
-              <Th>Name</Th>
-              <Th>Slug</Th>
-              <Th>Strategy</Th>
-              <Th>Active</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {services.map((s) => (
-              <tr key={s.id} className={styles.tr}>
-                <Td label='Name'>{s.name}</Td>
-                <Td label='Slug' className={styles.slugCell}>
-                  {s.slug}
-                </Td>
-                <Td label='Strategy'>{s.pricingStrategy}</Td>
-                <Td label='Active'>{s.active ? "Yes" : "No"}</Td>
-                <Td label='Actions'>
-                  <ServiceActionsClient
-                    id={s.id}
-                    active={s.active}
-                    editHref={`/admin/services/${s.id}`}
-                  />
-                </Td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {services.length === 0 ? (
+        <div className={styles.empty}>
+          <p className={styles.emptyTitle}>No services found.</p>
+          <p className={styles.emptyCopy}>
+            Add your first service to get started.
+          </p>
+          <Button
+            href='/admin/services/new'
+            text='Add Service'
+            btnType='blackReg'
+          />
+        </div>
+      ) : (
+        <div className={styles.tableCard}>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead className={styles.thead}>
+                <tr className={styles.trHead}>
+                  <th className={styles.th}>Name</th>
+                  <th className={styles.th}>Slug</th>
+                  <th className={styles.th}>Strategy</th>
+                  <th className={styles.th}>Status</th>
+                  <th className={styles.th}>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {services.map((s) => {
+                  const href = `/admin/services/${s.id}`;
+
+                  return (
+                    <tr
+                      key={s.id}
+                      className={`${styles.tr} ${!s.active ? styles.trInactive : ""}`}
+                    >
+                      {/* Name */}
+                      <td
+                        className={styles.td}
+                        data-label='Name'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-label='Open service'
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <div className={styles.cellStrong}>{s.name}</div>
+                      </td>
+
+                      {/* Slug */}
+                      <td
+                        className={styles.td}
+                        data-label='Slug'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <span className={styles.cellSub}>{s.slug}</span>
+                      </td>
+
+                      {/* Strategy */}
+                      <td
+                        className={styles.td}
+                        data-label='Strategy'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <span className={styles.pill}>{s.pricingStrategy}</span>
+                      </td>
+
+                      {/* Status */}
+                      <td
+                        className={styles.td}
+                        data-label='Status'
+                        style={{ position: "relative" }}
+                      >
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
+                        />
+                        <span
+                          className={`badge ${s.active ? "badge_good" : "badge_neutral"}`}
+                        >
+                          {s.active ? "Active" : "Inactive"}
+                        </span>
+                      </td>
+
+                      {/* Actions */}
+                      <td
+                        className={styles.td}
+                        data-label='Actions'
+                        style={{ position: "relative", zIndex: 10 }}
+                      >
+                        <ServiceActionsClient
+                          id={s.id}
+                          active={s.active}
+                          editHref={href}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </section>
-  );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return <th className={styles.th}>{children}</th>;
-}
-
-function Td({
-  children,
-  className = "",
-  label,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  label?: string;
-}) {
-  return (
-    <td className={`${styles.td} cellStrong ${className}`} data-label={label}>
-      {children}
-    </td>
   );
 }
