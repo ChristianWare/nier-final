@@ -1,10 +1,12 @@
 /* components/admin/TripGroupCard/TripGroupCard.module.css */
 
 .card {
-  background: white;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--stroke);
   border-radius: 10px;
   overflow: hidden;
+  background: linear-gradient(135deg, #3b82f614 0%, #2563eb1f 100%);
+  border: 2px solid #3b82f64d;
+  border-radius: 12px;
 }
 
 .header {
@@ -12,15 +14,15 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  background: rgba(0, 0, 0, 0.03);
+  background-color: var(--cream);
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  gap: 12px;
+  gap: 1rem;
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 1rem;
 }
 
 .icon {
@@ -30,11 +32,12 @@
 .title {
   font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
   color: var(--black);
 }
 
 .label {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   font-style: italic;
 }
@@ -49,9 +52,9 @@
 .leg {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 1rem;
   padding: 14px 18px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--stroke);
   transition: background 0.15s;
 }
 
@@ -77,40 +80,41 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1rem;
 }
 
 .legContent {
   flex: 1;
   min-width: 0;
   display: grid;
-  gap: 4px;
+  gap: 1rem;
 }
 
 .legTop {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: 1rem;
   align-items: baseline;
 }
 
 .legService {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--black);
 }
 
 .legDate {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   white-space: nowrap;
 }
 
 .legRoute {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   line-height: 1.4;
   overflow: hidden;
@@ -123,23 +127,23 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  margin-top: 2px;
+  margin-top: 1rem;
 }
 
 .priceApproved {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #065f46;
   font-weight: 600;
 }
 
 .pricePending {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: #92400e;
   font-weight: 600;
 }
 
 .driver {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
@@ -150,7 +154,7 @@
 }
 
 .currentBadge {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 600;
   padding: 3px 10px;
   border-radius: 4px;
@@ -159,7 +163,7 @@
 }
 
 .viewLink {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--black);
   text-decoration: none;
@@ -191,7 +195,7 @@
 }
 
 .footerLabel {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   font-weight: 600;
 }
@@ -199,12 +203,17 @@
 .footerAmount {
   font-size: 1.6rem;
   font-weight: 700;
+  letter-spacing: normal;
   color: var(--black);
 }
 
 .footerRight {
   display: flex;
   align-items: center;
+}
+
+.pill {
+  border: 1px solid var(--strokeii);
 }
 
 /* ─── Responsive ─── */

@@ -66,14 +66,15 @@ function statusBadge(status: string) {
     <span
       style={{
         display: "inline-block",
-        fontSize: "1.1rem",
+        fontSize: "1.4rem",
         fontWeight: 600,
-        padding: "2px 8px",
-        borderRadius: 4,
+        padding: "4px 10px",
+        borderRadius: 50,
         color: s.color,
         background: s.bg,
         whiteSpace: "nowrap",
       }}
+      className={styles.pill}
     >
       {s.label}
     </span>

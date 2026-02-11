@@ -5,9 +5,10 @@
   height: fit-content;
 }
 
-/* .alert_complete {
+.alert_complete {
   border: 1px solid var(--green) !important;
-} */
+  
+}
 
 .alert_critical {
   background: rgba(239, 68, 68, 0.08);
@@ -75,7 +76,7 @@
 
 .checkItem.complete {
   opacity: 0.85;
-  border: 1px solid var(--green) !important;
+  border: 1px solid var(--lightGreen) !important;
 }
 
 .checkItem.complete:hover {
