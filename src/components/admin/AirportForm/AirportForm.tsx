@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useRef, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 type ActionResult = { success?: string; error?: string };
 
@@ -29,12 +30,12 @@ function loadGooglePlaces(browserKey: string) {
     if (window.google?.maps?.places) return resolve();
 
     const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-google-places="1"]'
+      'script[data-google-places="1"]',
     );
     if (existing) {
       existing.addEventListener("load", () => resolve());
       existing.addEventListener("error", () =>
-        reject(new Error("Failed to load Google Places"))
+        reject(new Error("Failed to load Google Places")),
       );
       return;
     }
@@ -42,7 +43,7 @@ function loadGooglePlaces(browserKey: string) {
     const script = document.createElement("script");
     script.dataset.googlePlaces = "1";
     script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      browserKey
+      browserKey,
     )}&libraries=places`;
     script.async = true;
     script.defer = true;
@@ -70,11 +71,38 @@ export default function AirportForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const addressRef = useRef<HTMLInputElement | null>(null);
-  const placeIdRef = useRef<HTMLInputElement | null>(null);
-  const latRef = useRef<HTMLInputElement | null>(null);
-  const lngRef = useRef<HTMLInputElement | null>(null);
+  /* ── Controlled state ── */
+  const [name, setName] = useState(initial?.name ?? "");
+  const [iata, setIata] = useState(initial?.iata ?? "");
+  const [address, setAddress] = useState(initial?.address ?? "");
+  const [placeId, setPlaceId] = useState(toStr(initial?.placeId ?? ""));
+  const [sortOrder, setSortOrder] = useState(String(initial?.sortOrder ?? 0));
+  const [active, setActive] = useState(initial?.active ?? true);
+  const [lat, setLat] = useState(toStr(initial?.lat ?? ""));
+  const [lng, setLng] = useState(toStr(initial?.lng ?? ""));
 
+  const addressRef = useRef<HTMLInputElement | null>(null);
+
+  /* ── Dirty form tracking ── */
+  const changedFields = useMemo(() => {
+    const fields: string[] = [];
+    if (name !== (initial?.name ?? "")) fields.push("Name");
+    if (iata !== (initial?.iata ?? "")) fields.push("IATA Code");
+    if (address !== (initial?.address ?? "")) fields.push("Address");
+    if (sortOrder !== String(initial?.sortOrder ?? 0))
+      fields.push("Sort Order");
+    if (active !== (initial?.active ?? true)) fields.push("Active Status");
+    return fields;
+  }, [name, iata, address, sortOrder, active, initial]);
+
+  useDirtyForm(
+    "airport-settings",
+    changedFields.length > 0,
+    "airport-form",
+    changedFields,
+  );
+
+  /* ── Google Places autocomplete ── */
   useEffect(() => {
     const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
     if (!browserKey) return;
@@ -100,14 +128,14 @@ export default function AirportForm({
           const loc = place?.geometry?.location;
 
           if (place?.formatted_address) {
-            el.value = place.formatted_address;
+            setAddress(place.formatted_address);
           }
-          if (place?.place_id && placeIdRef.current) {
-            placeIdRef.current.value = place.place_id;
+          if (place?.place_id) {
+            setPlaceId(place.place_id);
           }
-          if (loc && latRef.current && lngRef.current) {
-            latRef.current.value = String(loc.lat());
-            lngRef.current.value = String(loc.lng());
+          if (loc) {
+            setLat(String(loc.lat()));
+            setLng(String(loc.lng()));
           }
         });
       } catch {
@@ -122,19 +150,18 @@ export default function AirportForm({
 
   return (
     <form
-      className='box'
+      id='airport-form'
       onSubmit={(e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
 
-        const address = String(formData.get("address") ?? "").trim();
-        const lat = String(formData.get("lat") ?? "").trim();
-        const lng = String(formData.get("lng") ?? "").trim();
+        const addressVal = String(formData.get("address") ?? "").trim();
+        const latVal = String(formData.get("lat") ?? "").trim();
+        const lngVal = String(formData.get("lng") ?? "").trim();
 
-        // ✅ If they typed an address but didn't pick a suggestion, stop here.
-        if (address && (!lat || !lng)) {
+        if (addressVal && (!latVal || !lngVal)) {
           toast.error(
-            "Please select an address suggestion so we can capture coordinates."
+            "Please select an address suggestion so we can capture coordinates.",
           );
           return;
         }
@@ -163,7 +190,8 @@ export default function AirportForm({
           className='inputBorder'
           disabled={isPending}
           placeholder='Phoenix Sky Harbor'
-          defaultValue={initial?.name ?? ""}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
         />
       </div>
 
@@ -174,7 +202,8 @@ export default function AirportForm({
           className='inputBorder'
           disabled={isPending}
           placeholder='PHX'
-          defaultValue={initial?.iata ?? ""}
+          value={iata}
+          onChange={(e) => setIata(e.target.value)}
         />
         <div className='miniNote'>
           Use the 3-letter IATA code (PHX, LAX, etc.).
@@ -189,7 +218,8 @@ export default function AirportForm({
           className='inputBorder'
           disabled={isPending}
           placeholder='3400 E Sky Harbor Blvd, Phoenix, AZ...'
-          defaultValue={initial?.address ?? ""}
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
           autoComplete='off'
         />
         <div className='miniNote'>
@@ -200,28 +230,18 @@ export default function AirportForm({
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>Google Place ID</label>
         <input
-          ref={placeIdRef}
           name='placeId'
           className='inputBorder'
           disabled
           placeholder='Auto-fills when you select an address'
-          defaultValue={toStr(initial?.placeId ?? "")}
+          value={placeId}
+          readOnly
         />
       </div>
 
-      {/* ✅ Saved for routing/maps */}
-      <input
-        ref={latRef}
-        name='lat'
-        type='hidden'
-        defaultValue={toStr(initial?.lat ?? "")}
-      />
-      <input
-        ref={lngRef}
-        name='lng'
-        type='hidden'
-        defaultValue={toStr(initial?.lng ?? "")}
-      />
+      {/* Hidden coords */}
+      <input name='lat' type='hidden' value={lat} />
+      <input name='lng' type='hidden' value={lng} />
 
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>Sort order</label>
@@ -230,7 +250,8 @@ export default function AirportForm({
           type='number'
           step='1'
           inputMode='numeric'
-          defaultValue={String(initial?.sortOrder ?? 0)}
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
           className='inputBorder'
           disabled={isPending}
         />
@@ -240,13 +261,19 @@ export default function AirportForm({
         <input
           type='checkbox'
           name='active'
-          defaultChecked={initial?.active ?? true}
+          checked={active}
+          onChange={(e) => setActive(e.target.checked)}
           disabled={isPending}
         />
         <span className='emptyTitle'>Active</span>
       </label>
 
-      <button className='primaryBtn' disabled={isPending} type='submit'>
+      <button
+        className='primaryBtn'
+        disabled={isPending}
+        type='submit'
+        style={{ justifySelf: "start" }}
+      >
         {isPending ? "Saving..." : submitLabel}
       </button>
     </form>

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import toast from "react-hot-toast";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import styles from "./CompanySettingsForm.module.css";
 import { saveCompanySettings } from "../../../../actions/admin/companySettings";
 import Button from "@/components/shared/Button/Button";
@@ -125,6 +126,39 @@ export default function CompanySettingsForm({ initial }: Props) {
   // State for SMS from number
   const [smsFromNumber, setSmsFromNumber] = useState(initial.smsFromNumber);
 
+  /* ── Dirty form tracking ── */
+  const changedFields = useMemo(() => {
+    const fields: string[] = [];
+    if (dispatchPhone !== initial.dispatchPhone) fields.push("Dispatch Phone");
+    if (emergencyPhone !== initial.emergencyPhone)
+      fields.push("Emergency Phone");
+    if (supportEmail !== initial.supportEmail) fields.push("Support Email");
+    if (officeName !== initial.officeName) fields.push("Office Name");
+    if (officeAddress !== initial.officeAddress) fields.push("Street Address");
+    if (officeCity !== initial.officeCity) fields.push("City/State/ZIP");
+    if (smsFromNumber !== initial.smsFromNumber) fields.push("SMS From Number");
+    if (JSON.stringify(officeHours) !== initial.officeHours)
+      fields.push("Office Hours");
+    return fields;
+  }, [
+    dispatchPhone,
+    emergencyPhone,
+    supportEmail,
+    officeName,
+    officeAddress,
+    officeCity,
+    smsFromNumber,
+    officeHours,
+    initial,
+  ]);
+
+  useDirtyForm(
+    "company-settings",
+    changedFields.length > 0,
+    "company-settings-form",
+    changedFields,
+  );
+
   const handleDispatchPhoneChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -180,7 +214,12 @@ export default function CompanySettingsForm({ initial }: Props) {
   const enabledDays = DAYS.filter((d) => officeHours[d.key].enabled);
 
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form
+      id='company-settings-form'
+      className={styles.form}
+      onSubmit={handleSubmit}
+    >
+      {" "}
       {/* Contact Information */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -230,7 +269,6 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         </div>
       </div>
-
       {/* SMS Settings */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -258,7 +296,6 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         </div>
       </div>
-
       {/* Office Information */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -304,7 +341,6 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         </div>
       </div>
-
       {/* Office Hours */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -382,7 +418,6 @@ export default function CompanySettingsForm({ initial }: Props) {
           })}
         </div>
       </div>
-
       {/* Preview */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -465,7 +500,6 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         )}
       </div>
-
       <div className={styles.actions}>
         <Button
           text={isPending ? "Saving..." : "Save Settings"}
