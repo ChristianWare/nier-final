@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { updateDriverPayAction } from "../../../../actions/admin/updateDriverPayAction";
 import Button from "@/components/shared/Button/Button";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 function formatMoney(cents: number, currency = "USD") {
   const n = cents / 100;
@@ -98,6 +99,15 @@ export default function DriverPayForm({
 
   const driverTipCents = getDriverTipCents();
   const totalDriverEarnings = currentPaymentCents + driverTipCents;
+
+  const isDirty =
+    hasDriver &&
+    ((dollarsToCents(driverPayment) ?? 0) !==
+      (currentDriverPaymentCents ?? 0) ||
+      driverTipCents !==
+        (currentDriverTipCents ?? (tipCents > 0 ? tipCents : 0)));
+
+  useDirtyForm("driver-pay", isDirty, "driver-pay-section");
 
   // Percentage quick buttons
   const percentageOptions = [
