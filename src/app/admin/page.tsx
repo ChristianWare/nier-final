@@ -1904,10 +1904,10 @@ export default async function AdminHome() {
         timeZone={PHX_TZ}
         bookingHrefBase='/admin/bookings'
       />
-      <div className={styles.graphCalendarContainer}>
         <AdminAlerts alerts={alerts} />
+      {/* <div className={styles.graphCalendarContainer}>
         <AdminQuickActions />
-      </div>
+      </div> */}
       <AdminTodaysRides
         items={todaysRides}
         timeZone={PHX_TZ}

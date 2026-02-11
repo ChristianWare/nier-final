@@ -39,10 +39,10 @@
   height: 32px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(72, 187, 120, 0.3);
+  border: 1px solid var(--stroke);
   background: rgba(72, 187, 120, 0.1);
   color: var(--darkGreen);
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 600;
 }
 
@@ -68,10 +68,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  padding: 6px 10px;
+  font-size: 1.4rem;
+  padding: 10px 15px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.16);
+  border: 1px solid var(--strokeii);
   background: rgba(255, 255, 255, 0.9);
 }
 
@@ -88,37 +88,50 @@
   margin-top: 3rem;
 }
 
-.rangePill {
+.rangePill,
+.rangePillActive {
   display: inline-flex;
   align-items: center;
-  height: 40px;
-  padding: 0 14px;
+  /* height: 40px; */
+  padding: 1rem 2rem;
   border-radius: 999px;
-  border: 1px dashed rgba(0, 0, 0, 0.18);
-  background: transparent;
+  border: 1px solid var(--stroke);
+  background: #e8e8e8;
   cursor: pointer;
   text-decoration: none;
   color: inherit;
-  font-size: 14px;
+  font-size: 1.4rem;
+  box-shadow:
+    6px 6px 12px rgba(0, 0, 0, 0.08),
+    -6px -6px 12px rgba(255, 255, 255, 0.9);
   transition:
     background 0.15s,
-    border-color 0.15s;
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .rangePill:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.3);
+  background: #e0e0e0;
+  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow:
+    4px 4px 8px rgba(0, 0, 0, 0.1),
+    -4px -4px 8px rgba(255, 255, 255, 0.85);
 }
 
 .rangePillActive {
-  /* composes: rangePill; */
   background: rgba(0, 0, 0, 0.92);
   color: white;
-  border: 1px solid rgba(0, 0, 0, 0.92);
+  border: 1px solid var(--stroke);
+  box-shadow:
+    inset 4px 4px 8px rgba(0, 0, 0, 0.3),
+    inset -4px -4px 8px rgba(255, 255, 255, 0.05);
 }
 
 .rangePillActive:hover {
   background: rgba(0, 0, 0, 0.85);
+  box-shadow:
+    inset 3px 3px 6px rgba(0, 0, 0, 0.25),
+    inset -3px -3px 6px rgba(255, 255, 255, 0.08);
 }
 
 /* ── KPI Grid ─────────────────────────────────── */
@@ -153,72 +166,73 @@
 }
 
 .kpiValue {
-  font-size: 28px;
+  font-size: 2.8rem;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: normal;
   font-weight: 700;
 }
 
-.kpiChange {
+.kpiChange,
+.kpiUp,
+.kpiDown,
+.kpiFlat {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 1.4rem;
   font-weight: 600;
+  line-height: 1.2;
   padding: 3px 8px;
   border-radius: 999px;
 }
 
 .kpiUp {
-  /* composes: kpiChange; */
   color: var(--darkGreen);
   background: var(--lightGreen);
 }
 
 .kpiDown {
-  /* composes: kpiChange; */
   color: #b91c1c;
   background: rgba(239, 68, 68, 0.12);
 }
 
 .kpiFlat {
-  /* composes: kpiChange; */
   color: rgba(0, 0, 0, 0.5);
   background: rgba(0, 0, 0, 0.06);
 }
 
 /* ── Health Badge ─────────────────────────────── */
 
-.healthBadge {
+.healthBadge,
+.healthExcellent,
+.healthGood,
+.healthPoor,
+.healthAverage {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 1.4rem;
   font-weight: 600;
-  padding: 3px 8px;
+  padding: 5px 12px;
   border-radius: 999px;
 }
 
 .healthExcellent {
-  /* composes: healthBadge; */
   color: var(--darkGreen);
   background: var(--lightGreen);
 }
 
 .healthGood {
-  /* composes: healthBadge; */
   color: var(--darkGreen);
   background: rgba(72, 187, 120, 0.15);
 }
 
 .healthAverage {
-  /* composes: healthBadge; */
   color: var(--darkYellow);
   background: rgba(255, 200, 9, 0.25);
 }
 
 .healthPoor {
-  /* composes: healthBadge; */
   color: #b91c1c;
   background: rgba(239, 68, 68, 0.12);
 }
@@ -229,14 +243,15 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--stroke);
   background: rgba(0, 0, 0, 0.04);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
   color: rgba(0, 0, 0, 0.45);
   transition:
     background 0.15s,
@@ -250,10 +265,9 @@
 }
 
 .infoBtnActive {
-  /* composes: infoBtn; */
   background: rgba(0, 0, 0, 0.88);
   color: white;
-  border-color: rgba(0, 0, 0, 0.88);
+  border-color: var(--stroke);
 }
 
 .infoBtnActive:hover {
@@ -264,7 +278,7 @@
 
 .insightCard {
   border-radius: 10px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid var(--stroke);
   background: rgba(59, 130, 246, 0.04);
   padding: 14px;
   display: flex;
@@ -285,8 +299,9 @@
 }
 
 .insightTitle {
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
   color: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
@@ -294,7 +309,7 @@
 }
 
 .insightBody {
-  font-size: 13px;
+  font-size: 1.4rem;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.6);
 }
@@ -310,19 +325,19 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 1.4rem;
   padding: 3px 8px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--stroke);
   background: rgba(255, 255, 255, 0.7);
 }
 
 .insightTip {
-  font-size: 12px;
+  font-size: 1.4rem;
   line-height: 1.5;
   color: rgba(0, 0, 0, 0.5);
   padding-top: 6px;
-  border-top: 1px solid rgba(59, 130, 246, 0.1);
+  border-top: 1px solid var(--stroke);
 }
 
 /* ── Chart Card ───────────────────────────────── */
@@ -335,7 +350,7 @@
 }
 
 .chartHeader {
-  padding: 1rem;
+  padding: 2rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -386,21 +401,18 @@
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--stroke);
 }
 
 .swatchVisitors {
-  /* composes: swatch; */
   background: var(--black);
 }
 
 .swatchPageviews {
-  /* composes: swatch; */
   background: rgba(59, 130, 246, 0.7);
 }
 
 .swatchVisits {
-  /* composes: swatch; */
   background: var(--lightGreen);
 }
 
@@ -411,11 +423,12 @@
   gap: 6px;
 }
 
-.metricToggle {
-  font-size: 12px;
+.metricToggle,
+.metricToggleActive {
+  font-size: 1.4rem;
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--stroke);
   background: transparent;
   cursor: pointer;
   transition:
@@ -428,17 +441,16 @@
 }
 
 .metricToggleActive {
-  /* composes: metricToggle; */
   background: rgba(0, 0, 0, 0.88);
   color: white;
-  border-color: rgba(0, 0, 0, 0.88);
+  border-color: var(--stroke);
 }
 
 /* ── Tooltip ──────────────────────────────────── */
 
 .tooltip {
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
+  border: 1px solid var(--stroke);
   background: rgba(255, 255, 255, 0.95);
   padding: 10px 12px;
   min-width: 180px;
@@ -448,8 +460,8 @@
 
 .tooltipTitle {
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: -0.01em;
+  font-size: 1.4rem;
+  letter-spacing: normal;
 }
 
 .tooltipRow {
@@ -460,8 +472,9 @@
 }
 
 .tooltipVal {
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
 }
 
 /* ── Two Column Layout ────────────────────────── */
@@ -533,7 +546,7 @@
 
 .pageCell {
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: normal;
   word-break: break-all;
   max-width: 280px;
 }
@@ -561,12 +574,11 @@
 }
 
 .barFillPrimary {
-  /* composes: barFill; */
   background: var(--black);
 }
 
 .barValue {
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 600;
   min-width: 36px;
   text-align: right;
@@ -596,7 +608,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 1.6rem;
   flex-shrink: 0;
 }
 
@@ -609,7 +621,7 @@
 
 .deviceName {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 1.4rem;
 }
 
 .deviceStats {
@@ -634,8 +646,9 @@
 }
 
 .devicePct {
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
   min-width: 40px;
   text-align: right;
 }
@@ -652,7 +665,7 @@
 }
 
 .emptyTitle {
-  font-size: 16px;
+  font-size: 1.6rem;
   font-weight: 600;
 }
 
@@ -660,7 +673,7 @@
 
 .errorBanner {
   border-radius: 10px;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--stroke);
   background: rgba(239, 68, 68, 0.06);
   padding: 14px 18px;
   display: flex;
@@ -669,13 +682,14 @@
 }
 
 .errorTitle {
+  font-size: 1.4rem;
   font-weight: 700;
-  font-size: 14px;
+  letter-spacing: normal;
   color: #b91c1c;
 }
 
 .errorBody {
-  font-size: 13px;
+  font-size: 1.4rem;
   color: rgba(0, 0, 0, 0.6);
   line-height: 1.5;
 }
@@ -714,6 +728,6 @@
   .rangePillActive {
     height: 36px;
     padding: 0 10px;
-    font-size: 13px;
+    font-size: 1.4rem;
   }
 }

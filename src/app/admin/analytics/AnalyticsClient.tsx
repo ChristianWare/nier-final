@@ -554,7 +554,7 @@ export default function AnalyticsClient({
       <div className={styles.chartCard}>
         <div className={styles.chartHeader}>
           <div className={styles.chartHeaderLeft}>
-            <h3>Traffic Over Time</h3>
+            <h3 className="h4">Traffic Over Time</h3>
           </div>
           <div className={styles.metricToggles}>
             {(["visitors", "pageviews", "visits"] as const).map((m) => (
@@ -684,7 +684,7 @@ export default function AnalyticsClient({
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <h3>Top Pages</h3>
+              <h3 className="h4">Top Pages</h3>
               <InfoButton
                 metricKey='topPages'
                 activeInsight={activeInsight}
@@ -768,7 +768,7 @@ export default function AnalyticsClient({
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <h3>Traffic Sources</h3>
+              <h3 className="h4">Traffic Sources</h3>
               <InfoButton
                 metricKey='trafficSources'
                 activeInsight={activeInsight}
@@ -851,7 +851,7 @@ export default function AnalyticsClient({
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <h3>Entry Pages</h3>
+              <h3 className="h4">Entry Pages</h3>
               <InfoButton
                 metricKey='entryPages'
                 activeInsight={activeInsight}
@@ -920,7 +920,7 @@ export default function AnalyticsClient({
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <h3>Exit Pages</h3>
+              <h3 className="h4">Exit Pages</h3>
               <InfoButton
                 metricKey='exitPages'
                 activeInsight={activeInsight}
@@ -992,7 +992,7 @@ export default function AnalyticsClient({
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <h3>Devices</h3>
+              <h3 className="h4">Devices</h3>
               <InfoButton
                 metricKey='devices'
                 activeInsight={activeInsight}
@@ -1053,7 +1053,7 @@ export default function AnalyticsClient({
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <h3>Locations</h3>
+              <h3 className="h4">Locations</h3>
               <InfoButton
                 metricKey='locations'
                 activeInsight={activeInsight}
@@ -1247,7 +1247,7 @@ export default function AnalyticsClient({
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div className={styles.cardHeaderLeft}>
-              <h3>Browsers</h3>
+              <h3 className="h4">Browsers</h3>
               <InfoButton
                 metricKey='browsers'
                 activeInsight={activeInsight}

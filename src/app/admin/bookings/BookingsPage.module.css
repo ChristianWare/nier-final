@@ -1,6 +1,6 @@
 .container {
   display: grid;
-  gap: 1.4rem;
+  gap: 2rem;
 }
 
 .header {
@@ -26,17 +26,17 @@
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .meta {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
 
 .metaSep {
-  margin-left: 0.6rem;
+  margin-left: 1rem;
 }
 
 .filters {
@@ -46,20 +46,20 @@
 
 .filterGroup {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .filterTitle {
-  font-size: 1.05rem;
+  font-size: 1.4rem;
   font-weight: 900;
+  letter-spacing: normal;
   opacity: 0.6;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .tabRow {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -67,13 +67,13 @@
 .rangeForm {
   display: flex;
   align-items: flex-end;
-  gap: 0.75rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
 .rangeField {
   display: grid;
-  gap: 0.35rem;
+  gap: 1rem;
 }
 
 .rangeInput {
@@ -81,8 +81,9 @@
   background: var(--white);
   border-radius: 10px;
   padding: 0.6rem 0.75rem;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 900;
+  letter-spacing: normal;
 }
 
 .rangeSubmit {
@@ -90,8 +91,9 @@
   background: rgba(0, 0, 0, 0.04);
   border-radius: 10px;
   padding: 0.65rem 0.95rem;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 900;
+  letter-spacing: normal;
   cursor: pointer;
 }
 
@@ -110,17 +112,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 0.6rem;
+  margin-top: 1rem;
 }
 
 .paginationMeta {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   opacity: 0.8;
 }
 
 .paginationRight {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -135,7 +137,7 @@
   color: var(--black);
   text-decoration: none;
   font-weight: 600;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   white-space: nowrap;
 }
 
@@ -169,7 +171,6 @@
   min-width: 1120px;
 }
 
-/* (Optional) you can keep this; without a vertical scroll container it won’t “stick” the same way */
 .thead {
   background: var(--white);
   z-index: 2;
@@ -220,7 +221,7 @@
 .rowLink {
   text-decoration: none;
   display: inline-block;
-  letter-spacing: -0.01em;
+  letter-spacing: normal;
   font-weight: 600;
 }
 
@@ -248,7 +249,7 @@
 }
 
 .pill {
-  font-size: 12px;
+  font-size: 1.4rem;
   padding: 4px 8px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.05);
@@ -262,21 +263,22 @@
 
 .cellStack {
   display: grid;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .cellStrong {
-  letter-spacing: -0.01em;
+  letter-spacing: normal;
   font-weight: 600;
 }
 
 .cellSub {
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   opacity: 0.7;
 }
 
 .totalCell {
   font-weight: 900;
+  letter-spacing: normal;
   white-space: nowrap;
 }
 
@@ -288,7 +290,7 @@
 
 .emptyTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: 1.6rem;
   font-weight: 600;
 }
 
@@ -328,20 +330,16 @@
   pointer-events: none;
 }
 
-/* ============================================
-   ADD THESE STYLES TO YOUR BookingsPage.module.css
-   ============================================ */
-
 /* ✅ Confirmation code in table row */
 .confirmationCode {
   font-family: monospace;
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--paragraph);
   background: rgba(0, 0, 0, 0.05);
   padding: 0.2rem 0.4rem;
   border-radius: 4px;
-  letter-spacing: 0.5px;
+  letter-spacing: normal;
 }
 
 /* ✅ Sortable table headers */
@@ -358,7 +356,7 @@
 .sortLink {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 1rem;
   color: inherit;
   text-decoration: none;
   white-space: nowrap;
@@ -378,7 +376,7 @@
 .tabRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .unassignedCell {
@@ -388,7 +386,7 @@
 }
 
 .trCorporate {
-  background: rgba(124, 58, 237, 0.10);
+  background: rgba(124, 58, 237, 0.1);
   outline: 1px solid rgba(124, 58, 237, 0.2);
   outline-offset: -1px;
 }
@@ -400,7 +398,7 @@
   border: 1px solid var(--stroke);
   border-radius: 8px;
   padding: 0.65rem 2.4rem 0.65rem 0.85rem;
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--black);
   cursor: pointer;
@@ -423,7 +421,7 @@
 
 .filterRow {
   display: flex;
-  gap: 1.2rem;
+  gap: 2rem;
   flex-wrap: wrap;
   align-items: flex-end;
 }
@@ -433,7 +431,7 @@
   .tabRow {
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding-bottom: 1rem;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -501,8 +499,9 @@
   .td::before {
     content: attr(data-label);
     display: block;
-    font-size: 1.05rem;
+    font-size: 1.4rem;
     font-weight: 900;
+    letter-spacing: normal;
     opacity: 0.6;
     margin-bottom: 6px;
   }
@@ -512,7 +511,7 @@
   }
 
   .totalCell {
-    font-size: 1.35rem;
+    font-size: 1.4rem;
     white-space: normal;
   }
 
@@ -527,11 +526,11 @@
 
 @media screen and (max-width: 568px) {
   .meta {
-    font-size: 1.15rem;
+    font-size: 1.4rem;
   }
 
   .tabRow {
-    gap: 0.45rem;
+    gap: 1rem;
   }
 
   .pagination {
@@ -546,28 +545,28 @@
   }
 
   .pageBtn {
-    font-size: 1.05rem;
+    font-size: 1.4rem;
     padding: 0.6rem 0.8rem;
   }
 
   .td::before {
-    font-size: 1rem;
+    font-size: 1.4rem;
   }
 
   .cellSub {
-    font-size: 1.05rem;
+    font-size: 1.4rem;
   }
 
   .pill {
-    font-size: 11px;
+    font-size: 1.4rem;
     padding: 4px 7px;
   }
 
   .rangeInput {
-    font-size: 1.05rem;
+    font-size: 1.4rem;
   }
 
   .rangeSubmit {
-    font-size: 1.05rem;
+    font-size: 1.4rem;
   }
 }
