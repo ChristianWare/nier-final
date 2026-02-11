@@ -167,8 +167,8 @@ export default function DirtyFormProvider({
     if (pendingHref.current) {
       router.push(pendingHref.current);
     } else {
-      // Browser back — go back in history
-      router.back();
+      // Browser back — skip past the guard entries we pushed
+      window.history.go(-2);
     }
 
     pendingHref.current = null;
