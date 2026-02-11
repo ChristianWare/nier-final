@@ -4,6 +4,12 @@
   border: 1px solid var(--stroke);
   border-radius: 10px;
   padding: 2rem;
+  margin-top: -3rem;
+}
+
+.containerAlert {
+  background: #f9731624;
+  border: 1px solid #f9731673;
 }
 
 .header {
@@ -50,6 +56,10 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.tabActive span {
+  color: var(--white);
 }
 
 .tableCard {

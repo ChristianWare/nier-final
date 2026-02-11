@@ -177,18 +177,15 @@ export default function AdminIncompleteApprovals({
   if (items.length === 0) return null;
 
   return (
-    <section
-      className={styles.container}
-      aria-label='Incomplete booking approvals'
-    >
+    <>
       <header className={styles.header}>
+        <h2
+          className={`cardTitle h4 ${counts.total >= 1 ? styles.orangeBorder : ""}`}
+        >
+          <span style={{ marginRight: 20 }}>⚠️</span> Incomplete booking
+          approvals
+        </h2>
         <div className={styles.titleRow}>
-          <h2
-            className={`cardTitle h4 ${counts.total >= 1 ? styles.orangeBorder : ""}`}
-          >
-            ⚠️ Incomplete booking approvals
-          </h2>
-
           <div className={styles.kpis}>
             <span className={styles.kpi}>Total: {counts.total}</span>
             <span className={styles.kpi}>Route: {counts.route}</span>
@@ -224,7 +221,7 @@ export default function AdminIncompleteApprovals({
               <button
                 key={tab.key}
                 type='button'
-                className={`tab ${filter === tab.key ? "tabActive" : ""}`}
+                className={`tab ${filter === tab.key ? "tabActive " + styles.tabActive : ""}`}
                 onClick={() => setFilter(tab.key)}
               >
                 {tab.label}
@@ -236,150 +233,155 @@ export default function AdminIncompleteApprovals({
           </div>
         </div>
       </header>
+      <section
+        // className={styles.container}
+        className={`${styles.container} ${counts.total >= 1 ? styles.containerAlert : ""}`}
+        aria-label='Incomplete booking approvals'
+      >
+        {filtered.length === 0 ? (
+          <div className='emptySmall'>No items match your filter.</div>
+        ) : (
+          <div className={styles.tableCard}>
+            <table className={styles.table}>
+              <thead className={styles.thead}>
+                <tr className={styles.trHead}>
+                  <th className={styles.th}>Missing</th>
+                  <th className={styles.th}>Pickup</th>
+                  <th className={styles.th}>Client</th>
+                  <th className={styles.th}>Service</th>
+                  <th className={styles.th}>Vehicle</th>
+                  <th className={styles.th}>Route</th>
+                  <th className={`${styles.th} ${styles.thRight}`}></th>
+                </tr>
+              </thead>
 
-      {filtered.length === 0 ? (
-        <div className='emptySmall'>No items match your filter.</div>
-      ) : (
-        <div className={styles.tableCard}>
-          <table className={styles.table}>
-            <thead className={styles.thead}>
-              <tr className={styles.trHead}>
-                <th className={styles.th}>Missing</th>
-                <th className={styles.th}>Pickup</th>
-                <th className={styles.th}>Client</th>
-                <th className={styles.th}>Service</th>
-                <th className={styles.th}>Vehicle</th>
-                <th className={styles.th}>Route</th>
-                <th className={`${styles.th} ${styles.thRight}`}></th>
-              </tr>
-            </thead>
+              <tbody>
+                {filtered.map((b) => {
+                  const pickup = formatAt(b.pickupAtIso, timeZone);
+                  const missing = getMissingItems(b.approvals);
+                  const anchor = getAnchor(b.approvals);
+                  const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}${anchor}`;
+                  const route = `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`;
 
-            <tbody>
-              {filtered.map((b) => {
-                const pickup = formatAt(b.pickupAtIso, timeZone);
-                const missing = getMissingItems(b.approvals);
-                const anchor = getAnchor(b.approvals);
-                const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}${anchor}`;
-                const route = `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`;
+                  const customerLine =
+                    b.customer.kind === "corporate"
+                      ? `${b.customer.name} • ${b.customer.accountName ?? "Corporate"}`
+                      : `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}`;
 
-                const customerLine =
-                  b.customer.kind === "corporate"
-                    ? `${b.customer.name} • ${b.customer.accountName ?? "Corporate"}`
-                    : `${b.customer.name}${b.customer.email ? ` • ${b.customer.email}` : ""}`;
-
-                return (
-                  <tr key={b.id} className={styles.tr}>
-                    <td className={styles.td} data-label='Missing'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <div className={styles.missingPills}>
-                          {missing.map((m) => (
-                            <span key={m} className={styles.missingPill}>
-                              {m}
-                            </span>
-                          ))}
+                  return (
+                    <tr key={b.id} className={styles.tr}>
+                      <td className={styles.td} data-label='Missing'>
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                        />
+                        <div className={styles.cellInner}>
+                          <div className={styles.missingPills}>
+                            {missing.map((m) => (
+                              <span key={m} className={styles.missingPill}>
+                                {m}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    <td className={styles.td} data-label='Pickup'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div
-                        className={`${styles.cellStack} ${styles.cellInner}`}
+                      <td className={styles.td} data-label='Pickup'>
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                        />
+                        <div
+                          className={`${styles.cellStack} ${styles.cellInner}`}
+                        >
+                          <Link href={href} className={styles.rowLink}>
+                            {pickup.label}
+                          </Link>
+                          <div className={styles.cellMeta}>
+                            <span className={styles.pill}>{pickup.rel}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className={styles.td} data-label='Client'>
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                        />
+                        <div
+                          className={`${styles.cellStack} ${styles.cellInner}`}
+                        >
+                          <Link href={href} className={styles.rowLink}>
+                            {b.customer.kind === "corporate"
+                              ? "Corporate"
+                              : b.customer.kind === "account"
+                                ? "Account"
+                                : "Guest"}
+                          </Link>
+                          <div className={styles.cellSub}>{customerLine}</div>
+                        </div>
+                      </td>
+
+                      <td className={styles.td} data-label='Service'>
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                        />
+                        <div className={styles.cellInner}>
+                          <div className={styles.rowLink}>{b.serviceName}</div>
+                        </div>
+                      </td>
+
+                      <td className={styles.td} data-label='Vehicle'>
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                        />
+                        <div className={styles.cellInner}>
+                          <div className={styles.rowLink}>
+                            {b.vehicleName ?? "—"}
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className={styles.td} data-label='Route'>
+                        <Link
+                          href={href}
+                          className={styles.rowStretchedLink}
+                          aria-hidden='true'
+                          tabIndex={-1}
+                        />
+                        <div className={styles.cellInner}>
+                          <div className={styles.route}>{route}</div>
+                        </div>
+                      </td>
+
+                      <td
+                        className={`${styles.td} ${styles.tdRight}`}
+                        data-label='Action'
                       >
-                        <Link href={href} className={styles.rowLink}>
-                          {pickup.label}
+                        <Link className='primaryBtn' href={href}>
+                          Fix
                         </Link>
-                        <div className={styles.cellMeta}>
-                          <span className={styles.pill}>{pickup.rel}</span>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Client'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div
-                        className={`${styles.cellStack} ${styles.cellInner}`}
-                      >
-                        <Link href={href} className={styles.rowLink}>
-                          {b.customer.kind === "corporate"
-                            ? "Corporate"
-                            : b.customer.kind === "account"
-                              ? "Account"
-                              : "Guest"}
-                        </Link>
-                        <div className={styles.cellSub}>{customerLine}</div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Service'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <div className={styles.rowLink}>{b.serviceName}</div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Vehicle'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <div className={styles.rowLink}>
-                          {b.vehicleName ?? "—"}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Route'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <div className={styles.route}>{route}</div>
-                      </div>
-                    </td>
-
-                    <td
-                      className={`${styles.td} ${styles.tdRight}`}
-                      data-label='Action'
-                    >
-                      <Link className='primaryBtn' href={href}>
-                        Fix
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
   );
 }
