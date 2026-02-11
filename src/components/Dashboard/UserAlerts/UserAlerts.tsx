@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/purity */
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -11,30 +13,22 @@ export type UserAlertItem = {
   message: string;
   href?: string;
   ctaLabel?: string;
-  // For declined bookings
   declineReason?: string | null;
-  // For payment due
   amountDue?: string | null;
   dueDate?: string | null;
   paymentUrl?: string | null;
-  // For payment received / refunds
   amountPaid?: string | null;
   amountRefunded?: string | null;
-  // For driver assigned
-  driverName?: string | null;
-  vehicleName?: string | null;
-  // Booking info
   bookingId?: string;
   pickupDate?: string;
   route?: string;
+  /** ISO string for when the alert was created */
   timestamp?: string;
-  // Alert type for icon selection
   alertType?:
     | "declined"
     | "payment_due"
     | "payment_received"
     | "approved"
-    | "driver_assigned"
     | "refunded"
     | "cancelled";
 };
@@ -43,7 +37,64 @@ type Props = {
   alerts: UserAlertItem[];
 };
 
-// Slide drawer component for smooth animation
+/* ── Helpers ────────────────────────────────────── */
+
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Alerts that require user action stay visible indefinitely.
+ * Everything else auto-dismisses after 24 hours.
+ */
+function isActionRequired(a: UserAlertItem): boolean {
+  if (a.severity === "danger" || a.severity === "warning") return true;
+  if (a.alertType === "payment_due" || a.alertType === "declined") return true;
+  return false;
+}
+
+function shouldShowAlert(a: UserAlertItem, now: number): boolean {
+  // Action-required alerts never auto-dismiss
+  if (isActionRequired(a)) return true;
+
+  // Success / info alerts dismiss after 24 hours
+  if (!a.timestamp) return true; // no timestamp = always show
+  const created = new Date(a.timestamp).getTime();
+  if (isNaN(created)) return true;
+  return now - created < TWENTY_FOUR_HOURS_MS;
+}
+
+function getAlertIcon(
+  alertType: UserAlertItem["alertType"],
+  severity: UserAlertItem["severity"],
+): string {
+  switch (alertType) {
+    case "payment_received":
+      return "✅";
+    case "approved":
+      return "👍";
+    case "declined":
+      return "❌";
+    case "payment_due":
+      return "💳";
+    case "refunded":
+      return "💸";
+    case "cancelled":
+      return "🚫";
+    default:
+      switch (severity) {
+        case "success":
+          return "✅";
+        case "danger":
+          return "🚨";
+        case "warning":
+          return "⚠️";
+        default:
+          return "ℹ️";
+      }
+  }
+}
+
+/* ── Slide drawer ───────────────────────────────── */
+
 function SlideDrawer({
   isOpen,
   children,
@@ -56,7 +107,6 @@ function SlideDrawer({
 
   useEffect(() => {
     if (contentRef.current) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHeight(isOpen ? contentRef.current.scrollHeight : 0);
     }
   }, [isOpen, children]);
@@ -73,43 +123,15 @@ function SlideDrawer({
   );
 }
 
-// Get appropriate icon based on alert type
-function getAlertIcon(
-  alertType: UserAlertItem["alertType"],
-  severity: UserAlertItem["severity"],
-): string {
-  switch (alertType) {
-    case "payment_received":
-      return "✅";
-    case "approved":
-      return "👍";
-    case "driver_assigned":
-      return "🚗";
-    case "declined":
-      return "❌";
-    case "payment_due":
-      return "💳";
-    case "refunded":
-      return "💸";
-    case "cancelled":
-      return "🚫";
-    default:
-      // Fallback to severity-based icons
-      switch (severity) {
-        case "success":
-          return "✅";
-        case "danger":
-          return "🚨";
-        case "warning":
-          return "⚠️";
-        default:
-          return "ℹ️";
-      }
-  }
-}
+/* ── Component ──────────────────────────────────── */
 
 export default function UserAlerts({ alerts }: Props) {
-  const count = alerts.length;
+  const now = Date.now();
+
+  // Filter out expired success/info alerts
+  const visibleAlerts = alerts.filter((a) => shouldShowAlert(a, now));
+  const count = visibleAlerts.length;
+
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   function toggleExpanded(id: string) {
@@ -124,9 +146,7 @@ export default function UserAlerts({ alerts }: Props) {
     });
   }
 
-  if (count === 0) {
-    return null; // Don't render if no alerts
-  }
+  if (count === 0) return null;
 
   return (
     <section className={styles.container} aria-label='Alerts'>
@@ -139,14 +159,13 @@ export default function UserAlerts({ alerts }: Props) {
       </header>
 
       <ul className={styles.list}>
-        {alerts.map((a) => {
+        {visibleAlerts.map((a) => {
           const isExpanded = expandedIds.has(a.id);
           const hasDetails =
             a.declineReason ||
             a.amountDue ||
             a.amountPaid ||
             a.amountRefunded ||
-            a.driverName ||
             a.pickupDate ||
             a.route ||
             a.href;
@@ -223,34 +242,6 @@ export default function UserAlerts({ alerts }: Props) {
                           {a.amountRefunded}
                         </span>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Driver Assigned Info */}
-                  {a.driverName && (
-                    <div className={styles.driverBox}>
-                      <div className={styles.driverRow}>
-                        <span className={styles.driverIcon}>👤</span>
-                        <div className={styles.driverInfo}>
-                          <span className={styles.driverLabel}>
-                            Your Driver:
-                          </span>
-                          <span className={styles.driverName}>
-                            {a.driverName}
-                          </span>
-                        </div>
-                      </div>
-                      {a.vehicleName && (
-                        <div className={styles.driverRow}>
-                          <span className={styles.driverIcon}>🚐</span>
-                          <div className={styles.driverInfo}>
-                            <span className={styles.driverLabel}>Vehicle:</span>
-                            <span className={styles.driverName}>
-                              {a.vehicleName}
-                            </span>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
 

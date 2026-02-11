@@ -1,4 +1,401 @@
 .container {
   display: grid;
+  gap: 1.4rem;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+}
+
+.headerTop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 1rem;
+}
+
+.top {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  width: 100%;
+}
+
+.heading {
+  margin: 0;
+}
+
+.meta {
+  font-size: 1.4rem;
+  opacity: 0.75;
+}
+
+.metaSep {
+  margin-left: 1rem;
+}
+
+/* Filters */
+.filters {
+  display: grid;
+  gap: 2rem;
+}
+
+.filterGroup {
+  display: grid;
+  gap: 1rem;
+}
+
+.filterTitle {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: normal;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.tabRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Table */
+.tableWrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-height: none;
+}
+
+.tableCard {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.thead {
+  background: var(--white);
+  z-index: 2;
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  white-space: nowrap;
+  font-size: 1.4rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: middle;
+  position: relative;
+  z-index: 2;
+}
+
+.tr {
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: all 0.3s ease-in;
+  position: relative;
+}
+
+.tr:hover {
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
+}
+
+.tr:last-child {
+  border-bottom: none;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cellStack {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.cellStrong {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.cellSub {
+  font-size: 1.4rem;
+  opacity: 0.7;
+}
+
+.pickupMeta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.pill {
+  font-size: 1.4rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.editLink {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+.editLink:hover {
+  background: var(--lightGray);
+}
+
+.downloadBtn {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--white);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: 1px solid var(--black);
+  background: var(--black);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+.downloadBtn:hover {
+  background: var(--black400);
+}
+
+.downloadBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Empty State */
+.empty {
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: var(--white);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.emptyCopy {
+  margin: 0;
+  opacity: 0.75;
+  font-size: 1.4rem;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.paginationLeft {
+  display: flex;
+  align-items: center;
+}
+
+.paginationMeta {
+  font-size: 1.4rem;
+  opacity: 0.8;
+}
+
+.paginationRight {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.pageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.95rem;
+  border-radius: 5px;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  color: var(--black);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.4rem;
+  white-space: nowrap;
+}
+
+.pageBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pageBtnDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.pageBtnActive {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  pointer-events: none;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+    max-height: none;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+  }
+
+  .tr:hover {
+    background: var(--white);
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: normal;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .tabRow {
+    gap: 1rem;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .paginationRight {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pageBtn {
+    font-size: 1.4rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .td::before {
+    font-size: 1.4rem;
+  }
+
+  .cellSub {
+    font-size: 1.4rem;
+  }
+
+  .pill {
+    font-size: 1.4rem;
+    padding: 4px 7px;
+  }
 }

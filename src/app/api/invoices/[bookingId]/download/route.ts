@@ -191,7 +191,9 @@ export async function GET(
       taxesCents: booking.taxesCents,
       totalCents: booking.totalCents,
       tipCents: booking.payment.tipCents ?? 0,
-      amountPaidCents: booking.payment.amountPaidCents ?? 0,
+      amountPaidCents:
+        (booking.payment.amountPaidCents ?? 0) +
+        (booking.payment.tipCents ?? 0),
       amountRefundedCents: booking.payment.amountRefundedCents ?? 0,
 
       currency: booking.currency,
