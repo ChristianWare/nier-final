@@ -1,5 +1,6 @@
 "use client";
 
+import styles from "./AdminBookingDetailPage.module.css";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -7,7 +8,7 @@ import {
   deleteBookingNote,
 } from "../../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
-import styles from "./AdminBookingDetailPage.module.css";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 type Note = {
   id: string;
@@ -30,6 +31,10 @@ export default function BookingNotesClient({
   const [isPending, startTransition] = useTransition();
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const isDirty = content.trim().length > 0;
+
+  useDirtyForm("internal-notes", isDirty, "notes-section");
 
   function formatDate(dateStr: string) {
     return new Intl.DateTimeFormat("en-US", {

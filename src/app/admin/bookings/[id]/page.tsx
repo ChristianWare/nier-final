@@ -1740,7 +1740,7 @@ export default async function AdminBookingDetailPage({
             )}
           </Card>
 
-          <Card title='Internal Notes'>
+          <Card title='Internal Notes' id='notes-section'>
             <BookingNotesClient bookingId={booking.id} notes={notesForClient} />
           </Card>
 
