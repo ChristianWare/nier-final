@@ -1,0 +1,64 @@
+/* src/components/shared/DirtyFormProvider/DirtyFormProvider.module.css */
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1.5rem;
+}
+
+.warningBox {
+  width: 100%;
+  padding: 1rem;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  color: #92400e;
+}
+
+.warningBox strong {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.warningList {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 1.4rem;
+  line-height: 1.6;
+}
+
+.warningList li {
+  margin-bottom: 0.5rem;
+  letter-spacing: normal;
+}
+
+.warningList li:last-child {
+  margin-bottom: 0;
+}
+
+.scrollLink {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #92400e;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.scrollLink:hover {
+  color: #78350f;
+}
+
+.modalActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}

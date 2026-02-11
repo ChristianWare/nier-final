@@ -12,6 +12,8 @@ import {
 import Button from "@/components/shared/Button/Button";
 import Modal from "@/components/shared/Modal/Modal";
 import DriverSchedulePreview from "../DriverSchedulePreview/DriverSchedulePreview";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+
 
 export default function AssignBookingForm({
   bookingId,
@@ -117,6 +119,12 @@ export default function AssignBookingForm({
       router.refresh();
     });
   }
+
+  const isDirty =
+    (selectedDriverId ?? "") !== (currentDriverId ?? "") ||
+    (selectedVehicleUnitId ?? "") !== (currentVehicleUnitId ?? "");
+
+  useDirtyForm("driver-vehicle-assignment", isDirty, "assign-section");
 
   return (
     <>

@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { updateBookingPrice } from "../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+
 
 // Format cents to dollars string with commas (e.g., 175632 -> "$1,756.32")
 function formatCentsToDollars(cents: number): string {
@@ -95,6 +97,14 @@ export default function PriceForm({
     total: formatCentsToDollars(totalCents),
   }));
 
+  const isDirty =
+    parseDollarsToCents(state.subtotal) !== subtotalCents ||
+    parseDollarsToCents(state.fees) !== feesCents ||
+    parseDollarsToCents(state.taxes) !== taxesCents ||
+    parseDollarsToCents(state.total) !== totalCents;
+
+  useDirtyForm("price-form", isDirty);
+
   // Detect if props changed (e.g., after router.refresh()) and reset state
   if (
     subtotalCents !== state._propsSubtotal ||
@@ -114,13 +124,27 @@ export default function PriceForm({
     });
   }
 
-  function handleChange(
-    name: "subtotal" | "fees" | "taxes" | "total",
-    value: string,
-  ) {
-    const formatted = formatInputValue(value);
-    setState((prev) => ({ ...prev, [name]: formatted }));
+function handleChange(
+  name: "subtotal" | "fees" | "taxes" | "total",
+  value: string,
+) {
+  const formatted = formatInputValue(value);
+
+  if (name === "total") {
+    setState((prev) => ({ ...prev, total: formatted }));
+    return;
   }
+
+  setState((prev) => {
+    const next = { ...prev, [name]: formatted };
+    // Recalculate total from subtotal + fees + taxes
+    const sub = parseDollarsToCents(next.subtotal);
+    const fee = parseDollarsToCents(next.fees);
+    const tax = parseDollarsToCents(next.taxes);
+    next.total = formatCentsToDollars(sub + fee + tax);
+    return next;
+  });
+}
 
   function handleBlur(name: "subtotal" | "fees" | "taxes" | "total") {
     // On blur, format to proper currency display

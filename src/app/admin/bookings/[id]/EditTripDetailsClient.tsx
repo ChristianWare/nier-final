@@ -12,6 +12,8 @@ import RoutePickerAdmin, {
   RouteData,
 } from "@/components/admin/Routepickeradmin/Routepickeradmin";
 import toast from "react-hot-toast";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 
@@ -208,6 +210,29 @@ export default function EditTripDetailsClient({
     if (!pricingData || suggestedPriceCents === null) return false;
     return suggestedPriceCents !== pricingData.currentTotalCents;
   }, [pricingData, suggestedPriceCents]);
+
+  const isDirty = useMemo(() => {
+    if (!isEditing) return false;
+
+    return (
+      formData.pickupAt !== initialData.pickupAt ||
+      formData.pickupAddress !== initialData.pickupAddress ||
+      formData.dropoffAddress !== initialData.dropoffAddress ||
+      formData.passengers !== initialData.passengers ||
+      formData.luggage !== initialData.luggage ||
+      (formData.specialRequests ?? "") !==
+        (initialData.specialRequests ?? "") ||
+      (formData.flightAirline ?? "") !== (initialData.flightAirline ?? "") ||
+      (formData.flightNumber ?? "") !== (initialData.flightNumber ?? "") ||
+      (formData.flightScheduledAt ?? "") !==
+        (initialData.flightScheduledAt ?? "") ||
+      (formData.flightTerminal ?? "") !== (initialData.flightTerminal ?? "") ||
+      (formData.flightGate ?? "") !== (initialData.flightGate ?? "") ||
+      routeChanged
+    );
+  }, [formData, initialData, isEditing, routeChanged]);
+
+  useDirtyForm("trip-details", isDirty, "trip-section");
 
   function handleChange(
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
