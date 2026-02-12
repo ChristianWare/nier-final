@@ -34,6 +34,7 @@ import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect"
 import { extractIataFromFlightNumber } from "@/lib/flight/airlineList";
 import Stepper from "../Stepper/Stepper";
 import Modal from "@/components/shared/Modal/Modal";
+import { localToUtcIso, isPickupTooSoon } from "@/lib/timezone";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -249,11 +250,13 @@ export default function BookingWizard({
   serviceTypes,
   vehicles,
   userPhone,
+  companyTimezone,
   companyTimezoneLabel,
 }: {
   serviceTypes: ServiceTypeDTO[];
   vehicles: VehicleDTO[];
   userPhone?: string | null;
+  companyTimezone: string;
   companyTimezoneLabel: string;
 }) {
   const router = useRouter();
@@ -324,10 +327,13 @@ export default function BookingWizard({
 
   const pickupTooSoon = useMemo(() => {
     if (!pickupAtDate || !pickupAtTime) return false;
-    const pickupAt = new Date(`${pickupAtDate}T${pickupAtTime}:00`);
-    const minTime = new Date(Date.now() + 36 * 60 * 60 * 1000);
-    return pickupAt < minTime;
-  }, [pickupAtDate, pickupAtTime]);
+    return isPickupTooSoon(
+      pickupAtDate,
+      pickupAtTime,
+      companyTimezone,
+      36 * 60,
+    );
+  }, [pickupAtDate, pickupAtTime, companyTimezone]);
 
   const passengers = watch("passengers");
   const luggage = watch("luggage");
@@ -698,19 +704,25 @@ export default function BookingWizard({
       }
     }
 
-    const pickupAtIso = new Date(
-      `${v.pickupAtDate}T${v.pickupAtTime}:00`,
-    ).toISOString();
+    const pickupAtIso = localToUtcIso(
+      v.pickupAtDate,
+      v.pickupAtTime,
+      companyTimezone,
+    );
 
     let flightScheduledAtIso: string | null = null;
     if (v.flightScheduledAtDate && v.flightScheduledAtTime) {
-      flightScheduledAtIso = new Date(
-        `${v.flightScheduledAtDate}T${v.flightScheduledAtTime}:00`,
-      ).toISOString();
+      flightScheduledAtIso = localToUtcIso(
+        v.flightScheduledAtDate,
+        v.flightScheduledAtTime,
+        companyTimezone,
+      );
     } else if (v.flightScheduledAtDate) {
-      flightScheduledAtIso = new Date(
-        `${v.flightScheduledAtDate}T00:00:00`,
-      ).toISOString();
+      flightScheduledAtIso = localToUtcIso(
+        v.flightScheduledAtDate,
+        "00:00",
+        companyTimezone,
+      );
     }
 
     const newLeg: SavedLeg = {
@@ -837,18 +849,24 @@ export default function BookingWizard({
         return;
       }
     }
-    const pickupAtIso = new Date(
-      `${v.pickupAtDate}T${v.pickupAtTime}:00`,
-    ).toISOString();
+    const pickupAtIso = localToUtcIso(
+      v.pickupAtDate,
+      v.pickupAtTime,
+      companyTimezone,
+    );
     let flightScheduledAtIso: string | null = null;
     if (v.flightScheduledAtDate && v.flightScheduledAtTime) {
-      flightScheduledAtIso = new Date(
-        `${v.flightScheduledAtDate}T${v.flightScheduledAtTime}:00`,
-      ).toISOString();
+      flightScheduledAtIso = localToUtcIso(
+        v.flightScheduledAtDate,
+        v.flightScheduledAtTime,
+        companyTimezone,
+      );
     } else if (v.flightScheduledAtDate) {
-      flightScheduledAtIso = new Date(
-        `${v.flightScheduledAtDate}T00:00:00`,
-      ).toISOString();
+      flightScheduledAtIso = localToUtcIso(
+        v.flightScheduledAtDate,
+        "00:00",
+        companyTimezone,
+      );
     }
     setSubmitting(true);
     try {
@@ -859,13 +877,17 @@ export default function BookingWizard({
       if (savedLegs.length > 0) {
         let flightScheduledAtIsoGroup: string | null = null;
         if (v.flightScheduledAtDate && v.flightScheduledAtTime) {
-          flightScheduledAtIsoGroup = new Date(
-            `${v.flightScheduledAtDate}T${v.flightScheduledAtTime}:00`,
-          ).toISOString();
+          flightScheduledAtIsoGroup = localToUtcIso(
+            v.flightScheduledAtDate,
+            v.flightScheduledAtTime,
+            companyTimezone,
+          );
         } else if (v.flightScheduledAtDate) {
-          flightScheduledAtIsoGroup = new Date(
-            `${v.flightScheduledAtDate}T00:00:00`,
-          ).toISOString();
+          flightScheduledAtIsoGroup = localToUtcIso(
+            v.flightScheduledAtDate,
+            "00:00",
+            companyTimezone,
+          );
         }
 
         const currentLeg = {

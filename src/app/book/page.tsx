@@ -133,6 +133,7 @@ export default async function BookPage() {
         serviceTypes={serviceTypes as any}
         vehicles={vehicles as any}
         userPhone={userPhone}
+        companyTimezone={companySettings.timezone}
         companyTimezoneLabel={companyTimezoneLabel}
       />
     </main>
