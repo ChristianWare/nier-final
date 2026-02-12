@@ -249,10 +249,12 @@ export default function BookingWizard({
   serviceTypes,
   vehicles,
   userPhone,
+  companyTimezoneLabel,
 }: {
   serviceTypes: ServiceTypeDTO[];
   vehicles: VehicleDTO[];
   userPhone?: string | null;
+  companyTimezoneLabel: string;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -1270,6 +1272,9 @@ export default function BookingWizard({
                         clearErrors("pickupAtTime");
                       }}
                     />
+                    <div className='miniNote' style={{ marginTop: 8 }}>
+                      🕐 All times are in {companyTimezoneLabel}
+                    </div>
                     {pickupTooSoon && (
                       <div
                         className='miniNote'
@@ -2007,7 +2012,7 @@ export default function BookingWizard({
                       label='Pickup time'
                       value={
                         pickupAtDate && pickupAtTime
-                          ? `${pickupAtDate} @ ${pickupAtTime}`
+                          ? `${pickupAtDate} @ ${pickupAtTime} (${companyTimezoneLabel})`
                           : "—"
                       }
                     />

@@ -4,6 +4,7 @@ import { auth } from "../../../auth";
 import BookingWizard from "@/components/BookingPage/BookWizard/BookWizard";
 import BookingPageIntro from "@/components/BookingPage/BookingPageIntro/BookingPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,21 @@ export default async function BookPage() {
     });
     userPhone = user?.phone ?? null;
   }
+
+  const companySettings = await getCompanySettings();
+
+  const TIMEZONE_SHORT_LABELS: Record<string, string> = {
+    "America/Phoenix": "Phoenix, AZ (MST)",
+    "America/New_York": "Eastern (ET)",
+    "America/Chicago": "Central (CT)",
+    "America/Denver": "Mountain (MT)",
+    "America/Los_Angeles": "Pacific (PT)",
+    "America/Anchorage": "Alaska (AKT)",
+    "Pacific/Honolulu": "Hawaii (HST)",
+  };
+
+  const companyTimezoneLabel =
+    TIMEZONE_SHORT_LABELS[companySettings.timezone] ?? companySettings.timezone;
 
   const serviceTypesRaw = await db.serviceType.findMany({
     where: { active: true },
@@ -117,6 +133,7 @@ export default async function BookPage() {
         serviceTypes={serviceTypes as any}
         vehicles={vehicles as any}
         userPhone={userPhone}
+        companyTimezoneLabel={companyTimezoneLabel}
       />
     </main>
   );
