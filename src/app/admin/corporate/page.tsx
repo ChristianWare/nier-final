@@ -1,9 +1,10 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import styles from "./CorporateAccountsPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { CorporateAccountStatus, Prisma } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,23 +32,6 @@ function clampPage(raw: string | undefined) {
   const n = Number(raw);
   if (!Number.isFinite(n) || n <= 1) return 1;
   return Math.floor(n);
-}
-
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatMoney(cents: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
 }
 
 function statusBadgeTone(status: CorporateAccountStatus) {
@@ -101,6 +85,7 @@ export default async function AdminCorporateAccountsPage({
     : "ALL";
   const q = (sp.q ?? "").trim();
   const page = clampPage(sp.page);
+  const { timezone: companyTz } = await getCompanySettings();
 
   // Build where clause
   const where: Prisma.CorporateAccountWhereInput = {};
@@ -337,7 +322,7 @@ export default async function AdminCorporateAccountsPage({
                           aria-hidden
                           tabIndex={-1}
                         />
-                        {formatDate(a.createdAt)}
+                        {tz.formatDate(a.createdAt, companyTz)}
                       </td>
                     </tr>
                   );

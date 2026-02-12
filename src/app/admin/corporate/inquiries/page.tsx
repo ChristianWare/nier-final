@@ -2,6 +2,8 @@ import styles from "./CorporateInquiriesPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { CorporateInquiryStatus, Prisma } from "@prisma/client";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import { formatDateTime } from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,17 +39,6 @@ function clampPage(raw: string | undefined) {
   return Math.floor(n);
 }
 
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(d);
-}
-
 function statusBadgeTone(status: CorporateInquiryStatus) {
   if (status === "PENDING") return "warn";
   if (status === "CONTACTED") return "accent";
@@ -70,7 +61,9 @@ export default async function AdminCorporateInquiriesPage({
   const status: StatusFilter = STATUSES.includes(sp.status as StatusFilter)
     ? (sp.status as StatusFilter)
     : "ALL";
+
   const page = clampPage(sp.page);
+  const { timezone: companyTz } = await getCompanySettings();
 
   const where: Prisma.CorporateInquiryWhereInput = {};
   if (status !== "ALL") {
@@ -282,7 +275,7 @@ export default async function AdminCorporateInquiriesPage({
                           aria-hidden
                           tabIndex={-1}
                         />
-                        {formatDate(inq.createdAt)}
+                        {formatDateTime(inq.createdAt, companyTz)}{" "}
                       </td>
                     </tr>
                   );

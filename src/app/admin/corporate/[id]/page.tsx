@@ -13,118 +13,19 @@ import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Button from "@/components/shared/Button/Button";
 import VehicleUsageChart from "@/components/admin/VehicleUsageChart/VehicleUsageChart";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-
-/* ── Phoenix timezone helpers ── */
-
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return {
-    y: phx.getUTCFullYear(),
-    m: phx.getUTCMonth(),
-    d: phx.getUTCDate(),
-  };
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  return new Date(nextStartLocalMs - PHX_OFFSET_MS);
-}
-
-function monthKeyFromDatePhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  return `${y}-${String(m + 1).padStart(2, "0")}`;
-}
-
-function monthStartFromKeyPhoenix(key: string) {
-  const match = /^(\d{4})-(\d{2})$/.exec(key.trim());
-  if (!match) return null;
-  const y = Number(match[1]);
-  const m = Number(match[2]);
-  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12)
-    return null;
-  const startLocalMs = Date.UTC(y, m - 1, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function formatMonthLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "numeric",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
-
-function formatMonthTickPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "2-digit",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
-
 /* ── Formatting helpers ── */
-
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatDateTime(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(d);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
-}
 
 function formatMoney(cents: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 2,
-  }).format(cents / 100);
-}
-
-function formatMoneyShort(cents: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
   }).format(cents / 100);
 }
 
@@ -211,9 +112,10 @@ async function chartAggMonthlyCorporateBookings(
   corporateAccountId: string,
   fromUtc: Date,
   toUtc: Date,
+  timeZone: string,
 ) {
   const rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
       COUNT(*) as count
     FROM "Booking" b
     WHERE b."corporateAccountId" = ${corporateAccountId}
@@ -229,19 +131,20 @@ async function chartAggMonthlyCorporateBookings(
 
   const months: string[] = [];
   for (
-    let ms = startOfMonthPhoenix(fromUtc);
+    let ms = tz.startOfMonth(fromUtc, timeZone);
     ms.getTime() < toUtc.getTime();
-    ms = addMonthsPhoenix(ms, 1)
+    ms = tz.addMonths(ms, 1, timeZone)
   ) {
-    months.push(monthKeyFromDatePhoenix(ms));
+    months.push(tz.monthKey(ms, timeZone));
   }
 
   return months.map((k) => {
-    const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
+    const ms =
+      tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
     return {
       key: k,
-      tick: formatMonthTickPhoenix(ms),
-      label: formatMonthLabelPhoenix(ms),
+      tick: tz.formatMonthTick(ms, timeZone),
+      label: tz.formatMonthLabel(ms, timeZone),
       tripCount: bucket.get(k) ?? 0,
     };
   });
@@ -256,6 +159,8 @@ export default async function CorporateAccountDetailPage({
 }) {
   const { id } = await params;
   const now = new Date();
+  const companySettings = await getCompanySettings();
+  const companyTz = companySettings.timezone;
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const [
@@ -332,12 +237,21 @@ export default async function CorporateAccountDetailPage({
   const primaryContactHasPassword = !!primaryContact?.user?.password;
 
   // Chart data (last 12 months)
-  const usageChartFromUtc = addMonthsPhoenix(startOfMonthPhoenix(now), -11);
-  const usageChartToUtc = addMonthsPhoenix(startOfMonthPhoenix(now), 1);
+  const usageChartFromUtc = tz.addMonths(
+    tz.startOfMonth(now, companyTz),
+    -11,
+    companyTz,
+  );
+  const usageChartToUtc = tz.addMonths(
+    tz.startOfMonth(now, companyTz),
+    1,
+    companyTz,
+  );
   const usageChartData = await chartAggMonthlyCorporateBookings(
     account.id,
     usageChartFromUtc,
     usageChartToUtc,
+    companyTz,
   );
 
   const billingAddress = [
@@ -360,7 +274,9 @@ export default async function CorporateAccountDetailPage({
           <div className={styles.headerTop}>
             <div className={styles.top}>
               <div className={styles.profileInfo}>
-                <h1 className={`${styles.heading} h2`}>Corporation: <b>{account.name}</b></h1>
+                <h1 className={`${styles.heading} h2`}>
+                  Corporation: <b>{account.name}</b>
+                </h1>
                 <div className={styles.badgesRow}>
                   <span
                     className={`badge badge_${statusBadgeTone(account.status)}`}
@@ -375,7 +291,7 @@ export default async function CorporateAccountDetailPage({
                   </span>
                 </div>
                 <span className={styles.meta}>
-                  Created {formatDateTime(account.createdAt)}
+                  Created {tz.formatDateTime(account.createdAt, companyTz)}
                 </span>
               </div>
             </div>
@@ -398,13 +314,13 @@ export default async function CorporateAccountDetailPage({
           </div>
           <div className={styles.statBox}>
             <div className={styles.statValue}>
-              {formatMoneyShort(totalRevenueCents)}
+              {tz.formatMoneyShort(totalRevenueCents)}
             </div>
             <div className={styles.statLabel}>Revenue</div>
           </div>
           <div className={styles.statBox}>
             <div className={styles.statValue}>
-              {formatMoneyShort(totalInvoiced)}
+              {tz.formatMoneyShort(totalInvoiced)}
             </div>
             <div className={styles.statLabel}>Invoiced</div>
           </div>
@@ -412,7 +328,7 @@ export default async function CorporateAccountDetailPage({
             className={`${styles.statBox} ${outstandingBalance > 0 ? styles.statBoxDanger : ""}`}
           >
             <div className={styles.statValue}>
-              {formatMoneyShort(outstandingBalance)}
+              {tz.formatMoneyShort(outstandingBalance)}
             </div>
             <div className={styles.statLabel}>Outstanding</div>
           </div>
@@ -457,7 +373,7 @@ export default async function CorporateAccountDetailPage({
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>Created</span>
                 <span className={styles.infoValue}>
-                  {formatDateTime(account.createdAt)}
+                  {tz.formatDateTime(account.createdAt, companyTz)}
                 </span>
               </div>
               <div className={styles.infoRow}>
@@ -796,11 +712,11 @@ export default async function CorporateAccountDetailPage({
                                 }}
                               />
                               <Link href={href} className={styles.rowLink}>
-                                {formatDate(b.pickupAt)}
+                                {tz.formatDate(b.pickupAt, companyTz)}
                               </Link>
                               <div className={styles.pickupMeta}>
                                 <span className={styles.pill}>
-                                  {formatEta(b.pickupAt, now)}
+                                  {tz.formatEta(b.pickupAt, now)}
                                 </span>
                               </div>
                             </td>

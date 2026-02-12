@@ -3,21 +3,11 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import InquiryActionsClient from "./InquiryActionsClient";
+import { getCompanySettings } from "../../../../../../actions/admin/companySettings";
+import { formatDateTime } from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(d);
-}
 
 function statusBadgeTone(status: string) {
   if (status === "PENDING") return "warn";
@@ -33,6 +23,7 @@ export default async function CorporateInquiryDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { timezone: companyTz } = await getCompanySettings();
 
   const inquiry = await db.corporateInquiry.findUnique({
     where: { id },
@@ -58,7 +49,7 @@ export default async function CorporateInquiryDetailPage({
             {inquiry.status}
           </span>
           <span className={styles.meta}>
-            Submitted {formatDate(inquiry.createdAt)}
+            Submitted {formatDateTime(inquiry.createdAt, companyTz)}{" "}
           </span>
         </div>
       </header>
@@ -113,7 +104,10 @@ export default async function CorporateInquiryDetailPage({
               k='Reviewed By'
               v={inquiry.reviewedBy?.name || inquiry.reviewedBy?.email || "—"}
             />
-            <KeyVal k='Reviewed At' v={formatDate(inquiry.reviewedAt)} />
+            <KeyVal
+              k='Reviewed At'
+              v={formatDateTime(inquiry.reviewedAt, companyTz)}
+            />{" "}
           </div>
         </div>
       )}

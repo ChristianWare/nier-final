@@ -2,6 +2,8 @@ import styles from "./CorporateInvoicesPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { CorporateInvoiceStatus, Prisma } from "@prisma/client";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,24 +39,6 @@ function clampPage(raw: string | undefined) {
   const n = Number(raw);
   if (!Number.isFinite(n) || n <= 1) return 1;
   return Math.floor(n);
-}
-
-function formatDate(d: Date | null) {
-  if (!d) return "—";
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatMoney(cents: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  }).format(cents / 100);
 }
 
 function statusBadgeTone(status: CorporateInvoiceStatus) {
@@ -102,7 +86,9 @@ export default async function AdminCorporateInvoicesPage({
   const status: StatusFilter = STATUSES.includes(sp.status as StatusFilter)
     ? (sp.status as StatusFilter)
     : "ALL";
+
   const page = clampPage(sp.page);
+  const { timezone: companyTz } = await getCompanySettings();
 
   const where: Prisma.CorporateInvoiceWhereInput = {};
   if (status !== "ALL") {
@@ -169,18 +155,18 @@ export default async function AdminCorporateInvoicesPage({
           <div className={styles.kpiRow}>
             <div className={styles.kpiCard}>
               <div className={styles.kpiLabel}>Total Invoiced</div>
-              <div className='kpiValue'>{formatMoney(totalInvoiced)}</div>
+              <div className='kpiValue'>{tz.formatMoney(totalInvoiced)}</div>
             </div>
             <div className={styles.kpiCard}>
               <div className={styles.kpiLabel}>Total Paid</div>
-              <div className='kpiValue'>{formatMoney(totalPaid)}</div>
+              <div className='kpiValue'>{tz.formatMoney(totalPaid)}</div>
             </div>
             <div className={styles.kpiCard}>
               <div className={styles.kpiLabel}>Outstanding</div>
               <div
                 className={`kpiValue ${totalOutstanding > 0 ? "colorRed" : ""}`}
               >
-                {formatMoney(totalOutstanding)}
+                {tz.formatMoney(totalOutstanding)}{" "}
               </div>
             </div>
           </div>
@@ -270,21 +256,26 @@ export default async function AdminCorporateInvoicesPage({
                         </Link>
                       </td>
                       <td className={styles.td}>
-                        {formatDate(inv.periodStart)} –{" "}
-                        {formatDate(inv.periodEnd)}
+                        {inv.periodStart
+                          ? tz.formatDate(inv.periodStart, companyTz)
+                          : "—"}{" "}
+                        –{" "}
+                        {inv.periodEnd
+                          ? tz.formatDate(inv.periodEnd, companyTz)
+                          : "—"}
                       </td>
                       <td className={styles.td}>{inv._count.lineItems}</td>
                       <td className={styles.td}>
                         <div className={styles.cellStrong}>
-                          {formatMoney(inv.totalCents)}
+                          {tz.formatMoney(inv.totalCents)}{" "}
                         </div>
                       </td>
                       <td className={styles.td}>
-                        {formatMoney(inv.amountPaidCents)}
+                        {tz.formatMoney(inv.amountPaidCents)}{" "}
                       </td>
                       <td className={styles.td}>
                         <div className={balance > 0 ? styles.balanceDue : ""}>
-                          {formatMoney(balance)}
+                          {tz.formatMoney(balance)}{" "}
                         </div>
                       </td>
                       <td className={styles.td}>
@@ -294,8 +285,16 @@ export default async function AdminCorporateInvoicesPage({
                           {inv.status.replace("_", " ")}
                         </span>
                       </td>
-                      <td className={styles.td}>{formatDate(inv.dueDate)}</td>
-                      <td className={styles.td}>{formatDate(inv.sentAt)}</td>
+                      <td className={styles.td}>
+                        {inv.dueDate
+                          ? tz.formatDate(inv.dueDate, companyTz)
+                          : "—"}
+                      </td>
+                      <td className={styles.td}>
+                        {inv.sentAt
+                          ? tz.formatDate(inv.sentAt, companyTz)
+                          : "—"}
+                      </td>
                     </tr>
                   );
                 })}

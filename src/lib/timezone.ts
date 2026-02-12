@@ -56,6 +56,25 @@ export function toLocalParts(dateUtc: Date, tz: string) {
   };
 }
 
+// ─── Date boundary helpers ────────────────────────────────────
+
+/** UTC timestamp of midnight on the day containing dateUtc in the given timezone. */
+export function startOfDay(dateUtc: Date, tz: string): Date {
+  const { y, m, d } = toLocalParts(dateUtc, tz);
+  const localMidnightMs = Date.UTC(y, m, d, 0, 0, 0);
+  const estimate = new Date(localMidnightMs - getOffsetMs(dateUtc, tz));
+  return new Date(localMidnightMs - getOffsetMs(estimate, tz));
+}
+
+/** UTC timestamp of midnight on the Sunday starting the week containing dateUtc. */
+export function startOfWeek(dateUtc: Date, tz: string): Date {
+  const { y, m, d } = toLocalParts(dateUtc, tz);
+  const dow = new Date(Date.UTC(y, m, d)).getUTCDay();
+  const localSundayMs = Date.UTC(y, m, d - dow, 0, 0, 0);
+  const estimate = new Date(localSundayMs - getOffsetMs(dateUtc, tz));
+  return new Date(localSundayMs - getOffsetMs(estimate, tz));
+}
+
 // ─── Month math ───────────────────────────────────────────────
 
 /** UTC timestamp of midnight on the 1st of the month containing dateUtc. */
@@ -82,6 +101,14 @@ export function addMonths(
   // Refine offset for the new month (DST may differ)
   const estimate = new Date(nextLocalMs - offset);
   return new Date(nextLocalMs - getOffsetMs(estimate, tz));
+}
+
+/** UTC timestamp of midnight on Jan 1 of the year containing dateUtc. */
+export function startOfYear(dateUtc: Date, tz: string): Date {
+  const { y } = toLocalParts(dateUtc, tz);
+  const localMs = Date.UTC(y, 0, 1, 0, 0, 0);
+  const estimate = new Date(localMs - getOffsetMs(dateUtc, tz));
+  return new Date(localMs - getOffsetMs(estimate, tz));
 }
 
 /** "YYYY-MM" key from a UTC date in the given timezone. */
@@ -133,6 +160,16 @@ export function formatDate(d: Date, tz: string): string {
   }).format(d);
 }
 
+/** "Jan 15, 2026" (medium date, no time) */
+export function formatDateMedium(d: Date, tz: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(d);
+}
+
 /** "Jan 15, 2026, 3:00 PM" */
 export function formatDateTime(d: Date, tz: string): string {
   return new Intl.DateTimeFormat("en-US", {
@@ -149,6 +186,15 @@ export function formatDateTime(d: Date, tz: string): string {
 export function formatIsoDate(d: Date, tz: string): string {
   const { y, m, d: day } = toLocalParts(d, tz);
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/** "01/15" (short day tick for charts, no year) */
+export function formatDayTick(d: Date, tz: string): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
 // ─── Relative time (timezone-independent) ─────────────────────
@@ -341,21 +387,4 @@ const TIMEZONE_SHORT_LABELS: Record<string, string> = {
 /** Human-readable timezone label, e.g. "Phoenix, AZ (MST)" */
 export function timezoneLabel(tz: string): string {
   return TIMEZONE_SHORT_LABELS[tz] ?? tz;
-}
-
-/** UTC timestamp of midnight on the day containing dateUtc in the given timezone. */
-export function startOfDay(dateUtc: Date, tz: string): Date {
-  const { y, m, d } = toLocalParts(dateUtc, tz);
-  const localMidnightMs = Date.UTC(y, m, d, 0, 0, 0);
-  const estimate = new Date(localMidnightMs - getOffsetMs(dateUtc, tz));
-  return new Date(localMidnightMs - getOffsetMs(estimate, tz));
-}
-
-/** UTC timestamp of midnight on the Sunday starting the week containing dateUtc. */
-export function startOfWeek(dateUtc: Date, tz: string): Date {
-  const { y, m, d } = toLocalParts(dateUtc, tz);
-  const dow = new Date(Date.UTC(y, m, d)).getUTCDay();
-  const localSundayMs = Date.UTC(y, m, d - dow, 0, 0, 0);
-  const estimate = new Date(localSundayMs - getOffsetMs(dateUtc, tz));
-  return new Date(localSundayMs - getOffsetMs(estimate, tz));
 }
