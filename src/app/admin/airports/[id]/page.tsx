@@ -9,22 +9,11 @@ import {
   updateAirport,
   deleteAirport,
 } from "../../../../../actions/admin/airports";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import { formatDateTime } from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_TZ = "America/Phoenix";
-
-function formatDateTime(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(d);
-}
 
 export default async function EditAirportPage({
   params,
@@ -33,6 +22,8 @@ export default async function EditAirportPage({
 }) {
   const { id } = await params;
   if (!id) notFound();
+
+  const { timezone } = await getCompanySettings();
 
   const airport = await db.airport.findUnique({
     where: { id },
@@ -77,7 +68,9 @@ export default async function EditAirportPage({
           <div className={styles.headerTop}>
             <div className={styles.top}>
               <div className={styles.profileInfo}>
-                <h1 className={`${styles.heading} h2`}>Airport: <b>{airport.name}</b></h1>
+                <h1 className={`${styles.heading} h2`}>
+                  Airport: <b>{airport.name}</b>
+                </h1>
                 <div className={styles.badgesRow}>
                   <span
                     className={`badge ${airport.active ? "badge_good" : "badge_neutral"}`}
@@ -130,7 +123,7 @@ export default async function EditAirportPage({
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>Added</span>
                 <span className={styles.infoValue}>
-                  {formatDateTime(airport.createdAt)}
+                  {formatDateTime(airport.createdAt, timezone)}{" "}
                 </span>
               </div>
               <div className={styles.infoRow}>

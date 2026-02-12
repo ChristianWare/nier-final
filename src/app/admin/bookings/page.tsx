@@ -9,6 +9,8 @@ import SearchFormClient from "./SearchFormClient";
 import ClearFiltersButton from "@/components/admin/Clearfiltersbutton/Clearfiltersbutton";
 import FilterSelectClient from "./FilterSelectClient";
 import TripGroupBadge from "@/components/admin/TripGroupBadge/TripGroupBadge";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,58 +73,7 @@ type SearchParams = {
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 const PAGE_SIZE = 10;
-
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return {
-    y: phx.getUTCFullYear(),
-    m: phx.getUTCMonth(),
-    d: phx.getUTCDate(),
-  };
-}
-
-function startOfDayPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function startOfYearPhoenix(dateUtc: Date) {
-  const { y } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, 0, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
-  return new Date(nextStartUtcMs);
-}
-
-function startOfNextYearPhoenix(yearStartUtc: Date) {
-  const phxLocalMs = yearStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const nextStartLocalMs = Date.UTC(y + 1, 0, 1, 0, 0, 0);
-  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
-  return new Date(nextStartUtcMs);
-}
 
 function parseYMD(s: string | null | undefined) {
   if (!s) return null;
@@ -137,47 +88,24 @@ function parseYMD(s: string | null | undefined) {
   return { y, m, d };
 }
 
-function startOfDayFromYMDPhoenix(ymd: { y: number; m: number; d: number }) {
-  const startLocalMs = Date.UTC(ymd.y, ymd.m - 1, ymd.d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
+function startOfDayFromYMD(
+  ymd: { y: number; m: number; d: number },
+  timezone: string,
+) {
+  const iso = `${ymd.y}-${String(ymd.m).padStart(2, "0")}-${String(ymd.d).padStart(2, "0")}`;
+  return new Date(tz.localToUtcIso(iso, "00:00", timezone));
 }
 
-function ymdForInputPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+function startOfYear(dateUtc: Date, timezone: string) {
+  const { y } = tz.toLocalParts(dateUtc, timezone);
+  const iso = `${y}-01-01`;
+  return new Date(tz.localToUtcIso(iso, "00:00", timezone));
 }
 
-function formatPhoenix(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatMoneyFromCents(cents: number) {
-  const dollars = cents / 100;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(dollars);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
+function startOfNextYear(yearStartUtc: Date, timezone: string) {
+  const { y } = tz.toLocalParts(yearStartUtc, timezone);
+  const iso = `${y + 1}-01-01`;
+  return new Date(tz.localToUtcIso(iso, "00:00", timezone));
 }
 
 function getConfirmationCode(bookingId: string): string {
@@ -333,6 +261,7 @@ function safeCustomerType(v: any): "all" | "guest" | "account" | "corporate" {
 
 function buildWhere(args: {
   now: Date;
+  timezone: string;
   status: StatusFilter;
   range: RangeFilter;
   unassigned: boolean;
@@ -343,22 +272,32 @@ function buildWhere(args: {
   q?: string;
   customerType?: string;
 }) {
-  const { now, status, range, unassigned, paid, stuck, fromYmd, toYmd, q } =
-    args;
+  const {
+    now,
+    timezone,
+    status,
+    range,
+    unassigned,
+    paid,
+    stuck,
+    fromYmd,
+    toYmd,
+    q,
+  } = args;
 
   const where: Prisma.BookingWhereInput = {};
 
-  const todayStart = startOfDayPhoenix(now);
+  const todayStart = tz.startOfDay(now, timezone);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
   const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = addMonthsPhoenix(monthStart, 1);
+  const monthStart = tz.startOfMonth(now, timezone);
+  const nextMonthStart = tz.addMonths(monthStart, 1, timezone);
 
-  const yearStart = startOfYearPhoenix(now);
-  const nextYearStart = startOfNextYearPhoenix(yearStart);
+  const yearStart = startOfYear(now, timezone);
+  const nextYearStart = startOfNextYear(yearStart, timezone);
 
   let pickupAtFilter: Prisma.DateTimeFilter | undefined;
 
@@ -374,8 +313,8 @@ function buildWhere(args: {
     const f = parseYMD(fromYmd);
     const t = parseYMD(toYmd);
 
-    let fromUtc = f ? startOfDayFromYMDPhoenix(f) : todayStart;
-    const toUtc0 = t ? startOfDayFromYMDPhoenix(t) : todayStart;
+    let fromUtc = f ? startOfDayFromYMD(f, timezone) : todayStart;
+    const toUtc0 = t ? startOfDayFromYMD(t, timezone) : todayStart;
 
     let toUtc = new Date(toUtc0.getTime() + 24 * 60 * 60 * 1000);
 
@@ -546,15 +485,17 @@ export default async function AdminBookingsPage({
 
   const q = (sp.q ?? "").trim();
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
-  const defaultFrom = ymdForInputPhoenix(now);
-  const defaultTo = ymdForInputPhoenix(now);
+  const defaultFrom = tz.formatIsoDate(now, companyTz);
+  const defaultTo = tz.formatIsoDate(now, companyTz);
 
   const fromYmd = sp.from ?? defaultFrom;
   const toYmd = sp.to ?? defaultTo;
 
   const where = buildWhere({
     now,
+    timezone: companyTz,
     status,
     range,
     unassigned,
@@ -621,6 +562,7 @@ export default async function AdminBookingsPage({
   }) {
     const w = buildWhere({
       now,
+      timezone: companyTz,
       status: next.status ?? status,
       range: next.range ?? range,
       unassigned:
@@ -927,9 +869,9 @@ export default async function AdminBookingsPage({
               <tbody>
                 {bookings.map((b) => {
                   const href = `/admin/bookings/${b.id}`;
-                  const pickupEta = formatEta(b.pickupAt, now);
-                  const createdAgo = formatEta(b.createdAt, now);
-                  const total = formatMoneyFromCents(b.totalCents ?? 0);
+                  const pickupEta = tz.formatEta(b.pickupAt, now);
+                  const createdAgo = tz.formatEta(b.createdAt, now);
+                  const total = tz.formatMoneyShort(b.totalCents ?? 0);
 
                   const confirmationCode = getConfirmationCode(b.id);
 
@@ -1004,7 +946,7 @@ export default async function AdminBookingsPage({
                         />
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
-                            {formatPhoenix(b.createdAt)}
+                            {tz.formatDate(b.createdAt, companyTz)}{" "}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{createdAgo}</span>
@@ -1051,7 +993,7 @@ export default async function AdminBookingsPage({
                         />
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
-                            {formatPhoenix(b.pickupAt)}
+                            {tz.formatDate(b.pickupAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{pickupEta}</span>
