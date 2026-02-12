@@ -54,7 +54,20 @@ const DEFAULTS = {
   officeAddress: "",
   officeCity: "",
   officeHours: JSON.stringify(DEFAULT_HOURS),
-  smsFromNumber: "", // Will fall back to env if empty
+  smsFromNumber: "",
+  // New defaults
+  companyName: "",
+  companyTagline: "",
+  logoUrl: "",
+  emailSenderName: "",
+  emailReplyTo: "",
+  emailFooterText: "",
+  timezone: "America/Phoenix",
+  websiteUrl: "",
+  googleBusinessUrl: "",
+  yelpUrl: "",
+  taxId: "",
+  businessLicense: "",
 };
 
 export type DayHours = {
@@ -85,6 +98,23 @@ export type CompanySettingsData = {
   officeHours: string;
   officeHoursParsed: WeekHours;
   smsFromNumber: string;
+  // Branding
+  companyName: string;
+  companyTagline: string;
+  logoUrl: string;
+  // Email
+  emailSenderName: string;
+  emailReplyTo: string;
+  emailFooterText: string;
+  // Timezone
+  timezone: string;
+  // Social
+  websiteUrl: string;
+  googleBusinessUrl: string;
+  yelpUrl: string;
+  // Legal
+  taxId: string;
+  businessLicense: string;
 };
 
 /**
@@ -116,6 +146,23 @@ export async function getCompanySettings(): Promise<CompanySettingsData> {
     officeHours,
     officeHoursParsed,
     smsFromNumber: row?.smsFromNumber ?? DEFAULTS.smsFromNumber,
+    // Branding
+    companyName: row?.companyName ?? DEFAULTS.companyName,
+    companyTagline: row?.companyTagline ?? DEFAULTS.companyTagline,
+    logoUrl: row?.logoUrl ?? DEFAULTS.logoUrl,
+    // Email
+    emailSenderName: row?.emailSenderName ?? DEFAULTS.emailSenderName,
+    emailReplyTo: row?.emailReplyTo ?? DEFAULTS.emailReplyTo,
+    emailFooterText: row?.emailFooterText ?? DEFAULTS.emailFooterText,
+    // Timezone
+    timezone: row?.timezone ?? DEFAULTS.timezone,
+    // Social
+    websiteUrl: row?.websiteUrl ?? DEFAULTS.websiteUrl,
+    googleBusinessUrl: row?.googleBusinessUrl ?? DEFAULTS.googleBusinessUrl,
+    yelpUrl: row?.yelpUrl ?? DEFAULTS.yelpUrl,
+    // Legal
+    taxId: row?.taxId ?? DEFAULTS.taxId,
+    businessLicense: row?.businessLicense ?? DEFAULTS.businessLicense,
   };
 }
 
@@ -129,7 +176,6 @@ export async function getSmsFromNumber(): Promise<string | null> {
     select: { smsFromNumber: true },
   });
 
-  // Return client's number if set, otherwise return null (caller will use env default)
   return row?.smsFromNumber?.trim() || null;
 }
 
@@ -150,6 +196,30 @@ const SaveSchema = z.object({
   officeCity: z.string().trim().optional(),
   officeHours: z.string().trim(),
   smsFromNumber: z.string().trim().optional(),
+  // Branding
+  companyName: z.string().trim().optional(),
+  companyTagline: z.string().trim().optional(),
+  logoUrl: z.string().trim().optional(),
+  // Email
+  emailSenderName: z.string().trim().optional(),
+  emailReplyTo: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (val) => !val || z.string().email().safeParse(val).success,
+      "Invalid reply-to email",
+    ),
+  emailFooterText: z.string().trim().optional(),
+  // Timezone
+  timezone: z.string().trim().optional(),
+  // Social
+  websiteUrl: z.string().trim().optional(),
+  googleBusinessUrl: z.string().trim().optional(),
+  yelpUrl: z.string().trim().optional(),
+  // Legal
+  taxId: z.string().trim().optional(),
+  businessLicense: z.string().trim().optional(),
 });
 
 /**
@@ -158,19 +228,36 @@ const SaveSchema = z.object({
 export async function saveCompanySettings(formData: FormData) {
   const { actorId } = await requireAdmin();
 
+  const str = (key: string) => String(formData.get(key) ?? "").trim();
+
   const data = {
-    dispatchPhone: String(formData.get("dispatchPhone") ?? "").trim(),
-    dispatchPhoneRaw: String(formData.get("dispatchPhoneRaw") ?? "").trim(),
-    emergencyPhone: String(formData.get("emergencyPhone") ?? "").trim(),
-    emergencyPhoneRaw: String(formData.get("emergencyPhoneRaw") ?? "").trim(),
-    supportEmail: String(formData.get("supportEmail") ?? "").trim(),
-    officeName: String(formData.get("officeName") ?? "").trim(),
-    officeAddress: String(formData.get("officeAddress") ?? "").trim(),
-    officeCity: String(formData.get("officeCity") ?? "").trim(),
-    officeHours:
-      String(formData.get("officeHours") ?? "").trim() ||
-      JSON.stringify(DEFAULT_HOURS),
-    smsFromNumber: String(formData.get("smsFromNumber") ?? "").trim(),
+    dispatchPhone: str("dispatchPhone"),
+    dispatchPhoneRaw: str("dispatchPhoneRaw"),
+    emergencyPhone: str("emergencyPhone"),
+    emergencyPhoneRaw: str("emergencyPhoneRaw"),
+    supportEmail: str("supportEmail"),
+    officeName: str("officeName"),
+    officeAddress: str("officeAddress"),
+    officeCity: str("officeCity"),
+    officeHours: str("officeHours") || JSON.stringify(DEFAULT_HOURS),
+    smsFromNumber: str("smsFromNumber"),
+    // Branding
+    companyName: str("companyName"),
+    companyTagline: str("companyTagline"),
+    logoUrl: str("logoUrl"),
+    // Email
+    emailSenderName: str("emailSenderName"),
+    emailReplyTo: str("emailReplyTo"),
+    emailFooterText: str("emailFooterText"),
+    // Timezone
+    timezone: str("timezone"),
+    // Social
+    websiteUrl: str("websiteUrl"),
+    googleBusinessUrl: str("googleBusinessUrl"),
+    yelpUrl: str("yelpUrl"),
+    // Legal
+    taxId: str("taxId"),
+    businessLicense: str("businessLicense"),
   };
 
   const parsed = SaveSchema.safeParse(data);
@@ -182,38 +269,45 @@ export async function saveCompanySettings(formData: FormData) {
 
   const d = parsed.data;
 
+  const payload = {
+    dispatchPhone: d.dispatchPhone,
+    dispatchPhoneRaw: d.dispatchPhoneRaw,
+    emergencyPhone: d.emergencyPhone,
+    emergencyPhoneRaw: d.emergencyPhoneRaw,
+    supportEmail: d.supportEmail.toLowerCase(),
+    officeName: d.officeName || null,
+    officeAddress: d.officeAddress || null,
+    officeCity: d.officeCity || null,
+    officeHours: d.officeHours,
+    smsFromNumber: d.smsFromNumber || null,
+    // Branding
+    companyName: d.companyName || null,
+    companyTagline: d.companyTagline || null,
+    logoUrl: d.logoUrl || null,
+    // Email
+    emailSenderName: d.emailSenderName || null,
+    emailReplyTo: d.emailReplyTo?.toLowerCase() || null,
+    emailFooterText: d.emailFooterText || null,
+    // Timezone
+    timezone: d.timezone || "America/Phoenix",
+    // Social
+    websiteUrl: d.websiteUrl || null,
+    googleBusinessUrl: d.googleBusinessUrl || null,
+    yelpUrl: d.yelpUrl || null,
+    // Legal
+    taxId: d.taxId || null,
+    businessLicense: d.businessLicense || null,
+    updatedBy: actorId,
+  };
+
   await db.companySettings.upsert({
     where: { id: "default" },
-    update: {
-      dispatchPhone: d.dispatchPhone,
-      dispatchPhoneRaw: d.dispatchPhoneRaw,
-      emergencyPhone: d.emergencyPhone,
-      emergencyPhoneRaw: d.emergencyPhoneRaw,
-      supportEmail: d.supportEmail.toLowerCase(),
-      officeName: d.officeName || null,
-      officeAddress: d.officeAddress || null,
-      officeCity: d.officeCity || null,
-      officeHours: d.officeHours,
-      smsFromNumber: d.smsFromNumber || null,
-      updatedBy: actorId,
-    },
-    create: {
-      id: "default",
-      dispatchPhone: d.dispatchPhone,
-      dispatchPhoneRaw: d.dispatchPhoneRaw,
-      emergencyPhone: d.emergencyPhone,
-      emergencyPhoneRaw: d.emergencyPhoneRaw,
-      supportEmail: d.supportEmail.toLowerCase(),
-      officeName: d.officeName || null,
-      officeAddress: d.officeAddress || null,
-      officeCity: d.officeCity || null,
-      officeHours: d.officeHours,
-      smsFromNumber: d.smsFromNumber || null,
-      updatedBy: actorId,
-    },
+    update: payload,
+    create: { id: "default", ...payload },
   });
 
   revalidatePath("/driver-dashboard/support");
+  revalidatePath("/admin/company");
 
   return { success: true };
 }

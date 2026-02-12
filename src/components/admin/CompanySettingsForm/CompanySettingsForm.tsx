@@ -2,9 +2,9 @@
 
 import { useMemo, useState, useTransition } from "react";
 import toast from "react-hot-toast";
-import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import styles from "./CompanySettingsForm.module.css";
 import { saveCompanySettings } from "../../../../actions/admin/companySettings";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Button from "@/components/shared/Button/Button";
 
 type Props = {
@@ -19,6 +19,23 @@ type Props = {
     officeCity: string;
     officeHours: string;
     smsFromNumber: string;
+    // Branding
+    companyName: string;
+    companyTagline: string;
+    logoUrl: string;
+    // Email
+    emailSenderName: string;
+    emailReplyTo: string;
+    emailFooterText: string;
+    // Timezone
+    timezone: string;
+    // Social
+    websiteUrl: string;
+    googleBusinessUrl: string;
+    yelpUrl: string;
+    // Legal
+    taxId: string;
+    businessLicense: string;
   };
 };
 
@@ -58,7 +75,16 @@ const DAYS: { key: keyof WeekHours; label: string }[] = [
   { key: "sunday", label: "Sunday" },
 ];
 
-// Generate time options in 30-minute increments
+const TIMEZONE_OPTIONS = [
+  { value: "America/Phoenix", label: "Phoenix (MST, no DST)" },
+  { value: "America/New_York", label: "Eastern (ET)" },
+  { value: "America/Chicago", label: "Central (CT)" },
+  { value: "America/Denver", label: "Mountain (MT)" },
+  { value: "America/Los_Angeles", label: "Pacific (PT)" },
+  { value: "America/Anchorage", label: "Alaska (AKT)" },
+  { value: "Pacific/Honolulu", label: "Hawaii (HST)" },
+];
+
 const TIME_OPTIONS: { value: string; label: string }[] = [];
 for (let h = 0; h < 24; h++) {
   for (let m = 0; m < 60; m += 30) {
@@ -70,7 +96,6 @@ for (let h = 0; h < 24; h++) {
   }
 }
 
-// Format time from 24h to 12h display
 function formatTime(time24: string): string {
   const [hStr, mStr] = time24.split(":");
   const h = parseInt(hStr, 10);
@@ -79,7 +104,6 @@ function formatTime(time24: string): string {
   return `${hour12}:${mStr} ${ampm}`;
 }
 
-// Format phone number as (123) 456-7890
 function formatPhoneNumber(value: string): string {
   const digits = value.replace(/\D/g, "");
   const limited = digits.slice(0, 10);
@@ -90,12 +114,10 @@ function formatPhoneNumber(value: string): string {
   return `(${limited.slice(0, 3)}) ${limited.slice(3, 6)}-${limited.slice(6)}`;
 }
 
-// Extract raw digits from formatted phone
 function getRawPhone(value: string): string {
   return value.replace(/\D/g, "");
 }
 
-// Parse initial hours from JSON string
 function parseInitialHours(hoursJson: string): WeekHours {
   try {
     const parsed = JSON.parse(hoursJson);
@@ -108,23 +130,47 @@ function parseInitialHours(hoursJson: string): WeekHours {
 export default function CompanySettingsForm({ initial }: Props) {
   const [isPending, startTransition] = useTransition();
 
-  // State for phone fields with formatting
+  /* ── Existing state ── */
   const [dispatchPhone, setDispatchPhone] = useState(initial.dispatchPhone);
   const [emergencyPhone, setEmergencyPhone] = useState(initial.emergencyPhone);
-
-  // State for preview (updates on change)
   const [supportEmail, setSupportEmail] = useState(initial.supportEmail);
   const [officeName, setOfficeName] = useState(initial.officeName);
   const [officeAddress, setOfficeAddress] = useState(initial.officeAddress);
   const [officeCity, setOfficeCity] = useState(initial.officeCity);
-
-  // State for office hours
   const [officeHours, setOfficeHours] = useState<WeekHours>(
     parseInitialHours(initial.officeHours),
   );
-
-  // State for SMS from number
   const [smsFromNumber, setSmsFromNumber] = useState(initial.smsFromNumber);
+
+  /* ── New: Branding ── */
+  const [companyName, setCompanyName] = useState(initial.companyName);
+  const [companyTagline, setCompanyTagline] = useState(initial.companyTagline);
+  const [logoUrl, setLogoUrl] = useState(initial.logoUrl);
+
+  /* ── New: Email ── */
+  const [emailSenderName, setEmailSenderName] = useState(
+    initial.emailSenderName,
+  );
+  const [emailReplyTo, setEmailReplyTo] = useState(initial.emailReplyTo);
+  const [emailFooterText, setEmailFooterText] = useState(
+    initial.emailFooterText,
+  );
+
+  /* ── New: Timezone ── */
+  const [timezone, setTimezone] = useState(initial.timezone);
+
+  /* ── New: Social ── */
+  const [websiteUrl, setWebsiteUrl] = useState(initial.websiteUrl);
+  const [googleBusinessUrl, setGoogleBusinessUrl] = useState(
+    initial.googleBusinessUrl,
+  );
+  const [yelpUrl, setYelpUrl] = useState(initial.yelpUrl);
+
+  /* ── New: Legal ── */
+  const [taxId, setTaxId] = useState(initial.taxId);
+  const [businessLicense, setBusinessLicense] = useState(
+    initial.businessLicense,
+  );
 
   /* ── Dirty form tracking ── */
   const changedFields = useMemo(() => {
@@ -139,6 +185,28 @@ export default function CompanySettingsForm({ initial }: Props) {
     if (smsFromNumber !== initial.smsFromNumber) fields.push("SMS From Number");
     if (JSON.stringify(officeHours) !== initial.officeHours)
       fields.push("Office Hours");
+    // Branding
+    if (companyName !== initial.companyName) fields.push("Company Name");
+    if (companyTagline !== initial.companyTagline)
+      fields.push("Company Tagline");
+    if (logoUrl !== initial.logoUrl) fields.push("Logo URL");
+    // Email
+    if (emailSenderName !== initial.emailSenderName)
+      fields.push("Email Sender Name");
+    if (emailReplyTo !== initial.emailReplyTo) fields.push("Reply-To Email");
+    if (emailFooterText !== initial.emailFooterText)
+      fields.push("Email Footer");
+    // Timezone
+    if (timezone !== initial.timezone) fields.push("Timezone");
+    // Social
+    if (websiteUrl !== initial.websiteUrl) fields.push("Website URL");
+    if (googleBusinessUrl !== initial.googleBusinessUrl)
+      fields.push("Google Business URL");
+    if (yelpUrl !== initial.yelpUrl) fields.push("Yelp URL");
+    // Legal
+    if (taxId !== initial.taxId) fields.push("Tax ID");
+    if (businessLicense !== initial.businessLicense)
+      fields.push("Business License");
     return fields;
   }, [
     dispatchPhone,
@@ -149,6 +217,18 @@ export default function CompanySettingsForm({ initial }: Props) {
     officeCity,
     smsFromNumber,
     officeHours,
+    companyName,
+    companyTagline,
+    logoUrl,
+    emailSenderName,
+    emailReplyTo,
+    emailFooterText,
+    timezone,
+    websiteUrl,
+    googleBusinessUrl,
+    yelpUrl,
+    taxId,
+    businessLicense,
     initial,
   ]);
 
@@ -159,18 +239,17 @@ export default function CompanySettingsForm({ initial }: Props) {
     changedFields,
   );
 
+  /* ── Handlers ── */
   const handleDispatchPhoneChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setDispatchPhone(formatted);
+    setDispatchPhone(formatPhoneNumber(e.target.value));
   };
 
   const handleEmergencyPhoneChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setEmergencyPhone(formatted);
+    setEmergencyPhone(formatPhoneNumber(e.target.value));
   };
 
   const handleDayToggle = (day: keyof WeekHours) => {
@@ -195,11 +274,8 @@ export default function CompanySettingsForm({ initial }: Props) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
 
-    // Add raw phone numbers to form data
     fd.set("dispatchPhoneRaw", getRawPhone(dispatchPhone));
     fd.set("emergencyPhoneRaw", getRawPhone(emergencyPhone));
-
-    // Add office hours as JSON
     fd.set("officeHours", JSON.stringify(officeHours));
 
     startTransition(() => {
@@ -210,7 +286,6 @@ export default function CompanySettingsForm({ initial }: Props) {
     });
   };
 
-  // Get enabled days for preview
   const enabledDays = DAYS.filter((d) => officeHours[d.key].enabled);
 
   return (
@@ -219,9 +294,82 @@ export default function CompanySettingsForm({ initial }: Props) {
       className={styles.form}
       onSubmit={handleSubmit}
     >
-      {" "}
-      {/* Contact Information */}
-      <div className={styles.section}>
+      {/* ═══════════════════════════════════════════
+          BRANDING
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='branding-section'>
+        <div className={styles.sectionHeader}>
+          <h2 className='cardTitle h4'>Company Branding</h2>
+          <p className='miniNote'>
+            Your company name and branding used across invoices, emails, and the
+            booking experience
+          </p>
+        </div>
+
+        <div className={styles.grid}>
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Company Name</label>
+            <input
+              name='companyName'
+              className='input subheading'
+              placeholder='Your company name'
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+            />
+            <div className='miniNote'>
+              Appears on invoices, emails, and booking confirmations
+            </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Tagline</label>
+            <input
+              name='companyTagline'
+              className='input subheading'
+              placeholder='Premium Black Car Service'
+              value={companyTagline}
+              onChange={(e) => setCompanyTagline(e.target.value)}
+            />
+            <div className='miniNote'>Short description shown in emails</div>
+          </div>
+
+          <div className={styles.fieldFull}>
+            <label className='emptyTitleSmall'>Logo URL</label>
+            <input
+              name='logoUrl'
+              className='input subheading'
+              placeholder='https://yourdomain.com/logo.png'
+              value={logoUrl}
+              onChange={(e) => setLogoUrl(e.target.value)}
+            />
+            <div className='miniNote'>
+              Direct link to your logo image (PNG or SVG recommended, at least
+              400px wide)
+            </div>
+          </div>
+
+          {logoUrl && (
+            <div className={styles.fieldFull}>
+              <div className={styles.logoPreview}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={logoUrl}
+                  alt='Logo preview'
+                  className={styles.logoImg}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          CONTACT INFORMATION
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='contact-section'>
         <div className={styles.sectionHeader}>
           <h2 className='cardTitle h4'>Contact Information</h2>
           <p className='miniNote'>
@@ -253,7 +401,7 @@ export default function CompanySettingsForm({ initial }: Props) {
               onChange={handleEmergencyPhoneChange}
               inputMode='tel'
             />
-            <div className='miniNote'>For accidents & emergencies</div>
+            <div className='miniNote'>For accidents &amp; emergencies</div>
           </div>
 
           <div className={styles.fieldFull}>
@@ -269,8 +417,70 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         </div>
       </div>
-      {/* SMS Settings */}
-      <div className={styles.section}>
+
+      {/* ═══════════════════════════════════════════
+          EMAIL SETTINGS
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='email-section'>
+        <div className={styles.sectionHeader}>
+          <h2 className='cardTitle h4'>Email Settings</h2>
+          <p className='miniNote'>
+            Configure how outgoing emails appear to customers and drivers
+          </p>
+        </div>
+
+        <div className={styles.grid}>
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Sender Name</label>
+            <input
+              name='emailSenderName'
+              className='input subheading'
+              placeholder='Your company name'
+              value={emailSenderName}
+              onChange={(e) => setEmailSenderName(e.target.value)}
+            />
+            <div className='miniNote'>
+              The &quot;From&quot; name in booking confirmations and
+              notifications
+            </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Reply-To Email</label>
+            <input
+              name='emailReplyTo'
+              type='email'
+              className='input subheading'
+              placeholder='bookings@yourcompany.com'
+              value={emailReplyTo}
+              onChange={(e) => setEmailReplyTo(e.target.value)}
+            />
+            <div className='miniNote'>
+              Where replies go when customers respond to automated emails
+            </div>
+          </div>
+
+          <div className={styles.fieldFull}>
+            <label className='emptyTitleSmall'>Email Footer Text</label>
+            <textarea
+              name='emailFooterText'
+              className={`input subheading ${styles.textarea}`}
+              placeholder='© 2026 Nier Transportation LLC. Premium black car service in Phoenix, AZ.'
+              value={emailFooterText}
+              onChange={(e) => setEmailFooterText(e.target.value)}
+              rows={3}
+            />
+            <div className='miniNote'>
+              Shown at the bottom of all outgoing emails
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          SMS SETTINGS
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='sms-section'>
         <div className={styles.sectionHeader}>
           <h2 className='cardTitle h4'>SMS Notifications</h2>
           <p className='miniNote'>
@@ -296,12 +506,15 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         </div>
       </div>
-      {/* Office Information */}
-      <div className={styles.section}>
+
+      {/* ═══════════════════════════════════════════
+          OFFICE INFORMATION
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='office-section'>
         <div className={styles.sectionHeader}>
           <h2 className='cardTitle h4'>Office Information</h2>
           <p className='miniNote'>
-            Physical office location details (optional - leave blank to hide
+            Physical office location details (optional — leave blank to hide
             from drivers)
           </p>
         </div>
@@ -341,8 +554,42 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         </div>
       </div>
-      {/* Office Hours */}
-      <div className={styles.section}>
+
+      {/* ═══════════════════════════════════════════
+          TIMEZONE
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='timezone-section'>
+        <div className={styles.sectionHeader}>
+          <h2 className='cardTitle h4'>Default Timezone</h2>
+          <p className='miniNote'>
+            Used for business reporting, booking displays, and all date/time
+            calculations
+          </p>
+        </div>
+
+        <div className={styles.grid}>
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Timezone</label>
+            <select
+              name='timezone'
+              className='input subheading'
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+            >
+              {TIMEZONE_OPTIONS.map((tz) => (
+                <option key={tz.value} value={tz.value}>
+                  {tz.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          HOURS OF OPERATION
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='hours-section'>
         <div className={styles.sectionHeader}>
           <h2 className='cardTitle h4'>Hours of Operation</h2>
           <p className='miniNote'>
@@ -418,7 +665,103 @@ export default function CompanySettingsForm({ initial }: Props) {
           })}
         </div>
       </div>
-      {/* Preview */}
+
+      {/* ═══════════════════════════════════════════
+          SOCIAL LINKS
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='social-section'>
+        <div className={styles.sectionHeader}>
+          <h2 className='cardTitle h4'>Social &amp; Web Presence</h2>
+          <p className='miniNote'>
+            Links shown in email footers and the customer-facing booking site
+          </p>
+        </div>
+
+        <div className={styles.grid}>
+          <div className={styles.fieldFull}>
+            <label className='emptyTitleSmall'>Website URL</label>
+            <input
+              name='websiteUrl'
+              className='input subheading'
+              placeholder='https://yourcompany.com'
+              value={websiteUrl}
+              onChange={(e) => setWebsiteUrl(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Google Business Profile</label>
+            <input
+              name='googleBusinessUrl'
+              className='input subheading'
+              placeholder='https://g.page/your-business'
+              value={googleBusinessUrl}
+              onChange={(e) => setGoogleBusinessUrl(e.target.value)}
+            />
+            <div className='miniNote'>
+              Your Google Business listing URL for reviews
+            </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Yelp Page</label>
+            <input
+              name='yelpUrl'
+              className='input subheading'
+              placeholder='https://yelp.com/biz/your-business'
+              value={yelpUrl}
+              onChange={(e) => setYelpUrl(e.target.value)}
+            />
+            <div className='miniNote'>Your Yelp business listing URL</div>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          LEGAL / TAX INFO
+      ═══════════════════════════════════════════ */}
+      <div className={styles.section} id='legal-section'>
+        <div className={styles.sectionHeader}>
+          <h2 className='cardTitle h4'>Legal &amp; Tax Information</h2>
+          <p className='miniNote'>
+            Shown on invoices and corporate account documentation
+          </p>
+        </div>
+
+        <div className={styles.grid}>
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Tax ID / EIN</label>
+            <input
+              name='taxId'
+              className='input subheading'
+              placeholder='XX-XXXXXXX'
+              value={taxId}
+              onChange={(e) => setTaxId(e.target.value)}
+            />
+            <div className='miniNote'>
+              Federal Employer Identification Number for invoices
+            </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Business License #</label>
+            <input
+              name='businessLicense'
+              className='input subheading'
+              placeholder='License number'
+              value={businessLicense}
+              onChange={(e) => setBusinessLicense(e.target.value)}
+            />
+            <div className='miniNote'>
+              State or local business license number
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════
+          PREVIEW
+      ═══════════════════════════════════════════ */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <h2 className='cardTitle h4'>Preview</h2>
@@ -456,7 +799,6 @@ export default function CompanySettingsForm({ initial }: Props) {
             </div>
           </div>
 
-          {/* Only show address preview if filled out */}
           {(officeName || officeAddress || officeCity) && (
             <div className={styles.previewCard}>
               <div className={styles.previewIcon}>📍</div>
@@ -475,7 +817,6 @@ export default function CompanySettingsForm({ initial }: Props) {
           )}
         </div>
 
-        {/* Hours Preview */}
         {enabledDays.length > 0 && (
           <div className={styles.previewHours}>
             <div className={styles.previewHoursTitle}>
@@ -500,6 +841,10 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         )}
       </div>
+
+      {/* ═══════════════════════════════════════════
+          SUBMIT
+      ═══════════════════════════════════════════ */}
       <div className={styles.actions}>
         <Button
           text={isPending ? "Saving..." : "Save Settings"}

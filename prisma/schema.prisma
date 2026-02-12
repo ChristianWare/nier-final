@@ -697,6 +697,28 @@ model CompanySettings {
 
   updatedAt DateTime @updatedAt
   updatedBy String?
+
+  // Branding
+  companyName    String?
+  companyTagline String?
+  logoUrl        String?
+
+  // Email Settings
+  emailSenderName String?
+  emailReplyTo    String?
+  emailFooterText String? @db.Text
+
+  // Timezone
+  timezone String? @default("America/Phoenix")
+
+  // Social Links
+  websiteUrl        String?
+  googleBusinessUrl String?
+  yelpUrl           String?
+
+  // Legal
+  taxId           String?
+  businessLicense String?
 }
 
 model ServiceFee {
