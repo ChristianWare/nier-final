@@ -2,6 +2,8 @@ import styles from "./AdminUsersPage.module.css";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,35 +34,13 @@ function buildHref(
   return qs ? `${base}?${qs}` : base;
 }
 
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
-}
-
 export default async function AdminUsersPage({
   searchParams,
 }: {
   searchParams: Promise<{ role?: RoleFilter; page?: string }>;
 }) {
   const sp = await searchParams;
+  const { timezone: companyTz } = await getCompanySettings();
   const roleFilter: RoleFilter = sp.role ?? "ALL";
   const page = clampPage(sp.page);
   const now = new Date();
@@ -209,7 +189,7 @@ export default async function AdminUsersPage({
               <tbody>
                 {normalized.map((u) => {
                   const href = `/admin/users/${u.id}`;
-                  const joinedAgo = formatEta(u.createdAt, now);
+                  const joinedAgo = tz.formatEta(u.createdAt, now);
 
                   return (
                     <tr key={u.id} className={styles.tr}>
@@ -227,7 +207,7 @@ export default async function AdminUsersPage({
                         />
                         <div className={styles.cellStack}>
                           <Link href={href} className={styles.rowLink}>
-                            {formatDate(u.createdAt)}
+                            {tz.formatDate(u.createdAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{joinedAgo}</span>

@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
 import VehicleCategoryActionsClient from "./VehicleCategoryActionsClient";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,29 +34,6 @@ function buildHref(
   return qs ? `${base}?${qs}` : base;
 }
 
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
-}
-
 export default async function AdminVehicleCategoriesPage({
   searchParams,
 }: {
@@ -64,11 +43,11 @@ export default async function AdminVehicleCategoriesPage({
   }>;
 }) {
   const sp = await searchParams;
+  const { timezone: companyTz } = await getCompanySettings();
   const statusFilter: StatusFilter = sp.status ?? "ALL";
   const page = clampPage(sp.page);
   const now = new Date();
 
-  // Get all categories
   const allCategories = await db.vehicle.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     include: {
@@ -80,12 +59,10 @@ export default async function AdminVehicleCategoriesPage({
     },
   });
 
-  // Get counts for filters
   const totalCount = allCategories.length;
   const activeCount = allCategories.filter((c) => c.active).length;
   const inactiveCount = allCategories.filter((c) => !c.active).length;
 
-  // Filter categories based on status
   let filteredCategories = [...allCategories];
 
   if (statusFilter === "ACTIVE") {
@@ -99,7 +76,6 @@ export default async function AdminVehicleCategoriesPage({
   const safePage = Math.min(page, totalPages);
   const skip = (safePage - 1) * PAGE_SIZE;
 
-  // Paginate
   const categories = filteredCategories.slice(skip, skip + PAGE_SIZE);
 
   const statusCounts = {
@@ -145,7 +121,6 @@ export default async function AdminVehicleCategoriesPage({
           </div>
         </div>
 
-        {/* Filters */}
         <div className={styles.filters}>
           <div className={styles.filterGroup}>
             <div className={styles.filterTitle}>Filter by status</div>
@@ -196,14 +171,13 @@ export default async function AdminVehicleCategoriesPage({
               <tbody>
                 {categories.map((c) => {
                   const href = `/admin/vehicle-categories/${c.id}`;
-                  const addedAgo = formatEta(c.createdAt, now);
+                  const addedAgo = tz.formatEta(c.createdAt, now);
 
                   return (
                     <tr
                       key={c.id}
                       className={`${styles.tr} ${!c.active ? styles.trInactive : ""}`}
                     >
-                      {/* Name */}
                       <td
                         className={styles.td}
                         data-label='Name'
@@ -218,7 +192,6 @@ export default async function AdminVehicleCategoriesPage({
                         <div className={styles.cellStrong}>{c.name}</div>
                       </td>
 
-                      {/* Capacity */}
                       <td
                         className={styles.td}
                         data-label='Capacity'
@@ -237,7 +210,6 @@ export default async function AdminVehicleCategoriesPage({
                         </div>
                       </td>
 
-                      {/* Luggage */}
                       <td
                         className={styles.td}
                         data-label='Luggage'
@@ -256,7 +228,6 @@ export default async function AdminVehicleCategoriesPage({
                         </div>
                       </td>
 
-                      {/* Status */}
                       <td
                         className={styles.td}
                         data-label='Status'
@@ -276,7 +247,6 @@ export default async function AdminVehicleCategoriesPage({
                         </span>
                       </td>
 
-                      {/* Bookings */}
                       <td
                         className={styles.td}
                         data-label='Bookings'
@@ -294,7 +264,6 @@ export default async function AdminVehicleCategoriesPage({
                         </div>
                       </td>
 
-                      {/* Added */}
                       <td
                         className={styles.td}
                         data-label='Added'
@@ -309,7 +278,7 @@ export default async function AdminVehicleCategoriesPage({
                         />
                         <div className={styles.cellStack}>
                           <span className={styles.cellSub}>
-                            {formatDate(c.createdAt)}
+                            {tz.formatDate(c.createdAt, companyTz)}
                           </span>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{addedAgo}</span>
@@ -317,7 +286,6 @@ export default async function AdminVehicleCategoriesPage({
                         </div>
                       </td>
 
-                      {/* Actions */}
                       <td
                         className={styles.td}
                         data-label='Actions'
@@ -347,10 +315,6 @@ export default async function AdminVehicleCategoriesPage({
     </section>
   );
 }
-
-/* =============================================================================
-   Filter Components
-   ============================================================================= */
 
 function StatusTabs({
   active,
@@ -392,10 +356,6 @@ function StatusTabs({
     </div>
   );
 }
-
-/* =============================================================================
-   Pagination Component
-   ============================================================================= */
 
 function Pagination({
   totalCount,

@@ -9,12 +9,11 @@ import StatusPieChart from "./StatusPieChart";
 import LeadTimePieChart from "./LeadTimePieChart";
 import PeakTimesPieChart from "./PeakTimesPieChart";
 import CountUp from "@/components/shared/CountUp/CountUp";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
 type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
 type SP = Record<string, string | string[] | undefined>;
@@ -38,112 +37,6 @@ function cleanView(v: string | null | undefined): ViewMode {
   return "daily";
 }
 
-function formatMoney(cents: number, currency = "USD") {
-  const n = (cents || 0) / 100;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-function formatDatePhx(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function formatMonthLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "numeric",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
-
-function formatMonthTickPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "2-digit",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
-
-function formatDayLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(dateUtc);
-}
-
-function formatDayTickPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "2-digit",
-    day: "2-digit",
-  }).format(dateUtc);
-}
-
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
-}
-
-function startOfDayPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function startOfYearPhoenix(dateUtc: Date) {
-  const { y } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, 0, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
-  return new Date(nextStartUtcMs);
-}
-
-function monthKeyFromDatePhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const mm = String(m + 1).padStart(2, "0");
-  return `${y}-${mm}`;
-}
-
-function monthStartFromKeyPhoenix(key: string) {
-  const match = /^(\d{4})-(\d{2})$/.exec(key.trim());
-  if (!match) return null;
-  const y = Number(match[1]);
-  const m = Number(match[2]);
-  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12)
-    return null;
-  const startLocalMs = Date.UTC(y, m - 1, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
 function parseYMD(s: string | null) {
   if (!s) return null;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
@@ -157,27 +50,26 @@ function parseYMD(s: string | null) {
   return { y, m, d };
 }
 
-function startOfDayFromYMDPhoenix(ymd: { y: number; m: number; d: number }) {
-  const startLocalMs = Date.UTC(ymd.y, ymd.m - 1, ymd.d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function ymdForInputPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+function startOfDayFromYMD(
+  ymd: { y: number; m: number; d: number },
+  timeZone: string,
+) {
+  const isoDate = `${ymd.y}-${String(ymd.m).padStart(2, "0")}-${String(ymd.d).padStart(2, "0")}`;
+  return new Date(tz.localToUtcIso(isoDate, "00:00", timeZone));
 }
 
 function resolveMonthYear({
   view,
   sp,
   now,
+  timeZone,
 }: {
   view: ViewMode;
   sp: SP;
   now: Date;
+  timeZone: string;
 }) {
-  const currentKey = monthKeyFromDatePhoenix(now);
+  const currentKey = tz.monthKey(now, timeZone);
   const currentYear = currentKey.slice(0, 4);
   const currentMonth = currentKey.slice(5, 7);
 
@@ -185,7 +77,7 @@ function resolveMonthYear({
   const rawYear = spGet(sp, "year");
 
   const legacyKey =
-    rawMonth && monthStartFromKeyPhoenix(rawMonth) ? rawMonth : null;
+    rawMonth && tz.monthStartFromKey(rawMonth, timeZone) ? rawMonth : null;
 
   if (view !== "daily")
     return { year: currentYear, month: currentMonth, key: currentKey };
@@ -212,15 +104,14 @@ function quarterKeyFromMonthKey(monthKey: string) {
   return `${y}-Q${q}`;
 }
 
-function quarterStartFromQuarterKeyPhoenix(key: string) {
+function quarterStartFromQuarterKey(key: string, timeZone: string) {
   const match = /^(\d{4})-Q([1-4])$/.exec(key.trim());
   if (!match) return null;
   const y = Number(match[1]);
   const q = Number(match[2]);
   const startMonth = (q - 1) * 3 + 1;
-  const startLocalMs = Date.UTC(y, startMonth - 1, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
+  const isoDate = `${y}-${String(startMonth).padStart(2, "0")}-01`;
+  return new Date(tz.localToUtcIso(isoDate, "00:00", timeZone));
 }
 
 function quarterTick(key: string) {
@@ -310,10 +201,10 @@ function parseValue(str: string): {
 // REVENUE DATA AGGREGATION
 // ============================================
 
-async function chartAggDaily(fromUtc: Date, toUtc: Date) {
+async function chartAggDaily(fromUtc: Date, toUtc: Date, timeZone: string) {
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('day', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+      to_char(date_trunc('day', "paidAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
@@ -324,7 +215,7 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
 
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+      to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
@@ -362,15 +253,15 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
     d.getTime() < toUtc.getTime();
     d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
   ) {
-    const ymd = ymdForInputPhoenix(d);
+    const ymd = tz.formatIsoDate(d, timeZone);
     const c = cap.get(ymd) ?? { sumCents: 0, count: 0 };
     const r = ref.get(ymd) ?? { sumCents: 0, count: 0 };
     const n = c.sumCents - r.sumCents;
 
     points.push({
       key: ymd,
-      tick: formatDayTickPhoenix(d),
-      label: formatDayLabelPhoenix(d),
+      tick: tz.formatDayTick(d, timeZone),
+      label: tz.formatDateMedium(d, timeZone),
       capturedCents: c.sumCents,
       refundedCents: r.sumCents,
       netCents: n,
@@ -382,10 +273,10 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date) {
   return points;
 }
 
-async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
+async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('month', "paidAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      to_char(date_trunc('month', "paidAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
@@ -396,7 +287,7 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
 
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
-      to_char(date_trunc('month', "updatedAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+      to_char(date_trunc('month', "updatedAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
@@ -420,24 +311,25 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
 
   const months: string[] = [];
   for (
-    let ms = startOfMonthPhoenix(fromUtc);
+    let ms = tz.startOfMonth(fromUtc, timeZone);
     ms.getTime() < toUtc.getTime();
-    ms = addMonthsPhoenix(ms, 1)
+    ms = tz.addMonths(ms, 1, timeZone)
   ) {
-    months.push(monthKeyFromDatePhoenix(ms));
+    months.push(tz.monthKey(ms, timeZone));
   }
 
   if (months.length <= 36) {
     return months.map((k) => {
-      const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
+      const ms =
+        tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
       const c = cap.get(k) ?? { sumCents: 0, count: 0 };
       const r = ref.get(k) ?? { sumCents: 0, count: 0 };
       const n = c.sumCents - r.sumCents;
 
       return {
         key: k,
-        tick: formatMonthTickPhoenix(ms),
-        label: formatMonthLabelPhoenix(ms),
+        tick: tz.formatMonthTick(ms, timeZone),
+        label: tz.formatMonthLabel(ms, timeZone),
         capturedCents: c.sumCents,
         refundedCents: r.sumCents,
         netCents: n,
@@ -483,7 +375,8 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date) {
 
     return qKeys.map((qk) => {
       const qs =
-        quarterStartFromQuarterKeyPhoenix(qk) ?? startOfMonthPhoenix(fromUtc);
+        quarterStartFromQuarterKey(qk, timeZone) ??
+        tz.startOfMonth(fromUtc, timeZone);
       const c = qCap.get(qk) ?? { sumCents: 0, count: 0 };
       const r = qRef.get(qk) ?? { sumCents: 0, count: 0 };
       const n = c.sumCents - r.sumCents;
@@ -592,7 +485,6 @@ function formatStatusLabel(status: string): string {
 }
 
 async function getLeadTimeDistribution(fromUtc: Date, toUtc: Date) {
-  // Lead time = pickupAt - createdAt (how far in advance do customers book?)
   const rows = await db.$queryRaw<{ bucket: string; count: bigint }[]>`
     SELECT 
       CASE 
@@ -629,11 +521,15 @@ async function getLeadTimeDistribution(fromUtc: Date, toUtc: Date) {
   }));
 }
 
-async function getPeakBookingTimes(fromUtc: Date, toUtc: Date) {
+async function getPeakBookingTimes(
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+) {
   // Day of week distribution
   const dayRows = await db.$queryRaw<{ dow: number; count: bigint }[]>`
     SELECT 
-      EXTRACT(DOW FROM "pickupAt" AT TIME ZONE ${PHX_TZ}) as dow,
+      EXTRACT(DOW FROM "pickupAt" AT TIME ZONE ${timeZone}) as dow,
       COUNT(*) as count
     FROM "Booking"
     WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
@@ -654,9 +550,9 @@ async function getPeakBookingTimes(fromUtc: Date, toUtc: Date) {
   const hourRows = await db.$queryRaw<{ hour_bucket: string; count: bigint }[]>`
     SELECT 
       CASE 
-        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${PHX_TZ}) < 6 THEN 'Night (12-6am)'
-        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${PHX_TZ}) < 12 THEN 'Morning (6am-12pm)'
-        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${PHX_TZ}) < 18 THEN 'Afternoon (12-6pm)'
+        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${timeZone}) < 6 THEN 'Night (12-6am)'
+        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${timeZone}) < 12 THEN 'Morning (6am-12pm)'
+        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${timeZone}) < 18 THEN 'Afternoon (12-6pm)'
         ELSE 'Evening (6pm-12am)'
       END as hour_bucket,
       COUNT(*) as count
@@ -750,7 +646,6 @@ async function getDriverPerformance(
   fromUtc: Date,
   toUtc: Date,
 ): Promise<DriverPerformanceRow[]> {
-  // Get all assignments with their booking statuses and driver payments
   const rows = await db.$queryRaw<
     {
       driverId: string;
@@ -861,15 +756,17 @@ export default async function AdminReportsPage({
 }) {
   const sp = (await Promise.resolve(searchParams ?? {})) as SP;
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
   const view = cleanView(spGet(sp, "view"));
-  const currentMonthStart = startOfMonthPhoenix(now);
+  const currentMonthStart = tz.startOfMonth(now, companyTz);
   const rangeFromParam = spGet(sp, "from");
   const rangeToParam = spGet(sp, "to");
-  const defaultTo = ymdForInputPhoenix(now);
-  const defaultFrom = ymdForInputPhoenix(
+  const defaultTo = tz.formatIsoDate(now, companyTz);
+  const defaultFrom = tz.formatIsoDate(
     new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+    companyTz,
   );
-  const resolvedMY = resolveMonthYear({ view, sp, now });
+  const resolvedMY = resolveMonthYear({ view, sp, now, timeZone: companyTz });
 
   const [earliestPaid] = await Promise.all([
     db.payment.findFirst({
@@ -880,27 +777,28 @@ export default async function AdminReportsPage({
   ]);
 
   let fromUtc = currentMonthStart;
-  let toUtc = addMonthsPhoenix(currentMonthStart, 1);
-  let rangeLabel = formatMonthLabelPhoenix(currentMonthStart);
+  let toUtc = tz.addMonths(currentMonthStart, 1, companyTz);
+  let rangeLabel = tz.formatMonthLabel(currentMonthStart, companyTz);
 
   if (view === "daily") {
-    const ms = monthStartFromKeyPhoenix(resolvedMY.key) ?? currentMonthStart;
+    const ms =
+      tz.monthStartFromKey(resolvedMY.key, companyTz) ?? currentMonthStart;
     fromUtc = ms;
-    toUtc = addMonthsPhoenix(ms, 1);
-    rangeLabel = formatMonthLabelPhoenix(ms);
+    toUtc = tz.addMonths(ms, 1, companyTz);
+    rangeLabel = tz.formatMonthLabel(ms, companyTz);
   }
 
   if (view === "monthly") {
-    const oldest = addMonthsPhoenix(currentMonthStart, -11);
-    const nextAfterCurrent = addMonthsPhoenix(currentMonthStart, 1);
+    const oldest = tz.addMonths(currentMonthStart, -11, companyTz);
+    const nextAfterCurrent = tz.addMonths(currentMonthStart, 1, companyTz);
     fromUtc = oldest;
     toUtc = nextAfterCurrent;
     rangeLabel = "Last 12 months";
   }
 
   if (view === "ytd") {
-    fromUtc = startOfYearPhoenix(now);
-    toUtc = addMonthsPhoenix(currentMonthStart, 1);
+    fromUtc = tz.startOfYear(now, companyTz);
+    toUtc = tz.addMonths(currentMonthStart, 1, companyTz);
     rangeLabel = "Year to date";
   }
 
@@ -908,29 +806,31 @@ export default async function AdminReportsPage({
     const f = parseYMD(rangeFromParam ?? defaultFrom);
     const t = parseYMD(rangeToParam ?? defaultTo);
     const fUtc = f
-      ? startOfDayFromYMDPhoenix(f)
-      : startOfDayFromYMDPhoenix(parseYMD(defaultFrom)!);
+      ? startOfDayFromYMD(f, companyTz)
+      : startOfDayFromYMD(parseYMD(defaultFrom)!, companyTz);
     const tUtc0 = t
-      ? startOfDayFromYMDPhoenix(t)
-      : startOfDayFromYMDPhoenix(parseYMD(defaultTo)!);
+      ? startOfDayFromYMD(t, companyTz)
+      : startOfDayFromYMD(parseYMD(defaultTo)!, companyTz);
     const tUtc = new Date(tUtc0.getTime() + 24 * 60 * 60 * 1000);
     fromUtc = fUtc;
     toUtc = tUtc;
-    rangeLabel = `${formatDatePhx(fromUtc)} - ${formatDatePhx(new Date(toUtc.getTime() - 1))}`;
+    rangeLabel = `${tz.formatDateMedium(fromUtc, companyTz)} - ${tz.formatDateMedium(new Date(toUtc.getTime() - 1), companyTz)}`;
   }
 
   if (view === "all") {
     fromUtc = earliestPaid?.paidAt
-      ? startOfDayPhoenix(earliestPaid.paidAt)
+      ? tz.startOfDay(earliestPaid.paidAt, companyTz)
       : new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-    toUtc = new Date(startOfDayPhoenix(now).getTime() + 24 * 60 * 60 * 1000);
+    toUtc = new Date(
+      tz.startOfDay(now, companyTz).getTime() + 24 * 60 * 60 * 1000,
+    );
     rangeLabel = "All time";
   }
 
   const earliestYear = earliestPaid?.paidAt
-    ? toPhoenixParts(earliestPaid.paidAt).y
-    : toPhoenixParts(now).y;
-  const latestYear = toPhoenixParts(now).y;
+    ? tz.toLocalParts(earliestPaid.paidAt, companyTz).y
+    : tz.toLocalParts(now, companyTz).y;
+  const latestYear = tz.toLocalParts(now, companyTz).y;
 
   const years = Array.from({
     length: Math.max(1, latestYear - earliestYear + 1),
@@ -966,11 +866,11 @@ export default async function AdminReportsPage({
     driverEarningsDistribution,
   ] = await Promise.all([
     view === "daily"
-      ? chartAggDaily(fromUtc, toUtc)
-      : chartAggMonthly(fromUtc, toUtc),
+      ? chartAggDaily(fromUtc, toUtc, companyTz)
+      : chartAggMonthly(fromUtc, toUtc, companyTz),
     getBookingsByStatus(fromUtc, toUtc),
     getLeadTimeDistribution(fromUtc, toUtc),
-    getPeakBookingTimes(fromUtc, toUtc),
+    getPeakBookingTimes(fromUtc, toUtc, companyTz),
     getRevenueByServiceType(fromUtc, toUtc),
     getRevenueByVehicle(fromUtc, toUtc),
     getDriverPerformance(fromUtc, toUtc),
@@ -1036,23 +936,23 @@ export default async function AdminReportsPage({
         <div className={styles.kpiGrid}>
           <KpiCard
             label='Captured'
-            value={formatMoney(kpi.capturedSumCents, currency)}
+            value={tz.formatMoneyShort(kpi.capturedSumCents, currency)}
             sub={`${kpi.payCount} payment${kpi.payCount === 1 ? "" : "s"}`}
           />
           <KpiCard
             label='Avg Order Value'
-            value={formatMoney(kpi.avgCents, currency)}
+            value={tz.formatMoneyShort(kpi.avgCents, currency)}
             sub='Per transaction'
           />
           <KpiCard
             label='Refunded'
-            value={formatMoney(kpi.refundedSumCents, currency)}
+            value={tz.formatMoneyShort(kpi.refundedSumCents, currency)}
             sub={`${kpi.refundCount} refund${kpi.refundCount === 1 ? "" : "s"}`}
             tone='warn'
           />
           <KpiCard
             label='Net Revenue'
-            value={formatMoney(kpi.netSumCents, currency)}
+            value={tz.formatMoneyShort(kpi.netSumCents, currency)}
             sub='After refunds'
             tone={netTone}
           />
@@ -1149,14 +1049,14 @@ export default async function AdminReportsPage({
                 data={bookingsByStatus}
                 dataKey='value'
                 colors={[
-                  "#10b981", // Completed - green
-                  "#3b82f6", // Confirmed - blue
-                  "#8b5cf6", // Assigned - purple
-                  "#f59e0b", // Pending - amber
-                  "#ef4444", // Cancelled - red
-                  "#6b7280", // Others - gray
-                  "#ec4899", // pink
-                  "#06b6d4", // cyan
+                  "#10b981",
+                  "#3b82f6",
+                  "#8b5cf6",
+                  "#f59e0b",
+                  "#ef4444",
+                  "#6b7280",
+                  "#ec4899",
+                  "#06b6d4",
                 ]}
               />
             </div>
@@ -1239,7 +1139,7 @@ export default async function AdminReportsPage({
           />
           <KpiCard
             label='Total Driver Earnings'
-            value={formatMoney(
+            value={tz.formatMoneyShort(
               driverPerformance.reduce((sum, d) => sum + d.totalEarnings, 0),
               currency,
             )}
@@ -1359,7 +1259,7 @@ export default async function AdminReportsPage({
                         </span>
                       </td>
                       <td className={styles.right}>
-                        {formatMoney(driver.totalEarnings, currency)}
+                        {tz.formatMoneyShort(driver.totalEarnings, currency)}
                       </td>
                     </tr>
                   ))}

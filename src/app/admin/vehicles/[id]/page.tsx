@@ -9,144 +9,21 @@ import styles from "./VehicleUnitDetailPage.module.css";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Button from "@/components/shared/Button/Button";
 import VehiclePhotoUpload from "@/components/admin/VehiclePhotoUpload/VehiclePhotoUpload";
-import DefaultVehicleImg from "../../../../../public/images/mesaii.jpg"; 
+import DefaultVehicleImg from "../../../../../public/images/mesaii.jpg";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  return new Date(nextStartLocalMs - PHX_OFFSET_MS);
-}
-
-function monthKeyFromDatePhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  return `${y}-${String(m + 1).padStart(2, "0")}`;
-}
-
-function monthStartFromKeyPhoenix(key: string) {
-  const match = /^(\d{4})-(\d{2})$/.exec(key.trim());
-  if (!match) return null;
-  const y = Number(match[1]);
-  const m = Number(match[2]);
-  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12)
-    return null;
-  const startLocalMs = Date.UTC(y, m - 1, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function formatMonthLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "numeric",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
-
-function formatMonthTickPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "2-digit",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
-
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatDateTime(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(d);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
-}
-
-function formatMoney(cents: number, currency = "USD") {
-  const n = (cents || 0) / 100;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-function statusLabel(status: string) {
-  const labels: Record<string, string> = {
-    PENDING_REVIEW: "Pending review",
-    PENDING_PAYMENT: "Payment due",
-    CONFIRMED: "Confirmed",
-    ASSIGNED: "Driver assigned",
-    EN_ROUTE: "Driver en route",
-    ARRIVED: "Driver arrived",
-    IN_PROGRESS: "In progress",
-    COMPLETED: "Completed",
-    CANCELLED: "Cancelled",
-    NO_SHOW: "No-show",
-    REFUNDED: "Refunded",
-    PARTIALLY_REFUNDED: "Partially refunded",
-    DRAFT: "Draft",
-  };
-  return labels[status] || String(status).replaceAll("_", " ");
-}
-
-function badgeTone(status: string) {
-  if (status === "PENDING_PAYMENT") return "warn";
-  if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
-  if (status === "CONFIRMED" || status === "ASSIGNED" || status === "COMPLETED")
-    return "good";
-  if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
-    return "accent";
-  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
-  return "neutral";
-}
 
 async function chartAggMonthlyVehicleUsage(
   vehicleUnitId: string,
   fromUtc: Date,
   toUtc: Date,
+  timeZone: string,
 ) {
   const rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
       COUNT(*) as count
     FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
     WHERE a."vehicleUnitId" = ${vehicleUnitId} 
@@ -162,19 +39,20 @@ async function chartAggMonthlyVehicleUsage(
 
   const months: string[] = [];
   for (
-    let ms = startOfMonthPhoenix(fromUtc);
+    let ms = tz.startOfMonth(fromUtc, timeZone);
     ms.getTime() < toUtc.getTime();
-    ms = addMonthsPhoenix(ms, 1)
+    ms = tz.addMonths(ms, 1, timeZone)
   ) {
-    months.push(monthKeyFromDatePhoenix(ms));
+    months.push(tz.monthKey(ms, timeZone));
   }
 
   return months.map((k) => {
-    const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
+    const ms =
+      tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
     return {
       key: k,
-      tick: formatMonthTickPhoenix(ms),
-      label: formatMonthLabelPhoenix(ms),
+      tick: tz.formatMonthTick(ms, timeZone),
+      label: tz.formatMonthLabel(ms, timeZone),
       tripCount: bucket.get(k) ?? 0,
     };
   });
@@ -187,6 +65,7 @@ export default async function EditVehicleUnitPage({
 }) {
   const { id } = await params;
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
   if (!id) notFound();
 
@@ -220,7 +99,6 @@ export default async function EditVehicleUnitPage({
     select: { id: true, name: true },
   });
 
-  // Get recent assignments for this vehicle
   const recentAssignments = await db.assignment.findMany({
     where: { vehicleUnitId: unit.id },
     orderBy: { assignedAt: "desc" },
@@ -251,7 +129,6 @@ export default async function EditVehicleUnitPage({
     },
   });
 
-  // Count completed trips
   const completedTrips = await db.assignment.count({
     where: {
       vehicleUnitId: unit.id,
@@ -261,7 +138,6 @@ export default async function EditVehicleUnitPage({
     },
   });
 
-  // Count trips this month
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const tripsThisMonth = await db.assignment.count({
     where: {
@@ -270,13 +146,21 @@ export default async function EditVehicleUnitPage({
     },
   });
 
-  // Get vehicle usage chart data (last 12 months)
-  const usageChartFromUtc = addMonthsPhoenix(startOfMonthPhoenix(now), -11);
-  const usageChartToUtc = addMonthsPhoenix(startOfMonthPhoenix(now), 1);
+  const usageChartFromUtc = tz.addMonths(
+    tz.startOfMonth(now, companyTz),
+    -11,
+    companyTz,
+  );
+  const usageChartToUtc = tz.addMonths(
+    tz.startOfMonth(now, companyTz),
+    1,
+    companyTz,
+  );
   const usageChartData = await chartAggMonthlyVehicleUsage(
     unit.id,
     usageChartFromUtc,
     usageChartToUtc,
+    companyTz,
   );
 
   async function updateAction(formData: FormData) {
@@ -321,7 +205,6 @@ export default async function EditVehicleUnitPage({
       </header>
 
       <div className={styles.grid}>
-        {/* Vehicle Details Card */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Vehicle Details</h2>
@@ -354,7 +237,7 @@ export default async function EditVehicleUnitPage({
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Added</span>
               <span className={styles.infoValue}>
-                {formatDateTime(unit.createdAt)}
+                {tz.formatDateTime(unit.createdAt, companyTz)}
               </span>
             </div>
             <div className={styles.infoRow}>
@@ -366,7 +249,6 @@ export default async function EditVehicleUnitPage({
           </div>
         </div>
 
-        {/* Statistics Card */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Statistics</h2>
@@ -391,7 +273,6 @@ export default async function EditVehicleUnitPage({
           </div>
         </div>
 
-        {/* Edit Form Card */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Edit Vehicle</h2>
@@ -406,7 +287,6 @@ export default async function EditVehicleUnitPage({
         </div>
       </div>
 
-      {/* Vehicle Usage Chart */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <h2 className='h4'>Monthly Usage</h2>
@@ -423,7 +303,6 @@ export default async function EditVehicleUnitPage({
         </div>
       </div>
 
-      {/* Recent Assignments */}
       {recentAssignments.length > 0 && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
@@ -473,11 +352,11 @@ export default async function EditVehicleUnitPage({
                             }}
                           />
                           <Link href={href} className={styles.rowLink}>
-                            {formatDate(b.pickupAt)}
+                            {tz.formatDate(b.pickupAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>
-                              {formatEta(b.pickupAt, now)}
+                              {tz.formatEta(b.pickupAt, now)}
                             </span>
                           </div>
                         </td>
@@ -498,9 +377,9 @@ export default async function EditVehicleUnitPage({
                             }}
                           />
                           <span
-                            className={`badge badge_${badgeTone(b.status)}`}
+                            className={`badge badge_${tz.badgeTone(b.status)}`}
                           >
-                            {statusLabel(b.status)}
+                            {tz.statusLabel(b.status)}
                           </span>
                         </td>
                         <td
@@ -575,7 +454,10 @@ export default async function EditVehicleUnitPage({
                               zIndex: 5,
                             }}
                           />
-                          {formatMoney(b.totalCents ?? 0, b.currency ?? "USD")}
+                          {tz.formatMoneyShort(
+                            b.totalCents ?? 0,
+                            b.currency ?? "USD",
+                          )}
                         </td>
                       </tr>
                     );

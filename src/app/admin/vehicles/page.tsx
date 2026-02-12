@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
 import VehicleUnitActionsClient from "./VehicleUnitActionsClient";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,29 +34,6 @@ function buildHref(
   return qs ? `${base}?${qs}` : base;
 }
 
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
-}
-
 export default async function AdminVehiclesPage({
   searchParams,
 }: {
@@ -65,12 +44,12 @@ export default async function AdminVehiclesPage({
   }>;
 }) {
   const sp = await searchParams;
+  const { timezone: companyTz } = await getCompanySettings();
   const statusFilter: StatusFilter = sp.status ?? "ALL";
   const categoryFilter = sp.category ?? "ALL";
   const page = clampPage(sp.page);
   const now = new Date();
 
-  // Get all units first to extract categories
   const allUnits = await db.vehicleUnit.findMany({
     include: {
       category: true,
@@ -83,7 +62,6 @@ export default async function AdminVehiclesPage({
     orderBy: [{ active: "desc" }, { name: "asc" }],
   });
 
-  // Extract unique categories from units
   const categoryMap = new Map<
     string,
     { id: string; name: string; count: number }
@@ -106,12 +84,10 @@ export default async function AdminVehiclesPage({
     a.name.localeCompare(b.name),
   );
 
-  // Get counts for filters
   const totalCount = allUnits.length;
   const activeCount = allUnits.filter((u) => u.active).length;
   const inactiveCount = allUnits.filter((u) => !u.active).length;
 
-  // Filter units based on status and category
   let filteredUnits = [...allUnits];
 
   if (statusFilter === "ACTIVE") {
@@ -131,7 +107,6 @@ export default async function AdminVehiclesPage({
   const safePage = Math.min(page, totalPages);
   const skip = (safePage - 1) * PAGE_SIZE;
 
-  // Paginate
   const units = filteredUnits.slice(skip, skip + PAGE_SIZE);
 
   const statusCounts = {
@@ -178,7 +153,6 @@ export default async function AdminVehiclesPage({
           </div>
         </div>
 
-        {/* Filters */}
         <div className={styles.filters}>
           <div className={styles.filterGroup}>
             <div className={styles.filterTitle}>Filter by status</div>
@@ -244,14 +218,13 @@ export default async function AdminVehiclesPage({
               <tbody>
                 {units.map((u) => {
                   const href = `/admin/vehicles/${u.id}`;
-                  const addedAgo = formatEta(u.createdAt, now);
+                  const addedAgo = tz.formatEta(u.createdAt, now);
 
                   return (
                     <tr
                       key={u.id}
                       className={`${styles.tr} ${!u.active ? styles.trInactive : ""}`}
                     >
-                      {/* Name */}
                       <td
                         className={styles.td}
                         data-label='Name'
@@ -266,7 +239,6 @@ export default async function AdminVehiclesPage({
                         <div className={styles.cellStrong}>{u.name}</div>
                       </td>
 
-                      {/* Category */}
                       <td
                         className={styles.td}
                         data-label='Category'
@@ -286,7 +258,6 @@ export default async function AdminVehiclesPage({
                         </span>
                       </td>
 
-                      {/* Plate */}
                       <td
                         className={styles.td}
                         data-label='Plate'
@@ -302,7 +273,6 @@ export default async function AdminVehiclesPage({
                         <div className={styles.plateCell}>{u.plate ?? "—"}</div>
                       </td>
 
-                      {/* Status */}
                       <td
                         className={styles.td}
                         data-label='Status'
@@ -322,7 +292,6 @@ export default async function AdminVehiclesPage({
                         </span>
                       </td>
 
-                      {/* Assignments */}
                       <td
                         className={styles.td}
                         data-label='Assignments'
@@ -340,7 +309,6 @@ export default async function AdminVehiclesPage({
                         </div>
                       </td>
 
-                      {/* Added */}
                       <td
                         className={styles.td}
                         data-label='Added'
@@ -355,7 +323,7 @@ export default async function AdminVehiclesPage({
                         />
                         <div className={styles.cellStack}>
                           <span className={styles.cellSub}>
-                            {formatDate(u.createdAt)}
+                            {tz.formatDate(u.createdAt, companyTz)}
                           </span>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{addedAgo}</span>
@@ -363,7 +331,6 @@ export default async function AdminVehiclesPage({
                         </div>
                       </td>
 
-                      {/* Actions */}
                       <td
                         className={styles.td}
                         data-label='Actions'
@@ -393,10 +360,6 @@ export default async function AdminVehiclesPage({
     </section>
   );
 }
-
-/* =============================================================================
-   Filter Components
-   ============================================================================= */
 
 function StatusTabs({
   active,
@@ -488,10 +451,6 @@ function CategoryTabs({
     </div>
   );
 }
-
-/* =============================================================================
-   Pagination Component
-   ============================================================================= */
 
 function Pagination({
   totalCount,

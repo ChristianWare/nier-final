@@ -12,12 +12,11 @@ import DeleteUserDangerZoneClient from "./DeleteUserDangerZoneClient";
 import AdminPhotoUpload from "@/components/admin/Adminphotoupload/Adminphotoupload";
 import DefaultProfileImg from "../../../../../public/images/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
 type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
 type SP = Record<string, string | string[] | undefined>;
@@ -41,95 +40,6 @@ function cleanView(v: string | null | undefined): ViewMode {
   return "monthly";
 }
 
-function formatMoney(cents: number, currency = "USD") {
-  const n = (cents || 0) / 100;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(n);
-}
-
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatDateTime(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(d);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
-}
-
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
-}
-
-function startOfDayPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function startOfYearPhoenix(dateUtc: Date) {
-  const { y } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, 0, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  return new Date(nextStartLocalMs - PHX_OFFSET_MS);
-}
-
-function monthKeyFromDatePhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  return `${y}-${String(m + 1).padStart(2, "0")}`;
-}
-
-function monthStartFromKeyPhoenix(key: string) {
-  const match = /^(\d{4})-(\d{2})$/.exec(key.trim());
-  if (!match) return null;
-  const y = Number(match[1]);
-  const m = Number(match[2]);
-  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12)
-    return null;
-  const startLocalMs = Date.UTC(y, m - 1, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
 function parseYMD(s: string | null) {
   if (!s) return null;
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s.trim());
@@ -143,74 +53,32 @@ function parseYMD(s: string | null) {
   return { y, m, d };
 }
 
-function startOfDayFromYMDPhoenix(ymd: { y: number; m: number; d: number }) {
-  const startLocalMs = Date.UTC(ymd.y, ymd.m - 1, ymd.d, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function ymdForInputPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
-function formatMonthLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "numeric",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
-
-function formatMonthTickPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "2-digit",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
-
-function formatDayLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(dateUtc);
-}
-
-function formatDayTickPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "2-digit",
-    day: "2-digit",
-  }).format(dateUtc);
-}
-
-function formatDatePhx(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
+function startOfDayFromYMD(
+  ymd: { y: number; m: number; d: number },
+  timeZone: string,
+) {
+  const isoDate = `${ymd.y}-${String(ymd.m).padStart(2, "0")}-${String(ymd.d).padStart(2, "0")}`;
+  return new Date(tz.localToUtcIso(isoDate, "00:00", timeZone));
 }
 
 function resolveMonthYear({
   view,
   sp,
   now,
+  timeZone,
 }: {
   view: ViewMode;
   sp: SP;
   now: Date;
+  timeZone: string;
 }) {
-  const currentKey = monthKeyFromDatePhoenix(now);
+  const currentKey = tz.monthKey(now, timeZone);
   const currentYear = currentKey.slice(0, 4);
   const currentMonth = currentKey.slice(5, 7);
   const rawMonth = spGet(sp, "month");
   const rawYear = spGet(sp, "year");
   const legacyKey =
-    rawMonth && monthStartFromKeyPhoenix(rawMonth) ? rawMonth : null;
+    rawMonth && tz.monthStartFromKey(rawMonth, timeZone) ? rawMonth : null;
   if (view !== "daily")
     return { year: currentYear, month: currentMonth, key: currentKey };
   if (legacyKey)
@@ -223,36 +91,6 @@ function resolveMonthYear({
   const m =
     rawMonth && /^(0[1-9]|1[0-2])$/.test(rawMonth) ? rawMonth : currentMonth;
   return { year: y, month: m, key: `${y}-${m}` };
-}
-
-function statusLabel(status: string) {
-  const labels: Record<string, string> = {
-    PENDING_REVIEW: "Pending review",
-    PENDING_PAYMENT: "Payment due",
-    CONFIRMED: "Confirmed",
-    ASSIGNED: "Driver assigned",
-    EN_ROUTE: "Driver en route",
-    ARRIVED: "Driver arrived",
-    IN_PROGRESS: "In progress",
-    COMPLETED: "Completed",
-    CANCELLED: "Cancelled",
-    NO_SHOW: "No-show",
-    REFUNDED: "Refunded",
-    PARTIALLY_REFUNDED: "Partially refunded",
-    DRAFT: "Draft",
-  };
-  return labels[status] || String(status).replaceAll("_", " ");
-}
-
-function badgeTone(status: string) {
-  if (status === "PENDING_PAYMENT") return "warn";
-  if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
-  if (status === "CONFIRMED" || status === "ASSIGNED" || status === "COMPLETED")
-    return "good";
-  if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
-    return "accent";
-  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
-  return "neutral";
 }
 
 function buildExportHref(
@@ -276,9 +114,14 @@ function buildExportHref(
   return `/api/admin/users/${userId}/earnings/export?${params.toString()}`;
 }
 
-async function chartAggDaily(driverId: string, fromUtc: Date, toUtc: Date) {
+async function chartAggDaily(
+  driverId: string,
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+) {
   const rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('day', b."pickupAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+    SELECT to_char(date_trunc('day', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
       COALESCE(SUM(a."driverPaymentCents"), 0) as sum, COUNT(*) as count
     FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
     WHERE a."driverId" = ${driverId} AND b.status = 'COMPLETED' AND b."pickupAt" >= ${fromUtc} AND b."pickupAt" < ${toUtc}
@@ -301,12 +144,12 @@ async function chartAggDaily(driverId: string, fromUtc: Date, toUtc: Date) {
     d.getTime() < toUtc.getTime();
     d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
   ) {
-    const ymd = ymdForInputPhoenix(d);
+    const ymd = tz.formatIsoDate(d, timeZone);
     const b = bucket.get(ymd) ?? { sumCents: 0, count: 0 };
     points.push({
       key: ymd,
-      tick: formatDayTickPhoenix(d),
-      label: formatDayLabelPhoenix(d),
+      tick: tz.formatDayTick(d, timeZone),
+      label: tz.formatDateMedium(d, timeZone),
       earningsCents: b.sumCents,
       count: b.count,
     });
@@ -314,9 +157,14 @@ async function chartAggDaily(driverId: string, fromUtc: Date, toUtc: Date) {
   return points;
 }
 
-async function chartAggMonthly(driverId: string, fromUtc: Date, toUtc: Date) {
+async function chartAggMonthly(
+  driverId: string,
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+) {
   const rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
       COALESCE(SUM(a."driverPaymentCents"), 0) as sum, COUNT(*) as count
     FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
     WHERE a."driverId" = ${driverId} AND b.status = 'COMPLETED' AND b."pickupAt" >= ${fromUtc} AND b."pickupAt" < ${toUtc}
@@ -329,18 +177,19 @@ async function chartAggMonthly(driverId: string, fromUtc: Date, toUtc: Date) {
     });
   const months: string[] = [];
   for (
-    let ms = startOfMonthPhoenix(fromUtc);
+    let ms = tz.startOfMonth(fromUtc, timeZone);
     ms.getTime() < toUtc.getTime();
-    ms = addMonthsPhoenix(ms, 1)
+    ms = tz.addMonths(ms, 1, timeZone)
   )
-    months.push(monthKeyFromDatePhoenix(ms));
+    months.push(tz.monthKey(ms, timeZone));
   return months.map((k) => {
-    const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
+    const ms =
+      tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
     const b = bucket.get(k) ?? { sumCents: 0, count: 0 };
     return {
       key: k,
-      tick: formatMonthTickPhoenix(ms),
-      label: formatMonthLabelPhoenix(ms),
+      tick: tz.formatMonthTick(ms, timeZone),
+      label: tz.formatMonthLabel(ms, timeZone),
       earningsCents: b.sumCents,
       count: b.count,
     };
@@ -371,6 +220,7 @@ export default async function UserDetailPage({
   const { id } = await params;
   const sp = (await Promise.resolve(searchParams ?? {})) as SP;
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
   const user = await db.user.findUnique({
     where: { id },
@@ -427,46 +277,48 @@ export default async function UserDetailPage({
     kpi = { totalCents: 0, tripCount: 0, avgCents: 0 },
     rangeLabel = "";
   const view = cleanView(spGet(sp, "view"));
-  const currentMonthStart = startOfMonthPhoenix(now);
+  const currentMonthStart = tz.startOfMonth(now, companyTz);
   const rangeFromParam = spGet(sp, "from"),
     rangeToParam = spGet(sp, "to");
-  const defaultTo = ymdForInputPhoenix(now);
-  const defaultFrom = ymdForInputPhoenix(
+  const defaultTo = tz.formatIsoDate(now, companyTz);
+  const defaultFrom = tz.formatIsoDate(
     new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+    companyTz,
   );
-  const resolvedMY = resolveMonthYear({ view, sp, now });
+  const resolvedMY = resolveMonthYear({ view, sp, now, timeZone: companyTz });
 
   if (isDriver) {
     let fromUtc = currentMonthStart,
-      toUtc = addMonthsPhoenix(currentMonthStart, 1);
+      toUtc = tz.addMonths(currentMonthStart, 1, companyTz);
     if (view === "daily") {
-      const ms = monthStartFromKeyPhoenix(resolvedMY.key) ?? currentMonthStart;
+      const ms =
+        tz.monthStartFromKey(resolvedMY.key, companyTz) ?? currentMonthStart;
       fromUtc = ms;
-      toUtc = addMonthsPhoenix(ms, 1);
-      rangeLabel = formatMonthLabelPhoenix(ms);
+      toUtc = tz.addMonths(ms, 1, companyTz);
+      rangeLabel = tz.formatMonthLabel(ms, companyTz);
     }
     if (view === "monthly") {
-      fromUtc = addMonthsPhoenix(currentMonthStart, -11);
-      toUtc = addMonthsPhoenix(currentMonthStart, 1);
+      fromUtc = tz.addMonths(currentMonthStart, -11, companyTz);
+      toUtc = tz.addMonths(currentMonthStart, 1, companyTz);
       rangeLabel = "Last 12 months";
     }
     if (view === "ytd") {
-      fromUtc = startOfYearPhoenix(now);
-      toUtc = addMonthsPhoenix(currentMonthStart, 1);
+      fromUtc = tz.startOfYear(now, companyTz);
+      toUtc = tz.addMonths(currentMonthStart, 1, companyTz);
       rangeLabel = "Year to date";
     }
     if (view === "range") {
       const f = parseYMD(rangeFromParam ?? defaultFrom),
         t = parseYMD(rangeToParam ?? defaultTo);
       const fUtc = f
-        ? startOfDayFromYMDPhoenix(f)
-        : startOfDayFromYMDPhoenix(parseYMD(defaultFrom)!);
+        ? startOfDayFromYMD(f, companyTz)
+        : startOfDayFromYMD(parseYMD(defaultFrom)!, companyTz);
       const tUtc0 = t
-        ? startOfDayFromYMDPhoenix(t)
-        : startOfDayFromYMDPhoenix(parseYMD(defaultTo)!);
+        ? startOfDayFromYMD(t, companyTz)
+        : startOfDayFromYMD(parseYMD(defaultTo)!, companyTz);
       fromUtc = fUtc;
       toUtc = new Date(tUtc0.getTime() + 24 * 60 * 60 * 1000);
-      rangeLabel = `${formatDatePhx(fromUtc)} → ${formatDatePhx(new Date(toUtc.getTime() - 1))}`;
+      rangeLabel = `${tz.formatDateMedium(fromUtc, companyTz)} → ${tz.formatDateMedium(new Date(toUtc.getTime() - 1), companyTz)}`;
     }
     if (view === "all") {
       const earliest = await db.assignment.findFirst({
@@ -475,15 +327,17 @@ export default async function UserDetailPage({
         select: { assignedAt: true },
       });
       fromUtc = earliest?.assignedAt
-        ? startOfDayPhoenix(earliest.assignedAt)
+        ? tz.startOfDay(earliest.assignedAt, companyTz)
         : new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-      toUtc = new Date(startOfDayPhoenix(now).getTime() + 24 * 60 * 60 * 1000);
+      toUtc = new Date(
+        tz.startOfDay(now, companyTz).getTime() + 24 * 60 * 60 * 1000,
+      );
       rangeLabel = "All time";
     }
     chartData =
       view === "daily"
-        ? await chartAggDaily(user.id, fromUtc, toUtc)
-        : await chartAggMonthly(user.id, fromUtc, toUtc);
+        ? await chartAggDaily(user.id, fromUtc, toUtc, companyTz)
+        : await chartAggMonthly(user.id, fromUtc, toUtc, companyTz);
     kpi = kpisFromChartData(chartData);
   }
 
@@ -495,11 +349,12 @@ export default async function UserDetailPage({
       })
     : null;
   const earliestYear = earliestAssignment?.assignedAt
-    ? toPhoenixParts(earliestAssignment.assignedAt).y
-    : toPhoenixParts(now).y;
+    ? tz.toLocalParts(earliestAssignment.assignedAt, companyTz).y
+    : tz.toLocalParts(now, companyTz).y;
+  const latestYear = tz.toLocalParts(now, companyTz).y;
   const years = Array.from({
-    length: Math.max(1, toPhoenixParts(now).y - earliestYear + 1),
-  }).map((_, i) => String(toPhoenixParts(now).y - i));
+    length: Math.max(1, latestYear - earliestYear + 1),
+  }).map((_, i) => String(latestYear - i));
   const monthOptions = [
     { v: "01", label: "Jan" },
     { v: "02", label: "Feb" },
@@ -535,7 +390,6 @@ export default async function UserDetailPage({
         <div className={styles.headerTop}>
           <div className={styles.top}>
             <div className={styles.profileSection}>
-              {/* Profile Photo with Admin Upload Button */}
               <AdminPhotoUpload
                 userId={user.id}
                 currentImage={profileImage}
@@ -587,7 +441,7 @@ export default async function UserDetailPage({
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Joined</span>
               <span className={styles.infoValue}>
-                {formatDateTime(user.createdAt)}
+                {tz.formatDateTime(user.createdAt, companyTz)}
               </span>
             </div>
             <div className={styles.infoRow}>
@@ -673,7 +527,9 @@ export default async function UserDetailPage({
               <div className={styles.kpiTop}>
                 <div className='emptyTitle underline'>Total Earnings</div>
               </div>
-              <div className='kpiValue'>{formatMoney(kpi.totalCents)}</div>
+              <div className='kpiValue'>
+                {tz.formatMoneyShort(kpi.totalCents)}
+              </div>
               <div className='miniNote'>{rangeLabel}</div>
             </div>
             <div className={styles.kpiCard}>
@@ -687,7 +543,9 @@ export default async function UserDetailPage({
               <div className={styles.kpiTop}>
                 <div className='emptyTitle underline'>Avg per Trip</div>
               </div>
-              <div className='kpiValue'>{formatMoney(kpi.avgCents)}</div>
+              <div className='kpiValue'>
+                {tz.formatMoneyShort(kpi.avgCents)}
+              </div>
               <div className='miniNote'>Average earnings</div>
             </div>
           </div>
@@ -744,11 +602,11 @@ export default async function UserDetailPage({
                             }}
                           />
                           <Link href={href} className={styles.rowLink}>
-                            {formatDate(b.pickupAt)}
+                            {tz.formatDate(b.pickupAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>
-                              {formatEta(b.pickupAt, now)}
+                              {tz.formatEta(b.pickupAt, now)}
                             </span>
                           </div>
                         </td>
@@ -769,9 +627,9 @@ export default async function UserDetailPage({
                             }}
                           />
                           <span
-                            className={`badge badge_${badgeTone(b.status)}`}
+                            className={`badge badge_${tz.badgeTone(b.status)}`}
                           >
-                            {statusLabel(b.status)}
+                            {tz.statusLabel(b.status)}
                           </span>
                         </td>
                         <td
@@ -833,7 +691,7 @@ export default async function UserDetailPage({
                               zIndex: 5,
                             }}
                           />
-                          {formatMoney(b.totalCents ?? 0)}
+                          {tz.formatMoneyShort(b.totalCents ?? 0)}
                         </td>
                       </tr>
                     );
@@ -901,11 +759,11 @@ export default async function UserDetailPage({
                             }}
                           />
                           <Link href={href} className={styles.rowLink}>
-                            {formatDate(b.pickupAt)}
+                            {tz.formatDate(b.pickupAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>
-                              {formatEta(b.pickupAt, now)}
+                              {tz.formatEta(b.pickupAt, now)}
                             </span>
                           </div>
                         </td>
@@ -926,9 +784,9 @@ export default async function UserDetailPage({
                             }}
                           />
                           <span
-                            className={`badge badge_${badgeTone(b.status)}`}
+                            className={`badge badge_${tz.badgeTone(b.status)}`}
                           >
-                            {statusLabel(b.status)}
+                            {tz.statusLabel(b.status)}
                           </span>
                         </td>
                         <td
@@ -984,7 +842,7 @@ export default async function UserDetailPage({
                             }}
                           />
                           {a.driverPaymentCents
-                            ? formatMoney(a.driverPaymentCents)
+                            ? tz.formatMoneyShort(a.driverPaymentCents)
                             : "—"}
                         </td>
                       </tr>
