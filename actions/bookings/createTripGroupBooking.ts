@@ -11,6 +11,8 @@ import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import { sendBookingRequestedEmail } from "@/lib/email/sendBookingRequestedEmail";
+import { getCompanySettings } from "../../actions/admin/companySettings";
+import { formatIsoDate } from "@/lib/timezone";
 
 // ─── Types ───
 
@@ -72,17 +74,6 @@ export type CreateTripGroupInput = {
   label?: string | null;
 };
 
-const PHX_TZ = "America/Phoenix";
-
-function ymdInPhoenix(d: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: PHX_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
-}
-
 function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
@@ -135,12 +126,14 @@ export async function createTripGroupBooking(input: CreateTripGroupInput) {
     stopSurchargeCents: number;
   }> = [];
 
+  const { timezone } = await getCompanySettings();
+
   for (let i = 0; i < input.legs.length; i++) {
     const leg = input.legs[i];
     const legLabel = `Ride ${i + 1}`;
 
     const pickupAtDate = new Date(leg.pickupAt);
-    const ymd = ymdInPhoenix(pickupAtDate);
+    const ymd = formatIsoDate(pickupAtDate, timezone);
 
     // Blackout check
     const isBlackout = await db.blackoutDate.findUnique({ where: { ymd } });

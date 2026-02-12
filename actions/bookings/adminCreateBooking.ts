@@ -6,6 +6,8 @@ import { auth } from "../../auth";
 import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
 import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
+import { getCompanySettings } from "../../actions/admin/companySettings";
+import { formatIsoDate } from "@/lib/timezone";
 
 // ✅ Allowed statuses for admin-created bookings
 const ADMIN_CREATE_STATUSES = [
@@ -89,16 +91,6 @@ function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
 
-const PHX_TZ = "America/Phoenix";
-
-function ymdInPhoenix(d: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: PHX_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
-}
 
 function isAllowedStatus(v: any): v is AdminCreateBookingStatus {
   return ADMIN_CREATE_STATUSES.includes(v);
@@ -131,7 +123,8 @@ export async function adminCreateBooking(input: AdminCreateBookingInput) {
     return { error: "Invalid pickup time." as const };
 
   // --- blackout check ---
-  const ymd = ymdInPhoenix(pickupAtDate);
+  const { timezone } = await getCompanySettings();
+  const ymd = formatIsoDate(pickupAtDate, timezone);
   const blackout = await db.blackoutDate.findUnique({ where: { ymd } });
   if (blackout) return { error: "That date is blacked out." as const };
 

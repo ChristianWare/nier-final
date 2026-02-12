@@ -7,6 +7,8 @@ import { auth } from "../../auth";
 import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
 import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
+import { getCompanySettings } from "../../actions/admin/companySettings";
+import { formatIsoDate } from "@/lib/timezone";
 
 // ✅ Corporate bookings go straight to CONFIRMED (or PENDING_REVIEW if you want admin approval)
 const CORPORATE_BOOKING_STATUS: BookingStatus = "CONFIRMED";
@@ -67,17 +69,6 @@ type CorporateCreateBookingInput = {
 
 function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
-
-const PHX_TZ = "America/Phoenix";
-
-function ymdInPhoenix(d: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: PHX_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
 }
 
 export async function corporateCreateBooking(
@@ -154,7 +145,8 @@ export async function corporateCreateBooking(
   }
 
   // ─── Blackout check ───
-  const ymd = ymdInPhoenix(pickupAtDate);
+  const { timezone } = await getCompanySettings();
+  const ymd = formatIsoDate(pickupAtDate, timezone);
   const blackout = await db.blackoutDate.findUnique({ where: { ymd } });
   if (blackout)
     return {

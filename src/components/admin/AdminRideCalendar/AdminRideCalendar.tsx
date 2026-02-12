@@ -4,21 +4,20 @@ import styles from "./AdminRideCalendar.module.css";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const TZ = "America/Phoenix";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-function ymdInTz(date: Date) {
+function ymdInTz(date: Date, tz: string) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: TZ,
+    timeZone: tz,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(date);
 }
 
-function monthLabel(date: Date) {
+function monthLabel(date: Date, tz: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: TZ,
+    timeZone: tz,
     month: "long",
     year: "numeric",
   }).format(date);
@@ -64,11 +63,13 @@ export default function AdminRideCalendar({
   countsByYmd,
   blackoutsByYmd,
   todayYmd,
+  timeZone,
 }: {
   initialMonth: string;
   countsByYmd: Record<string, number>;
   blackoutsByYmd: Record<string, boolean>;
   todayYmd: string;
+  timeZone: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -171,8 +172,7 @@ export default function AdminRideCalendar({
     router.push(`/admin/calendar/${ymd}`);
   }
 
-  const label = monthLabel(monthDate);
-
+  const label = monthLabel(monthDate, timeZone);
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
@@ -246,7 +246,7 @@ export default function AdminRideCalendar({
 
       <div className={styles.gridDays}>
         {grid.map((d) => {
-          const ymd = ymdInTz(d);
+          const ymd = ymdInTz(d, timeZone);
           const isOtherMonth = d.getUTCMonth() !== monthDate.getUTCMonth();
           const isToday = ymd === todayYmd;
           const count = countsByYmd[ymd] ?? 0;

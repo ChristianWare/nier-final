@@ -7,6 +7,8 @@ import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { randomUUID } from "crypto";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import { sendBookingRequestedEmail } from "@/lib/email/sendBookingRequestedEmail";
+import { getCompanySettings } from "../../actions/admin/companySettings";
+import { formatIsoDate } from "@/lib/timezone";
 
 // ✅ Stop input type
 type StopInput = {
@@ -61,17 +63,6 @@ type CreateBookingRequestInput = {
   eventType?: string | null;
 };
 
-const PHX_TZ = "America/Phoenix";
-
-function ymdInPhoenix(d: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: PHX_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
-}
-
 function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
@@ -106,7 +97,8 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
   }
 
   const pickupAtDate = new Date(input.pickupAt);
-  const ymd = ymdInPhoenix(pickupAtDate);
+  const { timezone } = await getCompanySettings();
+  const ymd = formatIsoDate(pickupAtDate, timezone);
 
   const isBlackout = await db.blackoutDate.findUnique({ where: { ymd } });
   if (isBlackout) {

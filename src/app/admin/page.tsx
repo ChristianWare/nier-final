@@ -28,6 +28,8 @@ import AdminTodaysRides from "@/components/admin/AdminTodaysRides/AdminTodaysRid
 import AdminRideCalendar from "@/components/admin/AdminRideCalendar/AdminRideCalendar";
 
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import { getBookingWizardSetupAlerts } from "./lib/getBookingWizardSetupAlerts";
 import { getAdminFinanceSnapshot } from "./lib/getAdminFinanceSnapshot";
 import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickActions";
@@ -39,74 +41,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
-
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-
-function startOfDayPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const d = phx.getUTCDate();
-
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
-}
-
-function startOfWeekPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const dayOfWeek = phx.getUTCDay();
-  const daysToSubtract = dayOfWeek;
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const d = phx.getUTCDate() - daysToSubtract;
-
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
-}
-
-function startOfNextMonthPhoenix(monthStartUtc: Date) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-
-  const nextStartLocalMs = Date.UTC(y, m + 1, 1, 0, 0, 0);
-  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
-
-  return new Date(nextStartUtcMs);
-}
-
-function formatMonthLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    year: "numeric",
-    timeZone: PHX_TZ,
-  }).format(dateUtc);
-}
 
 function shortAddress(address: string) {
   if (!address) return "";
@@ -142,15 +76,6 @@ function ymdFromUtcDate(d: Date) {
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
   const day = String(d.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-}
-
-function ymdInPhoenix(date: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: PHX_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
 }
 
 /**
@@ -285,11 +210,13 @@ function transformPayment(p: any, isLink = false): PaymentItem {
 export default async function AdminHome() {
   noStore();
 
+  const { timezone: companyTz } = await getCompanySettings();
+
   const now = new Date();
-  const todayStart = startOfDayPhoenix(now);
+  const todayStart = tz.startOfDay(now, companyTz);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
   const dayAfterStart = new Date(tomorrowStart.getTime() + 24 * 60 * 60 * 1000);
-  const weekStart = startOfWeekPhoenix(now);
+  const weekStart = tz.startOfWeek(now, companyTz);
   const next3h = new Date(now.getTime() + 3 * 60 * 60 * 1000);
   const next12h = new Date(now.getTime() + 12 * 60 * 60 * 1000);
   const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
@@ -301,11 +228,9 @@ export default async function AdminHome() {
   const baseMonth = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 12, 0, 0),
   );
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = startOfNextMonthPhoenix(monthStart);
-  const prevMonthStart = startOfMonthPhoenix(
-    new Date(monthStart.getTime() - 1),
-  );
+  const monthStart = tz.startOfMonth(now, companyTz);
+  const nextMonthStart = tz.addMonths(monthStart, 1, companyTz);
+  const prevMonthStart = tz.addMonths(monthStart, -1, companyTz);
 
   const cancelledLike = [
     "CANCELLED",
@@ -902,8 +827,8 @@ export default async function AdminHome() {
     db.blackoutDate.findMany({
       where: {
         ymd: {
-          gte: ymdFromUtcDate(monthStart),
-          lt: ymdFromUtcDate(nextMonthStart),
+          gte: tz.formatIsoDate(monthStart, companyTz),
+          lt: tz.formatIsoDate(nextMonthStart, companyTz),
         },
       },
       select: { ymd: true },
@@ -1095,7 +1020,7 @@ export default async function AdminHome() {
         cells: [
           {
             label: "Pickup",
-            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+            value: formatAlertPickup(new Date(b.pickupAt), companyTz),
           },
           { label: "Customer", value: customerName },
           { label: "From", value: shortAddress(b.pickupAddress) },
@@ -1148,7 +1073,7 @@ export default async function AdminHome() {
         cells: [
           {
             label: "Pickup",
-            value: formatAlertPickup(pickupDate, PHX_TZ),
+            value: formatAlertPickup(pickupDate, companyTz),
           },
           { label: "Customer", value: customerName },
           { label: "Service", value: b.serviceType?.name ?? "—" },
@@ -1186,7 +1111,7 @@ export default async function AdminHome() {
         cells: [
           {
             label: "Pickup",
-            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+            value: formatAlertPickup(new Date(b.pickupAt), companyTz),
           },
           { label: "Customer", value: customerName },
           { label: "Service", value: b.serviceType?.name ?? "—" },
@@ -1227,7 +1152,7 @@ export default async function AdminHome() {
         cells: [
           {
             label: "Pickup",
-            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+            value: formatAlertPickup(new Date(b.pickupAt), companyTz),
           },
           { label: "Customer", value: customerName },
           { label: "From", value: shortAddress(b.pickupAddress) },
@@ -1320,58 +1245,58 @@ export default async function AdminHome() {
       };
     });
 
-    const incompleteApprovals: IncompleteApprovalItem[] = (
-      incompleteApprovalsRaw as any[]
-    ).map((b) => {
-      const isCorporate = Boolean(b.corporateAccountId);
-      const isPaid = b.payment?.status === "PAID";
-      const hasPaymentLink =
-        Boolean(b.payment?.checkoutUrl) || (b.statusEvents?.length ?? 0) > 0;
+  const incompleteApprovals: IncompleteApprovalItem[] = (
+    incompleteApprovalsRaw as any[]
+  ).map((b) => {
+    const isCorporate = Boolean(b.corporateAccountId);
+    const isPaid = b.payment?.status === "PAID";
+    const hasPaymentLink =
+      Boolean(b.payment?.checkoutUrl) || (b.statusEvents?.length ?? 0) > 0;
 
-      return {
-        id: b.id,
-        status: b.status,
-        createdAtIso: new Date(b.createdAt).toISOString(),
-        pickupAtIso: new Date(b.pickupAt).toISOString(),
-        pickupAddress: b.pickupAddress,
-        dropoffAddress: b.dropoffAddress,
-        serviceName: b.serviceType?.name ?? "—",
-        vehicleName: b.vehicle?.name ?? null,
-        totalCents: b.totalCents ?? 0,
-        currency: b.currency ?? "usd",
-        customer: isCorporate
+    return {
+      id: b.id,
+      status: b.status,
+      createdAtIso: new Date(b.createdAt).toISOString(),
+      pickupAtIso: new Date(b.pickupAt).toISOString(),
+      pickupAddress: b.pickupAddress,
+      dropoffAddress: b.dropoffAddress,
+      serviceName: b.serviceType?.name ?? "—",
+      vehicleName: b.vehicle?.name ?? null,
+      totalCents: b.totalCents ?? 0,
+      currency: b.currency ?? "usd",
+      customer: isCorporate
+        ? {
+            name: b.corporatePassenger?.name?.trim() || "Corporate passenger",
+            email: b.corporatePassenger?.email ?? null,
+            kind: "corporate" as const,
+            accountName: b.corporateAccount?.name ?? "Corporate",
+          }
+        : b.userId
           ? {
-              name: b.corporatePassenger?.name?.trim() || "Corporate passenger",
-              email: b.corporatePassenger?.email ?? null,
-              kind: "corporate" as const,
-              accountName: b.corporateAccount?.name ?? "Corporate",
+              name: (b.user?.name ?? "").trim() || b.user?.email || "Account",
+              email: b.user?.email ?? null,
+              kind: "account" as const,
             }
-          : b.userId
-            ? {
-                name: (b.user?.name ?? "").trim() || b.user?.email || "Account",
-                email: b.user?.email ?? null,
-                kind: "account" as const,
-              }
-            : {
-                name: (b.guestName ?? "").trim() || "Guest",
-                email: b.guestEmail ?? null,
-                kind: "guest" as const,
-              },
-        approvals: {
-          routeApproved: Boolean(b.routeApproved),
-          priceApproved: Boolean(b.priceApproved),
-          hasDriver: Boolean(b.assignment?.driverId),
-          hasVehicleUnit: Boolean(b.assignment?.vehicleUnitId),
-          hasDriverPay: Boolean(
-            b.assignment?.driverPaymentCents &&
-            b.assignment.driverPaymentCents > 0,
-          ),
-          isPaid,
-          hasPaymentLink,
-          isCorporate,
-        },
-      };
-    });
+          : {
+              name: (b.guestName ?? "").trim() || "Guest",
+              email: b.guestEmail ?? null,
+              kind: "guest" as const,
+            },
+      approvals: {
+        routeApproved: Boolean(b.routeApproved),
+        priceApproved: Boolean(b.priceApproved),
+        hasDriver: Boolean(b.assignment?.driverId),
+        hasVehicleUnit: Boolean(b.assignment?.vehicleUnitId),
+        hasDriverPay: Boolean(
+          b.assignment?.driverPaymentCents &&
+          b.assignment.driverPaymentCents > 0,
+        ),
+        isPaid,
+        hasPaymentLink,
+        isCorporate,
+      },
+    };
+  });
 
   // Transform upcoming rides data
   const upcomingRides: UpcomingRideItem[] = upcomingRidesRaw.map((b: any) => {
@@ -1534,8 +1459,7 @@ export default async function AdminHome() {
   /**
    * FINANCE SNAPSHOT DATA
    */
-  const monthLabel = formatMonthLabelPhoenix(now);
-
+  const monthLabel = tz.formatMonthLabel(now, companyTz);
   const [
     capturedThisMonth,
     capturedToday,
@@ -1598,7 +1522,7 @@ export default async function AdminHome() {
   // Transform calendar data
   const countsByYmd: Record<string, number> = {};
   for (const r of calendarRidesRaw) {
-    const key = ymdInPhoenix(r.pickupAt);
+    const key = tz.formatIsoDate(r.pickupAt, companyTz);
     countsByYmd[key] = (countsByYmd[key] ?? 0) + 1;
   }
 
@@ -1643,7 +1567,7 @@ export default async function AdminHome() {
         cells: [
           {
             label: "Pickup",
-            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+            value: formatAlertPickup(new Date(b.pickupAt), companyTz),
           },
           { label: "Customer", value: customerName },
           {
@@ -1706,7 +1630,7 @@ export default async function AdminHome() {
         cells: [
           {
             label: "Pickup",
-            value: formatAlertPickup(new Date(b.pickupAt), PHX_TZ),
+            value: formatAlertPickup(new Date(b.pickupAt), companyTz),
           },
           { label: "Customer", value: customerName },
           { label: "Service", value: b.serviceType?.name ?? "—" },
@@ -1838,8 +1762,8 @@ export default async function AdminHome() {
 
   if (overlaps.length > 0) {
     const detailRows = overlaps.slice(0, 5).map((o, idx) => {
-      const time1 = formatAlertPickup(o.booking1.pickupAt, PHX_TZ);
-      const time2 = formatAlertPickup(o.booking2.pickupAt, PHX_TZ);
+      const time1 = formatAlertPickup(o.booking1.pickupAt, companyTz);
+      const time2 = formatAlertPickup(o.booking2.pickupAt, companyTz);
 
       return {
         id: `overlap-${idx}`,
@@ -1901,33 +1825,34 @@ export default async function AdminHome() {
       <AdminFinanceSnapshot {...snap} currency='USD' />
       <AdminRecentBookingRequests
         items={recentBookingRequests}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
       />
-        <AdminAlerts alerts={alerts} />
+      <AdminAlerts alerts={alerts} />
       {/* <div className={styles.graphCalendarContainer}>
         <AdminQuickActions />
       </div> */}
       <AdminTodaysRides
         items={todaysRides}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
       />
       <AdminUpcomingRides
         items={upcomingRides}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
       />
       <AdminIncompleteApprovals
         items={incompleteApprovals}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
       />
       <AdminRideCalendar
-        initialMonth={monthKey(baseMonth)}
+        initialMonth={tz.monthKey(baseMonth, companyTz)}
         countsByYmd={countsByYmd}
         blackoutsByYmd={blackoutsByYmd}
-        todayYmd={ymdInPhoenix(now)}
+        todayYmd={tz.formatIsoDate(now, companyTz)}
+        timeZone={companyTz}
       />
       <AdminDriverSnapshot />
       <AdminPaymentsSnapshot
@@ -1935,7 +1860,7 @@ export default async function AdminHome() {
         paymentsThisWeek={paymentsThisWeek}
         paymentLinksToday={paymentLinksToday}
         paymentLinksThisWeek={paymentLinksThisWeek}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
       />
 
@@ -1952,7 +1877,7 @@ export default async function AdminHome() {
         }}
         earliestUpcomingPickupAt={earliestUpcoming?.pickupAt ?? null}
         tripsNext3Hours={tripsNext3Hours}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
       />
 
       <AdminVehicleSnapshot
@@ -1961,7 +1886,7 @@ export default async function AdminHome() {
         inactiveUnits={inactiveUnits}
         byCategory={byCategory}
       />
-      <AdminActivityFeed items={activityTop10} timeZone={PHX_TZ} />
+      <AdminActivityFeed items={activityTop10} timeZone={companyTz} />
     </section>
   );
 }

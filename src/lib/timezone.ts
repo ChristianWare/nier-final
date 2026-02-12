@@ -1,4 +1,3 @@
-
 // ─── Internal: offset calculation ─────────────────────────────
 // Uses Intl.DateTimeFormat to determine the UTC offset for any
 // IANA timezone at a given moment. Handles DST automatically.
@@ -342,4 +341,21 @@ const TIMEZONE_SHORT_LABELS: Record<string, string> = {
 /** Human-readable timezone label, e.g. "Phoenix, AZ (MST)" */
 export function timezoneLabel(tz: string): string {
   return TIMEZONE_SHORT_LABELS[tz] ?? tz;
+}
+
+/** UTC timestamp of midnight on the day containing dateUtc in the given timezone. */
+export function startOfDay(dateUtc: Date, tz: string): Date {
+  const { y, m, d } = toLocalParts(dateUtc, tz);
+  const localMidnightMs = Date.UTC(y, m, d, 0, 0, 0);
+  const estimate = new Date(localMidnightMs - getOffsetMs(dateUtc, tz));
+  return new Date(localMidnightMs - getOffsetMs(estimate, tz));
+}
+
+/** UTC timestamp of midnight on the Sunday starting the week containing dateUtc. */
+export function startOfWeek(dateUtc: Date, tz: string): Date {
+  const { y, m, d } = toLocalParts(dateUtc, tz);
+  const dow = new Date(Date.UTC(y, m, d)).getUTCDay();
+  const localSundayMs = Date.UTC(y, m, d - dow, 0, 0, 0);
+  const estimate = new Date(localSundayMs - getOffsetMs(dateUtc, tz));
+  return new Date(localSundayMs - getOffsetMs(estimate, tz));
 }
