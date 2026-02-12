@@ -28,6 +28,7 @@ import { getCorporateInvoiceData } from "../../../../../actions/corporate/getCor
 import type { InvoiceData, InvoiceLineItem } from "@/lib/invoice/types";
 import { formatInvoiceDate, formatTripDateTime } from "@/lib/invoice/types";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import { getTripGroupForBooking } from "@/lib/tripGroup/getTripGroupForBooking";
 import TripGroupCard from "@/components/admin/TripGroupCard/TripGroupCard";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
@@ -121,7 +122,7 @@ function badgeTone(status: BookingStatus): BadgeTone {
   return "neutral";
 }
 
-function formatDateTime(d: Date) {
+function formatDateTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
@@ -129,16 +130,24 @@ function formatDateTime(d: Date) {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
+    timeZone,
   }).format(d);
 }
 
-function formatDateTimeLocal(d: Date) {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const hours = String(d.getHours()).padStart(2, "0");
-  const minutes = String(d.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+function formatDateTimeLocal(d: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "00";
+  let hr = get("hour");
+  if (hr === "24") hr = "00";
+  return `${get("year")}-${get("month")}-${get("day")}T${hr}:${get("minute")}`;
 }
 
 function fmtPersonLine(p: { name: string | null; email: string }) {
@@ -476,6 +485,9 @@ export default async function AdminBookingDetailPage({
 
   if (!booking) return notFound();
 
+  const companySettings = await getCompanySettings();
+  const companyTz = companySettings.timezone;
+
   const tripGroupData = await getTripGroupForBooking(id);
 
   const isCorporateBooking = Boolean(booking.corporateAccountId);
@@ -628,7 +640,7 @@ export default async function AdminBookingDetailPage({
     ? `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${formatPhone(customerPhone)}` : ""}${booking.corporatePassenger?.department ? ` • ${booking.corporatePassenger.department}` : ""} — 🏢 ${booking.corporateAccount?.name ?? "Corporate"}`
     : `${customerName} (${customerEmailDisplay})`;
 
-  const createdAtLabel = formatDateTime(booking.createdAt);
+  const createdAtLabel = formatDateTime(booking.createdAt, companyTz);
   const actor = createdEvent?.createdBy ?? null;
 
   let createdByDisplay = "Guest checkout";
@@ -748,7 +760,7 @@ export default async function AdminBookingDetailPage({
       );
   // Prepare data for EditTripDetailsClient
   const tripEditData = {
-    pickupAt: formatDateTimeLocal(booking.pickupAt),
+    pickupAt: formatDateTimeLocal(booking.pickupAt, companyTz),
     pickupAddress: booking.pickupAddress,
     dropoffAddress: booking.dropoffAddress,
     pickupPlaceId: booking.pickupPlaceId,
@@ -765,7 +777,7 @@ export default async function AdminBookingDetailPage({
     flightAirline: booking.flightAirline,
     flightNumber: booking.flightNumber,
     flightScheduledAt: booking.flightScheduledAt
-      ? formatDateTimeLocal(booking.flightScheduledAt)
+      ? formatDateTimeLocal(booking.flightScheduledAt, companyTz)
       : null,
     flightTerminal: booking.flightTerminal,
     flightGate: booking.flightGate,
@@ -810,19 +822,10 @@ export default async function AdminBookingDetailPage({
     booking.flightGate;
 
   // Extract flight date for API lookup
-  const flightDateForLookup = booking.flightScheduledAt
-    ? new Intl.DateTimeFormat("en-CA", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        timeZone: "America/Phoenix",
-      }).format(booking.flightScheduledAt)
-    : new Intl.DateTimeFormat("en-CA", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        timeZone: "America/Phoenix",
-      }).format(booking.pickupAt);
+  const flightDateForLookup = tz.formatIsoDate(
+    booking.flightScheduledAt ?? booking.pickupAt,
+    companyTz,
+  );
 
   // Determine airport leg from service type
   const airportLeg = (booking.serviceType.airportLeg ?? "NONE") as
@@ -867,7 +870,6 @@ export default async function AdminBookingDetailPage({
     }
   } else if (isPaid) {
     // Regular (guest / account): build inline when paid
-    const companySettings = await getCompanySettings();
     const baseFareCents =
       booking.subtotalCents - (booking.stopSurchargeCents ?? stopCount * 1500);
 
@@ -980,7 +982,9 @@ export default async function AdminBookingDetailPage({
 
             <div className={styles.boxRight}>
               <div className='emptyTitle'>Date:</div>
-              <p className='emptySmall'>{formatDateTime(booking.pickupAt)}</p>
+              <p className='emptySmall'>
+                {formatDateTime(booking.pickupAt, companyTz)}
+              </p>
 
               <div style={{ marginTop: 30 }}>
                 <div className='emptyTitle'>Booking ID:</div>
@@ -1021,7 +1025,7 @@ export default async function AdminBookingDetailPage({
                   )}
                   {booking.payment?.paidAt && (
                     <span className='miniNote'>
-                      on {formatDateTime(booking.payment.paidAt)}
+                      on {formatDateTime(booking.payment.paidAt, companyTz)}
                     </span>
                   )}
                 </div>
@@ -1098,7 +1102,7 @@ export default async function AdminBookingDetailPage({
                 {getConfirmationCode(booking.id)}
               </div>
             </div>
-            <KeyVal k='Date' v={formatDateTime(booking.pickupAt)} />
+            <KeyVal k='Date' v={formatDateTime(booking.pickupAt, companyTz)} />{" "}
             <KeyVal
               k='Distance / duration'
               v={`${booking.distanceMiles ?? "—"} mi • ${
@@ -1165,7 +1169,6 @@ export default async function AdminBookingDetailPage({
             />
             <KeyVal k='Service' v={booking.serviceType.name} />
             <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
-
             {/* Route Timeline with Stops */}
             {hasStops ? (
               <>
@@ -1246,7 +1249,6 @@ export default async function AdminBookingDetailPage({
                 <KeyVal k='Dropoff' v={booking.dropoffAddress} />
               </>
             )}
-
             {/* Service Fees Section */}
             {hasFees && (
               <>
@@ -1276,12 +1278,10 @@ export default async function AdminBookingDetailPage({
                 </div>
               </>
             )}
-
             <KeyVal
               k='Passengers / luggage'
               v={`${booking.passengers} / ${booking.luggage}`}
             />
-
             {/* Route Map Display */}
             {hasRouteCoordinates && (
               <>
@@ -1302,7 +1302,6 @@ export default async function AdminBookingDetailPage({
                 </div>
               </>
             )}
-
             {/* Flight Information */}
             {hasFlightInfo && (
               <>
@@ -1320,7 +1319,7 @@ export default async function AdminBookingDetailPage({
                   {booking.flightScheduledAt && (
                     <KeyVal
                       k='Scheduled Time'
-                      v={formatDateTime(booking.flightScheduledAt)}
+                      v={formatDateTime(booking.flightScheduledAt, companyTz)}
                     />
                   )}
                   {booking.flightTerminal && (
@@ -1343,7 +1342,6 @@ export default async function AdminBookingDetailPage({
                 </div>
               </>
             )}
-
             {/* ✅ Approve Route + Edit Trip Details — side by side */}
             <div className={styles.sectionDivider} />
             <div
@@ -1731,7 +1729,7 @@ export default async function AdminBookingDetailPage({
                         )}
                       </div>
                       <p className='val'>
-                        {formatDateTime(new Date(e.createdAt))}
+                        {formatDateTime(new Date(e.createdAt), companyTz)}
                       </p>
                     </li>
                   );
