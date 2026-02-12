@@ -1,20 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
 import AdminNewBookingWizard from "@/components/admin/AdminNewBookingWizard/AdminNewBookingWizard";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import { formatIsoDate } from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PHX_TZ = "America/Phoenix";
-
-function ymdInPhoenix(d: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: PHX_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(d);
-}
+// ymdInPhoenix removed — now uses formatIsoDate from lib/timezone
 
 function addDays(d: Date, n: number) {
   const copy = new Date(d);
@@ -36,6 +29,8 @@ function decToNumber(v: any): number | null {
 }
 
 export default async function AdminNewBookingPage() {
+  const companySettings = await getCompanySettings();
+  const tz = companySettings.timezone;
   const [
     serviceTypesRaw,
     vehicles,
@@ -107,8 +102,8 @@ export default async function AdminNewBookingPage() {
     db.blackoutDate.findMany({
       where: {
         ymd: {
-          gte: ymdInPhoenix(new Date()),
-          lt: ymdInPhoenix(addDays(new Date(), 365)),
+          gte: formatIsoDate(new Date(), tz),
+          lt: formatIsoDate(addDays(new Date(), 365), tz),
         },
       },
       select: { ymd: true },
@@ -208,6 +203,7 @@ export default async function AdminNewBookingPage() {
         drivers={drivers as any}
         vehicleUnits={vehicleUnits as any}
         corporateAccounts={corporateAccounts}
+        companyTimezone={tz}
       />
     </section>
   );

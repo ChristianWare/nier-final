@@ -51,6 +51,7 @@ import Link from "next/link";
 import FlightLookupInput from "@/components/BookingPage/FlightLookupInput/FlightLookupInput";
 import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect";
 import BookingWizardChecklist from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
+import { localToUtcIso } from "@/lib/timezone";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -306,6 +307,7 @@ export default function AdminNewBookingWizard({
   drivers,
   vehicleUnits,
   corporateAccounts = [],
+  companyTimezone,
 }: {
   serviceTypes: ServiceTypeDTO[];
   vehicles: VehicleDTO[];
@@ -313,6 +315,7 @@ export default function AdminNewBookingWizard({
   drivers: DriverLite[];
   vehicleUnits: VehicleUnitLite[];
   corporateAccounts?: CorporateAccountDTO[];
+  companyTimezone: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -916,10 +919,11 @@ export default function AdminNewBookingWizard({
       }
     }
 
-    const pickupAtIso = new Date(
-      `${pickupAtDate}T${pickupAtTime}:00`,
-    ).toISOString();
-
+    const pickupAtIso = localToUtcIso(
+      pickupAtDate,
+      pickupAtTime,
+      companyTimezone,
+    );
     try {
       const pickup = route!.pickup!;
       const dropoff = route!.dropoff!;
@@ -965,11 +969,13 @@ export default function AdminNewBookingWizard({
         flightNumber: flightNumber || null,
         flightScheduledAt:
           flightScheduledAtDate && flightScheduledAtTime
-            ? new Date(
-                `${flightScheduledAtDate}T${flightScheduledAtTime}:00`,
-              ).toISOString()
+            ? localToUtcIso(
+                flightScheduledAtDate,
+                flightScheduledAtTime,
+                companyTimezone,
+              )
             : flightScheduledAtDate
-              ? new Date(`${flightScheduledAtDate}T00:00:00`).toISOString()
+              ? localToUtcIso(flightScheduledAtDate, "00:00", companyTimezone)
               : null,
         flightTerminal: flightTerminal || null,
         eventType: eventType || null,
@@ -2748,9 +2754,11 @@ export default function AdminNewBookingWizard({
                       currency={bookingData?.currency ?? "USD"}
                       pickupAt={
                         pickupAtDate && pickupAtTime
-                          ? new Date(
-                              `${pickupAtDate}T${pickupAtTime}:00`,
-                            ).toISOString()
+                          ? localToUtcIso(
+                              pickupAtDate,
+                              pickupAtTime,
+                              companyTimezone,
+                            )
                           : new Date().toISOString()
                       }
                     />
