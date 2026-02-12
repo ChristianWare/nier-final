@@ -1,58 +1,31 @@
-export const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
+import * as tz from "@/lib/timezone";
 
-export function ymdInPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: PHX_TZ,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(dateUtc);
+// ─── Timezone-aware helpers (delegate to lib/timezone) ────────
+// All accept a timezone string parameter instead of hardcoding Phoenix.
+
+export function ymdInTz(dateUtc: Date, timeZone: string) {
+  return tz.formatIsoDate(dateUtc, timeZone);
 }
 
-export function formatMonthLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "long",
-    year: "numeric",
-  }).format(dateUtc);
+export function formatMonthLabel(dateUtc: Date, timeZone: string) {
+  return tz.formatMonthLabel(dateUtc, timeZone);
 }
 
-export function startOfMonthPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
+export function startOfMonth(dateUtc: Date, timeZone: string) {
+  return tz.startOfMonth(dateUtc, timeZone);
 }
 
-export function startOfNextMonthPhoenix(monthStartUtc: Date) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-
-  const nextStartLocalMs = Date.UTC(y, m + 1, 1, 0, 0, 0);
-  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
-
-  return new Date(nextStartUtcMs);
+export function startOfNextMonth(monthStartUtc: Date, timeZone: string) {
+  return tz.addMonths(monthStartUtc, 1, timeZone);
 }
 
-export function startOfPhoenixDayFromYmd(ymd: string) {
+export function startOfDayFromYmd(ymd: string, timeZone: string) {
   const [y, m, d] = ymd.split("-").map(Number);
   if (!y || !m || !d) return null;
-
-  const startLocalMs = Date.UTC(y, m - 1, d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
+  return new Date(tz.localToUtcIso(ymd, "00:00", timeZone));
 }
+
+// ─── Non-timezone helpers (pure date math) ────────────────────
 
 export function addDays(date: Date, n: number) {
   const copy = new Date(date);

@@ -1,47 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
-
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-
-function startOfDayPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const d = phx.getUTCDate();
-
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, n: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth() + n;
-
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
-}
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 function sumCents(rows: Array<{ amountTotalCents: number }>) {
   let s = 0;
@@ -49,24 +9,17 @@ function sumCents(rows: Array<{ amountTotalCents: number }>) {
   return s;
 }
 
-function monthLabel(now: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "long",
-    year: "numeric",
-  }).format(now);
-}
-
 export async function getAdminFinanceSnapshot(currency = "USD") {
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
-  const todayStart = startOfDayPhoenix(now);
+  const todayStart = tz.startOfDay(now, companyTz);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
-  const thisMonthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = addMonthsPhoenix(thisMonthStart, 1);
+  const thisMonthStart = tz.startOfMonth(now, companyTz);
+  const nextMonthStart = tz.addMonths(thisMonthStart, 1, companyTz);
 
-  const prevMonthStart = addMonthsPhoenix(thisMonthStart, -1);
+  const prevMonthStart = tz.addMonths(thisMonthStart, -1, companyTz);
   const prevMonthNext = thisMonthStart;
 
   const paidMonth = await db.payment.findMany({
@@ -128,7 +81,7 @@ export async function getAdminFinanceSnapshot(currency = "USD") {
     prevNet > 0 ? ((netMonth - prevNet) / prevNet) * 100 : null;
 
   return {
-    monthLabel: monthLabel(now),
+    monthLabel: tz.formatMonthLabel(now, companyTz),
     currency,
     capturedMonthCents,
     capturedTodayCents,

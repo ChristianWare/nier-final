@@ -1,82 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
-
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-
-function startOfDayPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const d = phx.getUTCDate();
-
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-
-  return new Date(startUtcMs);
-}
-
-function addMonthsPhoenixStart(monthStartUtc: Date, months: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-
-  const nextLocalMs = Date.UTC(y, m + months, 1, 0, 0, 0);
-  const nextUtcMs = nextLocalMs - PHX_OFFSET_MS;
-
-  return new Date(nextUtcMs);
-}
-
-function monthLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "long",
-    year: "numeric",
-  }).format(dateUtc);
-}
-
-function dayKeyFromDatePhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth() + 1;
-  const d = phx.getUTCDate();
-  return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
-function dayTickPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "2-digit",
-    day: "2-digit",
-  }).format(dateUtc);
-}
-
-function dayLabelPhoenix(dateUtc: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(dateUtc);
-}
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export type AdminFinanceSnapshotChartPoint = {
   key: string; // YYYY-MM-DD (Phoenix)
@@ -116,9 +41,10 @@ export type AdminFinanceSnapshotData = {
  */
 async function getMonthToDateDailyChart(
   now: Date,
+  timeZone: string,
 ): Promise<AdminFinanceSnapshotChartPoint[]> {
-  const monthStart = startOfMonthPhoenix(now);
-  const todayStart = startOfDayPhoenix(now);
+  const monthStart = tz.startOfMonth(now, timeZone);
+  const todayStart = tz.startOfDay(now, timeZone);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
   const fromUtc = monthStart;
@@ -127,7 +53,7 @@ async function getMonthToDateDailyChart(
   // ✅ Exactly matches working AdminEarningsPage chartAggDaily
   const capturedRows = (await db.$queryRaw<any[]>`
   SELECT
-    to_char(date_trunc('day', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+    to_char(date_trunc('day', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
     COALESCE(SUM("amountTotalCents"), 0) as sum,
     COUNT(*) as count
   FROM "Payment"
@@ -139,7 +65,7 @@ async function getMonthToDateDailyChart(
   // ✅ Exactly matches working AdminEarningsPage chartAggDaily
   const refundRows = (await db.$queryRaw<any[]>`
   SELECT
-    to_char(date_trunc('day', "updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+    to_char(date_trunc('day', "updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
     COALESCE(SUM("amountTotalCents"), 0) as sum,
     COUNT(*) as count
   FROM "Payment"
@@ -168,7 +94,7 @@ async function getMonthToDateDailyChart(
     d.getTime() < toUtc.getTime();
     d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
   ) {
-    const key = dayKeyFromDatePhoenix(d);
+    const key = tz.formatIsoDate(d, timeZone);
 
     const c = cap.get(key) ?? { sumCents: 0, count: 0 };
     const r = ref.get(key) ?? { sumCents: 0, count: 0 };
@@ -176,8 +102,8 @@ async function getMonthToDateDailyChart(
 
     points.push({
       key,
-      tick: dayTickPhoenix(d),
-      label: dayLabelPhoenix(d),
+      tick: tz.formatDayTick(d, timeZone),
+      label: tz.formatDateMedium(d, timeZone),
       capturedCents: c.sumCents,
       refundedCents: r.sumCents,
       netCents: net,
@@ -191,12 +117,13 @@ async function getMonthToDateDailyChart(
 export async function getAdminFinanceSnapshot(
   now: Date,
 ): Promise<AdminFinanceSnapshotData> {
-  const todayStart = startOfDayPhoenix(now);
+  const { timezone: companyTz } = await getCompanySettings();
+  const todayStart = tz.startOfDay(now, companyTz);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = addMonthsPhoenixStart(monthStart, 1);
-  const prevMonthStart = addMonthsPhoenixStart(monthStart, -1);
+  const monthStart = tz.startOfMonth(now, companyTz);
+  const nextMonthStart = tz.addMonths(monthStart, 1, companyTz);
+  const prevMonthStart = tz.addMonths(monthStart, -1, companyTz);
 
   const [
     paidMonthAgg,
@@ -254,7 +181,7 @@ export async function getAdminFinanceSnapshot(
     }),
 
     // ✅ Daily (month-to-date) chart
-    getMonthToDateDailyChart(now),
+    getMonthToDateDailyChart(now, companyTz),
   ]);
 
   const capturedMonthCents = Number(paidMonthAgg._sum?.amountTotalCents ?? 0);
@@ -282,7 +209,7 @@ export async function getAdminFinanceSnapshot(
       : null;
 
   return {
-    monthLabel: monthLabelPhoenix(now),
+    monthLabel: tz.formatMonthLabel(now, companyTz),
     currency: "USD",
 
     capturedMonthCents,
