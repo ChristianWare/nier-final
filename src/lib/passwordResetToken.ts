@@ -2,6 +2,7 @@
 import { db } from "./db";
 import { v4 as uuidv4 } from "uuid";
 import { Resend } from "resend";
+import { getCompanySettings } from "../../actions/admin/companySettings";
 
 export const getPasswordResetTokenByToken = async (token: string) => {
   try {
@@ -71,9 +72,9 @@ function normalizeFrom(brand: string, raw: string) {
   );
 }
 
-function formatDate(date: Date) {
+function formatDate(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -362,11 +363,11 @@ export const sendPasswordResetEmail = async (email: string, token: string) => {
     if (!BASE_URL) throw new Error("Missing required env var: BASE_URL");
 
     const from = normalizeFrom(BRAND, RAW_FROM);
+    const { timezone: companyTz } = await getCompanySettings();
     const resend = new Resend(process.env.RESEND_API_KEY);
 
     const resetLink = `${BASE_URL.replace(/\/+$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
-    const submittedAt = formatDate(new Date());
-
+    const submittedAt = formatDate(new Date(), companyTz);
     const subject = `🔐 Reset Your Password — ${BRAND}`;
 
     const res = await resend.emails.send({
