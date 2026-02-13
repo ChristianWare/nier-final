@@ -1,3 +1,5 @@
+/* CompanySettingsForm.module.css */
+
 .form {
   display: flex;
   flex-direction: column;
@@ -10,8 +12,12 @@
   gap: 1.25rem;
   padding: 1.5rem;
   background: var(--white);
-  border: 1px solid var(--stroke);
+  border: 2px solid var(--stroke);
   border-radius: 10px;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
 }
 
 .sectionHeader {
@@ -41,7 +47,6 @@
   grid-column: 1 / -1;
 }
 
-/* Textarea */
 .textarea {
   resize: vertical;
   min-height: 80px;
@@ -49,7 +54,6 @@
   line-height: 1.5;
 }
 
-/* Logo Preview */
 .logoPreview {
   padding: 1rem;
   background: rgba(0, 0, 0, 0.02);
@@ -198,7 +202,6 @@
   line-height: 1.4;
 }
 
-/* Hours Preview */
 .previewHours {
   grid-column: 1 / -1;
   padding: 1rem;
@@ -246,12 +249,82 @@
   opacity: 0.8;
 }
 
-/* Actions */
-.actions {
+/* ═══════════════════════════════════════════
+   SECTION STATES — Locked / Editing / Saved
+═══════════════════════════════════════════ */
+
+/* Locked — fields dimmed and non-interactive */
+.sectionLocked input,
+.sectionLocked select,
+.sectionLocked textarea {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+  border-color: var(--stroke);
+}
+
+.sectionLocked .hoursCheckbox {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.sectionLocked .hoursCheckLabel {
+  cursor: default;
+}
+
+/* Editing — blue left accent, subtle background */
+.sectionEditing {
+  border-color: var(--lightBlue);
+  background: var(--lighterBlue);
+}
+
+.sectionEditing input:not(:disabled),
+.sectionEditing select:not(:disabled),
+.sectionEditing textarea:not(:disabled) {
+  border-color: var(--lightBlue);
+}
+
+/* Saved — green left accent */
+.sectionSaved {
+  border-color: var(--green);
+  /* box-shadow: inset 4px 0 0 var(--green); */
+  background: rgba(22, 163, 74, 0.015);
+}
+
+/* Actions row — Edit / Save + Cancel buttons */
+.actionsRow {
   display: flex;
-  justify-content: flex-start;
+  gap: 1rem;
+  align-items: center;
   padding-top: 1rem;
   border-top: 1px solid var(--stroke);
+}
+
+/* ═══════════════════════════════════════════
+   :target highlight (scroll from summary)
+═══════════════════════════════════════════ */
+.section:target {
+  animation: sectionGlow 2.5s ease-out forwards;
+}
+
+@keyframes sectionGlow {
+  0% {
+    box-shadow:
+      0 0 0 3px rgba(34, 197, 94, 0.5),
+      0 0 20px rgba(34, 197, 94, 0.3);
+    border-color: #22c55e;
+  }
+  70% {
+    box-shadow:
+      0 0 0 3px rgba(34, 197, 94, 0.5),
+      0 0 20px rgba(34, 197, 94, 0.3);
+    border-color: #22c55e;
+  }
+  100% {
+    box-shadow: none;
+    border-color: var(--stroke);
+  }
 }
 
 /* Responsive */
@@ -290,6 +363,10 @@
     position: static;
     padding-left: 2rem;
     margin-top: 0.25rem;
+  }
+
+  .actionsRow {
+    flex-wrap: wrap;
   }
 }
 

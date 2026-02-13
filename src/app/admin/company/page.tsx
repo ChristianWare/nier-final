@@ -63,31 +63,46 @@ function summarizeHours(hoursJson: string): string {
   }
 }
 
-function countConfigured(initial: Record<string, string>): {
-  configured: number;
-  total: number;
-} {
-  const sections = [
-    [initial.companyName, initial.logoUrl],
-    [initial.dispatchPhone, initial.emergencyPhone, initial.supportEmail],
-    [initial.emailSenderName, initial.emailReplyTo],
-    [initial.officeName, initial.officeAddress],
-    [initial.websiteUrl],
-    [initial.taxId, initial.businessLicense],
-  ];
+function hasValue(val: string | undefined | null): boolean {
+  return (
+    !!val &&
+    val.trim() !== "" &&
+    !val.includes("555-") &&
+    val !== "support@yourcompany.com"
+  );
+}
 
-  let configured = 0;
-  for (const fields of sections) {
-    const hasValue = fields.some(
-      (f) =>
-        f &&
-        f.trim() !== "" &&
-        !f.includes("555-") &&
-        f !== "support@yourcompany.com",
-    );
-    if (hasValue) configured++;
-  }
-  return { configured, total: sections.length };
+type SectionStatus = {
+  branding: boolean;
+  contact: boolean;
+  email: boolean;
+  office: boolean;
+  social: boolean;
+  legal: boolean;
+};
+
+function getSectionStatuses(initial: Record<string, string>): SectionStatus {
+  return {
+    branding: hasValue(initial.companyName) || hasValue(initial.logoUrl),
+    contact:
+      hasValue(initial.dispatchPhone) ||
+      hasValue(initial.emergencyPhone) ||
+      hasValue(initial.supportEmail),
+    email: hasValue(initial.emailSenderName) || hasValue(initial.emailReplyTo),
+    office: hasValue(initial.officeName) || hasValue(initial.officeAddress),
+    social: hasValue(initial.websiteUrl),
+    legal: hasValue(initial.taxId) || hasValue(initial.businessLicense),
+  };
+}
+
+function StatusBadge({ configured }: { configured: boolean }) {
+  return (
+    <span
+      className={configured ? styles.statusBadgeGood : styles.statusBadgeWarn}
+    >
+      {configured ? "✓" : "!"}
+    </span>
+  );
 }
 
 function ExternalLink({
@@ -118,7 +133,9 @@ export default async function AdminCompanyPage() {
     TIMEZONE_LABELS[initial.timezone] || initial.timezone || "Not set";
   const hoursSummary = summarizeHours(initial.officeHours);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { configured, total } = countConfigured(initial as any);
+  const status = getSectionStatuses(initial as any);
+  const configured = Object.values(status).filter(Boolean).length;
+  const total = Object.keys(status).length;
 
   const hasLogo = !!initial.logoUrl?.trim();
 
@@ -129,7 +146,7 @@ export default async function AdminCompanyPage() {
         <header className={styles.header}>
           <div className={styles.top}>
             <div className={styles.profileInfo}>
-              <h1 className={`${styles.heading} h2`}>
+              <h1 className={`${styles.heading} h2 underline`}>
                 {initial.companyName?.trim() || "Company Settings"}
               </h1>
               {initial.companyTagline?.trim() && (
@@ -166,10 +183,11 @@ export default async function AdminCompanyPage() {
           <div className={styles.grid}>
             {/* Company Profile */}
             <div className={styles.card}>
+              <StatusBadge configured={status.branding} />
               <div className={styles.box}>
                 <div className={styles.cardHeader}>
                   <h3 className={`${styles.summaryGridTitle} h6`}>
-                    Company Profile
+                    Company Branding
                   </h3>
                 </div>
                 <div className={styles.cardBody}>
@@ -212,6 +230,7 @@ export default async function AdminCompanyPage() {
 
             {/* Contact & Support */}
             <div className={styles.card}>
+              <StatusBadge configured={status.contact} />
               <div className={styles.box}>
                 <div className={styles.cardHeader}>
                   <h3 className={`${styles.summaryGridTitle} h6`}>
@@ -250,6 +269,7 @@ export default async function AdminCompanyPage() {
 
             {/* Email Configuration */}
             <div className={styles.card}>
+              <StatusBadge configured={status.email} />
               <div className={styles.box}>
                 <div className={styles.cardHeader}>
                   <h3 className={`${styles.summaryGridTitle} h6`}>
@@ -288,6 +308,7 @@ export default async function AdminCompanyPage() {
 
             {/* Office & Hours */}
             <div className={styles.card}>
+              <StatusBadge configured={status.office} />
               <div className={styles.box}>
                 <div className={styles.cardHeader}>
                   <h3 className={`${styles.summaryGridTitle} h6`}>
@@ -326,6 +347,7 @@ export default async function AdminCompanyPage() {
 
             {/* Web Presence */}
             <div className={styles.card}>
+              <StatusBadge configured={status.social} />
               <div className={styles.box}>
                 <div className={styles.cardHeader}>
                   <h3 className={`${styles.summaryGridTitle} h6`}>
@@ -477,6 +499,7 @@ export default async function AdminCompanyPage() {
 
             {/* Legal */}
             <div className={styles.card}>
+              <StatusBadge configured={status.legal} />
               <div className={styles.box}>
                 <div className={styles.cardHeader}>
                   <h3 className={`${styles.summaryGridTitle} h6`}>
@@ -509,7 +532,7 @@ export default async function AdminCompanyPage() {
         {/* ── Edit Form ── */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h2 className='cardTitle h4'>Edit Settings</h2>
+            <h2 className='underline'>Edit Settings</h2>
             <p className='miniNote'>
               Update your company branding, contact information, email
               configuration, and business details
