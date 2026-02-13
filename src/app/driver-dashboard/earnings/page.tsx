@@ -4,6 +4,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { auth } from "../../../../auth";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import styles from "./DriverEarningsPage.module.css";
 import DriverEarningsControls from "./DriverEarningsControls";
 import DriverEarningsChart from "./DriverEarningsChart";
@@ -11,9 +13,6 @@ import Arrow from "@/components/shared/icons/Arrow/Arrow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
 type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
 type SP = Record<string, string | string[] | undefined>;
@@ -46,18 +45,9 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(n);
 }
 
-function formatDate(d: Date) {
+function formatDateTime(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatDateTimePhx(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -66,106 +56,63 @@ function formatDateTimePhx(date: Date) {
   }).format(date);
 }
 
-function formatDatePhx(date: Date) {
+function formatDateMedium(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "short",
     day: "numeric",
     year: "numeric",
   }).format(date);
 }
 
-function formatMonthLabelPhoenix(dateUtc: Date) {
+function formatMonthLabel(dateUtc: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     year: "numeric",
-    timeZone: PHX_TZ,
+    timeZone,
   }).format(dateUtc);
 }
 
-function formatMonthTickPhoenix(dateUtc: Date) {
+function formatMonthTick(dateUtc: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     year: "2-digit",
-    timeZone: PHX_TZ,
+    timeZone,
   }).format(dateUtc);
 }
 
-function formatDayLabelPhoenix(dateUtc: Date) {
+function formatDayLabel(dateUtc: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "short",
     day: "numeric",
     year: "numeric",
   }).format(dateUtc);
 }
 
-function formatDayTickPhoenix(dateUtc: Date) {
+function formatDayTick(dateUtc: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "2-digit",
     day: "2-digit",
   }).format(dateUtc);
 }
 
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
+function ymdForInput(dateUtc: Date, timeZone: string) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(dateUtc);
 }
 
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
-}
-
-function startOfDayPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function startOfYearPhoenix(dateUtc: Date) {
-  const { y } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, 0, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  return new Date(nextStartLocalMs - PHX_OFFSET_MS);
-}
-
-function monthKeyFromDatePhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  return `${y}-${String(m + 1).padStart(2, "0")}`;
-}
-
-function monthStartFromKeyPhoenix(key: string) {
-  const match = /^(\d{4})-(\d{2})$/.exec(key.trim());
-  if (!match) return null;
-  const y = Number(match[1]);
-  const m = Number(match[2]);
-  if (!Number.isFinite(y) || !Number.isFinite(m) || m < 1 || m > 12)
-    return null;
-  const startLocalMs = Date.UTC(y, m - 1, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
+function getYear(d: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+  }).formatToParts(d);
+  return Number(parts.find((p) => p.type === "year")!.value);
 }
 
 function parseYMD(s: string | null) {
@@ -181,32 +128,32 @@ function parseYMD(s: string | null) {
   return { y, m, d };
 }
 
-function startOfDayFromYMDPhoenix(ymd: { y: number; m: number; d: number }) {
-  const startLocalMs = Date.UTC(ymd.y, ymd.m - 1, ymd.d, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
+function startOfDayFromYMD(
+  ymd: { y: number; m: number; d: number },
+  timeZone: string,
+) {
+  // Create noon UTC on that date (safe from day-boundary shifts), then get start of day
+  const noon = new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.d, 12, 0, 0));
+  return tz.startOfDay(noon, timeZone);
 }
-
-function ymdForInputPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
 function resolveMonthYear({
   view,
   sp,
   now,
+  timeZone,
 }: {
   view: ViewMode;
   sp: SP;
   now: Date;
+  timeZone: string;
 }) {
-  const currentKey = monthKeyFromDatePhoenix(now);
+  const currentKey = tz.monthKey(now, timeZone);
   const currentYear = currentKey.slice(0, 4);
   const currentMonth = currentKey.slice(5, 7);
   const rawMonth = spGet(sp, "month");
   const rawYear = spGet(sp, "year");
   const legacyKey =
-    rawMonth && monthStartFromKeyPhoenix(rawMonth) ? rawMonth : null;
+    rawMonth && tz.monthStartFromKey(rawMonth, timeZone) ? rawMonth : null;
   if (view !== "daily")
     return { year: currentYear, month: currentMonth, key: currentKey };
   if (legacyKey)
@@ -276,9 +223,14 @@ async function resolveSessionUserId(session: any) {
   return u?.id ?? null;
 }
 
-async function chartAggDaily(driverId: string, fromUtc: Date, toUtc: Date) {
+async function chartAggDaily(
+  driverId: string,
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+) {
   const rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('day', b."pickupAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM-DD') as key,
+    SELECT to_char(date_trunc('day', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
       COALESCE(SUM(a."driverPaymentCents"), 0) as sum, COUNT(*) as count
     FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
     WHERE a."driverId" = ${driverId} AND b.status = 'COMPLETED' AND b."pickupAt" >= ${fromUtc} AND b."pickupAt" < ${toUtc}
@@ -301,12 +253,12 @@ async function chartAggDaily(driverId: string, fromUtc: Date, toUtc: Date) {
     d.getTime() < toUtc.getTime();
     d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
   ) {
-    const ymd = ymdForInputPhoenix(d);
+    const ymd = ymdForInput(d, timeZone);
     const b = bucket.get(ymd) ?? { sumCents: 0, count: 0 };
     points.push({
       key: ymd,
-      tick: formatDayTickPhoenix(d),
-      label: formatDayLabelPhoenix(d),
+      tick: formatDayTick(d, timeZone),
+      label: formatDayLabel(d, timeZone),
       earningsCents: b.sumCents,
       count: b.count,
     });
@@ -314,9 +266,14 @@ async function chartAggDaily(driverId: string, fromUtc: Date, toUtc: Date) {
   return points;
 }
 
-async function chartAggMonthly(driverId: string, fromUtc: Date, toUtc: Date) {
+async function chartAggMonthly(
+  driverId: string,
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+) {
   const rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
       COALESCE(SUM(a."driverPaymentCents"), 0) as sum, COUNT(*) as count
     FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
     WHERE a."driverId" = ${driverId} AND b.status = 'COMPLETED' AND b."pickupAt" >= ${fromUtc} AND b."pickupAt" < ${toUtc}
@@ -329,18 +286,19 @@ async function chartAggMonthly(driverId: string, fromUtc: Date, toUtc: Date) {
     });
   const months: string[] = [];
   for (
-    let ms = startOfMonthPhoenix(fromUtc);
+    let ms = tz.startOfMonth(fromUtc, timeZone);
     ms.getTime() < toUtc.getTime();
-    ms = addMonthsPhoenix(ms, 1)
+    ms = tz.addMonths(ms, 1, timeZone)
   )
-    months.push(monthKeyFromDatePhoenix(ms));
+    months.push(tz.monthKey(ms, timeZone));
   return months.map((k) => {
-    const ms = monthStartFromKeyPhoenix(k) ?? startOfMonthPhoenix(fromUtc);
+    const ms =
+      tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
     const b = bucket.get(k) ?? { sumCents: 0, count: 0 };
     return {
       key: k,
-      tick: formatMonthTickPhoenix(ms),
-      label: formatMonthLabelPhoenix(ms),
+      tick: formatMonthTick(ms, timeZone),
+      label: formatMonthLabel(ms, timeZone),
       earningsCents: b.sumCents,
       count: b.count,
     };
@@ -349,7 +307,7 @@ async function chartAggMonthly(driverId: string, fromUtc: Date, toUtc: Date) {
 
 function buildHref(
   basePath: string,
-  params: Record<string, string | undefined | null>
+  params: Record<string, string | undefined | null>,
 ) {
   const usp = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
@@ -380,15 +338,18 @@ export default async function DriverEarningsPage({
 
   const sp = (await Promise.resolve(searchParams ?? {})) as SP;
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
+
   const view = cleanView(spGet(sp, "view"));
-  const currentMonthStart = startOfMonthPhoenix(now);
+  const currentMonthStart = tz.startOfMonth(now, companyTz);
   const rangeFromParam = spGet(sp, "from");
   const rangeToParam = spGet(sp, "to");
-  const defaultTo = ymdForInputPhoenix(now);
-  const defaultFrom = ymdForInputPhoenix(
-    new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+  const defaultTo = ymdForInput(now, companyTz);
+  const defaultFrom = ymdForInput(
+    new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+    companyTz,
   );
-  const resolvedMY = resolveMonthYear({ view, sp, now });
+  const resolvedMY = resolveMonthYear({ view, sp, now, timeZone: companyTz });
   const resolvedMonthKey = resolvedMY.key;
 
   // Get earliest assignment for year range
@@ -399,25 +360,26 @@ export default async function DriverEarningsPage({
   });
 
   let fromUtc = currentMonthStart;
-  let toUtc = addMonthsPhoenix(currentMonthStart, 1);
-  let rangeLabel = formatMonthLabelPhoenix(currentMonthStart);
+  let toUtc = tz.addMonths(currentMonthStart, 1, companyTz);
+  let rangeLabel = formatMonthLabel(currentMonthStart, companyTz);
 
   if (view === "daily") {
-    const ms = monthStartFromKeyPhoenix(resolvedMonthKey) ?? currentMonthStart;
+    const ms =
+      tz.monthStartFromKey(resolvedMonthKey, companyTz) ?? currentMonthStart;
     fromUtc = ms;
-    toUtc = addMonthsPhoenix(ms, 1);
-    rangeLabel = formatMonthLabelPhoenix(ms);
+    toUtc = tz.addMonths(ms, 1, companyTz);
+    rangeLabel = formatMonthLabel(ms, companyTz);
   }
 
   if (view === "monthly") {
-    fromUtc = addMonthsPhoenix(currentMonthStart, -11);
-    toUtc = addMonthsPhoenix(currentMonthStart, 1);
+    fromUtc = tz.addMonths(currentMonthStart, -11, companyTz);
+    toUtc = tz.addMonths(currentMonthStart, 1, companyTz);
     rangeLabel = "Last 12 months";
   }
 
   if (view === "ytd") {
-    fromUtc = startOfYearPhoenix(now);
-    toUtc = addMonthsPhoenix(currentMonthStart, 1);
+    fromUtc = tz.startOfYear(now, companyTz);
+    toUtc = tz.addMonths(currentMonthStart, 1, companyTz);
     rangeLabel = "Year to date";
   }
 
@@ -425,30 +387,33 @@ export default async function DriverEarningsPage({
     const f = parseYMD(rangeFromParam ?? defaultFrom);
     const t = parseYMD(rangeToParam ?? defaultTo);
     const fUtc = f
-      ? startOfDayFromYMDPhoenix(f)
-      : startOfDayFromYMDPhoenix(parseYMD(defaultFrom)!);
+      ? startOfDayFromYMD(f, companyTz)
+      : startOfDayFromYMD(parseYMD(defaultFrom)!, companyTz);
     const tUtc0 = t
-      ? startOfDayFromYMDPhoenix(t)
-      : startOfDayFromYMDPhoenix(parseYMD(defaultTo)!);
+      ? startOfDayFromYMD(t, companyTz)
+      : startOfDayFromYMD(parseYMD(defaultTo)!, companyTz);
     fromUtc = fUtc;
     toUtc = new Date(tUtc0.getTime() + 24 * 60 * 60 * 1000);
-    rangeLabel = `${formatDatePhx(fromUtc)} → ${formatDatePhx(new Date(toUtc.getTime() - 1))}`;
+    rangeLabel = `${formatDateMedium(fromUtc, companyTz)} → ${formatDateMedium(new Date(toUtc.getTime() - 1), companyTz)}`;
   }
 
   if (view === "all") {
     fromUtc = earliestAssignment?.assignedAt
-      ? startOfDayPhoenix(earliestAssignment.assignedAt)
+      ? tz.startOfDay(earliestAssignment.assignedAt, companyTz)
       : new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-    toUtc = new Date(startOfDayPhoenix(now).getTime() + 24 * 60 * 60 * 1000);
+    toUtc = new Date(
+      tz.startOfDay(now, companyTz).getTime() + 24 * 60 * 60 * 1000,
+    );
     rangeLabel = "All time";
   }
 
   const earliestYear = earliestAssignment?.assignedAt
-    ? toPhoenixParts(earliestAssignment.assignedAt).y
-    : toPhoenixParts(now).y;
+    ? getYear(earliestAssignment.assignedAt, companyTz)
+    : getYear(now, companyTz);
+  const currentYear = getYear(now, companyTz);
   const years = Array.from({
-    length: Math.max(1, toPhoenixParts(now).y - earliestYear + 1),
-  }).map((_, i) => String(toPhoenixParts(now).y - i));
+    length: Math.max(1, currentYear - earliestYear + 1),
+  }).map((_, i) => String(currentYear - i));
 
   const monthOptions = [
     { v: "01", label: "Jan" },
@@ -470,21 +435,26 @@ export default async function DriverEarningsPage({
   // Fetch chart data
   const chartData =
     view === "daily"
-      ? await chartAggDaily(driverId, fromUtc, toUtc)
-      : await chartAggMonthly(driverId, fromUtc, toUtc);
+      ? await chartAggDaily(driverId, fromUtc, toUtc, companyTz)
+      : await chartAggMonthly(driverId, fromUtc, toUtc, companyTz);
 
   const kpi = kpisFromChartData(chartData);
 
   // Monthly breakdown for last 12 months
   const monthMenuStarts = Array.from({ length: 12 }).map((_, i) =>
-    addMonthsPhoenix(startOfMonthPhoenix(now), -i)
+    tz.addMonths(tz.startOfMonth(now, companyTz), -i, companyTz),
   );
   const oldestMonthStart =
-    monthMenuStarts[monthMenuStarts.length - 1] ?? startOfMonthPhoenix(now);
-  const nextAfterCurrent = addMonthsPhoenix(startOfMonthPhoenix(now), 1);
+    monthMenuStarts[monthMenuStarts.length - 1] ??
+    tz.startOfMonth(now, companyTz);
+  const nextAfterCurrent = tz.addMonths(
+    tz.startOfMonth(now, companyTz),
+    1,
+    companyTz,
+  );
 
   const last12Rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${PHX_TZ}), 'YYYY-MM') as key,
+    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${companyTz}), 'YYYY-MM') as key,
       COALESCE(SUM(a."driverPaymentCents"), 0) as sum, COUNT(*) as count
     FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
     WHERE a."driverId" = ${driverId} 
@@ -503,8 +473,8 @@ export default async function DriverEarningsPage({
 
   const monthSummary = monthMenuStarts
     .map((ms) => {
-      const key = monthKeyFromDatePhoenix(ms);
-      const label = formatMonthLabelPhoenix(ms);
+      const key = tz.monthKey(ms, companyTz);
+      const label = formatMonthLabel(ms, companyTz);
       const v = bucket.get(key) ?? { sumCents: 0, count: 0 };
       const avgCents = v.count > 0 ? Math.round(v.sumCents / v.count) : 0;
       return { key, label, sumCents: v.sumCents, count: v.count, avgCents };
@@ -543,12 +513,13 @@ export default async function DriverEarningsPage({
   return (
     <section className={styles.container}>
       <header className={styles.header}>
-        <Link href="/driver-dashboard" className={`${styles.backBtn} backBtn`}>
-          <Arrow className="backArrow" /> Back to Dashboard
+        <Link href='/driver-dashboard' className={`${styles.backBtn} backBtn`}>
+          <Arrow className='backArrow' /> Back to Dashboard
         </Link>
-        <h1 className="heading h2">My Earnings</h1>
-        <p className="subheading">
-          Track your completed trip earnings by day, month, or custom date range.
+        <h1 className='heading h2'>My Earnings</h1>
+        <p className='subheading'>
+          Track your completed trip earnings by day, month, or custom date
+          range.
         </p>
 
         <DriverEarningsControls
@@ -569,32 +540,36 @@ export default async function DriverEarningsPage({
       <div className={styles.kpiGrid}>
         <div className={`${styles.kpiCard} ${styles.tone_good}`}>
           <div className={styles.kpiTop}>
-            <div className="emptyTitle underline">Total Earnings</div>
+            <div className='emptyTitle underline'>Total Earnings</div>
           </div>
-          <div className={styles.kpiValue}>{formatMoney(kpi.totalCents, currency)}</div>
-          <div className="miniNote">{rangeLabel}</div>
+          <div className={styles.kpiValue}>
+            {formatMoney(kpi.totalCents, currency)}
+          </div>
+          <div className='miniNote'>{rangeLabel}</div>
         </div>
         <div className={styles.kpiCard}>
           <div className={styles.kpiTop}>
-            <div className="emptyTitle underline">Completed Trips</div>
+            <div className='emptyTitle underline'>Completed Trips</div>
           </div>
           <div className={styles.kpiValue}>{kpi.tripCount}</div>
-          <div className="miniNote">{rangeLabel}</div>
+          <div className='miniNote'>{rangeLabel}</div>
         </div>
         <div className={styles.kpiCard}>
           <div className={styles.kpiTop}>
-            <div className="emptyTitle underline">Avg per Trip</div>
+            <div className='emptyTitle underline'>Avg per Trip</div>
           </div>
-          <div className={styles.kpiValue}>{formatMoney(kpi.avgCents, currency)}</div>
-          <div className="miniNote">Based on {kpi.tripCount} trips</div>
+          <div className={styles.kpiValue}>
+            {formatMoney(kpi.avgCents, currency)}
+          </div>
+          <div className='miniNote'>Based on {kpi.tripCount} trips</div>
         </div>
       </div>
 
       {/* Chart */}
       <section className={styles.chartCard}>
         <div className={styles.cardHeader}>
-          <div className="cardTitle h4">{chartTitle}</div>
-          <div className="miniNote">{rangeLabel}</div>
+          <div className='cardTitle h4'>{chartTitle}</div>
+          <div className='miniNote'>{rangeLabel}</div>
         </div>
         <div className={styles.chartWrap}>
           <DriverEarningsChart data={chartData} currency={currency} />
@@ -606,11 +581,11 @@ export default async function DriverEarningsPage({
         {/* Monthly Breakdown */}
         <section className={styles.card}>
           <div className={styles.cardHeader}>
-            <div className="cardTitle h4">Monthly Breakdown</div>
-            <div className="miniNote">Last 12 months</div>
+            <div className='cardTitle h4'>Monthly Breakdown</div>
+            <div className='miniNote'>Last 12 months</div>
           </div>
           <div className={styles.cardHeaderRight}>
-            <span className="miniNote">Selected</span>
+            <span className='miniNote'>Selected</span>
             <span className={styles.selectedMonth}>
               {view === "daily" ? resolvedMonthKey : "—"}
             </span>
@@ -665,18 +640,18 @@ export default async function DriverEarningsPage({
         {/* Recent Trips */}
         <section className={styles.card}>
           <div className={styles.cardHeader}>
-            <div className="cardTitle h4">Completed Trips</div>
-            <div className="miniNote">Most recent 50 for selected period</div>
+            <div className='cardTitle h4'>Completed Trips</div>
+            <div className='miniNote'>Most recent 50 for selected period</div>
           </div>
           <div className={styles.cardHeaderRight}>
-            <span className="miniNote">Phoenix time</span>
-            <span className={styles.tzPill}>{PHX_TZ}</span>
+            <span className='miniNote'>Company time</span>
+            <span className={styles.tzPill}>{companyTz}</span>
           </div>
 
           {recentTrips.length === 0 ? (
             <div className={styles.empty}>
               <div className={styles.emptyTitle}>No completed trips</div>
-              <div className="miniNote">
+              <div className='miniNote'>
                 Try a different filter or expand the date range.
               </div>
             </div>
@@ -702,14 +677,16 @@ export default async function DriverEarningsPage({
                       <tr key={a.id}>
                         <td>
                           <Link className={styles.rowLink} href={href}>
-                            {formatDate(b.pickupAt)}
+                            {tz.formatDate(b.pickupAt, companyTz)}
                           </Link>
-                          <div className="miniNote">
-                            {formatEta(b.pickupAt, now)}
+                          <div className='miniNote'>
+                            {tz.formatEta(b.pickupAt, now)}
                           </div>
                         </td>
                         <td>
-                          <div className={styles.customerName}>{customerName}</div>
+                          <div className={styles.customerName}>
+                            {customerName}
+                          </div>
                         </td>
                         <td>{b.serviceType?.name ?? "—"}</td>
                         <td className={styles.right}>
@@ -728,7 +705,10 @@ export default async function DriverEarningsPage({
           )}
 
           <div className={styles.cardFooter}>
-            <Link href="/driver-dashboard/trips?range=past" className="primaryBtn">
+            <Link
+              href='/driver-dashboard/trips?range=past'
+              className='primaryBtn'
+            >
               View All Trips
             </Link>
           </div>

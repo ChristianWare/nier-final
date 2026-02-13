@@ -4,15 +4,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "../../../../auth";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import DefaultProfileImg from "../../../../public/images/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import ProfilePhotoUpload from "@/components/Driver/ProfilePhotoUpload/ProfilePhotoUpload";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 
 function formatMoney(cents: number, currency = "USD") {
   const n = (cents || 0) / 100;
@@ -23,62 +22,24 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(n);
 }
 
-function formatDate(d: Date) {
+function formatDate(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "2-digit",
     day: "2-digit",
     year: "numeric",
   }).format(d);
 }
 
-function formatDateTime(d: Date) {
+function formatDateTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "short",
     day: "numeric",
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
   }).format(d);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
-}
-
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function startOfYearPhoenix(dateUtc: Date) {
-  const { y } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, 0, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  return new Date(nextStartLocalMs - PHX_OFFSET_MS);
 }
 
 function statusLabel(status: string) {
@@ -138,6 +99,7 @@ export default async function DriverProfilePage() {
   const driverId: string = driverIdOrNull;
 
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
   // Fetch driver user data
   const user = await db.user.findUnique({
@@ -160,8 +122,8 @@ export default async function DriverProfilePage() {
   });
 
   // Get this month's stats
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = addMonthsPhoenix(monthStart, 1);
+  const monthStart = tz.startOfMonth(now, companyTz);
+  const nextMonthStart = tz.addMonths(monthStart, 1, companyTz);
 
   const monthStats = await db.$queryRaw<any[]>`
     SELECT 
@@ -179,7 +141,7 @@ export default async function DriverProfilePage() {
   const monthEarnings = Number(monthStats[0]?.earnings || 0);
 
   // Get YTD stats
-  const yearStart = startOfYearPhoenix(now);
+  const yearStart = tz.startOfYear(now, companyTz);
 
   const ytdStats = await db.$queryRaw<any[]>`
     SELECT 
@@ -289,7 +251,7 @@ export default async function DriverProfilePage() {
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Member Since</span>
               <span className={styles.infoValue}>
-                {formatDateTime(user.createdAt)}
+                {formatDateTime(user.createdAt, companyTz)}
               </span>
             </div>
           </div>
@@ -436,11 +398,11 @@ export default async function DriverProfilePage() {
                             }}
                           />
                           <Link href={href} className={styles.rowLink}>
-                            {formatDate(b.pickupAt)}
+                            {formatDate(b.pickupAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>
-                              {formatEta(b.pickupAt, now)}
+                              {tz.formatEta(b.pickupAt, now)}
                             </span>
                           </div>
                         </td>

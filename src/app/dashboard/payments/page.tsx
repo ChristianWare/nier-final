@@ -6,6 +6,8 @@ import { db } from "@/lib/db";
 import { PaymentStatus } from "@prisma/client";
 import Link from "next/link";
 import PaymentDownloadBtn from "./PaymentDownloadBtn";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -53,39 +55,12 @@ function clampPage(raw: string | undefined) {
   return Math.floor(n);
 }
 
-function formatDate(d: Date) {
+function formatTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatTime(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
   }).format(d);
-}
-
-function formatMoney(cents: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format((cents || 0) / 100);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-  return diffMs >= 0 ? `in ${label}` : `${label} ago`;
 }
 
 function statusLabel(status: PaymentStatus) {
@@ -154,6 +129,7 @@ export default async function DashboardPaymentsPage({
   const filter = normalizeFilter(rawStatus);
   const page = clampPage(Array.isArray(sp?.page) ? sp?.page[0] : sp?.page);
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
   const [counts, filteredCount, allPayments] = await Promise.all([
     (async () => {
@@ -281,7 +257,7 @@ export default async function DashboardPaymentsPage({
                   const b = p.booking;
                   const bookingHref = `/dashboard/bookings/${b.id}`;
                   const isPaid = p.status === "PAID";
-                  const pickupEta = formatEta(b.pickupAt, now);
+                  const pickupEta = tz.formatEta(b.pickupAt, now);
 
                   return (
                     <tr key={p.id} className={styles.tr}>
@@ -299,11 +275,11 @@ export default async function DashboardPaymentsPage({
                         />
                         <div className={styles.cellStack}>
                           <span className={styles.cellStrong}>
-                            {formatDate(b.pickupAt)}
+                            {tz.formatDate(b.pickupAt, companyTz)}
                           </span>
                           <div className={styles.pickupMeta}>
                             <span className={styles.cellSub}>
-                              {formatTime(b.pickupAt)}
+                              {formatTime(b.pickupAt, companyTz)}
                             </span>
                             <span className={styles.pill}>{pickupEta}</span>
                           </div>
@@ -342,7 +318,7 @@ export default async function DashboardPaymentsPage({
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
                         <div className={styles.cellStrong}>
-                          {formatMoney(b.totalCents, b.currency)}
+                          {tz.formatMoneyShort(b.totalCents, b.currency)}
                         </div>
                       </td>
 

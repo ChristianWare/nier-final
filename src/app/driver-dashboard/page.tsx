@@ -5,6 +5,7 @@ import { BookingStatus } from "@prisma/client";
 import styles from "./DriverDashboardHome.module.css";
 import { auth } from "../../../auth";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
 
 import DriverNextTrip, {
   NextTripData,
@@ -20,77 +21,78 @@ import DriverRideCalendar from "@/components/Driver/DriverRideCalendar/DriverRid
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Phoenix timezone helpers
-const TIMEZONE = "America/Phoenix";
-
-function startOfDayPhoenix(d: Date): Date {
-  const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
+function startOfDay(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
   const [month, day, year] = str.split("/").map(Number);
   return new Date(year, month - 1, day, 0, 0, 0, 0);
 }
 
-function endOfDayPhoenix(d: Date): Date {
-  const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
+function endOfDay(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
   const [month, day, year] = str.split("/").map(Number);
   return new Date(year, month - 1, day, 23, 59, 59, 999);
 }
 
-function startOfMonthPhoenix(d: Date): Date {
-  const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
+function startOfMonth(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
   const [month, , year] = str.split("/").map(Number);
   return new Date(year, month - 1, 1, 0, 0, 0, 0);
 }
 
-function endOfMonthPhoenix(d: Date): Date {
-  const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
+function endOfMonth(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
   const [month, , year] = str.split("/").map(Number);
   return new Date(year, month, 0, 23, 59, 59, 999);
 }
 
-// FIXED: Use Phoenix timezone for date key
-function formatDateKey(d: Date): string {
+function formatDateKey(d: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: TIMEZONE,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(d);
 }
 
-function formatChartLabel(d: Date): string {
+function formatChartLabel(d: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
-    timeZone: TIMEZONE,
+    timeZone,
   }).format(d);
 }
 
-function formatChartTick(d: Date): string {
+function formatChartTick(d: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-US", {
     month: "2-digit",
     day: "2-digit",
-    timeZone: TIMEZONE,
+    timeZone,
   }).format(d);
 }
 
-function getMonthLabel(d: Date): string {
+function getMonthLabel(d: Date, timeZone: string): string {
   return d.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
-    timeZone: TIMEZONE,
+    timeZone,
   });
 }
 
-function monthKey(d: Date) {
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+function monthKey(d: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(d);
+  const y = parts.find((p) => p.type === "year")!.value;
+  const m = parts.find((p) => p.type === "month")!.value;
   return `${y}-${m}`;
 }
 
-function ymdInPhoenix(date: Date) {
+function ymdInTimezone(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: TIMEZONE,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -184,15 +186,17 @@ export default async function DriverDashboardHome() {
   const driverName = session.user?.name?.split(" ")[0] || "Driver";
 
   const now = new Date();
-  const todayStart = startOfDayPhoenix(now);
-  const todayEnd = endOfDayPhoenix(now);
-  const monthStart = startOfMonthPhoenix(now);
-  const monthEnd = endOfMonthPhoenix(now);
+  const { timezone: companyTz } = await getCompanySettings();
+
+  const todayStart = startOfDay(now, companyTz);
+  const todayEnd = endOfDay(now, companyTz);
+  const mStart = startOfMonth(now, companyTz);
+  const mEnd = endOfMonth(now, companyTz);
 
   // Month boundaries for calendar (get 3 months of data for smooth navigation)
-  const calendarStart = new Date(monthStart);
+  const calendarStart = new Date(mStart);
   calendarStart.setMonth(calendarStart.getMonth() - 1);
-  const calendarEnd = new Date(monthEnd);
+  const calendarEnd = new Date(mEnd);
   calendarEnd.setMonth(calendarEnd.getMonth() + 2);
 
   // Fetch all upcoming trips (not completed/cancelled)
@@ -219,7 +223,7 @@ export default async function DriverDashboardHome() {
   // Fetch completed trips this month for earnings
   const completedThisMonth = await db.booking.findMany({
     where: {
-      pickupAt: { gte: monthStart, lte: monthEnd },
+      pickupAt: { gte: mStart, lte: mEnd },
       status: BookingStatus.COMPLETED,
       assignment: { driverId },
     },
@@ -279,7 +283,7 @@ export default async function DriverDashboardHome() {
   // Build countsByYmd for calendar
   const countsByYmd: Record<string, number> = {};
   for (const trip of calendarTrips) {
-    const ymd = ymdInPhoenix(trip.pickupAt);
+    const ymd = ymdInTimezone(trip.pickupAt, companyTz);
     countsByYmd[ymd] = (countsByYmd[ymd] ?? 0) + 1;
   }
 
@@ -287,7 +291,7 @@ export default async function DriverDashboardHome() {
   const dailyEarningsMap = new Map<string, { amount: number; count: number }>();
 
   for (const trip of completedThisMonth) {
-    const dateKey = formatDateKey(trip.pickupAt);
+    const dateKey = formatDateKey(trip.pickupAt, companyTz);
     const existing = dailyEarningsMap.get(dateKey) || { amount: 0, count: 0 };
     existing.amount += trip.assignment?.driverPaymentCents ?? 0;
     existing.count += 1;
@@ -298,13 +302,12 @@ export default async function DriverDashboardHome() {
     dailyEarningsMap.entries(),
   )
     .map(([dateStr, data]) => {
-      // Parse as noon local time to avoid timezone shift issues
       const [year, month, day] = dateStr.split("-").map(Number);
       const d = new Date(year, month - 1, day, 12, 0, 0);
       return {
         key: dateStr,
-        tick: formatChartTick(d),
-        label: formatChartLabel(d),
+        tick: formatChartTick(d, companyTz),
+        label: formatChartLabel(d, companyTz),
         earningsCents: data.amount,
         tripCount: data.count,
       };
@@ -365,21 +368,21 @@ export default async function DriverDashboardHome() {
       </header>
 
       {/* Next Trip */}
-      <DriverNextTrip trip={nextTrip} timeZone={TIMEZONE} />
+      <DriverNextTrip trip={nextTrip} timeZone={companyTz} />
 
       {/* Calendar */}
       <DriverRideCalendar
-        initialMonth={monthKey(baseMonth)}
+        initialMonth={monthKey(baseMonth, companyTz)}
         countsByYmd={countsByYmd}
-        todayYmd={ymdInPhoenix(now)}
+        todayYmd={ymdInTimezone(now, companyTz)}
       />
 
       {/* Upcoming Rides Table */}
-      <DriverUpcomingRides items={upcomingRideItems} timeZone={TIMEZONE} />
+      <DriverUpcomingRides items={upcomingRideItems} timeZone={companyTz} />
 
       {/* Earnings Snapshot with Chart */}
       <DriverEarningsSnapshot
-        monthLabel={getMonthLabel(now)}
+        monthLabel={getMonthLabel(now, companyTz)}
         currency='USD'
         earningsMonthCents={totalEarningsMonthCents}
         earningsTodayCents={todayDriverPaymentsCents}

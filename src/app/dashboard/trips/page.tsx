@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { Prisma, BookingStatus } from "@prisma/client";
 import { auth } from "../../../../auth";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import UserSearchFormClient from "./UserSearchFormClient";
 import UserClearFiltersButton from "./UserClearFiltersButton";
 
@@ -49,73 +51,15 @@ type SearchParams = {
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 const PAGE_SIZE = 10;
 
-// Phoenix timezone helpers
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
-  return new Date(nextStartUtcMs);
-}
-
-function formatPhoenix(d: Date) {
+function formatTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
-
-function formatPhoenixTime(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   }).format(d);
-}
-
-function formatMoneyFromCents(cents: number) {
-  const dollars = cents / 100;
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(dollars);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
 }
 
 function getConfirmationCode(bookingId: string): string {
@@ -262,20 +206,20 @@ function buildWhere(args: {
   status: StatusFilter;
   range: RangeFilter;
   q?: string;
+  timeZone: string;
 }) {
-  const { now, userId, status, range, q } = args;
+  const { now, userId, status, range, q, timeZone } = args;
 
   const where: Prisma.BookingWhereInput = { userId };
 
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = addMonthsPhoenix(monthStart, 1);
+  const monthStart = tz.startOfMonth(now, timeZone);
+  const nextMonthStart = tz.addMonths(monthStart, 1, timeZone);
 
   let pickupAtFilter: Prisma.DateTimeFilter | undefined;
 
   if (range === "upcoming") pickupAtFilter = { gte: now };
   if (range === "past") pickupAtFilter = { lt: now };
   if (range === "month") pickupAtFilter = { gte: monthStart, lt: nextMonthStart };
-  // "all" has no filter
 
   if (pickupAtFilter) where.pickupAt = pickupAtFilter;
 
@@ -342,7 +286,6 @@ function buildOrderBy(
     }
   }
 
-  // Default: upcoming trips ascending, past trips descending
   if (range === "past") {
     return [{ pickupAt: Prisma.SortOrder.desc }];
   }
@@ -376,8 +319,9 @@ export default async function UserTripsPage({
   const page = clampPage(sp.page);
   const q = (sp.q ?? "").trim();
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
-  const where = buildWhere({ now, userId, status, range, q });
+  const where = buildWhere({ now, userId, status, range, q, timeZone: companyTz });
   const orderBy = buildOrderBy(sort, order, range);
 
   const totalCount = await db.booking.count({ where });
@@ -403,7 +347,6 @@ export default async function UserTripsPage({
     take: PAGE_SIZE,
   });
 
-  // Count for filters
   async function countFor(next: {
     status?: StatusFilter;
     range?: RangeFilter;
@@ -415,6 +358,7 @@ export default async function UserTripsPage({
       status: next.status ?? status,
       range: next.range ?? range,
       q: next.q ?? q,
+      timeZone: companyTz,
     });
     return db.booking.count({ where: w });
   }
@@ -434,14 +378,14 @@ export default async function UserTripsPage({
     ),
   ]);
 
-  const statusCounts = Object.fromEntries(statusCountsArr) as Record<
-    StatusFilter,
-    number
-  >;
-  const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
-    RangeFilter,
-    number
-  >;
+const statusCounts = Object.fromEntries(statusCountsArr) as Record<
+  StatusFilter,
+  number
+>;
+const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
+  RangeFilter,
+  number
+>;
 
   const baseParams: Record<string, string | undefined> = {
     status: status === "ALL" ? undefined : status,
@@ -571,13 +515,13 @@ export default async function UserTripsPage({
               <tbody>
                 {bookings.map((b) => {
                   const href = `/dashboard/trips/${b.id}`;
-                  const pickupEta = formatEta(b.pickupAt, now);
+                  const pickupEta = tz.formatEta(b.pickupAt, now);
                   const confirmationCode = getConfirmationCode(b.id);
-                  const total = formatMoneyFromCents(b.totalCents ?? 0);
+                  const total = tz.formatMoneyShort(b.totalCents ?? 0);
 
                   const tone = badgeTone(b.status as BookingStatus);
                   const isPaid = b.payment?.status === "PAID";
-                  
+
                   const displayStatus =
                     isPaid && (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
                       ? "Confirmed"
@@ -608,7 +552,7 @@ export default async function UserTripsPage({
                         />
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
-                            {formatPhoenix(b.pickupAt)} @ {formatPhoenixTime(b.pickupAt)}
+                            {tz.formatDate(b.pickupAt, companyTz)} @ {formatTime(b.pickupAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{pickupEta}</span>
@@ -779,7 +723,6 @@ export default async function UserTripsPage({
   );
 }
 
-// Sortable header component
 function SortableHeader({
   label,
   column,

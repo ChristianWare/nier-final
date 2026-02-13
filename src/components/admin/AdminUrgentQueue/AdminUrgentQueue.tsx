@@ -21,14 +21,14 @@ type Props = {
   unassignedSoon: UrgentBookingItem[];
   pendingPaymentSoon: UrgentBookingItem[];
   stuckReview: UrgentBookingItem[];
-  timeZone?: string;
+  timeZone: string;
 };
 
 export default function AdminUrgentQueue({
   unassignedSoon,
   pendingPaymentSoon,
   stuckReview,
-  timeZone = "America/Phoenix",
+  timeZone,
 }: Props) {
   const total =
     unassignedSoon.length + pendingPaymentSoon.length + stuckReview.length;

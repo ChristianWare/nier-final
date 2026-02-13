@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { Prisma, BookingStatus } from "@prisma/client";
 import { auth } from "../../../../auth";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import DriverSearchFormClient from "@/app/driver-dashboard/trips/DriverSearchFormClient";
 import DriverClearFiltersButton from "@/app/driver-dashboard/trips/Driverclearfiltersbutton";
 
@@ -50,52 +52,20 @@ type SearchParams = {
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
 const PAGE_SIZE = 10;
 
-// Phoenix timezone helpers
-function toPhoenixParts(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  return { y: phx.getUTCFullYear(), m: phx.getUTCMonth(), d: phx.getUTCDate() };
-}
-
-function startOfDayPhoenix(dateUtc: Date) {
-  const { y, m, d } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, d, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const { y, m } = toPhoenixParts(dateUtc);
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  const startUtcMs = startLocalMs - PHX_OFFSET_MS;
-  return new Date(startUtcMs);
-}
-
-function addMonthsPhoenix(monthStartUtc: Date, deltaMonths: number) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextStartLocalMs = Date.UTC(y, m + deltaMonths, 1, 0, 0, 0);
-  const nextStartUtcMs = nextStartLocalMs - PHX_OFFSET_MS;
-  return new Date(nextStartUtcMs);
-}
-
-function formatPhoenix(d: Date) {
+function formatDate(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     month: "2-digit",
     day: "2-digit",
     year: "numeric",
   }).format(d);
 }
 
-function formatPhoenixTime(d: Date) {
+function formatTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -110,20 +80,6 @@ function formatMoneyFromCents(cents: number | null | undefined) {
     currency: "USD",
     maximumFractionDigits: 0,
   }).format(dollars);
-}
-
-function formatEta(at: Date, now: Date) {
-  const diffMs = at.getTime() - now.getTime();
-  const absMs = Math.abs(diffMs);
-
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-
-  const label = mins < 90 ? `${mins}m` : hours < 36 ? `${hours}h` : `${days}d`;
-
-  if (diffMs >= 0) return `in ${label}`;
-  return `${label} ago`;
 }
 
 function getConfirmationCode(bookingId: string): string {
@@ -246,18 +202,19 @@ function buildWhere(args: {
   status: StatusFilter;
   range: RangeFilter;
   q?: string;
+  timeZone: string;
 }) {
-  const { now, driverId, status, range, q } = args;
+  const { now, driverId, status, range, q, timeZone } = args;
 
   const where: Prisma.BookingWhereInput = {
     assignment: { driverId },
   };
 
-  const todayStart = startOfDayPhoenix(now);
+  const todayStart = tz.startOfDay(now, timeZone);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
   const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = addMonthsPhoenix(monthStart, 1);
+  const monthStart = tz.startOfMonth(now, timeZone);
+  const nextMonthStart = tz.addMonths(monthStart, 1, timeZone);
 
   let pickupAtFilter: Prisma.DateTimeFilter | undefined;
 
@@ -337,7 +294,6 @@ function buildOrderBy(
     }
   }
 
-  // Default: upcoming trips ascending, past trips descending
   if (range === "past") {
     return [{ pickupAt: Prisma.SortOrder.desc }];
   }
@@ -372,8 +328,16 @@ export default async function DriverTripsPage({
   const page = clampPage(sp.page);
   const q = (sp.q ?? "").trim();
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
-  const where = buildWhere({ now, driverId, status, range, q });
+  const where = buildWhere({
+    now,
+    driverId,
+    status,
+    range,
+    q,
+    timeZone: companyTz,
+  });
   const orderBy = buildOrderBy(sort, order, range);
 
   const totalCount = await db.booking.count({ where });
@@ -410,6 +374,7 @@ export default async function DriverTripsPage({
       status: next.status ?? status,
       range: next.range ?? range,
       q: next.q ?? q,
+      timeZone: companyTz,
     });
     return db.booking.count({ where: w });
   }
@@ -571,7 +536,7 @@ export default async function DriverTripsPage({
               <tbody>
                 {bookings.map((b) => {
                   const href = `/driver-dashboard/trips/${b.id}`;
-                  const pickupEta = formatEta(b.pickupAt, now);
+                  const pickupEta = tz.formatEta(b.pickupAt, now);
                   const confirmationCode = getConfirmationCode(b.id);
 
                   const customerName =
@@ -582,7 +547,6 @@ export default async function DriverTripsPage({
                   const earnings = b.assignment?.driverPaymentCents ?? null;
                   const tone = badgeTone(b.status as BookingStatus);
 
-                  // Shorten addresses for display
                   const pickupShort =
                     b.pickupAddress.length > 30
                       ? b.pickupAddress.slice(0, 30) + "..."
@@ -608,8 +572,8 @@ export default async function DriverTripsPage({
                         />
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
-                            {formatPhoenix(b.pickupAt)} @{" "}
-                            {formatPhoenixTime(b.pickupAt)}
+                            {formatDate(b.pickupAt, companyTz)} @{" "}
+                            {formatTime(b.pickupAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{pickupEta}</span>
@@ -782,7 +746,6 @@ export default async function DriverTripsPage({
   );
 }
 
-// Sortable header component
 function SortableHeader({
   label,
   column,

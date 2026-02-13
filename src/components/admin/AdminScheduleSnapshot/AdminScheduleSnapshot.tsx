@@ -11,7 +11,7 @@ type Props = {
   tomorrow: DayCounts;
   earliestUpcomingPickupAt: Date | null;
   tripsNext3Hours: number;
-  timeZone?: string;
+  timeZone: string;
 };
 
 export default function AdminScheduleSnapshot({
@@ -19,7 +19,7 @@ export default function AdminScheduleSnapshot({
   tomorrow,
   earliestUpcomingPickupAt,
   tripsNext3Hours,
-  timeZone = "America/Phoenix",
+  timeZone,
 }: Props) {
   return (
     <section className={styles.container} aria-label='Schedule snapshot'>

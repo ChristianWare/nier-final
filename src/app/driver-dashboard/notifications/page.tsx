@@ -3,13 +3,12 @@ import styles from "./NotificationsPage.module.css";
 import { auth } from "../../../../auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import DashboardNotifications from "@/components/Dashboard/DashboardNotifications/DashboardNotifications";
 import { BookingStatus } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const TIMEZONE = "America/Phoenix";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -84,14 +83,14 @@ function statusLabel(status: BookingStatus) {
   }
 }
 
-function formatPickupTime(date: Date) {
+function formatPickupTime(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: TIMEZONE,
+    timeZone,
   }).format(date);
 }
 
@@ -120,6 +119,8 @@ export default async function DriverNotificationsPage() {
   const isDriver = roles.includes("DRIVER");
 
   if (!isAdmin && !isDriver) redirect("/");
+
+  const { timezone: companyTz } = await getCompanySettings();
 
   // Scope:
   // - ADMIN: all status events
@@ -315,7 +316,7 @@ export default async function DriverNotificationsPage() {
       id: `assign_${a.id}`,
       createdAt: a.assignedAt.toISOString(),
       title: "New ride assigned to you",
-      subtitle: `${customerName} • ${a.booking.serviceType?.name ?? "Trip"} • ${formatPickupTime(a.booking.pickupAt)}${vehicleInfo}`,
+      subtitle: `${customerName} • ${a.booking.serviceType?.name ?? "Trip"} • ${formatPickupTime(a.booking.pickupAt, companyTz)}${vehicleInfo}`,
       bookingId: a.booking.id,
       bookingHref: href,
       links: [{ label: "View trip", href }],
@@ -330,7 +331,7 @@ export default async function DriverNotificationsPage() {
       id: `upd_${t.id}_${t.updatedAt.toISOString()}`,
       createdAt: t.updatedAt.toISOString(),
       title: "Trip details updated",
-      subtitle: `${t.serviceType?.name ?? "Trip"} • ${shortAddress(t.pickupAddress)} → ${shortAddress(t.dropoffAddress)} • Pickup: ${formatPickupTime(t.pickupAt)}`,
+      subtitle: `${t.serviceType?.name ?? "Trip"} • ${shortAddress(t.pickupAddress)} → ${shortAddress(t.dropoffAddress)} • Pickup: ${formatPickupTime(t.pickupAt, companyTz)}`,
       bookingId: t.id,
       bookingHref: href,
       links: [{ label: "View trip", href }],
@@ -359,7 +360,7 @@ export default async function DriverNotificationsPage() {
         now.getTime() - (24 - hoursUntil) * 60 * 60 * 1000,
       ).toISOString(), // Sort by proximity
       title: `Upcoming trip - ${timeLabel}`,
-      subtitle: `${customerName} • ${t.serviceType?.name ?? "Trip"} • ${formatPickupTime(t.pickupAt)}${payInfo}`,
+      subtitle: `${customerName} • ${t.serviceType?.name ?? "Trip"} • ${formatPickupTime(t.pickupAt, companyTz)}${payInfo}`,
       bookingId: t.id,
       bookingHref: href,
       links: [{ label: "View trip", href }],

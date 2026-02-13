@@ -5,13 +5,13 @@ import { BookingStatus } from "@prisma/client";
 import styles from "./DriverScheduleDayPage.module.css";
 import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Button from "@/components/shared/Button/Button";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const TIMEZONE = "America/Phoenix";
 
 function parseYmd(ymd: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
@@ -23,30 +23,36 @@ function parseYmd(ymd: string) {
   return { y, m, d };
 }
 
-function startOfDayFromYmd(ymd: { y: number; m: number; d: number }) {
-  return new Date(ymd.y, ymd.m - 1, ymd.d, 0, 0, 0, 0);
+function startOfDayFromYmd(ymd: { y: number; m: number; d: number }, timeZone: string) {
+  const noon = new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.d, 12, 0, 0));
+  return tz.startOfDay(noon, timeZone);
 }
 
-function endOfDayFromYmd(ymd: { y: number; m: number; d: number }) {
-  return new Date(ymd.y, ymd.m - 1, ymd.d, 23, 59, 59, 999);
+function endOfDayFromYmd(
+  ymd: { y: number; m: number; d: number },
+  timeZone: string,
+) {
+  const noon = new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.d, 12, 0, 0));
+  const sod = tz.startOfDay(noon, timeZone);
+  return new Date(sod.getTime() + 24 * 60 * 60 * 1000 - 1);
 }
 
-function formatDayLabel(ymd: { y: number; m: number; d: number }) {
+function formatDayLabel(ymd: { y: number; m: number; d: number }, timeZone: string) {
   const date = new Date(ymd.y, ymd.m - 1, ymd.d);
   return new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
-    timeZone: TIMEZONE,
+    timeZone,
   }).format(date);
 }
 
-function formatTime(date: Date) {
+function formatTime(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
-    timeZone: TIMEZONE,
+    timeZone,
   }).format(date);
 }
 
@@ -124,9 +130,11 @@ export default async function DriverScheduleDayPage({
   const parsed = parseYmd(ymd);
   if (!parsed) notFound();
 
-  const dayStart = startOfDayFromYmd(parsed);
-  const dayEnd = endOfDayFromYmd(parsed);
-  const dayLabel = formatDayLabel(parsed);
+  const { timezone: companyTz } = await getCompanySettings();
+
+  const dayStart = startOfDayFromYmd(parsed, companyTz);
+  const dayEnd = endOfDayFromYmd(parsed, companyTz);
+  const dayLabel = formatDayLabel(parsed, companyTz);
 
   const trips = await db.booking.findMany({
     where: {
@@ -204,7 +212,7 @@ export default async function DriverScheduleDayPage({
               <div key={trip.id} className={styles.tripCard}>
                 <div className={styles.tripHeader}>
                   <div className={styles.tripTime}>
-                    {formatTime(trip.pickupAt)}
+                    {formatTime(trip.pickupAt, companyTz)}
                   </div>
                   <span className={`badge badge_${badgeTone(trip.status)}`}>
                     {statusLabel(trip.status)}

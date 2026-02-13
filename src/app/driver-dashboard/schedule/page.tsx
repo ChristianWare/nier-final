@@ -4,67 +4,66 @@ import { BookingStatus } from "@prisma/client";
 import styles from "./SchedulePage.module.css";
 import { auth } from "../../../../auth";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import DriverRideCalendar from "@/components/Driver/DriverRideCalendar/DriverRideCalendar";
 import Link from "next/link";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const TIMEZONE = "America/Phoenix";
-
-function startOfDayPhoenix(d: Date): Date {
-  const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
+function startOfDay(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
   const [month, day, year] = str.split("/").map(Number);
   return new Date(year, month - 1, day, 0, 0, 0, 0);
 }
 
-function endOfDayPhoenix(d: Date): Date {
-  const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
+function endOfDay(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
   const [month, day, year] = str.split("/").map(Number);
   return new Date(year, month - 1, day, 23, 59, 59, 999);
 }
 
-function startOfMonthPhoenix(d: Date): Date {
-  const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
-  const [month, , year] = str.split("/").map(Number);
-  return new Date(year, month - 1, 1, 0, 0, 0, 0);
-}
-
-function endOfMonthPhoenix(d: Date): Date {
-  const str = d.toLocaleDateString("en-US", { timeZone: TIMEZONE });
+function endOfMonth(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
   const [month, , year] = str.split("/").map(Number);
   return new Date(year, month, 0, 23, 59, 59, 999);
 }
 
-function monthKey(d: Date) {
-  const y = d.getUTCFullYear();
-  const m = String(d.getUTCMonth() + 1).padStart(2, "0");
+function monthKey(d: Date, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(d);
+  const y = parts.find((p) => p.type === "year")!.value;
+  const m = parts.find((p) => p.type === "month")!.value;
   return `${y}-${m}`;
 }
 
-function ymdInPhoenix(date: Date) {
+function ymdInTimezone(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: TIMEZONE,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(date);
 }
 
-function formatTime(date: Date) {
+function formatTime(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
-    timeZone: TIMEZONE,
+    timeZone,
   }).format(date);
 }
 
-function formatDate(date: Date) {
+function formatDate(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
-    timeZone: TIMEZONE,
+    timeZone,
   }).format(date);
 }
 
@@ -109,15 +108,17 @@ export default async function SchedulePage() {
   if (!driverId) redirect("/");
 
   const now = new Date();
-  const todayStart = startOfDayPhoenix(now);
-  const todayEnd = endOfDayPhoenix(now);
-  const monthStart = startOfMonthPhoenix(now);
-  const monthEnd = endOfMonthPhoenix(now);
+  const { timezone: companyTz } = await getCompanySettings();
+
+  const todayStart = startOfDay(now, companyTz);
+  const todayEnd = endOfDay(now, companyTz);
+  const mStart = tz.startOfMonth(now, companyTz);
+  const mEnd = endOfMonth(now, companyTz);
 
   // Get 3 months of calendar data for smooth navigation
-  const calendarStart = new Date(monthStart);
+  const calendarStart = new Date(mStart);
   calendarStart.setMonth(calendarStart.getMonth() - 1);
-  const calendarEnd = new Date(monthEnd);
+  const calendarEnd = new Date(mEnd);
   calendarEnd.setMonth(calendarEnd.getMonth() + 2);
 
   // Fetch calendar trips
@@ -139,7 +140,7 @@ export default async function SchedulePage() {
   // Build countsByYmd for calendar
   const countsByYmd: Record<string, number> = {};
   for (const trip of calendarTrips) {
-    const ymd = ymdInPhoenix(trip.pickupAt);
+    const ymd = ymdInTimezone(trip.pickupAt, companyTz);
     countsByYmd[ymd] = (countsByYmd[ymd] ?? 0) + 1;
   }
 
@@ -200,7 +201,7 @@ export default async function SchedulePage() {
 
   const thisMonthTripsCount = await db.booking.count({
     where: {
-      pickupAt: { gte: monthStart, lte: monthEnd },
+      pickupAt: { gte: mStart, lte: mEnd },
       status: {
         notIn: [
           BookingStatus.CANCELLED,
@@ -242,9 +243,9 @@ export default async function SchedulePage() {
       </header>
 
       <DriverRideCalendar
-        initialMonth={monthKey(baseMonth)}
+        initialMonth={monthKey(baseMonth, companyTz)}
         countsByYmd={countsByYmd}
-        todayYmd={ymdInPhoenix(now)}
+        todayYmd={ymdInTimezone(now, companyTz)}
       />
 
       <div className={styles.upcomingSection}>
@@ -266,8 +267,8 @@ export default async function SchedulePage() {
               const customerName =
                 trip.user?.name?.trim() || trip.guestName?.trim() || "Customer";
               const driverPay = trip.assignment?.driverPaymentCents ?? 0;
-              const tripYmd = ymdInPhoenix(trip.pickupAt);
-              const isToday = tripYmd === ymdInPhoenix(now);
+              const tripYmd = ymdInTimezone(trip.pickupAt, companyTz);
+              const isToday = tripYmd === ymdInTimezone(now, companyTz);
 
               return (
                 <Link
@@ -277,10 +278,10 @@ export default async function SchedulePage() {
                 >
                   <div className={styles.tripDateTime}>
                     <span className={styles.tripDate}>
-                      {isToday ? "Today" : formatDate(trip.pickupAt)}
+                      {isToday ? "Today" : formatDate(trip.pickupAt, companyTz)}
                     </span>
                     <span className={styles.tripTime}>
-                      {formatTime(trip.pickupAt)}
+                      {formatTime(trip.pickupAt, companyTz)}
                     </span>
                   </div>
 

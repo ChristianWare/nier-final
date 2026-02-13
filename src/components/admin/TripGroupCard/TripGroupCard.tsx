@@ -26,18 +26,18 @@ function centsToUsd(cents: number) {
   return (cents / 100).toFixed(2);
 }
 
-function formatDate(d: Date) {
+function formatDate(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     weekday: "short",
     month: "short",
     day: "numeric",
   }).format(d);
 }
 
-function formatTime(d: Date) {
+function formatTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -89,10 +89,12 @@ export default function TripGroupCard({
   tripGroup,
   siblings,
   currentBookingId,
+  timeZone,
 }: {
   tripGroup: TripGroupData;
   siblings: SiblingLeg[];
   currentBookingId: string;
+  timeZone: string;
 }) {
   const currentIndex = siblings.findIndex((s) => s.id === currentBookingId);
   const legNumber = currentIndex >= 0 ? currentIndex + 1 : "?";
@@ -127,7 +129,8 @@ export default function TripGroupCard({
                 <div className={styles.legTop}>
                   <span className={styles.legService}>{leg.serviceName}</span>
                   <span className={styles.legDate}>
-                    {formatDate(leg.pickupAt)} @ {formatTime(leg.pickupAt)}
+                    {formatDate(leg.pickupAt, timeZone)} @{" "}
+                    {formatTime(leg.pickupAt, timeZone)}{" "}
                   </span>
                 </div>
                 <div className={styles.legRoute}>

@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-function formatDateTime(d: Date) {
+function formatDateTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
@@ -32,10 +32,9 @@ function formatDateTime(d: Date) {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Phoenix",
+    timeZone,
   }).format(d);
 }
-
 function formatMoney(cents: number | null | undefined, currency = "USD") {
   if (cents == null) return "—";
   const n = cents / 100;
@@ -209,6 +208,9 @@ export default async function UserTripDetailPage({
     redirect("/dashboard/trips");
   }
 
+  const companySettings = await getCompanySettings();
+  const companyTz = companySettings.timezone;
+
   const currentStatus = booking.status as BookingStatus;
   const isPaid = booking.payment?.status === "PAID";
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
@@ -309,9 +311,6 @@ export default async function UserTripDetailPage({
   let invoiceData: InvoiceData | null = null;
 
   if (isPaid) {
-    // Get company settings for invoice
-    const companySettings = await getCompanySettings();
-
     const invoiceNumber = booking.id.slice(0, 8).toUpperCase();
     const invoiceDate = formatInvoiceDate(booking.createdAt);
     const paidDate = booking.payment?.paidAt
@@ -456,7 +455,7 @@ export default async function UserTripDetailPage({
                 )}
                 {booking.payment?.paidAt && (
                   <span className='miniNote'>
-                    on {formatDateTime(booking.payment.paidAt)}
+                    on {formatDateTime(booking.payment.paidAt, companyTz)}
                   </span>
                 )}
               </div>
@@ -532,7 +531,7 @@ export default async function UserTripDetailPage({
 
       {/* Trip Details Card */}
       <Card title='Trip'>
-        <KeyVal k='Date' v={formatDateTime(booking.pickupAt)} />
+        <KeyVal k='Date' v={formatDateTime(booking.pickupAt, companyTz)} />
         <KeyVal
           k='Distance / duration'
           v={`${toNumber(booking.distanceMiles) ?? "—"} mi • ${booking.durationMinutes ?? "—"} min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
@@ -544,7 +543,7 @@ export default async function UserTripDetailPage({
         {booking.specialRequests && (
           <KeyVal k='Special requests' v={booking.specialRequests} />
         )}
-        <KeyVal k='Booked' v={formatDateTime(booking.createdAt)} />
+        <KeyVal k='Booked' v={formatDateTime(booking.createdAt, companyTz)} />
         <KeyVal k='Service' v={booking.serviceType?.name ?? "—"} />
         <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
 
@@ -671,7 +670,7 @@ export default async function UserTripDetailPage({
               {booking.flightScheduledAt && (
                 <KeyVal
                   k='Scheduled Time'
-                  v={formatDateTime(booking.flightScheduledAt)}
+                  v={formatDateTime(booking.flightScheduledAt, companyTz)}
                 />
               )}
               {booking.flightTerminal && (

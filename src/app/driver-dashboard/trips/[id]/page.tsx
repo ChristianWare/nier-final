@@ -7,6 +7,7 @@ import { BookingStatus } from "@prisma/client";
 import styles from "./DriverTripDetailPage.module.css";
 import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import TripStatusStepper from "@/components/Driver/TripStatusStepper/TripStatusStepper";
 import FlightStatusCard from "@/components/admin/FlightStatusCard/FlightStatusCard";
 import Button from "@/components/shared/Button/Button";
@@ -14,7 +15,7 @@ import Button from "@/components/shared/Button/Button";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function formatDateTime(d: Date) {
+function formatDateTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
@@ -22,15 +23,15 @@ function formatDateTime(d: Date) {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Phoenix",
+    timeZone,
   }).format(d);
 }
 
-function formatTime(d: Date) {
+function formatTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Phoenix",
+    timeZone,
   }).format(d);
 }
 
@@ -129,6 +130,8 @@ export default async function DriverTripDetailPage({
   const driverId = await resolveSessionUserId(session);
   if (!driverId) redirect("/");
 
+  const { timezone: companyTz } = await getCompanySettings();
+
   const booking = await db.booking.findUnique({
     where: { id },
     include: {
@@ -216,13 +219,13 @@ export default async function DriverTripDetailPage({
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
-        timeZone: "America/Phoenix",
+        timeZone: companyTz,
       }).format(booking.flightScheduledAt)
     : new Intl.DateTimeFormat("en-CA", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
-        timeZone: "America/Phoenix",
+        timeZone: companyTz,
       }).format(booking.pickupAt);
 
   const airportLeg = (booking.serviceType?.airportLeg ?? "NONE") as
@@ -266,7 +269,7 @@ export default async function DriverTripDetailPage({
       {isActive && navAddress && (
         <div className={styles.navigationSection}>
           <h2 className={styles.sectionTitle}>
-             Navigate to {showPickupNav ? "Pickup" : "Dropoff"}:
+            Navigate to {showPickupNav ? "Pickup" : "Dropoff"}:
           </h2>
           <div className={styles.addressDisplay}>
             <p className={styles.addressText}>{navAddress}</p>
@@ -385,7 +388,7 @@ export default async function DriverTripDetailPage({
               <div className={styles.routeLabel}>Pickup</div>
               <div className={styles.routeAddress}>{booking.pickupAddress}</div>
               <div className={styles.routeTime}>
-                {formatTime(booking.pickupAt)}
+                {formatTime(booking.pickupAt, companyTz)}{" "}
               </div>
             </div>
           </div>
@@ -428,7 +431,7 @@ export default async function DriverTripDetailPage({
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Date & Time</span>
             <span className={styles.infoValue}>
-              {formatDateTime(booking.pickupAt)}
+              {formatDateTime(booking.pickupAt, companyTz)}
             </span>
           </div>
           <div className={styles.infoItem}>
@@ -532,7 +535,7 @@ export default async function DriverTripDetailPage({
           Display a full-screen sign with the passenger&apos;s name for airport
           pickups.
         </p>
-       
+
         <Button
           href={`/driver-dashboard/trips/${booking.id}/greetsign`}
           text='Open Greetsign'

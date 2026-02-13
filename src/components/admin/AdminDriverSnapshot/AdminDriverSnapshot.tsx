@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import styles from "./AdminDriverSnapshot.module.css";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 import Link from "next/link";
 import Image from "next/image";
 import DefaultProfileImg from "../../../../public/images/mesaii.jpg";
@@ -8,50 +10,30 @@ import DefaultProfileImg from "../../../../public/images/mesaii.jpg";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PHX_TZ = "America/Phoenix";
-
-function getDateRanges() {
+function getDateRanges(timeZone: string) {
   const now = new Date();
 
-  // Today's range in Phoenix timezone
-  const todayStart = new Date(
-    now.toLocaleString("en-US", { timeZone: PHX_TZ }),
-  );
-  todayStart.setHours(0, 0, 0, 0);
+  const todayStart = tz.startOfDay(now, timeZone);
+  const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000 - 1);
 
-  const todayEnd = new Date(todayStart);
-  todayEnd.setHours(23, 59, 59, 999);
-
-  // This month's range
-  const monthStart = new Date(
-    todayStart.getFullYear(),
-    todayStart.getMonth(),
-    1,
-  );
-  const monthEnd = new Date(
-    todayStart.getFullYear(),
-    todayStart.getMonth() + 1,
-    0,
-    23,
-    59,
-    59,
-    999,
-  );
+  const monthStart = tz.startOfMonth(now, timeZone);
+  const nextMonthStart = tz.addMonths(monthStart, 1, timeZone);
+  const monthEnd = new Date(nextMonthStart.getTime() - 1);
 
   return { todayStart, todayEnd, monthStart, monthEnd };
 }
 
-function getMonthLabel() {
+function getMonthLabel(timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "long",
     year: "numeric",
   }).format(new Date());
 }
 
-function getTodayLabel() {
+function getTodayLabel(timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -59,9 +41,11 @@ function getTodayLabel() {
 }
 
 export default async function AdminDriverSnapshot() {
-  const { todayStart, todayEnd, monthStart, monthEnd } = getDateRanges();
-  const monthLabel = getMonthLabel();
-  const todayLabel = getTodayLabel();
+  const { timezone: companyTz } = await getCompanySettings();
+
+  const { todayStart, todayEnd, monthStart, monthEnd } = getDateRanges(companyTz);
+  const monthLabel = getMonthLabel(companyTz);
+  const todayLabel = getTodayLabel(companyTz);
 
   // Fetch all drivers with their assignment counts
   const driversRaw = await db.user.findMany({
@@ -293,7 +277,6 @@ export default async function AdminDriverSnapshot() {
                     key={driver.id}
                     className={`${styles.tr} ${styles[`tr_${rowState}`]}`}
                   >
-                    {/* Driver Name */}
                     {/* Profile Image */}
                     <td className={styles.td} data-label=''>
                       <Link
@@ -346,7 +329,6 @@ export default async function AdminDriverSnapshot() {
                           <a
                             href={`tel:${driver.phone.replace(/[^0-9+]/g, "")}`}
                             className={styles.phoneLink}
-                            // onClick={(e) => e.stopPropagation()}
                           >
                             {driver.phone}
                           </a>
