@@ -17,7 +17,7 @@ export type UserPendingTripItem = {
 
 type Props = {
   items: UserPendingTripItem[];
-  timeZone?: string;
+  timeZone: string;
   bookingHrefBase?: string;
 };
 
@@ -70,7 +70,7 @@ function shortAddress(address: string): string {
 
 export default function UserPendingTrips({
   items,
-  timeZone = "America/Phoenix",
+  timeZone,
   bookingHrefBase = "/dashboard/trips",
 }: Props) {
   if (items.length === 0) {

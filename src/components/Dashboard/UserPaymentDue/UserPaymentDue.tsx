@@ -17,7 +17,7 @@ export type UserPaymentDueItem = {
 
 type Props = {
   items: UserPaymentDueItem[];
-  timeZone?: string;
+  timeZone: string;
   bookingHrefBase?: string;
 };
 
@@ -79,7 +79,7 @@ function shortAddress(address: string): string {
 
 export default function UserPaymentDue({
   items,
-  timeZone = "America/Phoenix",
+  timeZone,
   bookingHrefBase = "/dashboard/trips",
 }: Props) {
   if (items.length === 0) {

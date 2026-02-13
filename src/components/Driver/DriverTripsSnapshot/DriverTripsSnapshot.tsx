@@ -25,7 +25,7 @@ type Props = {
   tripsToday: TripItem[];
   tripsThisWeek: TripItem[];
   tripsAllUpcoming: TripItem[];
-  timeZone?: string;
+  timeZone: string;
 };
 
 type TabBucket = "today" | "this_week" | "all_upcoming";
@@ -124,7 +124,7 @@ export default function DriverTripsSnapshot({
   tripsToday,
   tripsThisWeek,
   tripsAllUpcoming,
-  timeZone = "America/Phoenix",
+  timeZone,
 }: Props) {
   const [activeTab, setActiveTab] = useState<TabBucket>("today");
 

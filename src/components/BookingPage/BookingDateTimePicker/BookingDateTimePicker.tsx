@@ -4,7 +4,6 @@ import styles from "./BookingDateTimePicker.module.css";
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 
-const TZ = process.env.NEXT_PUBLIC_SALON_TZ ?? "America/Phoenix";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function startOfMonth(d: Date) {
@@ -23,17 +22,17 @@ function addDays(date: Date, n: number) {
   copy.setDate(copy.getDate() + n);
   return copy;
 }
-function ymdInTz(date: Date) {
+function ymdInTz(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: TZ,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(date);
 }
-function monthLabel(date: Date) {
+function monthLabel(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: TZ,
+    timeZone,
     month: "long",
     year: "numeric",
   }).format(date);
@@ -68,6 +67,7 @@ export default function BookingDateTimePicker({
   disablePast = true,
   blockedDates = [],
   onVisibleMonthChange,
+  timeZone,
 }: {
   date: string;
   time: string;
@@ -76,8 +76,9 @@ export default function BookingDateTimePicker({
   disablePast?: boolean;
   blockedDates?: string[];
   onVisibleMonthChange?: (month: string) => void;
+  timeZone: string;
 }) {
-  const todayYMD = useMemo(() => ymdInTz(new Date()), []);
+  const todayYMD = useMemo(() => ymdInTz(new Date(), timeZone), [timeZone]);
   const blockedSet = useMemo(() => new Set(blockedDates ?? []), [blockedDates]);
 
   const [monthDate, setMonthDate] = useState(() => {
@@ -121,7 +122,7 @@ export default function BookingDateTimePicker({
   }
 
   function pickDay(d: Date) {
-    const key = ymdInTz(d);
+    const key = ymdInTz(d, timeZone);
     const isPast = disablePast ? key < todayYMD : false;
     const isBlocked = blockedSet.has(key);
     if (isPast || isBlocked) return;
@@ -191,7 +192,7 @@ export default function BookingDateTimePicker({
     onChangeTime(`${selectedHH}:${mm}`);
   }
 
-  const label = monthLabel(monthDate);
+  const label = monthLabel(monthDate, timeZone);
 
   return (
     <div className={styles.wrap}>
@@ -266,7 +267,7 @@ export default function BookingDateTimePicker({
 
       <div className={styles.gridDays}>
         {grid.map((d) => {
-          const key = ymdInTz(d);
+          const key = ymdInTz(d, timeZone);
           const isOtherMonth = d.getMonth() !== monthDate.getMonth();
           const isToday = key === todayYMD;
           const isSelected = Boolean(date) && key === date;

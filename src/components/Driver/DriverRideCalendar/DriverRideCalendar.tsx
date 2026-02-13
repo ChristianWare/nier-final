@@ -4,21 +4,20 @@ import styles from "./DriverRideCalendar.module.css";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const TZ = "America/Phoenix";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-function ymdInTz(date: Date) {
+function ymdInTz(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: TZ,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   }).format(date);
 }
 
-function monthLabel(date: Date) {
+function monthLabel(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: TZ,
+    timeZone,
     month: "long",
     year: "numeric",
   }).format(date);
@@ -63,10 +62,12 @@ export default function DriverRideCalendar({
   initialMonth,
   countsByYmd,
   todayYmd,
+  timeZone,
 }: {
   initialMonth: string;
   countsByYmd: Record<string, number>;
   todayYmd: string;
+  timeZone: string;
 }) {
   const router = useRouter();
 
@@ -148,7 +149,7 @@ export default function DriverRideCalendar({
     router.push(`/driver-dashboard/schedule/${ymd}`);
   }
 
-  const label = monthLabel(monthDate);
+  const label = monthLabel(monthDate, timeZone);
 
   return (
     <div className={styles.wrap}>
@@ -223,7 +224,7 @@ export default function DriverRideCalendar({
 
       <div className={styles.gridDays}>
         {grid.map((d) => {
-          const ymd = ymdInTz(d);
+          const ymd = ymdInTz(d, timeZone);
           const isOtherMonth = d.getUTCMonth() !== monthDate.getUTCMonth();
           const isToday = ymd === todayYmd;
           const count = countsByYmd[ymd] ?? 0;

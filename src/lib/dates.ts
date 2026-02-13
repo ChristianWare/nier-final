@@ -1,15 +1,11 @@
 // src/lib/billing/dates.ts
 import { fromZonedTime } from "date-fns-tz";
 
-/**
- * Returns a UNIX timestamp (seconds) for 00:00:00 on the first of
- * next month in America/Phoenix – unless that is < 48h away,
- * in which case it returns the first of the following month.
- */
-export function firstCompliantAnchorPhoenixUnix(
-  minSeconds = 2 * 24 * 60 * 60
+
+export function firstCompliantAnchorUnix(
+  tz: string,
+  minSeconds = 2 * 24 * 60 * 60,
 ): number {
-  const tz = "America/Phoenix";
   const now = new Date();
   const nowSec = Math.floor(Date.now() / 1000);
 
@@ -22,7 +18,7 @@ export function firstCompliantAnchorPhoenixUnix(
       0,
       0,
       0,
-      0
+      0,
     );
     const utc = fromZonedTime(wall, tz); // convert that wall time to the true UTC instant
     return Math.floor(utc.getTime() / 1000);

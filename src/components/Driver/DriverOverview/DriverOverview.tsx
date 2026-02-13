@@ -55,24 +55,25 @@ type Props = {
   todayTrips: TodayTrip[];
   alerts: Alert[];
   kpis: KPIs;
+  timeZone: string;
 };
 
-function formatTime(d: Date) {
+function formatTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Phoenix",
+    timeZone,
   }).format(new Date(d));
 }
 
-function formatDateTime(d: Date) {
+function formatDateTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Phoenix",
+    timeZone,
   }).format(new Date(d));
 }
 
@@ -105,6 +106,7 @@ export default function DriverOverview({
   todayTrips,
   alerts,
   kpis,
+  timeZone,
 }: Props) {
   const customerName = nextTrip
     ? nextTrip.user?.name?.trim() || nextTrip.guestName?.trim() || "Customer"
@@ -143,7 +145,7 @@ export default function DriverOverview({
             </span>
           </div>
           <div className={styles.nextTripTime}>
-            {formatDateTime(nextTrip.pickupAt)}
+            {formatDateTime(nextTrip.pickupAt, timeZone)}
           </div>
           <div className={styles.nextTripCustomer}>
             {customerName} • {nextTrip.serviceType?.name || "Trip"}
@@ -192,7 +194,7 @@ export default function DriverOverview({
               >
                 <div className={styles.tripItemLeft}>
                   <div className={styles.tripItemTime}>
-                    {formatTime(trip.pickupAt)}
+                    {formatTime(trip.pickupAt, timeZone)}
                   </div>
                   <span
                     className={`${styles.badge} ${styles.badgeSmall} ${statusBadgeClass(trip.status)}`}
@@ -237,6 +239,7 @@ export default function DriverOverview({
                     minute: "2-digit",
                     month: "short",
                     day: "numeric",
+                    timeZone,
                   }).format(new Date(alert.createdAt))}
                 </div>
               </Link>

@@ -18,7 +18,7 @@ export type UserUpcomingTripItem = {
 
 type Props = {
   items: UserUpcomingTripItem[];
-  timeZone?: string;
+  timeZone: string;
   bookingHrefBase?: string;
 };
 
@@ -102,7 +102,7 @@ function statusTone(s: string): "neutral" | "warning" | "danger" | "good" {
 
 export default function UserUpcomingTrips({
   items,
-  timeZone = "America/Phoenix",
+  timeZone,
   bookingHrefBase = "/dashboard/trips",
 }: Props) {
   return (

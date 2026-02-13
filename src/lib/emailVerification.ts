@@ -2,6 +2,7 @@
 import { db } from "./db";
 import { v4 as uuidv4 } from "uuid";
 import { Resend } from "resend";
+import { getCompanySettings } from "../../actions/admin/companySettings";
 
 export const getVerificationTokenByEmail = async (email: string) => {
   try {
@@ -52,13 +53,13 @@ const NAME_ADDR_RE = /^([^<>]+)<\s*([^<>@\s]+@[^<>@\s]+\.[^<>@\s]+)\s*>$/i;
 function normalizeFrom(brand: string, raw: string) {
   if (!raw) {
     throw new Error(
-      "RESEND_FROM (or CONTACT_FROM) is empty. Set an address like noreply@yourdomain.com or 'Name <noreply@yourdomain.com>'."
+      "RESEND_FROM (or CONTACT_FROM) is empty. Set an address like noreply@yourdomain.com or 'Name <noreply@yourdomain.com>'.",
     );
   }
   if (NAME_ADDR_RE.test(raw)) return raw;
   if (EMAIL_ONLY_RE.test(raw)) return `${brand} <${raw}>`;
   throw new Error(
-    `RESEND_FROM is invalid. Use 'email@example.com' or 'Name <email@example.com>'. Received: "${raw}"`
+    `RESEND_FROM is invalid. Use 'email@example.com' or 'Name <email@example.com>'. Received: "${raw}"`,
   );
 }
 
@@ -74,7 +75,7 @@ function escapeHtml(s = "") {
 function emailHtmlVerify(
   email: string,
   verifyLink: string,
-  submittedAt: string
+  submittedAt: string,
 ) {
   // Brand colors matching other Nier Transportation emails
   const colors = {
@@ -272,7 +273,7 @@ function emailHtmlVerify(
 function emailTextVerify(
   email: string,
   verifyLink: string,
-  submittedAt: string
+  submittedAt: string,
 ) {
   return [
     "═══════════════════════════════════════",
@@ -316,19 +317,20 @@ function emailTextVerify(
 
 export const sendEmailVerificationToken = async (
   email: string,
-  token: string
+  token: string,
 ) => {
   try {
     requireEnv("RESEND_API_KEY");
     if (!BASE_URL) throw new Error("Missing required env var: BASE_URL");
 
     const from = normalizeFrom(BRAND, RAW_FROM);
+    const { timezone: companyTz } = await getCompanySettings();
     const resend = new Resend(process.env.RESEND_API_KEY);
     const emailVerificationLink = `${BASE_URL.replace(/\/+$/, "")}/email-verification?token=${encodeURIComponent(
-      token
+      token,
     )}`;
     const submittedAt = new Date().toLocaleString("en-US", {
-      timeZone: "America/Phoenix",
+      timeZone: companyTz,
       hour12: true,
       year: "numeric",
       month: "long",
@@ -360,11 +362,11 @@ export const sendEmailVerificationToken = async (
   } catch (err: any) {
     if (process.env.NODE_ENV !== "production") {
       const emailVerificationLink = `${BASE_URL.replace(/\/+$/, "")}/email-verification?token=${encodeURIComponent(
-        token
+        token,
       )}`;
       console.warn(
         "[DEV] sendEmailVerificationToken caught:",
-        err?.message || err
+        err?.message || err,
       );
       console.warn("[DEV] Verification link:", emailVerificationLink);
       return { error: null };
