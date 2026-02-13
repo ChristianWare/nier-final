@@ -19,17 +19,19 @@ type Booking = {
   department: string;
 };
 
+type MonthBucket = { key: string; label: string; spend: number; rides: number };
+type NameBucket = { name: string; spend: number; rides: number };
+
 type Props = {
   bookings: Booking[];
   departments: string[];
   monthStartIso: string;
+  companyTimezone: string;
 };
 
 /* ─────────────────────────────────────────────
    Constants
    ───────────────────────────────────────────── */
-
-const PHX_TZ = "America/Phoenix";
 
 const PERIOD_OPTIONS = [
   { value: "THIS_MONTH", label: "This Month" },
@@ -55,18 +57,18 @@ function formatMoney(cents: number) {
   }).format(cents / 100);
 }
 
-function formatMonthLabel(iso: string) {
+function formatMonthLabel(iso: string, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "short",
     year: "numeric",
   }).format(new Date(iso));
 }
 
-function monthKey(iso: string) {
+function monthKey(iso: string, timeZone: string) {
   const d = new Date(iso);
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     year: "numeric",
     month: "2-digit",
   })
@@ -108,8 +110,8 @@ function getDateRange(
     case "ALL":
       return [null, null];
     case "CUSTOM": {
-      const from = customFrom ? new Date(customFrom + "T00:00:00-07:00") : null;
-      const to = customTo ? new Date(customTo + "T23:59:59-07:00") : null;
+      const from = customFrom ? new Date(customFrom + "T00:00:00") : null;
+      const to = customTo ? new Date(customTo + "T23:59:59") : null;
       return [from, to];
     }
     default:
@@ -125,6 +127,7 @@ export default function ReportsClient({
   bookings,
   departments,
   monthStartIso,
+  companyTimezone,
 }: Props) {
   const [period, setPeriod] = useState<Period>("THIS_MONTH");
   const [customFrom, setCustomFrom] = useState("");
@@ -156,12 +159,9 @@ export default function ReportsClient({
 
   // ─── Monthly breakdown ───
   const monthlyData = useMemo(() => {
-    const map = new Map<
-      string,
-      { key: string; label: string; spend: number; rides: number }
-    >();
+    const map = new Map<string, MonthBucket>();
     for (const b of filtered) {
-      const mk = monthKey(b.pickupAt);
+      const mk = monthKey(b.pickupAt, companyTimezone);
       const existing = map.get(mk);
       if (existing) {
         existing.spend += b.totalCents;
@@ -169,21 +169,18 @@ export default function ReportsClient({
       } else {
         map.set(mk, {
           key: mk,
-          label: formatMonthLabel(b.pickupAt),
+          label: formatMonthLabel(b.pickupAt, companyTimezone),
           spend: b.totalCents,
           rides: 1,
         });
       }
     }
     return [...map.values()].sort((a, b) => b.key.localeCompare(a.key));
-  }, [filtered]);
+  }, [filtered, companyTimezone]);
 
   // ─── By department ───
   const deptData = useMemo(() => {
-    const map = new Map<
-      string,
-      { name: string; spend: number; rides: number }
-    >();
+    const map = new Map<string, NameBucket>();
     for (const b of filtered) {
       const dept = b.department || "No Department";
       const existing = map.get(dept);
@@ -199,10 +196,7 @@ export default function ReportsClient({
 
   // ─── By employee (top 10) ───
   const employeeData = useMemo(() => {
-    const map = new Map<
-      string,
-      { name: string; spend: number; rides: number }
-    >();
+    const map = new Map<string, NameBucket>();
     for (const b of filtered) {
       const key = b.passengerId || "unassigned";
       const existing = map.get(key);
@@ -218,10 +212,7 @@ export default function ReportsClient({
 
   // ─── By service type ───
   const serviceData = useMemo(() => {
-    const map = new Map<
-      string,
-      { name: string; spend: number; rides: number }
-    >();
+    const map = new Map<string, NameBucket>();
     for (const b of filtered) {
       const existing = map.get(b.service);
       if (existing) {
@@ -238,7 +229,6 @@ export default function ReportsClient({
     return [...map.values()].sort((a, b) => b.spend - a.spend);
   }, [filtered]);
 
-  // Max values for bar widths
   const maxMonthly = Math.max(1, ...monthlyData.map((d) => d.spend));
   const maxDept = Math.max(1, ...deptData.map((d) => d.spend));
   const maxEmployee = Math.max(1, ...employeeData.map((d) => d.spend));
@@ -246,7 +236,6 @@ export default function ReportsClient({
 
   return (
     <div className={styles.content}>
-      {/* ─── Header ─── */}
       <div className={styles.header}>
         <h2 className='heading h3'>Reports</h2>
         <p className={styles.meta}>
@@ -254,7 +243,6 @@ export default function ReportsClient({
         </p>
       </div>
 
-      {/* ─── Period Filter ─── */}
       <div className={styles.filters}>
         <select
           value={period}
@@ -289,7 +277,6 @@ export default function ReportsClient({
         )}
       </div>
 
-      {/* ─── KPI Cards ─── */}
       <div className={styles.kpiGrid}>
         <div className={styles.kpiCard}>
           <span className={styles.kpiLabel}>Total Spend</span>
@@ -309,7 +296,6 @@ export default function ReportsClient({
         </div>
       </div>
 
-      {/* ─── Empty state ─── */}
       {filtered.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyTitle}>No data for this period</p>
@@ -321,7 +307,6 @@ export default function ReportsClient({
         </div>
       ) : (
         <div className={styles.grid}>
-          {/* ─── Monthly Breakdown ─── */}
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Spend by Month</h3>
             <div className={styles.breakdownList}>
@@ -337,7 +322,6 @@ export default function ReportsClient({
             </div>
           </div>
 
-          {/* ─── By Department ─── */}
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Spend by Department</h3>
             {deptData.length === 0 ? (
@@ -357,7 +341,6 @@ export default function ReportsClient({
             )}
           </div>
 
-          {/* ─── Top Employees ─── */}
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Top Employees by Spend</h3>
             <div className={styles.breakdownList}>
@@ -373,7 +356,6 @@ export default function ReportsClient({
             </div>
           </div>
 
-          {/* ─── By Service Type ─── */}
           <div className={styles.card}>
             <h3 className={styles.cardTitle}>Spend by Service Type</h3>
             <div className={styles.breakdownList}>

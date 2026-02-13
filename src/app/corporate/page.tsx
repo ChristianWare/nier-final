@@ -8,56 +8,29 @@ import Link from "next/link";
 import CorpAdminPageIntro from "@/components/corporate/CorpAdminPageIntro/CorpAdminPageIntro";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Button from "@/components/shared/Button/Button";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const PHX_TZ = "America/Phoenix";
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function startOfNextMonthPhoenix(monthStartUtc: Date) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextLocalMs = Date.UTC(y, m + 1, 1, 0, 0, 0);
-  return new Date(nextLocalMs - PHX_OFFSET_MS);
-}
-
-function formatPickupDate(date: Date) {
+function formatPickupDate(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     weekday: "short",
     month: "short",
     day: "numeric",
   }).format(date);
 }
 
-function formatPickupTime(date: Date) {
+function formatPickupTime(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   }).format(date);
-}
-
-function formatMoney(cents: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(cents / 100);
 }
 
 function shortAddress(address: string) {
@@ -103,8 +76,8 @@ export default async function CorporateDashboardPage() {
 
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+  const { timezone: companyTz } = await getCompanySettings();
 
-  // Get corporate account for this user
   const contact = await db.corporateContact.findFirst({
     where: { userId: session.user.id },
     select: {
@@ -128,12 +101,11 @@ export default async function CorporateDashboardPage() {
   if (!account) redirect("/");
 
   const now = new Date();
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = startOfNextMonthPhoenix(monthStart);
+  const monthStart = tz.startOfMonth(now, companyTz);
+  const nextMonthStart = tz.addMonths(monthStart, 1, companyTz);
 
   const cancelledStatuses = ["CANCELLED", "REFUNDED", "NO_SHOW"] as any;
 
-  // ─── Parallel data fetching ───
   const [
     ridesThisMonth,
     totalRidesAllTime,
@@ -144,7 +116,6 @@ export default async function CorporateDashboardPage() {
     recentBookings,
     upcomingRides,
   ] = await Promise.all([
-    // Rides this month
     db.booking.count({
       where: {
         corporateAccountId: account.id,
@@ -153,7 +124,6 @@ export default async function CorporateDashboardPage() {
       },
     }),
 
-    // Total rides all time
     db.booking.count({
       where: {
         corporateAccountId: account.id,
@@ -161,17 +131,14 @@ export default async function CorporateDashboardPage() {
       },
     }),
 
-    // Active employees
     db.corporatePassenger.count({
       where: { corporateAccountId: account.id, active: true },
     }),
 
-    // Total employees (including inactive)
     db.corporatePassenger.count({
       where: { corporateAccountId: account.id },
     }),
 
-    // Upcoming rides
     db.booking.count({
       where: {
         corporateAccountId: account.id,
@@ -180,7 +147,6 @@ export default async function CorporateDashboardPage() {
       },
     }),
 
-    // Spend this month (sum of totalCents for completed/confirmed bookings)
     (db.booking as any).aggregate({
       where: {
         corporateAccountId: account.id,
@@ -190,7 +156,6 @@ export default async function CorporateDashboardPage() {
       _sum: { totalCents: true },
     }),
 
-    // Recent bookings (last 10)
     db.booking.findMany({
       where: {
         corporateAccountId: account.id,
@@ -214,7 +179,6 @@ export default async function CorporateDashboardPage() {
       },
     }),
 
-    // Upcoming rides (next 5)
     db.booking.findMany({
       where: {
         corporateAccountId: account.id,
@@ -242,7 +206,6 @@ export default async function CorporateDashboardPage() {
 
   const spendThisMonthCents = Number(spendThisMonthAgg?._sum?.totalCents ?? 0);
 
-  // Monthly limit progress
   const monthlyLimitCents = account.monthlyLimitCents
     ? Number(account.monthlyLimitCents)
     : null;
@@ -255,7 +218,6 @@ export default async function CorporateDashboardPage() {
     <section className={styles.container}>
       <CorpAdminPageIntro companyName={account.name} />
 
-      {/* ─── Account suspended banner ─── */}
       {account.status === "SUSPENDED" && (
         <div className={styles.suspendedBanner}>
           <span className={styles.suspendedIcon}>⚠️</span>
@@ -269,7 +231,6 @@ export default async function CorporateDashboardPage() {
         </div>
       )}
 
-      {/* ─── KPI Cards ─── */}
       <div className={styles.kpiGrid}>
         <div className={styles.kpiCard}>
           <span className={styles.kpiLabel}>Rides This Month</span>
@@ -282,7 +243,7 @@ export default async function CorporateDashboardPage() {
         <div className={styles.kpiCard}>
           <span className={styles.kpiLabel}>Spend This Month</span>
           <span className={styles.kpiValue}>
-            {formatMoney(spendThisMonthCents)}
+            {tz.formatMoneyShort(spendThisMonthCents)}
           </span>
           {limitPercent !== null && (
             <div className={styles.limitBar}>
@@ -297,7 +258,8 @@ export default async function CorporateDashboardPage() {
                 />
               </div>
               <span className={styles.limitText}>
-                {limitPercent}% of {formatMoney(monthlyLimitCents!)} limit
+                {limitPercent}% of {tz.formatMoneyShort(monthlyLimitCents!)}{" "}
+                limit
               </span>
             </div>
           )}
@@ -347,7 +309,6 @@ export default async function CorporateDashboardPage() {
         </div>
       </div>
 
-      {/* ─── Upcoming Rides ─── */}
       <div className={styles.tableCard}>
         <h2 className={`${styles.sectionTitle} cardTitle h4`}>
           Upcoming Rides
@@ -359,9 +320,6 @@ export default async function CorporateDashboardPage() {
         {upcomingRides.length === 0 ? (
           <div className={styles.empty}>
             <p className='emptyTitle'>No upcoming rides scheduled.</p>
-            {/* <Link href='/corporate/bookings' className='neutralBtn'>
-              Book a Ride
-            </Link> */}
             <Button href='/book' text='Book a Ride' btnType='red' arrow />
           </div>
         ) : (
@@ -382,10 +340,10 @@ export default async function CorporateDashboardPage() {
                   <tr key={ride.id} className={styles.tr}>
                     <td className={styles.td}>
                       <div className={styles.cellStrong}>
-                        {formatPickupDate(new Date(ride.pickupAt))}
+                        {formatPickupDate(new Date(ride.pickupAt), companyTz)}
                       </div>
                       <div className={styles.cellSub}>
-                        {formatPickupTime(new Date(ride.pickupAt))}
+                        {formatPickupTime(new Date(ride.pickupAt), companyTz)}
                       </div>
                     </td>
                     <td className={styles.td}>
@@ -407,7 +365,9 @@ export default async function CorporateDashboardPage() {
                       </span>
                     </td>
                     <td className={`${styles.td} ${styles.alignRight}`}>
-                      {ride.totalCents ? formatMoney(ride.totalCents) : "—"}
+                      {ride.totalCents
+                        ? tz.formatMoneyShort(ride.totalCents)
+                        : "—"}
                     </td>
                   </tr>
                 ))}
@@ -417,7 +377,6 @@ export default async function CorporateDashboardPage() {
         )}
       </div>
 
-      {/* ─── Recent Activity ─── */}
       <div className={styles.tableCard}>
         <div className={styles.sectionHeader}>
           <h2 className={`${styles.sectionTitle} cardTitle h4`}>
@@ -466,13 +425,16 @@ export default async function CorporateDashboardPage() {
                     </div>
                     <div className={styles.activityMeta}>
                       <span>
-                        {formatPickupDate(pickupDate)} at{" "}
-                        {formatPickupTime(pickupDate)}
+                        {formatPickupDate(pickupDate, companyTz)} at{" "}
+                        {formatPickupTime(pickupDate, companyTz)}
                       </span>
                       {passenger && <span> · {passenger}</span>}
                       {driver && <span> · Driver: {driver}</span>}
                       {booking.totalCents > 0 && (
-                        <span> · {formatMoney(booking.totalCents)}</span>
+                        <span>
+                          {" "}
+                          · {tz.formatMoneyShort(booking.totalCents)}
+                        </span>
                       )}
                     </div>
                   </div>
@@ -483,7 +445,6 @@ export default async function CorporateDashboardPage() {
         )}
       </div>
 
-      {/* ─── Account Info Footer ─── */}
       <div className={styles.accountInfo}>
         <div className={styles.accountInfoGrid}>
           <div>

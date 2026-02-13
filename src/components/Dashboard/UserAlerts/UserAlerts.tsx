@@ -24,13 +24,16 @@ export type UserAlertItem = {
   route?: string;
   /** ISO string for when the alert was created */
   timestamp?: string;
+  driverName?: string | null;
+  vehicleName?: string | null;
   alertType?:
     | "declined"
     | "payment_due"
     | "payment_received"
     | "approved"
     | "refunded"
-    | "cancelled";
+    | "cancelled"
+    | "driver_assigned";
 };
 
 type Props = {

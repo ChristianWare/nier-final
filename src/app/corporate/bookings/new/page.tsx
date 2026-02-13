@@ -3,15 +3,14 @@ import { db } from "@/lib/db";
 import { auth } from "../../../../../auth";
 import { redirect } from "next/navigation";
 import CorporateNewBookingWizard from "@/components/corporate/CorporateNewBookingWizard/CorporateNewBookingWizard";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const PHX_TZ = "America/Phoenix";
-
-function ymdInPhoenix(d: Date) {
+function ymdInTimezone(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-CA", {
-    timeZone: PHX_TZ,
+    timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -24,7 +23,6 @@ function addDays(d: Date, n: number) {
   return copy;
 }
 
-// Prisma Decimal → number (Client Components can't receive Decimal objects)
 function decToNumber(v: any): number | null {
   if (v == null) return null;
   if (typeof v === "object" && typeof v.toNumber === "function") {
@@ -42,7 +40,6 @@ export default async function CorporateNewBookingPage() {
   const userId = (session.user as any)?.id;
   if (!userId) redirect("/login?next=/corporate/bookings/new");
 
-  // Get the corporate account linked to this user
   const contact = await db.corporateContact.findFirst({
     where: { userId, active: true },
     select: {
@@ -69,7 +66,8 @@ export default async function CorporateNewBookingPage() {
     redirect("/corporate");
   }
 
-  // ─── Parallel data fetching ───
+  const { timezone: companyTz } = await getCompanySettings();
+
   const now = new Date();
   const horizon = addDays(now, 120);
 
@@ -95,7 +93,12 @@ export default async function CorporateNewBookingPage() {
     }),
 
     db.blackoutDate.findMany({
-      where: { ymd: { gte: ymdInPhoenix(now), lte: ymdInPhoenix(horizon) } },
+      where: {
+        ymd: {
+          gte: ymdInTimezone(now, companyTz),
+          lte: ymdInTimezone(horizon, companyTz),
+        },
+      },
       select: { ymd: true },
     }),
 
@@ -115,7 +118,6 @@ export default async function CorporateNewBookingPage() {
     }),
   ]);
 
-  // ─── Serialize for client ───
   const blackoutsByYmd: Record<string, boolean> = {};
   for (const b of blackouts) blackoutsByYmd[b.ymd] = true;
 

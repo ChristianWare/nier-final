@@ -31,6 +31,7 @@ type Props = {
   statusCounts: Record<string, number>;
   totalCount: number;
   spendThisMonthCents: number;
+  companyTimezone: string;
 };
 
 /* ─────────────────────────────────────────────
@@ -38,8 +39,6 @@ type Props = {
    ───────────────────────────────────────────── */
 
 const PAGE_SIZE = 20;
-
-const PHX_TZ = "America/Phoenix";
 
 const STATUS_TABS = [
   "ALL",
@@ -64,18 +63,18 @@ const CANCELLED_STATUSES = new Set([
    Helpers
    ───────────────────────────────────────────── */
 
-function formatPickupDate(iso: string) {
+function formatPickupDate(iso: string, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     weekday: "short",
     month: "short",
     day: "numeric",
   }).format(new Date(iso));
 }
 
-function formatPickupTime(iso: string) {
+function formatPickupTime(iso: string, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -136,12 +135,13 @@ export default function BookingsClient({
   statusCounts,
   totalCount,
   spendThisMonthCents,
+  companyTimezone,
 }: Props) {
-  // ─── Filters ───
-const router = useRouter();
+  const router = useRouter();
 
-// ─── Filters ───
-const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = useState<StatusTab>("ALL");
+  // ─── Filters ───
+  const [search, setSearch] = useState("");
+  const [statusTab, setStatusTab] = useState<StatusTab>("ALL");
   const [passengerFilter, setPassengerFilter] = useState("ALL");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -166,11 +166,10 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
   const filtered = useMemo(() => {
     const now = new Date();
     const q = search.toLowerCase().trim();
-    const fromDate = dateFrom ? new Date(dateFrom + "T00:00:00-07:00") : null;
-    const toDate = dateTo ? new Date(dateTo + "T23:59:59-07:00") : null;
+    const fromDate = dateFrom ? new Date(dateFrom + "T00:00:00") : null;
+    const toDate = dateTo ? new Date(dateTo + "T23:59:59") : null;
 
     return bookings.filter((b) => {
-      // Status tab
       if (statusTab === "UPCOMING") {
         if (new Date(b.pickupAt) < now || CANCELLED_STATUSES.has(b.status))
           return false;
@@ -180,15 +179,12 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
         if (b.status !== statusTab) return false;
       }
 
-      // Passenger filter
       if (passengerFilter !== "ALL" && b.passengerId !== passengerFilter)
         return false;
 
-      // Date range
       if (fromDate && new Date(b.pickupAt) < fromDate) return false;
       if (toDate && new Date(b.pickupAt) > toDate) return false;
 
-      // Search
       if (q) {
         const haystack = [
           b.passengerName,
@@ -215,7 +211,6 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
     safePage * PAGE_SIZE,
   );
 
-  // Reset page when filters change
   function updateFilter<T>(setter: (v: T) => void) {
     return (v: T) => {
       setter(v);
@@ -240,7 +235,6 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
         )}
       </p>
 
-      {/* ─── Status Tabs ─── */}
       <div className={styles.tabRow}>
         {STATUS_TABS.map((tab) => {
           const count = tabCounts[tab] ?? 0;
@@ -266,7 +260,6 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
         })}
       </div>
 
-      {/* ─── Filters ─── */}
       <div className={styles.filters}>
         <input
           type='text'
@@ -280,7 +273,6 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
           <select
             value={passengerFilter}
             onChange={(e) => updateFilter(setPassengerFilter)(e.target.value)}
-            // className={`formInput ${styles.selectInput}`}
             className='selectBorder'
           >
             <option value='ALL'>All passengers</option>
@@ -328,7 +320,6 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
         </div>
       </div>
 
-      {/* ─── Table / Empty State ─── */}
       {filtered.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyTitle}>No bookings found</p>
@@ -361,23 +352,19 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
                     onClick={() => router.push(`/corporate/bookings/${b.id}`)}
                     style={{ cursor: "pointer" }}
                   >
-                    {" "}
-                    {/* Date & Time */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
-                        {formatPickupDate(b.pickupAt)}
+                        {formatPickupDate(b.pickupAt, companyTimezone)}
                       </span>
                       <span className={styles.cellSub}>
-                        {formatPickupTime(b.pickupAt)}
+                        {formatPickupTime(b.pickupAt, companyTimezone)}
                       </span>
                     </td>
-                    {/* Passenger */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
                         {b.passengerName}
                       </span>
                     </td>
-                    {/* Route */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
                         {shortAddress(b.pickupAddress)}
@@ -386,15 +373,12 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
                         → {shortAddress(b.dropoffAddress)}
                       </span>
                     </td>
-                    {/* Service */}
                     <td className={styles.td}>{b.service}</td>
-                    {/* Driver */}
                     <td className={styles.td}>
                       {b.driverName || (
                         <span className={styles.cellMuted}>Unassigned</span>
                       )}
                     </td>
-                    {/* Status */}
                     <td className={styles.td}>
                       <span
                         className={`${styles.badge} ${statusBadgeClass(b.status)}`}
@@ -402,7 +386,6 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
                         {statusLabel(b.status)}
                       </span>
                     </td>
-                    {/* Fare */}
                     <td className={`${styles.td} ${styles.tdRight}`}>
                       {b.totalCents > 0 ? formatMoney(b.totalCents) : "—"}
                     </td>
@@ -412,7 +395,6 @@ const [search, setSearch] = useState("");  const [statusTab, setStatusTab] = use
             </table>
           </div>
 
-          {/* ─── Table Footer / Pagination ─── */}
           <div className={styles.tableFooter}>
             <div className={styles.pagination}>
               <span className={styles.paginationMeta}>

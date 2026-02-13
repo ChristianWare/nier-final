@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-function formatDateTime(d: Date) {
+function formatDateTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
@@ -31,7 +31,7 @@ function formatDateTime(d: Date) {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Phoenix",
+    timeZone,
   }).format(d);
 }
 
@@ -123,7 +123,6 @@ export default async function CorporateBookingDetailPage({
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  // Verify user is a corporate contact
   const contact = await db.corporateContact.findFirst({
     where: { userId: session.user.id, active: true },
     select: { corporateAccountId: true, role: true },
@@ -178,48 +177,43 @@ export default async function CorporateBookingDetailPage({
 
   if (!booking) return notFound();
 
-  // Verify this booking belongs to the contact's corporate account
   if (booking.corporateAccountId !== accountId) {
     redirect("/corporate/bookings");
   }
 
-  const currentStatus = booking.status as BookingStatus;
+  const companySettings = await getCompanySettings();
+  const companyTz = companySettings.timezone;
+  const supportPhone = companySettings.dispatchPhone || "";
+  const supportEmail = companySettings.supportEmail || "";
 
-  // Status display
+  const currentStatus = booking.status as BookingStatus;
   const currentStatusLabel = statusLabel(currentStatus);
   const currentStatusTone: BadgeTone = badgeTone(currentStatus);
-
-  // Declined
   const isDeclined = currentStatus === "DECLINED";
 
-  // Driver info
   const hasDriver = !!booking.assignment?.driver;
   const driver = booking.assignment?.driver;
   const driverName = driver?.name?.trim() || "Your Driver";
   const driverPhone = driver?.phone || null;
   const driverImage = driver?.image || null;
 
-  // Vehicle info
   const vehicleUnit = booking.assignment?.vehicleUnit;
   const vehicleUnitDisplay = vehicleUnit
     ? `${vehicleUnit.name}${vehicleUnit.plate ? ` (${vehicleUnit.plate})` : ""}`
     : null;
 
-  // Passenger info
   const passengerName =
     booking.corporatePassenger?.name?.trim() || "—";
   const passengerEmail = booking.corporatePassenger?.email || null;
   const passengerPhone = booking.corporatePassenger?.phone || null;
   const passengerDepartment = booking.corporatePassenger?.department || null;
 
-  // Check for stops
   const hasStops = booking.stops && booking.stops.length > 0;
   const stopCount = booking.stops?.length ?? 0;
   const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
   const totalWaitTimeMinutes =
     booking.stops?.reduce((sum, s) => sum + (s.waitTimeMinutes ?? 5), 0) ?? 0;
 
-  // Check for flight info
   const hasFlightInfo =
     booking.flightAirline ||
     booking.flightNumber ||
@@ -227,14 +221,12 @@ export default async function CorporateBookingDetailPage({
     booking.flightTerminal ||
     booking.flightGate;
 
-  // Check if we have route coordinates for map
   const hasRouteCoordinates =
     booking.pickupLat &&
     booking.pickupLng &&
     booking.dropoffLat &&
     booking.dropoffLng;
 
-  // Prepare stops for map
   const stopsForMap =
     booking.stops
       ?.map((s) => ({
@@ -245,7 +237,6 @@ export default async function CorporateBookingDetailPage({
       }))
       .filter((s) => s.lat && s.lng) ?? [];
 
-  // ─── Corporate invoice lookup ───
   let invoiceData: InvoiceData | null = null;
   let corporateInvoiceId: string | null = null;
 
@@ -261,11 +252,6 @@ export default async function CorporateBookingDetailPage({
       invoiceData = result.data;
     }
   }
-
-  // Company settings for help section
-  const companySettings = await getCompanySettings();
-  const supportPhone = companySettings.dispatchPhone || "";
-  const supportEmail = companySettings.supportEmail || "";
 
   return (
     <section className={styles.container}>
@@ -304,7 +290,6 @@ export default async function CorporateBookingDetailPage({
           </div>
 
           <div className={styles.boxRight}>
-            {/* Payment / billing status */}
             <div style={{ marginTop: 12 }}>
               <div className="emptyTitle">Billing:</div>
               <div className={styles.paymentInfo}>
@@ -316,7 +301,6 @@ export default async function CorporateBookingDetailPage({
                 )}
               </div>
 
-              {/* Discount info */}
               {booking.discountCents && booking.discountCents > 0 ? (
                 <div className={styles.discountDisplay}>
                   <span style={{ color: "#15803d", fontWeight: 600 }}>
@@ -339,7 +323,6 @@ export default async function CorporateBookingDetailPage({
         </div>
       </header>
 
-      {/* ─── Passenger Card ─── */}
       <Card title="Passenger">
         <KeyVal k="Name" v={passengerName} />
         {passengerEmail && <KeyVal k="Email" v={passengerEmail} />}
@@ -357,7 +340,6 @@ export default async function CorporateBookingDetailPage({
         )}
       </Card>
 
-      {/* ─── Driver Card (if assigned) ─── */}
       {hasDriver && (
         <Card title="Your Driver">
           <div className={styles.driverSection}>
@@ -396,9 +378,8 @@ export default async function CorporateBookingDetailPage({
         </Card>
       )}
 
-      {/* ─── Trip Details Card ─── */}
       <Card title="Trip">
-        <KeyVal k="Date" v={formatDateTime(booking.pickupAt)} />
+        <KeyVal k="Date" v={formatDateTime(booking.pickupAt, companyTz)} />
         <KeyVal
           k="Distance / duration"
           v={`${toNumber(booking.distanceMiles) ?? "—"} mi • ${booking.durationMinutes ?? "—"} min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
@@ -434,11 +415,10 @@ export default async function CorporateBookingDetailPage({
         {booking.specialRequests && (
           <KeyVal k="Special requests" v={booking.specialRequests} />
         )}
-        <KeyVal k="Booked" v={formatDateTime(booking.createdAt)} />
+        <KeyVal k="Booked" v={formatDateTime(booking.createdAt, companyTz)} />
         <KeyVal k="Service" v={booking.serviceType?.name ?? "—"} />
         <KeyVal k="Vehicle category" v={booking.vehicle?.name ?? "—"} />
 
-        {/* Route Timeline with Stops */}
         {hasStops ? (
           <>
             <div className={styles.sectionDivider} />
@@ -448,7 +428,6 @@ export default async function CorporateBookingDetailPage({
                 {stopCount} Extra Stop{stopCount > 1 ? "s" : ""}
               </div>
               <div className={styles.routeTimeline}>
-                {/* Pickup */}
                 <div className={styles.routePoint}>
                   <div
                     className={styles.routeMarker}
@@ -462,7 +441,6 @@ export default async function CorporateBookingDetailPage({
                   </div>
                 </div>
 
-                {/* Stops */}
                 {booking.stops.map((stop, index) => (
                   <div key={stop.id} className={styles.routePoint}>
                     <div
@@ -481,7 +459,6 @@ export default async function CorporateBookingDetailPage({
                   </div>
                 ))}
 
-                {/* Dropoff */}
                 <div className={styles.routePoint}>
                   <div
                     className={styles.routeMarker}
@@ -496,7 +473,6 @@ export default async function CorporateBookingDetailPage({
                 </div>
               </div>
 
-              {/* Stop charges */}
               <div className={styles.stopCharges}>
                 <div className={styles.stopChargeRow}>
                   <span>Stop surcharge ({stopCount} × $15)</span>
@@ -523,7 +499,6 @@ export default async function CorporateBookingDetailPage({
           v={`${booking.passengers} / ${booking.luggage}`}
         />
 
-        {/* Route Map Display */}
         {hasRouteCoordinates && (
           <>
             <div className={styles.sectionDivider} />
@@ -544,7 +519,6 @@ export default async function CorporateBookingDetailPage({
           </>
         )}
 
-        {/* Flight Information */}
         {hasFlightInfo && (
           <>
             <div className={styles.sectionDivider} />
@@ -561,7 +535,7 @@ export default async function CorporateBookingDetailPage({
               {booking.flightScheduledAt && (
                 <KeyVal
                   k="Scheduled Time"
-                  v={formatDateTime(booking.flightScheduledAt)}
+                  v={formatDateTime(booking.flightScheduledAt, companyTz)}
                 />
               )}
               {booking.flightTerminal && (
@@ -575,14 +549,12 @@ export default async function CorporateBookingDetailPage({
         )}
       </Card>
 
-      {/* ─── Invoice Section ─── */}
       {invoiceData && (
         <Card title="Invoice">
           <InvoiceSection invoice={invoiceData} bookingId={booking.id} />
         </Card>
       )}
 
-      {/* ─── Help Section ─── */}
       <Card title="Need Help?">
         <div className={styles.helpContent}>
           <p className="subheading">

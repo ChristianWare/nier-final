@@ -1,17 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../../../../actions/admin/companySettings";
+import * as tz from "@/lib/timezone";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function formatDate(d: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-}
 
 function escapeCSV(value: string | null | undefined): string {
   if (value == null) return "";
@@ -24,6 +17,8 @@ function escapeCSV(value: string | null | undefined): string {
 
 export async function GET() {
   try {
+    const { timezone: companyTz } = await getCompanySettings();
+
     const users = await db.user.findMany({
       orderBy: [{ createdAt: "desc" }],
       select: {
@@ -63,8 +58,8 @@ export async function GET() {
       u.emailVerified ? "Yes" : "No",
       String(u._count.bookings),
       String(u._count.driverAssignments),
-      formatDate(u.createdAt),
-      formatDate(u.updatedAt),
+      tz.formatDate(u.createdAt, companyTz),
+      tz.formatDate(u.updatedAt, companyTz),
     ]);
 
     const csv = [headers.join(","), ...rows.map((row) => row.join(","))].join(

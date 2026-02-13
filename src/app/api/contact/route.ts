@@ -2,6 +2,7 @@
 // app/api/contact/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -136,7 +137,7 @@ function emailHtml(payload: ContactPayload, submittedAt: string) {
         <td style="background:#fafafa; padding:14px 24px; font-size:12px; color:#6b7280">
           © ${new Date().getFullYear()} ${escapeHtml(
             BRAND,
-          )}. “Fonts” for design. “Footers” for the technical foundation.
+          )}. "Fonts" for design. "Footers" for the technical foundation.
         </td>
       </tr>
     </table>
@@ -178,7 +179,6 @@ function emailText(payload: ContactPayload, submittedAt: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    // --- Validate env
     requireEnv("SMTP_HOST");
     requireEnv("SMTP_PORT");
     requireEnv("SMTP_USER");
@@ -187,7 +187,6 @@ export async function POST(req: NextRequest) {
       throw new Error("CONTACT_TO and CONTACT_FROM must be set");
     }
 
-    // --- Parse body
     const body = (await req.json()) as Partial<ContactPayload>;
     const errors: string[] = [];
 
@@ -213,8 +212,10 @@ export async function POST(req: NextRequest) {
       services: Array.isArray(body.services) ? body.services : [],
     };
 
+    const { timezone: companyTz } = await getCompanySettings();
+
     const submittedAt = new Date().toLocaleString("en-US", {
-      timeZone: "America/Phoenix",
+      timeZone: companyTz,
       hour12: true,
       year: "numeric",
       month: "long",
@@ -223,11 +224,10 @@ export async function POST(req: NextRequest) {
       minute: "2-digit",
     });
 
-    // --- Transport
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST!,
       port: Number(process.env.SMTP_PORT!),
-      secure: Number(process.env.SMTP_PORT) === 465, // true for 465, false otherwise
+      secure: Number(process.env.SMTP_PORT) === 465,
       auth: {
         user: process.env.SMTP_USER!,
         pass: process.env.SMTP_PASS!,
@@ -261,7 +261,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Optional: quick health check
 export async function GET() {
   return NextResponse.json({ ok: true, brand: BRAND });
 }

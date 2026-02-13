@@ -44,13 +44,12 @@ type Props = {
   spendAllTimeCents: number;
   outstandingCents: number;
   ridesThisMonth: number;
+  companyTimezone: string;
 };
 
 /* ─────────────────────────────────────────────
    Constants
    ───────────────────────────────────────────── */
-
-const PHX_TZ = "America/Phoenix";
 
 const STATUS_TABS = ["ALL", "SENT", "OVERDUE", "PAID", "VOID"] as const;
 type StatusTab = (typeof STATUS_TABS)[number];
@@ -75,25 +74,25 @@ function formatMoneyExact(cents: number) {
   }).format(cents / 100);
 }
 
-function formatDate(iso: string) {
+function formatDate(iso: string, timeZone: string) {
   if (!iso) return "—";
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "short",
     day: "numeric",
     year: "numeric",
   }).format(new Date(iso));
 }
 
-function formatPeriod(start: string, end: string) {
+function formatPeriod(start: string, end: string, timeZone: string) {
   if (!start || !end) return "—";
   const s = new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "short",
     day: "numeric",
   }).format(new Date(start));
   const e = new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -138,17 +137,16 @@ export default function BillingClient({
   spendAllTimeCents,
   outstandingCents,
   ridesThisMonth,
+  companyTimezone,
 }: Props) {
   const [statusTab, setStatusTab] = useState<StatusTab>("ALL");
 
-  // Invoice preview modal state
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<InvoiceData | null>(null);
   const [previewInvoiceId, setPreviewInvoiceId] = useState<string | null>(null);
   const [isLoadingPreview, startPreviewTransition] = useTransition();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Tab counts
   const tabCounts = useMemo(() => {
     const map: Record<string, number> = { ALL: invoices.length };
     for (const inv of invoices) {
@@ -160,7 +158,6 @@ export default function BillingClient({
     return map;
   }, [invoices]);
 
-  // Filtered invoices
   const filtered = useMemo(() => {
     if (statusTab === "ALL") return invoices;
     if (statusTab === "SENT")
@@ -170,7 +167,6 @@ export default function BillingClient({
     return invoices.filter((i) => i.status === statusTab);
   }, [invoices, statusTab]);
 
-  // Open invoice preview
   function handleInvoiceClick(invoiceId: string) {
     setPreviewInvoiceId(invoiceId);
     setPreviewData(null);
@@ -187,7 +183,6 @@ export default function BillingClient({
     });
   }
 
-  // Download PDF
   async function handleDownload() {
     if (!previewInvoiceId || !previewData) return;
 
@@ -224,7 +219,6 @@ export default function BillingClient({
 
   return (
     <div className={styles.content}>
-      {/* ─── Header ─── */}
       <div className={styles.header}>
         <h2 className='heading h3'>Billing</h2>
         <p className={styles.meta}>
@@ -232,7 +226,6 @@ export default function BillingClient({
         </p>
       </div>
 
-      {/* ─── KPI Cards ─── */}
       <div className={styles.kpiGrid}>
         <div className={styles.kpiCard}>
           <span className={styles.kpiLabel}>Spend This Month</span>
@@ -276,7 +269,6 @@ export default function BillingClient({
         </div>
       </div>
 
-      {/* ─── Monthly limit progress ─── */}
       {account.monthlyLimitCents && account.monthlyLimitCents > 0 && (
         <div className={styles.limitCard}>
           <div className={styles.limitTop}>
@@ -297,12 +289,10 @@ export default function BillingClient({
         </div>
       )}
 
-      {/* ─── Invoices Section ─── */}
       <div className={styles.sectionHeader}>
         <h3 className={styles.sectionTitle}>Invoices</h3>
       </div>
 
-      {/* Status Tabs */}
       <div className={styles.tabRow}>
         {STATUS_TABS.map((tab) => {
           const count = tabCounts[tab] ?? 0;
@@ -324,7 +314,6 @@ export default function BillingClient({
         })}
       </div>
 
-      {/* Invoices Table / Empty */}
       {invoices.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyTitle}>No invoices yet</p>
@@ -363,7 +352,6 @@ export default function BillingClient({
                     className={`${styles.tr} ${styles.trClickable}`}
                     onClick={() => handleInvoiceClick(inv.id)}
                   >
-                    {/* Invoice # + Booking Confirmation */}
                     <td className={styles.td}>
                       <span className={styles.cellStrong}>
                         {inv.invoiceNumber}
@@ -375,12 +363,14 @@ export default function BillingClient({
                       )}
                     </td>
 
-                    {/* Period */}
                     <td className={styles.td}>
-                      {formatPeriod(inv.periodStart, inv.periodEnd)}
+                      {formatPeriod(
+                        inv.periodStart,
+                        inv.periodEnd,
+                        companyTimezone,
+                      )}
                     </td>
 
-                    {/* Due Date */}
                     <td className={styles.td}>
                       {inv.dueDate ? (
                         <span
@@ -388,17 +378,15 @@ export default function BillingClient({
                             inv.status === "OVERDUE" ? styles.textRed : ""
                           }
                         >
-                          {formatDate(inv.dueDate)}
+                          {formatDate(inv.dueDate, companyTimezone)}
                         </span>
                       ) : (
                         "—"
                       )}
                     </td>
 
-                    {/* Rides */}
                     <td className={styles.td}>{inv.lineItemCount}</td>
 
-                    {/* Status */}
                     <td className={styles.td}>
                       <span
                         className={`${styles.badge} ${invoiceBadgeClass(inv.status)}`}
@@ -407,12 +395,10 @@ export default function BillingClient({
                       </span>
                     </td>
 
-                    {/* Amount */}
                     <td className={`${styles.td} ${styles.tdRight}`}>
                       {formatMoneyExact(inv.totalCents)}
                     </td>
 
-                    {/* Paid */}
                     <td className={`${styles.td} ${styles.tdRight}`}>
                       {inv.amountPaidCents > 0
                         ? formatMoneyExact(inv.amountPaidCents)
@@ -426,7 +412,6 @@ export default function BillingClient({
         </div>
       )}
 
-      {/* ─── Invoice Preview Modal ─── */}
       <Modal
         isOpen={previewOpen}
         onClose={() => {

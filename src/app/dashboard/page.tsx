@@ -19,11 +19,10 @@ import UserPaymentDue, {
 import UserNextTrip from "@/components/Dashboard/UserNextTrip/UserNextTrip";
 import { getUserNextTrip } from "@/components/Dashboard/UserNextTrip/getUserNextTrip";
 import { BookingStatus } from "@prisma/client";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_TZ = "America/Phoenix";
 
 // Statuses for "upcoming" trips (approved AND paid)
 const UPCOMING_PAID_STATUSES: BookingStatus[] = [
@@ -34,9 +33,9 @@ const UPCOMING_PAID_STATUSES: BookingStatus[] = [
   "IN_PROGRESS",
 ];
 
-function formatPickupDate(date: Date) {
+function formatPickupDate(date: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -78,6 +77,7 @@ export default async function DashboardHomePage() {
   if (!userId) redirect("/login?next=/dashboard");
 
   const now = new Date();
+  const { timezone: companyTz } = await getCompanySettings();
 
   // Fetch user's next trip
   const nextTrip = await getUserNextTrip(userId);
@@ -187,7 +187,7 @@ export default async function DashboardHomePage() {
       },
     }),
 
-    // Recent status events (last 7 days) for payment received, approved, driver assigned, refunded, cancelled
+    // Recent status events (last 7 days)
     db.bookingStatusEvent.findMany({
       where: {
         booking: { userId },
@@ -269,7 +269,6 @@ export default async function DashboardHomePage() {
   // Build user alerts
   const alerts: UserAlertItem[] = [];
 
-  // Helper to format relative time
   function formatTimeAgo(date: Date): string {
     const diffMs = now.getTime() - date.getTime();
     const mins = Math.round(diffMs / (60 * 1000));
@@ -306,7 +305,7 @@ export default async function DashboardHomePage() {
         href: `/dashboard/trips/${booking.id}`,
         ctaLabel: "View Trip",
         amountPaid: formatMoney(amountCents, booking.currency),
-        pickupDate: formatPickupDate(booking.pickupAt),
+        pickupDate: formatPickupDate(booking.pickupAt, companyTz),
         route: `${shortAddress(booking.pickupAddress)} → ${shortAddress(booking.dropoffAddress)}`,
         timestamp: timeAgo,
       });
@@ -314,7 +313,6 @@ export default async function DashboardHomePage() {
 
     // Booking Approved (ready for payment)
     if (eventType === "APPROVAL_CHANGED" && metadata?.approved === true) {
-      // Only show if booking is still pending payment
       if (booking.status === "PENDING_PAYMENT") {
         alerts.push({
           id: `approved-${event.id}`,
@@ -326,7 +324,7 @@ export default async function DashboardHomePage() {
           href: `/dashboard/trips/${booking.id}`,
           ctaLabel: "Complete Payment",
           amountDue: formatMoney(booking.totalCents, booking.currency),
-          pickupDate: formatPickupDate(booking.pickupAt),
+          pickupDate: formatPickupDate(booking.pickupAt, companyTz),
           route: `${shortAddress(booking.pickupAddress)} → ${shortAddress(booking.dropoffAddress)}`,
           timestamp: timeAgo,
         });
@@ -349,7 +347,7 @@ export default async function DashboardHomePage() {
         ctaLabel: "View Trip",
         driverName: driverName ?? null,
         vehicleName: vehicleName ?? null,
-        pickupDate: formatPickupDate(booking.pickupAt),
+        pickupDate: formatPickupDate(booking.pickupAt, companyTz),
         route: `${shortAddress(booking.pickupAddress)} → ${shortAddress(booking.dropoffAddress)}`,
         timestamp: timeAgo,
       });
@@ -367,7 +365,7 @@ export default async function DashboardHomePage() {
         href: `/dashboard/trips/${booking.id}`,
         ctaLabel: "View Details",
         amountRefunded: formatMoney(refundCents, booking.currency),
-        pickupDate: formatPickupDate(booking.pickupAt),
+        pickupDate: formatPickupDate(booking.pickupAt, companyTz),
         route: `${shortAddress(booking.pickupAddress)} → ${shortAddress(booking.dropoffAddress)}`,
         timestamp: timeAgo,
       });
@@ -383,7 +381,7 @@ export default async function DashboardHomePage() {
         message: "Your booking has been cancelled.",
         href: `/dashboard/trips/${booking.id}`,
         ctaLabel: "View Details",
-        pickupDate: formatPickupDate(booking.pickupAt),
+        pickupDate: formatPickupDate(booking.pickupAt, companyTz),
         route: `${shortAddress(booking.pickupAddress)} → ${shortAddress(booking.dropoffAddress)}`,
         timestamp: timeAgo,
       });
@@ -405,7 +403,7 @@ export default async function DashboardHomePage() {
       ctaLabel: "View Details",
       declineReason: b.declineReason,
       bookingId: b.id,
-      pickupDate: formatPickupDate(b.pickupAt),
+      pickupDate: formatPickupDate(b.pickupAt, companyTz),
       route: `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`,
       timestamp: timeAgo,
     });
@@ -434,7 +432,7 @@ export default async function DashboardHomePage() {
       href: `/dashboard/trips/${b.id}`,
       ctaLabel: "View Booking",
       amountDue: formatMoney(b.totalCents, b.currency),
-      dueDate: formatPickupDate(b.pickupAt),
+      dueDate: formatPickupDate(b.pickupAt, companyTz),
       paymentUrl: b.payment?.checkoutUrl ?? null,
       bookingId: b.id,
       route: `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`,
@@ -443,13 +441,12 @@ export default async function DashboardHomePage() {
   }
 
   // Sort alerts: danger first, then warning, then success, then info
-  // Also sort by recency within each severity
   alerts.sort((a, b) => {
     const order = { danger: 0, warning: 1, success: 2, info: 3 };
     return order[a.severity] - order[b.severity];
   });
 
-  // Deduplicate alerts (in case same booking has multiple events)
+  // Deduplicate alerts
   const seenBookings = new Set<string>();
   const uniqueAlerts = alerts.filter((a) => {
     if (!a.bookingId) return true;
@@ -459,7 +456,6 @@ export default async function DashboardHomePage() {
     return true;
   });
 
-  // Limit to most recent 10 alerts
   const finalAlerts = uniqueAlerts.slice(0, 10);
 
   const displayName =
@@ -474,30 +470,25 @@ export default async function DashboardHomePage() {
         confirmed={upcomingPaidCount}
       />
 
-      {/* User Alerts (all types: positive and negative) */}
       <UserAlerts alerts={finalAlerts} />
 
-      {/* User's Next Trip */}
-      <UserNextTrip trip={nextTrip} timeZone={PHX_TZ} />
+      <UserNextTrip trip={nextTrip} timeZone={companyTz} />
 
-      {/* Payment Required (approved, needs payment) */}
       <UserPaymentDue
         items={pendingPaymentData}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
         bookingHrefBase='/dashboard/trips'
       />
 
-      {/* Awaiting Approval (pending review) */}
       <UserPendingTrips
         items={pendingReviewData}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
         bookingHrefBase='/dashboard/trips'
       />
 
-      {/* Upcoming Trips (confirmed & paid) */}
       <UserUpcomingTrips
         items={upcomingTripsData}
-        timeZone={PHX_TZ}
+        timeZone={companyTz}
         bookingHrefBase='/dashboard/trips'
       />
     </section>

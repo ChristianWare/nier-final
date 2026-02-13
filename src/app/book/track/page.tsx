@@ -6,6 +6,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { auth } from "../../../../auth";
 import { BookingStatus } from "@prisma/client";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +19,6 @@ type ProgressStep = {
 };
 
 function getProgressSteps(bookingStatus: BookingStatus): ProgressStep[] {
-  // Determine which step we're on based on booking status
   const isPendingReview = bookingStatus === "PENDING_REVIEW";
   const isPendingPayment = bookingStatus === "PENDING_PAYMENT";
   const isDeclined = bookingStatus === "DECLINED";
@@ -34,7 +34,7 @@ function getProgressSteps(bookingStatus: BookingStatus): ProgressStep[] {
     bookingStatus === "CANCELLED" || bookingStatus === "NO_SHOW";
 
   if (isDeclined || isCancelled) {
-    return []; // Don't show progress for declined/cancelled
+    return [];
   }
 
   return [
@@ -161,7 +161,7 @@ function getStatusDisplay(status: BookingStatus): {
   }
 }
 
-function formatDateTime(d: Date) {
+function formatDateTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -169,7 +169,7 @@ function formatDateTime(d: Date) {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Phoenix",
+    timeZone,
   }).format(d);
 }
 
@@ -199,6 +199,8 @@ export default async function TrackPage({
       </main>
     );
   }
+
+  const { timezone: companyTz } = await getCompanySettings();
 
   const booking = await db.booking.findFirst({
     where: { guestClaimToken: t },
@@ -270,7 +272,6 @@ export default async function TrackPage({
           <div className={styles.card}>
             <h1 className={`${styles.heading} cardTitle h2`}>Request Status</h1>
 
-            {/* Confirmation Code */}
             <div className={styles.confirmationCode}>
               <span className={styles.confirmationLabel}>Confirmation #</span>
               <span className={styles.confirmationValue}>
@@ -278,19 +279,16 @@ export default async function TrackPage({
               </span>
             </div>
 
-            {/* Status Badge */}
             <div
               className={`${styles.statusBadge} ${styles[`status_${statusDisplay.tone}`]}`}
             >
               {statusDisplay.label}
             </div>
 
-            {/* Status Message */}
             {statusDisplay.message && (
               <p className={styles.statusMessage}>{statusDisplay.message}</p>
             )}
 
-            {/* Payment Button (if pending payment) */}
             {showPaymentButton && (
               <div className={styles.paymentSection}>
                 <a
@@ -302,7 +300,6 @@ export default async function TrackPage({
               </div>
             )}
 
-            {/* Progress Steps (if not terminal) */}
             {!isTerminal && progressSteps.length > 0 && (
               <div className={styles.progressSection}>
                 <h3 className={styles.progressTitle}>Progress</h3>
@@ -329,14 +326,13 @@ export default async function TrackPage({
               </div>
             )}
 
-            {/* Trip Details */}
             <div className={styles.detailsSection}>
               <h3 className={styles.detailsTitle}>Trip Details</h3>
               <div className={styles.grid}>
                 <div className={styles.gridItem}>
                   <div className={styles.k}>📅 Pickup</div>
                   <div className={styles.v}>
-                    {formatDateTime(booking.pickupAt)}
+                    {formatDateTime(booking.pickupAt, companyTz)}
                   </div>
                 </div>
                 <div className={styles.gridItem}>
@@ -365,7 +361,6 @@ export default async function TrackPage({
               </div>
             </div>
 
-            {/* Account Actions */}
             <div className={styles.actions}>
               {!isAuthed ? (
                 <>
@@ -394,7 +389,6 @@ export default async function TrackPage({
               )}
             </div>
 
-            {/* Help Note */}
             <div className={styles.note}>
               Questions? Reply to your confirmation email or contact support.
             </div>
