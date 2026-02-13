@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
 
 function requireEnv(name: string) {
   const v = process.env[name];
@@ -6,11 +7,11 @@ function requireEnv(name: string) {
   return v;
 }
 
-function formatPickupDate(iso: string) {
+function formatPickupDate(iso: string, timeZone: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -18,11 +19,11 @@ function formatPickupDate(iso: string) {
   }).format(d);
 }
 
-function formatPickupTime(iso: string) {
+function formatPickupTime(iso: string, timeZone: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -45,8 +46,9 @@ export async function sendBookingDeclinedEmail(args: {
 
   const name = (args.name ?? "").trim();
   const firstName = name.split(" ")[0] || "there";
-  const pickupDate = formatPickupDate(args.pickupAtISO);
-  const pickupTime = formatPickupTime(args.pickupAtISO);
+  const { timezone: companyTz } = await getCompanySettings();
+  const pickupDate = formatPickupDate(args.pickupAtISO, companyTz);
+  const pickupTime = formatPickupTime(args.pickupAtISO, companyTz);
   const confirmationCode = args.bookingId.slice(0, 8).toUpperCase();
   const declineReason = args.declineReason?.trim() || null;
   const contactEmail = args.contactEmail || "support@niertransportation.com";
@@ -318,7 +320,11 @@ export async function sendBookingDeclinedEmail(args: {
     "unable to accommodate your booking request at this time.",
     "",
     ...(declineReason
-      ? ["───────────────────────────────────────", `REASON: ${declineReason}`, ""]
+      ? [
+          "───────────────────────────────────────",
+          `REASON: ${declineReason}`,
+          "",
+        ]
       : []),
     "───────────────────────────────────────",
     "YOUR REQUEST DETAILS",

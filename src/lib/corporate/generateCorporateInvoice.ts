@@ -1,6 +1,7 @@
 // lib/corporate/generateCorporateInvoice.ts
 import { db } from "@/lib/db";
 import Stripe from "stripe";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
@@ -62,15 +63,18 @@ function calculateDueDate(paymentTerms: string): Date {
    Build line item description
    ───────────────────────────────────────────── */
 
-function buildLineItemDescription(booking: {
-  pickupAt: Date;
-  pickupAddress: string;
-  dropoffAddress: string;
-  serviceType: { name: string };
-  corporatePassenger?: { name: string } | null;
-}): string {
+function buildLineItemDescription(
+  booking: {
+    pickupAt: Date;
+    pickupAddress: string;
+    dropoffAddress: string;
+    serviceType: { name: string };
+    corporatePassenger?: { name: string } | null;
+  },
+  timeZone: string,
+): string {
   const date = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     month: "short",
     day: "numeric",
   }).format(booking.pickupAt);
@@ -208,7 +212,8 @@ export async function generateCorporateInvoice(
     const now = new Date();
 
     // ─── 4. Build line item description ───
-    const description = buildLineItemDescription(booking);
+    const { timezone: companyTz } = await getCompanySettings();
+    const description = buildLineItemDescription(booking, companyTz);
 
     // ─── 5. Create invoice + line item + event in a transaction ───
     const invoice = await db.$transaction(async (tx) => {

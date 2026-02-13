@@ -1,8 +1,6 @@
-const PHX_TZ = "America/Phoenix";
-
-export function formatPhoenixDateTime(d: Date) {
+export function formatPhoenixDateTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone,
     weekday: "short",
     month: "short",
     day: "numeric",

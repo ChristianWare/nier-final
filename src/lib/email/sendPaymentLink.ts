@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 
 function requireEnv(name: string) {
@@ -16,11 +17,11 @@ function formatMoney(cents: number, currency: string) {
   }).format(n);
 }
 
-function formatPickupDate(iso: string) {
+function formatPickupDate(iso: string, timeZone: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     weekday: "long",
     month: "long",
     day: "numeric",
@@ -28,11 +29,11 @@ function formatPickupDate(iso: string) {
   }).format(d);
 }
 
-function formatPickupTime(iso: string) {
+function formatPickupTime(iso: string, timeZone: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Phoenix",
+    timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
@@ -55,8 +56,9 @@ export async function sendPaymentLinkEmail(args: {
 
   const name = (args.name ?? "").trim();
   const firstName = name.split(" ")[0] || "there";
-  const pickupDate = formatPickupDate(args.pickupAtISO);
-  const pickupTime = formatPickupTime(args.pickupAtISO);
+  const { timezone: companyTz } = await getCompanySettings();
+  const pickupDate = formatPickupDate(args.pickupAtISO, companyTz);
+  const pickupTime = formatPickupTime(args.pickupAtISO, companyTz);
   const total = formatMoney(args.totalCents, args.currency);
   const confirmationCode = args.bookingId.slice(0, 8).toUpperCase();
 

@@ -111,7 +111,7 @@ export function formatInvoiceDate(date: Date): string {
   }).format(date);
 }
 
-export function formatTripDateTime(date: Date): string {
+export function formatTripDateTime(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     month: "short",
@@ -119,6 +119,6 @@ export function formatTripDateTime(date: Date): string {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: "America/Phoenix",
+    timeZone,
   }).format(date);
 }
