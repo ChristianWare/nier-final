@@ -33,6 +33,12 @@ type Props = {
     websiteUrl: string;
     googleBusinessUrl: string;
     yelpUrl: string;
+    instagramUrl: string;
+    facebookUrl: string;
+    twitterUrl: string;
+    linkedinUrl: string;
+    tiktokUrl: string;
+    youtubeUrl: string;
     // Legal
     taxId: string;
     businessLicense: string;
@@ -142,12 +148,12 @@ export default function CompanySettingsForm({ initial }: Props) {
   );
   const [smsFromNumber, setSmsFromNumber] = useState(initial.smsFromNumber);
 
-  /* ── New: Branding ── */
+  /* ── Branding ── */
   const [companyName, setCompanyName] = useState(initial.companyName);
   const [companyTagline, setCompanyTagline] = useState(initial.companyTagline);
   const [logoUrl, setLogoUrl] = useState(initial.logoUrl);
 
-  /* ── New: Email ── */
+  /* ── Email ── */
   const [emailSenderName, setEmailSenderName] = useState(
     initial.emailSenderName,
   );
@@ -156,17 +162,23 @@ export default function CompanySettingsForm({ initial }: Props) {
     initial.emailFooterText,
   );
 
-  /* ── New: Timezone ── */
+  /* ── Timezone ── */
   const [timezone, setTimezone] = useState(initial.timezone);
 
-  /* ── New: Social ── */
+  /* ── Social ── */
   const [websiteUrl, setWebsiteUrl] = useState(initial.websiteUrl);
   const [googleBusinessUrl, setGoogleBusinessUrl] = useState(
     initial.googleBusinessUrl,
   );
   const [yelpUrl, setYelpUrl] = useState(initial.yelpUrl);
+  const [instagramUrl, setInstagramUrl] = useState(initial.instagramUrl);
+  const [facebookUrl, setFacebookUrl] = useState(initial.facebookUrl);
+  const [twitterUrl, setTwitterUrl] = useState(initial.twitterUrl);
+  const [linkedinUrl, setLinkedinUrl] = useState(initial.linkedinUrl);
+  const [tiktokUrl, setTiktokUrl] = useState(initial.tiktokUrl);
+  const [youtubeUrl, setYoutubeUrl] = useState(initial.youtubeUrl);
 
-  /* ── New: Legal ── */
+  /* ── Legal ── */
   const [taxId, setTaxId] = useState(initial.taxId);
   const [businessLicense, setBusinessLicense] = useState(
     initial.businessLicense,
@@ -203,6 +215,12 @@ export default function CompanySettingsForm({ initial }: Props) {
     if (googleBusinessUrl !== initial.googleBusinessUrl)
       fields.push("Google Business URL");
     if (yelpUrl !== initial.yelpUrl) fields.push("Yelp URL");
+    if (instagramUrl !== initial.instagramUrl) fields.push("Instagram URL");
+    if (facebookUrl !== initial.facebookUrl) fields.push("Facebook URL");
+    if (twitterUrl !== initial.twitterUrl) fields.push("X / Twitter URL");
+    if (linkedinUrl !== initial.linkedinUrl) fields.push("LinkedIn URL");
+    if (tiktokUrl !== initial.tiktokUrl) fields.push("TikTok URL");
+    if (youtubeUrl !== initial.youtubeUrl) fields.push("YouTube URL");
     // Legal
     if (taxId !== initial.taxId) fields.push("Tax ID");
     if (businessLicense !== initial.businessLicense)
@@ -227,6 +245,12 @@ export default function CompanySettingsForm({ initial }: Props) {
     websiteUrl,
     googleBusinessUrl,
     yelpUrl,
+    instagramUrl,
+    facebookUrl,
+    twitterUrl,
+    linkedinUrl,
+    tiktokUrl,
+    youtubeUrl,
     taxId,
     businessLicense,
     initial,
@@ -673,7 +697,9 @@ export default function CompanySettingsForm({ initial }: Props) {
         <div className={styles.sectionHeader}>
           <h2 className='cardTitle h4'>Social &amp; Web Presence</h2>
           <p className='miniNote'>
-            Links shown in email footers and the customer-facing booking site
+            Links shown in the website footer, email footers, and the
+            customer-facing booking site. Only platforms with a URL will display
+            an icon.
           </p>
         </div>
 
@@ -713,6 +739,72 @@ export default function CompanySettingsForm({ initial }: Props) {
               onChange={(e) => setYelpUrl(e.target.value)}
             />
             <div className='miniNote'>Your Yelp business listing URL</div>
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Instagram</label>
+            <input
+              name='instagramUrl'
+              className='input subheading'
+              placeholder='https://instagram.com/yourbusiness'
+              value={instagramUrl}
+              onChange={(e) => setInstagramUrl(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Facebook</label>
+            <input
+              name='facebookUrl'
+              className='input subheading'
+              placeholder='https://facebook.com/yourbusiness'
+              value={facebookUrl}
+              onChange={(e) => setFacebookUrl(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>X / Twitter</label>
+            <input
+              name='twitterUrl'
+              className='input subheading'
+              placeholder='https://x.com/yourbusiness'
+              value={twitterUrl}
+              onChange={(e) => setTwitterUrl(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>LinkedIn</label>
+            <input
+              name='linkedinUrl'
+              className='input subheading'
+              placeholder='https://linkedin.com/company/yourbusiness'
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>TikTok</label>
+            <input
+              name='tiktokUrl'
+              className='input subheading'
+              placeholder='https://tiktok.com/@yourbusiness'
+              value={tiktokUrl}
+              onChange={(e) => setTiktokUrl(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>YouTube</label>
+            <input
+              name='youtubeUrl'
+              className='input subheading'
+              placeholder='https://youtube.com/@yourbusiness'
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+            />
           </div>
         </div>
       </div>

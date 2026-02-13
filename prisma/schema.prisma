@@ -715,6 +715,12 @@ model CompanySettings {
   websiteUrl        String?
   googleBusinessUrl String?
   yelpUrl           String?
+  instagramUrl      String?
+  facebookUrl       String?
+  twitterUrl        String?
+  linkedinUrl       String?
+  tiktokUrl         String?
+  youtubeUrl        String?
 
   // Legal
   taxId           String?

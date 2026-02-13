@@ -2,7 +2,7 @@
 
 .container {
   display: grid;
-  gap: 3rem;
+  gap: 7rem;
 }
 
 .header {
@@ -58,22 +58,41 @@
   object-fit: contain;
 }
 
+.gridParent {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+  margin-top: -5rem;
+}
+
 /* Grid layout */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 2rem;
 }
 
 /* Cards */
 .card {
-  background: var(--white);
-  border: 1px solid var(--stroke);
+  background: var(--lighterBlue);
+  border: 1px solid var(--lightBlue);
   border-radius: 10px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  width: 100%;
+}
+
+.box {
+  width: 100%;
 }
 
 .cardHeader {
+  width: 100%;
+  background-color: var(--lightBlue);
   padding: 1rem;
   border-bottom: 1px solid var(--stroke);
   display: flex;
@@ -82,6 +101,8 @@
 }
 
 .cardBody {
+  margin-top: 2rem;
+  width: 100%;
   padding: 1rem;
   display: grid;
   gap: 1rem;
@@ -134,13 +155,15 @@
   text-decoration: underline;
 }
 
+.btnContainer {
+  padding: 1rem;
+  width: 100%;
+}
+
 /* Sections */
 .section {
   display: grid;
   gap: 2rem;
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 2rem;
 }
 
 .sectionHeader {
@@ -148,8 +171,14 @@
   gap: 0.5rem;
 }
 
+@media screen and (max-width: 1468px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Responsive */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1068px) {
   .grid {
     grid-template-columns: 1fr;
   }

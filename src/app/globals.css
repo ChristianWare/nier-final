@@ -13,6 +13,7 @@
   --stroke: #d8d6d2;
   --strokeii: #a7a6a2;
   --blue: #2563eb;
+  --lighterBlue: linear-gradient(135deg, #3b82f614 0%, #2563eb1f 100%);
   --lightBlue: #2563eb33;
   --green: rgb(22, 163, 74);
   --lightGreen: #16a34a4d;
@@ -39,8 +40,10 @@
   box-sizing: border-box;
   text-decoration: none;
   line-height: 110%;
-  /* scroll-behavior: smooth;
-  scroll-margin-top: 40px;
+  scroll-behavior: smooth;
+  scroll-margin-top: 90px;
+  /* 
+  
   */
   /* scroll-margin-top: 440px; */
   -webkit-tap-highlight-color: transparent;
@@ -686,7 +689,7 @@ th {
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: right .5rem center;
+  background-position: right 0.5rem center;
   background-size: 1.5em 1.5em;
   padding-right: 4.5rem;
 }

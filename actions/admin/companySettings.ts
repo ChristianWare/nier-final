@@ -66,6 +66,12 @@ const DEFAULTS = {
   websiteUrl: "",
   googleBusinessUrl: "",
   yelpUrl: "",
+  instagramUrl: "",
+  facebookUrl: "",
+  twitterUrl: "",
+  linkedinUrl: "",
+  tiktokUrl: "",
+  youtubeUrl: "",
   taxId: "",
   businessLicense: "",
 };
@@ -112,6 +118,12 @@ export type CompanySettingsData = {
   websiteUrl: string;
   googleBusinessUrl: string;
   yelpUrl: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  twitterUrl: string;
+  linkedinUrl: string;
+  tiktokUrl: string;
+  youtubeUrl: string;
   // Legal
   taxId: string;
   businessLicense: string;
@@ -160,6 +172,12 @@ export async function getCompanySettings(): Promise<CompanySettingsData> {
     websiteUrl: row?.websiteUrl ?? DEFAULTS.websiteUrl,
     googleBusinessUrl: row?.googleBusinessUrl ?? DEFAULTS.googleBusinessUrl,
     yelpUrl: row?.yelpUrl ?? DEFAULTS.yelpUrl,
+    instagramUrl: row?.instagramUrl ?? DEFAULTS.instagramUrl,
+    facebookUrl: row?.facebookUrl ?? DEFAULTS.facebookUrl,
+    twitterUrl: row?.twitterUrl ?? DEFAULTS.twitterUrl,
+    linkedinUrl: row?.linkedinUrl ?? DEFAULTS.linkedinUrl,
+    tiktokUrl: row?.tiktokUrl ?? DEFAULTS.tiktokUrl,
+    youtubeUrl: row?.youtubeUrl ?? DEFAULTS.youtubeUrl,
     // Legal
     taxId: row?.taxId ?? DEFAULTS.taxId,
     businessLicense: row?.businessLicense ?? DEFAULTS.businessLicense,
@@ -217,6 +235,12 @@ const SaveSchema = z.object({
   websiteUrl: z.string().trim().optional(),
   googleBusinessUrl: z.string().trim().optional(),
   yelpUrl: z.string().trim().optional(),
+  instagramUrl: z.string().trim().optional(),
+  facebookUrl: z.string().trim().optional(),
+  twitterUrl: z.string().trim().optional(),
+  linkedinUrl: z.string().trim().optional(),
+  tiktokUrl: z.string().trim().optional(),
+  youtubeUrl: z.string().trim().optional(),
   // Legal
   taxId: z.string().trim().optional(),
   businessLicense: z.string().trim().optional(),
@@ -255,6 +279,12 @@ export async function saveCompanySettings(formData: FormData) {
     websiteUrl: str("websiteUrl"),
     googleBusinessUrl: str("googleBusinessUrl"),
     yelpUrl: str("yelpUrl"),
+    instagramUrl: str("instagramUrl"),
+    facebookUrl: str("facebookUrl"),
+    twitterUrl: str("twitterUrl"),
+    linkedinUrl: str("linkedinUrl"),
+    tiktokUrl: str("tiktokUrl"),
+    youtubeUrl: str("youtubeUrl"),
     // Legal
     taxId: str("taxId"),
     businessLicense: str("businessLicense"),
@@ -294,6 +324,12 @@ export async function saveCompanySettings(formData: FormData) {
     websiteUrl: d.websiteUrl || null,
     googleBusinessUrl: d.googleBusinessUrl || null,
     yelpUrl: d.yelpUrl || null,
+    instagramUrl: d.instagramUrl || null,
+    facebookUrl: d.facebookUrl || null,
+    twitterUrl: d.twitterUrl || null,
+    linkedinUrl: d.linkedinUrl || null,
+    tiktokUrl: d.tiktokUrl || null,
+    youtubeUrl: d.youtubeUrl || null,
     // Legal
     taxId: d.taxId || null,
     businessLicense: d.businessLicense || null,
