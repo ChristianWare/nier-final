@@ -1,8 +1,9 @@
+/* src/components/Dashboard/DashboardProfile/DashboardProfile.module.css */
+
 .container {
   display: grid;
   gap: 1rem;
 }
-
 
 .grid {
   display: grid;
@@ -18,14 +19,10 @@
   display: grid;
   gap: 3rem;
   min-width: 0;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
 }
-
-/* .cardTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.8rem;
-} */
 
 .cardTitle {
   margin: 0;
@@ -57,9 +54,25 @@
   color: var(--paragraph);
 }
 
-.form {
+.formFields {
   display: grid;
-  gap: 3rem;
+  gap: 2rem;
+}
+
+.editEmailFields {
+  display: grid;
+  gap: 2rem;
+}
+
+.warningNote {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #92400e;
+  padding: 10px 14px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 8px;
+  line-height: 1.5;
 }
 
 .input {
@@ -109,7 +122,49 @@
   flex-wrap: wrap;
 }
 
+/* =============================================================================
+   SECTION LOCK / UNLOCK STATES
+   ============================================================================= */
 
+/* Locked — fields ghosted, labels stay full opacity */
+.sectionLocked input:disabled,
+.sectionLocked select:disabled,
+.sectionLocked textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+  border-color: var(--stroke);
+}
+
+/* Editing — blue accent */
+.sectionEditing {
+  background: var(--lighterBlue);
+  border: 2px solid var(--lightBlue);
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* Saved — green flash */
+.sectionSaved {
+  background: rgba(22, 163, 74, 0.015);
+  border: 2px solid rgb(34, 197, 94);
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* Actions row */
+.sectionActionsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+}
+
+/* ─── Responsive ─── */
 
 @media screen and (max-width: 1000px) {
   .grid {

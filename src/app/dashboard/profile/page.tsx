@@ -4,18 +4,10 @@ import { auth } from "../../../../auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import DashboardProfile from "@/components/Dashboard/DashboardProfile/DashboardProfile";
+import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-type SearchParams = {
-  ok?: string | string[];
-  err?: string | string[];
-};
-
-function first(v?: string | string[]) {
-  return Array.isArray(v) ? v[0] : v;
-}
 
 async function resolveUserId(session: any) {
   const sessionUserId =
@@ -33,20 +25,12 @@ async function resolveUserId(session: any) {
   return user?.id ?? null;
 }
 
-export default async function DashboardProfilePage({
-  searchParams,
-}: {
-  searchParams?: SearchParams | Promise<SearchParams>;
-}) {
+export default async function DashboardProfilePage() {
   const session = await auth();
   if (!session) redirect("/login?next=/dashboard/profile");
 
   const userId = await resolveUserId(session);
   if (!userId) redirect("/login?next=/dashboard/profile");
-
-  const sp = await Promise.resolve(searchParams);
-  const ok = first(sp?.ok);
-  const err = first(sp?.err);
 
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -54,7 +38,7 @@ export default async function DashboardProfilePage({
       id: true,
       name: true,
       email: true,
-      phone: true, // ✅ ADD THIS
+      phone: true,
       emailVerified: true,
       password: true,
       createdAt: true,
@@ -67,21 +51,19 @@ export default async function DashboardProfilePage({
   const hasPassword = Boolean(user.password);
 
   return (
-    <section className={styles.container}>
-      <DashboardProfile
-        user={{
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          phone: user.phone, // ✅ ADD THIS
-          emailVerified: user.emailVerified,
-          hasPassword,
-        }}
-        flash={{
-          ok: ok ?? null,
-          err: err ?? null,
-        }}
-      />
-    </section>
+    <DirtyFormProvider>
+      <section className={styles.container}>
+        <DashboardProfile
+          user={{
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            emailVerified: user.emailVerified?.toISOString() ?? null,
+            hasPassword,
+          }}
+        />
+      </section>
+    </DirtyFormProvider>
   );
 }
