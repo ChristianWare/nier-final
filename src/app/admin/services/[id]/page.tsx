@@ -606,7 +606,7 @@ export default async function EditServicePage({
         )}
 
         {/* Edit Form */}
-        <div className={styles.section}>
+        <div className={styles.sectionii}>
           <div className={styles.sectionHeader}>
             <h2 className='cardTitle h4'>Edit Service</h2>
             <p className='miniNote'>

@@ -323,7 +323,7 @@ export default function EditServiceForm({
               setName(next);
               if (!slugTouched) setSlug(slugify(next));
             }}
-            className='inputBorder'
+            className='input'
             disabled={fieldsDisabled}
           />
         </Field>
@@ -340,7 +340,7 @@ export default function EditServiceForm({
                 setSlug(e.target.value);
               }}
               placeholder={suggestedSlug || "auto-generated"}
-              className='inputBorder'
+              className='input'
               disabled={fieldsDisabled}
             />
 
@@ -374,7 +374,7 @@ export default function EditServiceForm({
           hint='Choose "Standard" unless pickup or dropoff should be selected from an airport list.'
         >
           <select
-            className='inputBorder'
+            className='input'
             value={airportLeg}
             onChange={(e) => {
               const next = e.target.value as AirportLegUI;
@@ -485,7 +485,7 @@ export default function EditServiceForm({
             onChange={(e) =>
               setPricingStrategy(e.target.value as PricingStrategyUI)
             }
-            className='inputBorder'
+            className='selectBorder'
             disabled={fieldsDisabled}
           >
             <option value='POINT_TO_POINT'>POINT_TO_POINT</option>
@@ -507,7 +507,7 @@ export default function EditServiceForm({
                 value={minHours}
                 onChange={(e) => setMinHours(e.target.value)}
                 min='0'
-                className='inputBorder'
+                className='input'
                 disabled={fieldsDisabled}
               />
             </Field>
@@ -520,7 +520,7 @@ export default function EditServiceForm({
               inputMode='numeric'
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value)}
-              className='inputBorder'
+              className='input'
               disabled={fieldsDisabled}
             />
           </Field>
@@ -557,7 +557,7 @@ export default function EditServiceForm({
                         onChange={(e) =>
                           updateFee(fee.id, "label", e.target.value)
                         }
-                        className='inputBorder'
+                        className='input'
                         disabled={fieldsDisabled}
                       />
                       <div className={styles.feeAmountWrapper}>
@@ -571,7 +571,7 @@ export default function EditServiceForm({
                           onChange={(e) =>
                             updateFee(fee.id, "amount", e.target.value)
                           }
-                          className='inputBorder'
+                          className='input'
                           style={{ paddingLeft: "24px" }}
                           disabled={fieldsDisabled}
                         />
@@ -652,24 +652,23 @@ export default function EditServiceForm({
         </label>
 
         {renderActions()}
-
-        {/* Danger zone — always visible below actions */}
-        <div className={styles.dangerZone}>
-          <div style={{ display: "grid", gap: 10 }}>
-            <div className='cardTitle h5'>Danger zone</div>
-            <div className='miniNote'>
-              Deleting removes this service permanently.
-            </div>
-            <div className={styles.btnContainer}>
-              <button
-                type='button'
-                className='dangerBtn'
-                onClick={() => setConfirmOpen(true)}
-                disabled={isPending}
-              >
-                Delete service
-              </button>
-            </div>
+      </div>
+      {/* Danger zone — always visible below actions */}
+      <div className={styles.dangerZone}>
+        <div style={{ display: "grid", gap: 10 }}>
+          <div className='cardTitle h5'>Danger zone</div>
+          <div className='miniNote'>
+            Deleting removes this service permanently.
+          </div>
+          <div className={styles.btnContainer}>
+            <button
+              type='button'
+              className='dangerBtn'
+              onClick={() => setConfirmOpen(true)}
+              disabled={isPending}
+            >
+              Delete service
+            </button>
           </div>
         </div>
       </div>
@@ -731,7 +730,7 @@ function Field({
 }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <label className='cardTitle h5'>{label}</label>
+      <label className='emptyTitle'>{label}</label>
       {children}
       {hint ? <div className='miniNote'>{hint}</div> : null}
     </div>

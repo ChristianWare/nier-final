@@ -25,6 +25,10 @@ type Category = {
   active: boolean;
 };
 
+const CAPACITY_OPTIONS = Array.from({ length: 60 }, (_, i) => i + 1);
+const LUGGAGE_OPTIONS = Array.from({ length: 60 }, (_, i) => i + 1);
+const MIN_HOURS_OPTIONS = Array.from({ length: 24 }, (_, i) => i + 1);
+
 export default function EditVehicleCategoryForm({
   category,
 }: {
@@ -161,7 +165,7 @@ export default function EditVehicleCategoryForm({
     if (justSaved) {
       return (
         <div className={styles.sectionActionsRow}>
-          <Button text="Saved ✓" btnType="greenReg" type="button" disabled />
+          <Button text='Saved ✓' btnType='greenReg' type='button' disabled />
         </div>
       );
     }
@@ -171,16 +175,16 @@ export default function EditVehicleCategoryForm({
         <div className={styles.sectionActionsRow}>
           <Button
             disabled={isPending}
-            type="button"
+            type='button'
             text={isPending ? "Saving..." : "Save Changes"}
-            btnType="blackReg"
+            btnType='blackReg'
             onClick={handleSave}
           />
           {!isPending && (
             <Button
-              text="Cancel"
-              btnType="redReg"
-              type="button"
+              text='Cancel'
+              btnType='redReg'
+              type='button'
               onClick={handleCancel}
             />
           )}
@@ -191,9 +195,9 @@ export default function EditVehicleCategoryForm({
     return (
       <div className={styles.sectionActionsRow}>
         <Button
-          text="Edit Category"
-          btnType="blackReg"
-          type="button"
+          text='Edit Category'
+          btnType='blackReg'
+          type='button'
           onClick={() => setIsEditing(true)}
         />
       </div>
@@ -201,105 +205,123 @@ export default function EditVehicleCategoryForm({
   };
 
   return (
-    <div id="vehicle-category-form" className={wrapperClass}>
+    <div id='vehicle-category-form' className={wrapperClass}>
       <Grid2>
-        <Field label="Name">
+        <Field label='Name'>
           <input
-            name="name"
+            name='name'
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="inputBorder"
+            className='input'
             disabled={fieldsDisabled}
           />
         </Field>
       </Grid2>
 
       <Grid3>
-        <Field label="Capacity (pax)">
-          <input
-            name="capacity"
+        <Field label='Capacity (pax)'>
+          <select
             value={capacity}
             onChange={(e) => setCapacity(e.target.value)}
-            className="inputBorder"
+            className='selectBorder'
             disabled={fieldsDisabled}
-          />
+          >
+            <option value='0'>—</option>
+            {CAPACITY_OPTIONS.map((n) => (
+              <option key={n} value={String(n)}>
+                {n} {n === 1 ? "passenger" : "passengers"}
+              </option>
+            ))}
+          </select>
         </Field>
 
-        <Field label="Luggage capacity">
-          <input
-            name="luggageCapacity"
+        <Field label='Luggage capacity'>
+          <select
             value={luggageCapacity}
             onChange={(e) => setLuggageCapacity(e.target.value)}
-            className="inputBorder"
+            className='selectBorder'
             disabled={fieldsDisabled}
-          />
+          >
+            <option value='0'>—</option>
+            {LUGGAGE_OPTIONS.map((n) => (
+              <option key={n} value={String(n)}>
+                {n} {n === 1 ? "bag" : "bags"}
+              </option>
+            ))}
+          </select>
         </Field>
 
-        <Field label="Sort order">
+        <Field label='Sort order'>
           <input
-            name="sortOrder"
+            name='sortOrder'
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
-            className="inputBorder"
+            className='input'
             disabled={fieldsDisabled}
           />
         </Field>
       </Grid3>
 
-      <Field label="Min hours (HOURLY)">
-        <input
-          name="minHours"
+      <Field label='Min hours (HOURLY)'>
+        <select
           value={minHours}
           onChange={(e) => setMinHours(e.target.value)}
-          className="inputBorder"
+          className='selectBorder'
           disabled={fieldsDisabled}
-        />
+        >
+          <option value='0'>None</option>
+          {MIN_HOURS_OPTIONS.map((n) => (
+            <option key={n} value={String(n)}>
+              {n} {n === 1 ? "hour" : "hours"}
+            </option>
+          ))}
+        </select>
       </Field>
 
       <div style={{ display: "grid", gap: 6 }}>
-        <label className="h4 underline">Pricing (USD)</label>
-        <div className="miniNote" style={{ marginTop: -2 }}>
+        <label className='h4 underline'>Pricing (USD)</label>
+        <div className='miniNote' style={{ marginTop: -2 }}>
           Enter values in dollars (example: 150.00 = $150.00).
         </div>
       </div>
 
       <Grid2>
-        <Field label="Base fare">
+        <Field label='Base fare'>
           <input
-            name="baseFareCents"
+            name='baseFareCents'
             value={baseFare}
             onChange={(e) => setBaseFare(e.target.value)}
-            className="inputBorder"
+            className='inputBorder'
             disabled={fieldsDisabled}
           />
         </Field>
 
-        <Field label="Per mile">
+        <Field label='Per mile'>
           <input
-            name="perMileCents"
+            name='perMileCents'
             value={perMile}
             onChange={(e) => setPerMile(e.target.value)}
-            className="inputBorder"
+            className='inputBorder'
             disabled={fieldsDisabled}
           />
         </Field>
 
-        <Field label="Per minute">
+        <Field label='Per minute'>
           <input
-            name="perMinuteCents"
+            name='perMinuteCents'
             value={perMinute}
             onChange={(e) => setPerMinute(e.target.value)}
-            className="inputBorder"
+            className='inputBorder'
             disabled={fieldsDisabled}
           />
         </Field>
 
-        <Field label="Per hour">
+        <Field label='Per hour'>
           <input
-            name="perHourCents"
+            name='perHourCents'
             value={perHour}
             onChange={(e) => setPerHour(e.target.value)}
-            className="inputBorder"
+            className='inputBorder'
             disabled={fieldsDisabled}
           />
         </Field>
@@ -307,14 +329,14 @@ export default function EditVehicleCategoryForm({
 
       <label className={styles.labelinputcheckbox}>
         <input
-          type="checkbox"
-          name="active"
+          type='checkbox'
+          name='active'
           checked={active}
           onChange={(e) => setActive(e.target.checked)}
           disabled={fieldsDisabled}
           className={styles.labelinputcheckbox}
         />
-        <span className="emptyTitle">Active</span>
+        <span className='emptyTitle'>Active</span>
       </label>
 
       {renderActions()}
@@ -341,9 +363,9 @@ function Field({
 }) {
   return (
     <div style={{ display: "grid", gap: 6 }}>
-      <label className="emptyTitle">{label}</label>
+      <label className='emptyTitle'>{label}</label>
       {children}
-      {hint ? <div className="miniNote">{hint}</div> : null}
+      {hint ? <div className='miniNote'>{hint}</div> : null}
     </div>
   );
 }
