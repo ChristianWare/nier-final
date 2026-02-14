@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AdminRideCalendar from "@/components/admin/AdminRideCalendar/AdminRideCalendar";
 import { db } from "@/lib/db";
-import {
-  PHX_TZ,
-  startOfMonthPhoenix,
-  startOfNextMonthPhoenix,
-  ymdInPhoenix,
-} from "../lib/phxDates";
+import { startOfNextMonth } from "../lib/phxDates";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import { formatIsoDate, startOfMonth } from "@/lib/timezone";
 import AdminBlackoutDatesSection from "@/components/admin/AdminBlackoutDates/AdminBlackoutDatesSection";
 
 export const runtime = "nodejs";
@@ -38,13 +35,14 @@ export default async function AdminCalendarPage(props: {
   const searchParams = await props.searchParams;
 
   const now = new Date();
+  const { timezone: tz } = await getCompanySettings();
   const parsed = parseMonthParam(searchParams?.month);
   const baseMonth =
     parsed ??
     new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 12, 0, 0));
 
-  const monthStart = startOfMonthPhoenix(baseMonth);
-  const nextMonthStart = startOfNextMonthPhoenix(monthStart);
+  const monthStart = startOfMonth(baseMonth, tz);
+  const nextMonthStart = startOfNextMonth(monthStart, tz);
 
   const excluded = ["CANCELLED", "NO_SHOW", "REFUNDED"] as const;
 
@@ -70,7 +68,7 @@ export default async function AdminCalendarPage(props: {
 
   const countsByYmd: Record<string, number> = {};
   for (const r of rides) {
-    const key = ymdInPhoenix(r.pickupAt);
+    const key = formatIsoDate(r.pickupAt, tz);
     countsByYmd[key] = (countsByYmd[key] ?? 0) + 1;
   }
 
@@ -92,11 +90,12 @@ export default async function AdminCalendarPage(props: {
         initialMonth={monthKey(baseMonth)}
         countsByYmd={countsByYmd}
         blackoutsByYmd={blackoutsByYmd}
-        todayYmd={ymdInPhoenix(now)}
+        todayYmd={formatIsoDate(now, tz)}
+        timeZone={tz}
       />
 
       <div className='miniNote' style={{ marginTop: 10 }}>
-        Time zone: {PHX_TZ}
+        Time zone: {tz}
       </div>
 
       <AdminBlackoutDatesSection />

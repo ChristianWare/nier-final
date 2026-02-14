@@ -927,7 +927,7 @@ export default async function AdminBookingDetailPage({
       },
 
       trip: {
-        date: formatTripDateTime(booking.pickupAt),
+        date: formatTripDateTime(booking.pickupAt, companyTz),
         pickupAddress: booking.pickupAddress,
         dropoffAddress: booking.dropoffAddress,
         stops: booking.stops.map((s) => ({
@@ -1089,6 +1089,7 @@ export default async function AdminBookingDetailPage({
               tripGroup={tripGroupData.tripGroup}
               siblings={tripGroupData.siblings}
               currentBookingId={id}
+              timeZone={companyTz}
             />
           )}
 

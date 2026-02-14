@@ -214,7 +214,10 @@ export async function getCorporateInvoiceData(
 
       trip: firstBooking
         ? {
-            date: formatTripDateTime(firstBooking.pickupAt),
+            date: formatTripDateTime(
+              firstBooking.pickupAt,
+              companySettings.timezone,
+            ),
             pickupAddress: firstBooking.pickupAddress,
             dropoffAddress: firstBooking.dropoffAddress,
             stops: firstBooking.stops.map((s) => ({

@@ -169,7 +169,7 @@ export async function GET(
       },
 
       trip: {
-        date: formatTripDateTime(booking.pickupAt),
+        date: formatTripDateTime(booking.pickupAt, companySettings.timezone),
         pickupAddress: booking.pickupAddress,
         dropoffAddress: booking.dropoffAddress,
         stops: booking.stops.map((s) => ({

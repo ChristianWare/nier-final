@@ -4,31 +4,12 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { unstable_noStore as noStore } from "next/cache";
 import BillingClient from "./BillingClient";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import { startOfMonth, addMonths } from "@/lib/timezone";
 
 export const metadata = { title: "Billing | Corporate" };
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function startOfNextMonthPhoenix(monthStartUtc: Date) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextLocalMs = Date.UTC(y, m + 1, 1, 0, 0, 0);
-  return new Date(nextLocalMs - PHX_OFFSET_MS);
-}
-
 export default async function CorporateBillingPage() {
   noStore();
 
@@ -56,9 +37,10 @@ export default async function CorporateBillingPage() {
   if (!contact?.corporateAccount) redirect("/");
 
   const account = contact.corporateAccount;
+  const { timezone: companyTimezone } = await getCompanySettings();
   const now = new Date();
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = startOfNextMonthPhoenix(monthStart);
+  const monthStart = startOfMonth(now, companyTimezone);
+  const nextMonthStart = addMonths(monthStart, 1, companyTimezone);
   const cancelledStatuses = ["CANCELLED", "REFUNDED", "NO_SHOW"] as any;
 
   // ─── Parallel data fetching ───
@@ -170,6 +152,7 @@ export default async function CorporateBillingPage() {
       spendAllTimeCents={spendAllTimeCents}
       outstandingCents={outstandingCents}
       ridesThisMonth={ridesThisMonth}
+      companyTimezone={companyTimezone}
     />
   );
 }

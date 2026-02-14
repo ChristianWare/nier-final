@@ -1,34 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { auth } from "../../../../auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { unstable_noStore as noStore } from "next/cache";
 import ReportsClient from "./ReportsClient";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import { startOfMonth } from "@/lib/timezone";
 
 export const metadata = { title: "Reports | Corporate" };
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PHX_OFFSET_MS = -7 * 60 * 60 * 1000;
-
-function startOfMonthPhoenix(dateUtc: Date) {
-  const phxLocalMs = dateUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const startLocalMs = Date.UTC(y, m, 1, 0, 0, 0);
-  return new Date(startLocalMs - PHX_OFFSET_MS);
-}
-
-function startOfNextMonthPhoenix(monthStartUtc: Date) {
-  const phxLocalMs = monthStartUtc.getTime() + PHX_OFFSET_MS;
-  const phx = new Date(phxLocalMs);
-  const y = phx.getUTCFullYear();
-  const m = phx.getUTCMonth();
-  const nextLocalMs = Date.UTC(y, m + 1, 1, 0, 0, 0);
-  return new Date(nextLocalMs - PHX_OFFSET_MS);
-}
 
 export default async function CorporateReportsPage() {
   noStore();
@@ -44,9 +25,9 @@ export default async function CorporateReportsPage() {
   if (!contact) redirect("/");
 
   const accountId = contact.corporateAccountId;
+  const { timezone: companyTimezone } = await getCompanySettings();
   const now = new Date();
-  const monthStart = startOfMonthPhoenix(now);
-  const nextMonthStart = startOfNextMonthPhoenix(monthStart);
+  const monthStart = startOfMonth(now, companyTimezone);
 
   const cancelledStatuses = ["CANCELLED", "REFUNDED", "NO_SHOW"] as any;
 
@@ -97,6 +78,7 @@ export default async function CorporateReportsPage() {
       bookings={serializedBookings}
       departments={departments}
       monthStartIso={monthStart.toISOString()}
+      companyTimezone={companyTimezone}
     />
   );
 }

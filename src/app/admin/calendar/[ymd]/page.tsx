@@ -6,11 +6,9 @@ import { db } from "@/lib/db";
 import { Prisma, BookingStatus } from "@prisma/client";
 import styles from "./AdminCalendarDay.module.css";
 import Button from "@/components/shared/Button/Button";
-import {
-  PHX_TZ,
-  startOfPhoenixDayFromYmd,
-  ymdInPhoenix,
-} from "../../lib/phxDates";
+import { startOfDayFromYmd } from "../../lib/phxDates";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import { formatIsoDate } from "@/lib/timezone";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 
 export const runtime = "nodejs";
@@ -34,7 +32,7 @@ function isValidYmd(v: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(v);
 }
 
-function formatDateTitle(ymd: string) {
+function formatDateTitle(ymd: string, tz: string) {
   const [y, m, d] = ymd.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
   return new Intl.DateTimeFormat("en-US", {
@@ -42,27 +40,26 @@ function formatDateTitle(ymd: string) {
     month: "long",
     day: "numeric",
     year: "numeric",
-    timeZone: PHX_TZ,
+    timeZone: tz,
   }).format(dt);
 }
 
-function formatTime(dt: Date) {
+function formatTime(dt: Date, tz: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone: tz,
     hour: "numeric",
     minute: "2-digit",
   }).format(dt);
 }
 
-function formatPhoenix(d: Date) {
+function formatPhoenix(d: Date, tz: string) {
   return new Intl.DateTimeFormat("en-US", {
-    timeZone: PHX_TZ,
+    timeZone: tz,
     month: "2-digit",
     day: "2-digit",
     year: "numeric",
   }).format(d);
 }
-
 function formatMoneyFromCents(cents: number) {
   const dollars = cents / 100;
   return new Intl.NumberFormat("en-US", {
@@ -171,7 +168,9 @@ export default async function AdminCalendarDayPage(props: {
 
   if (!ymd || !isValidYmd(ymd)) notFound();
 
-  const startOrNull = startOfPhoenixDayFromYmd(ymd);
+  const { timezone: tz } = await getCompanySettings();
+
+  const startOrNull = startOfDayFromYmd(ymd, tz);
   if (!startOrNull) notFound();
 
   // TypeScript now knows start is definitely a Date (not null)
@@ -263,8 +262,8 @@ export default async function AdminCalendarDayPage(props: {
     number
   >;
 
-  const title = formatDateTitle(ymd);
-  const todayKey = ymdInPhoenix(new Date());
+  const title = formatDateTitle(ymd, tz);
+  const todayKey = formatIsoDate(new Date(), tz);
   const isToday = ymd === todayKey;
 
   // Base params for links
@@ -291,7 +290,6 @@ export default async function AdminCalendarDayPage(props: {
           </div>
 
           <div className={styles.headerActions}>
-           
             <Link href='/admin/calendar' className='backBtn'>
               <Arrow className='backArrow' /> Back
             </Link>
@@ -376,7 +374,7 @@ export default async function AdminCalendarDayPage(props: {
               <tbody>
                 {bookings.map((b) => {
                   const href = `/admin/bookings/${b.id}`;
-                  const pickupTime = formatTime(b.pickupAt);
+                  const pickupTime = formatTime(b.pickupAt, tz);
                   const pickupEta = formatEta(b.pickupAt, now);
                   const total = formatMoneyFromCents(b.totalCents ?? 0);
 
