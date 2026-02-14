@@ -47,7 +47,7 @@ export default function AdminNotificationSettingsForm({ initial }: Props) {
         });
       }}
     >
-      <div className={styles.section}>
+      {/* <div className={styles.section}>
         <div className='cardTitle h4'>Channels</div>
 
         <div className={styles.channelRow}>
@@ -99,7 +99,7 @@ export default function AdminNotificationSettingsForm({ initial }: Props) {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <div className={styles.section}>
         <div className='cardTitle h4'>Event triggers</div>

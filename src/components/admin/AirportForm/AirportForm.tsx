@@ -1,10 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import styles from "./AirportForm.module.css";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+  useCallback,
+} from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import Button from "@/components/shared/Button/Button";
 
 type ActionResult = { success?: string; error?: string };
 
@@ -63,13 +72,19 @@ export default function AirportForm({
   action,
   initial,
   submitLabel = "Create",
+  mode = "create",
 }: {
   action: (formData: FormData) => Promise<ActionResult>;
   initial?: InitialAirport;
   submitLabel?: string;
+  mode?: "create" | "edit";
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  /* ── Lock / Unlock state (only applies in edit mode) ── */
+  const [isEditing, setIsEditing] = useState(mode === "create");
+  const [justSaved, setJustSaved] = useState(false);
 
   /* ── Controlled state ── */
   const [name, setName] = useState(initial?.name ?? "");
@@ -82,6 +97,19 @@ export default function AirportForm({
   const [lng, setLng] = useState(toStr(initial?.lng ?? ""));
 
   const addressRef = useRef<HTMLInputElement | null>(null);
+
+  /* ── Helpers ── */
+  const isLocked = !isEditing;
+  const fieldsDisabled = isLocked || isPending;
+
+  const wrapperClass =
+    mode === "create"
+      ? styles.form
+      : justSaved
+        ? `${styles.form} ${styles.sectionSaved}`
+        : isEditing
+          ? `${styles.form} ${styles.sectionEditing}`
+          : `${styles.form} ${styles.sectionLocked}`;
 
   /* ── Dirty form tracking ── */
   const changedFields = useMemo(() => {
@@ -97,10 +125,72 @@ export default function AirportForm({
 
   useDirtyForm(
     "airport-settings",
-    changedFields.length > 0,
+    isEditing && changedFields.length > 0,
     "airport-form",
     changedFields,
   );
+
+  /* ── Cancel — reset all fields ── */
+  const handleCancel = useCallback(() => {
+    setName(initial?.name ?? "");
+    setIata(initial?.iata ?? "");
+    setAddress(initial?.address ?? "");
+    setPlaceId(toStr(initial?.placeId ?? ""));
+    setSortOrder(String(initial?.sortOrder ?? 0));
+    setActive(initial?.active ?? true);
+    setLat(toStr(initial?.lat ?? ""));
+    setLng(toStr(initial?.lng ?? ""));
+    setIsEditing(false);
+  }, [initial]);
+
+  /* ── Save ── */
+  function handleSave() {
+    const addressVal = address.trim();
+    const latVal = lat.trim();
+    const lngVal = lng.trim();
+
+    if (addressVal && (!latVal || !lngVal)) {
+      toast.error(
+        "Please select an address suggestion so we can capture coordinates.",
+      );
+      return;
+    }
+
+    const fd = new FormData();
+    fd.set("name", name);
+    fd.set("iata", iata);
+    fd.set("address", address);
+    fd.set("placeId", placeId);
+    fd.set("sortOrder", sortOrder);
+    fd.set("lat", lat);
+    fd.set("lng", lng);
+    if (active) fd.set("active", "on");
+
+    startTransition(() => {
+      void (async () => {
+        const res = await action(fd);
+
+        if (res?.error) {
+          toast.error(res.error);
+          return;
+        }
+
+        toast.success(res?.success || "Saved");
+
+        if (mode === "create") {
+          router.push("/admin/airports");
+          router.refresh();
+        } else {
+          setJustSaved(true);
+          setTimeout(() => {
+            setJustSaved(false);
+            setIsEditing(false);
+          }, 2000);
+          router.refresh();
+        }
+      })();
+    });
+  }
 
   /* ── Google Places autocomplete ── */
   useEffect(() => {
@@ -139,7 +229,7 @@ export default function AirportForm({
           }
         });
       } catch {
-        // silent: still allow manual entry, but server action will require coords
+        // silent: still allow manual entry
       }
     })();
 
@@ -148,47 +238,71 @@ export default function AirportForm({
     };
   }, []);
 
+  /* ── Section action buttons (edit mode only) ── */
+  const renderActions = () => {
+    if (mode === "create") {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button
+            disabled={isPending}
+            type='button'
+            text={isPending ? "Saving..." : submitLabel}
+            btnType='blackReg'
+            onClick={handleSave}
+          />
+        </div>
+      );
+    }
+
+    if (justSaved) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button text='Saved ✓' btnType='greenReg' type='button' disabled />
+        </div>
+      );
+    }
+
+    if (isEditing) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button
+            disabled={isPending}
+            type='button'
+            text={isPending ? "Saving..." : "Save Changes"}
+            btnType='blackReg'
+            onClick={handleSave}
+          />
+          {!isPending && (
+            <Button
+              text='Cancel'
+              btnType='redReg'
+              type='button'
+              onClick={handleCancel}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.sectionActionsRow}>
+        <Button
+          text='Edit Airport'
+          btnType='blackReg'
+          type='button'
+          onClick={() => setIsEditing(true)}
+        />
+      </div>
+    );
+  };
+
   return (
-    <form
-      id='airport-form'
-      onSubmit={(e) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-
-        const addressVal = String(formData.get("address") ?? "").trim();
-        const latVal = String(formData.get("lat") ?? "").trim();
-        const lngVal = String(formData.get("lng") ?? "").trim();
-
-        if (addressVal && (!latVal || !lngVal)) {
-          toast.error(
-            "Please select an address suggestion so we can capture coordinates.",
-          );
-          return;
-        }
-
-        startTransition(() => {
-          void (async () => {
-            const res = await action(formData);
-
-            if (res?.error) {
-              toast.error(res.error);
-              return;
-            }
-
-            toast.success(res?.success || "Saved");
-            router.push("/admin/airports");
-            router.refresh();
-          })();
-        });
-      }}
-      style={{ display: "grid", gap: 14 }}
-    >
+    <div id='airport-form' className={wrapperClass}>
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>Name</label>
         <input
-          name='name'
-          className='inputBorder'
-          disabled={isPending}
+          className='input'
+          disabled={fieldsDisabled}
           placeholder='Phoenix Sky Harbor'
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -198,9 +312,8 @@ export default function AirportForm({
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>IATA code</label>
         <input
-          name='iata'
-          className='inputBorder'
-          disabled={isPending}
+          className='input'
+          disabled={fieldsDisabled}
           placeholder='PHX'
           value={iata}
           onChange={(e) => setIata(e.target.value)}
@@ -214,9 +327,8 @@ export default function AirportForm({
         <label className='cardTitle h5'>Address</label>
         <input
           ref={addressRef}
-          name='address'
-          className='inputBorder'
-          disabled={isPending}
+          className='input'
+          disabled={fieldsDisabled}
           placeholder='3400 E Sky Harbor Blvd, Phoenix, AZ...'
           value={address}
           onChange={(e) => setAddress(e.target.value)}
@@ -230,8 +342,7 @@ export default function AirportForm({
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>Google Place ID</label>
         <input
-          name='placeId'
-          className='inputBorder'
+          className='input'
           disabled
           placeholder='Auto-fills when you select an address'
           value={placeId}
@@ -239,43 +350,31 @@ export default function AirportForm({
         />
       </div>
 
-      {/* Hidden coords */}
-      <input name='lat' type='hidden' value={lat} />
-      <input name='lng' type='hidden' value={lng} />
-
       <div style={{ display: "grid", gap: 6 }}>
         <label className='cardTitle h5'>Sort order</label>
         <input
-          name='sortOrder'
           type='number'
           step='1'
           inputMode='numeric'
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
-          className='inputBorder'
-          disabled={isPending}
+          className='input'
+          disabled={fieldsDisabled}
         />
       </div>
 
-      <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <label className={styles.labelinputcheckbox}>
         <input
           type='checkbox'
-          name='active'
           checked={active}
           onChange={(e) => setActive(e.target.checked)}
-          disabled={isPending}
+          disabled={fieldsDisabled}
+          className={styles.labelinputcheckbox}
         />
         <span className='emptyTitle'>Active</span>
       </label>
 
-      <button
-        className='primaryBtn'
-        disabled={isPending}
-        type='submit'
-        style={{ justifySelf: "start" }}
-      >
-        {isPending ? "Saving..." : submitLabel}
-      </button>
-    </form>
+      {renderActions()}
+    </div>
   );
 }

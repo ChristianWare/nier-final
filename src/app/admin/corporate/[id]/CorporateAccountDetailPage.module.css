@@ -2,7 +2,7 @@
 
 .container {
   display: grid;
-  gap: 3rem;
+  gap: 7rem;
 }
 
 /* Header */
@@ -139,9 +139,9 @@
 }
 
 .cardBody {
-  padding: 1rem;
+  padding: 2rem;
   display: grid;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 .cardFooter {
@@ -348,11 +348,12 @@
 .editPaymentSection {
   display: grid;
   gap: 2rem;
+  margin-top: 2rem;
 }
 
 .editPaymentGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
 }
 

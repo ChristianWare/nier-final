@@ -179,7 +179,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: "grid", gap: 6 }}>
+    <div style={{ display: "grid", gap: 10 }}>
       <label className='cardTitle h5'>{label}</label>
       {children}
       {hint ? <div className='miniNote'>{hint}</div> : null}

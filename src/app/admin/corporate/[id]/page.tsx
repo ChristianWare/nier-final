@@ -577,14 +577,17 @@ export default async function CorporateAccountDetailPage({
         {/* Passengers Table */}
         <div className={styles.section}>
           <div className={styles.sectionHeaderTop}>
-            <div className={styles.sectionHeader}>
+            <div className='heading'>
               <h2 className='cardTitle h4'>
                 Passengers
-                <span className='countPill' style={{ marginLeft: "0.5rem" }}>
+                <span
+                  className='countPill'
+                  style={{ marginLeft: "1rem", display: "inline-block" }}
+                >
                   {account.passengers.length}
                 </span>
               </h2>
-              <p className='miniNote'>
+              <p className='miniNote' style={{ marginTop: "1rem" }}>
                 People rides can be booked for on this account
               </p>
             </div>
@@ -833,12 +836,12 @@ export default async function CorporateAccountDetailPage({
                   btnType='black'
                   arrow
                 />
-                <Button
+                {/* <Button
                   href={`/admin/corporate/${account.id}/invoices`}
                   text='View Invoices'
                   btnType='blackOutline'
                   arrow
-                />
+                /> */}
               </div>
             </>
           )}

@@ -2,7 +2,7 @@
 
 .container {
   display: grid;
-  gap: 3rem;
+  gap: 7rem;
 }
 
 /* Header */
@@ -50,6 +50,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
+  margin-top: -5rem;
 }
 
 /* Cards */
@@ -69,9 +70,9 @@
 }
 
 .cardBody {
-  padding: 1rem;
+  padding: 2rem;
   display: grid;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 /* Info rows */
@@ -212,9 +213,22 @@
 }
 
 /* Danger Zone */
+
+.dangerSection {
+  border: 1px solid rgba(255, 0, 0, 0.6);
+  background: rgba(255, 0, 0, 0.03);
+  padding: 2rem;
+  border-radius: 10px;
+}
+
+.dangerSection h2 {
+  background: var(--accent100);
+  padding: 1rem;
+  border-radius: 5px;
+}
+
 .dangerCard {
   border: 1px solid rgba(255, 0, 0, 0.18);
-  background: rgba(255, 0, 0, 0.03);
   border-radius: 10px;
   padding: 2rem;
   display: grid;
@@ -248,6 +262,57 @@
   align-items: flex-start;
   justify-content: flex-start;
   width: fit-content;
+}
+
+/* ─── Modal ─── */
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.modalActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 5rem;
+}
+
+.modalSubnote {
+  display: inline-block;
+  margin-top: 0.6rem;
+  opacity: 0.8;
+}
+
+.confirmBlock {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.confirmLabel {
+  font-weight: 900;
+  opacity: 0.7;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+}
+
+.confirmCheckboxRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 1.4rem;
+  opacity: 0.9;
+}
+
+.confirmCheckboxRow input {
+  transform: translateY(1px);
 }
 
 /* Responsive */

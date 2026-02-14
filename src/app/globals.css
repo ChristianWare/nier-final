@@ -613,7 +613,7 @@ th {
 }
 
 .underline {
-  border-bottom: 1px solid var(--stroke);
+  border-bottom: 2px solid var(--stroke);
   padding-bottom: 1rem;
 }
 
@@ -625,10 +625,14 @@ th {
   align-items: center;
   width: 2.4rem;
   height: 2.4rem;
-  padding: 0.7rem;
+  padding: 0.5rem;
+  padding-left: 0.7rem;
   font-size: 1.2rem;
   font-weight: 700;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .countPillWhiteText {

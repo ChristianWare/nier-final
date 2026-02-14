@@ -1,6 +1,6 @@
 .container {
   display: grid;
-  gap: 3rem;
+  gap: 7rem;
 }
 
 .header {
@@ -60,9 +60,9 @@
 }
 
 .cardBody {
-  padding: 1rem;
+  padding: 2rem;
   display: grid;
-  gap: 1rem;
+  gap: 2rem;
 }
 
 /* Info rows */

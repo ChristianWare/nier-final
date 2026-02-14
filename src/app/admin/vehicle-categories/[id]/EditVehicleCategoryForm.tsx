@@ -278,7 +278,7 @@ export default function EditVehicleCategoryForm({
         </select>
       </Field>
 
-      <div style={{ display: "grid", gap: 6 }}>
+      <div style={{ display: "grid", gap: 10 }}>
         <label className='h4 underline'>Pricing (USD)</label>
         <div className='miniNote' style={{ marginTop: -2 }}>
           Enter values in dollars (example: 150.00 = $150.00).
@@ -291,7 +291,7 @@ export default function EditVehicleCategoryForm({
             name='baseFareCents'
             value={baseFare}
             onChange={(e) => setBaseFare(e.target.value)}
-            className='inputBorder'
+            className='input'
             disabled={fieldsDisabled}
           />
         </Field>
@@ -301,7 +301,7 @@ export default function EditVehicleCategoryForm({
             name='perMileCents'
             value={perMile}
             onChange={(e) => setPerMile(e.target.value)}
-            className='inputBorder'
+            className='input'
             disabled={fieldsDisabled}
           />
         </Field>
@@ -311,7 +311,7 @@ export default function EditVehicleCategoryForm({
             name='perMinuteCents'
             value={perMinute}
             onChange={(e) => setPerMinute(e.target.value)}
-            className='inputBorder'
+            className='input'
             disabled={fieldsDisabled}
           />
         </Field>
@@ -321,7 +321,7 @@ export default function EditVehicleCategoryForm({
             name='perHourCents'
             value={perHour}
             onChange={(e) => setPerHour(e.target.value)}
-            className='inputBorder'
+            className='input'
             disabled={fieldsDisabled}
           />
         </Field>
@@ -362,7 +362,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: "grid", gap: 6 }}>
+    <div style={{ display: "grid", gap: 10 }}>
       <label className='emptyTitle'>{label}</label>
       {children}
       {hint ? <div className='miniNote'>{hint}</div> : null}

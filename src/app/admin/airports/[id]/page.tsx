@@ -1,16 +1,17 @@
+import styles from "./EditAirportPage.module.css";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import AirportForm from "@/components/admin/AirportForm/AirportForm";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
-import styles from "./EditAirportPage.module.css";
 import {
   updateAirport,
   deleteAirport,
 } from "../../../../../actions/admin/airports";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import { formatDateTime } from "@/lib/timezone";
+import DeleteAirportClient from "./DeleteAirportClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,13 +43,14 @@ export default async function EditAirportPage({
     return updateAirport(id, formData);
   }
 
-  async function deleteAction(formData: FormData) {
+  async function deleteAction(): Promise<{ ok?: boolean; error?: string }> {
     "use server";
-    const confirm = String(formData.get("confirm") ?? "").trim();
-    if (confirm !== "DELETE") return;
-
-    await deleteAirport(id);
-    redirect("/admin/airports");
+    try {
+      await deleteAirport(id);
+      return { ok: true };
+    } catch {
+      return { error: "Failed to delete airport." };
+    }
   }
 
   const hasCoords =
@@ -186,7 +188,7 @@ export default async function EditAirportPage({
         {airport.services.length > 0 && (
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
-              <h2 className='h4'>Linked Services</h2>
+              <h2 className='h2 underline'>Linked Services</h2>
               <p className='miniNote'>
                 Service types that include this airport in their configuration
               </p>
@@ -281,7 +283,7 @@ export default async function EditAirportPage({
         {/* Edit Form */}
         <div className={styles.section} id='airport-form'>
           <div className={styles.sectionHeader}>
-            <h2 className='h4'>Edit Airport</h2>
+            <h2 className='h2 underline'>Edit Airport</h2>
             <p className='miniNote'>
               Update airport details used in BookingWizard dropdowns
             </p>
@@ -301,45 +303,18 @@ export default async function EditAirportPage({
                   lng: airport.lng ? String(airport.lng) : "",
                 }}
                 submitLabel='Save changes'
+                mode='edit'
               />
             </div>
           </div>
         </div>
 
         {/* Danger Zone */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h2 className='h4'>Danger Zone</h2>
-            <p className='miniNote'>Irreversible actions for this airport</p>
-          </div>
-          <div className={styles.dangerCard}>
-            <div className={styles.dangerTop}>
-              <div className='emptyTitle'>Delete Airport</div>
-              <p className='miniNote'>
-                Deleting an airport removes it from admin lists and service
-                dropdowns. This action cannot be undone.
-              </p>
-            </div>
-            <form action={deleteAction} className={styles.dangerForm}>
-              <div className={styles.dangerField}>
-                <label className={styles.dangerLabel}>
-                  Type <strong>DELETE</strong> to confirm
-                </label>
-                <input
-                  name='confirm'
-                  className='inputBorder'
-                  placeholder='DELETE'
-                  autoComplete='off'
-                />
-              </div>
-              <div className={styles.btnContainer}>
-                <button className='primaryBtn btnDanger' type='submit'>
-                  Delete airport
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <DeleteAirportClient
+          airportId={airport.id}
+          airportName={airport.name}
+          onDelete={deleteAction}
+        />
       </section>
     </DirtyFormProvider>
   );

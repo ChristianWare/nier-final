@@ -42,16 +42,18 @@ const NAV_ITEMS = [
   { title: "Reports", href: "/admin/reports", icon: <Report /> },
   { title: "Company", href: "/admin/company", icon: <Company /> },
   { title: "Website Analytics", href: "/admin/analytics", icon: <Analytics /> },
-  { title: "Settings", href: "/admin/settings", icon: <Cog /> },
+  { title: "Notifications", href: "/admin/notifications", icon: <Cog /> },
 ];
 
 export type AdminSideNavProps = {
   bookingNeedsAttentionCount?: number;
 };
 
-export default function AdminSideNav({
-  // bookingNeedsAttentionCount = 0,
-}: AdminSideNavProps) {
+export default function AdminSideNav(
+  {
+    // bookingNeedsAttentionCount = 0,
+  }: AdminSideNavProps,
+) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 

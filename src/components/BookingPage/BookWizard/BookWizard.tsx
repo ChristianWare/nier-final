@@ -2376,7 +2376,7 @@ export default function BookingWizard({
                             inputMode='email'
                           />
                         </div>
-                        <div style={{ display: "grid", gap: 6 }}>
+                        <div style={{ display: "grid", gap: 10 }}>
                           <label
                             className={labelCx(Boolean(errors.guestPhone))}
                           >
