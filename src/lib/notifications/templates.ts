@@ -98,6 +98,7 @@ const eventEmoji: Record<NotificationEvent, string> = {
 export function buildAdminNotification(args: {
   event: NotificationEvent;
   appUrl: string;
+  timeZone: string;
   booking: {
     id: string;
     pickupAt: Date;
@@ -107,9 +108,9 @@ export function buildAdminNotification(args: {
     customerName: string;
   };
 }) {
-  const { event, appUrl, booking } = args;
+  const { event, appUrl, timeZone, booking } = args;
 
-  const when = formatPhoenixDateTime(new Date(booking.pickupAt));
+  const when = formatPhoenixDateTime(new Date(booking.pickupAt), timeZone);
   const pickup = safeOneLine(booking.pickupAddress);
   const dropoff = safeOneLine(booking.dropoffAddress);
   const svc = safeOneLine(booking.serviceName);
