@@ -8,6 +8,7 @@ import {
 import { buildAdminNotification } from "./templates";
 import { sendSms } from "@/lib/sms/sendSms";
 import { sendAdminNotificationEmail } from "@/lib/email/sendAdminNotificationEmail";
+import { getCompanySettings } from "../../../actions/admin/companySettings";
 
 type AdminSettings = {
   emailEnabled: boolean;
@@ -94,6 +95,7 @@ async function buildNotificationJobs(args: {
 
   if (!booking) return [];
 
+  const { timezone: companyTz } = await getCompanySettings();
   const appUrl = process.env.APP_URL || "http://localhost:3000";
 
   const customerName =
@@ -102,6 +104,7 @@ async function buildNotificationJobs(args: {
   const tpl = buildAdminNotification({
     event,
     appUrl,
+    timeZone: companyTz,
     booking: {
       id: booking.id,
       pickupAt: booking.pickupAt,
