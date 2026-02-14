@@ -52,7 +52,7 @@
 /* Grid layout */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
 }
 
@@ -73,7 +73,7 @@
 }
 
 .cardBody {
-  padding: 1rem;
+  padding: 2rem;
   display: grid;
   gap: 1rem;
 }

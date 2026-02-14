@@ -1,7 +1,7 @@
+import styles from "./AdminCompanyPage.module.css";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import CompanySettingsForm from "@/components/admin/CompanySettingsForm/CompanySettingsForm";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
-import styles from "./AdminCompanyPage.module.css";
 import Button from "@/components/shared/Button/Button";
 import Link from "next/link";
 

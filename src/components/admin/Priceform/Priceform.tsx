@@ -1,15 +1,13 @@
 "use client";
 
 import styles from "./PriceForm.module.css";
-import { useTransition, useState } from "react";
+import { useTransition, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { updateBookingPrice } from "../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
-
-// Format cents to dollars string with commas (e.g., 175632 -> "$1,756.32")
 function formatCentsToDollars(cents: number): string {
   const dollars = cents / 100;
   return new Intl.NumberFormat("en-US", {
@@ -20,45 +18,31 @@ function formatCentsToDollars(cents: number): string {
   }).format(dollars);
 }
 
-// Parse dollar string back to cents (e.g., "$1,756.32" -> 175632)
 function parseDollarsToCents(value: string): number {
-  // Remove currency symbol, commas, and whitespace
   const cleaned = value.replace(/[$,\s]/g, "");
   const dollars = parseFloat(cleaned);
   if (isNaN(dollars)) return 0;
   return Math.round(dollars * 100);
 }
 
-// Format input value for display while typing (allows partial input)
 function formatInputValue(value: string): string {
-  // If empty or just a dollar sign, return as-is
   if (!value || value === "$") return value;
-
-  // Remove everything except digits and decimal point
   const cleaned = value.replace(/[^0-9.]/g, "");
-
-  // Handle multiple decimal points - keep only first
   const parts = cleaned.split(".");
   let formatted = parts[0];
   if (parts.length > 1) {
-    // Limit to 2 decimal places
     formatted += "." + parts[1].slice(0, 2);
   }
-
-  // Add commas to the integer part
   const [intPart, decPart] = formatted.split(".");
   const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-
   return "$" + withCommas + (decPart !== undefined ? "." + decPart : "");
 }
 
 type FormState = {
-  // Track the props we initialized from (to detect changes)
   _propsSubtotal: number;
   _propsFees: number;
   _propsTaxes: number;
   _propsTotal: number;
-  // The actual form values
   subtotal: string;
   fees: string;
   taxes: string;
@@ -85,7 +69,10 @@ export default function PriceForm({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  // Initialize state with props values
+  /* ── Lock / Unlock state ── */
+  const [isEditing, setIsEditing] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
   const [state, setState] = useState<FormState>(() => ({
     _propsSubtotal: subtotalCents,
     _propsFees: feesCents,
@@ -98,10 +85,11 @@ export default function PriceForm({
   }));
 
   const isDirty =
-    parseDollarsToCents(state.subtotal) !== subtotalCents ||
-    parseDollarsToCents(state.fees) !== feesCents ||
-    parseDollarsToCents(state.taxes) !== taxesCents ||
-    parseDollarsToCents(state.total) !== totalCents;
+    isEditing &&
+    (parseDollarsToCents(state.subtotal) !== subtotalCents ||
+      parseDollarsToCents(state.fees) !== feesCents ||
+      parseDollarsToCents(state.taxes) !== taxesCents ||
+      parseDollarsToCents(state.total) !== totalCents);
 
   useDirtyForm("price-form", isDirty);
 
@@ -124,38 +112,61 @@ export default function PriceForm({
     });
   }
 
-function handleChange(
-  name: "subtotal" | "fees" | "taxes" | "total",
-  value: string,
-) {
-  const formatted = formatInputValue(value);
+  /* ── Helpers ── */
+  const isLocked = !isEditing;
+  const fieldsDisabled = isLocked || isPending;
 
-  if (name === "total") {
-    setState((prev) => ({ ...prev, total: formatted }));
-    return;
+  const wrapperClass = justSaved
+    ? `${styles.form} ${styles.sectionSaved}`
+    : isEditing
+      ? `${styles.form} ${styles.sectionEditing}`
+      : `${styles.form} ${styles.sectionLocked}`;
+
+  const resetToProps = useCallback(() => {
+    setState({
+      _propsSubtotal: subtotalCents,
+      _propsFees: feesCents,
+      _propsTaxes: taxesCents,
+      _propsTotal: totalCents,
+      subtotal: formatCentsToDollars(subtotalCents),
+      fees: formatCentsToDollars(feesCents),
+      taxes: formatCentsToDollars(taxesCents),
+      total: formatCentsToDollars(totalCents),
+    });
+  }, [subtotalCents, feesCents, taxesCents, totalCents]);
+
+  function handleCancel() {
+    resetToProps();
+    setIsEditing(false);
   }
 
-  setState((prev) => {
-    const next = { ...prev, [name]: formatted };
-    // Recalculate total from subtotal + fees + taxes
-    const sub = parseDollarsToCents(next.subtotal);
-    const fee = parseDollarsToCents(next.fees);
-    const tax = parseDollarsToCents(next.taxes);
-    next.total = formatCentsToDollars(sub + fee + tax);
-    return next;
-  });
-}
+  function handleChange(
+    name: "subtotal" | "fees" | "taxes" | "total",
+    value: string,
+  ) {
+    const formatted = formatInputValue(value);
+
+    if (name === "total") {
+      setState((prev) => ({ ...prev, total: formatted }));
+      return;
+    }
+
+    setState((prev) => {
+      const next = { ...prev, [name]: formatted };
+      const sub = parseDollarsToCents(next.subtotal);
+      const fee = parseDollarsToCents(next.fees);
+      const tax = parseDollarsToCents(next.taxes);
+      next.total = formatCentsToDollars(sub + fee + tax);
+      return next;
+    });
+  }
 
   function handleBlur(name: "subtotal" | "fees" | "taxes" | "total") {
-    // On blur, format to proper currency display
     const cents = parseDollarsToCents(state[name]);
     setState((prev) => ({ ...prev, [name]: formatCentsToDollars(cents) }));
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-
-    // Convert dollar strings back to cents for the server
+  function handleSave() {
     const fd = new FormData();
     fd.set("bookingId", bookingId);
     fd.set("currency", currency);
@@ -168,13 +179,76 @@ function handleChange(
       updateBookingPrice(fd).then((res) => {
         if (res?.error) return toast.error(res.error);
         toast.success("Price updated successfully");
+
+        // Notify admin if driver pay was auto-adjusted
+        if (res?.driverPayAdjustment) {
+          const adj = res.driverPayAdjustment;
+          const oldPay = (adj.oldDriverPayCents / 100).toFixed(2);
+          const newPay = (adj.newDriverPayCents / 100).toFixed(2);
+          toast.success(
+            `Driver pay automatically adjusted from $${oldPay} to $${newPay} (${adj.percentage}%)`,
+            { duration: 5000 },
+          );
+        }
+        setJustSaved(true);
+        setTimeout(() => {
+          setJustSaved(false);
+          setIsEditing(false);
+        }, 2000);
         router.refresh();
       });
     });
   }
 
+  /* ── Section action buttons ── */
+  const renderActions = () => {
+    if (justSaved) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          {extraAction}
+          <Button text='Saved ✓' btnType='greenReg' type='button' disabled />
+        </div>
+      );
+    }
+
+    if (isEditing) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          {extraAction}
+          <Button
+            text={isPending ? "Saving..." : "Save Changes"}
+            btnType='blackReg'
+            type='button'
+            disabled={isPending}
+            onClick={handleSave}
+          />
+          {!isPending && (
+            <Button
+              text='Cancel'
+              btnType='redReg'
+              type='button'
+              onClick={handleCancel}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.sectionActionsRow}>
+        {extraAction}
+        <Button
+          text='Edit Price'
+          btnType='blackReg'
+          type='button'
+          onClick={() => setIsEditing(true)}
+        />
+      </div>
+    );
+  };
+
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <div className={wrapperClass}>
       <Grid2>
         <Field
           label='Subtotal'
@@ -182,7 +256,7 @@ function handleChange(
           value={state.subtotal}
           onChange={(v) => handleChange("subtotal", v)}
           onBlur={() => handleBlur("subtotal")}
-          disabled={isPending}
+          disabled={fieldsDisabled}
         />
         <Field
           label='Fees'
@@ -190,7 +264,7 @@ function handleChange(
           value={state.fees}
           onChange={(v) => handleChange("fees", v)}
           onBlur={() => handleBlur("fees")}
-          disabled={isPending}
+          disabled={fieldsDisabled}
         />
       </Grid2>
 
@@ -201,7 +275,7 @@ function handleChange(
           value={state.taxes}
           onChange={(v) => handleChange("taxes", v)}
           onBlur={() => handleBlur("taxes")}
-          disabled={isPending}
+          disabled={fieldsDisabled}
         />
         <Field
           label='Total'
@@ -209,30 +283,15 @@ function handleChange(
           value={state.total}
           onChange={(v) => handleChange("total", v)}
           onBlur={() => handleBlur("total")}
-          disabled={isPending}
+          disabled={fieldsDisabled}
           highlight
         />
       </Grid2>
+
       <div className='sectionDivider' />
-      <div className={styles.btnContainer}>
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          {extraAction}
-          <Button
-            disabled={isPending}
-            type='submit'
-            text={isPending ? "Saving..." : "Update Price"}
-            btnType='blackReg'
-          />
-        </div>
-      </div>
-    </form>
+
+      {renderActions()}
+    </div>
   );
 }
 
@@ -266,7 +325,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         disabled={disabled}
-        className={` inputBorder ${styles.input} ${highlight ? styles.inputHighlight : ""}`}
+        className={`inputBorder ${styles.input} ${highlight ? styles.inputHighlight : ""}`}
         inputMode='decimal'
       />
     </div>

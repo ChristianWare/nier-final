@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./DriverPayForm.module.css";
-import { useTransition, useState } from "react";
+import { useTransition, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { updateDriverPayAction } from "../../../../actions/admin/updateDriverPayAction";
@@ -52,19 +52,23 @@ export default function DriverPayForm({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  /* ── Lock / Unlock state ── */
+  const [isEditing, setIsEditing] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
   const [driverPayment, setDriverPayment] = useState<string>(
     centsToDollars(currentDriverPaymentCents),
   );
 
-  // Tip distribution state
-  const getInitialTipDistribution = (): TipDistribution => {
+  // Tip distribution helper (declared before useState so it can initialize)
+  function getInitialTipDistribution(): TipDistribution {
     if (currentDriverTipCents === null || currentDriverTipCents === undefined) {
       return "full";
     }
     if (currentDriverTipCents === 0) return "none";
     if (currentDriverTipCents === tipCents) return "full";
     return "custom";
-  };
+  }
 
   const [tipDistribution, setTipDistribution] = useState<TipDistribution>(
     getInitialTipDistribution(),
@@ -76,6 +80,31 @@ export default function DriverPayForm({
       ? centsToDollars(currentDriverTipCents)
       : "",
   );
+
+  // Track props to detect server-side changes (e.g. auto-adjusted driver pay)
+  const [prevPropPaymentCents, setPrevPropPaymentCents] = useState(
+    currentDriverPaymentCents,
+  );
+  const [prevPropTipCents, setPrevPropTipCents] = useState(
+    currentDriverTipCents,
+  );
+
+  if (currentDriverPaymentCents !== prevPropPaymentCents) {
+    setPrevPropPaymentCents(currentDriverPaymentCents);
+    setDriverPayment(centsToDollars(currentDriverPaymentCents));
+  }
+
+  if (currentDriverTipCents !== prevPropTipCents) {
+    setPrevPropTipCents(currentDriverTipCents);
+    setTipDistribution(getInitialTipDistribution());
+    setCustomTipAmount(
+      currentDriverTipCents &&
+        currentDriverTipCents !== tipCents &&
+        currentDriverTipCents !== 0
+        ? centsToDollars(currentDriverTipCents)
+        : "",
+    );
+  }
 
   // Parse current input to cents
   const currentPaymentCents = dollarsToCents(driverPayment) ?? 0;
@@ -102,6 +131,7 @@ export default function DriverPayForm({
 
   const isDirty =
     hasDriver &&
+    isEditing &&
     ((dollarsToCents(driverPayment) ?? 0) !==
       (currentDriverPaymentCents ?? 0) ||
       driverTipCents !==
@@ -109,13 +139,24 @@ export default function DriverPayForm({
 
   useDirtyForm("driver-pay", isDirty, "driver-pay-section");
 
-  // Percentage quick buttons
+  /* ── Helpers ── */
+  const isLocked = !isEditing;
+  const fieldsDisabled = isLocked || isPending;
+
+  const wrapperClass = justSaved
+    ? `${styles.form} ${styles.sectionSaved}`
+    : isEditing
+      ? `${styles.form} ${styles.sectionEditing}`
+      : `${styles.form} ${styles.sectionLocked}`;
+
+  // Percentage quick buttons — includes 85%
   const percentageOptions = [
     { label: "10%", percent: 0.1 },
     { label: "20%", percent: 0.2 },
     { label: "30%", percent: 0.3 },
     { label: "50%", percent: 0.5 },
     { label: "70%", percent: 0.7 },
+    { label: "85%", percent: 0.85 },
   ];
 
   const percentageAmounts = percentageOptions.map(({ label, percent }) => ({
@@ -127,9 +168,21 @@ export default function DriverPayForm({
     setDriverPayment((cents / 100).toFixed(2));
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const handleCancel = useCallback(() => {
+    setDriverPayment(centsToDollars(currentDriverPaymentCents));
+    setTipDistribution(getInitialTipDistribution());
+    setCustomTipAmount(
+      currentDriverTipCents &&
+        currentDriverTipCents !== tipCents &&
+        currentDriverTipCents !== 0
+        ? centsToDollars(currentDriverTipCents)
+        : "",
+    );
+    setIsEditing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDriverPaymentCents, currentDriverTipCents, tipCents]);
 
+  function handleSave() {
     if (!hasDriver) {
       toast.error("Assign a driver first before setting driver pay.");
       return;
@@ -152,6 +205,11 @@ export default function DriverPayForm({
         return;
       }
       toast.success("Driver pay saved");
+      setJustSaved(true);
+      setTimeout(() => {
+        setJustSaved(false);
+        setIsEditing(false);
+      }, 2000);
       router.refresh();
     });
   }
@@ -169,8 +227,52 @@ export default function DriverPayForm({
     );
   }
 
+  /* ── Section action buttons ── */
+  const renderActions = () => {
+    if (justSaved) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button text='Saved ✓' btnType='greenReg' type='button' disabled />
+        </div>
+      );
+    }
+
+    if (isEditing) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button
+            disabled={isPending}
+            type='button'
+            text={isPending ? "Saving..." : "Save Changes"}
+            btnType='blackReg'
+            onClick={handleSave}
+          />
+          {!isPending && (
+            <Button
+              text='Cancel'
+              btnType='redReg'
+              type='button'
+              onClick={handleCancel}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.sectionActionsRow}>
+        <Button
+          text='Edit Driver Pay'
+          btnType='blackReg'
+          type='button'
+          onClick={() => setIsEditing(true)}
+        />
+      </div>
+    );
+  };
+
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <div className={wrapperClass}>
       {/* Driver Payment Input */}
       <div className={styles.driverPaymentSection}>
         <div className={styles.inputSection}>
@@ -186,7 +288,7 @@ export default function DriverPayForm({
                 const val = e.target.value.replace(/[^0-9.]/g, "");
                 setDriverPayment(val);
               }}
-              disabled={isPending}
+              disabled={fieldsDisabled}
               className='inputBorder'
             />
           </div>
@@ -215,7 +317,7 @@ export default function DriverPayForm({
                     currentPaymentCents === cents ? styles.percentBtnActive : ""
                   }`}
                   onClick={() => setAmountFromCents(cents)}
-                  disabled={isPending || cents === 0}
+                  disabled={fieldsDisabled || cents === 0}
                 >
                   {label}
                   <span className={styles.percentAmount}>
@@ -253,7 +355,7 @@ export default function DriverPayForm({
                 value='full'
                 checked={tipDistribution === "full"}
                 onChange={() => setTipDistribution("full")}
-                disabled={isPending}
+                disabled={fieldsDisabled}
                 className={styles.tipRadio}
               />
               <div className={styles.tipOptionContent}>
@@ -277,7 +379,7 @@ export default function DriverPayForm({
                 value='custom'
                 checked={tipDistribution === "custom"}
                 onChange={() => setTipDistribution("custom")}
-                disabled={isPending}
+                disabled={fieldsDisabled}
                 className={styles.tipRadio}
               />
               <div className={styles.tipOptionContent}>
@@ -294,7 +396,7 @@ export default function DriverPayForm({
                         const val = e.target.value.replace(/[^0-9.]/g, "");
                         setCustomTipAmount(val);
                       }}
-                      disabled={isPending}
+                      disabled={fieldsDisabled}
                       className='inputBorder'
                       style={{ width: "100px" }}
                     />
@@ -319,7 +421,7 @@ export default function DriverPayForm({
                 value='none'
                 checked={tipDistribution === "none"}
                 onChange={() => setTipDistribution("none")}
-                disabled={isPending}
+                disabled={fieldsDisabled}
                 className={styles.tipRadio}
               />
               <div className={styles.tipOptionContent}>
@@ -429,15 +531,8 @@ export default function DriverPayForm({
         )}
       </div>
 
-      {/* Save Button */}
-      <div className={styles.btnContainer}>
-        <Button
-          disabled={isPending}
-          type='submit'
-          text={isPending ? "Saving..." : "Save Driver Pay"}
-          btnType='blackReg'
-        />
-      </div>
-    </form>
+      {/* Action Buttons */}
+      {renderActions()}
+    </div>
   );
 }

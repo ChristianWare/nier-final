@@ -641,7 +641,7 @@ th {
   border-bottom: 3px solid var(--stroke);
   background: white;
   font-size: 1.6rem;
-  color: var(--black);
+  color: var(--paragraph);
   font-weight: 500;
   width: 100%;
 }
@@ -692,6 +692,10 @@ th {
   background-position: right 0.5rem center;
   background-size: 1.5em 1.5em;
   padding-right: 4.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 7px;
+  border: 3px solid var(--stroke);
+  
 }
 
 .box {

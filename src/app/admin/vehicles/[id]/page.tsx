@@ -12,6 +12,7 @@ import VehiclePhotoUpload from "@/components/admin/VehiclePhotoUpload/VehiclePho
 import DefaultVehicleImg from "../../../../../public/images/mesaii.jpg";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
+import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -170,312 +171,322 @@ export default async function EditVehicleUnitPage({
   }
 
   return (
-    <section className={styles.container}>
-      <header className={styles.header}>
-        <Link href='/admin/vehicles' className={`${styles.backBtn} backBtn`}>
-          <Arrow className='backArrow' /> Back to vehicles
-        </Link>
-        <div className={styles.headerTop}>
-          <div className={styles.top}>
-            <div className={styles.profileSection}>
-              <VehiclePhotoUpload
-                vehicleUnitId={unit.id}
-                currentImage={vehicleImage}
-                vehicleName={unit.name}
-                defaultImage={DefaultVehicleImg}
-              />
-              <div className={styles.profileInfo}>
-                <h1 className={`${styles.heading} h2`}>{unit.name}</h1>
-                <div className={styles.badgesRow}>
-                  <span
-                    className={`badge ${unit.active ? "badge_good" : "badge_neutral"}`}
-                  >
-                    {unit.active ? "Active" : "Inactive"}
-                  </span>
-                  {unit.category && (
-                    <span className='badge badge_accent'>
-                      {unit.category.name}
+    <DirtyFormProvider>
+      <section className={styles.container}>
+        <header className={styles.header}>
+          <Link href='/admin/vehicles' className={`${styles.backBtn} backBtn`}>
+            <Arrow className='backArrow' /> Back to vehicles
+          </Link>
+          <div className={styles.headerTop}>
+            <div className={styles.top}>
+              <div className={styles.profileSection}>
+                <VehiclePhotoUpload
+                  vehicleUnitId={unit.id}
+                  currentImage={vehicleImage}
+                  vehicleName={unit.name}
+                  defaultImage={DefaultVehicleImg}
+                />
+                <div className={styles.profileInfo}>
+                  <h1 className={`${styles.heading} h2`}>{unit.name}</h1>
+                  <div className={styles.badgesRow}>
+                    <span
+                      className={`badge ${unit.active ? "badge_good" : "badge_neutral"}`}
+                    >
+                      {unit.active ? "Active" : "Inactive"}
                     </span>
-                  )}
+                    {unit.category && (
+                      <span className='badge badge_accent'>
+                        {unit.category.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className={styles.grid}>
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className='cardTitle h4'>Vehicle Details</h2>
+            </div>
+            <div className={styles.cardBody}>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Name</span>
+                <span className={styles.infoValue}>{unit.name}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>License Plate</span>
+                <span className={`${styles.infoValue} ${styles.plateCell}`}>
+                  {unit.plate ?? "—"}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Category</span>
+                <span className={styles.infoValue}>
+                  {unit.category?.name ?? "Uncategorized"}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Status</span>
+                <span
+                  className={`badge ${unit.active ? "badge_good" : "badge_neutral"}`}
+                >
+                  {unit.active ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Added</span>
+                <span className={styles.infoValue}>
+                  {tz.formatDateTime(unit.createdAt, companyTz)}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Vehicle ID</span>
+                <span className={`${styles.infoValue} ${styles.mono}`}>
+                  {unit.id}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className='cardTitle h4'>Statistics</h2>
+            </div>
+            <div className={styles.cardBody}>
+              <div className={styles.statsGrid}>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>
+                    {unit._count.assignments}
+                  </div>
+                  <div className={styles.statLabel}>Total Assignments</div>
+                </div>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>{completedTrips}</div>
+                  <div className={styles.statLabel}>Completed Trips</div>
+                </div>
+                <div className={styles.statBox}>
+                  <div className={styles.statValue}>{tripsThisMonth}</div>
+                  <div className={styles.statLabel}>This Month</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </header>
 
-      <div className={styles.grid}>
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className='cardTitle h4'>Vehicle Details</h2>
-          </div>
-          <div className={styles.cardBody}>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Name</span>
-              <span className={styles.infoValue}>{unit.name}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>License Plate</span>
-              <span className={`${styles.infoValue} ${styles.plateCell}`}>
-                {unit.plate ?? "—"}
-              </span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Category</span>
-              <span className={styles.infoValue}>
-                {unit.category?.name ?? "Uncategorized"}
-              </span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Status</span>
-              <span
-                className={`badge ${unit.active ? "badge_good" : "badge_neutral"}`}
-              >
-                {unit.active ? "Active" : "Inactive"}
-              </span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Added</span>
-              <span className={styles.infoValue}>
-                {tz.formatDateTime(unit.createdAt, companyTz)}
-              </span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Vehicle ID</span>
-              <span className={`${styles.infoValue} ${styles.mono}`}>
-                {unit.id}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className='cardTitle h4'>Statistics</h2>
-          </div>
-          <div className={styles.cardBody}>
-            <div className={styles.statsGrid}>
-              <div className={styles.statBox}>
-                <div className={styles.statValue}>
-                  {unit._count.assignments}
-                </div>
-                <div className={styles.statLabel}>Total Assignments</div>
-              </div>
-              <div className={styles.statBox}>
-                <div className={styles.statValue}>{completedTrips}</div>
-                <div className={styles.statLabel}>Completed Trips</div>
-              </div>
-              <div className={styles.statBox}>
-                <div className={styles.statValue}>{tripsThisMonth}</div>
-                <div className={styles.statLabel}>This Month</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <h2 className='cardTitle h4'>Edit Vehicle</h2>
-          </div>
-          <div className={styles.cardBody}>
-            <EditVehicleUnitForm
-              unit={unitForForm}
-              categories={categories}
-              onUpdate={updateAction}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h2 className='h4'>Monthly Usage</h2>
-          <p className='miniNote'>Trip assignments over the last 12 months</p>
-        </div>
-        <div className={styles.chartCard}>
-          <div className={styles.cardHeader}>
-            <h3 className='cardTitle h4'>Trips per Month</h3>
-            <div className='miniNote'>Last 12 months</div>
-          </div>
-          <div className={styles.chartWrap}>
-            <VehicleUsageChart data={usageChartData} />
-          </div>
-        </div>
-      </div>
-
-      {recentAssignments.length > 0 && (
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h2 className='h4'>Recent Assignments</h2>
-            <p className='miniNote'>Trips this vehicle has been assigned to</p>
+            <h2 className='h4'>Monthly Usage</h2>
+            <p className='miniNote'>Trip assignments over the last 12 months</p>
           </div>
-          <div className={styles.tableCard}>
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead className={styles.thead}>
-                  <tr className={styles.trHead}>
-                    <th className={styles.th}>Pickup</th>
-                    <th className={styles.th}>Status</th>
-                    <th className={styles.th}>Driver</th>
-                    <th className={styles.th}>Customer</th>
-                    <th className={styles.th}>Service</th>
-                    <th className={`${styles.th} ${styles.thRight}`}>Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentAssignments.map((a) => {
-                    const b = a.booking;
-                    const href = `/admin/bookings/${b.id}`;
-                    const customerName =
-                      b.user?.name?.trim() ||
-                      b.guestName?.trim() ||
-                      b.user?.email ||
-                      b.guestEmail ||
-                      "Guest";
-                    const driverName = a.driver?.name ?? "Unassigned";
-
-                    return (
-                      <tr key={a.id} className={styles.tr}>
-                        <td
-                          className={styles.td}
-                          data-label='Pickup'
-                          style={{ position: "relative" }}
-                        >
-                          <Link
-                            href={href}
-                            className={styles.rowStretchedLink}
-                            aria-label='Open booking'
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              zIndex: 5,
-                            }}
-                          />
-                          <Link href={href} className={styles.rowLink}>
-                            {tz.formatDate(b.pickupAt, companyTz)}
-                          </Link>
-                          <div className={styles.pickupMeta}>
-                            <span className={styles.pill}>
-                              {tz.formatEta(b.pickupAt, now)}
-                            </span>
-                          </div>
-                        </td>
-                        <td
-                          className={styles.td}
-                          data-label='Status'
-                          style={{ position: "relative" }}
-                        >
-                          <Link
-                            href={href}
-                            className={styles.rowStretchedLink}
-                            aria-hidden='true'
-                            tabIndex={-1}
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              zIndex: 5,
-                            }}
-                          />
-                          <span
-                            className={`badge badge_${tz.badgeTone(b.status)}`}
-                          >
-                            {tz.statusLabel(b.status)}
-                          </span>
-                        </td>
-                        <td
-                          className={styles.td}
-                          data-label='Driver'
-                          style={{ position: "relative" }}
-                        >
-                          <Link
-                            href={href}
-                            className={styles.rowStretchedLink}
-                            aria-hidden='true'
-                            tabIndex={-1}
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              zIndex: 5,
-                            }}
-                          />
-                          <div className={styles.cellStrong}>{driverName}</div>
-                        </td>
-                        <td
-                          className={styles.td}
-                          data-label='Customer'
-                          style={{ position: "relative" }}
-                        >
-                          <Link
-                            href={href}
-                            className={styles.rowStretchedLink}
-                            aria-hidden='true'
-                            tabIndex={-1}
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              zIndex: 5,
-                            }}
-                          />
-                          <div className={styles.cellStrong}>
-                            {customerName}
-                          </div>
-                        </td>
-                        <td
-                          className={styles.td}
-                          data-label='Service'
-                          style={{ position: "relative" }}
-                        >
-                          <Link
-                            href={href}
-                            className={styles.rowStretchedLink}
-                            aria-hidden='true'
-                            tabIndex={-1}
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              zIndex: 5,
-                            }}
-                          />
-                          {b.serviceType?.name ?? "—"}
-                        </td>
-                        <td
-                          className={`${styles.td} ${styles.tdRight}`}
-                          data-label='Total'
-                          style={{ position: "relative" }}
-                        >
-                          <Link
-                            href={href}
-                            className={styles.rowStretchedLink}
-                            aria-hidden='true'
-                            tabIndex={-1}
-                            style={{
-                              position: "absolute",
-                              inset: 0,
-                              zIndex: 5,
-                            }}
-                          />
-                          {tz.formatMoneyShort(
-                            b.totalCents ?? 0,
-                            b.currency ?? "USD",
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          <div className={styles.chartCard}>
+            <div className={styles.cardHeader}>
+              <h3 className='cardTitle h4'>Trips per Month</h3>
+              <div className='miniNote'>Last 12 months</div>
+            </div>
+            <div className={styles.chartWrap}>
+              <VehicleUsageChart data={usageChartData} />
             </div>
           </div>
-          <div className={styles.actionsRow}>
-            <Button
-              href={`/admin/bookings?vehicle=${encodeURIComponent(unit.id)}`}
-              text='View All Assignments'
-              btnType='black'
-              arrow
-            />
+        </div>
+
+        {recentAssignments.length > 0 && (
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className='h4'>Recent Assignments</h2>
+              <p className='miniNote'>
+                Trips this vehicle has been assigned to
+              </p>
+            </div>
+            <div className={styles.tableCard}>
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead className={styles.thead}>
+                    <tr className={styles.trHead}>
+                      <th className={styles.th}>Pickup</th>
+                      <th className={styles.th}>Status</th>
+                      <th className={styles.th}>Driver</th>
+                      <th className={styles.th}>Customer</th>
+                      <th className={styles.th}>Service</th>
+                      <th className={`${styles.th} ${styles.thRight}`}>
+                        Total
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentAssignments.map((a) => {
+                      const b = a.booking;
+                      const href = `/admin/bookings/${b.id}`;
+                      const customerName =
+                        b.user?.name?.trim() ||
+                        b.guestName?.trim() ||
+                        b.user?.email ||
+                        b.guestEmail ||
+                        "Guest";
+                      const driverName = a.driver?.name ?? "Unassigned";
+
+                      return (
+                        <tr key={a.id} className={styles.tr}>
+                          <td
+                            className={styles.td}
+                            data-label='Pickup'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-label='Open booking'
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <Link href={href} className={styles.rowLink}>
+                              {tz.formatDate(b.pickupAt, companyTz)}
+                            </Link>
+                            <div className={styles.pickupMeta}>
+                              <span className={styles.pill}>
+                                {tz.formatEta(b.pickupAt, now)}
+                              </span>
+                            </div>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Status'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <span
+                              className={`badge badge_${tz.badgeTone(b.status)}`}
+                            >
+                              {tz.statusLabel(b.status)}
+                            </span>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Driver'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <div className={styles.cellStrong}>
+                              {driverName}
+                            </div>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Customer'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            <div className={styles.cellStrong}>
+                              {customerName}
+                            </div>
+                          </td>
+                          <td
+                            className={styles.td}
+                            data-label='Service'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            {b.serviceType?.name ?? "—"}
+                          </td>
+                          <td
+                            className={`${styles.td} ${styles.tdRight}`}
+                            data-label='Total'
+                            style={{ position: "relative" }}
+                          >
+                            <Link
+                              href={href}
+                              className={styles.rowStretchedLink}
+                              aria-hidden='true'
+                              tabIndex={-1}
+                              style={{
+                                position: "absolute",
+                                inset: 0,
+                                zIndex: 5,
+                              }}
+                            />
+                            {tz.formatMoneyShort(
+                              b.totalCents ?? 0,
+                              b.currency ?? "USD",
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className={styles.actionsRow}>
+              <Button
+                href={`/admin/bookings?vehicle=${encodeURIComponent(unit.id)}`}
+                text='View All Assignments'
+                btnType='black'
+                arrow
+              />
+            </div>
+          </div>
+        )}
+
+        <div className={styles.section}>
+          <div className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2 className='cardTitle h4'>Edit Vehicle</h2>
+            </div>
+            <div className={styles.cardBody}>
+              <EditVehicleUnitForm
+                unit={unitForForm}
+                categories={categories}
+                onUpdate={updateAction}
+              />
+            </div>
           </div>
         </div>
-      )}
-    </section>
+      </section>
+    </DirtyFormProvider>
   );
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import styles from "./AssignBookingForm.module.css";
-import { useTransition, useState } from "react";
+import { useTransition, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import {
@@ -13,7 +13,6 @@ import Button from "@/components/shared/Button/Button";
 import Modal from "@/components/shared/Modal/Modal";
 import DriverSchedulePreview from "../DriverSchedulePreview/DriverSchedulePreview";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
-
 
 export default function AssignBookingForm({
   bookingId,
@@ -55,15 +54,17 @@ export default function AssignBookingForm({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  /* ── Lock / Unlock state ── */
+  const [isEditing, setIsEditing] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
   const [showUnassignModal, setShowUnassignModal] = useState(false);
 
-  // Validation error state
   const [errors, setErrors] = useState<{
     driver?: boolean;
     vehicle?: boolean;
   }>({});
 
-  // Track selected driver for schedule preview
   const [selectedDriverId, setSelectedDriverId] = useState<string | null>(
     currentDriverId ?? null,
   );
@@ -71,26 +72,32 @@ export default function AssignBookingForm({
     string | null
   >(currentVehicleUnitId ?? null);
 
-  // Check if there's a current assignment
   const hasAssignment = !!currentDriverId;
 
-  // Get current driver name for the modal
   const currentDriver = drivers.find((d) => d.id === currentDriverId);
   const currentDriverName =
     currentDriver?.name ?? currentDriver?.email ?? "Driver";
 
-  // Get selected driver name for schedule preview
   const selectedDriver = drivers.find((d) => d.id === selectedDriverId);
   const selectedDriverName =
     selectedDriver?.name ?? selectedDriver?.email ?? "Driver";
 
-  // Get current vehicle name for the modal
   const currentVehicle = vehicleUnits.find(
     (v) => v.id === currentVehicleUnitId,
   );
   const currentVehicleName = currentVehicle
     ? `${currentVehicle.name}${currentVehicle.plate ? ` (${currentVehicle.plate})` : ""}`
     : null;
+
+  /* ── Helpers ── */
+  const isLocked = !isEditing;
+  const fieldsDisabled = isLocked || isPending;
+
+  const wrapperClass = justSaved
+    ? `${styles.form} ${styles.sectionSaved}`
+    : isEditing
+      ? `${styles.form} ${styles.sectionEditing}`
+      : `${styles.form} ${styles.sectionLocked}`;
 
   function formatMoney(cents: number, curr = "USD") {
     const n = cents / 100;
@@ -99,6 +106,53 @@ export default function AssignBookingForm({
       currency: curr,
       maximumFractionDigits: 2,
     }).format(n);
+  }
+
+  const handleCancel = useCallback(() => {
+    setSelectedDriverId(currentDriverId ?? null);
+    setSelectedVehicleUnitId(currentVehicleUnitId ?? null);
+    setErrors({});
+    setIsEditing(false);
+  }, [currentDriverId, currentVehicleUnitId]);
+
+  function handleSave() {
+    // Validate required fields
+    const newErrors: { driver?: boolean; vehicle?: boolean } = {};
+    if (!selectedDriverId) newErrors.driver = true;
+    if (!selectedVehicleUnitId) newErrors.vehicle = true;
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error("Please select both a driver and vehicle unit.");
+      return;
+    }
+    setErrors({});
+
+    const fd = new FormData();
+    fd.set("bookingId", bookingId);
+    fd.set("driverId", selectedDriverId!);
+    fd.set("vehicleUnitId", selectedVehicleUnitId!);
+
+    // Pass through existing driver payment if present (preserve it)
+    if (currentDriverPaymentCents != null) {
+      fd.set("driverPaymentCents", String(currentDriverPaymentCents));
+    }
+    if (currentDriverTipCents != null) {
+      fd.set("driverTipCents", String(currentDriverTipCents));
+    }
+
+    startTransition(() => {
+      assignBooking(fd).then((res) => {
+        if (res?.error) return toast.error(res.error);
+        toast.success("Driver & vehicle assigned");
+        setJustSaved(true);
+        setTimeout(() => {
+          setJustSaved(false);
+          setIsEditing(false);
+        }, 2000);
+        router.refresh();
+      });
+    });
   }
 
   function handleUnassign() {
@@ -116,61 +170,84 @@ export default function AssignBookingForm({
       setShowUnassignModal(false);
       setSelectedDriverId(null);
       setSelectedVehicleUnitId(null);
+      setJustSaved(true);
+      setTimeout(() => {
+        setJustSaved(false);
+        setIsEditing(false);
+      }, 2000);
       router.refresh();
     });
   }
 
   const isDirty =
-    (selectedDriverId ?? "") !== (currentDriverId ?? "") ||
-    (selectedVehicleUnitId ?? "") !== (currentVehicleUnitId ?? "");
+    isEditing &&
+    ((selectedDriverId ?? "") !== (currentDriverId ?? "") ||
+      (selectedVehicleUnitId ?? "") !== (currentVehicleUnitId ?? ""));
 
   useDirtyForm("driver-vehicle-assignment", isDirty, "assign-section");
 
+  /* ── Section action buttons ── */
+  const renderActions = () => {
+    if (justSaved) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button text='Saved ✓' btnType='greenReg' type='button' disabled />
+        </div>
+      );
+    }
+
+    if (isEditing) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button
+            disabled={isPending}
+            type='button'
+            text={isPending ? "Saving..." : "Save Changes"}
+            btnType='blackReg'
+            onClick={handleSave}
+          />
+          {!isPending && (
+            <Button
+              text='Cancel'
+              btnType='redReg'
+              type='button'
+              onClick={handleCancel}
+            />
+          )}
+          {hasAssignment && !isPending && (
+            <Button
+              disabled={isPending}
+              type='button'
+              text='Unassign Driver'
+              btnType='grayReg'
+              onClick={() => setShowUnassignModal(true)}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.sectionActionsRow}>
+        <Button
+          text='Edit Assignment'
+          btnType='blackReg'
+          type='button'
+          onClick={() => setIsEditing(true)}
+        />
+      </div>
+    );
+  };
+
   return (
     <>
-      <form
-        className={styles.form}
-        onSubmit={(e) => {
-          e.preventDefault();
-
-          // Validate required fields
-          const newErrors: { driver?: boolean; vehicle?: boolean } = {};
-          if (!selectedDriverId) newErrors.driver = true;
-          if (!selectedVehicleUnitId) newErrors.vehicle = true;
-
-          if (Object.keys(newErrors).length > 0) {
-            setErrors(newErrors);
-            toast.error("Please select both a driver and vehicle unit.");
-            return;
-          }
-          setErrors({});
-
-          const fd = new FormData(e.currentTarget);
-          fd.set("bookingId", bookingId);
-
-          // Pass through existing driver payment if present (preserve it)
-          if (currentDriverPaymentCents != null) {
-            fd.set("driverPaymentCents", String(currentDriverPaymentCents));
-          }
-          if (currentDriverTipCents != null) {
-            fd.set("driverTipCents", String(currentDriverTipCents));
-          }
-
-          startTransition(() => {
-            assignBooking(fd).then((res) => {
-              if (res?.error) return toast.error(res.error);
-              toast.success("Driver & vehicle assigned");
-              router.refresh();
-            });
-          });
-        }}
-      >
+      <div className={wrapperClass}>
         <div className={styles.group}>
           <label className='emptyTitle'>Driver</label>
           <select
             name='driverId'
-            defaultValue={currentDriverId ?? ""}
-            disabled={isPending}
+            value={selectedDriverId ?? ""}
+            disabled={fieldsDisabled}
             className={`${styles.select} ${errors.driver ? styles.selectError : ""}`}
             onChange={(e) => {
               setSelectedDriverId(e.target.value || null);
@@ -192,20 +269,22 @@ export default function AssignBookingForm({
           )}
         </div>
 
-        {/* Driver Schedule Preview */}
-        <DriverSchedulePreview
-          driverId={selectedDriverId}
-          driverName={selectedDriverName}
-          targetPickupAt={pickupAt}
-          currentBookingId={bookingId}
-        />
+        {/* Driver Schedule Preview — only show when editing */}
+        {isEditing && (
+          <DriverSchedulePreview
+            driverId={selectedDriverId}
+            driverName={selectedDriverName}
+            targetPickupAt={pickupAt}
+            currentBookingId={bookingId}
+          />
+        )}
 
         <div className={styles.groupTight}>
           <label className='emptyTitle'>Vehicle unit</label>
           <select
             name='vehicleUnitId'
-            defaultValue={currentVehicleUnitId ?? ""}
-            disabled={isPending}
+            value={selectedVehicleUnitId ?? ""}
+            disabled={fieldsDisabled}
             className={`${styles.select} ${errors.vehicle ? styles.selectError : ""}`}
             onChange={(e) => {
               setSelectedVehicleUnitId(e.target.value || null);
@@ -252,27 +331,8 @@ export default function AssignBookingForm({
           )}
         </div>
 
-        {/* Action Buttons */}
-        <div className={styles.btnContainer}>
-          <Button
-            disabled={isPending}
-            type='submit'
-            text={isPending ? "Saving..." : "Assign Driver & Vehicle"}
-            btnType='greenReg'
-          />
-
-          {/* Unassign Button - only show if there's a current assignment */}
-          {hasAssignment && (
-            <Button
-              disabled={isPending}
-              type='button'
-              text='Unassign Driver'
-              btnType='grayReg'
-              onClick={() => setShowUnassignModal(true)}
-            />
-          )}
-        </div>
-      </form>
+        {renderActions()}
+      </div>
 
       {/* Unassign Confirmation Modal */}
       <Modal
@@ -287,7 +347,6 @@ export default function AssignBookingForm({
             this booking.
           </p>
 
-          {/* Current Assignment Info */}
           <div className={styles.currentAssignmentBox}>
             <div className={styles.assignmentRow}>
               <span className={styles.assignmentLabel}>Driver:</span>

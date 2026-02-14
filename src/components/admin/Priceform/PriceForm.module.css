@@ -52,6 +52,114 @@
   margin-top: 0.5rem;
 }
 
+/* ═══════════════════════════════════════════
+   SECTION LOCK / UNLOCK STATES
+   Add these to the END of PriceForm.module.css
+═══════════════════════════════════════════ */
+
+.sectionWrapper {
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease,
+    box-shadow 0.3s ease;
+  border-radius: 10px;
+}
+
+/* Locked — NO ghost/dim on disabled fields */
+.sectionLocked .input:disabled {
+  opacity: 1;
+  cursor: default;
+  background: var(--white);
+  border-color: var(--stroke);
+}
+
+.sectionLocked .inputHighlight:disabled {
+  opacity: 1;
+  cursor: default;
+  background: #f0fdf4;
+  border-color: #22c55e;
+}
+
+/* Editing — blue accent */
+.sectionEditing {
+  padding: 1.5rem;
+  background: var(--lighterBlue);
+  border: 2px solid var(--lightBlue);
+  border-radius: 10px;
+}
+
+/* Saved — green flash */
+.sectionSaved {
+  padding: 1.5rem;
+  background: rgba(22, 163, 74, 0.015);
+  border: 2px solid rgb(34, 197, 94);
+  border-radius: 10px;
+}
+
+/* Actions row */
+.sectionActionsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+  margin-top: 1rem;
+}
+
+/* ═══════════════════════════════════════════
+   SECTION LOCK / UNLOCK STATES
+   Add these to the END of PriceForm.module.css
+═══════════════════════════════════════════ */
+
+/* Locked — fields ghosted, labels stay visible */
+.sectionLocked .input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+  border-color: var(--stroke);
+}
+
+.sectionLocked .inputHighlight:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+  border-color: var(--stroke);
+}
+
+/* Editing — blue accent */
+.sectionEditing {
+  padding: 1.5rem;
+  background: var(--lighterBlue);
+  border: 2px solid var(--lightBlue);
+  border-radius: 10px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* Saved — green flash */
+.sectionSaved {
+  padding: 1.5rem;
+  background: rgba(22, 163, 74, 0.015);
+  border: 2px solid rgb(34, 197, 94);
+  border-radius: 10px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* Actions row */
+.sectionActionsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+  margin-top: 1rem;
+}
+
 @media screen and (max-width: 600px) {
   .grid2 {
     grid-template-columns: 1fr;

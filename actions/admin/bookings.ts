@@ -51,6 +51,75 @@ function errMsg(e: any) {
   }
 }
 
+// ── Auto-recalculate driver pay when booking price changes ──
+async function recalcDriverPayAfterPriceChange({
+  bookingId,
+  oldTotalCents,
+  newTotalCents,
+  actorId,
+  bookingStatus,
+}: {
+  bookingId: string;
+  oldTotalCents: number;
+  newTotalCents: number;
+  actorId: string;
+  bookingStatus: string;
+}) {
+  if (
+    oldTotalCents === newTotalCents ||
+    oldTotalCents <= 0 ||
+    newTotalCents <= 0
+  ) {
+    return null;
+  }
+
+  const assignment = await db.assignment.findUnique({
+    where: { bookingId },
+    select: { id: true, driverPaymentCents: true },
+  });
+
+  if (
+    !assignment ||
+    !assignment.driverPaymentCents ||
+    assignment.driverPaymentCents <= 0
+  ) {
+    return null;
+  }
+
+  const oldDriverPay = assignment.driverPaymentCents;
+  const percentage = oldDriverPay / oldTotalCents;
+  const newDriverPay = Math.round(percentage * newTotalCents);
+
+  await db.$transaction([
+    db.assignment.update({
+      where: { id: assignment.id },
+      data: { driverPaymentCents: newDriverPay },
+    }),
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status: bookingStatus as BookingStatus,
+        eventType: "DRIVER_PAY_ADJUSTED",
+        metadata: {
+          reason: "Automatic adjustment after price change",
+          oldDriverPayCents: oldDriverPay,
+          newDriverPayCents: newDriverPay,
+          percentage: Math.round(percentage * 10000) / 100,
+          oldBookingTotalCents: oldTotalCents,
+          newBookingTotalCents: newTotalCents,
+        },
+        createdById: actorId,
+      },
+    }),
+  ]);
+
+  return {
+    oldDriverPayCents: oldDriverPay,
+    newDriverPayCents: newDriverPay,
+    percentage: Math.round(percentage * 10000) / 100,
+  };
+}
+
 const ApprovePricingSchema = z.object({
   bookingId: z.string().min(1),
   currency: z.string().default("usd"),
@@ -166,12 +235,25 @@ export async function approveBookingAndSetPrice(formData: FormData) {
 
   await db.$transaction(tx);
 
+  // ── Auto-adjust driver pay if price changed ──
+  let driverPayAdjustment = null;
+  if (priceChanged && booking.totalCents > 0 && d.totalCents > 0) {
+    driverPayAdjustment = await recalcDriverPayAfterPriceChange({
+      bookingId: booking.id,
+      oldTotalCents: booking.totalCents,
+      newTotalCents: d.totalCents,
+      actorId,
+      bookingStatus: newStatus,
+    });
+  }
+
   revalidatePath(`/admin/bookings/${booking.id}`);
 
   return {
     success: true,
     hasBalanceDue,
     balanceDueCents: hasBalanceDue ? d.totalCents - amountPaidCents : 0,
+    driverPayAdjustment,
   };
 }
 
@@ -551,6 +633,18 @@ export async function updateBookingPrice(formData: FormData) {
 
   await db.$transaction(tx);
 
+  // ── Auto-adjust driver pay if price changed ──
+  let driverPayAdjustment = null;
+  if (priceChanged && booking.totalCents > 0 && d.totalCents > 0) {
+    driverPayAdjustment = await recalcDriverPayAfterPriceChange({
+      bookingId: booking.id,
+      oldTotalCents: booking.totalCents,
+      newTotalCents: d.totalCents,
+      actorId,
+      bookingStatus: booking.status,
+    });
+  }
+
   revalidatePath(`/admin/bookings/${booking.id}`);
 
   return {
@@ -559,6 +653,7 @@ export async function updateBookingPrice(formData: FormData) {
     balanceDueCents: hasBalanceDue ? d.totalCents - amountPaidCents : 0,
     hasRefundDue,
     refundDueCents: hasRefundDue ? amountPaidCents - d.totalCents : 0,
+    driverPayAdjustment,
   };
 }
 
@@ -632,7 +727,10 @@ export async function assignBooking(formData: FormData) {
   const nextStatus =
     booking.status === "COMPLETED" ||
     booking.status === "CANCELLED" ||
-    booking.status === "NO_SHOW"
+    booking.status === "NO_SHOW" ||
+    booking.status === "PENDING_REVIEW" ||
+    booking.status === "DRAFT" ||
+    booking.status === "DECLINED"
       ? booking.status
       : "ASSIGNED";
 
@@ -1497,9 +1595,31 @@ export async function updateTripDetailsAndPrice(formData: FormData) {
 
   await db.$transaction(tx);
 
+  // ── Auto-adjust driver pay if price changed ──
+  let driverPayAdjustment = null;
+  if (
+    shouldUpdatePrice &&
+    booking.totalCents > 0 &&
+    d.newTotalCents &&
+    d.newTotalCents > 0 &&
+    booking.totalCents !== d.newTotalCents
+  ) {
+    driverPayAdjustment = await recalcDriverPayAfterPriceChange({
+      bookingId: d.bookingId,
+      oldTotalCents: booking.totalCents,
+      newTotalCents: d.newTotalCents,
+      actorId,
+      bookingStatus: bookingUpdateData.status ?? booking.status,
+    });
+  }
+
   revalidatePath(`/admin/bookings/${d.bookingId}`);
 
-  return { success: true, priceUpdated: shouldUpdatePrice };
+  return {
+    success: true,
+    priceUpdated: shouldUpdatePrice,
+    driverPayAdjustment,
+  };
 }
 
 // =============================================================================

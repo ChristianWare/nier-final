@@ -29,12 +29,23 @@ export default function BookingNotesClient({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  /* ── Lock / Unlock state ── */
+  const [isEditing, setIsEditing] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
+
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const isDirty = content.trim().length > 0;
+  const isDirty = isEditing && content.trim().length > 0;
 
   useDirtyForm("internal-notes", isDirty, "notes-section");
+
+  const wrapperClass = justSaved
+    ? `${styles.notesSection} ${styles.sectionSaved}`
+    : isEditing
+      ? `${styles.notesSection} ${styles.sectionEditing}`
+      : styles.notesSection;
 
   function formatDate(dateStr: string) {
     return new Intl.DateTimeFormat("en-US", {
@@ -46,8 +57,13 @@ export default function BookingNotesClient({
     }).format(new Date(dateStr));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function handleCancel() {
+    setContent("");
+    setError(null);
+    setIsEditing(false);
+  }
+
+  function handleSave() {
     setError(null);
 
     if (!content.trim()) {
@@ -65,6 +81,11 @@ export default function BookingNotesClient({
         setError(result.error);
       } else {
         setContent("");
+        setJustSaved(true);
+        setTimeout(() => {
+          setJustSaved(false);
+          setIsEditing(false);
+        }, 2000);
         router.refresh();
       }
     });
@@ -87,10 +108,54 @@ export default function BookingNotesClient({
     });
   }
 
+  /* ── Section action buttons ── */
+  const renderActions = () => {
+    if (justSaved) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button text='Saved ✓' btnType='greenReg' type='button' disabled />
+        </div>
+      );
+    }
+
+    if (isEditing) {
+      return (
+        <div className={styles.sectionActionsRow}>
+          <Button
+            text={isPending ? "Saving..." : "Save Changes"}
+            btnType='blackReg'
+            type='button'
+            disabled={isPending || !content.trim()}
+            onClick={handleSave}
+          />
+          {!isPending && (
+            <Button
+              text='Cancel'
+              btnType='redReg'
+              type='button'
+              onClick={handleCancel}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.sectionActionsRow}>
+        <Button
+          text='Add Note'
+          btnType='blackReg'
+          type='button'
+          onClick={() => setIsEditing(true)}
+        />
+      </div>
+    );
+  };
+
   return (
-    <div className={styles.notesSection}>
-      {/* Add note form */}
-      <form onSubmit={handleSubmit} className={styles.noteForm}>
+    <div className={wrapperClass}>
+      {/* Textarea only visible when editing */}
+      {isEditing && (
         <textarea
           className='inputBorder'
           placeholder='Add an internal note (e.g., VIP client, special instructions, follow-up needed)...'
@@ -98,19 +163,15 @@ export default function BookingNotesClient({
           onChange={(e) => setContent(e.target.value)}
           rows={3}
           disabled={isPending}
+          autoFocus
         />
-        <div className={styles.noteFormActions}>
-          <Button
-            text={isPending ? "Adding..." : "Add Note"}
-            btnType='blackReg'
-            type='submit'
-            disabled={isPending || !content.trim()}
-          />
-        </div>
-        {error && <p className={styles.errorText}>{error}</p>}
-      </form>
+      )}
 
-      {/* Notes list */}
+      {error && <p className={styles.errorText}>{error}</p>}
+
+      {renderActions()}
+
+      {/* Notes list — always visible, delete always works */}
       {notes.length === 0 ? (
         <p className={styles.muted}>No notes yet.</p>
       ) : (

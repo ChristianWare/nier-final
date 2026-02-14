@@ -40,6 +40,58 @@
   width: fit-content;
 }
 
+/* =============================================================================
+   SECTION LOCK / UNLOCK STATES
+   ============================================================================= */
+
+/* Locked — fields ghosted, labels stay full opacity */
+.sectionLocked input:disabled,
+.sectionLocked select:disabled,
+.sectionLocked textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+  border-color: var(--stroke);
+}
+
+.sectionLocked .labelinputcheckbox input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Editing — blue accent */
+.sectionEditing {
+  padding: 1.5rem;
+  background: var(--lighterBlue);
+  border: 2px solid var(--lightBlue);
+  border-radius: 10px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* Saved — green flash */
+.sectionSaved {
+  padding: 1.5rem;
+  background: rgba(22, 163, 74, 0.015);
+  border: 2px solid rgb(34, 197, 94);
+  border-radius: 10px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* Actions row */
+.sectionActionsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+  margin-top: 1rem;
+}
+
 @media screen and (max-width: 768px) {
   .btnContainer {
     display: grid;

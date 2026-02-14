@@ -74,6 +74,7 @@
   border: 1px solid #d1d5db;
   border-radius: 8px;
   overflow: hidden;
+  transition: opacity 0.3s ease;
 }
 
 .inputWrapper:focus-within {
@@ -90,7 +91,7 @@
 }
 
 /* =============================================================================
-   Percentage Buttons Section
+   Percentage Buttons Section (6 columns for 6 options)
    ============================================================================= */
 
 .percentageSection {
@@ -101,8 +102,9 @@
 
 .percentageButtons {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .percentBtn {
@@ -423,6 +425,73 @@
 }
 
 /* =============================================================================
+   SECTION LOCK / UNLOCK STATES
+   ============================================================================= */
+
+/* Locked — fields ghosted, labels stay full opacity */
+.sectionLocked input:disabled,
+.sectionLocked select:disabled,
+.sectionLocked textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+  border-color: var(--stroke);
+}
+
+.sectionLocked .percentBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.sectionLocked .tipOption {
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.sectionLocked .tipRadio:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sectionLocked .inputWrapper {
+  opacity: 0.5;
+}
+
+/* Editing — blue accent */
+.sectionEditing {
+  padding: 1.5rem;
+  background: var(--lighterBlue);
+  border: 2px solid var(--lightBlue);
+  border-radius: 10px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* Saved — green flash */
+.sectionSaved {
+  padding: 1.5rem;
+  background: rgba(22, 163, 74, 0.015);
+  border: 2px solid rgb(34, 197, 94);
+  border-radius: 10px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* Actions row */
+.sectionActionsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+  margin-top: 1rem;
+}
+
+/* =============================================================================
    Responsive
    ============================================================================= */
 
@@ -462,5 +531,9 @@
   .noDriverMessage {
     flex-direction: column;
     text-align: center;
+  }
+
+  .percentageButtons {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
