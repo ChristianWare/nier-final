@@ -375,6 +375,7 @@ export default async function DriverDashboardHome() {
         initialMonth={monthKey(baseMonth, companyTz)}
         countsByYmd={countsByYmd}
         todayYmd={ymdInTimezone(now, companyTz)}
+        timeZone={companyTz}
       />
 
       {/* Upcoming Rides Table */}

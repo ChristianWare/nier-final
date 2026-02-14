@@ -372,7 +372,7 @@ export default async function UserTripDetailPage({
       },
 
       trip: {
-        date: formatTripDateTime(booking.pickupAt),
+        date: formatTripDateTime(booking.pickupAt, companyTz),
         pickupAddress: booking.pickupAddress,
         dropoffAddress: booking.dropoffAddress,
         stops: booking.stops.map((s) => ({
