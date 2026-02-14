@@ -21,12 +21,14 @@ export default function BookingDateTimeWithBlackouts({
   onChangeDate,
   onChangeTime,
   disablePast = true,
+  timeZone,
 }: {
   date: string;
   time: string;
   onChangeDate: (v: string) => void;
   onChangeTime: (v: string) => void;
   disablePast?: boolean;
+  timeZone: string;
 }) {
   const initialMonth = useMemo(
     () => monthFromYmd(date) ?? currentMonthKey(),
@@ -67,6 +69,7 @@ export default function BookingDateTimeWithBlackouts({
       disablePast={disablePast}
       blockedDates={blocked}
       onVisibleMonthChange={setVisibleMonth}
+      timeZone={timeZone}
     />
   );
 }

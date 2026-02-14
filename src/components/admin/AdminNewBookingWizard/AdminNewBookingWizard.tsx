@@ -1968,6 +1968,7 @@ export default function AdminNewBookingWizard({
                       resetCreatedBooking();
                       setPickupAtTime(t);
                     }}
+                    timeZone={companyTimezone}
                   />
                 </div>
                 <div className={styles.sectionBox} id='wizard-field-passengers'>

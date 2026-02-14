@@ -246,6 +246,7 @@ export default async function SchedulePage() {
         initialMonth={monthKey(baseMonth, companyTz)}
         countsByYmd={countsByYmd}
         todayYmd={ymdInTimezone(now, companyTz)}
+        timeZone={companyTz}
       />
 
       <div className={styles.upcomingSection}>

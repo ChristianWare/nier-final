@@ -165,12 +165,14 @@ export default function CorporateNewBookingWizard({
   blackoutsByYmd,
   passengers,
   corporateAccount,
+  companyTimezone,
 }: {
   serviceTypes: ServiceTypeDTO[];
   vehicles: VehicleDTO[];
   blackoutsByYmd: Record<string, boolean>;
   passengers: PassengerDTO[];
   corporateAccount: CorporateAccountDTO;
+  companyTimezone: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -1005,6 +1007,7 @@ export default function CorporateNewBookingWizard({
                     time={pickupAtTime}
                     onChangeDate={pickDate}
                     onChangeTime={(t) => setPickupAtTime(t)}
+                    timeZone={companyTimezone}
                   />
                 </div>
 
