@@ -1293,6 +1293,7 @@ export default function BookingWizard({
                         });
                         clearErrors("pickupAtTime");
                       }}
+                      timeZone={companyTimezone}
                     />
                     <div className='miniNote' style={{ marginTop: 8 }}>
                       🕐 All times are in {companyTimezoneLabel}

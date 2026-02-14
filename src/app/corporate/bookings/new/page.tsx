@@ -184,6 +184,7 @@ export default async function CorporateNewBookingPage() {
       blackoutsByYmd={blackoutsByYmd}
       passengers={passengers}
       corporateAccount={corporateAccountData}
+      companyTimezone={companyTz}
     />
   );
 }
