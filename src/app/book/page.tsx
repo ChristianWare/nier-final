@@ -122,6 +122,8 @@ export default async function BookPage() {
 
       active: true,
       sortOrder: true,
+      callForPricing: true,
+      callForPricingMessage: true,
     },
   });
 

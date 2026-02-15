@@ -88,6 +88,8 @@ type VehicleDTO = {
   perHourCents: number;
   active: boolean;
   sortOrder: number;
+  callForPricing: boolean;
+  callForPricingMessage: string | null;
 };
 
 type PassengerDTO = {
@@ -144,6 +146,7 @@ type SavedLeg = {
   flightTerminal: string | null;
   eventType: string | null;
   estimateCents: number;
+  callForPricing: boolean;
   costCenter: string | null;
   projectCode: string | null;
 };
@@ -621,6 +624,7 @@ export default function CorporateNewBookingWizard({
       flightTerminal: flightTerminal || null,
       eventType: eventType || null,
       estimateCents: displayTotalCents,
+      callForPricing: selectedVehicle?.callForPricing ?? false,
       costCenter: costCenter.trim() || null,
       projectCode: projectCode.trim() || null,
     };
@@ -1087,7 +1091,9 @@ export default function CorporateNewBookingWizard({
                       {savedLegs.length > 1 ? "s" : ""} added
                     </strong>
                     <span style={{ opacity: 0.7, marginLeft: 8 }}>
-                      (${centsToUsd(savedLegsTotal)} so far)
+                      {savedLegs.some((l) => l.callForPricing)
+                        ? `(from $${centsToUsd(savedLegsTotal)}+ so far)`
+                        : `($${centsToUsd(savedLegsTotal)} so far)`}
                     </span>
                   </div>
                 )}
@@ -1866,7 +1872,9 @@ export default function CorporateNewBookingWizard({
                         <div className={styles.vehicleTop}>
                           <div className='emptyTitle'>{v.name}</div>
                           <div className='emptyTitleSmall'>
-                            {rowDiscountCents > 0 ? (
+                            {v.callForPricing ? (
+                              v.callForPricingMessage || "Call for pricing"
+                            ) : rowDiscountCents > 0 ? (
                               <>
                                 <span
                                   style={{
@@ -2119,21 +2127,34 @@ export default function CorporateNewBookingWizard({
                       💰 Pricing
                     </div>
                   </div>
-                  <SummaryRow
-                    label='Subtotal'
-                    value={`$${centsToUsd(estimateCents)}`}
-                  />
-                  {discountAmountCents > 0 && (
-                    <SummaryRow
-                      label={`Corporate discount (${discountPercent}%)`}
-                      value={`−$${centsToUsd(discountAmountCents)}`}
-                    />
+                  {selectedVehicle?.callForPricing ? (
+                    <>
+                      <SummaryRow label='Total' value='To be quoted' strong />
+                      <div className='miniNote'>
+                        This vehicle requires a custom quote. Submit your
+                        request and Nier Transportation will contact you with
+                        pricing.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <SummaryRow
+                        label='Subtotal'
+                        value={`$${centsToUsd(estimateCents)}`}
+                      />
+                      {discountAmountCents > 0 && (
+                        <SummaryRow
+                          label={`Corporate discount (${discountPercent}%)`}
+                          value={`−$${centsToUsd(discountAmountCents)}`}
+                        />
+                      )}
+                      <SummaryRow
+                        label='Total'
+                        value={`$${centsToUsd(displayTotalCents)}`}
+                        strong
+                      />
+                    </>
                   )}
-                  <SummaryRow
-                    label='Total'
-                    value={`$${centsToUsd(displayTotalCents)}`}
-                    strong
-                  />
 
                   <div className={styles.billingNote}>
                     🏢 This ride will appear on your next{" "}
@@ -2202,7 +2223,9 @@ export default function CorporateNewBookingWizard({
                           }}
                         >
                           <span style={{ fontWeight: 700, fontSize: "1.4rem" }}>
-                            ${centsToUsd(leg.estimateCents)}
+                            {leg.callForPricing
+                              ? "TBD"
+                              : `$${centsToUsd(leg.estimateCents)}`}
                           </span>
                           <button
                             type='button'
@@ -2235,7 +2258,9 @@ export default function CorporateNewBookingWizard({
                         (this ride)
                       </span>
                       <span style={{ float: "right", fontWeight: 700 }}>
-                        ${centsToUsd(displayTotalCents)}
+                        {selectedVehicle?.callForPricing
+                          ? "TBD"
+                          : `$${centsToUsd(displayTotalCents)}`}
                       </span>
                     </div>
                     <div
@@ -2250,7 +2275,12 @@ export default function CorporateNewBookingWizard({
                       }}
                     >
                       <span>Trip total estimate</span>
-                      <span>${centsToUsd(groupEstimateTotal)}</span>
+                      <span>
+                        {savedLegs.some((l) => l.callForPricing) ||
+                        selectedVehicle?.callForPricing
+                          ? `From $${centsToUsd(groupEstimateTotal)}*`
+                          : `$${centsToUsd(groupEstimateTotal)}`}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -2353,7 +2383,11 @@ export default function CorporateNewBookingWizard({
                   />
                   <SummaryRow
                     label='Total'
-                    value={`$${centsToUsd(displayTotalCents)}`}
+                    value={
+                      selectedVehicle?.callForPricing
+                        ? "To be quoted"
+                        : `$${centsToUsd(displayTotalCents)}`
+                    }
                     strong
                   />
 

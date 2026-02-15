@@ -165,6 +165,8 @@ export default async function CorporateNewBookingPage() {
     perHourCents: v.perHourCents,
     active: v.active,
     sortOrder: v.sortOrder,
+    callForPricing: v.callForPricing,
+    callForPricingMessage: v.callForPricingMessage,
   }));
 
   const corporateAccountData = {

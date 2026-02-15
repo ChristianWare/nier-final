@@ -23,6 +23,8 @@ type Category = {
   perMinuteCents: number;
   perHourCents: number;
   active: boolean;
+  callForPricing: boolean;
+  callForPricingMessage: string | null;
 };
 
 const CAPACITY_OPTIONS = Array.from({ length: 60 }, (_, i) => i + 1);
@@ -62,6 +64,10 @@ export default function EditVehicleCategoryForm({
     (category.perHourCents / 100).toFixed(2),
   );
   const [active, setActive] = useState(category.active);
+  const [callForPricing, setCallForPricing] = useState(category.callForPricing);
+  const [callForPricingMessage, setCallForPricingMessage] = useState(
+    category.callForPricingMessage ?? "",
+  );
 
   // Track which fields changed for the dirty form modal
   const changedFields = useMemo(() => {
@@ -81,6 +87,10 @@ export default function EditVehicleCategoryForm({
     if (perHour !== (category.perHourCents / 100).toFixed(2))
       fields.push("Per Hour");
     if (active !== category.active) fields.push("Active Status");
+    if (callForPricing !== category.callForPricing)
+      fields.push("Call for Pricing");
+    if (callForPricingMessage !== (category.callForPricingMessage ?? ""))
+      fields.push("Pricing Message");
     return fields;
   }, [
     name,
@@ -93,6 +103,8 @@ export default function EditVehicleCategoryForm({
     perMinute,
     perHour,
     active,
+    callForPricing,
+    callForPricingMessage,
     category,
   ]);
 
@@ -124,6 +136,8 @@ export default function EditVehicleCategoryForm({
     setPerMinute((category.perMinuteCents / 100).toFixed(2));
     setPerHour((category.perHourCents / 100).toFixed(2));
     setActive(category.active);
+    setCallForPricing(category.callForPricing);
+    setCallForPricingMessage(category.callForPricingMessage ?? "");
     setIsEditing(false);
   }, [category]);
 
@@ -139,6 +153,8 @@ export default function EditVehicleCategoryForm({
     fd.set("perMinuteCents", perMinute);
     fd.set("perHourCents", perHour);
     if (active) fd.set("active", "on");
+    if (callForPricing) fd.set("callForPricing", "on");
+    fd.set("callForPricingMessage", callForPricingMessage.trim());
 
     startTransition(() => {
       void (async () => {
@@ -326,6 +342,44 @@ export default function EditVehicleCategoryForm({
           />
         </Field>
       </Grid2>
+
+      {/* ── Call for Pricing Toggle ── */}
+      <div style={{ display: "grid", gap: 10 }}>
+        <label className='h4 underline'>Pricing Visibility</label>
+        <div className='miniNote' style={{ marginTop: -2 }}>
+          Hide the calculated price on the booking wizard and show a custom
+          message instead. The booking will still submit as Pending Review with
+          $0 so you can quote manually.
+        </div>
+      </div>
+
+      <label className={styles.labelinputcheckbox}>
+        <input
+          type='checkbox'
+          checked={callForPricing}
+          onChange={(e) => setCallForPricing(e.target.checked)}
+          disabled={fieldsDisabled}
+          className={styles.labelinputcheckbox}
+        />
+        <span className='emptyTitle'>
+          Hide price — show &ldquo;call for pricing&rdquo; instead
+        </span>
+      </label>
+
+      {callForPricing && (
+        <Field
+          label='Custom message (optional)'
+          hint='Leave blank to use the default: "Call for pricing"'
+        >
+          <input
+            value={callForPricingMessage}
+            onChange={(e) => setCallForPricingMessage(e.target.value)}
+            placeholder='e.g. Contact us for a custom quote'
+            className='input'
+            disabled={fieldsDisabled}
+          />
+        </Field>
+      )}
 
       <label className={styles.labelinputcheckbox}>
         <input

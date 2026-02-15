@@ -85,6 +85,8 @@ type VehicleDTO = {
   perHourCents: number;
   active: boolean;
   sortOrder: number;
+  callForPricing: boolean;
+  callForPricingMessage: string | null;
 };
 
 type FormValues = {
@@ -144,6 +146,7 @@ type SavedLeg = {
   flightGate: string | null;
   eventType: string | null;
   estimateCents: number;
+  callForPricing: boolean;
   contactPhone: string | null;
 };
 
@@ -764,6 +767,7 @@ export default function BookingWizard({
       flightGate: v.flightGate || null,
       eventType: v.eventType || null,
       estimateCents: estimateCents,
+      callForPricing: selectedVehicle?.callForPricing ?? false,
       contactPhone: isAuthed ? v.contactPhone?.trim() || null : null,
     };
 
@@ -1106,7 +1110,10 @@ export default function BookingWizard({
   }, [pickupAtDate, pickupAtTime]);
 
   const checklistEstimateLabel = useMemo(() => {
-    if (!selectedVehicle || estimateCents <= 0) return null;
+    if (!selectedVehicle) return null;
+    if (selectedVehicle.callForPricing)
+      return selectedVehicle.callForPricingMessage || "Call for pricing";
+    if (estimateCents <= 0) return null;
     return `$${centsToUsd(estimateCents)}`;
   }, [selectedVehicle, estimateCents]);
 
@@ -1191,7 +1198,9 @@ export default function BookingWizard({
                         {savedLegs.length > 1 ? "s" : ""} added
                       </strong>
                       <span style={{ opacity: 0.7, marginLeft: 8 }}>
-                        (${centsToUsd(savedLegsTotal)} so far)
+                        {savedLegs.some((l) => l.callForPricing)
+                          ? `(from $${centsToUsd(savedLegsTotal)}+ so far)`
+                          : `($${centsToUsd(savedLegsTotal)} so far)`}
                       </span>
                     </div>
                   )}
@@ -1957,8 +1966,14 @@ export default function BookingWizard({
                               }}
                             >
                               <div className='emptyTitle'>{v.name}</div>
-                              <div className='emptyTitleSmall'>
-                                ${centsToUsd(rowEstimateCents)}
+                              <div
+                                className='emptyTitleSmall'
+                                style={{ textAlign: "right", width: "100%" }}
+                              >
+                                {v.callForPricing
+                                  ? v.callForPricingMessage ||
+                                    "Call for pricing"
+                                  : `$${centsToUsd(rowEstimateCents)}`}
                               </div>
                             </div>
                             <div className='val'>
@@ -2198,24 +2213,37 @@ export default function BookingWizard({
                     />
                     <SummaryRow
                       label='Estimate'
-                      value={`$${centsToUsd(estimateCents)}`}
+                      value={
+                        selectedVehicle?.callForPricing
+                          ? "To be quoted"
+                          : `$${centsToUsd(estimateCents)}`
+                      }
                       strong
                     />
-                    <div className='miniNote'>
-                      This is an estimate. Dispatch may adjust for special
-                      dates, late night, extra stops, etc.
-                      {(route?.stops?.length ?? 0) > 0 && (
-                        <strong>
-                          {" "}
-                          Includes $
-                          {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
-                            2,
-                          )}
-                          surcharge for {route?.stops?.length ?? 0} extra stop
-                          {(route?.stops?.length ?? 0) > 1 ? "s" : ""}.
-                        </strong>
-                      )}
-                    </div>
+                    {selectedVehicle?.callForPricing ? (
+                      <div className='miniNote'>
+                        This vehicle requires a custom quote. Submit your
+                        request and we&apos;ll contact you with pricing, or call
+                        us directly.
+                      </div>
+                    ) : (
+                      <div className='miniNote'>
+                        This is an estimate. Dispatch may adjust for special
+                        dates, late night, extra stops, etc.
+                        {(route?.stops?.length ?? 0) > 0 && (
+                          <strong>
+                            {" "}
+                            Includes $
+                            {(
+                              ((route?.stops?.length ?? 0) * 1500) /
+                              100
+                            ).toFixed(2)}{" "}
+                            surcharge for {route?.stops?.length ?? 0} extra stop
+                            {(route?.stops?.length ?? 0) > 1 ? "s" : ""}.
+                          </strong>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* ─── Saved legs summary (multi-day trip) ─── */}
@@ -2281,7 +2309,9 @@ export default function BookingWizard({
                             <span
                               style={{ fontWeight: 700, fontSize: "1.4rem" }}
                             >
-                              ${centsToUsd(leg.estimateCents)}
+                              {leg.callForPricing
+                                ? "TBD"
+                                : `$${centsToUsd(leg.estimateCents)}`}
                             </span>
                             <button
                               type='button'
@@ -2314,7 +2344,9 @@ export default function BookingWizard({
                           (this ride)
                         </span>
                         <span style={{ float: "right", fontWeight: 700 }}>
-                          ${centsToUsd(estimateCents)}
+                          {selectedVehicle?.callForPricing
+                            ? "TBD"
+                            : `$${centsToUsd(estimateCents)}`}
                         </span>
                       </div>
                       <div
@@ -2329,7 +2361,12 @@ export default function BookingWizard({
                         }}
                       >
                         <span>Trip total estimate</span>
-                        <span>${centsToUsd(groupEstimateTotal)}</span>
+                        <span>
+                          {savedLegs.some((l) => l.callForPricing) ||
+                          selectedVehicle?.callForPricing
+                            ? `From $${centsToUsd(groupEstimateTotal)}*`
+                            : `$${centsToUsd(groupEstimateTotal)}`}
+                        </span>
                       </div>
                     </div>
                   )}

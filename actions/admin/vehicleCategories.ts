@@ -64,6 +64,8 @@ export async function createVehicleCategory(formData: FormData) {
   const minHours = toInt(formData.get("minHours"), 0);
 
   const active = formData.get("active") === "on";
+  const callForPricing = formData.get("callForPricing") === "on";
+  const callForPricingMessage = toString(formData.get("callForPricingMessage"));
 
   const baseFareCents = toCents(formData.get("baseFareCents"), 0);
   const perMileCents = toCents(formData.get("perMileCents"), 0);
@@ -80,6 +82,8 @@ export async function createVehicleCategory(formData: FormData) {
       sortOrder,
       minHours,
       active,
+      callForPricing,
+      callForPricingMessage,
       baseFareCents,
       perMileCents,
       perMinuteCents,
@@ -108,6 +112,8 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
   const minHours = toInt(formData.get("minHours"), 0);
 
   const active = formData.get("active") === "on";
+  const callForPricing = formData.get("callForPricing") === "on";
+  const callForPricingMessage = toString(formData.get("callForPricingMessage"));
 
   const baseFareCents = toCents(formData.get("baseFareCents"), 0);
   const perMileCents = toCents(formData.get("perMileCents"), 0);
@@ -125,6 +131,8 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
       sortOrder,
       minHours,
       active,
+      callForPricing,
+      callForPricingMessage,
       baseFareCents,
       perMileCents,
       perMinuteCents,

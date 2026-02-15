@@ -2,7 +2,7 @@
 "use client";
 
 import styles from "./NewVehicleCategoryPage.module.css";
-import React, { useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { createVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
@@ -10,12 +10,19 @@ import { createVehicleCategory } from "../../../../../actions/admin/vehicleCateg
 export default function NewVehicleCategoryForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [callForPricing, setCallForPricing] = useState(false);
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
+
+        // Manually set the callForPricing value since unchecked checkboxes
+        // don't appear in FormData
+        if (!callForPricing) {
+          fd.delete("callForPricing");
+        }
 
         startTransition(() => {
           void (async () => {
@@ -140,6 +147,38 @@ export default function NewVehicleCategoryForm() {
           />
         </Field>
       </Grid2>
+
+      {/* ── Call for Pricing Toggle ── */}
+      <div className={styles.sectionTitle}>Pricing Visibility</div>
+
+      <label className={styles.labelinputcheckbox}>
+        <input
+          type='checkbox'
+          name='callForPricing'
+          checked={callForPricing}
+          onChange={(e) => setCallForPricing(e.target.checked)}
+          disabled={isPending}
+          className={styles.labelinputcheckbox}
+        />
+        <span className='cardTitle h5'>
+          Hide price — show &ldquo;call for pricing&rdquo; instead
+        </span>
+      </label>
+
+      {callForPricing && (
+        <Field label='Custom message (optional)'>
+          <input
+            name='callForPricingMessage'
+            defaultValue=''
+            placeholder='e.g. Contact us for a custom quote'
+            className='inputBorder'
+            disabled={isPending}
+          />
+          <div className='miniNote'>
+            Leave blank to use the default: &ldquo;Call for pricing&rdquo;
+          </div>
+        </Field>
+      )}
 
       <label className={styles.labelinputcheckbox}>
         <input

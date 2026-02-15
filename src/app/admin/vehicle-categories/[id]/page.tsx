@@ -242,6 +242,14 @@ export default async function EditVehicleCategoryPage({
                 <span className={styles.infoValue}>{category.sortOrder}</span>
               </div>
               <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Pricing Display</span>
+                <span className={styles.infoValue}>
+                  {category.callForPricing
+                    ? `📞 ${category.callForPricingMessage || "Call for pricing"}`
+                    : "Shows calculated price"}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>Added</span>
                 <span className={styles.infoValue}>
                   {tz.formatDateTime(category.createdAt, companyTz)}
@@ -658,6 +666,8 @@ export default async function EditVehicleCategoryPage({
                   perMinuteCents: category.perMinuteCents,
                   perHourCents: category.perHourCents,
                   active: category.active,
+                  callForPricing: category.callForPricing,
+                  callForPricingMessage: category.callForPricingMessage,
                 }}
               />
             </div>

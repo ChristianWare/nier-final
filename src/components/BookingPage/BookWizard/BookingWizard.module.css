@@ -294,6 +294,47 @@
   margin-top: 2rem;
 }
 
+.callForPricingBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.callForPricingNote {
+  padding: 1.25rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.callForPricingNote strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.4rem;
+  color: #78350f;
+}
+
+.callForPricingNote p {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #92400e;
+  line-height: 1.5;
+}
+
+.callForPricingNote a {
+  color: #78350f;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 @media screen and (max-width: 1268px) {
   .content {
     grid-gap: 2rem;

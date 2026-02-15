@@ -683,7 +683,7 @@ th {
   width: 100%;
   border: 1px solid var(--black400);
   background: var(--white);
-  color: var(--paragraph);
+  color: var(--black);
   font-size: 1.6rem;
   font-weight: 500;
   border-radius: 7px;
