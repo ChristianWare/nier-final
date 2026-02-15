@@ -592,7 +592,10 @@ th {
 
 .backBtn {
   color: var(--blue);
-  text-decoration: underline;
+  border-bottom: 1px solid var(--blue);
+  width: fit-content;
+  padding-bottom: 0.1rem;
+  margin-bottom: 1rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -699,7 +702,6 @@ th {
   padding: 0.75rem 1rem;
   border-radius: 7px;
   border: 3px solid var(--stroke);
-  
 }
 
 .box {

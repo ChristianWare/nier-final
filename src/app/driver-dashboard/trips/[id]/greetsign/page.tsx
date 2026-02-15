@@ -78,7 +78,7 @@ export default async function GreetsignPage({
       <header className={styles.header}>
         <Link
           href={`/driver-dashboard/trips/${booking.id}`}
-          className={styles.backLink}
+          className='backBtn'
         >
           ← Back
         </Link>

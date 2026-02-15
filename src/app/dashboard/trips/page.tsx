@@ -411,7 +411,7 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <div className={styles.top}>
-            <Link href="/dashboard" className={styles.backLink}>
+            <Link href="/dashboard" className="backBtn">
               ← Back to Dashboard
             </Link>
             <h1 className={`${styles.heading} h2`}>My Trips</h1>

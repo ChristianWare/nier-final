@@ -248,7 +248,7 @@ export default async function DriverTripDetailPage({
     <section className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
-        <Link href='/driver-dashboard' className={styles.backLink}>
+        <Link href='/driver-dashboard' className='backBtn'>
           ← Back to Dashboard
         </Link>
         <h1 className='cardTitle h5'>Trip Details</h1>

@@ -420,14 +420,14 @@
 }
 
 .filterRow {
-  display: flex;
-  gap: 2rem;
-  flex-wrap: wrap;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-gap: 2rem;
+  width: 100%;
 }
 
 /* On smaller screens, allow horizontal scroll */
-@media screen and (max-width: 1200px) {
+@media screen and (max-width: 1268px) {
   .tabRow {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -445,6 +445,12 @@
   }
 }
 
+@media screen and (max-width: 1068px) {
+  .filterRow {
+    grid-template-columns: repeat(2, 1fr);
+    grid-row-gap: 4rem;
+  }
+}
 @media screen and (max-width: 768px) {
   .tableCard {
     border: 0;
@@ -521,6 +527,12 @@
 
   .badgesRow {
     gap: 8px;
+  }
+
+  .filterRow {
+    grid-template-columns: repeat(1, 1fr);
+    grid-row-gap: 3rem;
+    margin-bottom: 5rem;
   }
 }
 
