@@ -30,6 +30,9 @@ import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect"
 import BookingWizardChecklist from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
 
 import { corporateCreateBooking } from "../../../../actions/corporate/corporateCreateBooking";
+import { corporateCreateTripGroupBooking } from "../../../../actions/corporate/corporateCreateTripGroupBooking";
+import Modal from "@/components/shared/Modal/Modal";
+import { localToUtcIso } from "@/lib/timezone";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 
 // ───────────── Types ─────────────
@@ -106,6 +109,44 @@ type CorporateAccountDTO = {
 // Steps: 1 Trip → 2 Vehicle → 3 Review → 4 Confirmed
 type WizardStep = 1 | 2 | 3 | 4;
 
+type SavedLeg = {
+  id: string;
+  serviceTypeId: string;
+  serviceName: string;
+  vehicleId: string;
+  vehicleName: string;
+  pickupAt: string;
+  pickupAtDate: string;
+  pickupAtTime: string;
+  passengers: number;
+  luggage: number;
+  pickupAddress: string;
+  pickupPlaceId: string | null;
+  pickupLat: number | null;
+  pickupLng: number | null;
+  dropoffAddress: string;
+  dropoffPlaceId: string | null;
+  dropoffLat: number | null;
+  dropoffLng: number | null;
+  stops: {
+    address: string;
+    placeId?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+  }[];
+  distanceMiles: number | null;
+  durationMinutes: number | null;
+  hoursRequested: number | null;
+  specialRequests: string | null;
+  flightAirline: string | null;
+  flightNumber: string | null;
+  flightScheduledAt: string | null;
+  flightTerminal: string | null;
+  eventType: string | null;
+  estimateCents: number;
+  costCenter: string | null;
+  projectCode: string | null;
+};
 // ───────────── Helpers ─────────────
 
 function cx(...parts: Array<string | false | null | undefined>) {
@@ -221,6 +262,9 @@ export default function CorporateNewBookingWizard({
   const [attemptTripNext, setAttemptTripNext] = useState(false);
   const [attemptVehicleNext, setAttemptVehicleNext] = useState(false);
 
+  // ─── Multi-leg state ───
+  const [savedLegs, setSavedLegs] = useState<SavedLeg[]>([]);
+  const [removeLegId, setRemoveLegId] = useState<string | null>(null);
   // ─── Derived ───
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
@@ -372,6 +416,11 @@ export default function CorporateNewBookingWizard({
       : 0;
   const displayTotalCents = estimateCents - discountAmountCents;
 
+  // ─── Multi-leg helpers ───
+  const isMultiLeg = savedLegs.length > 0;
+  const savedLegsTotal = savedLegs.reduce((sum, l) => sum + l.estimateCents, 0);
+  const groupEstimateTotal = savedLegsTotal + displayTotalCents;
+
   // ─── Selected passenger info ───
   const selectedPassenger = useMemo(() => {
     if (newPassengerMode) {
@@ -485,7 +534,135 @@ export default function CorporateNewBookingWizard({
     });
   }, []);
 
+  /** Save current leg to savedLegs and reset wizard to step 1 */
+  function addAnotherRide() {
+    if (!tripIsValid()) {
+      setAttemptTripNext(true);
+      toast.error("Please complete all required fields.");
+      setStep(1);
+      return;
+    }
+    if (!vehicleId) {
+      setAttemptVehicleNext(true);
+      toast.error("Please choose a vehicle.");
+      setStep(2);
+      return;
+    }
+    if (!selectedService || !route?.pickup || !route?.dropoff) {
+      toast.error("Please complete pickup and dropoff.");
+      return;
+    }
+    if (selectedService.pricingStrategy === "POINT_TO_POINT") {
+      const miles = toNumber(route.miles ?? (route as any).distanceMiles);
+      if (!miles || miles <= 0) {
+        toast.error("Route estimate missing. Please re-check the route.");
+        return;
+      }
+    }
+
+    const pickupAtIso = localToUtcIso(
+      pickupAtDate,
+      pickupAtTime,
+      companyTimezone,
+    );
+
+    let flightScheduledAtIso: string | null = null;
+    if (flightScheduledAtDate && flightScheduledAtTime) {
+      flightScheduledAtIso = localToUtcIso(
+        flightScheduledAtDate,
+        flightScheduledAtTime,
+        companyTimezone,
+      );
+    } else if (flightScheduledAtDate) {
+      flightScheduledAtIso = localToUtcIso(
+        flightScheduledAtDate,
+        "00:00",
+        companyTimezone,
+      );
+    }
+
+    const newLeg: SavedLeg = {
+      id: `leg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      serviceTypeId: selectedService.id,
+      serviceName: selectedService.name,
+      vehicleId,
+      vehicleName: selectedVehicle?.name ?? "Standard",
+      pickupAt: pickupAtIso,
+      pickupAtDate,
+      pickupAtTime,
+      passengers: passengers_count,
+      luggage,
+      pickupAddress: route.pickup.address,
+      pickupPlaceId: route.pickup.placeId ?? null,
+      pickupLat: route.pickup.location?.lat ?? null,
+      pickupLng: route.pickup.location?.lng ?? null,
+      dropoffAddress: route.dropoff.address,
+      dropoffPlaceId: route.dropoff.placeId ?? null,
+      dropoffLat: route.dropoff.location?.lat ?? null,
+      dropoffLng: route.dropoff.location?.lng ?? null,
+      stops: (route.stops ?? []).map((s) => ({
+        address: s.address,
+        placeId: s.placeId ?? null,
+        lat: s.location?.lat ?? null,
+        lng: s.location?.lng ?? null,
+      })),
+      distanceMiles: toNumber(
+        route.miles ?? (route as any).distanceMiles ?? null,
+      ),
+      durationMinutes: toNumber(
+        route.minutes ?? (route as any).durationMinutes ?? null,
+      ),
+      hoursRequested:
+        selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
+      specialRequests: specialRequests || null,
+      flightAirline: flightAirline || null,
+      flightNumber: flightNumber || null,
+      flightScheduledAt: flightScheduledAtIso,
+      flightTerminal: flightTerminal || null,
+      eventType: eventType || null,
+      estimateCents: displayTotalCents,
+      costCenter: costCenter.trim() || null,
+      projectCode: projectCode.trim() || null,
+    };
+
+    setSavedLegs((prev) => [...prev, newLeg]);
+
+    // Reset trip-specific fields (keep passenger/account info)
+    setServiceTypeId("");
+    setPickupAtDate("");
+    setPickupAtTime("");
+    setPassengersCount(0);
+    setLuggage(0);
+    setHoursRequested(2);
+    setRoute(null);
+    setVehicleId("");
+    setSpecialRequests("");
+    setPickupAirportId("");
+    setDropoffAirportId("");
+    setFlightAirline("");
+    setFlightNumber("");
+    setFlightTerminal("");
+    setFlightScheduledAtDate("");
+    setFlightScheduledAtTime("");
+    setEventType("");
+    setCostCenter("");
+    setProjectCode("");
+    setAttemptTripNext(false);
+    setAttemptVehicleNext(false);
+
+    toast.success(`Ride ${savedLegs.length + 1} added to your trip!`);
+    setStep(1);
+  }
+
+  function confirmRemoveLeg() {
+    if (!removeLegId) return;
+    setSavedLegs((prev) => prev.filter((l) => l.id !== removeLegId));
+    setRemoveLegId(null);
+    toast.success("Ride removed from trip.");
+  }
+
   // ─── RoutePicker key (remounts on service change) ───
+
   const inputsKey = `${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}-${pickupAirportId || ""}-${dropoffAirportId || ""}`;
 
   // ─── Submit booking ───
@@ -508,10 +685,133 @@ export default function CorporateNewBookingWizard({
 
     const pickup = route!.pickup!;
     const dropoff = route!.dropoff!;
-    const pickupAtIso = new Date(
-      `${pickupAtDate}T${pickupAtTime}:00`,
-    ).toISOString();
+    const pickupAtIso = localToUtcIso(
+      pickupAtDate,
+      pickupAtTime,
+      companyTimezone,
+    );
 
+    // ─── Multi-leg: submit as trip group ───
+    if (savedLegs.length > 0) {
+      let flightScheduledAtIsoGroup: string | null = null;
+      if (flightScheduledAtDate && flightScheduledAtTime) {
+        flightScheduledAtIsoGroup = localToUtcIso(
+          flightScheduledAtDate,
+          flightScheduledAtTime,
+          companyTimezone,
+        );
+      } else if (flightScheduledAtDate) {
+        flightScheduledAtIsoGroup = localToUtcIso(
+          flightScheduledAtDate,
+          "00:00",
+          companyTimezone,
+        );
+      }
+
+      const currentLeg = {
+        serviceTypeId,
+        vehicleId,
+        pickupAt: pickupAtIso,
+        passengers: passengers_count,
+        luggage,
+        pickupAddress: pickup.address,
+        pickupPlaceId: pickup.placeId ?? null,
+        pickupLat: pickup.location?.lat ?? null,
+        pickupLng: pickup.location?.lng ?? null,
+        dropoffAddress: dropoff.address,
+        dropoffPlaceId: dropoff.placeId ?? null,
+        dropoffLat: dropoff.location?.lat ?? null,
+        dropoffLng: dropoff.location?.lng ?? null,
+        stops: (route?.stops ?? []).map((s) => ({
+          address: s.address,
+          placeId: s.placeId ?? null,
+          lat: s.location?.lat ?? null,
+          lng: s.location?.lng ?? null,
+        })),
+        distanceMiles: toNumber(
+          route!.miles ?? (route as any)!.distanceMiles ?? null,
+        ),
+        durationMinutes: toNumber(
+          route!.minutes ?? (route as any)!.durationMinutes ?? null,
+        ),
+        hoursRequested:
+          selectedService.pricingStrategy === "HOURLY"
+            ? toNumber(hoursRequested)
+            : null,
+        specialRequests: specialRequests || null,
+        flightAirline: flightAirline || null,
+        flightNumber: flightNumber || null,
+        flightScheduledAt: flightScheduledAtIsoGroup,
+        flightTerminal: flightTerminal || null,
+        eventType: eventType || null,
+        costCenter: costCenter.trim() || null,
+        projectCode: projectCode.trim() || null,
+      };
+
+      const allLegs = [
+        ...savedLegs.map((sl) => ({
+          serviceTypeId: sl.serviceTypeId,
+          vehicleId: sl.vehicleId,
+          pickupAt: sl.pickupAt,
+          passengers: sl.passengers,
+          luggage: sl.luggage,
+          pickupAddress: sl.pickupAddress,
+          pickupPlaceId: sl.pickupPlaceId,
+          pickupLat: sl.pickupLat,
+          pickupLng: sl.pickupLng,
+          dropoffAddress: sl.dropoffAddress,
+          dropoffPlaceId: sl.dropoffPlaceId,
+          dropoffLat: sl.dropoffLat,
+          dropoffLng: sl.dropoffLng,
+          stops: sl.stops,
+          distanceMiles: sl.distanceMiles,
+          durationMinutes: sl.durationMinutes,
+          hoursRequested: sl.hoursRequested,
+          specialRequests: sl.specialRequests,
+          flightAirline: sl.flightAirline,
+          flightNumber: sl.flightNumber,
+          flightScheduledAt: sl.flightScheduledAt,
+          flightTerminal: sl.flightTerminal,
+          eventType: sl.eventType,
+          costCenter: sl.costCenter,
+          projectCode: sl.projectCode,
+        })),
+        currentLeg,
+      ];
+
+      try {
+        const groupRes = await corporateCreateTripGroupBooking({
+          legs: allLegs,
+          corporatePassengerId: !newPassengerMode
+            ? corporatePassengerId || null
+            : null,
+          newPassengerName: newPassengerMode ? newPassengerName.trim() : null,
+          newPassengerEmail: newPassengerMode
+            ? newPassengerEmail.trim() || null
+            : null,
+          newPassengerPhone: newPassengerMode
+            ? newPassengerPhone.trim() || null
+            : null,
+        });
+        const groupData = groupRes as any;
+        if (groupData?.error) {
+          toast.error(groupData.error);
+          return;
+        }
+        const id = String(
+          groupData?.firstBookingId || groupData?.bookingId || "",
+        );
+        setBookingId(id);
+        toast.success(`Multi-day trip booked! (${allLegs.length} rides)`);
+        setStep(4);
+        return;
+      } catch (e: any) {
+        toast.error(e?.message ?? "Failed to create trip group.");
+        return;
+      }
+    }
+
+    // ─── Single ride: existing flow ───
     try {
       const res = await corporateCreateBooking({
         serviceTypeId,
@@ -552,11 +852,13 @@ export default function CorporateNewBookingWizard({
         flightNumber: flightNumber || null,
         flightScheduledAt:
           flightScheduledAtDate && flightScheduledAtTime
-            ? new Date(
-                `${flightScheduledAtDate}T${flightScheduledAtTime}:00`,
-              ).toISOString()
+            ? localToUtcIso(
+                flightScheduledAtDate,
+                flightScheduledAtTime,
+                companyTimezone,
+              )
             : flightScheduledAtDate
-              ? new Date(`${flightScheduledAtDate}T00:00:00`).toISOString()
+              ? localToUtcIso(flightScheduledAtDate, "00:00", companyTimezone)
               : null,
         flightTerminal: flightTerminal || null,
         eventType: eventType || null,
@@ -765,9 +1067,30 @@ export default function CorporateNewBookingWizard({
               <div className={`${styles.stepPane} ${styles.contentBox}`}>
                 <h1 className='underline h2'>Book a Ride</h1>
                 <p className='subheading'>
-                  Select a passenger, service, date/time, and route for this
-                  trip.
+                  {isMultiLeg
+                    ? `Adding ride ${savedLegs.length + 1} to your trip`
+                    : "Select a passenger, service, date/time, and route for this trip."}
                 </p>
+                {isMultiLeg && (
+                  <div
+                    style={{
+                      background: "rgba(0,0,0,0.04)",
+                      border: "1px solid rgba(0,0,0,0.1)",
+                      borderRadius: 8,
+                      padding: "10px 14px",
+                      marginBottom: 12,
+                      fontSize: "1.4rem",
+                    }}
+                  >
+                    <strong>
+                      🗓️ {savedLegs.length} ride
+                      {savedLegs.length > 1 ? "s" : ""} added
+                    </strong>
+                    <span style={{ opacity: 0.7, marginLeft: 8 }}>
+                      (${centsToUsd(savedLegsTotal)} so far)
+                    </span>
+                  </div>
+                )}
 
                 {/* Service */}
                 <div id='wizard-field-service' className={styles.sectionBox}>
@@ -1810,6 +2133,135 @@ export default function CorporateNewBookingWizard({
                   </div>
                 </div>
 
+                {/* ─── Saved legs summary (multi-day trip) ─── */}
+                {savedLegs.length > 0 && (
+                  <div
+                    className='box'
+                    style={{ background: "rgba(0,0,0,0.02)" }}
+                  >
+                    <div className='cardTitle h5' style={{ marginBottom: 12 }}>
+                      <span style={{ marginRight: 10 }}>🗓️</span> Your multi-day
+                      trip ({savedLegs.length + 1} rides)
+                    </div>
+                    {savedLegs.map((leg, idx) => (
+                      <div
+                        key={leg.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          padding: "10px 0",
+                          borderBottom: "1px solid rgba(0,0,0,0.08)",
+                          gap: 12,
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 600, fontSize: "1.4rem" }}>
+                            Ride {idx + 1}: {leg.serviceName}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "1.3rem",
+                              opacity: 0.7,
+                              marginTop: 2,
+                            }}
+                          >
+                            {leg.pickupAtDate} @ {leg.pickupAtTime} ·{" "}
+                            {leg.vehicleName}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "1.2rem",
+                              opacity: 0.6,
+                              marginTop: 2,
+                            }}
+                          >
+                            {shortAddress(leg.pickupAddress, 45)} →{" "}
+                            {shortAddress(leg.dropoffAddress, 45)}
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <span style={{ fontWeight: 700, fontSize: "1.4rem" }}>
+                            ${centsToUsd(leg.estimateCents)}
+                          </span>
+                          <button
+                            type='button'
+                            onClick={() => setRemoveLegId(leg.id)}
+                            title='Remove this ride'
+                            style={{
+                              background: "none",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: 16,
+                              opacity: 0.5,
+                              padding: "2px 6px",
+                            }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <div
+                      style={{
+                        padding: "10px 0",
+                        fontWeight: 600,
+                        fontSize: "1.4rem",
+                      }}
+                    >
+                      Ride {savedLegs.length + 1}:{" "}
+                      {selectedService?.name ?? "—"}{" "}
+                      <span style={{ fontWeight: 400, opacity: 0.7 }}>
+                        (this ride)
+                      </span>
+                      <span style={{ float: "right", fontWeight: 700 }}>
+                        ${centsToUsd(displayTotalCents)}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        borderTop: "2px solid rgba(0,0,0,0.12)",
+                        marginTop: 8,
+                        paddingTop: 12,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontWeight: 700,
+                        fontSize: "1.6rem",
+                      }}
+                    >
+                      <span>Trip total estimate</span>
+                      <span>${centsToUsd(groupEstimateTotal)}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* "Add another ride" button */}
+                <button
+                  type='button'
+                  onClick={addAnotherRide}
+                  className='secondaryBtn'
+                  disabled={isPending}
+                  style={{ width: "100%", textAlign: "center" }}
+                >
+                  ➕ Add another ride to this trip
+                </button>
+                {savedLegs.length === 0 && (
+                  <div
+                    className='miniNote'
+                    style={{ textAlign: "center", marginTop: -4 }}
+                  >
+                    Need rides on multiple days? Add them all here and submit as
+                    one trip.
+                  </div>
+                )}
+
                 <div className={styles.actionsBetween}>
                   <button
                     type='button'
@@ -1828,7 +2280,11 @@ export default function CorporateNewBookingWizard({
                       });
                     }}
                   >
-                    {isPending ? "Booking..." : "Confirm & Book"}
+                    {isPending
+                      ? "Booking..."
+                      : isMultiLeg
+                        ? `Submit ${savedLegs.length + 1} rides`
+                        : "Confirm & Book"}
                   </button>
                 </div>
               </div>
@@ -1837,10 +2293,13 @@ export default function CorporateNewBookingWizard({
             {step === 4 && (
               <div className={`${styles.stepPane} ${styles.confirmedPane}`}>
                 <div className={styles.confirmedIcon}>✅</div>
-                <h2 className='underline'>Ride Booked!</h2>
+                <h2 className='underline'>
+                  {isMultiLeg ? "Trip Booked!" : "Ride Booked!"}
+                </h2>
                 <p className='subheading'>
-                  Your ride has been confirmed and Nier Transportation has been
-                  notified.
+                  {isMultiLeg
+                    ? `Your ${savedLegs.length + 1}-ride trip has been confirmed and Nier Transportation has been notified.`
+                    : "Your ride has been confirmed and Nier Transportation has been notified."}
                 </p>
 
                 <div className='box'>
@@ -1948,6 +2407,32 @@ export default function CorporateNewBookingWizard({
           </div>
         </div>
       </div>
+      {/* Remove ride confirmation modal */}
+      <Modal isOpen={removeLegId !== null} onClose={() => setRemoveLegId(null)}>
+        <div style={{ display: "grid", gap: 16, padding: 8 }}>
+          <div className='cardTitle h5'>Remove this ride?</div>
+          <p className='paragraph'>
+            Are you sure you want to remove this ride from your trip?
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button
+              type='button'
+              className='secondaryBtn'
+              onClick={() => setRemoveLegId(null)}
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='primaryBtn'
+              style={{ background: "rgba(180,0,0,0.85)" }}
+              onClick={confirmRemoveLeg}
+            >
+              Yes, remove ride
+            </button>
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 }

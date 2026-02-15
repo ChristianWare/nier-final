@@ -31,7 +31,9 @@ import ApprovePriceForm from "@/components/admin/ApprovePriceForm/ApprovePriceFo
 import SendPaymentLinkButton from "@/components/admin/SendPaymentLinkButton/SendPaymentLinkButton";
 
 import { adminCreateBooking } from "../../../../actions/bookings/adminCreateBooking";
+import { adminCreateTripGroupBooking } from "../../../../actions/bookings/adminCreateTripGroupBooking";
 import type { AdminCreateBookingStatus } from "../../../../actions/bookings/adminCreateBooking";
+import Modal from "@/components/shared/Modal/Modal";
 import { adminSearchUsers } from "../../../../actions/admin/users/adminSearchUsers";
 
 import { adminGetBookingWizardData } from "../../../../actions/bookings/adminGetBookingWizardData";
@@ -98,8 +100,39 @@ type VehicleDTO = {
   sortOrder: number;
 };
 
-// ✅ New admin step order:
-// 1 Trip → 2 Vehicle → 3 Price → 4 Assign (+ status) → 5 Confirm → 6 Payment
+type AdminSavedLeg = {
+  id: string;
+  serviceTypeId: string;
+  serviceName: string;
+  vehicleId: string;
+  vehicleName: string;
+  pickupAt: string;
+  pickupAtDate: string;
+  pickupAtTime: string;
+  passengers: number;
+  luggage: number;
+  pickupAddress: string;
+  pickupPlaceId: string | null;
+  pickupLat: number | null;
+  pickupLng: number | null;
+  dropoffAddress: string;
+  dropoffPlaceId: string | null;
+  dropoffLat: number | null;
+  dropoffLng: number | null;
+  stops: { address: string; placeId?: string | null; lat?: number | null; lng?: number | null }[];
+  distanceMiles: number | null;
+  durationMinutes: number | null;
+  hoursRequested: number | null;
+  specialRequests: string | null;
+  flightAirline: string | null;
+  flightNumber: string | null;
+  flightScheduledAt: string | null;
+  flightTerminal: string | null;
+  eventType: string | null;
+  estimateCents: number;
+};
+
+// ✅ New admin step order:// 1 Trip → 2 Vehicle → 3 Price → 4 Assign (+ status) → 5 Confirm → 6 Payment
 type AdminWizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 type UserLite = {
@@ -378,6 +411,10 @@ export default function AdminNewBookingWizard({
     useState<string>("");
 
   const [eventType, setEventType] = useState<string>("");
+
+  // ─── Multi-leg state ───
+  const [savedLegs, setSavedLegs] = useState<AdminSavedLeg[]>([]);
+  const [removeLegId, setRemoveLegId] = useState<string | null>(null);
 
   // ─── Corporate booking state ───
   const [corporateAccountId, setCorporateAccountId] = useState<string>("");
@@ -661,6 +698,12 @@ export default function AdminNewBookingWizard({
       ? Math.round(estimateCents * (corporateDiscountPercent / 100))
       : 0;
   const displayTotalCents = estimateCents - discountAmountCents;
+
+  // ─── Multi-leg helpers ───
+  const isMultiLeg = savedLegs.length > 0;
+  const savedLegsTotal = savedLegs.reduce((sum, l) => sum + l.estimateCents, 0);
+  const groupEstimateTotal = savedLegsTotal + displayTotalCents;
+
   function pickDate(val: string) {
     resetCreatedBooking();
     if (val && blackoutsByYmd[val]) {
@@ -928,6 +971,108 @@ export default function AdminNewBookingWizard({
       const pickup = route!.pickup!;
       const dropoff = route!.dropoff!;
 
+      // ─── Multi-leg: create trip group ───
+      if (savedLegs.length > 0) {
+        const currentLeg = {
+          serviceTypeId,
+          vehicleId,
+          pickupAt: pickupAtIso,
+          passengers,
+          luggage,
+          pickupAddress: pickup.address,
+          pickupPlaceId: pickup.placeId ?? null,
+          pickupLat: pickup.location?.lat ?? null,
+          pickupLng: pickup.location?.lng ?? null,
+          dropoffAddress: dropoff.address,
+          dropoffPlaceId: dropoff.placeId ?? null,
+          dropoffLat: dropoff.location?.lat ?? null,
+          dropoffLng: dropoff.location?.lng ?? null,
+          stops: (route?.stops ?? []).map((s) => ({
+            address: s.address,
+            placeId: s.placeId ?? null,
+            lat: s.location?.lat ?? null,
+            lng: s.location?.lng ?? null,
+          })),
+          distanceMiles: toNumber(route?.miles ?? (route as any)?.distanceMiles),
+          durationMinutes: toNumber(route?.minutes ?? (route as any)?.durationMinutes),
+          hoursRequested: selectedService.pricingStrategy === "HOURLY" ? toNumber(hoursRequested) : null,
+          specialRequests: specialRequests || null,
+          flightAirline: flightAirline || null,
+          flightNumber: flightNumber || null,
+          flightScheduledAt:
+            flightScheduledAtDate && flightScheduledAtTime
+              ? localToUtcIso(flightScheduledAtDate, flightScheduledAtTime, companyTimezone)
+              : flightScheduledAtDate
+                ? localToUtcIso(flightScheduledAtDate, "00:00", companyTimezone)
+                : null,
+          flightTerminal: flightTerminal || null,
+          eventType: eventType || null,
+        };
+
+        const allLegs = [
+          ...savedLegs.map((sl) => ({
+            serviceTypeId: sl.serviceTypeId,
+            vehicleId: sl.vehicleId,
+            pickupAt: sl.pickupAt,
+            passengers: sl.passengers,
+            luggage: sl.luggage,
+            pickupAddress: sl.pickupAddress,
+            pickupPlaceId: sl.pickupPlaceId,
+            pickupLat: sl.pickupLat,
+            pickupLng: sl.pickupLng,
+            dropoffAddress: sl.dropoffAddress,
+            dropoffPlaceId: sl.dropoffPlaceId,
+            dropoffLat: sl.dropoffLat,
+            dropoffLng: sl.dropoffLng,
+            stops: sl.stops,
+            distanceMiles: sl.distanceMiles,
+            durationMinutes: sl.durationMinutes,
+            hoursRequested: sl.hoursRequested,
+            specialRequests: sl.specialRequests,
+            flightAirline: sl.flightAirline,
+            flightNumber: sl.flightNumber,
+            flightScheduledAt: sl.flightScheduledAt,
+            flightTerminal: sl.flightTerminal,
+            eventType: sl.eventType,
+          })),
+          currentLeg,
+        ];
+
+        const groupRes = await adminCreateTripGroupBooking({
+          legs: allLegs,
+          status: bookingStatus,
+          customerKind,
+          customerUserId,
+          customerEmail: email,
+          customerName: customerKind === "guest" ? customerName.trim() : null,
+          customerPhone: customerKind === "guest" ? customerPhone.trim() : null,
+          corporateAccountId: customerKind === "corporate" ? corporateAccountId : null,
+          corporatePassengerId: customerKind === "corporate" && !newPassengerMode ? corporatePassengerId : null,
+          costCenter: customerKind === "corporate" && costCenter.trim() ? costCenter.trim() : null,
+          projectCode: customerKind === "corporate" && projectCode.trim() ? projectCode.trim() : null,
+          corporateNewPassengerName: customerKind === "corporate" && newPassengerMode ? newPassengerName.trim() : null,
+          corporateNewPassengerEmail: customerKind === "corporate" && newPassengerMode ? newPassengerEmail.trim() || null : null,
+          corporateNewPassengerPhone: customerKind === "corporate" && newPassengerMode ? newPassengerPhone.trim() || null : null,
+        });
+
+        if ((groupRes as any)?.error) {
+          toast.error((groupRes as any).error);
+          return null;
+        }
+
+        const id = String((groupRes as any).firstBookingId || (groupRes as any).bookingId || "");
+        if (!id) {
+          toast.error("Trip group created, but no bookingId returned.");
+          return null;
+        }
+
+        setBookingId(id);
+        toast.success(`Trip group created (${allLegs.length} rides). Managing first booking.`);
+        await refreshBookingData(id);
+        return id;
+      }
+
+      // ─── Single ride: existing flow ───
       const res = await adminCreateBooking({
         serviceTypeId,
         vehicleId,
@@ -1040,8 +1185,115 @@ export default function AdminNewBookingWizard({
     }
   }
 
-  // ✅ IMPORTANT: do NOT include `step` here (it remounts RoutePicker and nukes your bookingId)
-  const inputsKey = `${serviceTypeId || "none"}-${customerKind}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}-${pickupAirportId || ""}-${dropoffAirportId || ""}`;
+  /** Save current leg to savedLegs and reset wizard for next leg */
+  function addAnotherRide() {
+    const errs = computeTripErrors();
+    if (Object.values(errs).some(Boolean)) {
+      setAttemptTripNext(true);
+      toast.error("Please complete all required fields.");
+      setStep(1);
+      return;
+    }
+    if (!vehicleId) {
+      setAttemptVehicleNext(true);
+      toast.error("Please choose a vehicle category.");
+      return;
+    }
+    if (!selectedService || !route?.pickup || !route?.dropoff) {
+      toast.error("Please complete pickup and dropoff.");
+      return;
+    }
+    if (selectedService.pricingStrategy === "POINT_TO_POINT") {
+      const miles = toNumber(route.miles ?? (route as any).distanceMiles);
+      if (!miles || miles <= 0) {
+        toast.error("Route estimate missing. Please re-check the route.");
+        return;
+      }
+    }
+
+    const pickupAtIso = localToUtcIso(pickupAtDate, pickupAtTime, companyTimezone);
+
+    let flightScheduledAtIso: string | null = null;
+    if (flightScheduledAtDate && flightScheduledAtTime) {
+      flightScheduledAtIso = localToUtcIso(flightScheduledAtDate, flightScheduledAtTime, companyTimezone);
+    } else if (flightScheduledAtDate) {
+      flightScheduledAtIso = localToUtcIso(flightScheduledAtDate, "00:00", companyTimezone);
+    }
+
+    const newLeg: AdminSavedLeg = {
+      id: `leg-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      serviceTypeId: selectedService.id,
+      serviceName: selectedService.name,
+      vehicleId,
+      vehicleName: selectedVehicle?.name ?? "Standard",
+      pickupAt: pickupAtIso,
+      pickupAtDate,
+      pickupAtTime,
+      passengers,
+      luggage,
+      pickupAddress: route.pickup.address,
+      pickupPlaceId: route.pickup.placeId ?? null,
+      pickupLat: route.pickup.location?.lat ?? null,
+      pickupLng: route.pickup.location?.lng ?? null,
+      dropoffAddress: route.dropoff.address,
+      dropoffPlaceId: route.dropoff.placeId ?? null,
+      dropoffLat: route.dropoff.location?.lat ?? null,
+      dropoffLng: route.dropoff.location?.lng ?? null,
+      stops: (route.stops ?? []).map((s) => ({
+        address: s.address,
+        placeId: s.placeId ?? null,
+        lat: s.location?.lat ?? null,
+        lng: s.location?.lng ?? null,
+      })),
+      distanceMiles: toNumber(route.miles ?? (route as any).distanceMiles ?? null),
+      durationMinutes: toNumber(route.minutes ?? (route as any).durationMinutes ?? null),
+      hoursRequested: selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
+      specialRequests: specialRequests || null,
+      flightAirline: flightAirline || null,
+      flightNumber: flightNumber || null,
+      flightScheduledAt: flightScheduledAtIso,
+      flightTerminal: flightTerminal || null,
+      eventType: eventType || null,
+      estimateCents: displayTotalCents,
+    };
+
+    setSavedLegs((prev) => [...prev, newLeg]);
+
+    // Reset trip-specific fields (keep customer info)
+    setServiceTypeId("");
+    setPickupAtDate("");
+    setPickupAtTime("");
+    setPassengers(0);
+    setLuggage(0);
+    setHoursRequested(2);
+    setRoute(null);
+    setVehicleId("");
+    setSpecialRequests("");
+    setPickupAirportId("");
+    setDropoffAirportId("");
+    setFlightAirline("");
+    setFlightNumber("");
+    setFlightTerminal("");
+    setFlightScheduledAtDate("");
+    setFlightScheduledAtTime("");
+    setEventType("");
+    setAttemptTripNext(false);
+    setAttemptVehicleNext(false);
+    resetCreatedBooking();
+
+    toast.success(`Ride ${savedLegs.length + 1} added to your trip!`);
+    setStep(1);
+  }
+
+  function confirmRemoveLeg() {
+    if (!removeLegId) return;
+    setSavedLegs((prev) => prev.filter((l) => l.id !== removeLegId));
+    setRemoveLegId(null);
+    toast.success("Ride removed from trip.");
+  }
+
+// ✅ IMPORTANT: do NOT include `step` here (it remounts RoutePicker and nukes your bookingId)
+  const inputsKey = `${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}-${pickupAirportId || ""}-${dropoffAirportId || ""}`;
 
   const filteredVehicleUnits = useMemo(() => {
     if (!vehicleId) return [];
@@ -1417,8 +1669,29 @@ export default function AdminNewBookingWizard({
               <div className={`${styles.contentBox} ${styles.stepPane}`}>
                 <h2 className='underline'>Trip details</h2>
                 <p className='subheading'>
-                  Customer, service, date/time, and route.
+                  {isMultiLeg
+                    ? `Adding ride ${savedLegs.length + 1} to this trip`
+                    : "Customer, service, date/time, and route."}
                 </p>
+                {isMultiLeg && (
+                  <div
+                    style={{
+                      background: "rgba(0,0,0,0.04)",
+                      border: "1px solid rgba(0,0,0,0.1)",
+                      borderRadius: 8,
+                      padding: "10px 14px",
+                      marginBottom: 12,
+                      fontSize: "1.4rem",
+                    }}
+                  >
+                    <strong>
+                      🗓️ {savedLegs.length} ride{savedLegs.length > 1 ? "s" : ""} added
+                    </strong>
+                    <span style={{ opacity: 0.7, marginLeft: 8 }}>
+                      (${centsToUsd(savedLegsTotal)} so far)
+                    </span>
+                  </div>
+                )}
 
                 <div id='wizard-field-customer' className={styles.sectionBox}>
                   <label className='cardTitle h5'>Customer type</label>
@@ -2585,6 +2858,22 @@ export default function AdminNewBookingWizard({
                   />
                 </div>
 
+                {/* "Add another ride" button */}
+                <button
+                  type='button'
+                  onClick={addAnotherRide}
+                  className='secondaryBtn'
+                  disabled={isPending}
+                  style={{ width: "100%", textAlign: "center" }}
+                >
+                  ➕ Add another ride to this trip
+                </button>
+                {savedLegs.length === 0 && (
+                  <div className='miniNote' style={{ textAlign: "center", marginTop: -4 }}>
+                    Need to create rides on multiple days? Add them all here.
+                  </div>
+                )}
+
                 <div className={styles.actionsBetween}>
                   <button
                     type='button'
@@ -2620,7 +2909,11 @@ export default function AdminNewBookingWizard({
                       });
                     }}
                   >
-                    {isPending ? "Creating..." : "Next"}
+                    {isPending
+                      ? "Creating..."
+                      : isMultiLeg
+                        ? `Create ${savedLegs.length + 1} rides`
+                        : "Next"}
                   </button>
                 </div>
               </div>
@@ -3155,6 +3448,18 @@ export default function AdminNewBookingWizard({
                   </div>
                 )}
 
+                {/* Saved legs note (multi-day trip) */}
+                {savedLegs.length > 0 && (
+                  <div className='box' style={{ background: "rgba(0,0,0,0.02)" }}>
+                    <div className='cardTitle h5' style={{ marginBottom: 8 }}>
+                      🗓️ This is a multi-day trip ({savedLegs.length + 1} rides)
+                    </div>
+                    <div className='miniNote'>
+                      You are managing the first booking. The remaining {savedLegs.length} ride{savedLegs.length > 1 ? "s" : ""} can be managed from their individual booking pages after completing this wizard.
+                    </div>
+                  </div>
+                )}
+
                 <div className={styles.actionsBetween}>
                   <button
                     type='button'
@@ -3371,6 +3676,28 @@ export default function AdminNewBookingWizard({
           </div>
         </div>
       </div>
+    {/* Remove ride confirmation modal */}
+      <Modal isOpen={removeLegId !== null} onClose={() => setRemoveLegId(null)}>
+        <div style={{ display: "grid", gap: 16, padding: 8 }}>
+          <div className='cardTitle h5'>Remove this ride?</div>
+          <p className='paragraph'>
+            Are you sure you want to remove this ride from your trip?
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button type='button' className='secondaryBtn' onClick={() => setRemoveLegId(null)}>
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='primaryBtn'
+              style={{ background: "rgba(180,0,0,0.85)" }}
+              onClick={confirmRemoveLeg}
+            >
+              Yes, remove ride
+            </button>
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 }
@@ -3429,8 +3756,9 @@ function AdminBookingStepper({ step }: { step: AdminWizardStep }) {
 }
 
 const stripePromise = (() => {
-  const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-  return pk ? loadStripe(pk) : null;
+  const pk: string | undefined = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (!pk) return null;
+  return loadStripe(pk);
 })();
 
 function AdminManualCardPayment({
