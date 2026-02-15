@@ -3,6 +3,7 @@ import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import Nav from "@/components/shared/Nav/Nav";
 import CheckoutClient from "./CheckoutClient";
+import { getStripePublishableKey } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -83,10 +84,13 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     address: s.address,
   }));
 
+  const stripePublishableKey = await getStripePublishableKey();
+
   return (
     <main>
       <Nav background='white' />
       <CheckoutClient
+        stripePublishableKey={stripePublishableKey ?? ""}
         bookingId={booking.id}
         serviceName={booking.serviceType?.name ?? "Transportation"}
         vehicleName={booking.vehicle?.name ?? "Vehicle"}
