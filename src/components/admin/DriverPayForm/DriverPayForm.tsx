@@ -31,6 +31,7 @@ function dollarsToCents(dollars: string): number | null {
 }
 
 type TipDistribution = "full" | "custom" | "none";
+type PayMethod = "quick" | "percent" | "amount";
 
 export default function DriverPayForm({
   bookingId,
@@ -59,6 +60,8 @@ export default function DriverPayForm({
   const [driverPayment, setDriverPayment] = useState<string>(
     centsToDollars(currentDriverPaymentCents),
   );
+  const [customPercent, setCustomPercent] = useState<string>("");
+  const [payMethod, setPayMethod] = useState<PayMethod>("quick");
 
   // Tip distribution helper (declared before useState so it can initialize)
   function getInitialTipDistribution(): TipDistribution {
@@ -170,6 +173,7 @@ export default function DriverPayForm({
 
   const handleCancel = useCallback(() => {
     setDriverPayment(centsToDollars(currentDriverPaymentCents));
+    setCustomPercent("");
     setTipDistribution(getInitialTipDistribution());
     setCustomTipAmount(
       currentDriverTipCents &&
@@ -271,60 +275,162 @@ export default function DriverPayForm({
     );
   };
 
+  /* ── Tab definitions ── */
+  const tabs: { key: PayMethod; label: string; icon: string }[] = [
+    { key: "quick", label: "Quick Select", icon: "⚡" },
+    { key: "percent", label: "Custom %", icon: "%" },
+    { key: "amount", label: "Custom Amount", icon: "$" },
+  ];
+
   return (
     <div className={wrapperClass}>
-      {/* Driver Payment Input */}
+      {/* Driver Payment Section */}
       <div className={styles.driverPaymentSection}>
-        <div className={styles.inputSection}>
-          <label className='emptyTitle'>Driver Payment (from company)</label>
-          <div className={styles.inputWrapper}>
-            <span className={styles.dollarSign}>$</span>
-            <input
-              type='text'
-              inputMode='decimal'
-              placeholder='0.00'
-              value={driverPayment}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9.]/g, "");
-                setDriverPayment(val);
-              }}
-              disabled={fieldsDisabled}
-              className='inputBorder'
-            />
+        {/* Current value display — always visible */}
+        <div className={styles.currentValueDisplay}>
+          <div className={styles.currentValueRow}>
+            <span className='emptyTitle'>Driver Payment</span>
+            <span className={styles.currentValueAmount}>
+              {currentPaymentCents > 0
+                ? formatMoney(currentPaymentCents, currency)
+                : "—"}
+            </span>
           </div>
-          <span className='miniNote'>
-            Amount the company pays the driver for this trip
-          </span>
+          {bookingTotalCents > 0 && currentPaymentCents > 0 && (
+            <span className='miniNote'>
+              {((currentPaymentCents / bookingTotalCents) * 100).toFixed(1)}% of{" "}
+              {formatMoney(bookingTotalCents, currency)} booking total
+            </span>
+          )}
         </div>
 
-        {/* Percentage quick buttons */}
-        {bookingTotalCents > 0 && (
-          <div className={styles.percentageSection}>
-            {bookingTotalCents > 0 && (
-              <div className='subheading'>
-                Booking total:{" "}
-                <strong>{formatMoney(bookingTotalCents, currency)}</strong>
+        {/* Segmented tab control */}
+        <div className={styles.methodTabs}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              type='button'
+              className={`${styles.methodTab} ${payMethod === tab.key ? styles.methodTabActive : ""}`}
+              onClick={() => setPayMethod(tab.key)}
+              disabled={fieldsDisabled}
+            >
+              <span className={styles.methodTabIcon}>{tab.icon}</span>
+              <span className={styles.methodTabLabel}>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* ── Panel: Quick Select ── */}
+        {payMethod === "quick" && (
+          <div className={styles.methodPanel}>
+            {bookingTotalCents > 0 ? (
+              <>
+                <div className='miniNote' style={{ marginBottom: 4 }}>
+                  Tap a percentage of the{" "}
+                  <strong>{formatMoney(bookingTotalCents, currency)}</strong>{" "}
+                  booking total
+                </div>
+                <div className={styles.percentageButtons}>
+                  {percentageAmounts.map(({ label, cents }) => (
+                    <button
+                      key={label}
+                      type='button'
+                      className={`${styles.percentBtn} ${
+                        currentPaymentCents === cents
+                          ? styles.percentBtnActive
+                          : ""
+                      }`}
+                      onClick={() => setAmountFromCents(cents)}
+                      disabled={fieldsDisabled || cents === 0}
+                    >
+                      {label}
+                      <span className={styles.percentAmount}>
+                        {formatMoney(cents, currency)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className='miniNote'>
+                Booking total is $0 — use Custom Amount instead.
               </div>
             )}
-            <br />
-            <label className='emptyTitle'>Quick Select</label>
-            <div className={styles.percentageButtons}>
-              {percentageAmounts.map(({ label, cents }) => (
-                <button
-                  key={label}
-                  type='button'
-                  className={`${styles.percentBtn} ${
-                    currentPaymentCents === cents ? styles.percentBtnActive : ""
-                  }`}
-                  onClick={() => setAmountFromCents(cents)}
-                  disabled={fieldsDisabled || cents === 0}
-                >
-                  {label}
-                  <span className={styles.percentAmount}>
-                    {formatMoney(cents, currency)}
-                  </span>
-                </button>
-              ))}
+          </div>
+        )}
+
+        {/* ── Panel: Custom Percentage ── */}
+        {payMethod === "percent" && (
+          <div className={styles.methodPanel}>
+            {bookingTotalCents > 0 ? (
+              <div className={styles.inputSection}>
+                <label className='emptyTitle'>
+                  Enter percentage of {formatMoney(bookingTotalCents, currency)}
+                </label>
+                <div className={styles.inputWrapper}>
+                  <input
+                    type='text'
+                    inputMode='decimal'
+                    placeholder='e.g. 65'
+                    value={customPercent}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9.]/g, "");
+                      setCustomPercent(val);
+                      const pct = parseFloat(val);
+                      if (Number.isFinite(pct) && pct >= 0 && pct <= 100) {
+                        setAmountFromCents(
+                          Math.round(bookingTotalCents * (pct / 100)),
+                        );
+                      }
+                    }}
+                    disabled={fieldsDisabled}
+                    className='inputBorder'
+                  />
+                  <span className={styles.unitLabel}>%</span>
+                </div>
+                <span className='miniNote'>
+                  {customPercent &&
+                  parseFloat(customPercent) > 0 &&
+                  parseFloat(customPercent) <= 100
+                    ? `${customPercent}% → ${formatMoney(Math.round(bookingTotalCents * (parseFloat(customPercent) / 100)), currency)} driver payment`
+                    : "Type any percentage from 0–100"}
+                </span>
+              </div>
+            ) : (
+              <div className='miniNote'>
+                Booking total is $0 — use Custom Amount instead.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Panel: Custom Amount ── */}
+        {payMethod === "amount" && (
+          <div className={styles.methodPanel}>
+            <div className={styles.inputSection}>
+              <label className='emptyTitle'>Driver payment amount</label>
+              <div className={styles.inputWrapper}>
+                <span className={styles.dollarSign}>$</span>
+                <input
+                  type='text'
+                  inputMode='decimal'
+                  placeholder='0.00'
+                  value={driverPayment}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9.]/g, "");
+                    setDriverPayment(val);
+                    setCustomPercent("");
+                  }}
+                  disabled={fieldsDisabled}
+                  className='inputBorder'
+                />
+              </div>
+              <span className='miniNote'>
+                Enter the exact dollar amount the company pays the driver
+                {bookingTotalCents > 0 && currentPaymentCents > 0
+                  ? ` (${((currentPaymentCents / bookingTotalCents) * 100).toFixed(1)}% of booking)`
+                  : ""}
+              </span>
             </div>
           </div>
         )}
