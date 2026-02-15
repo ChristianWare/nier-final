@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
+    const stripe = await getStripe();
     const body = await req.json();
     const { bookingId, amountCents, tipCents, currency, isBalancePayment } =
       body;

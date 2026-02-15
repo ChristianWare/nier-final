@@ -3,11 +3,8 @@
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { revalidatePath } from "next/cache";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
+import type Stripe from "stripe";
+import { getStripe } from "@/lib/stripe";
 
 /* ─────────────────────────────────────────────
    Helper: get caller's corporate account
@@ -114,6 +111,7 @@ export async function updateContactInfo(data: {
 
 export async function getCardOnFile(corporateAccountId: string) {
   try {
+    const stripe = await getStripe();
     const account = await db.corporateAccount.findUnique({
       where: { id: corporateAccountId },
       select: { stripeCustomerId: true },
@@ -188,6 +186,8 @@ export async function createCardSetupSession() {
 
     if (!account) return { ok: false, error: "Account not found." };
 
+    const stripe = await getStripe();
+
     // Create or retrieve Stripe customer
     let customerId = account.stripeCustomerId;
 
@@ -233,6 +233,7 @@ export async function removeCardOnFile() {
   if (!contact) return { ok: false, error: "Not authorized" };
 
   try {
+    const stripe = await getStripe();
     const account = await db.corporateAccount.findUnique({
       where: { id: contact.corporateAccountId },
       select: { stripeCustomerId: true },

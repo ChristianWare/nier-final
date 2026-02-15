@@ -729,6 +729,11 @@ model CompanySettings {
   // Legal
   taxId           String?
   businessLicense String?
+
+  // Stripe API keys (managed via Admin → Earnings → Payment Settings)
+  stripeSecretKeyEncrypted     String? @db.Text // AES-256-GCM encrypted
+  stripePublishableKey         String? // Safe to store in plaintext
+  stripeWebhookSecretEncrypted String? @db.Text // AES-256-GCM encrypted
 }
 
 model ServiceFee {

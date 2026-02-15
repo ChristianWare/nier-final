@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { BookingStatus } from "@prisma/client";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
@@ -204,6 +204,7 @@ async function finalizePaid(args: {
 }
 
 async function resolveBookingIdFromCheckoutSession(incoming: any) {
+  const stripe = await getStripe();
   const sessionId = str(incoming?.id);
 
   let bookingId =
@@ -254,6 +255,7 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
 
 async function getReceiptUrlFromPaymentIntent(paymentIntentId: string | null) {
   if (!paymentIntentId) return null;
+  const stripe = await getStripe();
   const pi = await stripe.paymentIntents.retrieve(paymentIntentId, {
     expand: ["charges"],
   });
@@ -262,14 +264,6 @@ async function getReceiptUrlFromPaymentIntent(paymentIntentId: string | null) {
 }
 
 export async function POST(req: Request) {
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secret) {
-    return NextResponse.json(
-      { error: "Missing STRIPE_WEBHOOK_SECRET" },
-      { status: 500 },
-    );
-  }
-
   const sig = req.headers.get("stripe-signature");
   if (!sig) {
     return NextResponse.json(
@@ -281,7 +275,10 @@ export async function POST(req: Request) {
   const body = await req.text();
 
   let event: any;
+  let stripe;
   try {
+    stripe = await getStripe();
+    const secret = await getStripeWebhookSecret();
     event = stripe.webhooks.constructEvent(body, sig, secret);
   } catch (err: any) {
     return NextResponse.json(

@@ -1,11 +1,7 @@
 "use server";
 
-import Stripe from "stripe";
 import { db } from "@/lib/db";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2025-12-15.clover",
-});
+import { getStripe } from "@/lib/stripe";
 
 export async function adminCreateManualPaymentIntent({
   bookingId,
@@ -13,8 +9,6 @@ export async function adminCreateManualPaymentIntent({
   bookingId: string;
 }) {
   if (!bookingId) return { error: "Missing bookingId" };
-  if (!process.env.STRIPE_SECRET_KEY)
-    return { error: "Missing STRIPE_SECRET_KEY" };
 
   const b = await db.booking.findUnique({
     where: { id: bookingId },
@@ -49,6 +43,7 @@ export async function adminCreateManualPaymentIntent({
   const currency = (b.currency ?? "USD").toLowerCase();
   const isBalancePayment = amountPaidCents > 0;
 
+  const stripe = await getStripe();
   const pi = await stripe.paymentIntents.create({
     amount: amountToCharge,
     currency,

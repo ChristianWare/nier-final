@@ -4,7 +4,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import { revalidatePath } from "next/cache";
@@ -1746,6 +1746,8 @@ export async function issueRefund(formData: FormData) {
       error: `Cannot refund more than the net paid amount ($${(netPaidCents / 100).toFixed(2)}).`,
     };
   }
+
+  const stripe = await getStripe();
 
   try {
     const refund = await stripe.refunds.create({

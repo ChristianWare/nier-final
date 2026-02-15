@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
   Elements,
@@ -12,10 +12,6 @@ import {
 import styles from "./Checkout.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Button from "@/components/shared/Button/Button";
-
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-);
 
 // ✅ Stop type
 type Stop = {
@@ -178,7 +174,12 @@ export default function CheckoutClient({
   isBalancePayment,
   amountPaidCents,
   totalBookingCents,
-}: Props) {
+  stripePublishableKey,
+}: Props & { stripePublishableKey: string }) {
+  const stripePromise = useMemo(
+    () => loadStripe(stripePublishableKey),
+    [stripePublishableKey],
+  );
   const [selectedTipPercent, setSelectedTipPercent] = useState<number | null>(
     20,
   );
@@ -316,7 +317,12 @@ export default function CheckoutClient({
                   {/* ✅ Extra Stops */}
                   {stops.length > 0 && (
                     <div className={styles.stopsContainer}>
-                      <h2 className='cardTitle h5' style={{ marginBottom: "2rem" }}>Additional Stops</h2>
+                      <h2
+                        className='cardTitle h5'
+                        style={{ marginBottom: "2rem" }}
+                      >
+                        Additional Stops
+                      </h2>
                       {stops.map((stop) => (
                         <div key={stop.id} className={styles.tripRow}>
                           <span className={styles.tripIcon}>

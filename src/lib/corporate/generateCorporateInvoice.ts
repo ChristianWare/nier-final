@@ -1,11 +1,8 @@
 // lib/corporate/generateCorporateInvoice.ts
 import { db } from "@/lib/db";
-import Stripe from "stripe";
+import type Stripe from "stripe";
+import { getStripe } from "@/lib/stripe";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15.clover",
-});
 
 /* ─────────────────────────────────────────────
    Types
@@ -98,6 +95,7 @@ async function chargeCardOnFile(
   companyName: string,
 ): Promise<{ ok: boolean; stripePaymentIntentId?: string; error?: string }> {
   try {
+    const stripe = await getStripe();
     // Get the default payment method
     const customer = (await stripe.customers.retrieve(
       stripeCustomerId,

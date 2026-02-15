@@ -26,11 +26,6 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(n);
 }
 
-const stripePromise = (() => {
-  const pk = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-  return pk ? loadStripe(pk) : null;
-})();
-
 export default function AdminManualCardPaymentClient({
   bookingId,
   amountCents,
@@ -38,6 +33,7 @@ export default function AdminManualCardPaymentClient({
   isPaid,
   isApproved,
   amountPaidCents = 0,
+  stripePublishableKey,
 }: {
   bookingId: string;
   amountCents: number;
@@ -45,7 +41,12 @@ export default function AdminManualCardPaymentClient({
   isPaid: boolean;
   isApproved: boolean;
   amountPaidCents?: number;
+  stripePublishableKey?: string | null;
 }) {
+  const stripePromise = useMemo(
+    () => (stripePublishableKey ? loadStripe(stripePublishableKey) : null),
+    [stripePublishableKey],
+  );
   const [clientSecret, setClientSecret] = useState<string>("");
   const [creating, setCreating] = useState(false);
   // ✅ Track if payment just completed (to hide the form immediately)

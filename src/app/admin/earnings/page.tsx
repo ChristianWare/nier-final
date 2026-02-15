@@ -10,6 +10,8 @@ import EarningsControls from "./EarningsControls";
 import EarningsChart from "./EarningsChart";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
+import StripeSettingsSection from "@/components/admin/StripeSettingsSection/StripeSettingsSection";
+import { getStripeSettings } from "../../../../actions/admin/stripeSettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -613,6 +615,8 @@ export default async function EarningsPage({
       : chartAggMonthly(fromUtc, toUtc, companyTz),
   ]);
 
+  const stripeSettings = await getStripeSettings();
+
   const kpi = kpisFromChartData(chartData);
   const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
 
@@ -896,6 +900,8 @@ export default async function EarningsPage({
           </div>
         </section>
       </div>
+
+      <StripeSettingsSection initial={stripeSettings} />
     </section>
   );
 }

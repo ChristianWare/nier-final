@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/admin/bookings/[id]/page.tsx
 import styles from "./AdminBookingDetailPage.module.css";
+import { getStripePublishableKey } from "@/lib/stripe";
 import type { ReactNode } from "react";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -961,6 +962,8 @@ export default async function AdminBookingDetailPage({
   const totalFeesCents =
     booking.fees?.reduce((sum, f) => sum + f.amountCents, 0) ?? 0;
 
+    const stripePublishableKey = await getStripePublishableKey();
+
   return (
     <DirtyFormProvider>
       <section className={styles.parent}>
@@ -1628,6 +1631,7 @@ export default async function AdminBookingDetailPage({
                       isPaid={isPaid}
                       isApproved={isApproved}
                       amountPaidCents={amountPaidCents}
+                      stripePublishableKey={stripePublishableKey}
                     />
                   </div>
                 </div>
