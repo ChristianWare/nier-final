@@ -26,6 +26,7 @@ export default function AssignBookingForm({
   currency = "USD",
   tipCents = 0,
   pickupAt,
+  bookedVehicleCategoryName,
 }: {
   bookingId: string;
   drivers: {
@@ -50,6 +51,7 @@ export default function AssignBookingForm({
   currency?: string;
   tipCents?: number;
   pickupAt: string;
+  bookedVehicleCategoryName?: string | null;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -72,6 +74,8 @@ export default function AssignBookingForm({
     string | null
   >(currentVehicleUnitId ?? null);
 
+  const [mismatchAcknowledged, setMismatchAcknowledged] = useState(false);
+
   const hasAssignment = !!currentDriverId;
 
   const currentDriver = drivers.find((d) => d.id === currentDriverId);
@@ -87,6 +91,17 @@ export default function AssignBookingForm({
   );
   const currentVehicleName = currentVehicle
     ? `${currentVehicle.name}${currentVehicle.plate ? ` (${currentVehicle.plate})` : ""}`
+    : null;
+
+  /* ── Vehicle mismatch detection ── */
+  const selectedVehicleUnit = vehicleUnits.find(
+    (v) => v.id === selectedVehicleUnitId,
+  );
+  const isVehicleMismatch =
+    !!selectedVehicleUnit && !selectedVehicleUnit.isMatchingCategory;
+
+  const selectedVehicleDisplay = selectedVehicleUnit
+    ? `${selectedVehicleUnit.name}${selectedVehicleUnit.plate ? ` (${selectedVehicleUnit.plate})` : ""}${selectedVehicleUnit.categoryName ? ` — ${selectedVehicleUnit.categoryName}` : ""}`
     : null;
 
   /* ── Helpers ── */
@@ -111,6 +126,7 @@ export default function AssignBookingForm({
   const handleCancel = useCallback(() => {
     setSelectedDriverId(currentDriverId ?? null);
     setSelectedVehicleUnitId(currentVehicleUnitId ?? null);
+    setMismatchAcknowledged(false);
     setErrors({});
     setIsEditing(false);
   }, [currentDriverId, currentVehicleUnitId]);
@@ -127,6 +143,12 @@ export default function AssignBookingForm({
       return;
     }
     setErrors({});
+
+    // Block save if vehicle mismatch isn't acknowledged
+    if (isVehicleMismatch && !mismatchAcknowledged) {
+      toast.error("Please confirm the vehicle mismatch before saving.");
+      return;
+    }
 
     const fd = new FormData();
     fd.set("bookingId", bookingId);
@@ -145,6 +167,7 @@ export default function AssignBookingForm({
       assignBooking(fd).then((res) => {
         if (res?.error) return toast.error(res.error);
         toast.success("Driver & vehicle assigned");
+        setMismatchAcknowledged(false);
         setJustSaved(true);
         setTimeout(() => {
           setJustSaved(false);
@@ -170,6 +193,7 @@ export default function AssignBookingForm({
       setShowUnassignModal(false);
       setSelectedDriverId(null);
       setSelectedVehicleUnitId(null);
+      setMismatchAcknowledged(false);
       setJustSaved(true);
       setTimeout(() => {
         setJustSaved(false);
@@ -288,6 +312,7 @@ export default function AssignBookingForm({
             className={`${styles.select} ${errors.vehicle ? styles.selectError : ""} selectBorder emptySmall`}
             onChange={(e) => {
               setSelectedVehicleUnitId(e.target.value || null);
+              setMismatchAcknowledged(false);
               setErrors((prev) => ({ ...prev, vehicle: false }));
             }}
           >
@@ -330,6 +355,37 @@ export default function AssignBookingForm({
             <span className={styles.errorText}>Vehicle unit is required</span>
           )}
         </div>
+
+        {/* Vehicle Mismatch Warning */}
+        {isVehicleMismatch && isEditing && (
+          <div className={styles.mismatchWarning}>
+            <div className={styles.mismatchHeader}>
+              <span className={styles.mismatchIcon}>⚠️</span>
+              <strong className={styles.mismatchTitle}>Vehicle Mismatch</strong>
+            </div>
+            <p className={styles.mismatchText}>
+              This booking calls for{" "}
+              <strong>
+                {bookedVehicleCategoryName ?? "the booked category"}
+              </strong>{" "}
+              but you are assigning <strong>{selectedVehicleDisplay}</strong>.
+            </p>
+            <p className={styles.mismatchSubtext}>
+              Only proceed if the requested vehicle category is unavailable or
+              the customer has approved the change.
+            </p>
+            <label className={styles.mismatchCheckLabel}>
+              <input
+                type='checkbox'
+                checked={mismatchAcknowledged}
+                onChange={(e) => setMismatchAcknowledged(e.target.checked)}
+                disabled={fieldsDisabled}
+                className={styles.mismatchCheckbox}
+              />
+              <span>I confirm this vehicle substitution is intentional</span>
+            </label>
+          </div>
+        )}
 
         {renderActions()}
       </div>

@@ -79,6 +79,93 @@
 }
 
 /* =============================================================================
+   Vehicle Mismatch Warning
+   ============================================================================= */
+
+.mismatchWarning {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  animation: mismatchSlideIn 0.25s ease;
+}
+
+@keyframes mismatchSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mismatchHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mismatchIcon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.mismatchTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #92400e;
+  letter-spacing: 0.01em;
+}
+
+.mismatchText {
+  margin: 0;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  color: #78350f;
+}
+
+.mismatchSubtext {
+  margin: 0;
+  font-size: 1.3rem;
+  line-height: 1.4;
+  color: #92400e;
+  opacity: 0.85;
+}
+
+.mismatchCheckLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #78350f;
+  transition: background 0.15s ease;
+}
+
+.mismatchCheckLabel:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.mismatchCheckbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #f59e0b;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* =============================================================================
    Button Container
    ============================================================================= */
 
@@ -177,10 +264,9 @@
   width: 100%;
 }
 
-/* ═══════════════════════════════════════════
+/* =============================================================================
    SECTION LOCK / UNLOCK STATES
-   Add these to the END of AssignBookingForm.module.css
-═══════════════════════════════════════════ */
+   ============================================================================= */
 
 .sectionWrapper {
   transition:
@@ -189,46 +275,6 @@
     box-shadow 0.3s ease;
   border-radius: 10px;
 }
-
-/* Locked — NO ghost/dim on disabled fields */
-.sectionLocked .select:disabled {
-  opacity: 1;
-  cursor: default;
-  background: var(--white);
-  border-color: var(--stroke);
-}
-
-/* Editing — blue accent */
-.sectionEditing {
-  padding: 1.5rem;
-  background: var(--lighterBlue);
-  border: 2px solid var(--lightBlue);
-  border-radius: 10px;
-}
-
-/* Saved — green flash */
-.sectionSaved {
-  padding: 1.5rem;
-  background: rgba(22, 163, 74, 0.015);
-  border: 2px solid rgb(34, 197, 94);
-  border-radius: 10px;
-}
-
-/* Actions row */
-.sectionActionsRow {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-  padding-top: 1rem;
-  border-top: 1px solid var(--stroke);
-  margin-top: 1rem;
-}
-
-/* ═══════════════════════════════════════════
-   SECTION LOCK / UNLOCK STATES
-   Add these to the END of AssignBookingForm.module.css
-═══════════════════════════════════════════ */
 
 /* Locked — fields ghosted, labels stay visible */
 .sectionLocked .select:disabled {
@@ -271,6 +317,10 @@
   margin-top: 1rem;
 }
 
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
 @media screen and (max-width: 668px) {
   .modalActions {
     flex-direction: column;
@@ -278,5 +328,9 @@
 
   .modalActions > * {
     width: 100%;
+  }
+
+  .mismatchCheckLabel {
+    font-size: 1.3rem;
   }
 }
