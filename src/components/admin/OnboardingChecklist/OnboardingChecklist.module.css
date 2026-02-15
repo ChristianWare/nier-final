@@ -1,0 +1,372 @@
+/* components/admin/OnboardingChecklist/OnboardingChecklist.module.css */
+
+/* =============================================================================
+   Full-Screen Overlay
+   ============================================================================= */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 24px;
+  animation: overlayIn 0.25s ease;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* =============================================================================
+   Main Card
+   ============================================================================= */
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  animation: cardIn 0.3s ease;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 24px 0;
+}
+
+.cardTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--black);
+  margin: 0;
+}
+
+.cardSubtitle {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  margin: 4px 0 0;
+}
+
+.minimizeBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--stroke);
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--paragraph);
+  transition: background 0.15s;
+}
+
+.minimizeBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+/* =============================================================================
+   Progress Bar
+   ============================================================================= */
+
+.progressTrack {
+  height: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 3px;
+  margin: 16px 24px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--darkGreen, #16a34a);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* =============================================================================
+   Steps List
+   ============================================================================= */
+
+.stepList {
+  display: flex;
+  flex-direction: column;
+  padding: 0 24px 24px;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.step:last-child {
+  border-bottom: none;
+}
+
+/* Check icon / empty circle */
+
+.stepCheck {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.stepComplete .stepCheck {
+  color: var(--darkGreen, #16a34a);
+}
+
+.stepCircle {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Step content */
+
+.stepContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stepLabel {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: -0.01em;
+}
+
+.stepComplete .stepLabel {
+  color: var(--paragraph);
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.stepDescription {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  line-height: 1.4;
+}
+
+/* Set up button */
+
+.stepAction {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--black);
+  background: var(--black);
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.stepAction:hover {
+  opacity: 0.85;
+}
+
+.stepAction:disabled {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: var(--paragraph);
+  cursor: default;
+  opacity: 1;
+}
+
+/* =============================================================================
+   Minimized Floating Pill
+   ============================================================================= */
+
+.pill {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--black);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+  font-size: 1.4rem;
+  animation: pillIn 0.3s ease;
+}
+
+@keyframes pillIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pillIcon {
+  display: flex;
+  align-items: center;
+}
+
+.pillProgress {
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
+.pillLabel {
+  font-weight: 500;
+}
+
+/* =============================================================================
+   Celebration Card
+   ============================================================================= */
+
+.celebrationCard {
+  width: 100%;
+  max-width: 440px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  animation: celebrationIn 0.4s ease;
+}
+
+@keyframes celebrationIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.celebrationEmoji {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.celebrationTitle {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--black);
+  margin: 0;
+}
+
+.celebrationText {
+  font-size: 1.6rem;
+  color: var(--paragraph);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.celebrationAction {
+  margin-top: 8px;
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media screen and (max-width: 600px) {
+  .overlay {
+    padding: 16px;
+  }
+
+  .card {
+    max-height: 85vh;
+  }
+
+  .cardHeader {
+    padding: 20px 20px 0;
+  }
+
+  .cardTitle {
+    font-size: 1.8rem;
+  }
+
+  .progressTrack {
+    margin: 12px 20px;
+  }
+
+  .stepList {
+    padding: 0 20px 20px;
+  }
+
+  .step {
+    flex-wrap: wrap;
+  }
+
+  .stepAction {
+    margin-left: 36px;
+  }
+
+  .celebrationCard {
+    padding: 32px 24px;
+  }
+
+  .celebrationTitle {
+    font-size: 2rem;
+  }
+}

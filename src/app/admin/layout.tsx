@@ -6,6 +6,8 @@ import AdminSideNav from "@/components/admin/AdminSideNav/AdminSideNav";
 import Nav from "@/components/shared/Nav/Nav";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import { db } from "@/lib/db";
+import { getOnboardingStatus } from "../../../actions/admin/onboarding";
+import OnboardingChecklist from "@/components/admin/OnboardingChecklist/OnboardingChecklist";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,9 +29,10 @@ export default async function AdminLayout({
   const isAdmin = roles.includes("ADMIN");
   if (!isAdmin) redirect("/");
 
-  const pendingReview = await db.booking.count({
-    where: { status: "PENDING_REVIEW" },
-  });
+  const [pendingReview, onboarding] = await Promise.all([
+    db.booking.count({ where: { status: "PENDING_REVIEW" } }),
+    getOnboardingStatus(),
+  ]);
 
   const bookingNeedsAttentionCount = pendingReview;
 
@@ -59,6 +62,12 @@ export default async function AdminLayout({
           </div>
         </section>
       </LayoutWrapper>
+      <OnboardingChecklist
+        steps={onboarding.steps}
+        allComplete={onboarding.allComplete}
+        completedCount={onboarding.completedCount}
+        totalCount={onboarding.totalCount}
+      />
     </main>
   );
 }
