@@ -4,6 +4,7 @@ import { auth } from "../../../../../auth";
 import { redirect } from "next/navigation";
 import CorporateNewBookingWizard from "@/components/corporate/CorporateNewBookingWizard/CorporateNewBookingWizard";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -180,13 +181,15 @@ export default async function CorporateNewBookingPage() {
   };
 
   return (
-    <CorporateNewBookingWizard
-      serviceTypes={serializedServiceTypes as any}
-      vehicles={serializedVehicles as any}
-      blackoutsByYmd={blackoutsByYmd}
-      passengers={passengers}
-      corporateAccount={corporateAccountData}
-      companyTimezone={companyTz}
-    />
+    <DirtyFormProvider>
+      <CorporateNewBookingWizard
+        serviceTypes={serializedServiceTypes as any}
+        vehicles={serializedVehicles as any}
+        blackoutsByYmd={blackoutsByYmd}
+        passengers={passengers}
+        corporateAccount={corporateAccountData}
+        companyTimezone={companyTz}
+      />
+    </DirtyFormProvider>
   );
 }

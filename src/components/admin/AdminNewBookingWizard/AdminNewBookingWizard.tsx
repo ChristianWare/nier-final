@@ -54,6 +54,7 @@ import FlightLookupInput from "@/components/BookingPage/FlightLookupInput/Flight
 import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect";
 import BookingWizardChecklist from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
 import { localToUtcIso } from "@/lib/timezone";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -98,6 +99,8 @@ type VehicleDTO = {
   perHourCents: number;
   active: boolean;
   sortOrder: number;
+  callForPricing: boolean;
+  callForPricingMessage: string | null;
 };
 
 type AdminSavedLeg = {
@@ -119,7 +122,12 @@ type AdminSavedLeg = {
   dropoffPlaceId: string | null;
   dropoffLat: number | null;
   dropoffLng: number | null;
-  stops: { address: string; placeId?: string | null; lat?: number | null; lng?: number | null }[];
+  stops: {
+    address: string;
+    placeId?: string | null;
+    lat?: number | null;
+    lng?: number | null;
+  }[];
   distanceMiles: number | null;
   durationMinutes: number | null;
   hoursRequested: number | null;
@@ -425,6 +433,18 @@ export default function AdminNewBookingWizard({
   const [newPassengerName, setNewPassengerName] = useState("");
   const [newPassengerEmail, setNewPassengerEmail] = useState("");
   const [newPassengerPhone, setNewPassengerPhone] = useState("");
+  // ─── Dirty form tracking (navigation guard) ───
+  const wizardHasInput = Boolean(
+    serviceTypeId ||
+    pickupAtDate ||
+    pickupAtTime ||
+    vehicleId ||
+    route?.pickup ||
+    route?.dropoff ||
+    savedLegs.length > 0,
+  );
+  useDirtyForm("admin-booking-wizard", wizardHasInput && !bookingId);
+
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
     return serviceTypes.find((s) => s.id === serviceTypeId) ?? null;
@@ -993,15 +1013,26 @@ export default function AdminNewBookingWizard({
             lat: s.location?.lat ?? null,
             lng: s.location?.lng ?? null,
           })),
-          distanceMiles: toNumber(route?.miles ?? (route as any)?.distanceMiles),
-          durationMinutes: toNumber(route?.minutes ?? (route as any)?.durationMinutes),
-          hoursRequested: selectedService.pricingStrategy === "HOURLY" ? toNumber(hoursRequested) : null,
+          distanceMiles: toNumber(
+            route?.miles ?? (route as any)?.distanceMiles,
+          ),
+          durationMinutes: toNumber(
+            route?.minutes ?? (route as any)?.durationMinutes,
+          ),
+          hoursRequested:
+            selectedService.pricingStrategy === "HOURLY"
+              ? toNumber(hoursRequested)
+              : null,
           specialRequests: specialRequests || null,
           flightAirline: flightAirline || null,
           flightNumber: flightNumber || null,
           flightScheduledAt:
             flightScheduledAtDate && flightScheduledAtTime
-              ? localToUtcIso(flightScheduledAtDate, flightScheduledAtTime, companyTimezone)
+              ? localToUtcIso(
+                  flightScheduledAtDate,
+                  flightScheduledAtTime,
+                  companyTimezone,
+                )
               : flightScheduledAtDate
                 ? localToUtcIso(flightScheduledAtDate, "00:00", companyTimezone)
                 : null,
@@ -1046,13 +1077,32 @@ export default function AdminNewBookingWizard({
           customerEmail: email,
           customerName: customerKind === "guest" ? customerName.trim() : null,
           customerPhone: customerKind === "guest" ? customerPhone.trim() : null,
-          corporateAccountId: customerKind === "corporate" ? corporateAccountId : null,
-          corporatePassengerId: customerKind === "corporate" && !newPassengerMode ? corporatePassengerId : null,
-          costCenter: customerKind === "corporate" && costCenter.trim() ? costCenter.trim() : null,
-          projectCode: customerKind === "corporate" && projectCode.trim() ? projectCode.trim() : null,
-          corporateNewPassengerName: customerKind === "corporate" && newPassengerMode ? newPassengerName.trim() : null,
-          corporateNewPassengerEmail: customerKind === "corporate" && newPassengerMode ? newPassengerEmail.trim() || null : null,
-          corporateNewPassengerPhone: customerKind === "corporate" && newPassengerMode ? newPassengerPhone.trim() || null : null,
+          corporateAccountId:
+            customerKind === "corporate" ? corporateAccountId : null,
+          corporatePassengerId:
+            customerKind === "corporate" && !newPassengerMode
+              ? corporatePassengerId
+              : null,
+          costCenter:
+            customerKind === "corporate" && costCenter.trim()
+              ? costCenter.trim()
+              : null,
+          projectCode:
+            customerKind === "corporate" && projectCode.trim()
+              ? projectCode.trim()
+              : null,
+          corporateNewPassengerName:
+            customerKind === "corporate" && newPassengerMode
+              ? newPassengerName.trim()
+              : null,
+          corporateNewPassengerEmail:
+            customerKind === "corporate" && newPassengerMode
+              ? newPassengerEmail.trim() || null
+              : null,
+          corporateNewPassengerPhone:
+            customerKind === "corporate" && newPassengerMode
+              ? newPassengerPhone.trim() || null
+              : null,
         });
 
         if ((groupRes as any)?.error) {
@@ -1060,14 +1110,18 @@ export default function AdminNewBookingWizard({
           return null;
         }
 
-        const id = String((groupRes as any).firstBookingId || (groupRes as any).bookingId || "");
+        const id = String(
+          (groupRes as any).firstBookingId || (groupRes as any).bookingId || "",
+        );
         if (!id) {
           toast.error("Trip group created, but no bookingId returned.");
           return null;
         }
 
         setBookingId(id);
-        toast.success(`Trip group created (${allLegs.length} rides). Managing first booking.`);
+        toast.success(
+          `Trip group created (${allLegs.length} rides). Managing first booking.`,
+        );
         await refreshBookingData(id);
         return id;
       }
@@ -1211,13 +1265,25 @@ export default function AdminNewBookingWizard({
       }
     }
 
-    const pickupAtIso = localToUtcIso(pickupAtDate, pickupAtTime, companyTimezone);
+    const pickupAtIso = localToUtcIso(
+      pickupAtDate,
+      pickupAtTime,
+      companyTimezone,
+    );
 
     let flightScheduledAtIso: string | null = null;
     if (flightScheduledAtDate && flightScheduledAtTime) {
-      flightScheduledAtIso = localToUtcIso(flightScheduledAtDate, flightScheduledAtTime, companyTimezone);
+      flightScheduledAtIso = localToUtcIso(
+        flightScheduledAtDate,
+        flightScheduledAtTime,
+        companyTimezone,
+      );
     } else if (flightScheduledAtDate) {
-      flightScheduledAtIso = localToUtcIso(flightScheduledAtDate, "00:00", companyTimezone);
+      flightScheduledAtIso = localToUtcIso(
+        flightScheduledAtDate,
+        "00:00",
+        companyTimezone,
+      );
     }
 
     const newLeg: AdminSavedLeg = {
@@ -1245,9 +1311,14 @@ export default function AdminNewBookingWizard({
         lat: s.location?.lat ?? null,
         lng: s.location?.lng ?? null,
       })),
-      distanceMiles: toNumber(route.miles ?? (route as any).distanceMiles ?? null),
-      durationMinutes: toNumber(route.minutes ?? (route as any).durationMinutes ?? null),
-      hoursRequested: selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
+      distanceMiles: toNumber(
+        route.miles ?? (route as any).distanceMiles ?? null,
+      ),
+      durationMinutes: toNumber(
+        route.minutes ?? (route as any).durationMinutes ?? null,
+      ),
+      hoursRequested:
+        selectedService.pricingStrategy === "HOURLY" ? hoursRequested : null,
       specialRequests: specialRequests || null,
       flightAirline: flightAirline || null,
       flightNumber: flightNumber || null,
@@ -1292,7 +1363,7 @@ export default function AdminNewBookingWizard({
     toast.success("Ride removed from trip.");
   }
 
-// ✅ IMPORTANT: do NOT include `step` here (it remounts RoutePicker and nukes your bookingId)
+  // ✅ IMPORTANT: do NOT include `step` here (it remounts RoutePicker and nukes your bookingId)
   const inputsKey = `${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}-${pickupAirportId || ""}-${dropoffAirportId || ""}`;
 
   const filteredVehicleUnits = useMemo(() => {
@@ -1479,9 +1550,12 @@ export default function AdminNewBookingWizard({
   }, [pickupAtDate, pickupAtTime]);
 
   const checklistEstimateLabel = useMemo(() => {
-    if (!selectedVehicle || estimateCents <= 0) return null;
+    if (!selectedVehicle) return null;
+    if (selectedVehicle.callForPricing)
+      return selectedVehicle.callForPricingMessage || "Call for pricing";
+    if (estimateCents <= 0) return null;
     return `$${centsToUsd(displayTotalCents)}`;
-  }, [selectedVehicle, displayTotalCents]);
+  }, [selectedVehicle, estimateCents, displayTotalCents]);
 
   const adminStepLabels: Record<number, string> = {
     1: "Trip Details",
@@ -2816,7 +2890,9 @@ export default function AdminNewBookingWizard({
                         <div className={styles.vehicleTop}>
                           <div className='emptyTitle'>{v.name}</div>
                           <div className='emptyTitleSmall'>
-                            {rowDiscountCents > 0 ? (
+                            {v.callForPricing ? (
+                              v.callForPricingMessage || "Call for pricing"
+                            ) : rowDiscountCents > 0 ? (
                               <>
                                 <span
                                   style={{

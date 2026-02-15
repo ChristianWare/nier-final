@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import AdminNewBookingWizard from "@/components/admin/AdminNewBookingWizard/AdminNewBookingWizard";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import { formatIsoDate } from "@/lib/timezone";
+import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -96,6 +97,8 @@ export default async function AdminNewBookingPage() {
         perHourCents: true,
         active: true,
         sortOrder: true,
+        callForPricing: true,
+        callForPricingMessage: true,
       },
     }),
 
@@ -188,23 +191,26 @@ export default async function AdminNewBookingPage() {
   for (const b of blackoutRows) blackoutsByYmd[b.ymd] = true;
 
   return (
-    <section className='container' aria-label='New booking'>
-      <header className='header'>
-        <h1 className='heading h2'>New booking</h1>
-        <p className='subheading'>
-          Create a booking on behalf of a customer. Blackout dates are blocked.
-        </p>
-      </header>
+    <DirtyFormProvider>
+      <section className='container' aria-label='New booking'>
+        <header className='header'>
+          <h1 className='heading h2'>New booking</h1>
+          <p className='subheading'>
+            Create a booking on behalf of a customer. Blackout dates are
+            blocked.
+          </p>
+        </header>
 
-      <AdminNewBookingWizard
-        serviceTypes={serviceTypes as any}
-        vehicles={vehicles as any}
-        blackoutsByYmd={blackoutsByYmd}
-        drivers={drivers as any}
-        vehicleUnits={vehicleUnits as any}
-        corporateAccounts={corporateAccounts}
-        companyTimezone={tz}
-      />
-    </section>
+        <AdminNewBookingWizard
+          serviceTypes={serviceTypes as any}
+          vehicles={vehicles as any}
+          blackoutsByYmd={blackoutsByYmd}
+          drivers={drivers as any}
+          vehicleUnits={vehicleUnits as any}
+          corporateAccounts={corporateAccounts}
+          companyTimezone={tz}
+        />
+      </section>
+    </DirtyFormProvider>
   );
 }

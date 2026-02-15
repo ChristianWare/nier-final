@@ -34,7 +34,7 @@ import { corporateCreateTripGroupBooking } from "../../../../actions/corporate/c
 import Modal from "@/components/shared/Modal/Modal";
 import { localToUtcIso } from "@/lib/timezone";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
-
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 // ───────────── Types ─────────────
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
@@ -268,6 +268,18 @@ export default function CorporateNewBookingWizard({
   // ─── Multi-leg state ───
   const [savedLegs, setSavedLegs] = useState<SavedLeg[]>([]);
   const [removeLegId, setRemoveLegId] = useState<string | null>(null);
+  // ─── Dirty form tracking (navigation guard) ───
+  const wizardHasInput = Boolean(
+    serviceTypeId ||
+    pickupAtDate ||
+    pickupAtTime ||
+    vehicleId ||
+    route?.pickup ||
+    route?.dropoff ||
+    savedLegs.length > 0,
+  );
+  useDirtyForm("corporate-booking-wizard", wizardHasInput && !bookingId);
+
   // ─── Derived ───
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
@@ -945,9 +957,11 @@ export default function CorporateNewBookingWizard({
               hasVehicle={Boolean(vehicleId)}
               vehicleName={selectedVehicle?.name ?? null}
               estimateLabel={
-                displayTotalCents > 0
-                  ? `$${centsToUsd(displayTotalCents)}`
-                  : null
+                selectedVehicle?.callForPricing
+                  ? selectedVehicle.callForPricingMessage || "Call for pricing"
+                  : displayTotalCents > 0
+                    ? `$${centsToUsd(displayTotalCents)}`
+                    : null
               }
               hasContactInfo={Boolean(
                 corporatePassengerId ||
@@ -1036,9 +1050,11 @@ export default function CorporateNewBookingWizard({
                   description: "Choose a vehicle category",
                   isComplete: Boolean(vehicleId),
                   value: selectedVehicle
-                    ? displayTotalCents > 0
-                      ? `${selectedVehicle.name} · $${centsToUsd(displayTotalCents)}`
-                      : selectedVehicle.name
+                    ? selectedVehicle.callForPricing
+                      ? `${selectedVehicle.name} · ${selectedVehicle.callForPricingMessage || "Call for pricing"}`
+                      : displayTotalCents > 0
+                        ? `${selectedVehicle.name} · $${centsToUsd(displayTotalCents)}`
+                        : selectedVehicle.name
                     : null,
                   step: 2,
                   priority: "critical",

@@ -35,6 +35,7 @@ import { extractIataFromFlightNumber } from "@/lib/flight/airlineList";
 import Stepper from "../Stepper/Stepper";
 import Modal from "@/components/shared/Modal/Modal";
 import { localToUtcIso, isPickupTooSoon } from "@/lib/timezone";
+import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -354,6 +355,18 @@ export default function BookingWizard({
   const flightScheduledAtTime = watch("flightScheduledAtTime");
   const flightTerminal = watch("flightTerminal");
   const flightGate = watch("flightGate");
+
+  // ─── Dirty form tracking (navigation guard) ───
+  const wizardHasInput = Boolean(
+    serviceTypeId ||
+    pickupAtDate ||
+    pickupAtTime ||
+    vehicleId ||
+    route?.pickup ||
+    route?.dropoff ||
+    savedLegs.length > 0,
+  );
+  useDirtyForm("booking-wizard", wizardHasInput && !submitted);
 
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;

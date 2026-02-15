@@ -5,6 +5,7 @@ import BookingWizard from "@/components/BookingPage/BookWizard/BookWizard";
 import BookingPageIntro from "@/components/BookingPage/BookingPageIntro/BookingPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
+import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -128,16 +129,18 @@ export default async function BookPage() {
   });
 
   return (
-    <main>
-      <Nav background='white' />
-      <BookingPageIntro />
-      <BookingWizard
-        serviceTypes={serviceTypes as any}
-        vehicles={vehicles as any}
-        userPhone={userPhone}
-        companyTimezone={companySettings.timezone}
-        companyTimezoneLabel={companyTimezoneLabel}
-      />
-    </main>
+    <DirtyFormProvider>
+      <main>
+        <Nav background='white' />
+        <BookingPageIntro />
+        <BookingWizard
+          serviceTypes={serviceTypes as any}
+          vehicles={vehicles as any}
+          userPhone={userPhone}
+          companyTimezone={companySettings.timezone}
+          companyTimezoneLabel={companyTimezoneLabel}
+        />
+      </main>
+    </DirtyFormProvider>
   );
 }
