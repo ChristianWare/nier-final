@@ -1340,7 +1340,7 @@ export default function CorporateNewBookingWizard({
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
                     Bookings must be made at least 36 hours in advance. Please
-                    select a later date/time.
+                    select a later date/time, or call for bookings.
                   </div>
                 )}
 

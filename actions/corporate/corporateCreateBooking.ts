@@ -140,7 +140,8 @@ export async function corporateCreateBooking(
   const minPickupAt = new Date(Date.now() + 36 * 60 * 60 * 1000);
   if (pickupAtDate < minPickupAt) {
     return {
-      error: "Bookings must be made at least 36 hours in advance." as const,
+      error:
+        "Bookings must be made at least 36 hours in advance. Please select a later date/time, or call for bookings." as const,
     };
   }
 
