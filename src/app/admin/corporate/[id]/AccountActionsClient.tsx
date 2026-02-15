@@ -130,7 +130,7 @@ export function EditPaymentSettingsClient({
         <div className={styles.formField}>
           <label className={styles.formLabel}>Billing Cycle</label>
           <select
-            className='inputBorder'
+            className='selectBorder emptySmall'
             value={billingCycle}
             onChange={(e) => setBillingCycle(e.target.value)}
             disabled={isPending}
@@ -145,7 +145,7 @@ export function EditPaymentSettingsClient({
         <div className={styles.formField}>
           <label className={styles.formLabel}>Payment Method</label>
           <select
-            className='inputBorder'
+            className='selectBorder emptySmall'
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
             disabled={isPending}
@@ -160,7 +160,7 @@ export function EditPaymentSettingsClient({
         <div className={styles.formField}>
           <label className={styles.formLabel}>Payment Terms</label>
           <select
-            className='inputBorder'
+            className='selectBorder emptySmall'
             value={paymentTerms}
             onChange={(e) => setPaymentTerms(e.target.value)}
             disabled={isPending}

@@ -145,6 +145,7 @@ export default function CorporateInquiryForm() {
           id='estimatedMonthlyRides'
           {...register("estimatedMonthlyRides", { required: true })}
           defaultValue=''
+          className='selectBorder emptySmall'
         >
           <option value='' disabled>
             Select an estimate

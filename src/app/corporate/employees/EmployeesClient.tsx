@@ -286,7 +286,7 @@ export default function EmployeesClient({
 
         <div className={styles.filterGroup}>
           <select
-            className={`inputBorder ${styles.selectInput}`}
+            className={`selectBorder emptySmall ${styles.selectInput}`}
             value={statusFilter}
             onChange={(e) =>
               setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")
@@ -299,7 +299,7 @@ export default function EmployeesClient({
 
           {departments.length > 0 && (
             <select
-              className={`inputBorder ${styles.selectInput}`}
+              className={`selectBorder emptySmall ${styles.selectInput}`}
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
             >

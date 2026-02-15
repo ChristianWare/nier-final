@@ -223,7 +223,8 @@ export default function ReportsControls({
           <label className={styles.filterField}>
             <span className='miniNote'>Month</span>
             <select
-              className={styles.filterSelect}
+              // className={styles.filterSelect}
+              className='selectBorder emptySmall'
               name='month'
               defaultValue={urlMonthYear.month}
               disabled={isPending}
@@ -239,7 +240,8 @@ export default function ReportsControls({
           <label className={styles.filterField}>
             <span className='miniNote'>Year</span>
             <select
-              className={styles.filterSelect}
+              // className={styles.filterSelect}
+              className='selectBorder emptySmall'
               name='year'
               defaultValue={urlMonthYear.year}
               disabled={isPending}

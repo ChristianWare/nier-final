@@ -247,7 +247,7 @@ export default function ReportsClient({
         <select
           value={period}
           onChange={(e) => setPeriod(e.target.value as Period)}
-          className='selectBorder'
+          className='selectBorder emptySmall'
         >
           {PERIOD_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>

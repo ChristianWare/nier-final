@@ -1254,7 +1254,7 @@ export default function BookingWizard({
                         }
                       }}
                       // className='input emptySmall'
-                      className='selectBorder'
+                      className='selectBorder emptySmall'
                       disabled={hasNoServices}
                     >
                       <option value=''>Select a service...</option>
@@ -1333,7 +1333,7 @@ export default function BookingWizard({
                             });
                             clearErrors("passengers");
                           }}
-                          className='selectBorder'
+                          className='selectBorder emptySmall'
                         >
                           <option value={0}>Select...</option>
                           {Array.from({ length: 56 }, (_, i) => i + 1).map(
@@ -1358,7 +1358,7 @@ export default function BookingWizard({
                             });
                             clearErrors("luggage");
                           }}
-                          className='selectBorder'
+                          className='selectBorder emptySmall'
                         >
                           <option value={0}>Select...</option>
                           {Array.from({ length: 56 }, (_, i) => i + 1).map(
@@ -1391,7 +1391,7 @@ export default function BookingWizard({
                             clearErrors("pickupAirportId");
                             applyAirportToRoute("pickup", id);
                           }}
-                          className='input emptySmall'
+                          className='selectBorder emptySmall'
                         >
                           <option value=''>Select an airport...</option>
                           {serviceAirports.map((a) => (
@@ -1586,7 +1586,7 @@ export default function BookingWizard({
                             clearErrors("dropoffAirportId");
                             applyAirportToRoute("dropoff", id);
                           }}
-                          className='input emptySmall'
+                          className='selectBorder emptySmall'
                         >
                           <option value=''>Select an airport...</option>
                           {serviceAirports.map((a) => (
@@ -1708,7 +1708,7 @@ export default function BookingWizard({
                             shouldDirty: true,
                           })
                         }
-                        className='input emptySmall'
+                        className='selectBorder emptySmall'
                       >
                         <option value=''>Select...</option>
                         <option value='Wedding'>Wedding</option>

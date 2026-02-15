@@ -273,7 +273,7 @@ export default function BookingsClient({
           <select
             value={passengerFilter}
             onChange={(e) => updateFilter(setPassengerFilter)(e.target.value)}
-            className='selectBorder'
+            className='selectBorder emptySmall'
           >
             <option value='ALL'>All passengers</option>
             {passengers.map((p) => (

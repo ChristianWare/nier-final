@@ -223,7 +223,7 @@ export default function EditVehicleCategoryForm({
           <select
             value={capacity}
             onChange={(e) => setCapacity(e.target.value)}
-            className='selectBorder'
+            className='selectBorder emptySmall'
             disabled={fieldsDisabled}
           >
             <option value='0'>—</option>
@@ -239,7 +239,7 @@ export default function EditVehicleCategoryForm({
           <select
             value={luggageCapacity}
             onChange={(e) => setLuggageCapacity(e.target.value)}
-            className='selectBorder'
+            className='selectBorder emptySmall'
             disabled={fieldsDisabled}
           >
             <option value='0'>—</option>
@@ -266,7 +266,7 @@ export default function EditVehicleCategoryForm({
         <select
           value={minHours}
           onChange={(e) => setMinHours(e.target.value)}
-          className='selectBorder'
+          className='selectBorder emptySmall'
           disabled={fieldsDisabled}
         >
           <option value='0'>None</option>

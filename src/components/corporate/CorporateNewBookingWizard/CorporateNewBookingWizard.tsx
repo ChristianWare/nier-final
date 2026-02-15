@@ -1125,7 +1125,7 @@ export default function CorporateNewBookingWizard({
                         );
                       }
                     }}
-                    className='input emptySmall'
+                    className='selectBorder emptySmall'
                   >
                     <option value=''>Select a service...</option>
                     {serviceTypes.map((s) => (
@@ -1180,7 +1180,7 @@ export default function CorporateNewBookingWizard({
                         onChange={(e) =>
                           setCorporatePassengerId(e.target.value)
                         }
-                        className='input emptySmall'
+                        className='selectBorder emptySmall'
                       >
                         <option value=''>Select a passenger...</option>
                         {passengers.map((p) => (
@@ -1349,29 +1349,42 @@ export default function CorporateNewBookingWizard({
                   id='wizard-field-passengers-luggage'
                   className={styles.sectionBox}
                 >
-                  {" "}
                   <Grid2>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>Passengers</label>
-                      <input
-                        type='number'
-                        min={1}
+                      <select
                         value={passengers_count}
                         onChange={(e) =>
                           setPassengersCount(Number(e.target.value))
                         }
-                        className='input emptySmall'
-                      />
+                        className='selectBorder emptySmall'
+                      >
+                        <option value={0}>Select...</option>
+                        {Array.from({ length: 56 }, (_, i) => i + 1).map(
+                          (n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ),
+                        )}
+                      </select>
                     </div>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>Luggage</label>
-                      <input
-                        type='number'
-                        min={0}
+                      <select
                         value={luggage}
                         onChange={(e) => setLuggage(Number(e.target.value))}
-                        className='input emptySmall'
-                      />
+                        className='selectBorder emptySmall'
+                      >
+                        <option value={0}>Select...</option>
+                        {Array.from({ length: 56 }, (_, i) => i + 1).map(
+                          (n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ),
+                        )}
+                      </select>
                     </div>
                   </Grid2>
                 </div>
@@ -1398,7 +1411,7 @@ export default function CorporateNewBookingWizard({
                           setPickupAirportId(id);
                           applyAirportToRoute("pickup", id);
                         }}
-                        className='input emptySmall'
+                        className='selectBorder emptySmall'
                       >
                         <option value=''>Select an airport...</option>
                         {serviceAirports.map((a) => (
@@ -1580,7 +1593,7 @@ export default function CorporateNewBookingWizard({
                           setDropoffAirportId(id);
                           applyAirportToRoute("dropoff", id);
                         }}
-                        className='input emptySmall'
+                        className='selectBorder emptySmall'
                       >
                         <option value=''>Select an airport...</option>
                         {serviceAirports.map((a) => (
@@ -1630,7 +1643,7 @@ export default function CorporateNewBookingWizard({
                           eventType.startsWith("Other:") ? "Other" : eventType
                         }
                         onChange={(e) => setEventType(e.target.value)}
-                        className='input emptySmall'
+                        className='selectBorder emptySmall'
                       >
                         <option value=''>Select...</option>
                         <option value='Wedding'>Wedding</option>

@@ -159,7 +159,7 @@ export default function EditVehicleUnitForm({
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
-          className='selectBorder'
+          className='selectBorder emptySmall'
           disabled={fieldsDisabled}
         >
           <option value=''>Unassigned</option>

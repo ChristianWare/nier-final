@@ -248,7 +248,7 @@ export default function AssignBookingForm({
             name='driverId'
             value={selectedDriverId ?? ""}
             disabled={fieldsDisabled}
-            className={`${styles.select} ${errors.driver ? styles.selectError : ""}`}
+            className={`${styles.select} ${errors.driver ? styles.selectError : ""} selectBorder emptySmall`}
             onChange={(e) => {
               setSelectedDriverId(e.target.value || null);
               setErrors((prev) => ({ ...prev, driver: false }));
@@ -285,7 +285,7 @@ export default function AssignBookingForm({
             name='vehicleUnitId'
             value={selectedVehicleUnitId ?? ""}
             disabled={fieldsDisabled}
-            className={`${styles.select} ${errors.vehicle ? styles.selectError : ""}`}
+            className={`${styles.select} ${errors.vehicle ? styles.selectError : ""} selectBorder emptySmall`}
             onChange={(e) => {
               setSelectedVehicleUnitId(e.target.value || null);
               setErrors((prev) => ({ ...prev, vehicle: false }));

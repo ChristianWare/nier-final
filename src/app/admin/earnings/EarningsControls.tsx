@@ -228,7 +228,7 @@ export default function EarningsControls({
           <label className={styles.rangeField}>
             <span className='miniNote'>Month</span>
             <select
-              className='selectBorder'
+              className='selectBorder emptySmall'
               name='month'
               defaultValue={urlMonthYear.month}
               disabled={isPending}
@@ -244,7 +244,7 @@ export default function EarningsControls({
           <label className={styles.rangeField}>
             <span className='miniNote'>Year</span>
             <select
-              className='selectBorder'
+              className='selectBorder emptySmall'
               name='year'
               defaultValue={urlMonthYear.year}
               disabled={isPending}

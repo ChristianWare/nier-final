@@ -103,7 +103,7 @@ export default function DashboardSupport({
 
   const selectedTrip = useMemo(
     () => trips.find((t) => t.id === selectedTripId) ?? null,
-    [trips, selectedTripId]
+    [trips, selectedTripId],
   );
 
   const emailSubject = useMemo(() => {
@@ -126,11 +126,11 @@ export default function DashboardSupport({
       lines.push(`- Service: ${selectedTrip.serviceName}`);
       lines.push(`- Pickup: ${formatDateTime(selectedTrip.pickupAt)}`);
       lines.push(
-        `- Route: ${selectedTrip.pickupAddress} → ${selectedTrip.dropoffAddress}`
+        `- Route: ${selectedTrip.pickupAddress} → ${selectedTrip.dropoffAddress}`,
       );
       lines.push(`- Status: ${statusLabel(selectedTrip.status)}`);
       lines.push(
-        `- Total: ${moneyFromCents(selectedTrip.totalCents, selectedTrip.currency)}`
+        `- Total: ${moneyFromCents(selectedTrip.totalCents, selectedTrip.currency)}`,
       );
       lines.push("");
     }
@@ -189,10 +189,10 @@ export default function DashboardSupport({
           <div className={styles.form}>
             <div className={styles.formTitle}>Regarding a trip?</div>
 
-            <label className="label">
+            <label className='label'>
               Select trip
               <select
-                className={styles.select}
+                className='selectBorder emptySmall'
                 value={selectedTripId}
                 onChange={(e) => setSelectedTripId(e.target.value)}
               >
@@ -222,7 +222,7 @@ export default function DashboardSupport({
                   </div>
                 </div>
               ) : (
-                <p className="miniNote">
+                <p className='miniNote'>
                   Choose a trip to include details in your message.
                 </p>
               )}
@@ -231,14 +231,14 @@ export default function DashboardSupport({
             <div className={styles.tripActions}>
               <button
                 type='button'
-                className="tertiaryBtn"
+                className='tertiaryBtn'
                 onClick={goToTrip}
                 disabled={!selectedTripId}
               >
                 Open trip
               </button>
 
-              <Link className="primaryBtn" href='/dashboard/payments'>
+              <Link className='primaryBtn' href='/dashboard/payments'>
                 Payments & receipts
               </Link>
             </div>
@@ -252,10 +252,10 @@ export default function DashboardSupport({
           </header>
 
           <div className={styles.form}>
-            <label className="label">
+            <label className='label'>
               Topic
               <select
-                className={styles.select}
+                className='selectBorder emptySmall'
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
               >
@@ -268,7 +268,7 @@ export default function DashboardSupport({
               </select>
             </label>
 
-            <label className="label">
+            <label className='label'>
               Message
               <textarea
                 className={styles.textarea}
@@ -280,16 +280,16 @@ export default function DashboardSupport({
             </label>
 
             <div className={styles.formActions}>
-              <a className="primaryBtn" href={mailtoHref}>
+              <a className='primaryBtn' href={mailtoHref}>
                 Email support
               </a>
 
-              <a className="secondaryBtn" href={`sms:${SUPPORT.sms}`}>
+              <a className='secondaryBtn' href={`sms:${SUPPORT.sms}`}>
                 Text support
               </a>
             </div>
 
-            <p className="miniNote">
+            <p className='miniNote'>
               This opens your email app (no messages are stored in the website
               yet). If you later want in-app messaging, we’ll turn this into a
               ticket/thread list.
@@ -308,7 +308,7 @@ export default function DashboardSupport({
 
           <div className={styles.faqGrid}>
             <details className={styles.faqItem}>
-              <summary className="emptyTitleSmall">
+              <summary className='emptyTitleSmall'>
                 How do I change or cancel a trip?
               </summary>
               <div className={styles.faqBody}>
@@ -323,7 +323,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className="emptyTitleSmall">
+              <summary className='emptyTitleSmall'>
                 Where do I find my receipts?
               </summary>
               <div className={styles.faqBody}>
@@ -336,7 +336,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className="emptyTitleSmall">
+              <summary className='emptyTitleSmall'>
                 What if my payment failed?
               </summary>
               <div className={styles.faqBody}>
@@ -350,9 +350,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className="emptyTitleSmall">
-                Airport pickup help
-              </summary>
+              <summary className='emptyTitleSmall'>Airport pickup help</summary>
               <div className={styles.faqBody}>
                 For airport pickups, keep your phone available after landing. If
                 you selected Meet & Greet (or noted special pickup
@@ -361,7 +359,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className="emptyTitleSmall">Lost item</summary>
+              <summary className='emptyTitleSmall'>Lost item</summary>
               <div className={styles.faqBody}>
                 Contact support as soon as possible with your booking ID and a
                 description of the item. We’ll coordinate with the driver to
@@ -370,7 +368,7 @@ export default function DashboardSupport({
             </details>
 
             <details className={styles.faqItem}>
-              <summary className="emptyTitleSmall">Refunds</summary>
+              <summary className='emptyTitleSmall'>Refunds</summary>
               <div className={styles.faqBody}>
                 Refund eligibility depends on trip status and timing. If your
                 booking shows “Refunded” or “Partially refunded” you’ll also see
@@ -384,10 +382,7 @@ export default function DashboardSupport({
           </div>
 
           <div className={styles.bottomCtas}>
-            <Link
-              className="secondaryBtn"
-              href='/dashboard/notifications'
-            >
+            <Link className='secondaryBtn' href='/dashboard/notifications'>
               View recent activity
             </Link>
           </div>

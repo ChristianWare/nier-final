@@ -1685,7 +1685,8 @@ export default function AdminNewBookingWizard({
                     }}
                   >
                     <strong>
-                      🗓️ {savedLegs.length} ride{savedLegs.length > 1 ? "s" : ""} added
+                      🗓️ {savedLegs.length} ride
+                      {savedLegs.length > 1 ? "s" : ""} added
                     </strong>
                     <span style={{ opacity: 0.7, marginLeft: 8 }}>
                       (${centsToUsd(savedLegsTotal)} so far)
@@ -1696,7 +1697,7 @@ export default function AdminNewBookingWizard({
                 <div id='wizard-field-customer' className={styles.sectionBox}>
                   <label className='cardTitle h5'>Customer type</label>
                   <select
-                    className='input emptySmall'
+                    className='selectBorder emptySmall'
                     value={customerKind}
                     onChange={(e) => {
                       resetCreatedBooking();
@@ -1862,7 +1863,7 @@ export default function AdminNewBookingWizard({
                                 setCorporatePassengerId("");
                                 setNewPassengerMode(false);
                               }}
-                              className='input emptySmall'
+                              className='selectBorder emptySmall'
                             >
                               <option value=''>Select an account...</option>
                               {corporateAccounts.map((a) => (
@@ -1935,7 +1936,7 @@ export default function AdminNewBookingWizard({
                                       resetCreatedBooking();
                                       setCorporatePassengerId(e.target.value);
                                     }}
-                                    className='input emptySmall'
+                                    className='selectBorder emptySmall'
                                   >
                                     <option value=''>
                                       Select a passenger...
@@ -1951,7 +1952,7 @@ export default function AdminNewBookingWizard({
                                   </select>
                                   <button
                                     type='button'
-                                    className='secondaryBtn'
+                                    className='primaryBtn'
                                     style={{ justifySelf: "start" }}
                                     onClick={() => {
                                       resetCreatedBooking();
@@ -2189,7 +2190,7 @@ export default function AdminNewBookingWizard({
                         );
                       }
                     }}
-                    className='input emptySmall'
+                    className='selectBorder emptySmall'
                   >
                     <option value=''>Select a service...</option>
                     {serviceTypes.map((s) => (
@@ -2248,30 +2249,44 @@ export default function AdminNewBookingWizard({
                   <Grid2>
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>Passengers</label>
-                      <input
-                        type='number'
-                        min={1}
+                      <select
                         value={passengers}
                         onChange={(e) => {
                           resetCreatedBooking();
                           setPassengers(Number(e.target.value));
                         }}
-                        className='input emptySmall'
-                      />
+                        className='selectBorder emptySmall'
+                      >
+                        <option value={0}>Select...</option>
+                        {Array.from({ length: 56 }, (_, i) => i + 1).map(
+                          (n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ),
+                        )}
+                      </select>
                     </div>
 
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>Luggage</label>
-                      <input
-                        type='number'
-                        min={0}
+                      <select
                         value={luggage}
                         onChange={(e) => {
                           resetCreatedBooking();
                           setLuggage(Number(e.target.value));
                         }}
-                        className='input emptySmall'
-                      />
+                        className='selectBorder emptySmall'
+                      >
+                        <option value={0}>Select...</option>
+                        {Array.from({ length: 56 }, (_, i) => i + 1).map(
+                          (n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ),
+                        )}
+                      </select>
                     </div>
                   </Grid2>
                 </div>
@@ -2302,7 +2317,7 @@ export default function AdminNewBookingWizard({
                           setPickupAirportId(id);
                           applyAirportToRoute("pickup", id);
                         }}
-                        className='input emptySmall'
+                        className='selectBorder emptySmall'
                       >
                         <option value=''>Select an airport...</option>
                         {serviceAirports.map((a) => (
@@ -2502,7 +2517,7 @@ export default function AdminNewBookingWizard({
                           setDropoffAirportId(id);
                           applyAirportToRoute("dropoff", id);
                         }}
-                        className='input emptySmall'
+                        className='selectBorder emptySmall'
                       >
                         <option value=''>Select an airport...</option>
                         {serviceAirports.map((a) => (
@@ -2554,7 +2569,7 @@ export default function AdminNewBookingWizard({
                         resetCreatedBooking();
                         setEventType(e.target.value);
                       }}
-                      className='input emptySmall'
+                      className='selectBorder emptySmall'
                     >
                       <option value=''>Select...</option>
                       <option value='Wedding'>Wedding</option>
@@ -2869,7 +2884,10 @@ export default function AdminNewBookingWizard({
                   ➕ Add another ride to this trip
                 </button>
                 {savedLegs.length === 0 && (
-                  <div className='miniNote' style={{ textAlign: "center", marginTop: -4 }}>
+                  <div
+                    className='miniNote'
+                    style={{ textAlign: "center", marginTop: -4 }}
+                  >
                     Need to create rides on multiple days? Add them all here.
                   </div>
                 )}
@@ -3060,7 +3078,7 @@ export default function AdminNewBookingWizard({
                     <div style={{ marginTop: 20, display: "grid", gap: 20 }}>
                       <label className='cardTitle h5'>Initial status</label>
                       <select
-                        className='input emptySmall'
+                        className='selectBorder emptySmall'
                         value={bookingStatus}
                         onChange={(e) => saveStatus(e.target.value as any)}
                         disabled={!bookingId || statusSaving}
@@ -3450,12 +3468,18 @@ export default function AdminNewBookingWizard({
 
                 {/* Saved legs note (multi-day trip) */}
                 {savedLegs.length > 0 && (
-                  <div className='box' style={{ background: "rgba(0,0,0,0.02)" }}>
+                  <div
+                    className='box'
+                    style={{ background: "rgba(0,0,0,0.02)" }}
+                  >
                     <div className='cardTitle h5' style={{ marginBottom: 8 }}>
                       🗓️ This is a multi-day trip ({savedLegs.length + 1} rides)
                     </div>
                     <div className='miniNote'>
-                      You are managing the first booking. The remaining {savedLegs.length} ride{savedLegs.length > 1 ? "s" : ""} can be managed from their individual booking pages after completing this wizard.
+                      You are managing the first booking. The remaining{" "}
+                      {savedLegs.length} ride{savedLegs.length > 1 ? "s" : ""}{" "}
+                      can be managed from their individual booking pages after
+                      completing this wizard.
                     </div>
                   </div>
                 )}
@@ -3676,7 +3700,7 @@ export default function AdminNewBookingWizard({
           </div>
         </div>
       </div>
-    {/* Remove ride confirmation modal */}
+      {/* Remove ride confirmation modal */}
       <Modal isOpen={removeLegId !== null} onClose={() => setRemoveLegId(null)}>
         <div style={{ display: "grid", gap: 16, padding: 8 }}>
           <div className='cardTitle h5'>Remove this ride?</div>
@@ -3684,7 +3708,11 @@ export default function AdminNewBookingWizard({
             Are you sure you want to remove this ride from your trip?
           </p>
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-            <button type='button' className='secondaryBtn' onClick={() => setRemoveLegId(null)}>
+            <button
+              type='button'
+              className='secondaryBtn'
+              onClick={() => setRemoveLegId(null)}
+            >
               Cancel
             </button>
             <button

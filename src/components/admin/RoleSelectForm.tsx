@@ -37,7 +37,12 @@ export default function RoleSelectForm({
       }}
       style={{ display: "flex", gap: 10, alignItems: "center" }}
     >
-      <select name='roles' defaultValue={currentRole} disabled={isPending}>
+      <select
+        name='roles'
+        defaultValue={currentRole}
+        disabled={isPending}
+        className='selectBorder emptySmall'
+      >
         <option value='USER'>USER</option>
         <option value='DRIVER'>DRIVER</option>
         <option value='ADMIN'>ADMIN</option>

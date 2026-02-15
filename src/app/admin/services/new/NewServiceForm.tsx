@@ -175,7 +175,7 @@ export default function NewServiceForm({ action, airports }: Props) {
         hint='Choose "Standard" unless pickup or dropoff should be selected from an airport list.'
       >
         <select
-          className='inputBorder'
+          className='selectBorder emptySmall'
           value={airportLeg}
           onChange={(e) => {
             const next = e.target.value as AirportLegUI;
@@ -281,7 +281,7 @@ export default function NewServiceForm({ action, airports }: Props) {
           onChange={(e) =>
             setPricingStrategy(e.target.value as PricingStrategyUI)
           }
-          className='inputBorder'
+          className='selectBorder emptySmall'
           disabled={isPending}
         >
           <option value='POINT_TO_POINT'>POINT_TO_POINT</option>

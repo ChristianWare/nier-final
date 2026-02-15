@@ -374,7 +374,7 @@ export default function EditServiceForm({
           hint='Choose "Standard" unless pickup or dropoff should be selected from an airport list.'
         >
           <select
-            className='input'
+            className='selectBorder emptySmall'
             value={airportLeg}
             onChange={(e) => {
               const next = e.target.value as AirportLegUI;
@@ -485,7 +485,7 @@ export default function EditServiceForm({
             onChange={(e) =>
               setPricingStrategy(e.target.value as PricingStrategyUI)
             }
-            className='selectBorder'
+            className='selectBorder emptySmall'
             disabled={fieldsDisabled}
           >
             <option value='POINT_TO_POINT'>POINT_TO_POINT</option>

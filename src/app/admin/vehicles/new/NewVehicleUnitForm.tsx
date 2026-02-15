@@ -59,7 +59,7 @@ export default function NewVehicleUnitForm({
       >
         <select
           name='categoryId'
-          className='inputBorder'
+          className='selectBorder emptySmall'
           disabled={isPending}
           required
           defaultValue={categories[0]?.id ?? ""}

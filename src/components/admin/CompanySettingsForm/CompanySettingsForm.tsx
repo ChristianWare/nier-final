@@ -901,7 +901,7 @@ export default function CompanySettingsForm({ initial }: Props) {
             <label className='emptyTitleSmall'>Timezone</label>
             <select
               name='timezone'
-              className='selectBorder subheading'
+              className='selectBorder emptySmall'
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
               disabled={isLocked("timezone")}
@@ -958,7 +958,7 @@ export default function CompanySettingsForm({ initial }: Props) {
 
                 <div className={styles.hoursTimeCell}>
                   <select
-                    className={`selectBorder ${styles.hoursSelect}`}
+                    className={`selectBorder emptySmall  ${styles.hoursSelect}`}
                     value={day.open}
                     onChange={(e) =>
                       handleTimeChange(key, "open", e.target.value)
@@ -975,7 +975,7 @@ export default function CompanySettingsForm({ initial }: Props) {
 
                 <div className={styles.hoursTimeCell}>
                   <select
-                    className={`selectBorder ${styles.hoursSelect}`}
+                    className={`selectBorder emptySmall ${styles.hoursSelect}`}
                     value={day.close}
                     onChange={(e) =>
                       handleTimeChange(key, "close", e.target.value)

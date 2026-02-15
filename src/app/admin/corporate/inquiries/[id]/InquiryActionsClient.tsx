@@ -178,7 +178,7 @@ export default function InquiryActionsClient({
               <div className={styles.formField}>
                 <label className={styles.formLabel}>Billing Cycle</label>
                 <select
-                  className='select'
+                  className='selectBorder emptySmall'
                   value={billingCycle}
                   onChange={(e) => setBillingCycle(e.target.value)}
                 >
@@ -191,7 +191,7 @@ export default function InquiryActionsClient({
               <div className={styles.formField}>
                 <label className={styles.formLabel}>Payment Method</label>
                 <select
-                  className='select'
+                  className='selectBorder emptySmall'
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
                 >
@@ -204,7 +204,7 @@ export default function InquiryActionsClient({
               <div className={styles.formField}>
                 <label className={styles.formLabel}>Payment Terms</label>
                 <select
-                  className='select'
+                  className='selectBorder emptySmall'
                   value={paymentTerms}
                   onChange={(e) => setPaymentTerms(e.target.value)}
                 >
