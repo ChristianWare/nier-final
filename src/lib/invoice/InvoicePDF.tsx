@@ -29,9 +29,8 @@ const logoStyles = StyleSheet.create({
     height: 28,
     backgroundColor: "#000000",
     borderRadius: 4,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 8,
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
   },
   letter: {
     color: "#ffffff",
@@ -65,6 +64,8 @@ const styles = StyleSheet.create({
   },
   logoSection: {
     flexDirection: "column",
+    alignItems: "flex-start",
+    maxWidth: "60%",
   },
   logoRow: {
     flexDirection: "row",
@@ -74,10 +75,12 @@ const styles = StyleSheet.create({
   companyName: {
     fontSize: 16,
     fontWeight: 700,
+    textAlign: "left",
   },
   companyDetails: {
     fontSize: 9,
     color: "#666666",
+    textAlign: "left",
   },
   invoiceInfo: {
     alignItems: "flex-end",
@@ -328,30 +331,31 @@ const styles = StyleSheet.create({
   // Paid Stamp
   paidStampContainer: {
     position: "absolute",
-    top: 350,
-    left: 180,
+    top: 200,
+    right: 40,
   },
   paidStamp: {
-    paddingTop: 10,
-    paddingBottom: 10,
-    paddingLeft: 20,
-    paddingRight: 20,
-    borderWidth: 3,
+    paddingTop: 6,
+    paddingBottom: 6,
+    paddingLeft: 14,
+    paddingRight: 14,
+    borderWidth: 2,
     borderColor: "#86efac",
-    borderRadius: 6,
+    borderRadius: 4,
     backgroundColor: "#f0fdf4",
     alignItems: "center",
   },
   paidText: {
-    fontSize: 36,
+    fontSize: 20,
     fontWeight: 700,
-    color: "#86efac",
+    color: "#22c55e",
   },
   paidDate: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: 700,
     color: "#4ade80",
-    marginTop: 2,
+    marginTop: 1,
+    textAlign: "center",
   },
 
   // Footer
@@ -403,12 +407,24 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
 
   return (
     <Document>
-      <Page size='A4' style={styles.page}>
+      <Page size='A4' style={styles.page} >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoSection}>
+          <View
+            style={{
+              marginBottom: 8,
+              alignItems: "flex-start",
+              marginRight: "auto",
+            }}
+          >
             {invoice.logoUrl ? (
-              <View style={{ marginBottom: 8 }}>
+              <View
+                style={{
+                  marginBottom: 8,
+                  alignItems: "flex-start",
+                  marginRight: "auto",
+                }}
+              >
                 <Image src={invoice.logoUrl} style={logoStyles.logoImage} />
               </View>
             ) : (

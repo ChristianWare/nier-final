@@ -89,8 +89,14 @@ export async function GET(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // Check ownership
-    if (booking.userId !== userId) {
+    // Check ownership or admin role
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { roles: true },
+    });
+    const isAdmin = user?.roles?.includes("ADMIN") ?? false;
+
+    if (booking.userId !== userId && !isAdmin) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

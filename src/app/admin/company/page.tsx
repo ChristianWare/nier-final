@@ -147,7 +147,7 @@ export default async function AdminCompanyPage() {
         {/* ── Header ── */}
         <header className={styles.header}>
           <div className={styles.top}>
-            <div className={styles.profileInfo}>
+            <div className="header">
               <h1 className={`${styles.heading} h2 underline`}>
                 {initial.companyName?.trim() || "Company Settings"}
               </h1>
