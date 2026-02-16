@@ -26,21 +26,26 @@ export default function Stats({ flipped = false }: StatsProps) {
               </video>
               <div className={styles.imgOverlay} />
             </div>
-            <div className={styles.statBox}>
-              <div className={styles.statNumber}>250+</div>
-              <h4 className={styles.subheading}>Systems deployed worldwide</h4>
-              <p className={styles.copy}>
-                Our proven track record shows the trust global leaders place in
-                Modix to deliver reliable, future-ready industrial systems.
-              </p>
+            <div className={styles.statBoxContainer}>
+              <div className={styles.statBox}>
+                <div className={styles.statNumber}>20+</div>
+                <p className={styles.copy}>Years of experience</p>
+              </div>
+              <div className={styles.statBox}>
+                <div className={styles.statNumber}>40k</div>
+                <p className={styles.copy}>Hours on the road</p>
+              </div>
+              <div className={styles.statBox}>
+                <div className={styles.statNumber}>25k</div>
+                <p className={styles.copy}>Happy clients</p>
+              </div>
             </div>
           </div>
 
           <div className={styles.right}>
             <div className={styles.rightTop}>
               <h2 className={styles.heading}>
-                We provide global solutions to enhance efficiency and
-                sustainability.
+                At Nier we change what Transportation means to you.
               </h2>
               <div className={styles.btnContainer}>
                 <Button

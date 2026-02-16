@@ -23,8 +23,9 @@ export default function Hero() {
           <div className={styles.cc2}>
             <div className={styles.left2}>
               <p className={styles.copyii}>
-                Trusted by manufacturers and logistics leaders with 100+
-                successful system deployments worldwide.
+                Executive sedans, luxury SUVs, and Sprinter vans — available
+                24/7 across the Phoenix metro. Book your ride in under two
+                minutes.
               </p>
             </div>
             <div className={styles.right2}>

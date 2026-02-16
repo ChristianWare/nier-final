@@ -3,8 +3,8 @@ import Sheryl from "../../public/images/sheryl.jpg";
 import Jeff from "../../public/images/jeff.jpg";
 import Airport from "../../public/images/airport.jpg";
 import Airport2 from "../../public/images/airport2.jpg";
-import Events from "../../public/images/events.jpg";
-import Events2 from "../../public/images/events2.jpg";
+// import Events from "../../public/images/events.jpg";
+// import Events2 from "../../public/images/events2.jpg";
 import Party from "../../public/images/partyBusiii.jpg";
 import Party2 from "../../public/images/partybus.jpg";
 import Reocurring from "../../public/images/reocurring.jpg";
@@ -112,7 +112,7 @@ export const services = [
     id: 1,
     title: "Airport Transfers",
     slug: "airport-transfers",
-    copy: "Reliable black car service to Scottsdale, Sky Harbor, and Gateway airports. Professional chauffeurs ensure, stress-free travel.",
+    copy: "Stress-free rides to and from Sky Harbor (PHX), Scottsdale (SDL), and Phoenix-Mesa Gateway (AZA). We track your flight in real time — if it's early or delayed, we adjust.",
     src: Airport,
     src2: Airport2,
     description:
@@ -148,11 +148,11 @@ export const services = [
     id: 2,
     title: "Hourly Chauffeur",
     slug: "hourly-chauffeur",
-    copy: "Keep a dedicated car and driver on standby for meetings, golf, or a night out; pay only for the hours you use.",
+    copy: "A dedicated car and driver on your schedule — for meetings across town, a day of golf, wine tours, or a night out. Flexible by the hour with no mileage limits.",
     src: Hourly,
     src2: Hourly2,
     description:
-      "Engage our Hourly “As-Directed” Chauffeur for complete flexibility—your private driver awaits your schedule, whether it’s back-to-back meetings, a round of golf, or a social evening. You’re billed only for the exact time you travel, with unlimited stops and seamless route changes on the fly. All vehicles come stocked with bottled water, phone chargers, and a professional, courteous chauffeur to ensure comfort throughout.",
+      "Engage our Hourly \"As-Directed\" Chauffeur for complete flexibility — your private driver awaits your schedule, whether it's back-to-back meetings, a round of golf, or a social evening. You're billed only for the hours you use, with unlimited stops and seamless route changes on the fly. All vehicles come stocked with bottled water, phone chargers, and a professional, courteous chauffeur to ensure comfort throughout.",
     features: [
       {
         id: 2.1,
@@ -164,13 +164,13 @@ export const services = [
         id: 2.2,
         title: "On-Demand Route Changes",
         details:
-          "Modify your itinerary on the go via text or call—no extra charge.",
+          "Modify your itinerary on the go via text or call — no extra charge.",
       },
       {
         id: 2.3,
         title: "Hourly Rate Transparency",
         details:
-          "Know exactly what you’ll pay, down to the minute, with no hidden fees.",
+          "Know exactly what you'll pay per hour with no hidden fees or mileage surcharges.",
       },
       {
         id: 2.4,
@@ -184,23 +184,23 @@ export const services = [
     id: 3,
     title: "Point-to-Point Transfers",
     slug: "point-to-point",
-    copy: "Direct, door-to-door rides across the Valley with fixed pricing and 15-minute courtesy wait time.",
+    copy: "Direct, door-to-door rides anywhere in the Valley. Your price is quoted upfront at booking — no surge pricing, no surprises. Includes a 15-minute courtesy wait.",
     src: Point,
     src2: Point2,
     description:
-      "Our Point-to-Point City Transfers deliver efficient, no-surprises travel anywhere in the Valley. Benefit from fixed flat rates, a complimentary 15-minute wait window, and an experienced chauffeur who navigates local traffic so you arrive relaxed and on schedule. Perfect for quick trips to meetings, restaurants, or social engagements without the uncertainty of ride-share apps.",
+      "Our Point-to-Point City Transfers deliver efficient, no-surprises travel anywhere in the Valley. Benefit from fixed flat rates quoted at booking, a complimentary 15-minute wait window, and an experienced chauffeur who navigates local traffic so you arrive relaxed and on schedule. Perfect for quick trips to meetings, restaurants, or social engagements without the uncertainty of ride-share apps.",
     features: [
       {
         id: 3.1,
         title: "Fixed Flat Rates",
         details:
-          "Lock in your fare up front—no surge pricing or unexpected tolls.",
+          "Lock in your fare up front — no surge pricing or unexpected tolls.",
       },
       {
         id: 3.2,
         title: "15-Minute Courtesy Wait",
         details:
-          "We’ll wait for you at no extra cost if you’re running a few minutes behind.",
+          "We'll wait for you at no extra cost if you're running a few minutes behind.",
       },
       {
         id: 3.3,
@@ -220,35 +220,35 @@ export const services = [
     id: 4,
     title: "Golf Outing Transportation",
     slug: "golf-outing-transportation",
-    copy: "Stress-free rides to TPC, We-Ko Pa, Troon and other courses. Vehicles for any group size with knowledgeable local drivers.",
+    copy: "Stress-free rides to TPC Scottsdale, We-Ko-Pa, Troon North, Grayhawk, and courses across the Valley. Vehicles for any group size with clubs and gear handled.",
     src: Golf,
     src2: Golf2,
     description:
-      "Hit the links without the logistics headache: our Golf Outing Tours transport your group to top courses like TPC Scottsdale or Troon North in spacious SUVs or vans. Our drivers know each course’s layout and club rules, ensuring you arrive ready to play. Clubs and equipment can be pre-loaded to maximize your time on the green.",
+      "Hit the links without the logistics headache — our Golf Outing Transportation gets your group to top courses like TPC Scottsdale, Troon North, We-Ko-Pa, and Grayhawk in spacious SUVs or Sprinter vans. Our drivers know each course's location and the fastest routes, ensuring you arrive on time and ready to play. Clubs and equipment are pre-loaded so you can maximize your time on the green.",
     features: [
       {
         id: 4.1,
-        title: "Comfortable Vehicles",
+        title: "Club & Equipment Handling",
         details:
-          "Use well-maintained, spacious vehicles that provide a comfortable ride for passengers, ensuring a pleasant experience before and after the game.",
+          "We load and unload all golf bags and gear directly to and from the vehicle so you don't lift a finger.",
       },
       {
         id: 4.2,
         title: "Timely Scheduling",
         details:
-          "Establish a reliable schedule that allows for timely pickups and drop-offs, minimizing wait times and ensuring players arrive at the course without stress.",
+          "Reliable pickups and drop-offs timed to your tee time, minimizing wait and ensuring you arrive stress-free.",
       },
       {
         id: 4.3,
         title: "Knowledgeable Drivers",
         details:
-          "Employ experienced drivers who are familiar with the area and can navigate efficiently, providing local insights and tips about the golf course and surroundings.",
+          "Experienced drivers familiar with every major course in the Valley and the fastest routes to get there.",
       },
       {
         id: 4.4,
         title: "Group Coordination",
         details:
-          "Facilitate group transportation options, such as shuttles or vans, to accommodate larger parties, fostering a social atmosphere and making it easier for players to travel together.",
+          "Whether it's a foursome in a Suburban or a full group in a Sprinter, we match the right vehicle to your party size.",
       },
     ],
   },
@@ -256,11 +256,11 @@ export const services = [
     id: 5,
     title: "Corporate & Event Logistics",
     slug: "corporate-events",
-    copy: "VIP roadshows and conferences with onsite greeters, manifest tracking, and consolidated billing.",
+    copy: "End-to-end ground transportation for conferences, roadshows, and VIP events. Onsite greeters, manifest tracking, consolidated billing, and a dedicated logistics coordinator.",
     src: Corporate,
     src2: Corporate3,
     description:
-      "Elevate your corporate roadshows and events with our end-to-end logistics support: professional greeters meet your guests, digital manifests keep attendance organized, and one consolidated invoice simplifies expense reporting. We handle every detail so you can focus on your agenda. Tailored service options include branded signage, on-site coordinators, and multi-vehicle synchronization for smooth transitions.",
+      "Elevate your corporate roadshows and events with our end-to-end logistics support — professional greeters meet your guests, digital manifests keep attendance organized, and one consolidated invoice simplifies expense reporting. We handle every detail so you can focus on your agenda. Tailored service options include branded signage, on-site coordinators, and multi-vehicle synchronization for smooth transitions. One point of contact, zero headaches.",
     features: [
       {
         id: 5.1,
@@ -280,63 +280,68 @@ export const services = [
       },
       {
         id: 5.4,
-        title: "Branded Signage Options",
+        title: "Dedicated Logistics Coordinator",
         details:
-          "Custom logo signs or banner stands for a polished, professional look.",
+          "A single point of contact manages your entire transportation operation from start to finish.",
       },
     ],
   },
   {
     id: 6,
-    title: "Special Events",
-    slug: "special-events",
-    copy: "Arrive in style for any occasion. We provide luxury vehicles and shuttle buses to suit all group sizes and event types.",
-    src: Events,
-    src2: Events2,
+    title: "Weddings",
+    slug: "weddings",
+    copy: "Elegant sedans for the couple, Sprinters for the wedding party, and motorcoaches for guests. We coordinate every ride so your day runs on schedule.",
+    src: Wedding,
+    src2: Wedding2,
     description:
-      "Make an entrance at weddings, galas, and social celebrations with our Special Events service, featuring luxury sedans, stretch limousines, or shuttle buses tailored to your guest count. Our team coordinates timing, signage, and on-site support so every arrival is flawless. Custom branding, champagne service, and red-carpet setups are available to elevate the experience.",
+      "Make your arrival unforgettable with our Wedding Transportation service. From elegant sedans for the couple to Sprinter vans and motorcoaches for the wedding party and guests, we coordinate every ride so your day runs on schedule. Decorations accommodated, multiple pickups coordinated, and a driver who understands the timeline matters. Personalized décor options and champagne service make your transportation as memorable as the ceremony itself.",
     features: [
       {
         id: 6.1,
-        title: "Red-Carpet Welcome",
-        details: "Roll out the red carpet for an unforgettable arrival.",
+        title: "Custom Décor Options",
+        details:
+          "Choose ribbons, flowers, or signage to match your wedding theme.",
       },
       {
         id: 6.2,
-        title: "Champagne Service",
-        details: "Toast to the moment with chilled champagne on board.",
+        title: "Champagne Toast Setup",
+        details:
+          "Pre-chilled celebratory drinks served onboard for the couple and wedding party.",
       },
       {
         id: 6.3,
-        title: "Guest Counting",
-        details: "We manage headcounts to ensure every guest is accounted for.",
+        title: "Coordinated Multi-Vehicle Timing",
+        details:
+          "Staggered pickups and arrivals ensure every group — couple, bridal party, guests — arrives together and on time.",
       },
       {
         id: 6.4,
         title: "On-Site Coordination",
-        details: "Dedicated staff coordinate vehicle staging and timing.",
+        details:
+          "Dedicated staff coordinate vehicle staging and timing at your venue so transitions are seamless.",
       },
     ],
   },
   {
     id: 7,
-    title: "Party Bus",
+    title: "Party Bus & Special Events",
     slug: "party-bus",
-    copy: "Elevate your celebration with our premium party buses. Featuring spacious interiors, entertainment systems, and professional chauffeurs.",
+    copy: "Color-changing LED lights, Bluetooth sound systems, and wrap-around seating for birthdays, bachelor/bachelorette parties, proms, and nights out. Available for 4–8 hour charters.",
     src: Party,
     src2: Party2,
     description:
-      "Turn any night into a moving celebration aboard our Party Buses, equipped with premium sound systems, LED lighting, and plush seating for up to 30 guests. Your personal chauffeur handles the road while you and your group enjoy onboard entertainment and VIP amenities. Perfect for bachelorette parties, birthday celebrations, or concert pre-shuttles.",
+      "Turn any night into a moving celebration aboard our Party Buses, equipped with premium sound systems, color-changing LED lighting, and plush seating for up to 30 guests. Your professional chauffeur handles the road while you and your group enjoy onboard entertainment and VIP amenities. Perfect for bachelorette parties, birthday celebrations, proms, milestone events, or concert pre-shuttles.",
     features: [
       {
         id: 7.1,
         title: "LED Light Show",
-        details: "Customizable lighting to set the mood.",
+        details:
+          "Customizable color-changing lighting to set the mood for your event.",
       },
       {
         id: 7.2,
         title: "Premium Sound System",
-        details: "Bluetooth connectivity for your playlist.",
+        details: "Bluetooth connectivity so you can play your own playlist.",
       },
       {
         id: 7.3,
@@ -346,41 +351,42 @@ export const services = [
       {
         id: 7.4,
         title: "Leather Lounge Seating",
-        details: "Spacious, comfortable seating for socializing.",
+        details: "Spacious, comfortable wrap-around seating for socializing.",
       },
     ],
   },
   {
     id: 8,
-    title: "Reoccurring Rides",
-    slug: "reoccurring-rides",
-    copy: "Dependable transportation for regular business needs. Scheduled rides ensure timely arrivals without ride-share uncertainties.",
+    title: "Recurring Rides",
+    slug: "recurring-rides",
+    copy: "Scheduled transportation for executives and teams — same driver, same vehicle, same time. Set it up once and never deal with ride-share uncertainty again.",
     src: Reocurring,
     src2: Reocurring2,
     description:
-      "Streamline your routine commutes or team shuttles with our Reoccurring Rides plan—set up daily, weekly, or custom schedules and we’ll dispatch the same experienced driver and vehicle each time. Enjoy consistency, reliability, and priority service without having to book each trip individually. Automated billing options simplify expense management for corporate accounts.",
+      "Streamline your routine commutes or team shuttles with our Recurring Rides plan — set up daily, weekly, or custom schedules and we'll dispatch the same experienced driver and vehicle each time. Enjoy consistency, reliability, and priority service without having to book each trip individually. Automated billing options simplify expense management for corporate accounts.",
     features: [
       {
         id: 8.1,
         title: "Consistent Driver Assignment",
-        details: "Ride with the same chauffeur for familiarity and trust.",
+        details:
+          "Ride with the same chauffeur every time for familiarity and trust.",
       },
       {
         id: 8.2,
         title: "Custom Scheduling",
-        details: "Choose specific days and times for your repeating rides.",
+        details:
+          "Choose specific days and times — daily, weekly, or a custom pattern that fits your routine.",
       },
       {
         id: 8.3,
         title: "Priority Dispatch",
-        details:
-          "Reoccurring customers receive top priority during peak hours.",
+        details: "Recurring customers receive top priority during peak hours.",
       },
       {
         id: 8.4,
         title: "Automated Billing",
         details:
-          "Weekly or monthly invoicing directly to your corporate account.",
+          "Weekly or monthly invoicing directly to your corporate account — no per-trip payments needed.",
       },
     ],
   },
@@ -388,11 +394,11 @@ export const services = [
     id: 9,
     title: "Long Distance Drives",
     slug: "long-distance",
-    copy: "Comfortable intercity travel with professional drivers. Relax in our well-maintained vehicles while we handle the journey.",
+    copy: "Comfortable intercity travel to Tucson, Sedona, Flagstaff, and anywhere in Arizona. Pricing quoted upfront with no hidden fees.",
     src: Distance,
     src2: Distance2,
     description:
-      "Experience stress-free Long Distance Drives in climate-controlled comfort, whether you’re headed to Sedona’s red rocks or Tucson’s desert resorts. Our courteous chauffeurs navigate highways and scenic byways so you can work, rest, or take in the views without interruption. Every trip includes bottled water, phone chargers, and optional in-vehicle Wi-Fi to keep you connected.",
+      "Experience stress-free Long Distance Drives in climate-controlled comfort, whether you're headed to Sedona's red rocks, Tucson's desert resorts, or Flagstaff's mountain air. Our courteous chauffeurs navigate highways and scenic byways so you can work, rest, or take in the views. Every trip includes bottled water, phone chargers, and optional in-vehicle Wi-Fi. Pricing is quoted upfront with no hidden fees.",
     features: [
       {
         id: 9.1,
@@ -413,74 +419,6 @@ export const services = [
         id: 9.4,
         title: "Flexible Stopovers",
         details: "Add breaks or sightseeing stops without changing your rate.",
-      },
-    ],
-  },
-  {
-    id: 10,
-    title: "Golf Outing Transportation",
-    slug: "golf-outing-transportation",
-    copy: "Stress-free rides to TPC, We-Ko Pa, Troon and other courses. Vehicles for any group size with knowledgeable local drivers.",
-    src: Golf,
-    src2: Golf2,
-    description:
-      "Hit the links without the logistics headache: our Golf Outing Tours transport your group to top courses like TPC Scottsdale or Troon North in spacious SUVs or vans. Our drivers know each course’s layout and club rules, ensuring you arrive ready to play. Clubs and equipment can be pre-loaded to maximize your time on the green.",
-    features: [
-      {
-        id: 10.1,
-        title: "Comfortable Vehicles",
-        details:
-          "Use well-maintained, spacious vehicles that provide a comfortable ride for passengers, ensuring a pleasant experience before and after the game.",
-      },
-      {
-        id: 10.2,
-        title: "Timely Scheduling",
-        details:
-          "Establish a reliable schedule that allows for timely pickups and drop-offs, minimizing wait times and ensuring players arrive at the course without stress.",
-      },
-      {
-        id: 10.3,
-        title: "Knowledgeable Drivers",
-        details:
-          "Employ experienced drivers who are familiar with the area and can navigate efficiently, providing local insights and tips about the golf course and surroundings.",
-      },
-      {
-        id: 10.4,
-        title: "Group Coordination",
-        details:
-          "Facilitate group transportation options, such as shuttles or vans, to accommodate larger parties, fostering a social atmosphere and making it easier for players to travel together.",
-      },
-    ],
-  },
-  {
-    id: 11,
-    title: "Weddings",
-    slug: "party-bus-weddings",
-    copy: "LED lighting, Bluetooth sound, and wrap-around seating for unforgettable celebrations and seamless shuttles.",
-    src: Wedding,
-    src2: Wedding2,
-    description:
-      "Add a touch of luxury to your wedding day with our Wedding Shuttles or Party Buses—complete with ambient lighting, premium audio, and plush seating. We coordinate pickup times and routes so your entire party arrives together and on time. Personalized décor options and keepsake signage make your transportation as memorable as the ceremony itself.",
-    features: [
-      {
-        id: 11.1,
-        title: "Custom Décor Options",
-        details: "Choose ribbons, flowers, or signage to match your theme.",
-      },
-      {
-        id: 11.2,
-        title: "Keepsake Signage",
-        details: "Personalized boards to commemorate your special day.",
-      },
-      {
-        id: 11.3,
-        title: "Champagne Toast Setup",
-        details: "Pre-chilled celebratory drinks served onboard.",
-      },
-      {
-        id: 11.4,
-        title: "Coordinated Bridal Party Pickup",
-        details: "Staggered timing ensures everyone arrives together.",
       },
     ],
   },
@@ -624,6 +562,102 @@ export const aboutQuestions = [
 export const fleetData: ReadonlyArray<Vehicle> = [
   {
     id: 1,
+    title: "Mercedes-Benz E-Class Sedan",
+    slug: "mercedes-e-class-sedan",
+    class: "Executive Sedan",
+    heroLine: "Executive comfort with a discreet profile.",
+    shortDesc:
+      "A refined executive sedan for one to three passengers who value a quiet, comfortable ride.",
+    longDesc:
+      "Ideal for airport runs and business dinners when a full-size SUV isn't necessary. The E-Class blends comfort, technology, and a smaller footprint for effortless city travel.",
+    seats: "3 seater",
+    luggage: "2 full-size suitcases",
+    cargo: "19 cu ft",
+    cargoCuFt: "~19 cu ft",
+    bestFor: ["Airport transfers", "Business travel", "Evenings out"],
+    specs: {
+      drivetrain: "RWD/AWD (fleet dependent)",
+      rideFeel: "Smooth and quiet",
+      cabin: "Leather seating, excellent sound insulation",
+    },
+    amenities: [
+      "Bottled water",
+      "Phone chargers",
+      "Privacy tint",
+      "Heated/ventilated seats (select trims)",
+      "Luggage assistance",
+      "Car seats by request",
+    ],
+    safetyTech: [
+      "ABS & stability control",
+      "Blind-spot monitoring",
+      "Forward collision warning",
+      "Lane-keep assist",
+      "360° camera / parking sensors (select trims)",
+      "Airbags throughout",
+    ],
+    features: [
+      "Discreet arrival and easy city maneuvering",
+      "Comfortable for two with room for carry-ons",
+      "Great cabin quietness for calls on the go",
+    ],
+    availabilityNotes: "Black exterior, black interior.",
+    images: [
+      { src: MercedesSedan, alt: "Mercedes E-Class exterior" },
+      { src: "/images/fleet/eclass-2.jpg", alt: "Mercedes E-Class interior" },
+    ],
+    rateRules: {
+      minimumHours: 2,
+      hourlyFromUSD: 95,
+      airportTransferFromUSD: 125,
+      meetAndGreetUSD: 20,
+      afterHoursSurchargePct: 20,
+      waitTimeGraceMin: 15,
+      extraStopUSD: 20,
+    },
+    policy: {
+      summary: "Free cancellation up to 12 hours before pickup.",
+      details: [
+        "Within 12 hours, cancellation fees may apply.",
+        "No-show billed in full.",
+      ],
+    },
+    faqs: [
+      {
+        q: "Is there trunk space for larger suitcases?",
+        a: "Two standard bags fit comfortably; note oversized items when you book.",
+      },
+      {
+        q: "Is meet-and-greet available?",
+        a: "Yes—add it at checkout for a curbside sign or terminal meet per airport policy.",
+      },
+      {
+        q: "Can three adults ride comfortably?",
+        a: "Yes for shorter city trips. For longer rides or extra luggage, we recommend moving up to an SUV.",
+      },
+      {
+        q: "Do you have charging ports in the rear seats?",
+        a: "Yes—USB charging is available. If you need USB-C specifically, mention it and we'll assign a suitable unit.",
+      },
+      {
+        q: "Is the ride quiet enough for calls?",
+        a: "Yes—the E-Class is known for excellent cabin isolation, making it ideal for calls and focused work.",
+      },
+      {
+        q: "Can you provide a child seat for the sedan?",
+        a: "Yes—add your request at booking and we'll pre-install before pickup.",
+      },
+    ],
+    seo: {
+      metaTitle: "Mercedes-Benz E-Class | Nier Transportation Fleet",
+      metaDescription:
+        "Executive sedan for efficient city travel and airport transfers. Comfortable, quiet, and discreet.",
+    },
+    desc: "A refined executive sedan for solo travelers or couples who value discreet style, quiet comfort, and a smooth ride. Ideal for airport transfers and business travel.",
+    src: MercedesSedan,
+  },
+  {
+    id: 2,
     title: "Chevy Suburban",
     slug: "chevy-suburban",
     class: "Full-Size SUV",
@@ -631,9 +665,9 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     shortDesc:
       "Our flagship full-size SUV with generous legroom and cargo space—ideal for airport transfers and all-day charters.",
     longDesc:
-      "The Suburban pairs highway stability with true carry-on capacity. It’s the sweet spot for families, golf outings, or executive travel where comfort and luggage room both matter.",
+      "The Suburban pairs highway stability with true carry-on capacity. It's the sweet spot for families, golf outings, or executive travel where comfort and luggage room both matter.",
     seats: "7 seater",
-    luggage: "5–7 standard bags (golf bags fit)",
+    luggage: "4–6 suitcases (golf bags fit)",
     cargo: "144.7 cu ft",
     cargoCuFt: "Up to ~145 cu ft (config-dependent)",
     bestFor: [
@@ -694,7 +728,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     faqs: [
       {
         q: "Can you fit golf bags and luggage together?",
-        a: "Yes—please note the number of bags at booking and we’ll configure seating to maximize cargo.",
+        a: "Yes—please note the number of bags at booking and we'll configure seating to maximize cargo.",
       },
       {
         q: "Do you track inbound flights?",
@@ -722,11 +756,11 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       metaDescription:
         "Book a spacious Chevy Suburban with professional chauffeur—ideal for families, golf trips, and airport transfers.",
     },
-    desc: "Our flagship full-size SUV pairs tri-zone climate control with class-leading leg- and luggage-room—perfect for families or small groups.",
+    desc: "Our flagship full-size SUV with tri-zone climate control and best-in-class legroom. Perfect for families, small groups, and anyone who needs space for luggage without sacrificing comfort.",
     src: Suburban,
   },
   {
-    id: 2,
+    id: 3,
     title: "Cadillac Escalade ESV",
     slug: "cadillac-escalade-esv",
     class: "Extended Luxury SUV",
@@ -736,7 +770,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     longDesc:
       "For VIP arrivals, black-tie events, or upscale business travel, the Escalade ESV delivers unmistakable presence, buttery ride quality, and an expansive cargo area for longer itineraries.",
     seats: "6 seater",
-    luggage: "5–6 standard bags",
+    luggage: "4–5 suitcases",
     cargo: "121 cu ft",
     cargoCuFt: "~121 cu ft (config-dependent)",
     bestFor: ["VIP travel", "Events & galas", "Executive roadshows"],
@@ -808,7 +842,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
       {
         q: "Can we request a specific seating layout?",
-        a: "Yes—captain’s chairs in the second row are standard on most units. Tell us your preference during booking and we’ll confirm availability.",
+        a: "Yes—captain's chairs in the second row are standard on most units. Tell us your preference during booking and we'll confirm availability.",
       },
       {
         q: "Is smoking or vaping allowed?",
@@ -824,17 +858,17 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       metaDescription:
         "Arrive in style with an Escalade ESV. Extended luxury SUV with premium comfort for VIP travel and events.",
     },
-    desc: "The pinnacle of luxury SUVs—premium leather, rear captain’s chairs, and magnetic ride control for a first-class travel experience.",
+    desc: "The pinnacle of luxury SUVs — premium leather, rear captain's chairs, and magnetic ride control deliver a first-class experience from pickup to drop-off.",
     src: Escalade,
   },
   {
-    id: 3,
+    id: 4,
     title: "Mercedes-Benz Sprinter",
     slug: "mercedes-sprinter-executive-14",
     class: "Executive Sprinter",
     heroLine: "Boardroom-level comfort for groups.",
     shortDesc:
-      "Captain’s chairs, headroom to stand, and power at every seat—group travel without compromise.",
+      "Captain's chairs, headroom to stand, and power at every seat—group travel without compromise.",
     longDesc:
       "Our executive Sprinter brings business-class comfort to group itineraries. Great for team offsites, golf groups, wedding parties, and airport shuttles with luggage.",
     seats: "14 seater",
@@ -865,7 +899,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       "Airbags throughout",
     ],
     features: [
-      "Executive captain’s chairs",
+      "Executive captain's chairs",
       "Overhead storage (select models)",
       "Ideal for roadshows, offsites, and wedding parties",
     ],
@@ -908,120 +942,24 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
       {
         q: "Is there a restroom onboard?",
-        a: "No—our 14-passenger executive Sprinters do not include restrooms. We’re happy to plan brief comfort stops for longer trips.",
+        a: "No—our 14-passenger executive Sprinters do not include restrooms. We're happy to plan brief comfort stops for longer trips.",
       },
       {
         q: "Can we load banners or small signage for corporate groups?",
         a: "Yes—window clings or small removable signs are fine with prior approval. No adhesives that leave residue.",
       },
       {
-        q: "What’s the best passenger/luggage mix?",
-        a: "For 12–14 passengers with significant luggage, consider a luggage trailer or a second vehicle. Share your counts and we’ll advise.",
+        q: "What's the best passenger/luggage mix?",
+        a: "For 12–14 passengers with significant luggage, consider a luggage trailer or a second vehicle. Share your counts and we'll advise.",
       },
     ],
     seo: {
       metaTitle: "Mercedes Sprinter Executive (14) | Nier Transportation Fleet",
       metaDescription:
-        "Executive Sprinter with captain’s chairs and power at every seat—premium group travel for teams and events.",
+        "Executive Sprinter with captain's chairs and power at every seat—premium group travel for teams and events.",
     },
-    desc: "Lounge-style cabin with stand-up headroom, USB-C charging at every seat, and onboard Wi-Fi—ideal for corporate teams and golf outings.",
+    desc: "Lounge-style cabin with stand-up headroom, USB-C charging at every seat, and onboard Wi-Fi. Built for corporate teams, golf outings, and groups that want to travel together in style.",
     src: Sprinter,
-  },
-  {
-    id: 4,
-    title: "Mercedes-Benz E-Class Sedan",
-    slug: "mercedes-e-class-sedan",
-    class: "Executive Sedan",
-    heroLine: "Executive comfort with a discreet profile.",
-    shortDesc:
-      "A refined executive sedan for one to three passengers who value a quiet, comfortable ride.",
-    longDesc:
-      "Ideal for airport runs and business dinners when a full-size SUV isn’t necessary. The E-Class blends comfort, technology, and a smaller footprint for effortless city travel.",
-    seats: "3 seater",
-    luggage: "2–3 standard bags",
-    cargo: "19 cu ft",
-    cargoCuFt: "~19 cu ft",
-    bestFor: ["Airport transfers", "Business travel", "Evenings out"],
-    specs: {
-      drivetrain: "RWD/AWD (fleet dependent)",
-      rideFeel: "Smooth and quiet",
-      cabin: "Leather seating, excellent sound insulation",
-    },
-    amenities: [
-      "Bottled water",
-      "Phone chargers",
-      "Privacy tint",
-      "Heated/ventilated seats (select trims)",
-      "Luggage assistance",
-      "Car seats by request",
-    ],
-    safetyTech: [
-      "ABS & stability control",
-      "Blind-spot monitoring",
-      "Forward collision warning",
-      "Lane-keep assist",
-      "360° camera / parking sensors (select trims)",
-      "Airbags throughout",
-    ],
-    features: [
-      "Discreet arrival and easy city maneuvering",
-      "Comfortable for two with room for carry-ons",
-      "Great cabin quietness for calls on the go",
-    ],
-    availabilityNotes: "Black exterior, black interior.",
-    images: [
-      { src: MercedesSedan, alt: "Mercedes E-Class exterior" },
-      { src: "/images/fleet/eclass-2.jpg", alt: "Mercedes E-Class interior" },
-    ],
-    rateRules: {
-      minimumHours: 2,
-      hourlyFromUSD: 95,
-      airportTransferFromUSD: 125,
-      meetAndGreetUSD: 20,
-      afterHoursSurchargePct: 20,
-      waitTimeGraceMin: 15,
-      extraStopUSD: 20,
-    },
-    policy: {
-      summary: "Free cancellation up to 12 hours before pickup.",
-      details: [
-        "Within 12 hours, cancellation fees may apply.",
-        "No-show billed in full.",
-      ],
-    },
-    faqs: [
-      {
-        q: "Is there trunk space for larger suitcases?",
-        a: "Two standard bags fit comfortably; note oversized items when you book.",
-      },
-      {
-        q: "Is meet-and-greet available?",
-        a: "Yes—add it at checkout for a curbside sign or terminal meet per airport policy.",
-      },
-      {
-        q: "Can three adults ride comfortably?",
-        a: "Yes for shorter city trips. For longer rides or extra luggage, we recommend moving up to an SUV.",
-      },
-      {
-        q: "Do you have charging ports in the rear seats?",
-        a: "Yes—USB charging is available. If you need USB-C specifically, mention it and we’ll assign a suitable unit.",
-      },
-      {
-        q: "Is the ride quiet enough for calls?",
-        a: "Yes—the E-Class is known for excellent cabin isolation, making it ideal for calls and focused work.",
-      },
-      {
-        q: "Can you provide a child seat for the sedan?",
-        a: "Yes—add your request at booking and we’ll pre-install before pickup.",
-      },
-    ],
-    seo: {
-      metaTitle: "Mercedes-Benz E-Class | Nier Transportation Fleet",
-      metaDescription:
-        "Executive sedan for efficient city travel and airport transfers. Comfortable, quiet, and discreet.",
-    },
-    desc: "A refined executive sedan for solo travelers or couples who value discreet style, quiet comfort, and advanced safety tech.",
-    src: MercedesSedan,
   },
   {
     id: 5,
@@ -1034,7 +972,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     longDesc:
       "Designed for celebrations and group fun with safety at the forefront. Great for bachelor/ette parties, concert nights, and wedding guest moves.",
     seats: "20 seater",
-    luggage: "By request (best for people-moving)",
+    luggage: "Ample cabin storage",
     cargo: "Ample cabin storage",
     cargoCuFt: "Config-dependent",
     bestFor: ["Weddings", "Concerts", "Bachelor/ette", "Birthdays"],
@@ -1090,7 +1028,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
       {
         q: "Do you allow venue loops?",
-        a: "Yes—share your schedule and we’ll build a safe loop with planned stops.",
+        a: "Yes—share your schedule and we'll build a safe loop with planned stops.",
       },
       {
         q: "Is there a restroom onboard?",
@@ -1114,101 +1052,110 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       metaDescription:
         "Celebrate safely with a mini party bus—perfect for weddings, concerts, and group nights out.",
     },
-    desc: "Color-changing LED lights, Bluetooth sound, and wrap-around seating keep the celebration rolling from door to door.",
+    desc: "Color-changing LED lights, Bluetooth sound system, and wrap-around seating turn every ride into an event. Perfect for birthdays, bachelor/bachelorette parties, and nights out on the town.",
     src: PartyBus,
   },
   {
     id: 6,
     title: "Motorcoach",
     slug: "motorcoach",
-    class: "Party/Limo Bus",
-    heroLine: "Group celebrations with room to move.",
+    class: "Full-Size Coach",
+    heroLine: "Full-size group transport for large parties and events.",
     shortDesc:
-      "Open-plan seating, standing room, and lighting for a celebratory atmosphere—perfect for nights out and weddings.",
+      "Reclining seats, overhead storage, and a smooth highway ride—built for corporate shuttles, wedding guests, and large group outings.",
     longDesc:
-      "Designed for celebrations and group fun with safety at the forefront. Great for bachelor/ette parties, concert nights, and wedding guest moves.",
-    seats: "20 seater",
-    luggage: "By request (best for people-moving)",
-    cargo: "Ample cabin storage",
-    cargoCuFt: "Config-dependent",
-    bestFor: ["Weddings", "Concerts", "Bachelor/ette", "Birthdays"],
+      "When your group outgrows a Sprinter, the Motorcoach delivers. Full-size coach seating with reclining chairs, overhead compartments, and undercarriage luggage bays handle everything from corporate conference shuttles to multi-stop wedding guest transport. A smooth, stable highway ride keeps everyone comfortable on longer routes.",
+    seats: "40+ seater",
+    luggage: "Undercarriage luggage bays for full-size suitcases",
+    cargo: "Undercarriage luggage bays",
+    cargoCuFt: "Large undercarriage bays (config-dependent)",
+    bestFor: [
+      "Corporate shuttles",
+      "Wedding guest transport",
+      "Large group outings",
+      "Multi-stop itineraries",
+    ],
     specs: {
       drivetrain: "RWD",
-      rideFeel: "Comfortable and social",
-      cabin: "Open plan with standing room",
+      rideFeel: "Smooth, stable highway ride with air suspension",
+      cabin: "Reclining seats, center aisle, overhead storage",
     },
     amenities: [
       "Bottled water",
-      "Phone chargers",
+      "Phone chargers (USB at each row)",
+      "Climate control",
+      "Overhead storage",
+      "PA system / microphone",
       "Privacy tint",
-      "Ambient lighting",
-      "Bluetooth audio",
+      "Luggage assistance",
     ],
     safetyTech: [
       "ABS & stability control",
       "Forward collision warning",
-      "Parking sensors",
-      "Airbags where equipped",
+      "Parking sensors / backup camera",
+      "Emergency exits throughout",
+      "Fire suppression system",
     ],
     features: [
-      "Open-plan seating and lighting",
-      "Ideal for venue hops and celebration loops",
-      "Coordinated drop-offs and pickup windows",
+      "Reclining seats with armrests and headrests",
+      "Undercarriage luggage bays for suitcases and equipment",
+      "PA system for announcements and guided tours",
+      "Ideal for 30–50+ passenger groups",
     ],
     availabilityNotes:
-      "Alcohol policy varies by event—confirm at booking. No glass containers permitted.",
+      "Black or white exterior available. Confirm color preference at booking.",
     images: [
-      { src: PartyBus, alt: "Mini party bus exterior" },
-      { src: "/images/fleet/partybus-2.jpg", alt: "Mini party bus interior" },
+      { src: Bus, alt: "Motorcoach exterior" },
+      { src: "/images/fleet/motorcoach-2.jpg", alt: "Motorcoach interior" },
     ],
     rateRules: {
       minimumHours: 4,
-      hourlyFromUSD: 195,
+      hourlyFromUSD: 275,
       meetAndGreetUSD: 0,
       afterHoursSurchargePct: 25,
-      waitTimeGraceMin: 10,
-      extraStopUSD: 45,
+      waitTimeGraceMin: 15,
+      extraStopUSD: 65,
     },
     policy: {
-      summary: "Free cancellation up to 72 hours before pickup.",
+      summary: "Free cancellation up to 7 days before pickup.",
       details: [
-        "Within 72 hours, cancellation fees may apply up to the full fare.",
-        "Security deposit may be required.",
-        "Spill/cleaning fees may apply if needed.",
+        "Within 7 days, cancellation fees may apply up to 50% of the fare.",
+        "Within 48 hours, full fare may be charged.",
+        "Non-refundable deposit required at booking for peak dates.",
       ],
     },
     faqs: [
       {
-        q: "Can we bring drinks onboard?",
-        a: "Policies vary by event—please confirm during booking. No glass containers are permitted.",
+        q: "How many passengers can the motorcoach hold?",
+        a: "Our motorcoach seats 40+ passengers comfortably with reclining seats and a center aisle.",
       },
       {
-        q: "Do you allow venue loops?",
-        a: "Yes—share your schedule and we’ll build a safe loop with planned stops.",
+        q: "Is there storage for luggage?",
+        a: "Yes—large undercarriage luggage bays hold full-size suitcases, equipment, and supplies. Overhead compartments are available for personal items.",
       },
       {
         q: "Is there a restroom onboard?",
-        a: "No—mini party buses do not include restrooms. We can schedule brief stops as needed.",
+        a: "Select units include an onboard restroom. Please request this at booking and we'll confirm availability.",
       },
       {
-        q: "Can we play our own music and lights?",
-        a: "Yes—Bluetooth audio is available and ambient lighting is included. Share any special requests in advance.",
+        q: "Can we use the PA system for announcements?",
+        a: "Yes—a PA system with microphone is included, ideal for tour guides, corporate hosts, or wedding coordinators.",
       },
       {
-        q: "Are decorations allowed?",
-        a: "Light, removable décor is fine with prior approval. No adhesives that leave residue, glitter, or confetti.",
+        q: "Is the motorcoach suitable for long-distance trips?",
+        a: "Absolutely. The air-ride suspension and reclining seats make it comfortable for highway travel to destinations like Sedona, Tucson, or Flagstaff.",
       },
       {
-        q: "Is gratuity included?",
-        a: "Gratuity is optional unless specified for certain events. You can add it during checkout or after the ride.",
+        q: "Can we bring food and drinks onboard?",
+        a: "Light refreshments are permitted. No glass containers. Cleaning fees may apply for excessive spills.",
       },
     ],
     seo: {
-      metaTitle: "Mini Party Bus (20) | Nier Transportation Fleet",
+      metaTitle: "Motorcoach | Nier Transportation Fleet",
       metaDescription:
-        "Celebrate safely with a mini party bus—perfect for weddings, concerts, and group nights out.",
+        "Full-size motorcoach for 40+ passengers. Reclining seats, luggage bays, and a smooth ride—ideal for corporate shuttles and large group events.",
     },
-    desc: "Color-changing LED lights, Bluetooth sound, and wrap-around seating keep the celebration rolling from door to door.",
+    desc: "Full-size coach with reclining seats, overhead storage, and a smooth highway ride. Ideal for corporate shuttles, wedding guest transport, large group outings, and multi-stop itineraries.",
     src: Bus,
   },
 ] as const;

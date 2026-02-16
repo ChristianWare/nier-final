@@ -48,11 +48,19 @@
   background-color: rgba(0, 0, 0, 0.2);
 }
 
+.statBoxContainer {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+  width: 100%;
+}
+
 .statBox {
   position: relative;
   z-index: 2;
   background-color: var(--accent);
-  border-radius: 12px;
+  background: rgba(220, 36, 48, 0.4);
+  border-radius: 10px;
   padding: 2.5rem;
   display: flex;
   flex-direction: column;
@@ -62,7 +70,7 @@
 }
 
 .statNumber {
-  color: var(--black);
+  color: var(--cream);
   font-size: 6rem;
   font-weight: 900;
   letter-spacing: -3px;
@@ -70,11 +78,11 @@
 }
 
 .subheading {
-  color: var(--black);
+  color: var(--cream);
 }
 
 .copy {
-  color: var(--black);
+  color: var(--cream);
   line-height: 1.6;
 }
 
@@ -85,8 +93,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 5rem;
+  padding-bottom: 2rem;
   overflow: hidden;
 }
 
