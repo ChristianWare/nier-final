@@ -1,7 +1,7 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./BlogPageIntro.module.css";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
-import Button from "@/components/shared/Button/Button";
+import BlogSearchBar from "../BlogSearchBar/BlogSearchBar";
 
 export default function BlogPageIntro() {
   return (
@@ -18,12 +18,7 @@ export default function BlogPageIntro() {
             articles designed to help you make the most of your travel
             experiences.
           </p>
-          <div className={styles.searchBar}>
-            <span className={styles.text}>Search the blog</span>
-            <div className={styles.btnContainer}>
-              <Button href='/' text='Search' btnType='black' arrow />
-            </div>
-          </div>
+          <BlogSearchBar />
         </div>
       </LayoutWrapper>
     </div>

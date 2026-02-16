@@ -73,6 +73,12 @@
   color: var(--white, #fff);
 }
 
+.searchStatus {
+  color: var(--paragraph);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
 @media screen and (max-width: 1068px) {
   .content {
     grid-template-columns: repeat(2, 1fr);

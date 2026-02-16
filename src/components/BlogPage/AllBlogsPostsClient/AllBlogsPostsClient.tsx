@@ -1,4 +1,4 @@
-// components/BlogPage/AllBlogsPosts/AllBlogsPostsClient.tsx
+// components/BlogPage/AllBlogsPostsClient/AllBlogsPostsClient.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -35,7 +35,7 @@ export default function AllBlogsPostsClient({
 
   const tagOptions = useMemo(
     () => [{ _id: "all", name: "All", slug: { current: "all" } }, ...tags],
-    [tags]
+    [tags],
   );
 
   const initialSlug =
@@ -47,12 +47,37 @@ export default function AllBlogsPostsClient({
 
   const [selectedSlug, setSelectedSlug] = useState<string>(initialSlug);
 
+  // Read search query from URL
+  const searchQuery = searchParams.get("q")?.toLowerCase().trim() ?? "";
+
   const filtered = useMemo(() => {
-    if (selectedSlug === "all") return posts;
-    return posts.filter((p) =>
-      p.tags?.some((t) => t.slug.current === selectedSlug)
-    );
-  }, [posts, selectedSlug]);
+    let result = posts;
+
+    // Filter by tag
+    if (selectedSlug !== "all") {
+      result = result.filter((p) =>
+        p.tags?.some((t) => t.slug.current === selectedSlug),
+      );
+    }
+
+    // Filter by search query
+    if (searchQuery) {
+      result = result.filter((p) => {
+        const title = p.title.toLowerCase();
+        const excerpt = (p.excerpt ?? "").toLowerCase();
+        const postTags = (p.tags ?? [])
+          .map((t) => t.name.toLowerCase())
+          .join(" ");
+        return (
+          title.includes(searchQuery) ||
+          excerpt.includes(searchQuery) ||
+          postTags.includes(searchQuery)
+        );
+      });
+    }
+
+    return result;
+  }, [posts, selectedSlug, searchQuery]);
 
   function selectTag(slug: string) {
     setSelectedSlug(slug);
@@ -82,6 +107,14 @@ export default function AllBlogsPostsClient({
           </li>
         ))}
       </ul>
+
+      {searchQuery && (
+        <p className={styles.searchStatus}>
+          {filtered.length === 0
+            ? `No posts found for "${searchParams.get("q")}"`
+            : `${filtered.length} post${filtered.length === 1 ? "" : "s"} found for "${searchParams.get("q")}"`}
+        </p>
+      )}
 
       <div className={styles.content}>
         {filtered.map((p) => (
