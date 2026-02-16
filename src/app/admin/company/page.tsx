@@ -4,6 +4,7 @@ import CompanySettingsForm from "@/components/admin/CompanySettingsForm/CompanyS
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Button from "@/components/shared/Button/Button";
 import Link from "next/link";
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -119,6 +120,7 @@ function ExternalLink({
       href={href}
       target='_blank'
       rel='noopener noreferrer'
+      // className={className}
       className={className}
     >
       {children}
@@ -363,7 +365,7 @@ export default async function AdminCompanyPage() {
                           href={initial.websiteUrl}
                           className={styles.link}
                         >
-                          {initial.websiteUrl.replace(/^https?:\/\//, "")} ↗
+                          {initial.websiteUrl.replace(/^https?:\/\//, "")} <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"
@@ -378,7 +380,7 @@ export default async function AdminCompanyPage() {
                           href={initial.googleBusinessUrl}
                           className={styles.link}
                         >
-                          View listing ↗
+                          View listing <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"
@@ -393,7 +395,7 @@ export default async function AdminCompanyPage() {
                           href={initial.yelpUrl}
                           className={styles.link}
                         >
-                          View listing ↗
+                          View listing <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"
@@ -408,7 +410,7 @@ export default async function AdminCompanyPage() {
                           href={initial.instagramUrl}
                           className={styles.link}
                         >
-                          View profile ↗
+                          View profile <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"
@@ -423,7 +425,7 @@ export default async function AdminCompanyPage() {
                           href={initial.facebookUrl}
                           className={styles.link}
                         >
-                          View page ↗
+                          View page <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"
@@ -438,7 +440,7 @@ export default async function AdminCompanyPage() {
                           href={initial.twitterUrl}
                           className={styles.link}
                         >
-                          View profile ↗
+                          View profile <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"
@@ -453,7 +455,7 @@ export default async function AdminCompanyPage() {
                           href={initial.linkedinUrl}
                           className={styles.link}
                         >
-                          View page ↗
+                          View page <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"
@@ -468,7 +470,7 @@ export default async function AdminCompanyPage() {
                           href={initial.tiktokUrl}
                           className={styles.link}
                         >
-                          View profile ↗
+                          View profile <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"
@@ -483,7 +485,7 @@ export default async function AdminCompanyPage() {
                           href={initial.youtubeUrl}
                           className={styles.link}
                         >
-                          View channel ↗
+                          View channel <Arrow style={{ transform: "rotate(90deg)", marginLeft: "1rem" }} />
                         </ExternalLink>
                       ) : (
                         "—"

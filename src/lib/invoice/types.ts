@@ -61,6 +61,9 @@ export type InvoiceData = {
   // Currency
   currency: string;
 
+  // Company logo URL (from CompanySettings)
+  logoUrl?: string;
+
   // ─── Corporate-specific fields (optional) ───
   // These are only populated for corporate invoices.
   // Regular customer invoices leave them undefined.

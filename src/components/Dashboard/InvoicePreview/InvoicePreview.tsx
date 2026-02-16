@@ -34,7 +34,22 @@ export default function InvoicePreview({
         <header className={styles.header}>
           <div className={styles.logoSection}>
             <div className={styles.logoWrap}>
-              <Logo className={styles.logo} />
+              {invoice.logoUrl ? (
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={invoice.logoUrl}
+                    alt={invoice.company.name}
+                    style={{
+                      maxHeight: 40,
+                      maxWidth: 160,
+                      objectFit: "contain",
+                    }}
+                  />
+                </>
+              ) : (
+                <Logo className={styles.logo} />
+              )}
               <span className={styles.logoText}>{invoice.company.name}</span>
             </div>
             <div className={styles.companyDetails}>

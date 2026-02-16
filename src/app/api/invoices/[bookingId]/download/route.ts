@@ -153,6 +153,7 @@ export async function GET(
       invoiceNumber,
       invoiceDate,
       paidDate,
+      logoUrl: companySettings.logoUrl || undefined,
 
       company: {
         name: companySettings.officeName || "Nier Transportation",

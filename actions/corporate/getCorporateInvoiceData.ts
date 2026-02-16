@@ -197,6 +197,7 @@ export async function getCorporateInvoiceData(
       invoiceNumber: invoice.invoiceNumber,
       invoiceDate: formatInvoiceDate(invoice.createdAt),
       paidDate: invoice.paidAt ? formatInvoiceDate(invoice.paidAt) : null,
+      logoUrl: companySettings.logoUrl || undefined,
 
       company: {
         name: companySettings.officeName || "Nier Transportation",

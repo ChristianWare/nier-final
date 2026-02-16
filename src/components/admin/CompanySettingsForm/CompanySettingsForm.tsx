@@ -51,8 +51,6 @@ type SectionKey =
   | "contact"
   | "email"
   | "office"
-  | "timezone"
-  | "hours"
   | "social"
   | "legal";
 
@@ -60,9 +58,7 @@ const SECTION_LABELS: Record<SectionKey, string> = {
   branding: "Company Branding",
   contact: "Contact & Support",
   email: "Email Settings",
-  office: "Office Information",
-  timezone: "Timezone",
-  hours: "Hours of Operation",
+  office: "Office & Hours",
   social: "Social & Web Presence",
   legal: "Legal & Tax",
 };
@@ -72,8 +68,6 @@ const HASH_TO_SECTION: Record<string, SectionKey> = {
   "contact-section": "contact",
   "email-section": "email",
   "office-section": "office",
-  "timezone-section": "timezone",
-  "hours-section": "hours",
   "social-section": "social",
   "legal-section": "legal",
 };
@@ -188,6 +182,8 @@ export default function CompanySettingsForm({ initial }: Props) {
   const [companyName, setCompanyName] = useState(initial.companyName);
   const [companyTagline, setCompanyTagline] = useState(initial.companyTagline);
   const [logoUrl, setLogoUrl] = useState(initial.logoUrl);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoDragging, setLogoDragging] = useState(false);
   const [emailSenderName, setEmailSenderName] = useState(
     initial.emailSenderName,
   );
@@ -220,7 +216,8 @@ export default function CompanySettingsForm({ initial }: Props) {
           return (
             companyName !== initial.companyName ||
             companyTagline !== initial.companyTagline ||
-            logoUrl !== initial.logoUrl
+            logoUrl !== initial.logoUrl ||
+            timezone !== initial.timezone
           );
         case "contact":
           return (
@@ -238,12 +235,9 @@ export default function CompanySettingsForm({ initial }: Props) {
           return (
             officeName !== initial.officeName ||
             officeAddress !== initial.officeAddress ||
-            officeCity !== initial.officeCity
+            officeCity !== initial.officeCity ||
+            JSON.stringify(officeHours) !== initial.officeHours
           );
-        case "timezone":
-          return timezone !== initial.timezone;
-        case "hours":
-          return JSON.stringify(officeHours) !== initial.officeHours;
         case "social":
           return (
             websiteUrl !== initial.websiteUrl ||
@@ -269,6 +263,7 @@ export default function CompanySettingsForm({ initial }: Props) {
       companyName,
       companyTagline,
       logoUrl,
+      timezone,
       dispatchPhone,
       emergencyPhone,
       supportEmail,
@@ -278,7 +273,6 @@ export default function CompanySettingsForm({ initial }: Props) {
       officeName,
       officeAddress,
       officeCity,
-      timezone,
       officeHours,
       websiteUrl,
       googleBusinessUrl,
@@ -303,6 +297,7 @@ export default function CompanySettingsForm({ initial }: Props) {
           setCompanyName(initial.companyName);
           setCompanyTagline(initial.companyTagline);
           setLogoUrl(initial.logoUrl);
+          setTimezone(initial.timezone);
           break;
         case "contact":
           setDispatchPhone(initial.dispatchPhone);
@@ -318,11 +313,6 @@ export default function CompanySettingsForm({ initial }: Props) {
           setOfficeName(initial.officeName);
           setOfficeAddress(initial.officeAddress);
           setOfficeCity(initial.officeCity);
-          break;
-        case "timezone":
-          setTimezone(initial.timezone);
-          break;
-        case "hours":
           setOfficeHours(parseInitialHours(initial.officeHours));
           break;
         case "social":
@@ -406,6 +396,76 @@ export default function CompanySettingsForm({ initial }: Props) {
     businessLicense,
   ]);
 
+  /* ── Logo upload handler ── */
+  const handleLogoUpload = async (file: File) => {
+    setLogoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+
+      const res = await fetch("/api/admin/company/logo", {
+        method: "POST",
+        body: fd,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        toast.error(data.error || "Failed to upload logo");
+        return;
+      }
+
+      setLogoUrl(data.url);
+      toast.success("Logo uploaded successfully");
+    } catch {
+      toast.error("Failed to upload logo");
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setLogoUrl("");
+  };
+
+  const handleLogoDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isLocked("branding") && !logoUploading) {
+      setLogoDragging(true);
+    }
+  };
+
+  const handleLogoDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLogoDragging(false);
+  };
+
+  const handleLogoDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLogoDragging(false);
+
+    if (isLocked("branding") || logoUploading) return;
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
+    if (!allowed.includes(file.type)) {
+      toast.error("Please upload a PNG, SVG, JPG, or WebP image");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File must be under 5MB");
+      return;
+    }
+
+    handleLogoUpload(file);
+  };
+
   /* ── Section actions ── */
   const handleEdit = useCallback(
     (section: SectionKey) => {
@@ -455,18 +515,41 @@ export default function CompanySettingsForm({ initial }: Props) {
     [sectionHasChanges, buildFormData, startTransition],
   );
 
-  /* ── Auto-open section from URL hash ── */
+  /* ── Scroll to section helper ── */
+  const scrollToSection = useCallback((hash: string) => {
+    const section = HASH_TO_SECTION[hash];
+    if (!section) return;
+    setEditingSection(section);
+    setTimeout(() => {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }, []);
+
+  /* ── Intercept hash link clicks for reliable scroll-to-section ── */
   useEffect(() => {
-    const openFromHash = () => {
-      const hash = window.location.hash?.replace("#", "");
-      const section = HASH_TO_SECTION[hash];
-      if (section) setEditingSection(section);
+    const initialHash = window.location.hash?.replace("#", "");
+    if (initialHash && HASH_TO_SECTION[initialHash]) {
+      requestAnimationFrame(() => scrollToSection(initialHash));
+    }
+
+    const handleClick = (e: MouseEvent) => {
+      const anchor = (e.target as HTMLElement).closest(
+        'a[href^="#"]',
+      ) as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+      const hash = href.replace("#", "");
+      if (HASH_TO_SECTION[hash]) {
+        e.preventDefault();
+        scrollToSection(hash);
+      }
     };
 
-    openFromHash();
-    window.addEventListener("hashchange", openFromHash);
-    return () => window.removeEventListener("hashchange", openFromHash);
-  }, []);
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, [scrollToSection]);
 
   /* ── Dirty form tracking ── */
   const changedFields = useMemo(() => {
@@ -483,7 +566,7 @@ export default function CompanySettingsForm({ initial }: Props) {
     if (companyName !== initial.companyName) fields.push("Company Name");
     if (companyTagline !== initial.companyTagline)
       fields.push("Company Tagline");
-    if (logoUrl !== initial.logoUrl) fields.push("Logo URL");
+    if (logoUrl !== initial.logoUrl) fields.push("Logo");
     if (emailSenderName !== initial.emailSenderName)
       fields.push("Email Sender Name");
     if (emailReplyTo !== initial.emailReplyTo) fields.push("Reply-To Email");
@@ -634,14 +717,14 @@ export default function CompanySettingsForm({ initial }: Props) {
       onSubmit={(e) => e.preventDefault()}
     >
       {/* ═══════════════════════════════════════════
-          BRANDING
+          BRANDING (includes Timezone)
       ═══════════════════════════════════════════ */}
       <div className={sectionClassName("branding")} id='branding-section'>
         <div className={styles.sectionHeader}>
           <h2 className='cardTitle h4'>Company Branding</h2>
           <p className='miniNote'>
-            Your company name and branding used across invoices, emails, and the
-            booking experience
+            Your company name, timezone, and branding used across invoices,
+            emails, and the booking experience
           </p>
         </div>
 
@@ -674,37 +757,126 @@ export default function CompanySettingsForm({ initial }: Props) {
             <div className='miniNote'>Short description shown in emails</div>
           </div>
 
-          <div className={styles.fieldFull}>
-            <label className='emptyTitleSmall'>Logo URL</label>
-            <input
-              name='logoUrl'
-              className='input subheading'
-              placeholder='https://yourdomain.com/logo.png'
-              value={logoUrl}
-              onChange={(e) => setLogoUrl(e.target.value)}
+          <div className={styles.field}>
+            <label className='emptyTitleSmall'>Timezone</label>
+            <select
+              name='timezone'
+              className='selectBorder emptySmall'
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
               disabled={isLocked("branding")}
-            />
+            >
+              {TIMEZONE_OPTIONS.map((tz) => (
+                <option key={tz.value} value={tz.value}>
+                  {tz.label}
+                </option>
+              ))}
+            </select>
             <div className='miniNote'>
-              Direct link to your logo image (PNG or SVG recommended, at least
-              400px wide)
+              Used for booking displays and all date/time calculations
             </div>
           </div>
 
-          {logoUrl && (
-            <div className={styles.fieldFull}>
-              <div className={styles.logoPreview}>
+          {/* ── Logo Upload ── */}
+          <div className={styles.fieldFull}>
+            <label className='emptyTitleSmall'>Company Logo</label>
+
+            {logoUrl ? (
+              <div
+                className={`${styles.logoUploadPreview} ${logoDragging ? styles.logoDropzoneDragging : ""}`}
+                onDragOver={handleLogoDragOver}
+                onDragEnter={handleLogoDragOver}
+                onDragLeave={handleLogoDragLeave}
+                onDrop={handleLogoDrop}
+              >
+                {" "}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={logoUrl}
-                  alt='Logo preview'
+                  alt='Company logo'
                   className={styles.logoImg}
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
+                {!isLocked("branding") && (
+                  <div className={styles.logoActions}>
+                    <label className={styles.logoChangeBtn}>
+                      {logoUploading ? "Uploading..." : "Change"}
+                      <input
+                        type='file'
+                        accept='image/jpeg,image/png,image/webp,image/svg+xml'
+                        className={styles.logoFileInput}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleLogoUpload(file);
+                          e.target.value = "";
+                        }}
+                        disabled={logoUploading}
+                      />
+                    </label>
+                    <button
+                      type='button'
+                      className={styles.logoRemoveBtn}
+                      onClick={handleRemoveLogo}
+                      disabled={logoUploading}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
               </div>
+            ) : (
+              <div
+                className={`${styles.logoDropzone} ${logoDragging ? styles.logoDropzoneDragging : ""}`}
+                onDragOver={handleLogoDragOver}
+                onDragEnter={handleLogoDragOver}
+                onDragLeave={handleLogoDragLeave}
+                onDrop={handleLogoDrop}
+              >
+                {isLocked("branding") ? (
+                  <div className={styles.logoDropzoneEmpty}>
+                    <span className={styles.logoDropzoneIcon}>🖼️</span>
+                    <span className={styles.logoDropzoneText}>
+                      No logo uploaded
+                    </span>
+                  </div>
+                ) : (
+                  <label className={styles.logoDropzoneLabel}>
+                    <span className={styles.logoDropzoneIcon}>
+                      {logoUploading ? "⏳" : "📁"}
+                    </span>
+                    <span className={styles.logoDropzoneText}>
+                      {logoUploading
+                        ? "Uploading..."
+                        : logoDragging
+                          ? "Drop your logo here"
+                          : "Click or drag & drop your logo"}
+                    </span>
+                    <span className={styles.logoDropzoneHint}>
+                      PNG, SVG, JPG, or WebP — max 5MB
+                    </span>
+                    <input
+                      type='file'
+                      accept='image/jpeg,image/png,image/webp,image/svg+xml'
+                      className={styles.logoFileInput}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleLogoUpload(file);
+                        e.target.value = "";
+                      }}
+                      disabled={logoUploading}
+                    />
+                  </label>
+                )}
+              </div>
+            )}
+
+            <div className='miniNote'>
+              Used on invoices, emails, and the booking site (PNG or SVG
+              recommended, at least 400px wide)
             </div>
-          )}
+          </div>
         </div>
 
         {renderActions("branding")}
@@ -832,14 +1004,13 @@ export default function CompanySettingsForm({ initial }: Props) {
       </div>
 
       {/* ═══════════════════════════════════════════
-          OFFICE INFORMATION
+          OFFICE & HOURS (merged)
       ═══════════════════════════════════════════ */}
       <div className={sectionClassName("office")} id='office-section'>
         <div className={styles.sectionHeader}>
-          <h2 className='cardTitle h4'>Office Information</h2>
+          <h2 className='cardTitle h4'>Office &amp; Hours</h2>
           <p className='miniNote'>
-            Physical office location details (optional — leave blank to hide
-            from drivers)
+            Physical office location and hours of operation
           </p>
         </div>
 
@@ -881,124 +1052,84 @@ export default function CompanySettingsForm({ initial }: Props) {
           </div>
         </div>
 
-        {renderActions("office")}
-      </div>
-
-      {/* ═══════════════════════════════════════════
-          TIMEZONE
-      ═══════════════════════════════════════════ */}
-      <div className={sectionClassName("timezone")} id='timezone-section'>
-        <div className={styles.sectionHeader}>
-          <h2 className='cardTitle h4'>Default Timezone</h2>
-          <p className='miniNote'>
-            Used for business reporting, booking displays, and all date/time
-            calculations
-          </p>
-        </div>
-
-        <div className={styles.grid}>
-          <div className={styles.field}>
-            <label className='emptyTitleSmall'>Timezone</label>
-            <select
-              name='timezone'
-              className='selectBorder emptySmall'
-              value={timezone}
-              onChange={(e) => setTimezone(e.target.value)}
-              disabled={isLocked("timezone")}
-            >
-              {TIMEZONE_OPTIONS.map((tz) => (
-                <option key={tz.value} value={tz.value}>
-                  {tz.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {renderActions("timezone")}
-      </div>
-
-      {/* ═══════════════════════════════════════════
-          HOURS OF OPERATION
-      ═══════════════════════════════════════════ */}
-      <div className={sectionClassName("hours")} id='hours-section'>
-        <div className={styles.sectionHeader}>
-          <h2 className='cardTitle h4'>Hours of Operation</h2>
+        {/* Hours of Operation */}
+        <div className={styles.hoursBlock}>
+          <h3 className='cardTitle h5'>Hours of Operation</h3>
           <p className='miniNote'>
             Select which days the office is open and set hours
           </p>
-        </div>
 
-        <div className={styles.hoursTable}>
-          <div className={styles.hoursHeader}>
-            <div className={styles.hoursHeaderDay}>Day</div>
-            <div className={styles.hoursHeaderTime}>Open</div>
-            <div className={styles.hoursHeaderTime}>Close</div>
+          <div className={styles.hoursTable}>
+            <div className={styles.hoursHeader}>
+              <div className={styles.hoursHeaderDay}>Day</div>
+              <div className={styles.hoursHeaderTime}>Open</div>
+              <div className={styles.hoursHeaderTime}>Close</div>
+            </div>
+
+            {DAYS.map(({ key, label }) => {
+              const day = officeHours[key];
+              return (
+                <div
+                  key={key}
+                  className={`${styles.hoursRow} ${!day.enabled ? styles.hoursRowDisabled : ""}`}
+                >
+                  <div className={styles.hoursDayCell}>
+                    <label className={styles.hoursCheckLabel}>
+                      <input
+                        type='checkbox'
+                        checked={day.enabled}
+                        onChange={() => handleDayToggle(key)}
+                        className={styles.hoursCheckbox}
+                        disabled={isLocked("office")}
+                      />
+                      <span className={styles.hoursDayName}>{label}</span>
+                    </label>
+                  </div>
+
+                  <div className={styles.hoursTimeCell}>
+                    <select
+                      className={`selectBorder emptySmall ${styles.hoursSelect}`}
+                      value={day.open}
+                      onChange={(e) =>
+                        handleTimeChange(key, "open", e.target.value)
+                      }
+                      disabled={isLocked("office") || !day.enabled}
+                    >
+                      {TIME_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className={styles.hoursTimeCell}>
+                    <select
+                      className={`selectBorder emptySmall ${styles.hoursSelect}`}
+                      value={day.close}
+                      onChange={(e) =>
+                        handleTimeChange(key, "close", e.target.value)
+                      }
+                      disabled={isLocked("office") || !day.enabled}
+                    >
+                      {TIME_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {!day.enabled && (
+                    <div className={styles.hoursClosedBadge}>Closed</div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-
-          {DAYS.map(({ key, label }) => {
-            const day = officeHours[key];
-            return (
-              <div
-                key={key}
-                className={`${styles.hoursRow} ${!day.enabled ? styles.hoursRowDisabled : ""}`}
-              >
-                <div className={styles.hoursDayCell}>
-                  <label className={styles.hoursCheckLabel}>
-                    <input
-                      type='checkbox'
-                      checked={day.enabled}
-                      onChange={() => handleDayToggle(key)}
-                      className={styles.hoursCheckbox}
-                      disabled={isLocked("hours")}
-                    />
-                    <span className={styles.hoursDayName}>{label}</span>
-                  </label>
-                </div>
-
-                <div className={styles.hoursTimeCell}>
-                  <select
-                    className={`selectBorder emptySmall  ${styles.hoursSelect}`}
-                    value={day.open}
-                    onChange={(e) =>
-                      handleTimeChange(key, "open", e.target.value)
-                    }
-                    disabled={isLocked("hours") || !day.enabled}
-                  >
-                    {TIME_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className={styles.hoursTimeCell}>
-                  <select
-                    className={`selectBorder emptySmall ${styles.hoursSelect}`}
-                    value={day.close}
-                    onChange={(e) =>
-                      handleTimeChange(key, "close", e.target.value)
-                    }
-                    disabled={isLocked("hours") || !day.enabled}
-                  >
-                    {TIME_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {!day.enabled && (
-                  <div className={styles.hoursClosedBadge}>Closed</div>
-                )}
-              </div>
-            );
-          })}
         </div>
 
-        {renderActions("hours")}
+        {renderActions("office")}
       </div>
 
       {/* ═══════════════════════════════════════════

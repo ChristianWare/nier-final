@@ -1,5 +1,13 @@
+/* eslint-disable jsx-a11y/alt-text */
 // src/lib/invoice/InvoicePDF.tsx
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  Image,
+  StyleSheet,
+} from "@react-pdf/renderer";
 import type { InvoiceData } from "./types";
 import { formatMoney } from "./types";
 
@@ -29,6 +37,12 @@ const logoStyles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 18,
     fontWeight: 700,
+  },
+  logoImage: {
+    maxWidth: 120,
+    maxHeight: 40,
+    objectFit: "contain",
+    marginBottom: 4,
   },
 });
 
@@ -393,10 +407,19 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoSection}>
-            <View style={styles.logoRow}>
-              <NierLogoText />
+            {invoice.logoUrl ? (
+              <View style={{ marginBottom: 8 }}>
+                <Image src={invoice.logoUrl} style={logoStyles.logoImage} />
+              </View>
+            ) : (
+              <View style={styles.logoRow}>
+                <NierLogoText />
+                <Text style={styles.companyName}>{invoice.company.name}</Text>
+              </View>
+            )}
+            {invoice.logoUrl && (
               <Text style={styles.companyName}>{invoice.company.name}</Text>
-            </View>
+            )}
             <View style={styles.companyDetails}>
               {invoice.company.address && (
                 <Text>{invoice.company.address}</Text>

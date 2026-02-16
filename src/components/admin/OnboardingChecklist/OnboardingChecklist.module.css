@@ -229,7 +229,7 @@
   gap: 8px;
   padding: 10px 18px;
   background: var(--black);
-  color: white;
+  color: white !important;
   border: none;
   border-radius: 999px;
   cursor: pointer;
@@ -260,15 +260,18 @@
 .pillIcon {
   display: flex;
   align-items: center;
+  color: var(--cream);
 }
 
 .pillProgress {
   font-weight: 700;
   letter-spacing: normal;
+  color: var(--cream);
 }
 
 .pillLabel {
   font-weight: 500;
+  color: var(--cream);
 }
 
 /* =============================================================================

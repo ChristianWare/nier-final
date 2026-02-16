@@ -308,6 +308,14 @@
   animation: sectionGlow 2.5s ease-out forwards;
 }
 
+.hoursBlock {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--stroke);
+}
+
 @keyframes sectionGlow {
   0% {
     box-shadow:
@@ -327,7 +335,132 @@
   }
 }
 
-/* Responsive */
+.logoUploadPreview {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+}
+
+.logoImg {
+  max-height: 80px;
+  max-width: 240px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.logoActions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.logoChangeBtn {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--black);
+  background: var(--black);
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.logoChangeBtn:hover {
+  opacity: 0.85;
+}
+
+.logoRemoveBtn {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--red);
+  background: transparent;
+  color: var(--red);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.logoRemoveBtn:hover {
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.logoRemoveBtn:disabled,
+.logoChangeBtn:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.logoFileInput {
+  display: none;
+}
+
+.logoDropzone {
+  border: 2px dashed var(--stroke);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.logoDropzoneLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.logoDropzoneLabel:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.logoDropzoneEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 32px 16px;
+  opacity: 0.5;
+}
+
+.logoDropzoneIcon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.logoDropzoneText {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.logoDropzoneHint {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+}
+
+.logoDropzoneDragging {
+  border-color: var(--black);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+@media screen and (max-width: 600px) {
+  .logoUploadPreview {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .logoActions {
+    margin-left: 0;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
