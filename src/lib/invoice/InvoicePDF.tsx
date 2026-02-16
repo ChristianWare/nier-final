@@ -29,8 +29,10 @@ const logoStyles = StyleSheet.create({
     height: 28,
     backgroundColor: "#000000",
     borderRadius: 4,
+    display: "flex",
     alignItems: "flex-start",
     justifyContent: "flex-start",
+    position: "relative",
   },
   letter: {
     color: "#ffffff",
@@ -69,7 +71,8 @@ const styles = StyleSheet.create({
   },
   logoRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
     marginBottom: 8,
   },
   companyName: {
@@ -407,7 +410,7 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
 
   return (
     <Document>
-      <Page size='A4' style={styles.page} >
+      <Page size='A4' style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <View
