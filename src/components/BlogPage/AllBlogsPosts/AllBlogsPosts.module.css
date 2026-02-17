@@ -39,7 +39,7 @@
 
 .content {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   grid-column-gap: 4rem;
   grid-row-gap: 10rem;
   border-top: 1px solid var(--darkGrayii);
@@ -77,6 +77,12 @@
   color: var(--paragraph);
   margin-bottom: 1.5rem;
   font-size: 1.4rem;
+}
+
+@media screen and (max-width: 1468px) {
+  .content {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media screen and (max-width: 1068px) {
