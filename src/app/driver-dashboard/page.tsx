@@ -33,6 +33,40 @@ function endOfDay(d: Date, timeZone: string): Date {
   return new Date(year, month - 1, day, 23, 59, 59, 999);
 }
 
+function startOfWeek(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
+  const [month, day, year] = str.split("/").map(Number);
+  const local = new Date(year, month - 1, day);
+  const dow = local.getDay(); // 0 = Sunday
+  local.setDate(local.getDate() - dow);
+  return new Date(
+    local.getFullYear(),
+    local.getMonth(),
+    local.getDate(),
+    0,
+    0,
+    0,
+    0,
+  );
+}
+
+function endOfWeek(d: Date, timeZone: string): Date {
+  const str = d.toLocaleDateString("en-US", { timeZone });
+  const [month, day, year] = str.split("/").map(Number);
+  const local = new Date(year, month - 1, day);
+  const dow = local.getDay(); // 0 = Sunday
+  local.setDate(local.getDate() + (6 - dow)); // Saturday
+  return new Date(
+    local.getFullYear(),
+    local.getMonth(),
+    local.getDate(),
+    23,
+    59,
+    59,
+    999,
+  );
+}
+
 function startOfMonth(d: Date, timeZone: string): Date {
   const str = d.toLocaleDateString("en-US", { timeZone });
   const [month, , year] = str.split("/").map(Number);
@@ -190,6 +224,8 @@ export default async function DriverDashboardHome() {
 
   const todayStart = startOfDay(now, companyTz);
   const todayEnd = endOfDay(now, companyTz);
+  const weekStart = startOfWeek(now, companyTz);
+  const weekEnd = endOfWeek(now, companyTz);
   const mStart = startOfMonth(now, companyTz);
   const mEnd = endOfMonth(now, companyTz);
 
@@ -263,6 +299,37 @@ export default async function DriverDashboardHome() {
     (sum, b) => sum + (b.assignment?.driverPaymentCents ?? 0),
     0,
   );
+
+  // ── Weekly stats ──────────────────────────────────────────────────
+  // Count of all assigned trips this week (not terminal)
+  const weeklyTripsCount = await db.booking.count({
+    where: {
+      pickupAt: { gte: weekStart, lte: weekEnd },
+      status: { notIn: TERMINAL },
+      assignment: { driverId },
+    },
+  });
+
+  // Weekly completed trips with driver payments
+  const weeklyCompletedWithPayments = await db.booking.findMany({
+    where: {
+      pickupAt: { gte: weekStart, lte: weekEnd },
+      status: BookingStatus.COMPLETED,
+      assignment: { driverId },
+    },
+    select: {
+      assignment: {
+        select: { driverPaymentCents: true },
+      },
+    },
+  });
+
+  const weeklyEarningsCents = weeklyCompletedWithPayments.reduce(
+    (sum, b) => sum + (b.assignment?.driverPaymentCents ?? 0),
+    0,
+  );
+
+  const weeklyCompletedCount = weeklyCompletedWithPayments.length;
 
   // Fetch all trips for calendar (assigned to this driver)
   const calendarTrips = await db.booking.findMany({
@@ -342,27 +409,52 @@ export default async function DriverDashboardHome() {
       <header className={styles.pageHeader}>
         <div className='header'>
           <h1 className='heading h2'>Welcome back, {driverName}</h1>
-          <p className='subheading'>
+          {/* <p className='subheading'>
             {activeCount > 0
               ? `You have ${activeCount} upcoming trip${activeCount !== 1 ? "s" : ""}`
               : "No upcoming trips scheduled"}
-          </p>
+          </p> */}
         </div>
 
-        <div className={styles.headerKpis}>
-          <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
-            <span className={styles.headerKpiValue}>{activeCount}</span>
-            <span className={styles.headerKpiLabel}>Upcoming</span>
+        <div className={styles.headerKpiRows}>
+          {/* Weekly Stats */}
+          <span className={styles.headerKpiRowLabel}>This Week</span>
+          <div className={styles.headerKpis}>
+            <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
+              <span className={styles.headerKpiValue}>{weeklyTripsCount}</span>
+              <span className={styles.headerKpiLabel}>Upcoming</span>
+            </div>
+            <div className={styles.headerKpi}>
+              <span className={styles.headerKpiValue}>
+                {weeklyCompletedCount}
+              </span>
+              <span className={styles.headerKpiLabel}>Completed</span>
+            </div>
+            <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
+              <span className={styles.headerKpiValue}>
+                ${Math.round(weeklyEarningsCents / 100)}
+              </span>
+              <span className={styles.headerKpiLabel}>Earned</span>
+            </div>
           </div>
-          <div className={styles.headerKpi}>
-            <span className={styles.headerKpiValue}>{totalTripsMonth}</span>
-            <span className={styles.headerKpiLabel}>This Month</span>
-          </div>
-          <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
-            <span className={styles.headerKpiValue}>
-              ${Math.round(totalEarningsMonthCents / 100)}
-            </span>
-            <span className={styles.headerKpiLabel}>Earned</span>
+
+          {/* Monthly Stats */}
+          <span className={`${styles.headerKpiRowLabel} ${styles.headerKpiRowLabelMonthly}`}>This Month</span>
+          <div className={styles.headerKpis}>
+            <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
+              <span className={styles.headerKpiValue}>{activeCount}</span>
+              <span className={styles.headerKpiLabel}>Upcoming</span>
+            </div>
+            <div className={styles.headerKpi}>
+              <span className={styles.headerKpiValue}>{totalTripsMonth}</span>
+              <span className={styles.headerKpiLabel}>Completed</span>
+            </div>
+            <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
+              <span className={styles.headerKpiValue}>
+                ${Math.round(totalEarningsMonthCents / 100)}
+              </span>
+              <span className={styles.headerKpiLabel}>Earned</span>
+            </div>
           </div>
         </div>
       </header>

@@ -5,13 +5,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition, type FormEvent } from "react";
 import styles from "./AdminEarningsPage.module.css";
 
-type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
+type ViewMode = "daily" | "weekly" | "monthly" | "ytd" | "all" | "range";
 
 function cleanView(v: string | null): ViewMode {
-  // legacy support: old URLs used view=month
   if (v === "month") return "daily";
   if (
     v === "daily" ||
+    v === "weekly" ||
     v === "monthly" ||
     v === "ytd" ||
     v === "all" ||
@@ -41,7 +41,6 @@ function getMonthYearFromParams(
   const rawYear = sp.get("year");
   const rawMonth = sp.get("month");
 
-  // legacy: month=YYYY-MM
   if (isMonthKey(rawMonth)) {
     return { year: rawMonth!.slice(0, 4), month: rawMonth!.slice(5, 7) };
   }
@@ -63,6 +62,8 @@ export default function EarningsControls({
   initialFrom,
   initialTo,
   rangeLabel,
+  driverOptions,
+  initialDriver,
 }: {
   years: string[];
   monthOptions: { v: string; label: string }[];
@@ -74,6 +75,8 @@ export default function EarningsControls({
   initialFrom: string;
   initialTo: string;
   rangeLabel: string;
+  driverOptions: { id: string; label: string }[];
+  initialDriver: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -82,6 +85,7 @@ export default function EarningsControls({
 
   const spKey = sp.toString();
   const activeView = cleanView(sp.get("view"));
+  const activeDriver = sp.get("driver") ?? "all";
 
   const urlMonthYear = getMonthYearFromParams(
     new URLSearchParams(spKey),
@@ -104,7 +108,6 @@ export default function EarningsControls({
     const next = new URLSearchParams(spKey);
     next.set("view", nextView);
 
-    // DAILY = uses month/year selectors
     if (nextView === "daily") {
       next.delete("from");
       next.delete("to");
@@ -114,7 +117,6 @@ export default function EarningsControls({
       return;
     }
 
-    // RANGE = uses from/to selectors
     if (nextView === "range") {
       next.delete("year");
       next.delete("month");
@@ -124,11 +126,22 @@ export default function EarningsControls({
       return;
     }
 
-    // MONTHLY / YTD / ALL = no extra params
+    // weekly, monthly, ytd, all
     next.delete("year");
     next.delete("month");
     next.delete("from");
     next.delete("to");
+    nav(next);
+  }
+
+  function onDriverChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const next = new URLSearchParams(spKey);
+    const val = e.target.value;
+    if (val === "all") {
+      next.delete("driver");
+    } else {
+      next.set("driver", val);
+    }
     nav(next);
   }
 
@@ -168,6 +181,27 @@ export default function EarningsControls({
 
   return (
     <>
+      {/* Driver selector */}
+      <div className={styles.driverSelector}>
+        <label className={styles.driverLabel}>
+          <span className='miniNote'>Viewing earnings for</span>
+          <select
+            className='selectBorder emptySmall'
+            value={activeDriver}
+            onChange={onDriverChange}
+            disabled={isPending}
+          >
+            <option value='all'>Company (all revenue)</option>
+            {driverOptions.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      {/* View tabs */}
       <div className={styles.tabs}>
         <button
           type='button'
@@ -176,6 +210,15 @@ export default function EarningsControls({
           disabled={isPending}
         >
           Daily
+        </button>
+
+        <button
+          type='button'
+          className={`tab ${activeView === "weekly" ? "tabActive" : ""}`}
+          onClick={() => setView("weekly")}
+          disabled={isPending}
+        >
+          Weekly
         </button>
 
         <button

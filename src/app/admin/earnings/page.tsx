@@ -16,7 +16,7 @@ import { getStripeSettings } from "../../../../actions/admin/stripeSettings";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
+type ViewMode = "daily" | "weekly" | "monthly" | "ytd" | "all" | "range";
 type SP = Record<string, string | string[] | undefined>;
 
 function spGet(sp: SP, key: string) {
@@ -26,10 +26,10 @@ function spGet(sp: SP, key: string) {
 }
 
 function cleanView(v: string | null | undefined): ViewMode {
-  // legacy support
   if (v === "month") return "daily";
   if (
     v === "daily" ||
+    v === "weekly" ||
     v === "monthly" ||
     v === "ytd" ||
     v === "all" ||
@@ -151,22 +151,26 @@ function yearTick(y: string) {
   return y.slice(2);
 }
 
-/**
- * ✅ KPI totals derived from the SAME dataset as the chart.
- * This guarantees KPIs always match the active tab + chart period.
- */
-function kpisFromChartData(
-  rows: {
-    capturedCents: number;
-    refundedCents: number;
-    netCents: number;
-    count: number;
-    refundedCount?: number;
-  }[],
-) {
+/* ── Chart data type ────────────────────────────────────────── */
+
+type ChartPoint = {
+  key: string;
+  tick: string;
+  label: string;
+  baseCents: number;
+  tipCents: number;
+  capturedCents: number;
+  refundedCents: number;
+  netCents: number;
+  count: number;
+  refundedCount: number;
+};
+
+function kpisFromChartData(rows: ChartPoint[]) {
   let capturedSum = 0;
   let refundedSum = 0;
   let netSum = 0;
+  let tipSum = 0;
   let payCount = 0;
   let refundCount = 0;
 
@@ -174,6 +178,7 @@ function kpisFromChartData(
     capturedSum += Number(r.capturedCents || 0);
     refundedSum += Number(r.refundedCents || 0);
     netSum += Number(r.netCents || 0);
+    tipSum += Number(r.tipCents || 0);
     payCount += Number(r.count || 0);
     refundCount += Number(r.refundedCount || 0);
   }
@@ -184,6 +189,8 @@ function kpisFromChartData(
     capturedSumCents: capturedSum,
     refundedSumCents: refundedSum,
     netSumCents: netSum,
+    tipSumCents: tipSum,
+    baseSumCents: capturedSum - tipSum,
     payCount,
     refundCount,
     avgCents,
@@ -191,49 +198,44 @@ function kpisFromChartData(
 }
 
 function chartHeadingFromData(view: ViewMode, data: { key: string }[]) {
-  if (view === "daily") return "Daily earnings";
+  if (view === "daily" || view === "weekly") return "Daily earnings";
   const k = data?.[0]?.key ?? "";
   if (/^\d{4}-Q[1-4]$/.test(k)) return "Quarterly earnings";
   if (/^\d{4}$/.test(k)) return "Yearly earnings";
   return "Monthly earnings";
 }
 
-/**
- * Parse a formatted value (e.g., "$1,234" or "5") into numeric value and prefix/suffix
- */
 function parseValue(str: string): {
   value: number;
   prefix: string;
   suffix: string;
 } {
-  // Remove commas and spaces for parsing
   const cleaned = str.replace(/,/g, "").trim();
-
-  // Try to match: optional prefix (like $) + number + optional suffix (like k, %, +)
   const match = cleaned.match(/^([^\d.-]*)([+-]?\d+(?:\.\d+)?)([^\d]*)$/);
-
   if (match) {
-    const prefix = match[1] || "";
-    const value = parseFloat(match[2]) || 0;
-    const suffix = match[3] || "";
-    return { value, prefix, suffix };
+    return {
+      value: parseFloat(match[2]) || 0,
+      prefix: match[1] || "",
+      suffix: match[3] || "",
+    };
   }
-
-  // Fallback: try to parse as a plain number
   const numValue = parseFloat(cleaned);
-  if (!isNaN(numValue)) {
-    return { value: numValue, prefix: "", suffix: "" };
-  }
-
-  // If all else fails, return the original string as suffix with 0 value
+  if (!isNaN(numValue)) return { value: numValue, prefix: "", suffix: "" };
   return { value: 0, prefix: "", suffix: str };
 }
 
-async function chartAggDaily(fromUtc: Date, toUtc: Date, timeZone: string) {
+/* ── Company aggregation (from Payment table) ─────────────── */
+
+async function chartAggDaily(
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+): Promise<ChartPoint[]> {
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('day', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COALESCE(SUM("tipCents"), 0) as tips,
       COUNT(*) as count
     FROM "Payment"
     WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
@@ -253,59 +255,62 @@ async function chartAggDaily(fromUtc: Date, toUtc: Date, timeZone: string) {
     ORDER BY 1 ASC
   `) as any[];
 
-  const cap = new Map<string, { sumCents: number; count: number }>();
+  const cap = new Map<
+    string,
+    { sumCents: number; tipCents: number; count: number }
+  >();
   for (const r of capturedRows) {
-    const k = String(r.key);
-    cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+    cap.set(String(r.key), {
+      sumCents: Number(r.sum || 0),
+      tipCents: Number(r.tips || 0),
+      count: Number(r.count || 0),
+    });
   }
 
   const ref = new Map<string, { sumCents: number; count: number }>();
   for (const r of refundRows) {
-    const k = String(r.key);
-    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+    ref.set(String(r.key), {
+      sumCents: Number(r.sum || 0),
+      count: Number(r.count || 0),
+    });
   }
 
-  const points: {
-    key: string;
-    tick: string;
-    label: string;
-    capturedCents: number;
-    refundedCents: number;
-    netCents: number;
-    count: number;
-    refundedCount: number;
-  }[] = [];
-
+  const points: ChartPoint[] = [];
   for (
     let d = new Date(fromUtc.getTime());
     d.getTime() < toUtc.getTime();
     d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
   ) {
     const ymd = tz.formatIsoDate(d, timeZone);
-    const c = cap.get(ymd) ?? { sumCents: 0, count: 0 };
+    const c = cap.get(ymd) ?? { sumCents: 0, tipCents: 0, count: 0 };
     const r = ref.get(ymd) ?? { sumCents: 0, count: 0 };
-    const n = c.sumCents - r.sumCents;
-
+    const baseCents = c.sumCents - c.tipCents;
     points.push({
       key: ymd,
       tick: tz.formatDayTick(d, timeZone),
       label: tz.formatDateMedium(d, timeZone),
+      baseCents,
+      tipCents: c.tipCents,
       capturedCents: c.sumCents,
       refundedCents: r.sumCents,
-      netCents: n,
+      netCents: c.sumCents - r.sumCents,
       count: c.count,
       refundedCount: r.count,
     });
   }
-
   return points;
 }
 
-async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
+async function chartAggMonthly(
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+): Promise<ChartPoint[]> {
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('month', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
       COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COALESCE(SUM("tipCents"), 0) as tips,
       COUNT(*) as count
     FROM "Payment"
     WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
@@ -325,16 +330,24 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
     ORDER BY 1 ASC
   `) as any[];
 
-  const cap = new Map<string, { sumCents: number; count: number }>();
+  const cap = new Map<
+    string,
+    { sumCents: number; tipCents: number; count: number }
+  >();
   for (const r of capturedRows) {
-    const k = String(r.key);
-    cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+    cap.set(String(r.key), {
+      sumCents: Number(r.sum || 0),
+      tipCents: Number(r.tips || 0),
+      count: Number(r.count || 0),
+    });
   }
 
   const ref = new Map<string, { sumCents: number; count: number }>();
   for (const r of refundRows) {
-    const k = String(r.key);
-    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
+    ref.set(String(r.key), {
+      sumCents: Number(r.sum || 0),
+      count: Number(r.count || 0),
+    });
   }
 
   const months: string[] = [];
@@ -350,24 +363,25 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
     return months.map((k) => {
       const ms =
         tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
-      const c = cap.get(k) ?? { sumCents: 0, count: 0 };
+      const c = cap.get(k) ?? { sumCents: 0, tipCents: 0, count: 0 };
       const r = ref.get(k) ?? { sumCents: 0, count: 0 };
-      const n = c.sumCents - r.sumCents;
-
+      const baseCents = c.sumCents - c.tipCents;
       return {
         key: k,
         tick: tz.formatMonthTick(ms, timeZone),
         label: tz.formatMonthLabel(ms, timeZone),
+        baseCents,
+        tipCents: c.tipCents,
         capturedCents: c.sumCents,
         refundedCents: r.sumCents,
-        netCents: n,
+        netCents: c.sumCents - r.sumCents,
         count: c.count,
         refundedCount: r.count,
       };
     });
   }
 
-  // quarter/year logic follows
+  // Quarter rollup
   const qKeys: string[] = [];
   const seenQ = new Set<string>();
   for (const mk of months) {
@@ -380,17 +394,21 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
   qKeys.sort((a, b) => (a < b ? -1 : 1));
 
   if (qKeys.length <= 36) {
-    const qCap = new Map<string, { sumCents: number; count: number }>();
+    const qCap = new Map<
+      string,
+      { sumCents: number; tipCents: number; count: number }
+    >();
     const qRef = new Map<string, { sumCents: number; count: number }>();
 
     for (const mk of months) {
       const qk = quarterKeyFromMonthKey(mk);
-      const c = cap.get(mk) ?? { sumCents: 0, count: 0 };
+      const c = cap.get(mk) ?? { sumCents: 0, tipCents: 0, count: 0 };
       const r = ref.get(mk) ?? { sumCents: 0, count: 0 };
 
-      const pc = qCap.get(qk) ?? { sumCents: 0, count: 0 };
+      const pc = qCap.get(qk) ?? { sumCents: 0, tipCents: 0, count: 0 };
       qCap.set(qk, {
         sumCents: pc.sumCents + c.sumCents,
+        tipCents: pc.tipCents + c.tipCents,
         count: pc.count + c.count,
       });
 
@@ -405,23 +423,25 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
       const qs =
         quarterStartFromQuarterKey(qk, timeZone) ??
         tz.startOfMonth(fromUtc, timeZone);
-      const c = qCap.get(qk) ?? { sumCents: 0, count: 0 };
+      const c = qCap.get(qk) ?? { sumCents: 0, tipCents: 0, count: 0 };
       const r = qRef.get(qk) ?? { sumCents: 0, count: 0 };
-      const n = c.sumCents - r.sumCents;
-
+      const baseCents = c.sumCents - c.tipCents;
       return {
         key: qk,
         tick: quarterTick(qk),
         label: quarterLabel(qk),
+        baseCents,
+        tipCents: c.tipCents,
         capturedCents: c.sumCents,
         refundedCents: r.sumCents,
-        netCents: n,
+        netCents: c.sumCents - r.sumCents,
         count: c.count,
         refundedCount: r.count,
       };
     });
   }
 
+  // Year rollup
   const years: string[] = [];
   const seenY = new Set<string>();
   for (const mk of months) {
@@ -433,17 +453,21 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
   }
   years.sort((a, b) => (a < b ? -1 : 1));
 
-  const yCap = new Map<string, { sumCents: number; count: number }>();
+  const yCap = new Map<
+    string,
+    { sumCents: number; tipCents: number; count: number }
+  >();
   const yRef = new Map<string, { sumCents: number; count: number }>();
 
   for (const mk of months) {
     const y = mk.slice(0, 4);
-    const c = cap.get(mk) ?? { sumCents: 0, count: 0 };
+    const c = cap.get(mk) ?? { sumCents: 0, tipCents: 0, count: 0 };
     const r = ref.get(mk) ?? { sumCents: 0, count: 0 };
 
-    const pc = yCap.get(y) ?? { sumCents: 0, count: 0 };
+    const pc = yCap.get(y) ?? { sumCents: 0, tipCents: 0, count: 0 };
     yCap.set(y, {
       sumCents: pc.sumCents + c.sumCents,
+      tipCents: pc.tipCents + c.tipCents,
       count: pc.count + c.count,
     });
 
@@ -455,22 +479,152 @@ async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
   }
 
   return years.map((y) => {
-    const c = yCap.get(y) ?? { sumCents: 0, count: 0 };
+    const c = yCap.get(y) ?? { sumCents: 0, tipCents: 0, count: 0 };
     const r = yRef.get(y) ?? { sumCents: 0, count: 0 };
-    const n = c.sumCents - r.sumCents;
-
+    const baseCents = c.sumCents - c.tipCents;
     return {
       key: y,
       tick: yearTick(y),
       label: y,
+      baseCents,
+      tipCents: c.tipCents,
       capturedCents: c.sumCents,
       refundedCents: r.sumCents,
-      netCents: n,
+      netCents: c.sumCents - r.sumCents,
       count: c.count,
       refundedCount: r.count,
     };
   });
 }
+
+/* ── Driver aggregation (from Assignment + Booking) ───────── */
+/* driverPaymentCents = base pay only                          */
+/* driverTipCents     = tip on top of base                     */
+/* total driver earnings = base + tip                          */
+
+async function chartAggDailyDriver(
+  driverId: string,
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+): Promise<ChartPoint[]> {
+  const rows = await db.$queryRaw<any[]>`
+    SELECT
+      to_char(date_trunc('day', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
+      COALESCE(SUM(a."driverPaymentCents"), 0) as base,
+      COALESCE(SUM(a."driverTipCents"), 0) as tips,
+      COUNT(*) as count
+    FROM "Assignment" a
+    JOIN "Booking" b ON b.id = a."bookingId"
+    WHERE a."driverId" = ${driverId}
+      AND b.status = 'COMPLETED'
+      AND b."pickupAt" >= ${fromUtc}
+      AND b."pickupAt" < ${toUtc}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `;
+
+  const bucket = new Map<
+    string,
+    { baseCents: number; tipCents: number; count: number }
+  >();
+  for (const r of rows) {
+    bucket.set(String(r.key), {
+      baseCents: Number(r.base || 0),
+      tipCents: Number(r.tips || 0),
+      count: Number(r.count || 0),
+    });
+  }
+
+  const points: ChartPoint[] = [];
+  for (
+    let d = new Date(fromUtc.getTime());
+    d.getTime() < toUtc.getTime();
+    d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
+  ) {
+    const ymd = tz.formatIsoDate(d, timeZone);
+    const b = bucket.get(ymd) ?? { baseCents: 0, tipCents: 0, count: 0 };
+    const totalCents = b.baseCents + b.tipCents;
+    points.push({
+      key: ymd,
+      tick: tz.formatDayTick(d, timeZone),
+      label: tz.formatDateMedium(d, timeZone),
+      baseCents: b.baseCents,
+      tipCents: b.tipCents,
+      capturedCents: totalCents,
+      refundedCents: 0,
+      netCents: totalCents,
+      count: b.count,
+      refundedCount: 0,
+    });
+  }
+  return points;
+}
+
+async function chartAggMonthlyDriver(
+  driverId: string,
+  fromUtc: Date,
+  toUtc: Date,
+  timeZone: string,
+): Promise<ChartPoint[]> {
+  const rows = await db.$queryRaw<any[]>`
+    SELECT
+      to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
+      COALESCE(SUM(a."driverPaymentCents"), 0) as base,
+      COALESCE(SUM(a."driverTipCents"), 0) as tips,
+      COUNT(*) as count
+    FROM "Assignment" a
+    JOIN "Booking" b ON b.id = a."bookingId"
+    WHERE a."driverId" = ${driverId}
+      AND b.status = 'COMPLETED'
+      AND b."pickupAt" >= ${fromUtc}
+      AND b."pickupAt" < ${toUtc}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `;
+
+  const bucket = new Map<
+    string,
+    { baseCents: number; tipCents: number; count: number }
+  >();
+  for (const r of rows) {
+    bucket.set(String(r.key), {
+      baseCents: Number(r.base || 0),
+      tipCents: Number(r.tips || 0),
+      count: Number(r.count || 0),
+    });
+  }
+
+  const months: string[] = [];
+  for (
+    let ms = tz.startOfMonth(fromUtc, timeZone);
+    ms.getTime() < toUtc.getTime();
+    ms = tz.addMonths(ms, 1, timeZone)
+  ) {
+    months.push(tz.monthKey(ms, timeZone));
+  }
+
+  return months.map((k) => {
+    const ms =
+      tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
+    const b = bucket.get(k) ?? { baseCents: 0, tipCents: 0, count: 0 };
+    const totalCents = b.baseCents + b.tipCents;
+    return {
+      key: k,
+      tick: tz.formatMonthTick(ms, timeZone),
+      label: tz.formatMonthLabel(ms, timeZone),
+      baseCents: b.baseCents,
+      tipCents: b.tipCents,
+      capturedCents: totalCents,
+      refundedCents: 0,
+      netCents: totalCents,
+      count: b.count,
+      refundedCount: 0,
+    };
+  });
+}
+
+/* ── Page component ───────────────────────────────────────── */
 
 export default async function EarningsPage({
   searchParams,
@@ -491,6 +645,30 @@ export default async function EarningsPage({
   );
   const resolvedMY = resolveMonthYear({ view, sp, now, timeZone: companyTz });
   const resolvedMonthKey = resolvedMY.key;
+
+  /* ── Driver filter ──────────────────────────────────────── */
+
+  const driverParam = spGet(sp, "driver");
+  const isDriverMode =
+    driverParam && driverParam !== "all" && driverParam.length > 0;
+  const selectedDriverId = isDriverMode ? driverParam : null;
+
+  const allDrivers = await db.user.findMany({
+    where: { roles: { has: "DRIVER" } },
+    select: { id: true, name: true, email: true },
+    orderBy: { name: "asc" },
+  });
+
+  const driverOptions = allDrivers.map((d) => ({
+    id: d.id,
+    label: d.name?.trim() || d.email,
+  }));
+
+  const selectedDriverLabel = selectedDriverId
+    ? (driverOptions.find((d) => d.id === selectedDriverId)?.label ?? "Driver")
+    : null;
+
+  /* ── Date range resolution ──────────────────────────────── */
 
   const [earliestPaid, latestPaid] = await Promise.all([
     db.payment.findFirst({
@@ -517,6 +695,29 @@ export default async function EarningsPage({
     rangeLabel = tz.formatMonthLabel(ms, companyTz);
   }
 
+  if (view === "weekly") {
+    const nowLocal = new Date(
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: companyTz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(now) + "T12:00:00",
+    );
+    const dow = nowLocal.getDay();
+    const diffToMonday = dow === 0 ? -6 : 1 - dow;
+    const monday = new Date(nowLocal);
+    monday.setDate(monday.getDate() + diffToMonday);
+    const sunday = new Date(monday);
+    sunday.setDate(sunday.getDate() + 6);
+
+    fromUtc = tz.startOfDay(monday, companyTz);
+    toUtc = new Date(
+      tz.startOfDay(sunday, companyTz).getTime() + 24 * 60 * 60 * 1000,
+    );
+    rangeLabel = "This week";
+  }
+
   if (view === "monthly") {
     const oldest = tz.addMonths(currentMonthStart, -11, companyTz);
     const nextAfterCurrent = tz.addMonths(currentMonthStart, 1, companyTz);
@@ -540,9 +741,8 @@ export default async function EarningsPage({
     const tUtc0 = t
       ? startOfDayFromYMD(t, companyTz)
       : startOfDayFromYMD(parseYMD(defaultTo)!, companyTz);
-    const tUtc = new Date(tUtc0.getTime() + 24 * 60 * 60 * 1000);
     fromUtc = fUtc;
-    toUtc = tUtc;
+    toUtc = new Date(tUtc0.getTime() + 24 * 60 * 60 * 1000);
     rangeLabel = `${tz.formatDateMedium(fromUtc, companyTz)} → ${tz.formatDateMedium(new Date(toUtc.getTime() - 1), companyTz)}`;
   }
 
@@ -584,41 +784,92 @@ export default async function EarningsPage({
 
   const currency = "USD";
 
-  const [payments, chartData] = await Promise.all([
-    db.payment.findMany({
-      where: { paidAt: { gte: fromUtc, lt: toUtc } },
-      orderBy: { paidAt: "desc" },
-      take: 250,
-      select: {
-        id: true,
-        paidAt: true,
-        amountTotalCents: true,
-        currency: true,
-        bookingId: true,
-        booking: {
-          select: {
-            id: true,
-            pickupAt: true,
-            pickupAddress: true,
-            dropoffAddress: true,
-            userId: true,
-            user: { select: { name: true, email: true } },
-            guestName: true,
-            guestEmail: true,
-            guestPhone: true,
+  /* ── Fetch chart data ───────────────────────────────────── */
+
+  const useDailyAgg = view === "daily" || view === "weekly";
+
+  let chartData: ChartPoint[];
+  if (selectedDriverId) {
+    chartData = useDailyAgg
+      ? await chartAggDailyDriver(selectedDriverId, fromUtc, toUtc, companyTz)
+      : await chartAggMonthlyDriver(
+          selectedDriverId,
+          fromUtc,
+          toUtc,
+          companyTz,
+        );
+  } else {
+    chartData = useDailyAgg
+      ? await chartAggDaily(fromUtc, toUtc, companyTz)
+      : await chartAggMonthly(fromUtc, toUtc, companyTz);
+  }
+
+  /* ── Payments list (company mode only) ──────────────────── */
+
+  const payments = selectedDriverId
+    ? []
+    : await db.payment.findMany({
+        where: { paidAt: { gte: fromUtc, lt: toUtc } },
+        orderBy: { paidAt: "desc" },
+        take: 250,
+        select: {
+          id: true,
+          paidAt: true,
+          amountTotalCents: true,
+          tipCents: true,
+          currency: true,
+          bookingId: true,
+          booking: {
+            select: {
+              id: true,
+              pickupAt: true,
+              pickupAddress: true,
+              dropoffAddress: true,
+              userId: true,
+              user: { select: { name: true, email: true } },
+              guestName: true,
+              guestEmail: true,
+              guestPhone: true,
+            },
           },
         },
-      },
-    }),
-    view === "daily"
-      ? chartAggDaily(fromUtc, toUtc, companyTz)
-      : chartAggMonthly(fromUtc, toUtc, companyTz),
-  ]);
+      });
+
+  /* ── Driver trips list (driver mode only) ───────────────── */
+
+  const driverTrips = selectedDriverId
+    ? await db.assignment.findMany({
+        where: {
+          driverId: selectedDriverId,
+          booking: {
+            status: "COMPLETED",
+            pickupAt: { gte: fromUtc, lt: toUtc },
+          },
+        },
+        orderBy: { booking: { pickupAt: "desc" } },
+        take: 250,
+        include: {
+          booking: {
+            select: {
+              id: true,
+              pickupAt: true,
+              pickupAddress: true,
+              dropoffAddress: true,
+              serviceType: { select: { name: true } },
+              user: { select: { name: true } },
+              guestName: true,
+            },
+          },
+        },
+      })
+    : [];
 
   const stripeSettings = await getStripeSettings();
 
   const kpi = kpisFromChartData(chartData);
   const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
+
+  /* ── Monthly breakdown (always company-level) ───────────── */
 
   const currentMonthStartForMenu = tz.startOfMonth(now, companyTz);
   const monthMenuStarts = Array.from({ length: 12 }).map((_, i) =>
@@ -661,7 +912,11 @@ export default async function EarningsPage({
   );
 
   const exportView: "month" | "ytd" | "all" | "range" =
-    view === "daily" ? "month" : view === "monthly" ? "range" : view;
+    view === "daily" || view === "weekly"
+      ? "month"
+      : view === "monthly"
+        ? "range"
+        : view;
 
   const exportHref = buildHref("/admin/earnings/export", {
     view: exportView,
@@ -681,8 +936,12 @@ export default async function EarningsPage({
         : undefined,
   });
 
-  const chartTitle = chartHeadingFromData(view, chartData);
+  const chartTitle = selectedDriverId
+    ? `${selectedDriverLabel} — ${chartHeadingFromData(view, chartData)}`
+    : chartHeadingFromData(view, chartData);
   const chartSub = rangeLabel;
+
+  const earningsLabel = selectedDriverId ? "Total Paid" : "Captured";
 
   return (
     <section className={`${base.content} ${styles.container}`}>
@@ -691,8 +950,9 @@ export default async function EarningsPage({
 
         <div className={styles.earningsTop}>
           <p className='subheading'>
-            View captured revenue, refunds, and net totals by month, range,
-            year-to-date, or all time.
+            {selectedDriverId
+              ? `Viewing driver earnings for ${selectedDriverLabel}.`
+              : "View captured revenue, refunds, and net totals by day, week, month, range, year-to-date, or all time."}
           </p>
           <div className={styles.headerActions}>
             <Button href={exportHref} text='Download CSV' btnType='blackReg' />
@@ -710,32 +970,44 @@ export default async function EarningsPage({
           initialFrom={rangeFromParam ?? defaultFrom}
           initialTo={rangeToParam ?? defaultTo}
           rangeLabel={rangeLabel}
+          driverOptions={driverOptions}
+          initialDriver={driverParam ?? "all"}
         />
       </header>
 
       <div className={styles.kpiGrid}>
         <KpiCard
-          label='Captured'
+          label={earningsLabel}
           value={tz.formatMoneyShort(kpi.capturedSumCents, currency)}
-          sub={`${kpi.payCount} payment${kpi.payCount === 1 ? "" : "s"}`}
+          sub={`${kpi.payCount} ${kpi.payCount === 1 ? "trip" : "trips"}`}
         />
         <KpiCard
-          label='Avg order value'
+          label='Avg per trip'
           value={tz.formatMoneyShort(kpi.avgCents, currency)}
           sub='Current chart range'
         />
         <KpiCard
-          label='Refunded'
-          value={tz.formatMoneyShort(kpi.refundedSumCents, currency)}
-          sub={`${kpi.refundCount} refund${kpi.refundCount === 1 ? "" : "s"}`}
-          tone='warn'
+          label='Tips'
+          value={tz.formatMoneyShort(kpi.tipSumCents, currency)}
+          sub={`Included in ${earningsLabel.toLowerCase()}`}
+          tone='good'
         />
-        <KpiCard
-          label='Net'
-          value={tz.formatMoneyShort(kpi.netSumCents, currency)}
-          sub='Captured minus refunded'
-          tone={netTone}
-        />
+        {!selectedDriverId && (
+          <>
+            <KpiCard
+              label='Refunded'
+              value={tz.formatMoneyShort(kpi.refundedSumCents, currency)}
+              sub={`${kpi.refundCount} refund${kpi.refundCount === 1 ? "" : "s"}`}
+              tone='warn'
+            />
+            <KpiCard
+              label='Net'
+              value={tz.formatMoneyShort(kpi.netSumCents, currency)}
+              sub='Captured minus refunded'
+              tone={netTone}
+            />
+          </>
+        )}
       </div>
 
       <section className={`${styles.card} ${styles.chartCard}`}>
@@ -744,11 +1016,16 @@ export default async function EarningsPage({
           <div className='miniNote'>{chartSub}</div>
         </div>
         <div className={styles.chartWrap}>
-          <EarningsChart data={chartData} currency={currency} />
+          <EarningsChart
+            data={chartData}
+            currency={currency}
+            isDriverMode={!!selectedDriverId}
+          />
         </div>
       </section>
 
       <div className={styles.twoCol}>
+        {/* Monthly Breakdown */}
         <section className={styles.card}>
           <div className={styles.cardHeader}>
             <div className='cardTitle h4'>Monthly breakdown</div>
@@ -785,6 +1062,7 @@ export default async function EarningsPage({
                             view: "daily",
                             year: y,
                             month: mo,
+                            driver: driverParam ?? undefined,
                           })}
                         >
                           {m.label}
@@ -813,9 +1091,12 @@ export default async function EarningsPage({
           </div>
         </section>
 
+        {/* Payments or Driver Trips */}
         <section className={styles.card}>
           <div className={styles.cardHeader}>
-            <div className='cardTitle h4'>Payments</div>
+            <div className='cardTitle h4'>
+              {selectedDriverId ? "Completed Trips" : "Payments"}
+            </div>
             <div className='miniNote'>Most recent 250 for selected period</div>
           </div>
           <div className={styles.cardHeaderRight}>
@@ -823,76 +1104,172 @@ export default async function EarningsPage({
             <span className={styles.tzPill}>{companyTz}</span>
           </div>
 
-          {payments.length === 0 ? (
-            <div className={styles.empty}>
-              <div className={styles.emptyTitle}>No payments found</div>
-              <div className='miniNote'>
-                Try a different filter or expand the date range.
-              </div>
-            </div>
-          ) : (
-            <div className={styles.paymentsTableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Paid</th>
-                    <th>Booking</th>
-                    <th>Customer</th>
-                    <th className={styles.right}>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map((p) => {
-                    const paidAt = p.paidAt ? new Date(p.paidAt) : null;
-                    const b = p.booking;
-                    const cust =
-                      (b?.user?.name?.trim() || b?.user?.email || "").trim() ||
-                      (b?.guestName?.trim() || b?.guestEmail || "").trim() ||
-                      "Customer";
-
-                    const bookingHref = b?.id
-                      ? buildHref("/admin/bookings", { bookingId: b.id })
-                      : "/admin/bookings";
-                    const bookingId = b?.id ?? p.bookingId ?? null;
-
-                    return (
-                      <tr key={p.id}>
-                        <td>
-                          {paidAt ? tz.formatDate(paidAt, companyTz) : "—"}
-                        </td>
-                        <td>
-                          <Link className={styles.rowLink} href={bookingHref}>
-                            <div className={styles.bookingId}>
-                              {shortId(bookingId, 7)}
-                            </div>
-                          </Link>
-                        </td>
-                        <td>
-                          <div className={styles.customerName}>{cust}</div>
-                          {b?.pickupAt ? (
-                            <div className='miniNote'>
-                              Pickup:{" "}
-                              {tz.formatDateTime(
-                                new Date(b.pickupAt),
-                                companyTz,
-                              )}
-                            </div>
-                          ) : (
-                            <div className='miniNote' />
-                          )}
-                        </td>
-                        <td className={styles.right}>
-                          {tz.formatMoneyShort(
-                            p.amountTotalCents ?? 0,
-                            currency,
-                          )}
-                        </td>
+          {/* Company mode: payments list */}
+          {!selectedDriverId && (
+            <>
+              {payments.length === 0 ? (
+                <div className={styles.empty}>
+                  <div className={styles.emptyTitle}>No payments found</div>
+                  <div className='miniNote'>
+                    Try a different filter or expand the date range.
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.paymentsTableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Paid</th>
+                        <th>Booking</th>
+                        <th>Customer</th>
+                        <th className={styles.right}>Tip</th>
+                        <th className={styles.right}>Amount</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                    </thead>
+                    <tbody>
+                      {payments.map((p) => {
+                        const paidAt = p.paidAt ? new Date(p.paidAt) : null;
+                        const b = p.booking;
+                        const cust =
+                          (
+                            b?.user?.name?.trim() ||
+                            b?.user?.email ||
+                            ""
+                          ).trim() ||
+                          (
+                            b?.guestName?.trim() ||
+                            b?.guestEmail ||
+                            ""
+                          ).trim() ||
+                          "Customer";
+
+                        const bookingHref = b?.id
+                          ? `/admin/bookings/${b.id}`
+                          : "/admin/bookings";
+                        const bookingId = b?.id ?? p.bookingId ?? null;
+
+                        return (
+                          <tr key={p.id}>
+                            <td>
+                              {paidAt ? tz.formatDate(paidAt, companyTz) : "—"}
+                            </td>
+                            <td>
+                              <Link
+                                className={styles.rowLink}
+                                href={bookingHref}
+                              >
+                                <div className={styles.bookingId}>
+                                  {shortId(bookingId, 7)}
+                                </div>
+                              </Link>
+                            </td>
+                            <td>
+                              <div className={styles.customerName}>{cust}</div>
+                              {b?.pickupAt ? (
+                                <div className='miniNote'>
+                                  Pickup:{" "}
+                                  {tz.formatDateTime(
+                                    new Date(b.pickupAt),
+                                    companyTz,
+                                  )}
+                                </div>
+                              ) : (
+                                <div className='miniNote' />
+                              )}
+                            </td>
+                            <td className={styles.right}>
+                              {p.tipCents > 0
+                                ? tz.formatMoneyShort(p.tipCents, currency)
+                                : "—"}
+                            </td>
+                            <td className={styles.right}>
+                              {tz.formatMoneyShort(
+                                p.amountTotalCents ?? 0,
+                                currency,
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Driver mode: trips list */}
+          {selectedDriverId && (
+            <>
+              {driverTrips.length === 0 ? (
+                <div className={styles.empty}>
+                  <div className={styles.emptyTitle}>No completed trips</div>
+                  <div className='miniNote'>
+                    Try a different filter or expand the date range.
+                  </div>
+                </div>
+              ) : (
+                <div className={styles.paymentsTableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Service</th>
+                        <th className={styles.right}>Tip</th>
+                        <th className={styles.right}>Earnings</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {driverTrips.map((a) => {
+                        const b = a.booking;
+                        const customerName =
+                          b.user?.name?.trim() ||
+                          b.guestName?.trim() ||
+                          "Customer";
+                        const href = `/admin/bookings/${b.id}`;
+
+                        return (
+                          <tr key={a.id}>
+                            <td>
+                              <Link className={styles.rowLink} href={href}>
+                                {tz.formatDate(b.pickupAt, companyTz)}
+                              </Link>
+                            </td>
+                            <td>
+                              <div className={styles.customerName}>
+                                {customerName}
+                              </div>
+                            </td>
+                            <td>{b.serviceType?.name ?? "—"}</td>
+                            <td className={styles.right}>
+                              {a.driverTipCents && a.driverTipCents > 0
+                                ? tz.formatMoneyShort(
+                                    a.driverTipCents,
+                                    currency,
+                                  )
+                                : "—"}
+                            </td>
+                            <td className={styles.right}>
+                              <span className={styles.earningsValue}>
+                                {a.driverPaymentCents != null ||
+                                a.driverTipCents != null
+                                  ? tz.formatMoneyShort(
+                                      (a.driverPaymentCents ?? 0) +
+                                        (a.driverTipCents ?? 0),
+                                      currency,
+                                    )
+                                  : "—"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </>
           )}
 
           <div className={styles.cardFooter}>

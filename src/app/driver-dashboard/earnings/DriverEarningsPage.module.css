@@ -342,7 +342,17 @@
   font-weight: 600;
 }
 
-/* Responsive */
+/* ── Add these to DriverEarningsPage.module.css ── */
+/* alongside existing .swatch rule */
+
+.swatch[data-tone="base"] {
+  background: var(--lightGreen);
+}
+
+.swatch[data-tone="tip"] {
+  background: var(--accentBlue, #3b82f6);
+}
+
 @media screen and (max-width: 1268px) {
   .kpiGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

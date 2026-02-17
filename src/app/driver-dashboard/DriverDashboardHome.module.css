@@ -40,6 +40,12 @@
   min-width: 100px;
 }
 
+.headerKpiRows {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
 .headerKpiValue {
   font-size: 2.4rem;
   font-weight: 700;
@@ -48,7 +54,7 @@
 }
 
 .headerKpiLabel {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #6b7280;
   text-transform: uppercase;
@@ -70,6 +76,25 @@
 
 .headerKpiAccent .headerKpiValue {
   color: #1d4ed8;
+}
+
+.headerKpiWeekly {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.headerKpiWeekly .headerKpiValue {
+  color: #6d28d9;
+}
+
+.headerKpiRowLabel {
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  border-bottom: 1px solid var(--stroke);
+  padding-bottom: 0.5rem;
 }
 
 /* Section Headers */
@@ -160,10 +185,18 @@
   }
 
   .headerKpis {
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .headerKpi {
+    width: 100%;
+  }
+
+  .headerKpiRowLabelMonthly {
+    margin-top: 5rem;
   }
 }
-
 
 @media screen and (max-width: 768px) {
   .pageContainer {
@@ -198,10 +231,20 @@
   }
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 568px) {
   .pageContainer {
     padding: 1rem;
     gap: 1.5rem;
+  }
+
+  .headerKpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+  }
+
+  .headerKpi {
+    min-width: unset;
   }
 
   .nextTripSection {
@@ -220,5 +263,10 @@
 
   .routeArrow {
     display: none;
+  }
+
+  .headerKpis {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
   }
 }

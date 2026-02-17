@@ -11,7 +11,6 @@ import {
   CartesianGrid,
   Tooltip,
   ReferenceLine,
-  Cell,
   Rectangle,
 } from "recharts";
 import styles from "./AdminEarningsPage.module.css";
@@ -25,13 +24,13 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(n);
 }
 
-const POS_RADIUS: [number, number, number, number] = [10, 10, 0, 0];
-const NEG_RADIUS: [number, number, number, number] = [0, 0, 10, 10];
+const BAR_RADIUS_TOP: [number, number, number, number] = [10, 10, 0, 0];
+const BAR_RADIUS_NONE: [number, number, number, number] = [0, 0, 0, 0];
 
-function NetBarShape(props: any) {
+function TipBarShape(props: any) {
   const { x, y, width, height, fill, payload } = props;
-  const v = Number(payload?.netCents ?? 0);
-
+  const hasTip = Number(payload?.tipCents ?? 0) > 0;
+  // Top bar gets rounded corners only if it has value
   return (
     <Rectangle
       x={x}
@@ -39,20 +38,38 @@ function NetBarShape(props: any) {
       width={width}
       height={height}
       fill={fill}
-      radius={v >= 0 ? POS_RADIUS : NEG_RADIUS}
+      radius={hasTip ? BAR_RADIUS_TOP : BAR_RADIUS_NONE}
     />
   );
 }
 
+function BaseBarShape(props: any) {
+  const { x, y, width, height, fill, payload } = props;
+  const hasTip = Number(payload?.tipCents ?? 0) > 0;
+  // Base bar gets rounded top only when there's no tip on top
+  return (
+    <Rectangle
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
+      radius={hasTip ? BAR_RADIUS_NONE : BAR_RADIUS_TOP}
+    />
+  );
+}
 
 export default function EarningsChart({
   data,
   currency,
+  isDriverMode = false,
 }: {
   data: {
     key: string;
     tick: string;
     label: string;
+    baseCents: number;
+    tipCents: number;
     capturedCents: number;
     refundedCents: number;
     netCents: number;
@@ -60,22 +77,37 @@ export default function EarningsChart({
     refundedCount?: number;
   }[];
   currency: string;
+  isDriverMode?: boolean;
 }) {
+  const hasAnyRefunds = !isDriverMode && data.some((d) => d.refundedCents > 0);
+
   return (
     <div className={styles.chartInner}>
       <div className={styles.legend}>
         <div className={styles.legendItem}>
-          <span className={styles.swatch} data-tone='net' />
-          <span className='miniNote'>Net</span>
+          <span className={styles.swatch} data-tone='base' />
+          <span className='miniNote'>
+            {isDriverMode ? "Base Pay" : "Base Fee"}
+          </span>
         </div>
         <div className={styles.legendItem}>
-          <span className={styles.swatch} data-tone='captured' />
-          <span className='miniNote'>Captured</span>
+          <span className={styles.swatch} data-tone='tip' />
+          <span className='miniNote'>Tips</span>
         </div>
-        <div className={styles.legendItem}>
-          <span className={styles.swatch} data-tone='refunded' />
-          <span className='miniNote'>Refunded</span>
-        </div>
+        {!isDriverMode && (
+          <>
+            <div className={styles.legendItem}>
+              <span className={styles.swatch} data-tone='captured' />
+              <span className='miniNote'>Captured</span>
+            </div>
+            {hasAnyRefunds && (
+              <div className={styles.legendItem}>
+                <span className={styles.swatch} data-tone='refunded' />
+                <span className='miniNote'>Refunded</span>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <div className={styles.chartCanvas}>
@@ -86,8 +118,7 @@ export default function EarningsChart({
           >
             <CartesianGrid stroke='rgba(0,0,0,0.08)' vertical={false} />
 
-            {/* baseline for negative net */}
-            <ReferenceLine y={0} stroke='rgba(0,0,0,0.12)' />
+            {!isDriverMode && <ReferenceLine y={0} stroke='rgba(0,0,0,0.12)' />}
 
             <XAxis
               dataKey='tick'
@@ -113,34 +144,58 @@ export default function EarningsChart({
                   <div className={styles.tooltip}>
                     <div className={styles.tooltipTitle}>{row.label}</div>
                     <div className={styles.tooltipRow}>
-                      <span className='miniNote'>Captured</span>
+                      <span className='miniNote'>
+                        {isDriverMode ? "Base Pay" : "Base Fee"}
+                      </span>
+                      <span className={styles.tooltipVal}>
+                        {formatMoney(row.baseCents ?? 0, currency)}
+                      </span>
+                    </div>
+                    <div className={styles.tooltipRow}>
+                      <span className='miniNote'>Tips</span>
+                      <span className={styles.tooltipVal}>
+                        {formatMoney(row.tipCents ?? 0, currency)}
+                      </span>
+                    </div>
+                    <div className={styles.tooltipRow}>
+                      <span className='miniNote'>
+                        {isDriverMode ? "Total" : "Captured"}
+                      </span>
                       <span className={styles.tooltipVal}>
                         {formatMoney(row.capturedCents ?? 0, currency)}
                       </span>
                     </div>
+                    {!isDriverMode && (
+                      <>
+                        <div className={styles.tooltipRow}>
+                          <span className='miniNote'>Refunded</span>
+                          <span className={styles.tooltipVal}>
+                            {formatMoney(row.refundedCents ?? 0, currency)}
+                          </span>
+                        </div>
+                        <div className={styles.tooltipRow}>
+                          <span className='miniNote'>Net</span>
+                          <span className={styles.tooltipVal}>
+                            {formatMoney(row.netCents ?? 0, currency)}
+                          </span>
+                        </div>
+                      </>
+                    )}
                     <div className={styles.tooltipRow}>
-                      <span className='miniNote'>Refunded</span>
-                      <span className={styles.tooltipVal}>
-                        {formatMoney(row.refundedCents ?? 0, currency)}
+                      <span className='miniNote'>
+                        {isDriverMode ? "Trips" : "Payments"}
                       </span>
-                    </div>
-                    <div className={styles.tooltipRow}>
-                      <span className='miniNote'>Net</span>
-                      <span className={styles.tooltipVal}>
-                        {formatMoney(row.netCents ?? 0, currency)}
-                      </span>
-                    </div>
-                    <div className={styles.tooltipRow}>
-                      <span className='miniNote'>Payments</span>
                       <span className={styles.tooltipVal}>
                         {row.count ?? 0}
                       </span>
                     </div>
-                    {typeof row.refundedCount === "number" ? (
+                    {!isDriverMode &&
+                    typeof row.refundedCount === "number" &&
+                    row.refundedCount > 0 ? (
                       <div className={styles.tooltipRow}>
                         <span className='miniNote'>Refunds</span>
                         <span className={styles.tooltipVal}>
-                          {row.refundedCount ?? 0}
+                          {row.refundedCount}
                         </span>
                       </div>
                     ) : null}
@@ -149,31 +204,43 @@ export default function EarningsChart({
               }}
             />
 
-            <Bar dataKey='netCents' shape={<NetBarShape />}>
-              {data.map((d, i) => (
-                <Cell
-                  key={`${d.key}-${i}`}
-                  fill={d.netCents < 0 ? "var(--red)" : "var(--lightGreen)"}
-                />
-              ))}
-            </Bar>
+            {/* Stacked bars: base on bottom, tips on top */}
+            <Bar
+              dataKey='baseCents'
+              stackId='earnings'
+              fill='var(--lightGreen)'
+              shape={<BaseBarShape />}
+            />
+            <Bar
+              dataKey='tipCents'
+              stackId='earnings'
+              fill='var(--accentBlue, #3b82f6)'
+              shape={<TipBarShape />}
+            />
 
-            <Line
-              type='monotone'
-              dataKey='capturedCents'
-              stroke='var(--black)'
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
-            />
-            <Line
-              type='monotone'
-              dataKey='refundedCents'
-              stroke='var(--red)'
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4 }}
-            />
+            {/* Captured line (company mode) */}
+            {!isDriverMode && (
+              <Line
+                type='monotone'
+                dataKey='capturedCents'
+                stroke='var(--black)'
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            )}
+
+            {/* Refunded line (company mode, only if there are refunds) */}
+            {!isDriverMode && hasAnyRefunds && (
+              <Line
+                type='monotone'
+                dataKey='refundedCents'
+                stroke='var(--red)'
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            )}
           </ComposedChart>
         </ResponsiveContainer>
       </div>

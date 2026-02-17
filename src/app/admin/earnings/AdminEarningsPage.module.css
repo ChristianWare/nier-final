@@ -357,6 +357,33 @@
   font-weight: 700;
 }
 
+/* ── Add these to AdminEarningsPage.module.css ── */
+
+.driverSelector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.driverLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Add these swatch rules alongside the existing ones */
+/* .swatch[data-tone="net"]      { background: var(--lightGreen); }  ← already exists */
+/* .swatch[data-tone="captured"] { background: var(--black); }       ← already exists */
+/* .swatch[data-tone="refunded"] { background: var(--red); }         ← already exists */
+
+.swatch[data-tone="base"] {
+  background: var(--lightGreen);
+}
+
+.swatch[data-tone="tip"] {
+  background: var(--accentBlue, #3b82f6);
+}
 
 @media screen and (max-width: 1268px) {
   .kpiGrid {

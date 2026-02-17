@@ -22,11 +22,12 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(n);
 }
 
-const BAR_RADIUS: [number, number, number, number] = [10, 10, 0, 0];
+const BAR_RADIUS_TOP: [number, number, number, number] = [10, 10, 0, 0];
+const BAR_RADIUS_NONE: [number, number, number, number] = [0, 0, 0, 0];
 
-function EarningsBarShape(props: any) {
-  const { x, y, width, height, fill } = props;
-
+function TipBarShape(props: any) {
+  const { x, y, width, height, fill, payload } = props;
+  const hasTip = Number(payload?.tipCents ?? 0) > 0;
   return (
     <Rectangle
       x={x}
@@ -34,7 +35,22 @@ function EarningsBarShape(props: any) {
       width={width}
       height={height}
       fill={fill}
-      radius={BAR_RADIUS}
+      radius={hasTip ? BAR_RADIUS_TOP : BAR_RADIUS_NONE}
+    />
+  );
+}
+
+function BaseBarShape(props: any) {
+  const { x, y, width, height, fill, payload } = props;
+  const hasTip = Number(payload?.tipCents ?? 0) > 0;
+  return (
+    <Rectangle
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
+      radius={hasTip ? BAR_RADIUS_NONE : BAR_RADIUS_TOP}
     />
   );
 }
@@ -47,7 +63,9 @@ export default function DriverEarningsChart({
     key: string;
     tick: string;
     label: string;
-    earningsCents: number;
+    baseCents: number;
+    tipCents: number;
+    totalCents: number;
     count: number;
   }[];
   currency: string;
@@ -73,8 +91,12 @@ export default function DriverEarningsChart({
     <div className={styles.chartInner}>
       <div className={styles.legend}>
         <div className={styles.legendItem}>
-          <span className={styles.swatch} />
-          <span className='miniNote'>Earnings</span>
+          <span className={styles.swatch} data-tone='base' />
+          <span className='miniNote'>Base Pay</span>
+        </div>
+        <div className={styles.legendItem}>
+          <span className={styles.swatch} data-tone='tip' />
+          <span className='miniNote'>Tips</span>
         </div>
       </div>
 
@@ -110,9 +132,21 @@ export default function DriverEarningsChart({
                   <div className={styles.tooltip}>
                     <div className={styles.tooltipTitle}>{row.label}</div>
                     <div className={styles.tooltipRow}>
-                      <span className='miniNote'>Earnings</span>
+                      <span className='miniNote'>Base Pay</span>
                       <span className={styles.tooltipVal}>
-                        {formatMoney(row.earningsCents ?? 0, currency)}
+                        {formatMoney(row.baseCents ?? 0, currency)}
+                      </span>
+                    </div>
+                    <div className={styles.tooltipRow}>
+                      <span className='miniNote'>Tips</span>
+                      <span className={styles.tooltipVal}>
+                        {formatMoney(row.tipCents ?? 0, currency)}
+                      </span>
+                    </div>
+                    <div className={styles.tooltipRow}>
+                      <span className='miniNote'>Total</span>
+                      <span className={styles.tooltipVal}>
+                        {formatMoney(row.totalCents ?? 0, currency)}
                       </span>
                     </div>
                     <div className={styles.tooltipRow}>
@@ -127,9 +161,16 @@ export default function DriverEarningsChart({
             />
 
             <Bar
-              dataKey='earningsCents'
+              dataKey='baseCents'
+              stackId='earnings'
               fill='var(--lightGreen)'
-              shape={<EarningsBarShape />}
+              shape={<BaseBarShape />}
+            />
+            <Bar
+              dataKey='tipCents'
+              stackId='earnings'
+              fill='var(--accentBlue, #3b82f6)'
+              shape={<TipBarShape />}
             />
           </ComposedChart>
         </ResponsiveContainer>

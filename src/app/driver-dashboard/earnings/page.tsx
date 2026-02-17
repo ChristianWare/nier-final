@@ -14,7 +14,7 @@ import Arrow from "@/components/shared/icons/Arrow/Arrow";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
+type ViewMode = "daily" | "weekly" | "monthly" | "ytd" | "all" | "range";
 type SP = Record<string, string | string[] | undefined>;
 
 function spGet(sp: SP, key: string) {
@@ -27,6 +27,7 @@ function cleanView(v: string | null | undefined): ViewMode {
   if (v === "month") return "daily";
   if (
     v === "daily" ||
+    v === "weekly" ||
     v === "monthly" ||
     v === "ytd" ||
     v === "all" ||
@@ -132,10 +133,10 @@ function startOfDayFromYMD(
   ymd: { y: number; m: number; d: number },
   timeZone: string,
 ) {
-  // Create noon UTC on that date (safe from day-boundary shifts), then get start of day
   const noon = new Date(Date.UTC(ymd.y, ymd.m - 1, ymd.d, 12, 0, 0));
   return tz.startOfDay(noon, timeZone);
 }
+
 function resolveMonthYear({
   view,
   sp,
@@ -191,15 +192,31 @@ function badgeTone(status: string) {
   return "neutral";
 }
 
-function kpisFromChartData(rows: { earningsCents: number; count: number }[]) {
+/* ── Chart data type ────────────────────────────────────────── */
+
+type ChartPoint = {
+  key: string;
+  tick: string;
+  label: string;
+  baseCents: number;
+  tipCents: number;
+  totalCents: number;
+  count: number;
+};
+
+function kpisFromChartData(rows: ChartPoint[]) {
   let totalCents = 0,
+    tipCents = 0,
     tripCount = 0;
   for (const r of rows) {
-    totalCents += Number(r.earningsCents || 0);
+    totalCents += Number(r.totalCents || 0);
+    tipCents += Number(r.tipCents || 0);
     tripCount += Number(r.count || 0);
   }
   return {
     totalCents,
+    tipCents,
+    baseCents: totalCents - tipCents,
     tripCount,
     avgCents: tripCount > 0 ? Math.round(totalCents / tripCount) : 0,
   };
@@ -223,43 +240,60 @@ async function resolveSessionUserId(session: any) {
   return u?.id ?? null;
 }
 
+/* ── Aggregation helpers ──────────────────────────────────── */
+/* driverPaymentCents = base pay                               */
+/* driverTipCents     = tip on top of base                     */
+/* total = base + tip                                          */
+
 async function chartAggDaily(
   driverId: string,
   fromUtc: Date,
   toUtc: Date,
   timeZone: string,
-) {
+): Promise<ChartPoint[]> {
   const rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('day', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM(a."driverPaymentCents"), 0) as sum, COUNT(*) as count
-    FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
-    WHERE a."driverId" = ${driverId} AND b.status = 'COMPLETED' AND b."pickupAt" >= ${fromUtc} AND b."pickupAt" < ${toUtc}
-    GROUP BY 1 ORDER BY 1 ASC`;
-  const bucket = new Map<string, { sumCents: number; count: number }>();
-  for (const r of rows)
+    SELECT
+      to_char(date_trunc('day', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
+      COALESCE(SUM(a."driverPaymentCents"), 0) as base,
+      COALESCE(SUM(a."driverTipCents"), 0) as tips,
+      COUNT(*) as count
+    FROM "Assignment" a
+    JOIN "Booking" b ON b.id = a."bookingId"
+    WHERE a."driverId" = ${driverId}
+      AND b.status = 'COMPLETED'
+      AND b."pickupAt" >= ${fromUtc}
+      AND b."pickupAt" < ${toUtc}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `;
+
+  const bucket = new Map<
+    string,
+    { baseCents: number; tipCents: number; count: number }
+  >();
+  for (const r of rows) {
     bucket.set(String(r.key), {
-      sumCents: Number(r.sum || 0),
+      baseCents: Number(r.base || 0),
+      tipCents: Number(r.tips || 0),
       count: Number(r.count || 0),
     });
-  const points: {
-    key: string;
-    tick: string;
-    label: string;
-    earningsCents: number;
-    count: number;
-  }[] = [];
+  }
+
+  const points: ChartPoint[] = [];
   for (
     let d = new Date(fromUtc.getTime());
     d.getTime() < toUtc.getTime();
     d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
   ) {
     const ymd = ymdForInput(d, timeZone);
-    const b = bucket.get(ymd) ?? { sumCents: 0, count: 0 };
+    const b = bucket.get(ymd) ?? { baseCents: 0, tipCents: 0, count: 0 };
     points.push({
       key: ymd,
       tick: formatDayTick(d, timeZone),
       label: formatDayLabel(d, timeZone),
-      earningsCents: b.sumCents,
+      baseCents: b.baseCents,
+      tipCents: b.tipCents,
+      totalCents: b.baseCents + b.tipCents,
       count: b.count,
     });
   }
@@ -271,19 +305,35 @@ async function chartAggMonthly(
   fromUtc: Date,
   toUtc: Date,
   timeZone: string,
-) {
+): Promise<ChartPoint[]> {
   const rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
-      COALESCE(SUM(a."driverPaymentCents"), 0) as sum, COUNT(*) as count
-    FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
-    WHERE a."driverId" = ${driverId} AND b.status = 'COMPLETED' AND b."pickupAt" >= ${fromUtc} AND b."pickupAt" < ${toUtc}
-    GROUP BY 1 ORDER BY 1 ASC`;
-  const bucket = new Map<string, { sumCents: number; count: number }>();
-  for (const r of rows)
+    SELECT
+      to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
+      COALESCE(SUM(a."driverPaymentCents"), 0) as base,
+      COALESCE(SUM(a."driverTipCents"), 0) as tips,
+      COUNT(*) as count
+    FROM "Assignment" a
+    JOIN "Booking" b ON b.id = a."bookingId"
+    WHERE a."driverId" = ${driverId}
+      AND b.status = 'COMPLETED'
+      AND b."pickupAt" >= ${fromUtc}
+      AND b."pickupAt" < ${toUtc}
+    GROUP BY 1
+    ORDER BY 1 ASC
+  `;
+
+  const bucket = new Map<
+    string,
+    { baseCents: number; tipCents: number; count: number }
+  >();
+  for (const r of rows) {
     bucket.set(String(r.key), {
-      sumCents: Number(r.sum || 0),
+      baseCents: Number(r.base || 0),
+      tipCents: Number(r.tips || 0),
       count: Number(r.count || 0),
     });
+  }
+
   const months: string[] = [];
   for (
     let ms = tz.startOfMonth(fromUtc, timeZone);
@@ -291,15 +341,18 @@ async function chartAggMonthly(
     ms = tz.addMonths(ms, 1, timeZone)
   )
     months.push(tz.monthKey(ms, timeZone));
+
   return months.map((k) => {
     const ms =
       tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
-    const b = bucket.get(k) ?? { sumCents: 0, count: 0 };
+    const b = bucket.get(k) ?? { baseCents: 0, tipCents: 0, count: 0 };
     return {
       key: k,
       tick: formatMonthTick(ms, timeZone),
       label: formatMonthLabel(ms, timeZone),
-      earningsCents: b.sumCents,
+      baseCents: b.baseCents,
+      tipCents: b.tipCents,
+      totalCents: b.baseCents + b.tipCents,
       count: b.count,
     };
   });
@@ -352,7 +405,6 @@ export default async function DriverEarningsPage({
   const resolvedMY = resolveMonthYear({ view, sp, now, timeZone: companyTz });
   const resolvedMonthKey = resolvedMY.key;
 
-  // Get earliest assignment for year range
   const earliestAssignment = await db.assignment.findFirst({
     where: { driverId },
     orderBy: { assignedAt: "asc" },
@@ -369,6 +421,29 @@ export default async function DriverEarningsPage({
     fromUtc = ms;
     toUtc = tz.addMonths(ms, 1, companyTz);
     rangeLabel = formatMonthLabel(ms, companyTz);
+  }
+
+  if (view === "weekly") {
+    const nowLocal = new Date(
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: companyTz,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(now) + "T12:00:00",
+    );
+    const dow = nowLocal.getDay();
+    const diffToMonday = dow === 0 ? -6 : 1 - dow;
+    const monday = new Date(nowLocal);
+    monday.setDate(monday.getDate() + diffToMonday);
+    const sunday = new Date(monday);
+    sunday.setDate(sunday.getDate() + 6);
+
+    fromUtc = tz.startOfDay(monday, companyTz);
+    toUtc = new Date(
+      tz.startOfDay(sunday, companyTz).getTime() + 24 * 60 * 60 * 1000,
+    );
+    rangeLabel = "This week";
   }
 
   if (view === "monthly") {
@@ -432,9 +507,8 @@ export default async function DriverEarningsPage({
 
   const currency = "USD";
 
-  // Fetch chart data
-  const chartData =
-    view === "daily"
+  const chartData: ChartPoint[] =
+    view === "daily" || view === "weekly"
       ? await chartAggDaily(driverId, fromUtc, toUtc, companyTz)
       : await chartAggMonthly(driverId, fromUtc, toUtc, companyTz);
 
@@ -454,19 +528,29 @@ export default async function DriverEarningsPage({
   );
 
   const last12Rows = await db.$queryRaw<any[]>`
-    SELECT to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${companyTz}), 'YYYY-MM') as key,
-      COALESCE(SUM(a."driverPaymentCents"), 0) as sum, COUNT(*) as count
-    FROM "Assignment" a JOIN "Booking" b ON b.id = a."bookingId"
-    WHERE a."driverId" = ${driverId} 
-      AND b.status = 'COMPLETED' 
-      AND b."pickupAt" >= ${oldestMonthStart} 
+    SELECT
+      to_char(date_trunc('month', b."pickupAt" AT TIME ZONE ${companyTz}), 'YYYY-MM') as key,
+      COALESCE(SUM(a."driverPaymentCents"), 0) as base,
+      COALESCE(SUM(a."driverTipCents"), 0) as tips,
+      COUNT(*) as count
+    FROM "Assignment" a
+    JOIN "Booking" b ON b.id = a."bookingId"
+    WHERE a."driverId" = ${driverId}
+      AND b.status = 'COMPLETED'
+      AND b."pickupAt" >= ${oldestMonthStart}
       AND b."pickupAt" < ${nextAfterCurrent}
-    GROUP BY 1 ORDER BY 1 DESC`;
+    GROUP BY 1
+    ORDER BY 1 DESC
+  `;
 
-  const bucket = new Map<string, { sumCents: number; count: number }>();
+  const bucket = new Map<
+    string,
+    { baseCents: number; tipCents: number; count: number }
+  >();
   for (const r of last12Rows) {
     bucket.set(String(r.key), {
-      sumCents: Number(r.sum || 0),
+      baseCents: Number(r.base || 0),
+      tipCents: Number(r.tips || 0),
       count: Number(r.count || 0),
     });
   }
@@ -475,9 +559,17 @@ export default async function DriverEarningsPage({
     .map((ms) => {
       const key = tz.monthKey(ms, companyTz);
       const label = formatMonthLabel(ms, companyTz);
-      const v = bucket.get(key) ?? { sumCents: 0, count: 0 };
-      const avgCents = v.count > 0 ? Math.round(v.sumCents / v.count) : 0;
-      return { key, label, sumCents: v.sumCents, count: v.count, avgCents };
+      const v = bucket.get(key) ?? { baseCents: 0, tipCents: 0, count: 0 };
+      const totalCents = v.baseCents + v.tipCents;
+      const avgCents = v.count > 0 ? Math.round(totalCents / v.count) : 0;
+      return {
+        key,
+        label,
+        totalCents,
+        tipCents: v.tipCents,
+        count: v.count,
+        avgCents,
+      };
     })
     .sort((a, b) => (a.key < b.key ? 1 : -1));
 
@@ -508,7 +600,12 @@ export default async function DriverEarningsPage({
     },
   });
 
-  const chartTitle = view === "daily" ? "Daily Earnings" : "Monthly Earnings";
+  const chartTitle =
+    view === "daily"
+      ? "Daily Earnings"
+      : view === "weekly"
+        ? "This Week"
+        : "Monthly Earnings";
 
   return (
     <section className={styles.container}>
@@ -518,7 +615,7 @@ export default async function DriverEarningsPage({
         </Link>
         <h1 className='heading h2'>My Earnings</h1>
         <p className='subheading'>
-          Track your completed trip earnings by day, month, or custom date
+          Track your completed trip earnings by day, week, month, or custom date
           range.
         </p>
 
@@ -563,6 +660,15 @@ export default async function DriverEarningsPage({
           </div>
           <div className='miniNote'>Based on {kpi.tripCount} trips</div>
         </div>
+        <div className={`${styles.kpiCard} ${styles.tone_good}`}>
+          <div className={styles.kpiTop}>
+            <div className='emptyTitle underline'>Tips</div>
+          </div>
+          <div className={styles.kpiValue}>
+            {formatMoney(kpi.tipCents, currency)}
+          </div>
+          <div className='miniNote'>Included in total earnings</div>
+        </div>
       </div>
 
       {/* Chart */}
@@ -597,6 +703,7 @@ export default async function DriverEarningsPage({
                 <tr>
                   <th>Month</th>
                   <th className={styles.right}>Earnings</th>
+                  <th className={styles.right}>Tips</th>
                   <th className={styles.right}>Trips</th>
                   <th className={styles.right}>Avg</th>
                 </tr>
@@ -622,8 +729,13 @@ export default async function DriverEarningsPage({
                       </td>
                       <td className={styles.right}>
                         <span className={styles.earningsValue}>
-                          {formatMoney(m.sumCents, currency)}
+                          {formatMoney(m.totalCents, currency)}
                         </span>
+                      </td>
+                      <td className={styles.right}>
+                        {m.tipCents > 0
+                          ? formatMoney(m.tipCents, currency)
+                          : "—"}
                       </td>
                       <td className={styles.right}>{m.count}</td>
                       <td className={styles.right}>
@@ -663,6 +775,7 @@ export default async function DriverEarningsPage({
                     <th>Date</th>
                     <th>Customer</th>
                     <th>Service</th>
+                    <th className={styles.right}>Tip</th>
                     <th className={styles.right}>Earnings</th>
                   </tr>
                 </thead>
@@ -690,9 +803,19 @@ export default async function DriverEarningsPage({
                         </td>
                         <td>{b.serviceType?.name ?? "—"}</td>
                         <td className={styles.right}>
+                          {a.driverTipCents && a.driverTipCents > 0
+                            ? formatMoney(a.driverTipCents, currency)
+                            : "—"}
+                        </td>
+                        <td className={styles.right}>
                           <span className={styles.earningsValue}>
-                            {a.driverPaymentCents
-                              ? formatMoney(a.driverPaymentCents, currency)
+                            {a.driverPaymentCents != null ||
+                            a.driverTipCents != null
+                              ? formatMoney(
+                                  (a.driverPaymentCents ?? 0) +
+                                    (a.driverTipCents ?? 0),
+                                  currency,
+                                )
                               : "—"}
                           </span>
                         </td>

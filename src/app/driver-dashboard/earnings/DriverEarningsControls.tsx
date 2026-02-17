@@ -5,12 +5,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition, type FormEvent } from "react";
 import styles from "./DriverEarningsPage.module.css";
 
-type ViewMode = "daily" | "monthly" | "ytd" | "all" | "range";
+type ViewMode = "daily" | "weekly" | "monthly" | "ytd" | "all" | "range";
 
 function cleanView(v: string | null): ViewMode {
   if (v === "month") return "daily";
   if (
     v === "daily" ||
+    v === "weekly" ||
     v === "monthly" ||
     v === "ytd" ||
     v === "all" ||
@@ -120,6 +121,7 @@ export default function DriverEarningsControls({
       return;
     }
 
+    // weekly, monthly, ytd, all — just need the view param
     next.delete("year");
     next.delete("month");
     next.delete("from");
@@ -171,6 +173,15 @@ export default function DriverEarningsControls({
           disabled={isPending}
         >
           Daily
+        </button>
+
+        <button
+          type='button'
+          className={`tab ${activeView === "weekly" ? "tabActive" : ""}`}
+          onClick={() => setView("weekly")}
+          disabled={isPending}
+        >
+          Weekly
         </button>
 
         <button
