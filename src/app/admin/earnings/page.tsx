@@ -977,20 +977,31 @@ export default async function EarningsPage({
 
       <div className={styles.kpiGrid}>
         <KpiCard
-          label={earningsLabel}
-          value={tz.formatMoneyShort(kpi.capturedSumCents, currency)}
-          sub={`${kpi.payCount} ${kpi.payCount === 1 ? "trip" : "trips"}`}
-        />
-        <KpiCard
-          label='Avg per trip'
-          value={tz.formatMoneyShort(kpi.avgCents, currency)}
-          sub='Current chart range'
+          label='Base Pay'
+          value={tz.formatMoneyShort(kpi.baseSumCents, currency)}
+          sub={rangeLabel}
         />
         <KpiCard
           label='Tips'
           value={tz.formatMoneyShort(kpi.tipSumCents, currency)}
-          sub={`Included in ${earningsLabel.toLowerCase()}`}
+          sub={rangeLabel}
+          tone='tip'
+        />
+        <KpiCard
+          label={earningsLabel}
+          value={tz.formatMoneyShort(kpi.capturedSumCents, currency)}
+          sub='Base pay + tips'
           tone='good'
+        />
+        <KpiCard
+          label={selectedDriverId ? "Completed Trips" : "Payments"}
+          value={String(kpi.payCount)}
+          sub={rangeLabel}
+        />
+        <KpiCard
+          label='Avg per trip'
+          value={tz.formatMoneyShort(kpi.avgCents, currency)}
+          sub={`Based on ${kpi.payCount} ${kpi.payCount === 1 ? "trip" : "trips"}`}
         />
         {!selectedDriverId && (
           <>
@@ -1292,7 +1303,7 @@ function KpiCard({
   label: string;
   value: string;
   sub: string;
-  tone?: "neutral" | "good" | "warn";
+  tone?: "neutral" | "good" | "warn" | "tip";
 }) {
   const { value: numericValue, prefix, suffix } = parseValue(value);
 

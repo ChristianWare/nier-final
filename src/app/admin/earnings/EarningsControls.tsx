@@ -187,6 +187,7 @@ export default function EarningsControls({
           <span className='miniNote'>Viewing earnings for</span>
           <select
             className='selectBorder emptySmall'
+            style={{minWidth: "275px"}}
             value={activeDriver}
             onChange={onDriverChange}
             disabled={isPending}

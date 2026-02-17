@@ -385,6 +385,12 @@
   background: var(--accentBlue, #3b82f6);
 }
 
+.tone_tip {
+  color: var(--accentBlue, #1d4ed8);
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.25);
+}
+
 @media screen and (max-width: 1268px) {
   .kpiGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
