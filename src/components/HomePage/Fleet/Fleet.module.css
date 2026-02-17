@@ -34,7 +34,7 @@
   grid-template-columns: 1fr;
   grid-gap: 5rem;
   width: 100%;
-  background-color: var(--lightGray);
+  background-color: var(--white);
   border-radius: 10px;
   padding: 2rem;
   position: relative;

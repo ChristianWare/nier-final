@@ -1,5 +1,5 @@
 .container {
-  background-color: var(--white);
+  background-color: var(--cream);
   padding: 10rem 0;
 }
 
@@ -54,7 +54,8 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   grid-gap: 5rem;
-  border: 2px solid var(--stroke);
+  /* border: 2px solid var(--stroke); */
+  background-color: var(--white);
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -300,12 +301,8 @@
 }
 
 @media screen and (max-width: 568px) {
-  .container {
-    background-color: var(--tan);
-  }
-
   .mapDataContainer {
-    grid-gap: 5rem;
+    grid-gap: 3rem;
   }
 
   .card {
