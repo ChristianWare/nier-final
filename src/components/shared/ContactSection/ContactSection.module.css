@@ -8,7 +8,7 @@
 
 .namesContainer {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 3rem;
   width: 100%;
@@ -25,24 +25,41 @@
 
 .labelInputBox label {
   font-weight: 400;
-  /* padding-left: 0.3rem; */
+}
+
+.required {
+  color: red;
 }
 
 .labelInputBox input,
-.labelInputBox textarea {
+.labelInputBox textarea,
+.labelInputBox select {
   border: none;
   border-bottom: 2px solid var(--stroke);
   height: 40px;
   width: 100%;
   padding: 1rem;
-  width: 100%;
   font-weight: 400;
   background-color: var(--lightGray);
+  font: inherit;
+  font-size: inherit;
+  color: var(--black);
 }
 
-.labelInputBox span {
-  font-size: 1.4rem;
-  color: rgb(140, 139, 139);
+.labelInputBox input::placeholder,
+.labelInputBox textarea::placeholder {
+  color: var(--darkGray);
+  opacity: 0.6;
+}
+
+.labelInputBox select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
 }
 
 .labelInputBox textarea {
@@ -51,78 +68,32 @@
 }
 
 .error {
-  color: red !important;
+  font-size: 1.2rem;
+  color: red;
+}
+
+.recaptchaContainer {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .btnContainer {
-  margin-top: 3rem;
+  margin-top: 2rem;
   display: grid;
 }
 
-@media screen and (max-width: 1058px) {
-  .top {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 2rem;
-    display: flex;
-  }
-
-  .copy {
-    width: 60%;
-    text-align: center;
-  }
-
-  .bottom {
-    flex-direction: column;
-    align-items: center;
-    gap: 4rem;
-  }
-
-  .left {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-  }
-
-  .form {
-    width: 100%;
-  }
+.submitBtn {
+  all: unset;
+  display: grid;
+  cursor: pointer;
 }
 
-@media screen and (max-width: 758px) {
-  .copy {
-    width: 100%;
-  }
-
-  .letsTalkContainer {
-    width: 100%;
-  }
+.submitBtn:disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 @media screen and (max-width: 568px) {
-  .container {
-    padding-top: 5rem;
-    padding-bottom: 0rem;
-  }
-
-  .copy {
-    width: 100%;
-  }
-
-  .left {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 2rem;
-  }
-
-  .letsTalkContainer {
-    width: 100%;
-  }
-
   .namesContainer {
     flex-direction: column;
     gap: 0rem;

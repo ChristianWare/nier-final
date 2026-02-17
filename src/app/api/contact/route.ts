@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/contact/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 
 export const runtime = "nodejs";
@@ -11,21 +11,15 @@ type ContactPayload = {
   firstName: string;
   lastName: string;
   email: string;
-  company?: string;
-  siteUrl?: string;
-  projectDescription: string;
-  services?: string[];
+  phone: string;
+  serviceNeeded?: string;
+  groupSize?: string;
+  message: string;
+  captchaToken: string;
 };
 
 const BRAND = process.env.CLIENT_NAME || "Nier Transportation";
-const CONTACT_TO = process.env.CONTACT_TO || process.env.SMTP_USER;
-const CONTACT_FROM = process.env.CONTACT_FROM || process.env.SMTP_USER;
-
-function requireEnv(name: string) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing required env var: ${name}`);
-  return v;
-}
+const RESEND_FROM = process.env.RESEND_FROM!;
 
 function escapeHtml(s = "") {
   return s
@@ -36,27 +30,41 @@ function escapeHtml(s = "") {
     .replace(/'/g, "&#39;");
 }
 
-function asList(items: string[] = []) {
-  if (!items.length) return "<em style='opacity:.7'>None selected</em>";
-  return `
-    <ul style="margin:8px 0 0; padding-left:18px; line-height:1.6">
-      ${items.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}
-    </ul>
-  `;
+// ─── reCAPTCHA Verification ───
+async function verifyCaptcha(token: string): Promise<boolean> {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!secret) {
+    console.warn("RECAPTCHA_SECRET_KEY not set — skipping verification");
+    return true;
+  }
+
+  try {
+    const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `secret=${encodeURIComponent(secret)}&response=${encodeURIComponent(token)}`,
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch (err) {
+    console.error("reCAPTCHA verification failed:", err);
+    return false;
+  }
 }
 
+// ─── Email HTML ───
 function emailHtml(payload: ContactPayload, submittedAt: string) {
   const {
     firstName,
     lastName,
     email,
-    company,
-    siteUrl,
-    projectDescription,
-    services = [],
+    phone,
+    serviceNeeded,
+    groupSize,
+    message,
   } = payload;
 
-  const brandBlue = "#4e94ec";
+  const brandColor = "#1a1a1a";
   const sand = "#f4efe7";
   const ink = "#0f1720";
 
@@ -64,80 +72,61 @@ function emailHtml(payload: ContactPayload, submittedAt: string) {
   <div style="font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto; background:${sand}; padding:24px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:720px; margin:0 auto; background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 6px 24px rgba(0,0,0,.08)">
       <tr>
-        <td style="background:${brandBlue}; color:#fff; padding:20px 24px">
+        <td style="background:${brandColor}; color:#fff; padding:20px 24px">
           <div style="font-size:14px; opacity:.9; letter-spacing:.08em; text-transform:uppercase;">New Inquiry</div>
-          <div style="font-size:20px; font-weight:700; margin-top:4px">${escapeHtml(
-            BRAND,
-          )} — Contact Form</div>
+          <div style="font-size:20px; font-weight:700; margin-top:4px">${escapeHtml(BRAND)} — Contact Form</div>
           <div style="font-size:12px; opacity:.9; margin-top:6px">${submittedAt}</div>
         </td>
       </tr>
 
       <tr>
         <td style="padding:24px">
-          <h2 style="margin:0 0 12px; font-size:18px; color:${ink}">Contact</h2>
+          <h2 style="margin:0 0 12px; font-size:18px; color:${ink}">Contact Details</h2>
           <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; font-size:14px; color:${ink}">
             <tr>
               <td style="width:180px; padding:6px 0; opacity:.8">Name</td>
-              <td style="padding:6px 0; font-weight:600">${escapeHtml(
-                `${firstName} ${lastName}`.trim(),
-              )}</td>
+              <td style="padding:6px 0; font-weight:600">${escapeHtml(`${firstName} ${lastName}`.trim())}</td>
             </tr>
             <tr>
               <td style="width:180px; padding:6px 0; opacity:.8">Email</td>
               <td style="padding:6px 0;">
-                <a href="mailto:${encodeURIComponent(email)}" style="color:${brandBlue}; text-decoration:none">${escapeHtml(
-                  email,
-                )}</a>
+                <a href="mailto:${encodeURIComponent(email)}" style="color:#4e94ec; text-decoration:none">${escapeHtml(email)}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="width:180px; padding:6px 0; opacity:.8">Phone</td>
+              <td style="padding:6px 0;">
+                <a href="tel:${escapeHtml(phone.replace(/\D/g, ""))}" style="color:#4e94ec; text-decoration:none">${escapeHtml(phone)}</a>
               </td>
             </tr>
             ${
-              company
-                ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Company</td><td style="padding:6px 0;">${escapeHtml(
-                    company,
-                  )}</td></tr>`
+              serviceNeeded
+                ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Service Needed</td><td style="padding:6px 0; font-weight:600">${escapeHtml(serviceNeeded)}</td></tr>`
                 : ""
             }
             ${
-              siteUrl
-                ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Current booking URL</td><td style="padding:6px 0;"><a href="${escapeHtml(
-                    siteUrl,
-                  )}" style="color:${brandBlue}; text-decoration:none">${escapeHtml(
-                    siteUrl,
-                  )}</a></td></tr>`
+              groupSize
+                ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Group Size</td><td style="padding:6px 0;">${escapeHtml(groupSize)} passengers</td></tr>`
                 : ""
             }
           </table>
 
           <hr style="border:none; border-top:1px solid #eee; margin:20px 0" />
 
-          <h2 style="margin:0 0 8px; font-size:18px; color:${ink}">Requested Services</h2>
-          <div style="font-size:14px">${asList(services)}</div>
-
-          <hr style="border:none; border-top:1px solid #eee; margin:20px 0" />
-
-          <h2 style="margin:0 8px 8px 0; font-size:18px; color:${ink}">Project Description</h2>
+          <h2 style="margin:0 8px 8px 0; font-size:18px; color:${ink}">Message</h2>
           <div style="white-space:pre-wrap; background:#fafafa; border:1px solid #eee; border-radius:10px; padding:12px; font-size:14px; line-height:1.6; color:${ink}">
-            ${escapeHtml(projectDescription)}
+            ${escapeHtml(message)}
           </div>
 
           <div style="margin-top:20px; padding:12px 14px; background:#f8fbff; border:1px solid #e5f0ff; border-radius:12px; font-size:13px; color:${ink}">
-            <strong>Reply tip:</strong> hit reply to contact <a href="mailto:${encodeURIComponent(
-              email,
-            )}" style="color:${brandBlue}; text-decoration:none">${escapeHtml(
-              email,
-            )}</a>. This email was generated from the ${escapeHtml(
-              BRAND,
-            )} website contact form.
+            <strong>Reply tip:</strong> Hit reply to contact <a href="mailto:${encodeURIComponent(email)}" style="color:#4e94ec; text-decoration:none">${escapeHtml(email)}</a> or call <a href="tel:${escapeHtml(phone.replace(/\D/g, ""))}" style="color:#4e94ec; text-decoration:none">${escapeHtml(phone)}</a>.
           </div>
         </td>
       </tr>
 
       <tr>
         <td style="background:#fafafa; padding:14px 24px; font-size:12px; color:#6b7280">
-          © ${new Date().getFullYear()} ${escapeHtml(
-            BRAND,
-          )}. "Fonts" for design. "Footers" for the technical foundation.
+          &copy; ${new Date().getFullYear()} ${escapeHtml(BRAND)}. This email was generated from the website contact form.
         </td>
       </tr>
     </table>
@@ -145,55 +134,43 @@ function emailHtml(payload: ContactPayload, submittedAt: string) {
   `;
 }
 
-function emailText(payload: ContactPayload, submittedAt: string) {
-  const {
-    firstName,
-    lastName,
-    email,
-    company,
-    siteUrl,
-    projectDescription,
-    services = [],
-  } = payload;
-
-  return [
-    `New Inquiry — ${BRAND}`,
-    `Submitted: ${submittedAt}`,
-    ``,
-    `Name: ${firstName} ${lastName}`,
-    `Email: ${email}`,
-    company ? `Company: ${company}` : ``,
-    siteUrl ? `Current booking URL: ${siteUrl}` : ``,
-    ``,
-    `Requested Services:`,
-    services.length
-      ? services.map((s) => `• ${s}`).join("\n")
-      : `None selected`,
-    ``,
-    `Project Description:`,
-    projectDescription,
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
+// ─── POST Handler ───
 export async function POST(req: NextRequest) {
   try {
-    requireEnv("SMTP_HOST");
-    requireEnv("SMTP_PORT");
-    requireEnv("SMTP_USER");
-    requireEnv("SMTP_PASS");
-    if (!CONTACT_TO || !CONTACT_FROM) {
-      throw new Error("CONTACT_TO and CONTACT_FROM must be set");
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error("Missing RESEND_API_KEY env var");
+    }
+    if (!RESEND_FROM) {
+      throw new Error("Missing RESEND_FROM env var");
     }
 
-    const body = (await req.json()) as Partial<ContactPayload>;
-    const errors: string[] = [];
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
-    if (!body.firstName) errors.push("firstName");
-    if (!body.lastName) errors.push("lastName");
-    if (!body.email) errors.push("email");
-    if (!body.projectDescription) errors.push("projectDescription");
+    const body = (await req.json()) as Partial<ContactPayload>;
+
+    // ─── Validate reCAPTCHA ───
+    if (!body.captchaToken) {
+      return NextResponse.json(
+        { error: "reCAPTCHA verification required" },
+        { status: 422 },
+      );
+    }
+
+    const captchaValid = await verifyCaptcha(body.captchaToken);
+    if (!captchaValid) {
+      return NextResponse.json(
+        { error: "reCAPTCHA verification failed" },
+        { status: 422 },
+      );
+    }
+
+    // ─── Validate required fields ───
+    const errors: string[] = [];
+    if (!body.firstName?.trim()) errors.push("firstName");
+    if (!body.lastName?.trim()) errors.push("lastName");
+    if (!body.email?.trim()) errors.push("email");
+    if (!body.phone?.trim()) errors.push("phone");
+    if (!body.message?.trim()) errors.push("message");
 
     if (errors.length) {
       return NextResponse.json(
@@ -203,16 +180,17 @@ export async function POST(req: NextRequest) {
     }
 
     const payload: ContactPayload = {
-      firstName: body.firstName!,
-      lastName: body.lastName!,
-      email: body.email!,
-      company: body.company || "",
-      siteUrl: body.siteUrl || "",
-      projectDescription: body.projectDescription!,
-      services: Array.isArray(body.services) ? body.services : [],
+      firstName: body.firstName!.trim(),
+      lastName: body.lastName!.trim(),
+      email: body.email!.trim(),
+      phone: body.phone!.trim(),
+      serviceNeeded: body.serviceNeeded?.trim() || "",
+      groupSize: body.groupSize?.trim() || "",
+      message: body.message!.trim(),
+      captchaToken: body.captchaToken,
     };
 
-    const { timezone: companyTz } = await getCompanySettings();
+    const { timezone: companyTz, supportEmail } = await getCompanySettings();
 
     const submittedAt = new Date().toLocaleString("en-US", {
       timeZone: companyTz,
@@ -224,34 +202,32 @@ export async function POST(req: NextRequest) {
       minute: "2-digit",
     });
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST!,
-      port: Number(process.env.SMTP_PORT!),
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: {
-        user: process.env.SMTP_USER!,
-        pass: process.env.SMTP_PASS!,
-      },
-    });
+    const toEmail =
+      supportEmail?.trim() ||
+      process.env.CONTACT_TO ||
+      "reservations@niertransportation.com";
 
-    const subject = `New inquiry — ${BRAND} — ${payload.firstName} ${payload.lastName}${
-      payload.company ? ` (${payload.company})` : ""
+    const subject = `New inquiry — ${payload.firstName} ${payload.lastName}${
+      payload.serviceNeeded ? ` — ${payload.serviceNeeded}` : ""
     }`;
 
-    const info = await transporter.sendMail({
-      from: `${BRAND} <${CONTACT_FROM}>`,
-      to: CONTACT_TO,
+    const { data, error } = await resend.emails.send({
+      from: RESEND_FROM,
+      to: toEmail,
       replyTo: payload.email,
       subject,
       html: emailHtml(payload, submittedAt),
-      text: emailText(payload, submittedAt),
-      headers: {
-        "X-Website": BRAND,
-        "X-Form": "Contact",
-      },
     });
 
-    return NextResponse.json({ messageId: info.messageId, ok: true });
+    if (error) {
+      console.error("RESEND_ERROR", error);
+      return NextResponse.json(
+        { error: "Failed to send message" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ messageId: data?.id, ok: true });
   } catch (err: any) {
     console.error("CONTACT_POST_ERROR", err);
     return NextResponse.json(

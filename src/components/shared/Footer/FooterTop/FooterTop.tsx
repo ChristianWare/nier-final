@@ -1,12 +1,10 @@
 import styles from "./FooterTop.module.css";
 import ContactSection from "../../ContactSection/ContactSection";
-import LayoutWrapper from "../../LayoutWrapper";
 import Logo from "../../Logo/Logo";
 
 export default function FooterTop() {
   return (
     <div className={styles.container}>
-      <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.left}>
             <Logo className={styles.logo} />
@@ -18,7 +16,6 @@ export default function FooterTop() {
             <ContactSection />
           </div>
         </div>
-      </LayoutWrapper>
     </div>
   );
 }
