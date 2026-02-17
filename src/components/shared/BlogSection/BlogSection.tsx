@@ -23,8 +23,7 @@ type Post = {
 
 async function getPosts(): Promise<Post[]> {
   const query = `
-    *[_type == "post"] | order(publishedAt desc) 
-    {
+*[_type == "post" && !("events" in tags[]->slug.current)] | order(publishedAt desc)    {
       _id,
       title,
       slug,

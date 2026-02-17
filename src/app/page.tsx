@@ -1,4 +1,5 @@
 import AboutUsIntro from "@/components/HomePage/AboutUsIntro/AboutUsIntro";
+import Events from "@/components/HomePage/Events/Events";
 import Fleet from "@/components/HomePage/Fleet/Fleet";
 import Hero from "@/components/HomePage/Hero/Hero";
 import ServiceAreas from "@/components/HomePage/ServiceAreas/ServiceAreas";
@@ -24,6 +25,7 @@ export default function HomePage() {
       <ServiceAreas />
       <Fleet />
       <Testimonials />
+      <Events />
       <Faq items={homeQuestions} />
       <BlogSection />
       <AboutNumbers />

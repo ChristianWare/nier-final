@@ -1,0 +1,338 @@
+.container {
+  background-color: var(--white);
+  padding: 10rem 0;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 5rem;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 1rem;
+}
+
+.logo {
+  font-size: 7rem;
+  color: var(--black);
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.icon {
+  width: 3.2rem;
+  height: 3.2rem;
+  padding: 0.7rem;
+  background-color: var(--cream);
+  color: var(--black);
+  border-radius: 5px;
+}
+
+.heading {
+  text-align: center;
+  /* width: 50%; */
+  font-size: 3.6rem;
+  line-height: 1.3;
+}
+
+.mapDataContainer {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+}
+
+.card {
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 5rem;
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.card:hover {
+  background-color: var(--stroke);
+}
+
+.cardLeft {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+}
+
+.dateContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.img {
+  border-radius: 7px;
+  object-fit: cover;
+}
+
+.cardRight {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  letter-spacing: -1px;
+  font-weight: 600;
+}
+
+.desc {
+  color: var(--paragraph);
+  width: 90%;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--paragraph);
+  font-size: 1.6rem;
+}
+
+.circlBtnContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.btnContainerii {
+  display: none;
+}
+
+.btnContainer {
+  margin-top: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+@media screen and (max-width: 1268px) {
+  .heading {
+    width: 80%;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .heading {
+    width: 90%;
+  }
+
+  .mapDataContainer {
+    /* grid-template-columns: repeat(2, 1fr); */
+    grid-gap: 2rem;
+  }
+
+  .cardRight {
+    display: flex;
+    /* flex-direction: column; */
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 5rem;
+  }
+
+  /* .circlBtnContainer {
+    display: none;
+  } */
+
+  .desc {
+    width: 100%;
+  }
+  /* 
+  .btnContainerii {
+    display: grid;
+    width: 100%;
+  } */
+}
+
+/* ─── ADD THESE TO YOUR EXISTING Events.module.css ─── */
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem 1.5rem;
+  /* border: none; */
+  border-radius: 5px;
+  background-color: var(--stroke);
+  border: 1px solid var(--stroke);
+  color: var(--black);
+  font: inherit;
+  font-weight: 600;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.tab:hover {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.tabActive {
+  background-color: var(--accent);
+  color: var(--white);
+  border-color: var(--accent);
+}
+
+.tabActive:hover {
+  background-color: var(--stroke);
+  color: var(--black);
+}
+
+.tabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 0.4rem;
+  border-radius: 50px;
+  border: 1px solid var(--black);
+  /* background-color: rgba(0, 0, 0, 0.12); */
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.tabActive .tabCount {
+  border-color: var(--white);
+  color: var(--white);
+}
+
+.emptyState {
+  padding: 4rem 0;
+  text-align: center;
+  color: var(--darkGray);
+  font-size: 1.4rem;
+}
+
+@media screen and (max-width: 968px) {
+  .br {
+    display: none;
+  }
+
+  .heading {
+    width: 100%;
+  }
+
+  .top {
+    gap: 2rem;
+    margin-bottom: 5rem;
+  }
+  .cardLeft {
+    /* gap: 2rem;
+    grid-template-columns: 1fr; */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2rem;
+  }
+
+  .img {
+    font-size: 0;
+  }
+
+  .mapDataContainer {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .cardRight {
+    /* display: grid;
+    grid-template-columns: 1fr;
+    grid-gap: 2rem; */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  .circlBtnContainer {
+    display: none;
+  }
+
+  .btnContainerii {
+    display: grid;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    background-color: var(--tan);
+  }
+
+  .mapDataContainer {
+    grid-gap: 5rem;
+  }
+
+  .card {
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 3rem;
+  }
+
+  .imgContainer {
+    order: -1;
+    height: 250px;
+  }
+
+  .heading {
+    width: 100%;
+    line-height: normal;
+  }
+
+  .tabs {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .spanImage {
+    height: 25px;
+    display: none;
+  }
+}

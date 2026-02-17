@@ -51,16 +51,15 @@ export default function BlogSearchBar() {
         onKeyDown={handleKeyDown}
         className={styles.searchInput}
       />
-      {query && (
-        <button
-          type='button'
-          onClick={() => setQuery("")}
-          className={styles.clearBtn}
-          aria-label='Clear search'
-        >
-          &times;
-        </button>
-      )}
+      <button
+        type='button'
+        onClick={() => setQuery("")}
+        className={styles.clearBtn}
+        aria-label='Clear search'
+        style={{ visibility: query ? "visible" : "hidden" }}
+      >
+        &times;
+      </button>
     </div>
   );
 }
