@@ -34,7 +34,7 @@
   flex-direction: column;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-radius: 10px;
+  border-radius: 5px;
   border: 2px solid var(--stroke);
   background: rgba(0, 0, 0, 0.02);
   min-width: 100px;
@@ -186,11 +186,15 @@
 
   .headerKpis {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .headerKpi {
     width: 100%;
+  }
+
+  .headerKpi:nth-last-child(1) {
+    grid-column: span 2;
   }
 
   .headerKpiRowLabelMonthly {
@@ -267,6 +271,6 @@
 
   .headerKpis {
     display: grid;
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }

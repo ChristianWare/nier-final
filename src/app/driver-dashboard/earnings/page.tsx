@@ -635,6 +635,25 @@ export default async function DriverEarningsPage({
 
       {/* KPI Cards */}
       <div className={styles.kpiGrid}>
+        <div className={styles.kpiCard}>
+          <div className={styles.kpiTop}>
+            <div className='emptyTitle underline'>Base Pay</div>
+          </div>
+          <div className={styles.kpiValue}>
+            {formatMoney(kpi.baseCents, currency)}
+          </div>
+          <div className='miniNote'>{rangeLabel}</div>
+        </div>
+        <div className={`${styles.kpiCard} ${styles.tone_tip}`}>
+          {" "}
+          <div className={styles.kpiTop}>
+            <div className='emptyTitle underline'>Tips</div>
+          </div>
+          <div className={styles.kpiValue}>
+            {formatMoney(kpi.tipCents, currency)}
+          </div>
+          <div className='miniNote'>{rangeLabel}</div>
+        </div>
         <div className={`${styles.kpiCard} ${styles.tone_good}`}>
           <div className={styles.kpiTop}>
             <div className='emptyTitle underline'>Total Earnings</div>
@@ -659,15 +678,6 @@ export default async function DriverEarningsPage({
             {formatMoney(kpi.avgCents, currency)}
           </div>
           <div className='miniNote'>Based on {kpi.tripCount} trips</div>
-        </div>
-        <div className={`${styles.kpiCard} ${styles.tone_good}`}>
-          <div className={styles.kpiTop}>
-            <div className='emptyTitle underline'>Tips</div>
-          </div>
-          <div className={styles.kpiValue}>
-            {formatMoney(kpi.tipCents, currency)}
-          </div>
-          <div className='miniNote'>Included in total earnings</div>
         </div>
       </div>
 

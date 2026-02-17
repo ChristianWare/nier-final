@@ -342,8 +342,11 @@
   font-weight: 600;
 }
 
-/* ── Add these to DriverEarningsPage.module.css ── */
-/* alongside existing .swatch rule */
+.tone_tip {
+  color: var(--accentBlue, #1d4ed8);
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.25);
+}
 
 .swatch[data-tone="base"] {
   background: var(--lightGreen);

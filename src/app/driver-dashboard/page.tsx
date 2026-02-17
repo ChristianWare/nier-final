@@ -256,7 +256,7 @@ export default async function DriverDashboardHome() {
     },
   });
 
-  // Fetch completed trips this month for earnings
+  // Fetch completed trips this month for earnings (include tips)
   const completedThisMonth = await db.booking.findMany({
     where: {
       pickupAt: { gte: mStart, lte: mEnd },
@@ -267,7 +267,7 @@ export default async function DriverDashboardHome() {
     select: {
       pickupAt: true,
       assignment: {
-        select: { driverPaymentCents: true },
+        select: { driverPaymentCents: true, driverTipCents: true },
       },
     },
   });
@@ -281,7 +281,7 @@ export default async function DriverDashboardHome() {
     },
   });
 
-  // Get actual driver payment for today
+  // Get actual driver payment for today (base + tips)
   const todayCompletedWithPayments = await db.booking.findMany({
     where: {
       pickupAt: { gte: todayStart, lte: todayEnd },
@@ -290,18 +290,20 @@ export default async function DriverDashboardHome() {
     },
     select: {
       assignment: {
-        select: { driverPaymentCents: true },
+        select: { driverPaymentCents: true, driverTipCents: true },
       },
     },
   });
 
   const todayDriverPaymentsCents = todayCompletedWithPayments.reduce(
-    (sum, b) => sum + (b.assignment?.driverPaymentCents ?? 0),
+    (sum, b) =>
+      sum +
+      (b.assignment?.driverPaymentCents ?? 0) +
+      (b.assignment?.driverTipCents ?? 0),
     0,
   );
 
   // ── Weekly stats ──────────────────────────────────────────────────
-  // Count of all assigned trips this week (not terminal)
   const weeklyTripsCount = await db.booking.count({
     where: {
       pickupAt: { gte: weekStart, lte: weekEnd },
@@ -310,7 +312,7 @@ export default async function DriverDashboardHome() {
     },
   });
 
-  // Weekly completed trips with driver payments
+  // Weekly completed trips with driver payments (include tips)
   const weeklyCompletedWithPayments = await db.booking.findMany({
     where: {
       pickupAt: { gte: weekStart, lte: weekEnd },
@@ -319,15 +321,25 @@ export default async function DriverDashboardHome() {
     },
     select: {
       assignment: {
-        select: { driverPaymentCents: true },
+        select: { driverPaymentCents: true, driverTipCents: true },
       },
     },
   });
 
   const weeklyEarningsCents = weeklyCompletedWithPayments.reduce(
-    (sum, b) => sum + (b.assignment?.driverPaymentCents ?? 0),
+    (sum, b) =>
+      sum +
+      (b.assignment?.driverPaymentCents ?? 0) +
+      (b.assignment?.driverTipCents ?? 0),
     0,
   );
+
+  const weeklyTipsCents = weeklyCompletedWithPayments.reduce(
+    (sum, b) => sum + (b.assignment?.driverTipCents ?? 0),
+    0,
+  );
+
+  const weeklyBaseCents = weeklyEarningsCents - weeklyTipsCents;
 
   const weeklyCompletedCount = weeklyCompletedWithPayments.length;
 
@@ -354,13 +366,21 @@ export default async function DriverDashboardHome() {
     countsByYmd[ymd] = (countsByYmd[ymd] ?? 0) + 1;
   }
 
-  // Aggregate daily earnings for chart
-  const dailyEarningsMap = new Map<string, { amount: number; count: number }>();
+  // Aggregate daily earnings for chart (base + tips)
+  const dailyEarningsMap = new Map<
+    string,
+    { base: number; tips: number; count: number }
+  >();
 
   for (const trip of completedThisMonth) {
     const dateKey = formatDateKey(trip.pickupAt, companyTz);
-    const existing = dailyEarningsMap.get(dateKey) || { amount: 0, count: 0 };
-    existing.amount += trip.assignment?.driverPaymentCents ?? 0;
+    const existing = dailyEarningsMap.get(dateKey) || {
+      base: 0,
+      tips: 0,
+      count: 0,
+    };
+    existing.base += trip.assignment?.driverPaymentCents ?? 0;
+    existing.tips += trip.assignment?.driverTipCents ?? 0;
     existing.count += 1;
     dailyEarningsMap.set(dateKey, existing);
   }
@@ -375,7 +395,7 @@ export default async function DriverDashboardHome() {
         key: dateStr,
         tick: formatChartTick(d, companyTz),
         label: formatChartLabel(d, companyTz),
-        earningsCents: data.amount,
+        earningsCents: data.base + data.tips,
         tripCount: data.count,
       };
     })
@@ -385,6 +405,14 @@ export default async function DriverDashboardHome() {
     (sum, d) => sum + d.earningsCents,
     0,
   );
+
+  const totalTipsMonthCents = completedThisMonth.reduce(
+    (sum, b) => sum + (b.assignment?.driverTipCents ?? 0),
+    0,
+  );
+
+  const monthlyBaseCents = totalEarningsMonthCents - totalTipsMonthCents;
+
   const totalTripsMonth = chartData.reduce((sum, d) => sum + d.tripCount, 0);
   const avgPerTripCents =
     totalTripsMonth > 0
@@ -409,11 +437,6 @@ export default async function DriverDashboardHome() {
       <header className={styles.pageHeader}>
         <div className='header'>
           <h1 className='heading h2'>Welcome back, {driverName}</h1>
-          {/* <p className='subheading'>
-            {activeCount > 0
-              ? `You have ${activeCount} upcoming trip${activeCount !== 1 ? "s" : ""}`
-              : "No upcoming trips scheduled"}
-          </p> */}
         </div>
 
         <div className={styles.headerKpiRows}>
@@ -430,16 +453,32 @@ export default async function DriverDashboardHome() {
               </span>
               <span className={styles.headerKpiLabel}>Completed</span>
             </div>
+            <div className={styles.headerKpi}>
+              <span className={styles.headerKpiValue}>
+                ${Math.round(weeklyBaseCents / 100)}
+              </span>
+              <span className={styles.headerKpiLabel}>Base Pay</span>
+            </div>
+            <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
+              <span className={styles.headerKpiValue}>
+                ${Math.round(weeklyTipsCents / 100)}
+              </span>
+              <span className={styles.headerKpiLabel}>Tips</span>
+            </div>
             <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
               <span className={styles.headerKpiValue}>
                 ${Math.round(weeklyEarningsCents / 100)}
               </span>
-              <span className={styles.headerKpiLabel}>Earned</span>
+              <span className={styles.headerKpiLabel}>Total Earned</span>
             </div>
           </div>
 
           {/* Monthly Stats */}
-          <span className={`${styles.headerKpiRowLabel} ${styles.headerKpiRowLabelMonthly}`}>This Month</span>
+          <span
+            className={`${styles.headerKpiRowLabel} ${styles.headerKpiRowLabelMonthly}`}
+          >
+            This Month
+          </span>
           <div className={styles.headerKpis}>
             <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
               <span className={styles.headerKpiValue}>{activeCount}</span>
@@ -449,11 +488,23 @@ export default async function DriverDashboardHome() {
               <span className={styles.headerKpiValue}>{totalTripsMonth}</span>
               <span className={styles.headerKpiLabel}>Completed</span>
             </div>
+            <div className={styles.headerKpi}>
+              <span className={styles.headerKpiValue}>
+                ${Math.round(monthlyBaseCents / 100)}
+              </span>
+              <span className={styles.headerKpiLabel}>Base Pay</span>
+            </div>
+            <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
+              <span className={styles.headerKpiValue}>
+                ${Math.round(totalTipsMonthCents / 100)}
+              </span>
+              <span className={styles.headerKpiLabel}>Tips</span>
+            </div>
             <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
               <span className={styles.headerKpiValue}>
                 ${Math.round(totalEarningsMonthCents / 100)}
               </span>
-              <span className={styles.headerKpiLabel}>Earned</span>
+              <span className={styles.headerKpiLabel}>Total Earned</span>
             </div>
           </div>
         </div>
