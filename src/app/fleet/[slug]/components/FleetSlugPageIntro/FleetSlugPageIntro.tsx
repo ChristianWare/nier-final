@@ -5,10 +5,10 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./FleetSlugPageIntro.module.css";
 import Image from "next/image";
 import Button from "@/components/shared/Button/Button";
-import type { Vehicle } from "@/lib/types/fleet";
+import type { VehicleData } from "@/lib/types/fleet";
 import ImgFallback from "../../../../../../public/images/vip.jpg";
 
-export default function FleetSlugPageIntro({ vehicle }: { vehicle: Vehicle }) {
+export default function FleetSlugPageIntro({ vehicle }: { vehicle: VehicleData }) {
   const heroImg =
     (vehicle.images?.[0]?.src as any) || (vehicle.src as any) || ImgFallback;
   const heroAlt = vehicle.images?.[0]?.alt ?? vehicle.title;
