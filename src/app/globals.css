@@ -315,7 +315,7 @@ select:focus {
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 1rem;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -519,7 +519,7 @@ th {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 1rem;
   font-size: 1.4rem;
   font-weight: 600;
   line-height: 1;

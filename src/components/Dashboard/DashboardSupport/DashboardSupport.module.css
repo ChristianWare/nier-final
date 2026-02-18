@@ -44,7 +44,7 @@
 
 .form {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .formTitle {
@@ -79,12 +79,12 @@
 
 .tripMeta {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .tripMetaBox {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
   padding: 1rem;
   /* background: var(--cream); */
   border: 1px solid var(--stroke);
@@ -115,7 +115,7 @@
 .formActions,
 .bottomCtas {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -136,7 +136,7 @@
 .faqGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .faqItem {

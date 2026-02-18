@@ -440,7 +440,7 @@ Payment Info (matching admin)
 .tipHeader {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .tipSubtitle {
@@ -452,7 +452,7 @@ Payment Info (matching admin)
 .tipGrid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .tipButton {
@@ -491,7 +491,7 @@ Payment Info (matching admin)
 
 .tipActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .tipActionButton {
@@ -521,7 +521,7 @@ Payment Info (matching admin)
 .customTipWrapper {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   padding: 0.75rem 1rem;
   border: 2px solid var(--black);
   border-radius: 8px;
@@ -553,7 +553,7 @@ Payment Info (matching admin)
 .priceBreakdown {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1.25rem;
   background: var(--cream);
   border: 1px solid var(--stroke);
@@ -699,7 +699,7 @@ Payment Info (matching admin)
 .cancelSection {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .cancelButton {
@@ -737,7 +737,7 @@ Payment Info (matching admin)
 
 .cancelConfirmActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .cancelConfirmYes {

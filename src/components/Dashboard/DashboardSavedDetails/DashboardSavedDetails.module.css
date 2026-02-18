@@ -18,7 +18,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .metaRight {
@@ -32,7 +32,7 @@
 
 .rows {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .row {
@@ -57,7 +57,7 @@
 
 .tripMetaBox {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
   padding: 1rem;
   border: 1px solid var(--stroke);
   border-radius: 10px;
@@ -88,7 +88,7 @@
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .item {
@@ -124,7 +124,7 @@
 .formActions,
 .cardActions {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -136,7 +136,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 1rem;
   font-size: 1.4rem;
   line-height: 1;
   white-space: nowrap;
@@ -151,7 +151,7 @@
   border-radius: 10px;
   padding: 1rem;
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .emptyTitle {
@@ -169,7 +169,7 @@
 .actionsRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.8rem;
+  gap: 1rem;
   align-items: center;
 }
 

@@ -11,7 +11,7 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid #e2e8f0;
@@ -20,7 +20,7 @@
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .headerIcon {
@@ -51,7 +51,7 @@
 .conflictAlert {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 0.875rem 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -92,7 +92,7 @@
 .loadingState {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1rem;
   color: #64748b;
   font-size: 1.4rem;
@@ -125,7 +125,7 @@
 .emptyState {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1rem;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
@@ -146,7 +146,7 @@
 .tripList {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .tripItem {
@@ -199,13 +199,13 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .tripRoute {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   font-size: 1.4rem;
   color: #1e293b;
   flex-wrap: wrap;
@@ -227,7 +227,7 @@
 .tripMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -322,7 +322,7 @@
 .currentBookingTime {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   font-size: 1.4rem;
   font-weight: 700;
   color: #1d4ed8;
@@ -354,19 +354,19 @@
 
   .tripItem {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .tripTime {
     flex-direction: row;
-    gap: 0.5rem;
+    gap: 1rem;
     min-width: unset;
   }
 
   .tripRoute {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: 1rem;
   }
 
   .routeFrom,
@@ -389,7 +389,7 @@
 
   .currentBookingIndicator {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
     align-items: flex-start;
   }
 }

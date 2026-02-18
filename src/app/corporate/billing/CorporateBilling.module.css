@@ -10,7 +10,7 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 
 .meta {
@@ -32,7 +32,7 @@
   padding: 1.4rem;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 1rem;
 }
 
 .kpiLabel {
@@ -68,7 +68,7 @@
   padding: 1.4rem;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .limitTop {
@@ -120,7 +120,7 @@
 /* ─── Tabs ─── */
 .tabRow {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 

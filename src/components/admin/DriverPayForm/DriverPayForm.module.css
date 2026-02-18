@@ -11,7 +11,7 @@
 .noDriverMessage {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   padding: 2rem;
   background: #f8fafc;
   border: 1px dashed #cbd5e1;
@@ -26,7 +26,7 @@
 .noDriverText {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .noDriverText strong {
@@ -62,7 +62,7 @@
 .currentValueDisplay {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .currentValueRow {
@@ -86,7 +86,7 @@
 .methodTabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-gap: 0.5rem;
+  grid-gap: 1rem;
   background: #e5e7eb;
   border-radius: 8px;
   padding: 3px;
@@ -97,7 +97,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 1rem;
   padding: 0.65rem 0.5rem;
   background: transparent;
   border: none;
@@ -381,7 +381,7 @@
 .earningsHeader {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid #e2e8f0;
@@ -631,7 +631,7 @@
   .methodTab {
     padding: 0.55rem 0.35rem;
     font-size: 1.4rem;
-    gap: 0.3rem;
+    gap: 1rem;
   }
 
   .methodTabIcon {

@@ -9,7 +9,6 @@
   display: grid;
   gap: 2rem;
   width: 100%;
-  
 }
 
 .top {
@@ -200,7 +199,7 @@
 
 .sectionHeader {
   display: grid;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 @media screen and (max-width: 1468px) {

@@ -21,7 +21,7 @@
 
 .meta {
   display: grid;
-  gap: 0.35rem;
+  gap: 1rem;
   min-width: 0;
 }
 
@@ -39,7 +39,7 @@
 .smallMeta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 1rem;
   font-size: 1.4rem;
   color: var(--paragraph);
 }
@@ -57,7 +57,7 @@
 .rightMeta {
   display: grid;
   justify-items: end;
-  gap: 0.45rem;
+  gap: 1rem;
 }
 
 .badge {
@@ -91,7 +91,7 @@
 
 .actionsRow {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -104,7 +104,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 1rem;
   font-size: 1.4rem;
   line-height: 1;
   white-space: nowrap;
@@ -133,7 +133,7 @@
   border-radius: 10px;
   padding: 1rem;
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .emptyTitle {

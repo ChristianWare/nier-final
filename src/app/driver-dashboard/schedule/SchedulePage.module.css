@@ -5,13 +5,13 @@
 
 .header {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .headerTop {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 /* Stats Row */
@@ -95,7 +95,7 @@
 .tripRow {
   display: grid;
   grid-template-columns: 100px 1fr 1.5fr auto;
-  gap: 1.5rem;
+  gap: 2rem;
   align-items: center;
   padding: 1rem 1.25rem;
   background: var(--white);
@@ -116,7 +116,7 @@
 .tripDateTime {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .tripDate {
@@ -134,7 +134,7 @@
 .tripInfo {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .tripCustomer {
@@ -150,7 +150,7 @@
 .tripRoute {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   font-size: 1.4rem;
 }
 
@@ -187,7 +187,7 @@
 @media screen and (max-width: 568px) {
   .statsRow {
     grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .statCard {
@@ -216,7 +216,7 @@
   .tripInfo {
     flex-direction: row;
     align-items: center;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
   .tripService::before {

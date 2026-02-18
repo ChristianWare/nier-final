@@ -50,7 +50,7 @@
   padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 
 .kpiLabel {
@@ -70,7 +70,7 @@
 
 .filterGroup {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .filterTitle {
@@ -83,7 +83,7 @@
 
 .tabRow {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -192,7 +192,7 @@
 
 .paginationRight {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   align-items: center;
 }
 

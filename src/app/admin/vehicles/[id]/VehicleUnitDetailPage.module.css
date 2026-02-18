@@ -40,7 +40,7 @@
 .profileSection {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .profileInfo {
@@ -53,7 +53,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 /* Cards */
@@ -69,7 +69,7 @@
   border-bottom: 1px solid var(--stroke);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .cardBody {
@@ -154,12 +154,12 @@
 /* Sections */
 .section {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .sectionHeader {
   display: grid;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .sectionHeaderTop {

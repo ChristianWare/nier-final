@@ -1,6 +1,6 @@
 .container {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
   border: 1px solid var(--stroke);
   border-radius: 12px;
   padding: 2rem;
@@ -41,7 +41,7 @@
 
 .emptyText {
   display: grid;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 /* Table Card */
@@ -140,7 +140,7 @@
 
 .cellStack {
   display: grid;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .cellSub {

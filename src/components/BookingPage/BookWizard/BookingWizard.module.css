@@ -278,7 +278,7 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .modalSubnote {
@@ -297,7 +297,7 @@
 .callForPricingBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 1rem;
   padding: 0.5rem 1rem;
   background: #fef3c7;
   border: 1px solid #f59e0b;

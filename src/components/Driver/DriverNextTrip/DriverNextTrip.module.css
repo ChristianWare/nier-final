@@ -1,6 +1,6 @@
 .container {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-bottom: 10rem;
 }
 
@@ -53,7 +53,11 @@
 
 /* Card - Blue styling with hover effect */
 .card {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(37, 99, 235, 0.12) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(59, 130, 246, 0.08) 0%,
+    rgba(37, 99, 235, 0.12) 100%
+  );
   border-radius: 12px;
   padding: 14px;
   border: 2px solid rgba(59, 130, 246, 0.3);

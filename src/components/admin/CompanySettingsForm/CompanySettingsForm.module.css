@@ -23,7 +23,7 @@
 .sectionHeader {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--stroke);
 }
@@ -37,13 +37,13 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .fieldFull {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
   grid-column: 1 / -1;
 }
 
@@ -484,7 +484,7 @@
 
   .hoursRow {
     grid-template-columns: 1fr;
-    gap: 0.5rem;
+    gap: 1rem;
     padding: 1rem;
   }
 

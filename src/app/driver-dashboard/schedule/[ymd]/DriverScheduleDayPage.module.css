@@ -5,7 +5,7 @@
 
 .header {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .headerTop {
@@ -68,7 +68,7 @@
 /* Trips List */
 .tripsList {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .tripCard {
@@ -95,7 +95,7 @@
 .tripBody {
   padding: 1.25rem;
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 /* Route */
@@ -142,7 +142,7 @@
 .tripDetail {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .detailLabel {

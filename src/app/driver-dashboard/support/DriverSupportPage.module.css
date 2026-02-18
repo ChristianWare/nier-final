@@ -17,7 +17,7 @@
 .top {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
   padding-bottom: 1.5rem;
   border-bottom: 2px solid var(--stroke);
 }
@@ -30,7 +30,7 @@
 .emergencyCard {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   padding: 1.5rem;
   background: linear-gradient(
     135deg,
@@ -89,7 +89,7 @@
 /* Sections */
 .section {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .sectionHeader {
@@ -399,7 +399,7 @@
 
   .officeCard {
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
   }
 
   .officeMap {

@@ -9,7 +9,7 @@
 
 .top {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
   max-width: 720px;
 }
 
@@ -31,7 +31,7 @@
 .statsRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .statCard {
@@ -40,7 +40,7 @@
   padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
   background: var(--white);
 }
 

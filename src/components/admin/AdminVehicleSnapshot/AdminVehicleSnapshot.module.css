@@ -76,7 +76,7 @@
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .row {
@@ -94,14 +94,14 @@
 .catNums {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 1rem;
   justify-content: flex-end;
 }
 
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 1rem;
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   border: 1px solid var(--stroke);

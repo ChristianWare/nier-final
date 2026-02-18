@@ -40,7 +40,7 @@
 .leftColumn {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .rightColumn {
@@ -168,7 +168,7 @@
   background: white;
   cursor: pointer;
   transition: all 0.15s ease;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .tipButtonSelected {
@@ -194,7 +194,7 @@
 
 .tipActions {
   display: flex;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .tipActionButton {
@@ -258,7 +258,7 @@
 .priceBreakdown {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .priceRow {
@@ -306,7 +306,7 @@
 .paymentForm {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .paymentElementWrapper {
@@ -327,7 +327,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 1rem;
   min-height: 56px;
 }
 
@@ -345,7 +345,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 1rem;
   font-size: 1.4rem;
   color: #888;
 }
@@ -386,7 +386,7 @@
 .errorBanner {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
@@ -399,7 +399,7 @@
 .errorMessage {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   padding: 0.75rem 1rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
@@ -449,7 +449,7 @@
 .stopsSurchargeNote {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 0.75rem 1rem;
   background: #fef3c7;
   border: 1px solid #fcd34d;

@@ -25,7 +25,7 @@
 
 .bigSub {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
@@ -65,7 +65,7 @@
   border-radius: 10px;
   padding: 1.2rem;
   display: grid;
-  gap: 0.7rem;
+  gap: 1rem;
   background: var(--lightGrayii);
 }
 
@@ -131,7 +131,7 @@
 .chartSummary {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   padding: 1rem 1.5rem;
   background: var(--lightGray);
   border-radius: 8px;
@@ -175,7 +175,7 @@
 .chartLegend {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 2rem;
   flex-wrap: wrap;
 }
 

@@ -8,7 +8,7 @@ import { auth } from "../../../../auth";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import UserSearchFormClient from "./UserSearchFormClient";
-import UserClearFiltersButton from "./UserClearFiltersButton";
+// import UserClearFiltersButton from "./UserClearFiltersButton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,7 +32,13 @@ const STATUSES = [
 
 const RANGES = ["upcoming", "past", "month", "all"] as const;
 
-const SORT_COLUMNS = ["pickup", "status", "service", "total", "created"] as const;
+const SORT_COLUMNS = [
+  "pickup",
+  "status",
+  "service",
+  "total",
+  "created",
+] as const;
 const SORT_ORDERS = ["asc", "desc"] as const;
 
 type StatusFilter = (typeof STATUSES)[number];
@@ -68,7 +74,7 @@ function getConfirmationCode(bookingId: string): string {
 
 function buildHref(
   base: string,
-  params: Record<string, string | undefined | null>
+  params: Record<string, string | undefined | null>,
 ) {
   const usp = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
@@ -162,7 +168,8 @@ function badgeTone(status: BookingStatus): BadgeTone {
     return "accent";
   if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
   if (status === "COMPLETED") return "good";
-  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED") return "neutral";
+  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
+    return "neutral";
   return "neutral";
 }
 
@@ -219,7 +226,8 @@ function buildWhere(args: {
 
   if (range === "upcoming") pickupAtFilter = { gte: now };
   if (range === "past") pickupAtFilter = { lt: now };
-  if (range === "month") pickupAtFilter = { gte: monthStart, lt: nextMonthStart };
+  if (range === "month")
+    pickupAtFilter = { gte: monthStart, lt: nextMonthStart };
 
   if (pickupAtFilter) where.pickupAt = pickupAtFilter;
 
@@ -241,7 +249,11 @@ function buildWhere(args: {
       { id: { contains: needle, mode: "insensitive" } },
       { pickupAddress: { contains: needle, mode: "insensitive" } },
       { dropoffAddress: { contains: needle, mode: "insensitive" } },
-      { serviceType: { is: { name: { contains: needle, mode: "insensitive" } } } },
+      {
+        serviceType: {
+          is: { name: { contains: needle, mode: "insensitive" } },
+        },
+      },
     ];
 
     if (isConfirmationCode) {
@@ -264,7 +276,7 @@ function buildWhere(args: {
 function buildOrderBy(
   sort: SortColumn | undefined,
   order: SortOrder,
-  range: RangeFilter
+  range: RangeFilter,
 ): Prisma.BookingOrderByWithRelationInput[] {
   if (sort) {
     const direction =
@@ -321,7 +333,14 @@ export default async function UserTripsPage({
   const now = new Date();
   const { timezone: companyTz } = await getCompanySettings();
 
-  const where = buildWhere({ now, userId, status, range, q, timeZone: companyTz });
+  const where = buildWhere({
+    now,
+    userId,
+    status,
+    range,
+    q,
+    timeZone: companyTz,
+  });
   const orderBy = buildOrderBy(sort, order, range);
 
   const totalCount = await db.booking.count({ where });
@@ -368,24 +387,24 @@ export default async function UserTripsPage({
       STATUSES.map(async (s) => {
         const c = await countFor({ status: s, q });
         return [s, c] as const;
-      })
+      }),
     ),
     Promise.all(
       RANGES.map(async (r) => {
         const c = await countFor({ range: r, q });
         return [r, c] as const;
-      })
+      }),
     ),
   ]);
 
-const statusCounts = Object.fromEntries(statusCountsArr) as Record<
-  StatusFilter,
-  number
->;
-const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
-  RangeFilter,
-  number
->;
+  const statusCounts = Object.fromEntries(statusCountsArr) as Record<
+    StatusFilter,
+    number
+  >;
+  const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
+    RangeFilter,
+    number
+  >;
 
   const baseParams: Record<string, string | undefined> = {
     status: status === "ALL" ? undefined : status,
@@ -395,23 +414,17 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
     order: sort ? order : undefined,
   };
 
-  const hasActiveFilters =
-    status !== "ALL" ||
-    range !== "upcoming" ||
-    q.length > 0 ||
-    sort !== undefined;
-
   const pageParams: Record<string, string | undefined> = {
     ...baseParams,
     page: safePage > 1 ? String(safePage) : undefined,
   };
 
   return (
-    <section className={styles.container} aria-label="My Trips">
+    <section className={styles.container} aria-label='My Trips'>
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <div className={styles.top}>
-            <Link href="/dashboard" className="backBtn">
+            <Link href='/dashboard' className='backBtn'>
               ← Back to Dashboard
             </Link>
             <h1 className={`${styles.heading} h2`}>My Trips</h1>
@@ -421,8 +434,8 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
             <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong> trips
             {totalCount > 0 ? (
               <span className={styles.metaSep}>
-                • Page <strong className="emptyTitleSmall">{safePage}</strong> of{" "}
-                <strong className="emptyTitleSmall">{totalPages}</strong>
+                • Page <strong className='emptyTitleSmall'>{safePage}</strong>{" "}
+                of <strong className='emptyTitleSmall'>{totalPages}</strong>
               </span>
             ) : null}
           </div>
@@ -431,7 +444,11 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
         <div className={styles.filters}>
           <div className={styles.filterGroup}>
             <div className={styles.filterTitle}>Time</div>
-            <RangeTabs active={range} current={baseParams} counts={rangeCounts} />
+            <RangeTabs
+              active={range}
+              current={baseParams}
+              counts={rangeCounts}
+            />
           </div>
 
           <div className={styles.filterGroup}>
@@ -443,9 +460,9 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
             />
           </div>
 
-          <div className={styles.filterGroup}>
+          {/* <div className={styles.filterGroup}>
             <UserClearFiltersButton hasActiveFilters={hasActiveFilters} />
-          </div>
+          </div> */}
         </div>
 
         <UserSearchFormClient current={baseParams} defaultValue={q} />
@@ -467,7 +484,7 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
               ? "Try adjusting your filters or search."
               : "You haven't booked any trips yet."}
           </p>
-          <Link href="/booking" className="primaryBtn">
+          <Link href='/booking' className='primaryBtn'>
             Book a Ride →
           </Link>
         </div>
@@ -478,35 +495,35 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
               <thead className={styles.thead}>
                 <tr className={styles.trHead}>
                   <SortableHeader
-                    label="Pickup"
-                    column="pickup"
+                    label='Pickup'
+                    column='pickup'
                     currentSort={sort}
                     currentOrder={order}
                     baseParams={baseParams}
                   />
                   <SortableHeader
-                    label="Status"
-                    column="status"
+                    label='Status'
+                    column='status'
                     currentSort={sort}
                     currentOrder={order}
                     baseParams={baseParams}
                   />
                   <th className={styles.th}>Route</th>
                   <SortableHeader
-                    label="Service"
-                    column="service"
+                    label='Service'
+                    column='service'
                     currentSort={sort}
                     currentOrder={order}
                     baseParams={baseParams}
                   />
                   <th className={styles.th}>Driver</th>
                   <SortableHeader
-                    label="Total"
-                    column="total"
+                    label='Total'
+                    column='total'
                     currentSort={sort}
                     currentOrder={order}
                     baseParams={baseParams}
-                    align="right"
+                    align='right'
                   />
                   <th className={`${styles.th} ${styles.thRight}`}></th>
                 </tr>
@@ -523,12 +540,14 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                   const isPaid = b.payment?.status === "PAID";
 
                   const displayStatus =
-                    isPaid && (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
+                    isPaid &&
+                    (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
                       ? "Confirmed"
                       : statusLabel(b.status as BookingStatus);
 
                   const displayTone =
-                    isPaid && (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
+                    isPaid &&
+                    (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
                       ? "good"
                       : tone;
 
@@ -541,24 +560,25 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                       {/* Pickup */}
                       <td
                         className={styles.td}
-                        data-label="Pickup"
+                        data-label='Pickup'
                         style={{ position: "relative" }}
                       >
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
-                          aria-label="Open trip"
+                          aria-label='Open trip'
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
                         <div className={styles.pickupCell}>
                           <Link href={href} className={styles.rowLink}>
-                            {tz.formatDate(b.pickupAt, companyTz)} @ {formatTime(b.pickupAt, companyTz)}
+                            {tz.formatDate(b.pickupAt, companyTz)} @{" "}
+                            {formatTime(b.pickupAt, companyTz)}
                           </Link>
                           <div className={styles.pickupMeta}>
                             <span className={styles.pill}>{pickupEta}</span>
                             <span
                               className={styles.confirmationCode}
-                              title="Confirmation Code"
+                              title='Confirmation Code'
                             >
                               #{confirmationCode}
                             </span>
@@ -569,13 +589,13 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                       {/* Status */}
                       <td
                         className={styles.td}
-                        data-label="Status"
+                        data-label='Status'
                         style={{ position: "relative" }}
                       >
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
-                          aria-hidden="true"
+                          aria-hidden='true'
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
@@ -589,13 +609,13 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                       {/* Route */}
                       <td
                         className={styles.td}
-                        data-label="Route"
+                        data-label='Route'
                         style={{ position: "relative" }}
                       >
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
-                          aria-hidden="true"
+                          aria-hidden='true'
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
@@ -614,13 +634,13 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                       {/* Service */}
                       <td
                         className={styles.td}
-                        data-label="Service"
+                        data-label='Service'
                         style={{ position: "relative" }}
                       >
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
-                          aria-hidden="true"
+                          aria-hidden='true'
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
@@ -629,7 +649,9 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                             {b.serviceType?.name ?? "—"}
                           </div>
                           {b.vehicle && (
-                            <div className={styles.cellSub}>{b.vehicle.name}</div>
+                            <div className={styles.cellSub}>
+                              {b.vehicle.name}
+                            </div>
                           )}
                         </div>
                       </td>
@@ -637,20 +659,22 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                       {/* Driver */}
                       <td
                         className={styles.td}
-                        data-label="Driver"
+                        data-label='Driver'
                         style={{ position: "relative" }}
                       >
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
-                          aria-hidden="true"
+                          aria-hidden='true'
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
                         <div className={styles.cellStack}>
                           {driverName ? (
                             <>
-                              <div className={styles.cellStrong}>{driverName}</div>
+                              <div className={styles.cellStrong}>
+                                {driverName}
+                              </div>
                               {b.assignment?.vehicleUnit && (
                                 <div className={styles.cellSub}>
                                   {b.assignment.vehicleUnit.name}
@@ -671,13 +695,13 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                       {/* Total */}
                       <td
                         className={`${styles.td} ${styles.tdRight}`}
-                        data-label="Total"
+                        data-label='Total'
                         style={{ position: "relative" }}
                       >
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
-                          aria-hidden="true"
+                          aria-hidden='true'
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
@@ -687,19 +711,19 @@ const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
                       {/* Action */}
                       <td
                         className={`${styles.td} ${styles.tdRight}`}
-                        data-label="Action"
+                        data-label='Action'
                       >
                         {hasPaymentDue ? (
                           <Link
                             className={`primaryBtn ${styles.payNowBtn}`}
                             href={b.payment!.checkoutUrl!}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            target='_blank'
+                            rel='noopener noreferrer'
                           >
                             Pay Now
                           </Link>
                         ) : (
-                          <Link className="primaryBtn" href={href}>
+                          <Link className='primaryBtn' href={href}>
                             View
                           </Link>
                         )}
@@ -788,7 +812,9 @@ function StatusTabs({
             className={`tab ${isActive ? "tabActive" : ""}`}
           >
             {statusTabLabel(s)}
-            <span className={`countPill ${isActive ? "countPillWhiteText" : ""}`}>
+            <span
+              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
+            >
               {counts[s] ?? 0}
             </span>
           </Link>
@@ -831,7 +857,9 @@ function RangeTabs({
             className={`tab ${isActive ? "tabActive" : ""}`}
           >
             {x.label}
-            <span className={`countPill ${isActive ? "countPillWhiteText" : ""}`}>
+            <span
+              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
+            >
               {counts[x.value] ?? 0}
             </span>
           </Link>
@@ -912,7 +940,7 @@ function Pagination({
               <span
                 key={`dots-${idx}`}
                 className={`${styles.pageBtn} ${styles.pageBtnDisabled}`}
-                aria-hidden="true"
+                aria-hidden='true'
               >
                 …
               </span>
@@ -927,7 +955,10 @@ function Pagination({
           const isActive = x === page;
 
           return isActive ? (
-            <span key={x} className={`${styles.pageBtn} ${styles.pageBtnActive}`}>
+            <span
+              key={x}
+              className={`${styles.pageBtn} ${styles.pageBtnActive}`}
+            >
               {x}
             </span>
           ) : (

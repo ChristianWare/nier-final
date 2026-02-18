@@ -38,12 +38,12 @@
 
 .filters {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .filterGroup {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .filterTitle {

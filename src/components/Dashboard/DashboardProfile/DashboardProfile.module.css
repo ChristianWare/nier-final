@@ -33,7 +33,7 @@
 
 .rows {
   display: grid;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .row {
@@ -93,7 +93,7 @@
 .twoCol {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.9rem;
+  gap: 1rem;
 }
 
 .formActions {
@@ -103,7 +103,7 @@
 
 .disabledBox {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
   padding: 1rem;
   border-radius: 10px;
   background: var(--cream);
@@ -118,7 +118,7 @@
 
 .sessionActions {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 

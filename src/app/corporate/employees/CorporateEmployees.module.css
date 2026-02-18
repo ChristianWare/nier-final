@@ -216,7 +216,7 @@
 .formField {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 
 .formField:first-child {

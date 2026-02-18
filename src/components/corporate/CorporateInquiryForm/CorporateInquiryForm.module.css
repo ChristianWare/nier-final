@@ -18,12 +18,12 @@
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .labelInputBox {
   display: grid;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .labelInputBox label {
@@ -139,12 +139,12 @@
 @media screen and (max-width: 568px) {
   .form {
     padding: 1.75rem 1.25rem;
-    gap: 1.5rem;
+    gap: 2rem;
   }
 
   .row {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 2rem;
   }
 
   .successContainer {

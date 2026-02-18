@@ -370,7 +370,7 @@
 .driverLabel {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 
 /* Add these swatch rules alongside the existing ones */

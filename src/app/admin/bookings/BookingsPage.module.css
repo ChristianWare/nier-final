@@ -437,9 +437,9 @@
   flex-direction: column;
   gap: 1rem;
   background: linear-gradient(135deg, #3b82f614 0%, #2563eb1f 100%);
-    border: 2px solid #3b82f64d;
-    border-radius: 8px;
-    padding: 2rem;
+  border: 2px solid #3b82f64d;
+  border-radius: 8px;
+  padding: 2rem;
 }
 
 .checkboxCol {
@@ -618,7 +618,7 @@
   .checkboxCol {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 0.75rem 1.5rem;
+    gap: 1rem 1.5rem;
   }
 }
 

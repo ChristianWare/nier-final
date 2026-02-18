@@ -30,7 +30,7 @@
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -50,7 +50,7 @@
 
 .filterGroup {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .filterTitle {
@@ -63,7 +63,7 @@
 
 .tabRow {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -88,7 +88,7 @@
 
 .paginationRight {
   display: flex;
-  gap: 0.6rem;
+  gap: 1rem;
   align-items: center;
 }
 
@@ -205,7 +205,7 @@
 
 .cellStack {
   display: grid;
-  gap: 0.25rem;
+  gap: 1rem;
 }
 
 .cellStrong {
@@ -329,7 +329,7 @@
   }
 
   .tabRow {
-    gap: 0.45rem;
+    gap: 1rem;
   }
 
   .pagination {
@@ -358,6 +358,6 @@
 
   .pill {
     font-size: 1.4rem;
-    padding: .5rem 1rem;
+    padding: 0.5rem 1rem;
   }
 }

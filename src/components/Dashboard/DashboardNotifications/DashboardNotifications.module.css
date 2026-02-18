@@ -1,6 +1,6 @@
 .headerActions {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
   align-items: center;
 }
@@ -57,14 +57,14 @@
 .activityLeft {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  grid-gap: 1.5rem;
+  grid-gap: 2rem;
   min-width: 0;
 }
 
 .tagRow {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 1rem;
   min-width: 0;
 }
 
@@ -86,7 +86,7 @@
 
 .actions {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -99,7 +99,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 1rem;
   font-size: 1.4rem;
   line-height: 1;
   white-space: nowrap;

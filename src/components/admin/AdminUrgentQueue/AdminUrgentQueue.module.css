@@ -60,7 +60,7 @@
 .list {
   list-style: none;
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
   padding: 0;
   margin: 0;
   width: 100%;
@@ -69,7 +69,7 @@
 .row {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
   align-items: flex-start;
   justify-content: space-between;
   background: var(--lightGrayii);
@@ -136,7 +136,7 @@
 .tripBadges {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
   flex-wrap: wrap;
 }
 
@@ -152,7 +152,7 @@
 .tripActions {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .tripMain {
@@ -163,12 +163,12 @@
 
 .tripHeadline {
   display: grid;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .tripRoute {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
 }
 
 .routeValue {
@@ -185,7 +185,7 @@
 
 .detail {
   display: grid;
-  gap: 0.6rem;
+  gap: 1rem;
   padding: 1rem;
   border-radius: 10px;
   border: 1px solid var(--stroke);
@@ -194,7 +194,7 @@
 
 .tripGuestMeta {
   display: grid;
-  gap: 0.4rem;
+  gap: 1rem;
 }
 
 @media screen and (min-width: 900px) {

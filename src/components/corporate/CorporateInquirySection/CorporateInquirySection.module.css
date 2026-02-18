@@ -11,7 +11,7 @@
 
 .left {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
   position: sticky;
   top: 120px;
 }
@@ -28,7 +28,7 @@
 
 .details {
   display: grid;
-  gap: 1.5rem;
+  gap: 2rem;
   margin-top: 1rem;
 }
 
@@ -57,7 +57,7 @@
 .detailText {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 1rem;
 }
 
 .detailTitle {

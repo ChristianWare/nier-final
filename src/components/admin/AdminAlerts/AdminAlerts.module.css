@@ -33,7 +33,7 @@
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 0.8rem;
+  gap: 1rem;
 }
 
 .row {
@@ -58,7 +58,7 @@
 
 .left {
   display: grid;
-  gap: 0.3rem;
+  gap: 1rem;
   flex: 1;
   min-width: 0;
 }
@@ -81,7 +81,7 @@
 .detailsBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   border: 1px solid var(--stroke);
@@ -287,7 +287,7 @@
 .detailsActions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
   padding-top: 0.5rem;
 }
 
@@ -325,7 +325,7 @@
 
   .mainRow {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
   }
 
   .right {

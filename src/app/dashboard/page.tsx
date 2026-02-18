@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // src/app/dashboard/page.tsx
 import styles from "./DashboardPage.module.css";
 import { auth } from "../../../auth";
@@ -470,7 +471,7 @@ export default async function DashboardHomePage() {
         confirmed={upcomingPaidCount}
       />
 
-      <UserAlerts alerts={finalAlerts} />
+      {/* <UserAlerts alerts={finalAlerts} /> */}
 
       <UserNextTrip trip={nextTrip} timeZone={companyTz} />
 

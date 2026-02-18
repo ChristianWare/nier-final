@@ -30,7 +30,7 @@
 
 .bigSub {
   display: flex;
-  gap: 0.8rem;
+  gap: 1rem;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
@@ -70,7 +70,7 @@
   border-radius: 10px;
   padding: 1.2rem;
   display: grid;
-  gap: 0.7rem;
+  gap: 1rem;
   background: var(--lightGrayii);
 }
 
