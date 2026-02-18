@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./BookingsPage.module.css";
 import Button from "@/components/shared/Button/Button";
@@ -28,31 +28,41 @@ export default function SearchFormClient({
   defaultValue?: string;
 }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<"search" | "clear" | null>(
+    null,
+  );
 
   const initial = useMemo(() => (defaultValue ?? "").trim(), [defaultValue]);
   const [value, setValue] = useState(initial);
 
-  function apply(nextQ: string) {
+  function apply(nextQ: string, action: "search" | "clear") {
     const q = nextQ.trim();
 
     const href = buildHref("/admin/bookings", {
       ...current,
       q: q.length ? q : undefined,
-      page: undefined, // reset paging when searching
+      page: undefined,
     });
 
-    router.replace(href, { scroll: false });
+    setPendingAction(action);
+    startTransition(() => {
+      router.replace(href, { scroll: false });
+    });
   }
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    apply(value);
+    apply(value, "search");
   }
 
   function onClear() {
     setValue("");
-    apply("");
+    apply("", "clear");
   }
+
+  const isSearching = isPending && pendingAction === "search";
+  const isClearing = isPending && pendingAction === "clear";
 
   return (
     <form className={styles.searchRow} onSubmit={onSubmit}>
@@ -60,17 +70,24 @@ export default function SearchFormClient({
         className='inputBorder'
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        // ✅ UPDATED: Added confirmation code to placeholder
         placeholder='Search name, email, confirmation #, booking ID, phone, address…'
+        disabled={isPending}
+        style={isPending ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
       />
-      <Button text='Search' btnType='blackReg' type='submit' />
+      <Button
+        text={isSearching ? "Searching…" : "Search"}
+        btnType='blackReg'
+        type='submit'
+        disabled={isPending}
+      />
 
-      {value.trim().length ? (
+      {value.trim().length || isClearing ? (
         <Button
-          text='Clear'
+          text={isClearing ? "Clearing…" : "Clear"}
           btnType='grayReg'
           type='button'
           onClick={onClear}
+          disabled={isPending}
         />
       ) : null}
     </form>
