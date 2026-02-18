@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import styles from "./CorporateInquiryDetailPage.module.css";
 import Modal from "@/components/shared/Modal/Modal";
+import Button from "@/components/shared/Button/Button";
 import {
   updateInquiryStatus,
   updateInquiryNotes,
@@ -24,11 +25,18 @@ export default function InquiryActionsClient({
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [notes, setNotes] = useState(currentNotes);
-  const [notesSaved, setNotesSaved] = useState(true);
 
-  // Approve modal state
+  // Notes lock/unlock state
+  const [notes, setNotes] = useState(currentNotes);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
+
+  // Modal open states
   const [approveOpen, setApproveOpen] = useState(false);
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [contactedOpen, setContactedOpen] = useState(false);
+
+  // Approve form state
   const [billingCycle, setBillingCycle] = useState("MONTHLY");
   const [paymentMethod, setPaymentMethod] = useState("INVOICE");
   const [paymentTerms, setPaymentTerms] = useState("NET_30");
@@ -38,24 +46,83 @@ export default function InquiryActionsClient({
   const isTerminal =
     currentStatus === "APPROVED" || currentStatus === "DECLINED";
 
+  /* ── Notes card class ── */
+  const notesCardClass = notesSaved
+    ? `${styles.card} ${styles.cardSaved}`
+    : isEditingNotes
+      ? `${styles.card} ${styles.cardEditing}`
+      : styles.card;
+
   function handleSaveNotes() {
     startTransition(async () => {
       const res = await updateInquiryNotes(inquiryId, notes);
       if (res.ok) {
         toast.success("Notes saved.");
         setNotesSaved(true);
+        setTimeout(() => {
+          setNotesSaved(false);
+          setIsEditingNotes(false);
+        }, 2000);
       } else {
         toast.error(res.error ?? "Failed to save notes.");
       }
     });
   }
 
-  function handleMarkContacted() {
-    if (!window.confirm("Mark this inquiry as contacted?")) return;
+  function handleCancelNotes() {
+    setNotes(currentNotes);
+    setIsEditingNotes(false);
+  }
+
+  const renderNotesActions = () => {
+    if (notesSaved) {
+      return (
+        <div className={styles.notesActions}>
+          <Button text='Saved ✓' btnType='greenReg' type='button' disabled />
+        </div>
+      );
+    }
+
+    if (isEditingNotes) {
+      return (
+        <div className={styles.notesActions}>
+          <Button
+            btnType='greenReg'
+            type='button'
+            onClick={handleSaveNotes}
+            disabled={isPending}
+            text={isPending ? "Saving..." : "Save Notes"}
+          />
+          {!isPending && (
+            <Button
+              text='Cancel'
+              btnType='redReg'
+              type='button'
+              onClick={handleCancelNotes}
+            />
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.notesActions}>
+        <Button
+          text='Edit Notes'
+          btnType='grayReg'
+          type='button'
+          onClick={() => setIsEditingNotes(true)}
+        />
+      </div>
+    );
+  };
+
+  function handleMarkContactedConfirm() {
     startTransition(async () => {
       const res = await updateInquiryStatus(inquiryId, "CONTACTED");
       if (res.ok) {
         toast.success("Marked as contacted.");
+        setContactedOpen(false);
         router.refresh();
       } else {
         toast.error(res.error ?? "Failed.");
@@ -63,12 +130,12 @@ export default function InquiryActionsClient({
     });
   }
 
-  function handleDecline() {
-    if (!window.confirm("Decline this inquiry? This cannot be undone.")) return;
+  function handleDeclineConfirm() {
     startTransition(async () => {
       const res = await updateInquiryStatus(inquiryId, "DECLINED");
       if (res.ok) {
         toast.success("Inquiry declined.");
+        setDeclineOpen(false);
         router.refresh();
       } else {
         toast.error(res.error ?? "Failed.");
@@ -104,7 +171,7 @@ export default function InquiryActionsClient({
   return (
     <>
       {/* Admin Notes */}
-      <div className={styles.card}>
+      <div className={notesCardClass}>
         <div className={styles.cardTop}>
           <div className='cardTitle h4'>Admin Notes</div>
         </div>
@@ -112,22 +179,11 @@ export default function InquiryActionsClient({
           className={styles.textarea}
           rows={4}
           value={notes}
-          onChange={(e) => {
-            setNotes(e.target.value);
-            setNotesSaved(false);
-          }}
+          onChange={(e) => setNotes(e.target.value)}
           placeholder='Internal notes about this inquiry...'
-          disabled={isPending}
+          disabled={!isEditingNotes || isPending}
         />
-        <div className={styles.notesActions}>
-          <button
-            className='neutralBtn'
-            onClick={handleSaveNotes}
-            disabled={isPending || notesSaved}
-          >
-            {notesSaved ? "Saved" : "Save Notes"}
-          </button>
-        </div>
+        {renderNotesActions()}
       </div>
 
       {/* Action Buttons */}
@@ -140,7 +196,7 @@ export default function InquiryActionsClient({
             {currentStatus === "PENDING" && (
               <button
                 className='warningBtn'
-                onClick={handleMarkContacted}
+                onClick={() => setContactedOpen(true)}
                 disabled={isPending}
               >
                 Mark as Contacted
@@ -155,13 +211,71 @@ export default function InquiryActionsClient({
             </button>
             <button
               className='dangerBtn'
-              onClick={handleDecline}
+              onClick={() => setDeclineOpen(true)}
               disabled={isPending}
             >
               Decline
             </button>
           </div>
         </div>
+      )}
+
+      {/* Mark as Contacted Modal */}
+      {contactedOpen && (
+        <Modal isOpen={contactedOpen} onClose={() => setContactedOpen(false)}>
+          <div className={styles.modalContent}>
+            <h3 className='h4'>Mark as Contacted</h3>
+            <p className='subheading'>
+              Confirm that your team has reached out to this company. The
+              inquiry status will update to Contacted.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                className='warningBtn'
+                onClick={handleMarkContactedConfirm}
+                disabled={isPending}
+              >
+                {isPending ? "Saving..." : "Yes, Mark as Contacted"}
+              </button>
+              <button
+                className='neutralBtn'
+                onClick={() => setContactedOpen(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Decline Modal */}
+      {declineOpen && (
+        <Modal isOpen={declineOpen} onClose={() => setDeclineOpen(false)}>
+          <div className={styles.modalContent}>
+            <h3 className='h4'>Decline Inquiry</h3>
+            <p className='subheading'>
+              Are you sure you want to decline this inquiry? This action cannot
+              be undone.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                className='dangerBtn'
+                onClick={handleDeclineConfirm}
+                disabled={isPending}
+              >
+                {isPending ? "Declining..." : "Yes, Decline"}
+              </button>
+              <button
+                className='neutralBtn'
+                onClick={() => setDeclineOpen(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
 
       {/* Approve Modal */}

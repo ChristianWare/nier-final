@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Linda from "../../public/images/linda.jpg";
 import Sheryl from "../../public/images/sheryl.jpg";
 import Jeff from "../../public/images/jeff.jpg";
@@ -38,7 +39,8 @@ import Sprinter from "../../public/images/sprinter.png";
 import MercedesSedan from "../../public/images/mercedesSedan.avif";
 import PartyBus from "../../public/images/partyBusii.png";
 import Bus from "../../public/images/bus.png";
-import { Vehicle } from "./types/fleet";
+import Limo from "../../public/images/limo.png";
+import { VehicleData } from "./types/fleet";
 
 export const reviews = [
   {
@@ -559,10 +561,56 @@ export const aboutQuestions = [
   },
 ] as const;
 
-export const fleetData: ReadonlyArray<Vehicle> = [
+export type Vehicle = {
+  id: number;
+  title: string;
+  slug: string;
+  class: string;
+  heroLine?: string;
+  shortDesc?: string;
+  longDesc?: string;
+  seats: string;
+  luggage?: string;
+  cargo?: string;
+  cargoCuFt?: string;
+  bestFor?: ReadonlyArray<string>;
+  specs?: {
+    drivetrain?: string;
+    rideFeel?: string;
+    cabin?: string;
+    dimensions?: string;
+  };
+  amenities?: ReadonlyArray<string>;
+  safetyTech?: ReadonlyArray<string>;
+  features?: ReadonlyArray<string>;
+  availabilityNotes?: string;
+  images?: ReadonlyArray<{ src: any; alt: string }>;
+  src?: any;
+  rateRules?: {
+    minimumHours?: number;
+    hourlyFromUSD?: number;
+    airportTransferFromUSD?: number;
+    meetAndGreetUSD?: number;
+    afterHoursSurchargePct?: number;
+    waitTimeGraceMin?: number;
+    extraStopUSD?: number;
+  };
+  policy?: {
+    summary: string;
+    details: string[];
+  };
+  faqs?: ReadonlyArray<{ q: string; a: string }>;
+  seo?: {
+    metaTitle: string;
+    metaDescription: string;
+  };
+  desc?: string;
+};
+
+export const fleetData: ReadonlyArray<VehicleData> = [
   {
     id: 1,
-    title: "Mercedes-Benz E-Class Sedan",
+    title: "Executive Sedan",
     slug: "mercedes-e-class-sedan",
     class: "Executive Sedan",
     heroLine: "Executive comfort with a discreet profile.",
@@ -603,8 +651,8 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     ],
     availabilityNotes: "Black exterior, black interior.",
     images: [
-      { src: MercedesSedan, alt: "Mercedes E-Class exterior" },
-      { src: "/images/fleet/eclass-2.jpg", alt: "Mercedes E-Class interior" },
+      { src: MercedesSedan, alt: "Executive sedan exterior" },
+      { src: "/images/fleet/eclass-2.jpg", alt: "Executive sedan interior" },
     ],
     rateRules: {
       minimumHours: 2,
@@ -641,15 +689,15 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
       {
         q: "Is the ride quiet enough for calls?",
-        a: "Yes—the E-Class is known for excellent cabin isolation, making it ideal for calls and focused work.",
+        a: "Yes—our executive sedan is known for excellent cabin isolation, making it ideal for calls and focused work.",
       },
       {
-        q: "Can you provide a child seat for the sedan?",
+        q: "Can you provide a child seat?",
         a: "Yes—add your request at booking and we'll pre-install before pickup.",
       },
     ],
     seo: {
-      metaTitle: "Mercedes-Benz E-Class | Nier Transportation Fleet",
+      metaTitle: "Executive Sedan | Nier Transportation Fleet",
       metaDescription:
         "Executive sedan for efficient city travel and airport transfers. Comfortable, quiet, and discreet.",
     },
@@ -658,14 +706,14 @@ export const fleetData: ReadonlyArray<Vehicle> = [
   },
   {
     id: 2,
-    title: "Chevy Suburban",
+    title: "7-Passenger SUV",
     slug: "chevy-suburban",
     class: "Full-Size SUV",
     heroLine: "Spacious comfort for families and small groups.",
     shortDesc:
       "Our flagship full-size SUV with generous legroom and cargo space—ideal for airport transfers and all-day charters.",
     longDesc:
-      "The Suburban pairs highway stability with true carry-on capacity. It's the sweet spot for families, golf outings, or executive travel where comfort and luggage room both matter.",
+      "The perfect SUV for families, golf outings, or executive travel where comfort and luggage room both matter. Pairs highway stability with true carry-on capacity.",
     seats: "7 seater",
     luggage: "4–6 suitcases (golf bags fit)",
     cargo: "144.7 cu ft",
@@ -705,8 +753,8 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     ],
     availabilityNotes: "Black exterior standard.",
     images: [
-      { src: Suburban, alt: "Chevy Suburban exterior" },
-      { src: "/images/fleet/suburban-2.jpg", alt: "Chevy Suburban interior" },
+      { src: Suburban, alt: "7-passenger SUV exterior" },
+      { src: "/images/fleet/suburban-2.jpg", alt: "7-passenger SUV interior" },
     ],
     rateRules: {
       minimumHours: 2,
@@ -752,23 +800,23 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
     ],
     seo: {
-      metaTitle: "Chevy Suburban | Nier Transportation Fleet",
+      metaTitle: "7-Passenger SUV | Nier Transportation Fleet",
       metaDescription:
-        "Book a spacious Chevy Suburban with professional chauffeur—ideal for families, golf trips, and airport transfers.",
+        "Book a spacious 7-passenger SUV with professional chauffeur—ideal for families, golf trips, and airport transfers.",
     },
     desc: "Our flagship full-size SUV with tri-zone climate control and best-in-class legroom. Perfect for families, small groups, and anyone who needs space for luggage without sacrificing comfort.",
     src: Suburban,
   },
   {
     id: 3,
-    title: "Cadillac Escalade ESV",
+    title: "Luxury SUV",
     slug: "cadillac-escalade-esv",
     class: "Extended Luxury SUV",
     heroLine: "Iconic luxury with extended cargo and elevated presence.",
     shortDesc:
-      "The long-wheelbase Escalade ESV offers first-class comfort, premium finishes, and serious luggage capacity.",
+      "A long-wheelbase luxury SUV offering first-class comfort, premium finishes, and serious luggage capacity.",
     longDesc:
-      "For VIP arrivals, black-tie events, or upscale business travel, the Escalade ESV delivers unmistakable presence, buttery ride quality, and an expansive cargo area for longer itineraries.",
+      "For VIP arrivals, black-tie events, or upscale business travel, this extended luxury SUV delivers unmistakable presence, buttery ride quality, and an expansive cargo area for longer itineraries.",
     seats: "6 seater",
     luggage: "4–5 suitcases",
     cargo: "121 cu ft",
@@ -804,11 +852,8 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     ],
     availabilityNotes: "Black exterior, black interior.",
     images: [
-      { src: Escalade, alt: "Cadillac Escalade ESV exterior" },
-      {
-        src: "/images/fleet/escalade-2.jpg",
-        alt: "Cadillac Escalade ESV interior",
-      },
+      { src: Escalade, alt: "Luxury SUV exterior" },
+      { src: "/images/fleet/escalade-2.jpg", alt: "Luxury SUV interior" },
     ],
     rateRules: {
       minimumHours: 2,
@@ -830,7 +875,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     faqs: [
       {
         q: "Is this suitable for red-carpet or black-tie events?",
-        a: "Absolutely. The ESV is our go-to for elevated occasions and VIP itineraries.",
+        a: "Absolutely. Our luxury SUV is the go-to for elevated occasions and VIP itineraries.",
       },
       {
         q: "Can you provide car seats?",
@@ -854,23 +899,23 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
     ],
     seo: {
-      metaTitle: "Cadillac Escalade ESV | Nier Transportation Fleet",
+      metaTitle: "Luxury SUV | Nier Transportation Fleet",
       metaDescription:
-        "Arrive in style with an Escalade ESV. Extended luxury SUV with premium comfort for VIP travel and events.",
+        "Arrive in style in our extended luxury SUV. Premium comfort for VIP travel, events, and executive transport in Phoenix.",
     },
-    desc: "The pinnacle of luxury SUVs — premium leather, rear captain's chairs, and magnetic ride control deliver a first-class experience from pickup to drop-off.",
+    desc: "The pinnacle of luxury SUVs — premium leather, rear captain's chairs, and a smooth, commanding ride that delivers a first-class experience from pickup to drop-off.",
     src: Escalade,
   },
   {
     id: 4,
-    title: "Mercedes-Benz Sprinter",
+    title: "Executive Sprinter Van",
     slug: "mercedes-sprinter-executive-14",
     class: "Executive Sprinter",
     heroLine: "Boardroom-level comfort for groups.",
     shortDesc:
       "Captain's chairs, headroom to stand, and power at every seat—group travel without compromise.",
     longDesc:
-      "Our executive Sprinter brings business-class comfort to group itineraries. Great for team offsites, golf groups, wedding parties, and airport shuttles with luggage.",
+      "Our executive sprinter van brings business-class comfort to group itineraries. Great for team offsites, golf groups, wedding parties, and airport shuttles with luggage.",
     seats: "14 seater",
     luggage: "Up to 12 carry-ons or mixed luggage (config-dependent)",
     cargo: "Up to 532 cu ft",
@@ -905,10 +950,10 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     ],
     availabilityNotes: "Black exterior; conference layout varies by unit.",
     images: [
-      { src: Sprinter, alt: "Executive Sprinter exterior" },
+      { src: Sprinter, alt: "Executive sprinter van exterior" },
       {
         src: "/images/fleet/sprinter-exec-2.jpg",
-        alt: "Executive Sprinter interior",
+        alt: "Executive sprinter van interior",
       },
     ],
     rateRules: {
@@ -930,7 +975,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     faqs: [
       {
         q: "Can we hold a brief meeting onboard?",
-        a: "Yes—many groups use the Sprinter for mobile briefings.",
+        a: "Yes—many groups use the sprinter van for mobile briefings.",
       },
       {
         q: "Is there space for golf bags?",
@@ -942,7 +987,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
       {
         q: "Is there a restroom onboard?",
-        a: "No—our 14-passenger executive Sprinters do not include restrooms. We're happy to plan brief comfort stops for longer trips.",
+        a: "No—our executive sprinter vans do not include restrooms. We're happy to plan brief comfort stops for longer trips.",
       },
       {
         q: "Can we load banners or small signage for corporate groups?",
@@ -954,16 +999,109 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
     ],
     seo: {
-      metaTitle: "Mercedes Sprinter Executive (14) | Nier Transportation Fleet",
+      metaTitle: "Executive Sprinter Van | Nier Transportation Fleet",
       metaDescription:
-        "Executive Sprinter with captain's chairs and power at every seat—premium group travel for teams and events.",
+        "Executive sprinter van with captain's chairs and power at every seat—premium group travel for teams and events in Phoenix.",
     },
     desc: "Lounge-style cabin with stand-up headroom, USB-C charging at every seat, and onboard Wi-Fi. Built for corporate teams, golf outings, and groups that want to travel together in style.",
     src: Sprinter,
   },
   {
     id: 5,
-    title: "Mini Party Bus",
+    title: "Stretch Limousine",
+    slug: "stretch-limousine",
+    class: "Luxury Limousine",
+    heroLine: "Classic elegance for life's most memorable moments.",
+    shortDesc:
+      "The iconic stretch limo — perfect for weddings, proms, anniversaries, and VIP arrivals that demand a grand entrance.",
+    longDesc:
+      "Nothing signals a special occasion quite like a stretch limousine. With a plush extended cabin, ambient lighting, and a dedicated chauffeur, it's the classic choice for weddings, anniversaries, milestone birthdays, and any event where the arrival is part of the experience.",
+    seats: "8–10 seater",
+    luggage: "Light luggage and personal items",
+    cargo: "Limited — designed for passengers",
+    cargoCuFt: "Config-dependent",
+    bestFor: ["Weddings", "Prom", "Anniversaries", "VIP arrivals", "Birthdays"],
+    specs: {
+      drivetrain: "RWD",
+      rideFeel: "Smooth, gliding ride",
+      cabin: "Extended plush interior, fiber-optic lighting, privacy partition",
+    },
+    amenities: [
+      "Bottled water & ice",
+      "Phone chargers",
+      "Fiber-optic lighting",
+      "Privacy partition",
+      "Premium sound system",
+      "Bluetooth audio",
+      "Privacy tint",
+    ],
+    safetyTech: [
+      "ABS & stability control",
+      "Forward collision warning",
+      "Parking sensors",
+      "Airbags throughout",
+    ],
+    features: [
+      "Extended cabin for celebrations en route",
+      "Privacy partition between chauffeur and guests",
+      "Iconic arrival experience for weddings and events",
+    ],
+    availabilityNotes:
+      "Black exterior standard. Alcohol policy varies by event — confirm at booking. No glass containers.",
+    images: [{ src: Suburban, alt: "Stretch limousine exterior" }],
+    rateRules: {
+      minimumHours: 3,
+      hourlyFromUSD: 175,
+      meetAndGreetUSD: 0,
+      afterHoursSurchargePct: 25,
+      waitTimeGraceMin: 10,
+      extraStopUSD: 40,
+    },
+    policy: {
+      summary: "Free cancellation up to 72 hours before pickup.",
+      details: [
+        "Within 72 hours, cancellation fees may apply up to the full fare.",
+        "Security deposit may be required for events.",
+        "Cleaning fees apply if needed.",
+      ],
+    },
+    faqs: [
+      {
+        q: "Is this available for weddings?",
+        a: "Absolutely — the stretch limo is our most popular choice for wedding day transport.",
+      },
+      {
+        q: "Can we bring champagne onboard?",
+        a: "Alcohol policies vary by event — please confirm at booking. No glass containers are permitted.",
+      },
+      {
+        q: "How many passengers fit comfortably?",
+        a: "Eight to ten passengers depending on configuration. Share your headcount and we'll confirm the right fit.",
+      },
+      {
+        q: "Are decorations allowed?",
+        a: "Light, removable décor is welcome with prior approval. No adhesives, glitter, or confetti.",
+      },
+      {
+        q: "Is gratuity included?",
+        a: "Gratuity is optional and can be added at checkout or after the ride.",
+      },
+      {
+        q: "Can we request a specific pickup and drop-off schedule?",
+        a: "Yes — share your full itinerary at booking and we'll coordinate timing around your event.",
+      },
+    ],
+    seo: {
+      metaTitle: "Stretch Limousine | Nier Transportation Fleet",
+      metaDescription:
+        "Arrive in classic style with a stretch limousine — perfect for weddings, proms, anniversaries, and special occasions in Phoenix.",
+    },
+    desc: "The classic stretch limo with fiber-optic lighting, privacy partition, and a premium sound system. The iconic choice for weddings, proms, and any occasion that deserves a grand entrance.",
+    src: Limo, // replace with your limo image import
+  },
+  {
+    id: 6,
+    title: "Party Bus",
     slug: "mini-party-bus-20",
     class: "Party/Limo Bus",
     heroLine: "Group celebrations with room to move.",
@@ -1002,8 +1140,8 @@ export const fleetData: ReadonlyArray<Vehicle> = [
     availabilityNotes:
       "Alcohol policy varies by event—confirm at booking. No glass containers permitted.",
     images: [
-      { src: PartyBus, alt: "Mini party bus exterior" },
-      { src: "/images/fleet/partybus-2.jpg", alt: "Mini party bus interior" },
+      { src: PartyBus, alt: "Party bus exterior" },
+      { src: "/images/fleet/partybus-2.jpg", alt: "Party bus interior" },
     ],
     rateRules: {
       minimumHours: 4,
@@ -1032,7 +1170,7 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
       {
         q: "Is there a restroom onboard?",
-        a: "No—mini party buses do not include restrooms. We can schedule brief stops as needed.",
+        a: "No—our party buses do not include restrooms. We can schedule brief stops as needed.",
       },
       {
         q: "Can we play our own music and lights?",
@@ -1048,23 +1186,23 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
     ],
     seo: {
-      metaTitle: "Mini Party Bus (20) | Nier Transportation Fleet",
+      metaTitle: "Party Bus | Nier Transportation Fleet",
       metaDescription:
-        "Celebrate safely with a mini party bus—perfect for weddings, concerts, and group nights out.",
+        "Celebrate safely with a party bus—perfect for weddings, concerts, and group nights out in Phoenix.",
     },
     desc: "Color-changing LED lights, Bluetooth sound system, and wrap-around seating turn every ride into an event. Perfect for birthdays, bachelor/bachelorette parties, and nights out on the town.",
     src: PartyBus,
   },
   {
-    id: 6,
-    title: "Motorcoach",
+    id: 7,
+    title: "Full-Size Motorcoach",
     slug: "motorcoach",
     class: "Full-Size Coach",
     heroLine: "Full-size group transport for large parties and events.",
     shortDesc:
       "Reclining seats, overhead storage, and a smooth highway ride—built for corporate shuttles, wedding guests, and large group outings.",
     longDesc:
-      "When your group outgrows a Sprinter, the Motorcoach delivers. Full-size coach seating with reclining chairs, overhead compartments, and undercarriage luggage bays handle everything from corporate conference shuttles to multi-stop wedding guest transport. A smooth, stable highway ride keeps everyone comfortable on longer routes.",
+      "When your group outgrows a sprinter van, the motorcoach delivers. Full-size coach seating with reclining chairs, overhead compartments, and undercarriage luggage bays handle everything from corporate conference shuttles to multi-stop wedding guest transport.",
     seats: "40+ seater",
     luggage: "Undercarriage luggage bays for full-size suitcases",
     cargo: "Undercarriage luggage bays",
@@ -1151,9 +1289,9 @@ export const fleetData: ReadonlyArray<Vehicle> = [
       },
     ],
     seo: {
-      metaTitle: "Motorcoach | Nier Transportation Fleet",
+      metaTitle: "Full-Size Motorcoach | Nier Transportation Fleet",
       metaDescription:
-        "Full-size motorcoach for 40+ passengers. Reclining seats, luggage bays, and a smooth ride—ideal for corporate shuttles and large group events.",
+        "Full-size motorcoach for 40+ passengers. Reclining seats, luggage bays, and a smooth ride—ideal for corporate shuttles and large group events in Phoenix.",
     },
     desc: "Full-size coach with reclining seats, overhead storage, and a smooth highway ride. Ideal for corporate shuttles, wedding guest transport, large group outings, and multi-stop itineraries.",
     src: Bus,

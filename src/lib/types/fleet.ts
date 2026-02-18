@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export type Vehicle = {
+export type VehicleData = {
   id: number;
   title: string;
   slug: string;
@@ -9,9 +9,9 @@ export type Vehicle = {
   longDesc?: string;
 
   // card/meta stats
-  seats: string; // e.g., "7 seater"
-  luggage?: string; // e.g., "5–7 standard bags"
-  cargo?: string; // e.g., "144.7 cu ft"
+  seats: string;
+  luggage?: string;
+  cargo?: string;
   cargoCuFt?: string;
 
   // extra content
@@ -29,7 +29,7 @@ export type Vehicle = {
 
   // images
   images?: ReadonlyArray<{ src: any; alt: string }>;
-  src?: any; // fallback single image (your current card import)
+  src?: any;
 
   // pricing/policy
   rateRules?: {

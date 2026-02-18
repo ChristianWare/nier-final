@@ -146,6 +146,30 @@
   margin-top: 1rem;
 }
 
+/* Notes card lock / unlock states */
+.cardEditing {
+  background: var(--lighterBlue);
+  border: 2px solid var(--lightBlue);
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+.cardSaved {
+  background: rgba(22, 163, 74, 0.015);
+  border: 2px solid rgb(34, 197, 94);
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+.cardEditing .textarea:disabled,
+.card .textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+}
+
 @media screen and (max-width: 600px) {
   .keyVal {
     grid-template-columns: 1fr;
