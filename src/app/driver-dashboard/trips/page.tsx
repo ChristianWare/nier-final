@@ -9,11 +9,11 @@ import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import DriverSearchFormClient from "@/app/driver-dashboard/trips/DriverSearchFormClient";
 import DriverClearFiltersButton from "@/app/driver-dashboard/trips/Driverclearfiltersbutton";
+import DriverFilterSelectClient from "@/components/Driver/DriverFilterSelectClient/DriverFilterSelectClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Driver-relevant statuses
 const STATUSES = [
   "ALL",
   "ASSIGNED",
@@ -45,6 +45,9 @@ type SearchParams = {
   status?: StatusFilter;
   range?: RangeFilter;
   q?: string;
+  completed?: "1";
+  future?: "1";
+  customerType?: "all" | "guest" | "account" | "corporate";
   sort?: SortColumn;
   order?: SortOrder;
   page?: string;
@@ -196,11 +199,19 @@ function safeOrder(v: any): SortOrder {
   return SORT_ORDERS.includes(v) ? v : "asc";
 }
 
+function safeCustomerType(v: any): "all" | "guest" | "account" | "corporate" {
+  const valid = ["all", "guest", "account", "corporate"];
+  return valid.includes(v) ? v : "all";
+}
+
 function buildWhere(args: {
   now: Date;
   driverId: string;
   status: StatusFilter;
   range: RangeFilter;
+  completed: boolean;
+  future: boolean;
+  customerType: string;
   q?: string;
   timeZone: string;
 }) {
@@ -266,6 +277,31 @@ function buildWhere(args: {
     ];
   }
 
+  // Customer type filter
+  const ct = args.customerType ?? "all";
+  if (ct === "guest") {
+    where.userId = null;
+    where.corporateAccountId = null;
+  } else if (ct === "account") {
+    where.userId = { not: null };
+    where.corporateAccountId = null;
+  } else if (ct === "corporate") {
+    where.corporateAccountId = { not: null };
+  }
+
+  // Trip quick filters (override range + status)
+  if (args.completed) {
+    where.status = "COMPLETED" as BookingStatus;
+    delete where.pickupAt;
+  }
+
+  if (args.future) {
+    where.pickupAt = { gte: args.now };
+    where.status = {
+      notIn: ["COMPLETED", "CANCELLED", "NO_SHOW"] as BookingStatus[],
+    };
+  }
+
   return where;
 }
 
@@ -325,6 +361,9 @@ export default async function DriverTripsPage({
   const range = safeRange(sp.range) as RangeFilter;
   const sort = safeSort(sp.sort);
   const order = safeOrder(sp.order);
+  const customerType = safeCustomerType((sp as any).customerType);
+  const completed = (sp as any).completed === "1";
+  const future = (sp as any).future === "1";
   const page = clampPage(sp.page);
   const q = (sp.q ?? "").trim();
   const now = new Date();
@@ -335,6 +374,9 @@ export default async function DriverTripsPage({
     driverId,
     status,
     range,
+    completed,
+    future,
+    customerType,
     q,
     timeZone: companyTz,
   });
@@ -362,10 +404,14 @@ export default async function DriverTripsPage({
     take: PAGE_SIZE,
   });
 
-  // Count for filters
+  // ── Count helper ──
+
   async function countFor(next: {
     status?: StatusFilter;
     range?: RangeFilter;
+    completed?: boolean;
+    future?: boolean;
+    customerType?: string;
     q?: string;
   }) {
     const w = buildWhere({
@@ -373,26 +419,32 @@ export default async function DriverTripsPage({
       driverId,
       status: next.status ?? status,
       range: next.range ?? range,
+      completed: typeof next.completed === "boolean" ? next.completed : false,
+      future: typeof next.future === "boolean" ? next.future : false,
+      customerType: next.customerType ?? customerType,
       q: next.q ?? q,
       timeZone: companyTz,
     });
     return db.booking.count({ where: w });
   }
 
-  const [statusCountsArr, rangeCountsArr] = await Promise.all([
-    Promise.all(
-      STATUSES.map(async (s) => {
-        const c = await countFor({ status: s, q });
-        return [s, c] as const;
-      }),
-    ),
-    Promise.all(
-      RANGES.map(async (r) => {
-        const c = await countFor({ range: r, q });
-        return [r, c] as const;
-      }),
-    ),
-  ]);
+  const [statusCountsArr, rangeCountsArr, futureCount, completedCount] =
+    await Promise.all([
+      Promise.all(
+        STATUSES.map(async (s) => {
+          const c = await countFor({ status: s, q });
+          return [s, c] as const;
+        }),
+      ),
+      Promise.all(
+        RANGES.map(async (r) => {
+          const c = await countFor({ range: r, q });
+          return [r, c] as const;
+        }),
+      ),
+      countFor({ future: true, q }),
+      countFor({ completed: true, q }),
+    ]);
 
   const statusCounts = Object.fromEntries(statusCountsArr) as Record<
     StatusFilter,
@@ -406,6 +458,9 @@ export default async function DriverTripsPage({
   const baseParams: Record<string, string | undefined> = {
     status: status === "ALL" ? undefined : status,
     range: range === "upcoming" ? undefined : range,
+    completed: completed ? "1" : undefined,
+    future: future ? "1" : undefined,
+    customerType: customerType !== "all" ? customerType : undefined,
     q: q.length ? q : undefined,
     sort: sort,
     order: sort ? order : undefined,
@@ -414,6 +469,9 @@ export default async function DriverTripsPage({
   const hasActiveFilters =
     status !== "ALL" ||
     range !== "upcoming" ||
+    completed ||
+    future ||
+    customerType !== "all" ||
     q.length > 0 ||
     sort !== undefined;
 
@@ -445,24 +503,78 @@ export default async function DriverTripsPage({
         </div>
 
         <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <div className={styles.filterTitle}>Time</div>
-            <RangeTabs
-              active={range}
+          {/* Dropdown row: Time · Status · Customer type */}
+          <div className={styles.filterRow}>
+            <DriverFilterSelectClient
+              label='Time'
+              paramName='range'
+              defaultValue='upcoming'
               current={baseParams}
-              counts={rangeCounts}
+              options={[
+                {
+                  value: "upcoming",
+                  label: "Upcoming",
+                  count: rangeCounts.upcoming,
+                },
+                {
+                  value: "today",
+                  label: "Today",
+                  count: rangeCounts.today,
+                },
+                {
+                  value: "next7",
+                  label: "Next 7 days",
+                  count: rangeCounts.next7,
+                },
+                {
+                  value: "month",
+                  label: "This month",
+                  count: rangeCounts.month,
+                },
+                {
+                  value: "past",
+                  label: "Past trips",
+                  count: rangeCounts.past,
+                },
+              ]}
+            />
+
+            <DriverFilterSelectClient
+              label='Status'
+              paramName='status'
+              defaultValue='ALL'
+              current={baseParams}
+              options={STATUSES.map((s) => ({
+                value: s,
+                label: statusTabLabel(s),
+                count: statusCounts[s],
+              }))}
+            />
+
+            <DriverFilterSelectClient
+              label='Customer type'
+              paramName='customerType'
+              defaultValue='all'
+              current={baseParams}
+              options={[
+                { value: "all", label: "All customers" },
+                { value: "guest", label: "Guest" },
+                { value: "account", label: "Account" },
+                { value: "corporate", label: "Corporate" },
+              ]}
             />
           </div>
 
-          <div className={styles.filterGroup}>
-            <div className={styles.filterTitle}>Status</div>
-            <StatusTabs
-              active={status}
-              current={baseParams}
-              counts={statusCounts}
-            />
-          </div>
+          {/* Trip Filters (checkboxes) */}
+          <DriverTripFilters
+            current={baseParams}
+            counts={{
+              future: futureCount,
+              completed: completedCount,
+            }}
+          />
 
+          {/* Clear All Filters */}
           <div className={styles.filterGroup}>
             <DriverClearFiltersButton hasActiveFilters={hasActiveFilters} />
           </div>
@@ -558,7 +670,6 @@ export default async function DriverTripsPage({
 
                   return (
                     <tr key={b.id} className={styles.tr}>
-                      {/* Pickup */}
                       <td
                         className={styles.td}
                         data-label='Pickup'
@@ -587,7 +698,6 @@ export default async function DriverTripsPage({
                         </div>
                       </td>
 
-                      {/* Status */}
                       <td
                         className={styles.td}
                         data-label='Status'
@@ -607,7 +717,6 @@ export default async function DriverTripsPage({
                         </div>
                       </td>
 
-                      {/* Customer */}
                       <td
                         className={styles.td}
                         data-label='Customer'
@@ -632,7 +741,6 @@ export default async function DriverTripsPage({
                         </div>
                       </td>
 
-                      {/* Route */}
                       <td
                         className={styles.td}
                         data-label='Route'
@@ -657,7 +765,6 @@ export default async function DriverTripsPage({
                         </div>
                       </td>
 
-                      {/* Service */}
                       <td
                         className={styles.td}
                         data-label='Service'
@@ -682,7 +789,6 @@ export default async function DriverTripsPage({
                         </div>
                       </td>
 
-                      {/* Pax/Bags */}
                       <td
                         className={styles.td}
                         data-label='Pax/Bags'
@@ -700,7 +806,6 @@ export default async function DriverTripsPage({
                         </div>
                       </td>
 
-                      {/* Earnings */}
                       <td
                         className={`${styles.td} ${styles.tdRight}`}
                         data-label='Earnings'
@@ -718,7 +823,6 @@ export default async function DriverTripsPage({
                         </div>
                       </td>
 
-                      {/* Action */}
                       <td
                         className={`${styles.td} ${styles.tdRight}`}
                         data-label='Action'
@@ -745,6 +849,83 @@ export default async function DriverTripsPage({
     </section>
   );
 }
+
+/* ── Trip Filter Checkboxes ──────────────────────────────── */
+
+function DriverTripFilters({
+  current,
+  counts,
+}: {
+  current: Record<string, string | undefined>;
+  counts: {
+    future: number;
+    completed: number;
+  };
+}) {
+  const futureOn = current.future === "1";
+  const completedOn = current.completed === "1";
+
+  const futureHref = buildHref("/driver-dashboard/trips", {
+    ...current,
+    future: futureOn ? undefined : "1",
+    completed: undefined,
+    page: undefined,
+  });
+
+  const completedHref = buildHref("/driver-dashboard/trips", {
+    ...current,
+    completed: completedOn ? undefined : "1",
+    future: undefined,
+    page: undefined,
+  });
+
+  return (
+    <div className={styles.filterSection}>
+      <div className={styles.filterTitle}>Trip Filters</div>
+      <div className={styles.checkboxRow}>
+        <CheckboxLink
+          label='Future Trips'
+          active={futureOn}
+          href={futureHref}
+          count={counts.future}
+        />
+        <CheckboxLink
+          label='Completed'
+          active={completedOn}
+          href={completedHref}
+          count={counts.completed}
+        />
+      </div>
+    </div>
+  );
+}
+
+function CheckboxLink({
+  label,
+  active,
+  href,
+  count,
+}: {
+  label: string;
+  active: boolean;
+  href: string;
+  count: number;
+}) {
+  return (
+    <Link
+      className={`${styles.checkboxLink} ${active ? styles.checkboxActive : ""}`}
+      href={href}
+    >
+      <span className={styles.checkboxBox}>
+        {active && <span className={styles.checkmark}>✓</span>}
+      </span>
+      {label}
+      <span className='countPill'>{count}</span>
+    </Link>
+  );
+}
+
+/* ── Sortable Header ──────────────────────────────────────── */
 
 function SortableHeader({
   label,
@@ -785,89 +966,7 @@ function SortableHeader({
   );
 }
 
-function StatusTabs({
-  active,
-  current,
-  counts,
-}: {
-  active: StatusFilter;
-  current: Record<string, string | undefined>;
-  counts: Record<StatusFilter, number>;
-}) {
-  return (
-    <div className={styles.tabRow}>
-      {STATUSES.map((s) => {
-        const href = buildHref("/driver-dashboard/trips", {
-          ...current,
-          status: s === "ALL" ? undefined : s,
-          page: undefined,
-        });
-        const isActive = s === active;
-
-        return (
-          <Link
-            key={s}
-            href={href}
-            className={`tab ${isActive ? "tabActive" : ""}`}
-          >
-            {statusTabLabel(s)}
-            <span
-              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
-            >
-              {counts[s] ?? 0}
-            </span>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-function RangeTabs({
-  active,
-  current,
-  counts,
-}: {
-  active: RangeFilter;
-  current: Record<string, string | undefined>;
-  counts: Record<RangeFilter, number>;
-}) {
-  const items: { label: string; value: RangeFilter }[] = [
-    { label: "Upcoming", value: "upcoming" },
-    { label: "Today", value: "today" },
-    { label: "Next 7 days", value: "next7" },
-    { label: "This month", value: "month" },
-    { label: "Past trips", value: "past" },
-  ];
-
-  return (
-    <div className={styles.tabRow}>
-      {items.map((x) => {
-        const href = buildHref("/driver-dashboard/trips", {
-          ...current,
-          range: x.value === "upcoming" ? undefined : x.value,
-          page: undefined,
-        });
-        const isActive = x.value === active;
-
-        return (
-          <Link
-            key={x.value}
-            href={href}
-            className={`tab ${isActive ? "tabActive" : ""}`}
-          >
-            {x.label}
-            <span
-              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
-            >
-              {counts[x.value] ?? 0}
-            </span>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
+/* ── Pagination ───────────────────────────────────────────── */
 
 function Pagination({
   totalCount,
