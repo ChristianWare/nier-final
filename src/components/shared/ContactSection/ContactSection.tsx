@@ -227,13 +227,13 @@ export default function ContactSection() {
 
             {/* Submit */}
             <div className={styles.btnContainer}>
-              <button type='submit' className={styles.submitBtn} disabled={loading}>
-                <Button
-                  text={loading ? "Sending..." : "Submit"}
-                  btnType='black'
-                  arrow
-                />
-              </button>
+              <Button
+                text={loading ? "Sending..." : "Submit"}
+                btnType='black'
+                arrow
+                type='submit'
+                disabled={loading}
+              />
             </div>
           </form>
         </div>

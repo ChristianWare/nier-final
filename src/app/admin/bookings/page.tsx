@@ -15,7 +15,6 @@ import * as tz from "@/lib/timezone";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// ✅ All statuses from schema
 const STATUSES = [
   "ALL",
   "PENDING_REVIEW",
@@ -36,7 +35,6 @@ const STATUSES = [
 
 const RANGES = ["month", "year", "today", "next24", "next7", "range"] as const;
 
-// ✅ ALL sortable columns
 const SORT_COLUMNS = [
   "created",
   "createdBy",
@@ -61,14 +59,19 @@ type SearchParams = {
   range?: RangeFilter;
   q?: string;
   unassigned?: "1";
+  assigned?: "1";
   paid?: "1";
+  unpaid?: "1";
   stuck?: "1";
+  completed?: "1";
+  future?: "1";
   from?: string;
   to?: string;
   sort?: SortColumn;
   order?: SortOrder;
   page?: string;
   customerType?: "all" | "guest" | "account" | "corporate";
+  driver?: string;
 };
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
@@ -265,25 +268,19 @@ function buildWhere(args: {
   status: StatusFilter;
   range: RangeFilter;
   unassigned: boolean;
+  assigned: boolean;
   paid: boolean;
+  unpaid: boolean;
   stuck: boolean;
+  completed: boolean;
+  future: boolean;
   fromYmd: string;
   toYmd: string;
   q?: string;
   customerType?: string;
+  driver?: string;
 }) {
-  const {
-    now,
-    timezone,
-    status,
-    range,
-    unassigned,
-    paid,
-    stuck,
-    fromYmd,
-    toYmd,
-    q,
-  } = args;
+  const { now, timezone, status, range, paid, stuck, fromYmd, toYmd, q } = args;
 
   const where: Prisma.BookingWhereInput = {};
 
@@ -331,8 +328,12 @@ function buildWhere(args: {
 
   if (status !== "ALL") where.status = status as BookingStatus;
 
-  if (unassigned) where.assignment = { is: null };
-  if (paid) where.payment = { is: { status: "PAID" } };
+  // Pay filters (mutually exclusive)
+  if (paid) {
+    where.payment = { is: { status: "PAID" } };
+  } else if (args.unpaid) {
+    where.NOT = { payment: { status: "PAID" } };
+  }
 
   if (stuck) {
     const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
@@ -360,7 +361,6 @@ function buildWhere(args: {
       { dropoffAddress: { contains: needle, mode: "insensitive" } },
       { user: { is: { name: { contains: needle, mode: "insensitive" } } } },
       { user: { is: { email: { contains: needle, mode: "insensitive" } } } },
-      // Corporate booking search
       {
         corporateAccount: {
           is: { name: { contains: needle, mode: "insensitive" } },
@@ -411,10 +411,38 @@ function buildWhere(args: {
     where.corporateAccountId = { not: null };
   }
 
+  // Trip quick filters (completed / future override range + status)
+  if (args.completed) {
+    where.status = "COMPLETED" as BookingStatus;
+    delete where.pickupAt;
+  }
+
+  if (args.future) {
+    where.pickupAt = { gte: args.now };
+    where.status = {
+      notIn: [
+        "COMPLETED",
+        "CANCELLED",
+        "REFUNDED",
+        "PARTIALLY_REFUNDED",
+        "NO_SHOW",
+      ] as BookingStatus[],
+    };
+  }
+
+  // Assignment filters (driver > unassigned > assigned)
+  const drvFilter = args.driver ?? "all";
+  if (drvFilter !== "all") {
+    where.assignment = { driverId: drvFilter };
+  } else if (args.unassigned) {
+    where.assignment = { is: null };
+  } else if (args.assigned) {
+    where.assignment = { isNot: null };
+  }
+
   return where;
 }
 
-// ✅ Build orderBy for ALL columns
 function buildOrderBy(
   sort: SortColumn | undefined,
   order: SortOrder,
@@ -479,8 +507,12 @@ export default async function AdminBookingsPage({
   const customerType = safeCustomerType(sp.customerType);
 
   const unassigned = sp.unassigned === "1";
+  const assigned = (sp as any).assigned === "1";
   const paid = sp.paid === "1";
+  const unpaid = (sp as any).unpaid === "1";
   const stuck = sp.stuck === "1";
+  const completed = (sp as any).completed === "1";
+  const future = (sp as any).future === "1";
   const page = clampPage(sp.page);
 
   const q = (sp.q ?? "").trim();
@@ -493,18 +525,40 @@ export default async function AdminBookingsPage({
   const fromYmd = sp.from ?? defaultFrom;
   const toYmd = sp.to ?? defaultTo;
 
+  const allDrivers = await db.user.findMany({
+    where: { roles: { has: "DRIVER" } },
+    select: { id: true, name: true, email: true },
+    orderBy: { name: "asc" },
+  });
+
+  const driverFilterOptions = [
+    { value: "all", label: "All drivers" },
+    ...allDrivers.map((d) => ({
+      value: d.id,
+      label: d.name?.trim() || d.email,
+    })),
+  ];
+
+  const driverFilter = (sp as any).driver ?? "all";
+  const isDriverSelected = driverFilter !== "all";
+
   const where = buildWhere({
     now,
     timezone: companyTz,
     status,
     range,
     unassigned,
+    assigned,
     paid,
+    unpaid,
     stuck,
+    completed,
+    future,
     fromYmd,
     toYmd,
     q,
     customerType,
+    driver: driverFilter,
   });
 
   const orderBy = buildOrderBy(sort, order, status, stuck);
@@ -549,16 +603,23 @@ export default async function AdminBookingsPage({
     take: PAGE_SIZE,
   });
 
+  // ── Count helper (each count computed independently of other checkbox filters) ──
+
   async function countFor(next: {
     status?: StatusFilter;
     range?: RangeFilter;
     unassigned?: boolean;
+    assigned?: boolean;
     paid?: boolean;
+    unpaid?: boolean;
     stuck?: boolean;
+    completed?: boolean;
+    future?: boolean;
     fromYmd?: string;
     toYmd?: string;
     q?: string;
     customerType?: string;
+    driver?: string;
   }) {
     const w = buildWhere({
       now,
@@ -566,13 +627,18 @@ export default async function AdminBookingsPage({
       status: next.status ?? status,
       range: next.range ?? range,
       unassigned:
-        typeof next.unassigned === "boolean" ? next.unassigned : unassigned,
-      paid: typeof next.paid === "boolean" ? next.paid : paid,
-      stuck: typeof next.stuck === "boolean" ? next.stuck : stuck,
+        typeof next.unassigned === "boolean" ? next.unassigned : false,
+      assigned: typeof next.assigned === "boolean" ? next.assigned : false,
+      paid: typeof next.paid === "boolean" ? next.paid : false,
+      unpaid: typeof next.unpaid === "boolean" ? next.unpaid : false,
+      stuck: typeof next.stuck === "boolean" ? next.stuck : false,
+      completed: typeof next.completed === "boolean" ? next.completed : false,
+      future: typeof next.future === "boolean" ? next.future : false,
       fromYmd: next.fromYmd ?? fromYmd,
       toYmd: next.toYmd ?? toYmd,
       q: next.q ?? q,
       customerType: next.customerType ?? customerType,
+      driver: next.driver ?? driverFilter,
     });
     return db.booking.count({ where: w });
   }
@@ -580,9 +646,13 @@ export default async function AdminBookingsPage({
   const [
     statusCountsArr,
     rangeCountsArr,
-    unassignedCount,
-    paidCount,
+    futureCount,
+    completedCount,
     stuckCount,
+    paidCount,
+    unpaidCount,
+    assignedCount,
+    unassignedCount,
   ] = await Promise.all([
     Promise.all(
       STATUSES.map(async (s) => {
@@ -599,9 +669,13 @@ export default async function AdminBookingsPage({
         return [r, c] as const;
       }),
     ),
-    countFor({ unassigned: true, q }),
-    countFor({ paid: true, q }),
+    countFor({ future: true, q }),
+    countFor({ completed: true, q }),
     countFor({ stuck: true, q }),
+    countFor({ paid: true, q }),
+    countFor({ unpaid: true, q }),
+    countFor({ assigned: true, q }),
+    countFor({ unassigned: true, q }),
   ]);
 
   const statusCounts = Object.fromEntries(statusCountsArr) as Record<
@@ -617,26 +691,35 @@ export default async function AdminBookingsPage({
     status: status === "ALL" ? "ALL" : status,
     range: range === "month" ? undefined : range,
     unassigned: unassigned ? "1" : undefined,
+    assigned: assigned ? "1" : undefined,
     paid: paid ? "1" : undefined,
+    unpaid: unpaid ? "1" : undefined,
     stuck: stuck ? "1" : undefined,
+    completed: completed ? "1" : undefined,
+    future: future ? "1" : undefined,
     from: range === "range" ? fromYmd : undefined,
     to: range === "range" ? toYmd : undefined,
     q: q.length ? q : undefined,
     sort: sort,
     order: sort ? order : undefined,
     customerType: customerType !== "all" ? customerType : undefined,
+    driver: driverFilter !== "all" ? driverFilter : undefined,
   };
 
-  // ✅ Check if any filters are active
   const hasActiveFilters =
     status !== "ALL" ||
     range !== "month" ||
     unassigned ||
+    assigned ||
     paid ||
+    unpaid ||
     stuck ||
+    completed ||
+    future ||
     q.length > 0 ||
     sort !== undefined ||
-    customerType !== "all";
+    customerType !== "all" ||
+    isDriverSelected;
 
   const pageParams: Record<string, string | undefined> = {
     ...baseParams,
@@ -671,7 +754,7 @@ export default async function AdminBookingsPage({
         </div>
 
         <div className={styles.filters}>
-          {/* ✅ Dropdown row: Time · Status · Customer type */}
+          {/* Dropdown row: Time · Status · Customer type · Driver */}
           <div className={styles.filterRow}>
             <FilterSelectClient
               label='Time'
@@ -707,7 +790,6 @@ export default async function AdminBookingsPage({
                 {
                   value: "range",
                   label: "Custom range",
-                  count: rangeCounts.range,
                 },
               ]}
             />
@@ -736,9 +818,17 @@ export default async function AdminBookingsPage({
                 { value: "corporate", label: "Corporate" },
               ]}
             />
+
+            <FilterSelectClient
+              label='Driver'
+              paramName='driver'
+              defaultValue='all'
+              current={baseParams}
+              options={driverFilterOptions}
+            />
           </div>
 
-          {/* ✅ Custom date range (only when "Custom range" is selected) */}
+          {/* Custom date range */}
           {range === "range" ? (
             <CustomRangeFormClient
               current={baseParams}
@@ -747,20 +837,22 @@ export default async function AdminBookingsPage({
             />
           ) : null}
 
-          {/* ✅ Quick filters remain as toggle chips */}
-          <div className={styles.filterGroup}>
-            <div className={styles.filterTitle}>Quick filters</div>
-            <ToggleChips
-              current={baseParams}
-              counts={{
-                unassigned: unassignedCount,
-                paid: paidCount,
-                stuck: stuckCount,
-              }}
-            />
-          </div>
+          {/* Checkbox filter sections */}
+          <FilterCheckboxSections
+            current={baseParams}
+            isDriverSelected={isDriverSelected}
+            counts={{
+              future: futureCount,
+              completed: completedCount,
+              stuck: stuckCount,
+              paid: paidCount,
+              unpaid: unpaidCount,
+              assigned: assignedCount,
+              unassigned: unassignedCount,
+            }}
+          />
 
-          {/* ✅ Clear All Filters Button */}
+          {/* Clear All Filters */}
           <div className={styles.filterGroup}>
             <ClearFiltersButton hasActiveFilters={hasActiveFilters} />
           </div>
@@ -932,7 +1024,6 @@ export default async function AdminBookingsPage({
                       key={b.id}
                       className={`${styles.tr} ${isCorporate ? styles.trCorporate : ""}`}
                     >
-                      {/* Created */}
                       <td
                         className={styles.td}
                         data-label='Created'
@@ -959,7 +1050,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-                      {/* Created by */}
                       <td
                         className={styles.td}
                         data-label='Created by'
@@ -978,7 +1068,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-                      {/* Pickup */}
                       <td
                         className={styles.td}
                         data-label='Pickup'
@@ -1000,7 +1089,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-                      {/* Status */}
                       <td
                         className={styles.td}
                         data-label='Status'
@@ -1025,7 +1113,6 @@ export default async function AdminBookingsPage({
                           )}
                         </div>
                       </td>
-                      {/* Customer */}
                       <td
                         className={styles.td}
                         data-label='Customer'
@@ -1050,7 +1137,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-                      {/* Service */}
                       <td
                         className={styles.td}
                         data-label='Service'
@@ -1069,7 +1155,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-                      {/* Vehicle */}
                       <td
                         className={styles.td}
                         data-label='Vehicle'
@@ -1088,7 +1173,6 @@ export default async function AdminBookingsPage({
                           </div>
                         </div>
                       </td>
-                      {/* Driver */}
                       <td
                         className={`${styles.td} ${!b.assignment?.driver ? styles.unassignedCell : ""}`}
                         data-label='Driver'
@@ -1112,7 +1196,6 @@ export default async function AdminBookingsPage({
                           <div className={styles.cellSub}>Unassigned</div>
                         )}
                       </td>
-                      {/* Total */}
                       <td
                         className={`${styles.td} ${styles.tdRight}`}
                         data-label='Total'
@@ -1146,7 +1229,205 @@ export default async function AdminBookingsPage({
   );
 }
 
-// ✅ Sortable table header component
+/* ── Filter Checkbox Sections ──────────────────────────────── */
+
+function FilterCheckboxSections({
+  current,
+  isDriverSelected,
+  counts,
+}: {
+  current: Record<string, string | undefined>;
+  isDriverSelected: boolean;
+  counts: {
+    future: number;
+    completed: number;
+    stuck: number;
+    paid: number;
+    unpaid: number;
+    assigned: number;
+    unassigned: number;
+  };
+}) {
+  const futureOn = current.future === "1";
+  const completedOn = current.completed === "1";
+  const stuckOn = current.stuck === "1";
+  const paidOn = current.paid === "1";
+  const unpaidOn = current.unpaid === "1";
+  const assignedOn = current.assigned === "1";
+  const unassignedOn = current.unassigned === "1";
+
+  // Trip filter hrefs (mutually exclusive within group)
+  const futureHref = buildHref("/admin/bookings", {
+    ...current,
+    future: futureOn ? undefined : "1",
+    completed: undefined,
+    stuck: undefined,
+    page: undefined,
+  });
+
+  const completedHref = buildHref("/admin/bookings", {
+    ...current,
+    completed: completedOn ? undefined : "1",
+    future: undefined,
+    stuck: undefined,
+    page: undefined,
+  });
+
+  const stuckHref = buildHref("/admin/bookings", {
+    ...current,
+    stuck: stuckOn ? undefined : "1",
+    status: stuckOn ? current.status : "PENDING_REVIEW",
+    future: undefined,
+    completed: undefined,
+    page: undefined,
+  });
+
+  // Pay filter hrefs (mutually exclusive)
+  const paidHref = buildHref("/admin/bookings", {
+    ...current,
+    paid: paidOn ? undefined : "1",
+    unpaid: undefined,
+    page: undefined,
+  });
+
+  const unpaidHref = buildHref("/admin/bookings", {
+    ...current,
+    unpaid: unpaidOn ? undefined : "1",
+    paid: undefined,
+    page: undefined,
+  });
+
+  // Assignment filter hrefs (mutually exclusive)
+  const assignedHref = buildHref("/admin/bookings", {
+    ...current,
+    assigned: assignedOn ? undefined : "1",
+    unassigned: undefined,
+    page: undefined,
+  });
+
+  const unassignedHref = buildHref("/admin/bookings", {
+    ...current,
+    unassigned: unassignedOn ? undefined : "1",
+    assigned: undefined,
+    page: undefined,
+  });
+
+  return (
+    <div className={styles.filterSections}>
+      {/* Trip Filters */}
+      <div className={styles.filterSection}>
+        <div className={styles.filterTitle}>Trip Filters</div>
+        <div className={styles.checkboxCol}>
+          <CheckboxLink
+            label='Future Trips'
+            active={futureOn}
+            href={futureHref}
+            count={counts.future}
+          />
+          <CheckboxLink
+            label='Completed'
+            active={completedOn}
+            href={completedHref}
+            count={counts.completed}
+          />
+          <CheckboxLink
+            label='Stuck in Review'
+            active={stuckOn}
+            href={stuckHref}
+            count={counts.stuck}
+          />
+        </div>
+      </div>
+
+      {/* Pay Filters */}
+      <div className={styles.filterSection}>
+        <div className={styles.filterTitle}>Pay Filters</div>
+        <div className={styles.checkboxCol}>
+          <CheckboxLink
+            label='Paid'
+            active={paidOn}
+            href={paidHref}
+            count={counts.paid}
+          />
+          <CheckboxLink
+            label='Unpaid'
+            active={unpaidOn}
+            href={unpaidHref}
+            count={counts.unpaid}
+          />
+        </div>
+      </div>
+
+      {/* Assignment Filters */}
+      <div className={styles.filterSection}>
+        <div className={styles.filterTitle}>Assignment Filters</div>
+        <div className={styles.checkboxCol}>
+          <CheckboxLink
+            label='Assigned'
+            active={assignedOn}
+            href={assignedHref}
+            count={counts.assigned}
+            disabled={isDriverSelected}
+          />
+          <CheckboxLink
+            label='Unassigned'
+            active={unassignedOn}
+            href={unassignedHref}
+            count={counts.unassigned}
+            disabled={isDriverSelected}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CheckboxLink({
+  label,
+  active,
+  href,
+  count,
+  disabled = false,
+}: {
+  label: string;
+  active: boolean;
+  href: string;
+  count: number;
+  disabled?: boolean;
+}) {
+  const classes = [
+    styles.checkboxLink,
+    active ? styles.checkboxActive : "",
+    disabled ? styles.checkboxDisabled : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (disabled) {
+    return (
+      <span className={classes}>
+        <span className={styles.checkboxBox}>
+          {active && <span className={styles.checkmark}>✓</span>}
+        </span>
+        {label}
+        <span className='countPill'>{count}</span>
+      </span>
+    );
+  }
+
+  return (
+    <Link className={classes} href={href}>
+      <span className={styles.checkboxBox}>
+        {active && <span className={styles.checkmark}>✓</span>}
+      </span>
+      {label}
+      <span className='countPill'>{count}</span>
+    </Link>
+  );
+}
+
+/* ── Sortable Header ──────────────────────────────────────── */
+
 function SortableHeader({
   label,
   column,
@@ -1186,66 +1467,7 @@ function SortableHeader({
   );
 }
 
-function ToggleChips({
-  current,
-  counts,
-}: {
-  current: Record<string, string | undefined>;
-  counts: { unassigned: number; paid: number; stuck: number };
-}) {
-  const unassignedOn = current.unassigned === "1";
-  const paidOn = current.paid === "1";
-  const stuckOn = current.stuck === "1";
-
-  const unassignedHref = buildHref("/admin/bookings", {
-    ...current,
-    unassigned: unassignedOn ? undefined : "1",
-    page: undefined,
-  });
-
-  const paidHref = buildHref("/admin/bookings", {
-    ...current,
-    paid: paidOn ? undefined : "1",
-    page: undefined,
-  });
-
-  const stuckHref = buildHref("/admin/bookings", {
-    ...current,
-    stuck: stuckOn ? undefined : "1",
-    status: "PENDING_REVIEW",
-    page: undefined,
-  });
-
-  return (
-    <div className={styles.tabRow}>
-      <Link
-        className={`tab ${unassignedOn ? "tabActive" : ""}`}
-        href={unassignedHref}
-      >
-        Unassigned
-        <span
-          className={`countPill ${unassignedOn ? "countPillWhiteText" : ""}`}
-        >
-          {counts.unassigned ?? 0}
-        </span>
-      </Link>
-
-      <Link className={`tab ${paidOn ? "tabActive" : ""}`} href={paidHref}>
-        Paid only
-        <span className={`countPill ${paidOn ? "countPillWhiteText" : ""}`}>
-          {counts.paid ?? 0}
-        </span>
-      </Link>
-
-      <Link className={`tab ${stuckOn ? "tabActive" : ""}`} href={stuckHref}>
-        Stuck review
-        <span className={`countPill ${stuckOn ? "countPillWhiteText" : ""}`}>
-          {counts.stuck ?? 0}
-        </span>
-      </Link>
-    </div>
-  );
-}
+/* ── Pagination ───────────────────────────────────────────── */
 
 function Pagination({
   totalCount,
