@@ -51,7 +51,7 @@
 
 .filters {
   display: grid;
-  gap: 1.2rem;
+  gap: 2rem;
 }
 
 .filterGroup {
@@ -73,12 +73,170 @@
   flex-wrap: wrap;
 }
 
+/* Dropdown filter row */
+.filterRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+  width: 100%;
+}
+
+.filterSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  padding: 0.65rem 2.4rem 0.65rem 0.85rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+  cursor: pointer;
+  width: fit-content;
+  min-width: 180px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  transition: border-color 0.15s ease;
+}
+
+.filterSelect:hover {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+.filterSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Custom range */
+.rangeForm {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.rangeField {
+  display: grid;
+  gap: 1rem;
+}
+
+.rangeSubmit {
+  border: 1px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 10px;
+  padding: 0.65rem 0.95rem;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+
+.rangeSubmit:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.rangeSubmit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Checkbox filter sections */
+.filterSections {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.filterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: linear-gradient(135deg, #3b82f614 0%, #2563eb1f 100%);
+  border: 2px solid #3b82f64d;
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.checkboxCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.checkboxLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--black);
+  font-size: 1.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  width: fit-content;
+}
+
+.checkboxLink:hover {
+  opacity: 0.75;
+}
+
+.checkboxBox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid var(--stroke);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--white);
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.checkboxActive .checkboxBox {
+  background: var(--black);
+  border-color: var(--black);
+}
+
+.checkmark {
+  color: var(--white);
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: normal;
+  line-height: 1;
+}
+
+.checkboxDisabled {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: default;
+}
+
 /* Search row */
 .searchRow {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
   gap: 1rem;
+}
+
+/* Search + filters wrapper */
+.searchFilters {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.filteringIndicator {
+  font-size: 1.4rem;
+  opacity: 0.6;
+  font-weight: 600;
 }
 
 /* Pagination */
@@ -386,58 +544,6 @@
   max-width: 300px;
 }
 
-/* Search + filters wrapper */
-.searchFilters {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.filteringIndicator {
-  font-size: 1.4rem;
-  opacity: 0.6;
-  font-weight: 600;
-}
-
-.filterRow {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.filterSelect {
-  appearance: none;
-  -webkit-appearance: none;
-  background: var(--white);
-  border: 1px solid var(--stroke);
-  border-radius: 8px;
-  padding: 0.65rem 2.4rem 0.65rem 0.85rem;
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--black);
-  cursor: pointer;
-  width: fit-content;
-  min-width: 180px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.85rem center;
-  transition: border-color 0.15s ease;
-}
-
-.filterSelect:hover {
-  border-color: rgba(0, 0, 0, 0.3);
-}
-
-.filterSelect:focus {
-  outline: none;
-  border-color: var(--black);
-}
-
-.filterSelect:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Tab row scroll for many statuses */
 @media screen and (max-width: 1200px) {
   .tabRow {
@@ -454,6 +560,17 @@
   .tabRow::-webkit-scrollbar-thumb {
     background: var(--stroke);
     border-radius: 2px;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .filterSections {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .filterRow {
+    grid-template-columns: repeat(1, 1fr);
+    grid-row-gap: 3rem;
   }
 }
 
@@ -537,6 +654,17 @@
   .routeCell {
     gap: 8px;
   }
+
+  .filterSections {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .checkboxCol {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+  }
 }
 
 @media screen and (max-width: 568px) {
@@ -591,5 +719,10 @@
 
   .empty {
     padding: 40px 16px;
+  }
+
+  .filterRow {
+    grid-template-columns: repeat(1, 1fr);
+    grid-row-gap: 3rem;
   }
 }

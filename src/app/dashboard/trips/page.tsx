@@ -8,7 +8,9 @@ import { auth } from "../../../../auth";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import UserSearchFormClient from "./UserSearchFormClient";
-// import UserClearFiltersButton from "./UserClearFiltersButton";
+import UserFilterSelectClient from "./Userfilterselectclient";
+import UserCustomRangeFormClient from "./UserCustomRangeFormClient";
+import UserClearFiltersButton from "./UserClearFiltersButton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +32,7 @@ const STATUSES = [
   "REFUNDED",
 ] as const;
 
-const RANGES = ["upcoming", "past", "month", "all"] as const;
+const RANGES = ["upcoming", "past", "month", "all", "range"] as const;
 
 const SORT_COLUMNS = [
   "pickup",
@@ -53,11 +55,36 @@ type SearchParams = {
   sort?: SortColumn;
   order?: SortOrder;
   page?: string;
+  paid?: "1";
+  unpaid?: "1";
+  from?: string;
+  to?: string;
 };
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
 const PAGE_SIZE = 10;
+
+function parseYMD(s: string | null | undefined) {
+  if (!s) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
+  if (!match) return null;
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  const d = Number(match[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d))
+    return null;
+  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
+  return { y, m, d };
+}
+
+function startOfDayFromYMD(
+  ymd: { y: number; m: number; d: number },
+  timezone: string,
+) {
+  const iso = `${ymd.y}-${String(ymd.m).padStart(2, "0")}-${String(ymd.d).padStart(2, "0")}`;
+  return new Date(tz.localToUtcIso(iso, "00:00", timezone));
+}
 
 function formatTime(d: Date, timeZone: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -214,8 +241,13 @@ function buildWhere(args: {
   range: RangeFilter;
   q?: string;
   timeZone: string;
+  paid: boolean;
+  unpaid: boolean;
+  fromYmd: string;
+  toYmd: string;
 }) {
-  const { now, userId, status, range, q, timeZone } = args;
+  const { now, userId, status, range, q, timeZone, paid, fromYmd, toYmd } =
+    args;
 
   const where: Prisma.BookingWhereInput = { userId };
 
@@ -229,10 +261,37 @@ function buildWhere(args: {
   if (range === "month")
     pickupAtFilter = { gte: monthStart, lt: nextMonthStart };
 
+  if (range === "range") {
+    const f = parseYMD(fromYmd);
+    const t = parseYMD(toYmd);
+
+    const todayStart = tz.startOfDay(now, timeZone);
+
+    let fromUtc = f ? startOfDayFromYMD(f, timeZone) : todayStart;
+    const toUtc0 = t ? startOfDayFromYMD(t, timeZone) : todayStart;
+
+    let toUtc = new Date(toUtc0.getTime() + 24 * 60 * 60 * 1000);
+
+    if (toUtc.getTime() < fromUtc.getTime()) {
+      const tmp = fromUtc;
+      fromUtc = toUtc0;
+      toUtc = new Date(tmp.getTime() + 24 * 60 * 60 * 1000);
+    }
+
+    pickupAtFilter = { gte: fromUtc, lt: toUtc };
+  }
+
   if (pickupAtFilter) where.pickupAt = pickupAtFilter;
 
   if (status !== "ALL") {
     where.status = status as BookingStatus;
+  }
+
+  // Pay filters (mutually exclusive)
+  if (paid) {
+    where.payment = { is: { status: "PAID" } };
+  } else if (args.unpaid) {
+    where.NOT = { payment: { status: "PAID" } };
   }
 
   const needle = (q ?? "").trim();
@@ -330,8 +389,16 @@ export default async function UserTripsPage({
   const order = safeOrder(sp.order);
   const page = clampPage(sp.page);
   const q = (sp.q ?? "").trim();
+  const paid = sp.paid === "1";
+  const unpaid = sp.unpaid === "1";
   const now = new Date();
   const { timezone: companyTz } = await getCompanySettings();
+
+  const defaultFrom = tz.formatIsoDate(now, companyTz);
+  const defaultTo = tz.formatIsoDate(now, companyTz);
+
+  const fromYmd = sp.from ?? defaultFrom;
+  const toYmd = sp.to ?? defaultTo;
 
   const where = buildWhere({
     now,
@@ -340,6 +407,10 @@ export default async function UserTripsPage({
     range,
     q,
     timeZone: companyTz,
+    paid,
+    unpaid,
+    fromYmd,
+    toYmd,
   });
   const orderBy = buildOrderBy(sort, order, range);
 
@@ -366,10 +437,16 @@ export default async function UserTripsPage({
     take: PAGE_SIZE,
   });
 
+  // ── Count helper ──
+
   async function countFor(next: {
     status?: StatusFilter;
     range?: RangeFilter;
     q?: string;
+    paid?: boolean;
+    unpaid?: boolean;
+    fromYmd?: string;
+    toYmd?: string;
   }) {
     const w = buildWhere({
       now,
@@ -378,31 +455,38 @@ export default async function UserTripsPage({
       range: next.range ?? range,
       q: next.q ?? q,
       timeZone: companyTz,
+      paid: typeof next.paid === "boolean" ? next.paid : false,
+      unpaid: typeof next.unpaid === "boolean" ? next.unpaid : false,
+      fromYmd: next.fromYmd ?? fromYmd,
+      toYmd: next.toYmd ?? toYmd,
     });
     return db.booking.count({ where: w });
   }
 
-  const [statusCountsArr, rangeCountsArr] = await Promise.all([
-    Promise.all(
-      STATUSES.map(async (s) => {
-        const c = await countFor({ status: s, q });
-        return [s, c] as const;
-      }),
-    ),
-    Promise.all(
-      RANGES.map(async (r) => {
-        const c = await countFor({ range: r, q });
-        return [r, c] as const;
-      }),
-    ),
-  ]);
+  const [statusCountsArr, rangeCountsArr, paidCount, unpaidCount] =
+    await Promise.all([
+      Promise.all(
+        STATUSES.map(async (s) => {
+          const c = await countFor({ status: s, q });
+          return [s, c] as const;
+        }),
+      ),
+      Promise.all(
+        (["upcoming", "past", "month", "all"] as const).map(async (r) => {
+          const c = await countFor({ range: r, q });
+          return [r, c] as const;
+        }),
+      ),
+      countFor({ paid: true, q }),
+      countFor({ unpaid: true, q }),
+    ]);
 
   const statusCounts = Object.fromEntries(statusCountsArr) as Record<
     StatusFilter,
     number
   >;
   const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
-    RangeFilter,
+    string,
     number
   >;
 
@@ -412,7 +496,19 @@ export default async function UserTripsPage({
     q: q.length ? q : undefined,
     sort: sort,
     order: sort ? order : undefined,
+    paid: paid ? "1" : undefined,
+    unpaid: unpaid ? "1" : undefined,
+    from: range === "range" ? fromYmd : undefined,
+    to: range === "range" ? toYmd : undefined,
   };
+
+  const hasActiveFilters =
+    status !== "ALL" ||
+    range !== "upcoming" ||
+    paid ||
+    unpaid ||
+    q.length > 0 ||
+    sort !== undefined;
 
   const pageParams: Record<string, string | undefined> = {
     ...baseParams,
@@ -442,27 +538,98 @@ export default async function UserTripsPage({
         </div>
 
         <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <div className={styles.filterTitle}>Time</div>
-            <RangeTabs
-              active={range}
+          {/* Dropdown row: Time · Status */}
+          <div className={styles.filterRow}>
+            <UserFilterSelectClient
+              label='Time'
+              paramName='range'
+              defaultValue='upcoming'
               current={baseParams}
-              counts={rangeCounts}
+              options={[
+                {
+                  value: "upcoming",
+                  label: "Upcoming",
+                  count: rangeCounts.upcoming,
+                },
+                {
+                  value: "past",
+                  label: "Past Trips",
+                  count: rangeCounts.past,
+                },
+                {
+                  value: "month",
+                  label: "This Month",
+                  count: rangeCounts.month,
+                },
+                {
+                  value: "all",
+                  label: "All Time",
+                  count: rangeCounts.all,
+                },
+                {
+                  value: "range",
+                  label: "Custom Range",
+                },
+              ]}
+            />
+
+            <UserFilterSelectClient
+              label='Status'
+              paramName='status'
+              defaultValue='ALL'
+              current={baseParams}
+              options={STATUSES.map((s) => ({
+                value: s,
+                label: statusTabLabel(s),
+                count: statusCounts[s],
+              }))}
             />
           </div>
 
-          <div className={styles.filterGroup}>
-            <div className={styles.filterTitle}>Status</div>
-            <StatusTabs
-              active={status}
+          {/* Custom date range */}
+          {range === "range" ? (
+            <UserCustomRangeFormClient
               current={baseParams}
-              counts={statusCounts}
+              defaultFrom={defaultFrom}
+              defaultTo={defaultTo}
             />
+          ) : null}
+
+          {/* Pay filter checkboxes */}
+          <div className={styles.filterSections}>
+            <div className={styles.filterSection}>
+              <div className={styles.filterTitle}>Pay Filters</div>
+              <div className={styles.checkboxCol}>
+                <CheckboxLink
+                  label='Paid'
+                  active={paid}
+                  href={buildHref("/dashboard/trips", {
+                    ...baseParams,
+                    paid: paid ? undefined : "1",
+                    unpaid: undefined,
+                    page: undefined,
+                  })}
+                  count={paidCount}
+                />
+                <CheckboxLink
+                  label='Unpaid'
+                  active={unpaid}
+                  href={buildHref("/dashboard/trips", {
+                    ...baseParams,
+                    unpaid: unpaid ? undefined : "1",
+                    paid: undefined,
+                    page: undefined,
+                  })}
+                  count={unpaidCount}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* <div className={styles.filterGroup}>
+          {/* Clear All Filters */}
+          <div className={styles.filterGroup} style={{ width: "fit-content" }}>
             <UserClearFiltersButton hasActiveFilters={hasActiveFilters} />
-          </div> */}
+          </div>
         </div>
 
         <UserSearchFormClient current={baseParams} defaultValue={q} />
@@ -480,7 +647,7 @@ export default async function UserTripsPage({
           <div className={styles.emptyIcon}>📅</div>
           <p className={styles.emptyTitle}>No trips found</p>
           <p className={styles.emptyCopy}>
-            {status !== "ALL" || range !== "upcoming"
+            {hasActiveFilters
               ? "Try adjusting your filters or search."
               : "You haven't booked any trips yet."}
           </p>
@@ -747,6 +914,54 @@ export default async function UserTripsPage({
   );
 }
 
+/* ── Checkbox Link ─────────────────────────────────────────── */
+
+function CheckboxLink({
+  label,
+  active,
+  href,
+  count,
+  disabled = false,
+}: {
+  label: string;
+  active: boolean;
+  href: string;
+  count: number;
+  disabled?: boolean;
+}) {
+  const classes = [
+    styles.checkboxLink,
+    active ? styles.checkboxActive : "",
+    disabled ? styles.checkboxDisabled : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (disabled) {
+    return (
+      <span className={classes}>
+        <span className={styles.checkboxBox}>
+          {active && <span className={styles.checkmark}>✓</span>}
+        </span>
+        {label}
+        <span className='countPill'>{count}</span>
+      </span>
+    );
+  }
+
+  return (
+    <Link className={classes} href={href}>
+      <span className={styles.checkboxBox}>
+        {active && <span className={styles.checkmark}>✓</span>}
+      </span>
+      {label}
+      <span className='countPill'>{count}</span>
+    </Link>
+  );
+}
+
+/* ── Sortable Header ──────────────────────────────────────── */
+
 function SortableHeader({
   label,
   column,
@@ -786,88 +1001,7 @@ function SortableHeader({
   );
 }
 
-function StatusTabs({
-  active,
-  current,
-  counts,
-}: {
-  active: StatusFilter;
-  current: Record<string, string | undefined>;
-  counts: Record<StatusFilter, number>;
-}) {
-  return (
-    <div className={styles.tabRow}>
-      {STATUSES.map((s) => {
-        const href = buildHref("/dashboard/trips", {
-          ...current,
-          status: s === "ALL" ? undefined : s,
-          page: undefined,
-        });
-        const isActive = s === active;
-
-        return (
-          <Link
-            key={s}
-            href={href}
-            className={`tab ${isActive ? "tabActive" : ""}`}
-          >
-            {statusTabLabel(s)}
-            <span
-              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
-            >
-              {counts[s] ?? 0}
-            </span>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-function RangeTabs({
-  active,
-  current,
-  counts,
-}: {
-  active: RangeFilter;
-  current: Record<string, string | undefined>;
-  counts: Record<RangeFilter, number>;
-}) {
-  const items: { label: string; value: RangeFilter }[] = [
-    { label: "Upcoming", value: "upcoming" },
-    { label: "Past Trips", value: "past" },
-    { label: "This Month", value: "month" },
-    { label: "All Time", value: "all" },
-  ];
-
-  return (
-    <div className={styles.tabRow}>
-      {items.map((x) => {
-        const href = buildHref("/dashboard/trips", {
-          ...current,
-          range: x.value === "upcoming" ? undefined : x.value,
-          page: undefined,
-        });
-        const isActive = x.value === active;
-
-        return (
-          <Link
-            key={x.value}
-            href={href}
-            className={`tab ${isActive ? "tabActive" : ""}`}
-          >
-            {x.label}
-            <span
-              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
-            >
-              {counts[x.value] ?? 0}
-            </span>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
+/* ── Pagination ───────────────────────────────────────────── */
 
 function Pagination({
   totalCount,
