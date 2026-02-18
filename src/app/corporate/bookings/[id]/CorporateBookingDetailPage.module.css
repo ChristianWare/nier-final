@@ -126,7 +126,7 @@
 
 .discountDisplay {
   margin-top: 8px;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   text-align: right;
 }
 
@@ -295,7 +295,7 @@
   background: var(--cream);
   border: 1px solid var(--stroke);
   border-radius: 8px;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--black);
   text-decoration: none;

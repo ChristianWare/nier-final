@@ -76,7 +76,7 @@
   padding: 0 12px;
   border-radius: 999px;
   border: 1px dashed rgba(0, 0, 0, 0.18);
-  font-size: 13px;
+  font-size: 1.4rem;
   color: #6b7280;
 }
 
@@ -98,7 +98,7 @@
 }
 
 .filterLabel {
-  font-size: 12px;
+  font-size: 1.4rem;
   font-weight: 500;
   color: #6b7280;
 }
@@ -221,7 +221,7 @@
 }
 
 .kpiSub {
-  font-size: 12px;
+  font-size: 1.4rem;
   color: #6b7280;
 }
 
@@ -323,7 +323,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 1.4rem;
   color: #6b7280;
 }
 
@@ -402,7 +402,7 @@
 
 .legendText {
   color: #374151;
-  font-size: 13px;
+  font-size: 1.4rem;
   letter-spacing: normal;
 }
 
@@ -430,7 +430,7 @@
   padding: 10px 12px;
   border-bottom: 1px solid var(--stroke);
   white-space: nowrap;
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #6b7280;
 }
@@ -439,7 +439,7 @@
   padding: 10px 12px;
   border-bottom: 1px solid var(--stroke);
   vertical-align: top;
-  font-size: 14px;
+  font-size: 1.4rem;
 }
 
 .right {
@@ -470,7 +470,7 @@
   display: inline-block;
   padding: 4px 8px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 600;
 }
 
@@ -505,7 +505,7 @@
 
 .tooltipTitle {
   font-weight: 700;
-  font-size: 13px;
+  font-size: 1.4rem;
   letter-spacing: -0.01em;
 }
 
@@ -516,13 +516,14 @@
 }
 
 .tooltipLabel {
-  font-size: 12px;
+  font-size: 1.4rem;
   color: #6b7280;
 }
 
 .tooltipValue {
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
   color: #111827;
   text-align: right;
 }
@@ -551,8 +552,8 @@
   }
 
   .tab {
-    padding: 0.5rem 0.75rem;
-    font-size: 13px;
+    padding: 0.5rem 1rem;
+    font-size: 1.4rem;
   }
 
   .filterForm {
@@ -571,16 +572,16 @@
   .sectionHeader {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
   .kpiValue {
-    font-size: 24px;
+    font-size: 2.4rem;
   }
 
   .chartHeader {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: 1rem;
   }
 }

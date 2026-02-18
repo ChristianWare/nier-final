@@ -425,7 +425,6 @@
 .stopsContainer .tripRow {
   border-bottom: none;
   padding: 0.75rem 2rem;
-
 }
 
 .stopsContainer .tripIcon {
@@ -442,7 +441,7 @@
   height: 35px;
   background: #3b82f6;
   color: white;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 700;
   border-radius: 50%;
 }
@@ -455,7 +454,7 @@
   background: #fef3c7;
   border: 1px solid #fcd34d;
   border-radius: 8px;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: #92400e;
   margin-top: 0.5rem;
 }

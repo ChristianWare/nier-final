@@ -38,7 +38,7 @@
   padding: 0.25rem 0.55rem;
   border-radius: 999px;
   border: 1px solid var(--stroke);
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 700;
 }
 
@@ -145,7 +145,7 @@
 }
 
 .summaryLabel {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -183,7 +183,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
@@ -219,7 +219,7 @@
 
 .tooltipTitle {
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--stroke);
@@ -247,7 +247,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
@@ -260,7 +260,7 @@
 
 .tooltipVal {
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .tooltipGood {
@@ -316,7 +316,7 @@
   }
 
   .legendItem {
-    font-size: 1.1rem;
+    font-size: 1.4rem;
   }
 
   .chartCanvas {
@@ -334,11 +334,11 @@
   }
 
   .summaryLabel {
-    font-size: 0.95rem;
+    font-size: 1.4rem;
   }
 
   .summaryValue {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
 
   .chartCanvas {

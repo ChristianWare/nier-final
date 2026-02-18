@@ -124,7 +124,7 @@
   border: 1px solid var(--stroke);
   background: var(--white);
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   font-weight: 500;
   transition: all 0.2s ease;
 }

@@ -109,7 +109,7 @@
 }
 
 .infoLabel {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 600;
   opacity: 0.7;
   text-transform: uppercase;
@@ -117,7 +117,7 @@
 }
 
 .infoValue {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 600;
   text-align: right;
   word-break: break-word;
@@ -145,7 +145,7 @@
 }
 
 .statLabel {
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   opacity: 0.7;
   margin-top: 0.25rem;
 }
@@ -166,7 +166,7 @@
   border-radius: 8px;
   text-decoration: none;
   font-weight: 600;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: var(--black);
   transition: all 0.2s ease;
 }
@@ -255,7 +255,7 @@
 .th {
   text-align: left;
   padding: 10px 12px;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 700;
   opacity: 0.7;
   white-space: nowrap;
@@ -329,18 +329,18 @@
 
 .cellStrong {
   font-weight: 600;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .cellSub {
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   opacity: 0.7;
 }
 
 .earningsValue {
   font-weight: 900;
   color: #22c55e;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
 }
 
 /* Support Card */
@@ -450,7 +450,7 @@
 
   .infoValue {
     text-align: right;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
 }
 
@@ -464,7 +464,7 @@
   }
 
   .quickLink {
-    font-size: 1.15rem;
+    font-size: 1.4rem;
     padding: 0.75rem;
   }
 }

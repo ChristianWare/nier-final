@@ -14,10 +14,9 @@
 }
 
 .meta {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
-
 
 .grid {
   display: grid;
@@ -54,7 +53,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 0.7rem;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 700;
 }
 
@@ -87,7 +86,7 @@
 }
 
 .rel {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
 
@@ -96,7 +95,7 @@
   flex-direction: column;
   flex-wrap: wrap;
   gap: 2rem;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   width: 100%;
 }
 
@@ -142,7 +141,7 @@
 }
 
 .customerType {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   border: 1px solid var(--stroke);
@@ -173,7 +172,7 @@
 }
 
 .routeValue {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   opacity: 0.9;
 }
 

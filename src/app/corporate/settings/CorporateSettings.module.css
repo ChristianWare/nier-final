@@ -72,8 +72,6 @@
   padding-top: 1rem;
 }
 
-
-
 .readOnlyBadge {
   font-size: 1.4rem;
   font-weight: 600;
@@ -175,7 +173,7 @@
 }
 
 .cardExpiry {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   opacity: 0.6;
 }
 

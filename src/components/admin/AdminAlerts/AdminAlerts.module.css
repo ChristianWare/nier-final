@@ -18,12 +18,12 @@
 }
 
 .meta {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
 
 .empty {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   opacity: 0.75;
   padding: 0.6rem 0;
 }
@@ -64,7 +64,7 @@
 }
 
 .timestamp {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.7;
   margin-top: 0.25rem;
@@ -87,7 +87,7 @@
   border: 1px solid var(--stroke);
   background: var(--lightGray);
   color: var(--paragraph);
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -110,7 +110,7 @@
 }
 
 .chevron {
-  font-size: 0.8rem;
+  font-size: 1.4rem;
   transition: transform 0.3s ease;
 }
 
@@ -189,7 +189,7 @@
 .detailsTh {
   text-align: left;
   padding: 10px 12px;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 900;
   letter-spacing: 0.02em;
   opacity: 0.85;
@@ -394,7 +394,7 @@
   .detailsTd::before {
     content: attr(data-label);
     display: block;
-    font-size: 1.05rem;
+    font-size: 1.4rem;
     font-weight: 900;
     opacity: 0.6;
     margin-bottom: 4px;

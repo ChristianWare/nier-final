@@ -44,13 +44,13 @@
 }
 
 .key {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
 
 .helpText {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
@@ -66,7 +66,7 @@
 
 .warningNote {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: #92400e;
   padding: 10px 14px;
   background: rgba(245, 158, 11, 0.08);
@@ -112,7 +112,7 @@
 
 .muted {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 

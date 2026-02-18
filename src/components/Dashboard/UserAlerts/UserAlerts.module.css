@@ -75,7 +75,7 @@
 }
 
 .severityIcon {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
 }
 
 .alertTitle {
@@ -85,14 +85,14 @@
 }
 
 .alertMessage {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   line-height: 1.45;
   margin: 0;
 }
 
 .timestamp {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.6;
   margin-top: 0.25rem;
@@ -115,7 +115,7 @@
   border: 1px solid var(--stroke);
   background: var(--lightGray);
   color: var(--paragraph);
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -138,7 +138,7 @@
 }
 
 .chevron {
-  font-size: 0.7rem;
+  font-size: 1.4rem;
   transition: transform 0.3s ease;
 }
 
@@ -165,7 +165,9 @@
   background: var(--lightGray);
   opacity: 0;
   transform: translateY(-8px);
-  transition: opacity 0.25s ease 0.05s, transform 0.25s ease 0.05s;
+  transition:
+    opacity 0.25s ease 0.05s,
+    transform 0.25s ease 0.05s;
 }
 
 .drawerOpen .detailsPanel {
@@ -182,7 +184,7 @@
 }
 
 .declineLabel {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: #991b1b;
   text-transform: uppercase;
@@ -192,7 +194,7 @@
 }
 
 .declineReason {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: #7f1d1d;
   line-height: 1.5;
   margin: 0;
@@ -220,7 +222,7 @@
 }
 
 .detailValue {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: var(--black);
 }
 
@@ -241,7 +243,7 @@
 }
 
 .paymentLabel {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
@@ -252,7 +254,7 @@
 }
 
 .paymentDueDate {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--black);
 }
@@ -307,7 +309,7 @@
 }
 
 .successLabel {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: #166534;
   font-weight: 600;
 }
@@ -333,7 +335,7 @@
 }
 
 .refundLabel {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: #92400e;
   font-weight: 600;
 }
@@ -361,7 +363,7 @@
 }
 
 .driverIcon {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .driverInfo {
@@ -371,7 +373,7 @@
 }
 
 .driverLabel {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.8;
 }
@@ -403,11 +405,11 @@
   }
 
   .alertTitle {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
 
   .alertMessage {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
 
   .paymentDueRow {

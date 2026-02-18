@@ -1,4 +1,3 @@
-
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -25,7 +24,7 @@
 }
 
 .metaRight {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.9;
   margin-top: 1rem;
@@ -36,7 +35,6 @@
   grid-template-columns: 1fr;
   gap: 1rem;
 }
-
 
 .divider {
   height: 1px;
@@ -51,9 +49,8 @@
 
 .formTitle {
   font-weight: 900;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
 }
-
 
 .select,
 .textarea {
@@ -61,7 +58,7 @@
   /* background: var(--cream); */
   border-radius: 5px;
   padding: 0.9rem 1rem;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--black);
   outline: none;
 }
@@ -102,12 +99,12 @@
 }
 
 .tripMetaKey {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
 .tripMetaVal {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 900;
   color: var(--black);
   word-break: break-word;
@@ -125,13 +122,13 @@
 
 .muted {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
 .miniNote {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.85;
 }
@@ -146,7 +143,7 @@
   border: 1px solid var(--stroke);
   border-radius: 5px;
   cursor: pointer;
-  padding:1rem;
+  padding: 1rem;
 }
 
 .faqSummary {
@@ -158,7 +155,7 @@
 
 .faqBody {
   padding-top: 2rem;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   line-height: 1.4;
 }
@@ -171,7 +168,7 @@
 
 .adminNote {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.9;
 }

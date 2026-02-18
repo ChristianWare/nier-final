@@ -132,7 +132,7 @@
 
 .addonTitle {
   font-weight: 900;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   word-break: break-word;
 }
 
@@ -142,14 +142,14 @@
 }
 
 .addonNotes {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   word-break: break-word;
 }
 
 .addonPrice {
   font-weight: 900;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   white-space: nowrap;
 }
 
@@ -175,7 +175,7 @@
 }
 
 .timelineMeta {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
 

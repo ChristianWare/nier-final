@@ -621,8 +621,8 @@
 
 .historyLink {
   display: inline-block;
-  margin-top: 0.5rem;
-  font-size: 1rem;
+  margin-top: 1rem;
+  font-size: 1.4rem;
   color: var(--primary, #0066cc);
   text-decoration: none;
   opacity: 0.85;
@@ -641,13 +641,13 @@
 
 .errorText {
   color: #c00;
-  font-size: 1rem;
-  margin: 0.5rem 0 0;
+  font-size: 1.4rem;
+  margin: 1rem 0 0;
 }
 
 .successText {
   color: #080;
-  font-size: 1rem;
+  font-size: 1.4rem;
 }
 
 .paymentInfo {
@@ -662,6 +662,7 @@
 .paymentAmount {
   font-weight: 700;
   font-size: 1.4rem;
+  letter-spacing: normal;
 }
 
 .paymentDate {

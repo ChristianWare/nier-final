@@ -90,7 +90,7 @@
 }
 
 .statLabel {
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -168,7 +168,7 @@
 .th {
   text-align: left;
   padding: 12px 14px;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   font-weight: 900;
   letter-spacing: 0.02em;
   opacity: 0.85;
@@ -237,7 +237,7 @@
 }
 
 .cellSub {
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   opacity: 0.7;
   line-height: 1.25;
 }
@@ -373,7 +373,7 @@
   .td::before {
     content: attr(data-label);
     display: block;
-    font-size: 1.05rem;
+    font-size: 1.4rem;
     font-weight: 900;
     opacity: 0.6;
     margin-bottom: 6px;
@@ -414,7 +414,7 @@
   }
 
   .cellSub {
-    font-size: 1.05rem;
+    font-size: 1.4rem;
   }
 
   .pill {

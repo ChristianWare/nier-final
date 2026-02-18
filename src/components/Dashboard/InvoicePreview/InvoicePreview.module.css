@@ -57,7 +57,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   color: #666;
 }
 
@@ -91,12 +91,12 @@
 
 .metaLabel {
   color: #888;
-  font-size: 0.85rem;
+  font-size: 1.4rem;
 }
 
 .metaValue {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   min-width: 100px;
   text-align: right;
 }
@@ -107,7 +107,7 @@
 }
 
 .sectionTitle {
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -123,12 +123,12 @@
 
 .customerInfo p {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 1.4rem;
 }
 
 .customerName {
   font-weight: 600;
-  font-size: 1.1rem !important;
+  font-size: 1.4rem !important;
 }
 
 /* Trip Section */
@@ -153,14 +153,14 @@
 }
 
 .tripLabel {
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   color: #888;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .tripValue {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   font-weight: 500;
 }
 
@@ -197,7 +197,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: white;
   flex-shrink: 0;
@@ -224,7 +224,7 @@
 }
 
 .routeLabel {
-  font-size: 0.7rem;
+  font-size: 1.4rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #888;
@@ -232,7 +232,7 @@
 }
 
 .routeAddress span:last-child {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   word-break: break-word;
 }
 
@@ -248,7 +248,7 @@
 
 .lineItemsTable th {
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 1.4rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #888;
@@ -259,7 +259,7 @@
 
 .lineItemsTable td {
   padding: 0.75rem 0;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -290,7 +290,7 @@
 .totalsRow {
   display: flex;
   justify-content: space-between;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   font-variant-numeric: tabular-nums;
 }
 
@@ -303,7 +303,7 @@
 
 .amountPaid {
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   color: #22c55e;
   padding-top: 0.5rem;
 }
@@ -343,7 +343,7 @@
 }
 
 .paidDate {
-  font-size: 0.85rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: rgba(34, 197, 94, 0.5);
 }
@@ -357,7 +357,7 @@
 
 .footer p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   color: #666;
 }
 
@@ -368,7 +368,7 @@
 }
 
 .footerSmall {
-  font-size: 0.8rem !important;
+  font-size: 1.4rem !important;
 }
 
 /* Actions */
@@ -405,7 +405,7 @@
 }
 
 .downloadIcon {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
 }
 
 .spinner {
@@ -447,14 +447,14 @@
 }
 
 .paymentLabel {
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   color: #888;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .paymentValue {
-  font-size: 0.9rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #222;
 }
@@ -464,7 +464,7 @@
   display: inline-block;
   padding: 0.15rem 0.6rem;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;

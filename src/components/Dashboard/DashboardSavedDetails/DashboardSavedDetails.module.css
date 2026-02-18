@@ -22,7 +22,7 @@
 }
 
 .metaRight {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.9;
   margin-top: 0.2rem;
@@ -43,12 +43,12 @@
 }
 
 .key {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
 .val {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 900;
   color: var(--black);
   word-break: break-word;
@@ -71,12 +71,12 @@
 }
 
 .tripMetaKey {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
 .tripMetaVal {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 900;
   color: var(--black);
   word-break: break-word;
@@ -105,19 +105,19 @@
 
 .itemTitle {
   font-weight: 900;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   word-break: break-word;
 }
 
 .itemMeta {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.9;
 }
 
 .muted {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 
@@ -137,7 +137,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   line-height: 1;
   white-space: nowrap;
   border: 1px solid var(--stroke);
@@ -162,7 +162,7 @@
 
 .emptyCopy {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
 }
 

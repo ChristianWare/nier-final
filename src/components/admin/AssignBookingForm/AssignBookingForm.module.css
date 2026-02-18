@@ -52,7 +52,7 @@
 }
 
 .errorText {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: #ef4444;
   font-weight: 600;
   margin-top: -0.5rem;
@@ -131,7 +131,7 @@
 
 .mismatchSubtext {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   line-height: 1.4;
   color: #92400e;
   opacity: 0.85;
@@ -331,6 +331,6 @@
   }
 
   .mismatchCheckLabel {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
   }
 }

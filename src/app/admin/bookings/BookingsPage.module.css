@@ -485,8 +485,9 @@
 
 .checkmark {
   color: var(--white);
-  font-size: 12px;
+  font-size: 1.4rem;
   font-weight: 900;
+  letter-spacing: normal;
   line-height: 1;
 }
 

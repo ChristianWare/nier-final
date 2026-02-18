@@ -18,15 +18,15 @@
 }
 
 .meta {
- display: flex;
- flex-direction: column;
- align-items: flex-start;
- justify-content: flex-start;
- gap: 3rem;
- width: 100%;
- padding: 2rem;
- border: 1px solid var(--stroke);
- border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3rem;
+  width: 100%;
+  padding: 2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
 }
 
 .metaItem {
@@ -54,7 +54,7 @@
 }
 
 .rowHead {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   opacity: 0.75;
   padding-bottom: 0.6rem;
   border-bottom: 1px solid var(--stroke);
@@ -62,7 +62,7 @@
 
 .colLabel {
   font-weight: 700;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .col,

@@ -44,7 +44,7 @@
 }
 
 .airportHint {
-  font-size: 12px;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
 
@@ -97,7 +97,7 @@
 }
 
 .airportAddr {
-  font-size: 12px;
+  font-size: 1.4rem;
   opacity: 0.75;
 }
 
@@ -197,7 +197,7 @@
   display: flex;
   justify-content: space-between;
   padding: 4px 0;
-  font-size: 13px;
+  font-size: 1.4rem;
 }
 
 .feePreviewRow span:last-child {

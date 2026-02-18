@@ -1,5 +1,5 @@
 .container {
- display: grid;
+  display: grid;
   gap: 1rem;
   border: 1px solid var(--stroke);
   border-radius: 10px;
@@ -18,7 +18,7 @@
 }
 
 .meta {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   opacity: 0.85;
 }
 
@@ -43,7 +43,7 @@
 }
 
 .metricLabel {
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   opacity: 0.75;
   font-weight: 700;
 }
@@ -63,7 +63,7 @@
 }
 
 .breakdownTitle {
-  /* font-size: 1.25rem; */
+  /* font-size: 1.4rem; */
   font-weight: 800;
   opacity: 0.9;
   width: 100%;
@@ -88,7 +88,7 @@
 
 .catName {
   font-weight: 800;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .catNums {
@@ -105,7 +105,7 @@
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   border: 1px solid var(--stroke);
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   background: var(--cream);
 }
 

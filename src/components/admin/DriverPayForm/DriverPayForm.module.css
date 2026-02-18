@@ -86,7 +86,7 @@
 .methodTabs {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-gap: .5rem;
+  grid-gap: 0.5rem;
   background: #e5e7eb;
   border-radius: 8px;
   padding: 3px;
@@ -103,7 +103,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #6b7280;
   transition: all 0.15s ease;
@@ -630,12 +630,12 @@
 
   .methodTab {
     padding: 0.55rem 0.35rem;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     gap: 0.3rem;
   }
 
   .methodTabIcon {
-    font-size: 1.2rem;
+    font-size: 1.4rem;
   }
 }
 

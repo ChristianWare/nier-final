@@ -68,7 +68,7 @@
   border-radius: 50%;
   background-color: var(--stroke);
   color: var(--black);
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   cursor: pointer;
   flex-shrink: 0;
   transition: background-color 0.2s ease;

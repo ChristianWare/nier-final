@@ -372,7 +372,7 @@ Payment Info (matching admin)
   background: var(--cream);
   border: 1px solid var(--stroke);
   border-radius: 8px;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--black);
   text-decoration: none;
@@ -444,7 +444,7 @@ Payment Info (matching admin)
 }
 
 .tipSubtitle {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.8;
 }
@@ -484,7 +484,7 @@ Payment Info (matching admin)
 }
 
 .tipAmountSmall {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.8;
 }
@@ -500,7 +500,7 @@ Payment Info (matching admin)
   background: var(--white);
   border: 1px solid var(--stroke);
   border-radius: 8px;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--paragraph);
   cursor: pointer;
@@ -633,7 +633,7 @@ Payment Info (matching admin)
   border: 1px solid #fecaca;
   border-radius: 8px;
   color: #991b1b;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .errorBanner {
@@ -645,11 +645,11 @@ Payment Info (matching admin)
   border: 1px solid #fecaca;
   border-radius: 8px;
   color: #991b1b;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
 }
 
 .errorIcon {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
 }
 
 .loadingState {
@@ -682,7 +682,7 @@ Payment Info (matching admin)
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   opacity: 0.7;
 }
@@ -747,7 +747,7 @@ Payment Info (matching admin)
   border: none;
   border-radius: 8px;
   color: white;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
@@ -769,7 +769,7 @@ Payment Info (matching admin)
   border: 1px solid var(--stroke);
   border-radius: 8px;
   color: var(--black);
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -785,7 +785,7 @@ Payment Info (matching admin)
 }
 
 .cancelError {
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: #dc2626;
   margin: 0;
 }

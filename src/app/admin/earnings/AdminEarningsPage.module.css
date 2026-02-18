@@ -189,7 +189,7 @@
 }
 
 .selectedMonth {
-  font-size: 12px;
+  font-size: 1.4rem;
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.16);
@@ -197,7 +197,7 @@
 }
 
 .tzPill {
-  font-size: 12px;
+  font-size: 1.4rem;
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.16);
@@ -341,8 +341,8 @@
 
 .tooltipTitle {
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: -0.01em;
+  font-size: 1.4rem;
+  letter-spacing: normal;
 }
 
 .tooltipRow {
@@ -353,8 +353,9 @@
 }
 
 .tooltipVal {
-  font-size: 13px;
+  font-size: 1.4rem;
   font-weight: 700;
+  letter-spacing: normal;
 }
 
 /* ── Add these to AdminEarningsPage.module.css ── */

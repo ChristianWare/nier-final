@@ -27,7 +27,7 @@
 }
 
 .labelInputBox label {
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: var(--black);
   letter-spacing: -0.3px;
@@ -75,7 +75,7 @@
 }
 
 .error {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--accent);
   font-weight: 600;
   letter-spacing: -0.2px;
@@ -128,7 +128,7 @@
 
 .resetBtn {
   margin-top: 0.5rem;
-  font-size: 1.35rem;
+  font-size: 1.4rem;
   color: var(--blue);
   font-weight: 600;
   cursor: pointer;
