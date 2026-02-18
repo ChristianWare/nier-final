@@ -8,7 +8,6 @@ import { auth } from "../../../../auth";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import DriverSearchFormClient from "@/app/driver-dashboard/trips/DriverSearchFormClient";
-import DriverClearFiltersButton from "@/app/driver-dashboard/trips/Driverclearfiltersbutton";
 import DriverFilterSelectClient from "@/components/Driver/DriverFilterSelectClient/DriverFilterSelectClient";
 
 export const runtime = "nodejs";
@@ -466,14 +465,14 @@ export default async function DriverTripsPage({
     order: sort ? order : undefined,
   };
 
-  const hasActiveFilters =
-    status !== "ALL" ||
-    range !== "upcoming" ||
-    completed ||
-    future ||
-    customerType !== "all" ||
-    q.length > 0 ||
-    sort !== undefined;
+  // const hasActiveFilters =
+  //   status !== "ALL" ||
+  //   range !== "upcoming" ||
+  //   completed ||
+  //   future ||
+  //   customerType !== "all" ||
+  //   q.length > 0 ||
+  //   sort !== undefined;
 
   const pageParams: Record<string, string | undefined> = {
     ...baseParams,
@@ -574,10 +573,7 @@ export default async function DriverTripsPage({
             }}
           />
 
-          {/* Clear All Filters */}
-          <div className={styles.filterGroup}>
-            <DriverClearFiltersButton hasActiveFilters={hasActiveFilters} />
-          </div>
+        
         </div>
 
         <DriverSearchFormClient current={baseParams} defaultValue={q} />
