@@ -173,7 +173,7 @@ const ptComponents: PortableTextComponents = {
     code: ({ children }) => <code className={styles.ptCode}>{children}</code>,
   },
   block: {
-    h2: ({ children }) => <h2 className={styles.ptH2}>{children}</h2>,
+    h2: ({ children }) => <h2 className={`${styles.ptH2} cardTitle h4`}>{children}</h2>,
     h3: ({ children }) => <h3 className={styles.ptH3}>{children}</h3>,
     normal: ({ children }) => <p className={styles.ptP}>{children}</p>,
     blockquote: ({ children }) => (

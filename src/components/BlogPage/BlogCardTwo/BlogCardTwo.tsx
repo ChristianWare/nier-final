@@ -51,8 +51,8 @@ export default function BlogCardTwo({ post }: Props) {
             <Button
               as='span'
               text='Read More'
-              btnType='blackReg'
-              // arrow
+              btnType='underlinedBlack'
+              arrow
             />
           </div>
         </div>

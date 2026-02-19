@@ -7,7 +7,7 @@
   /* display: grid;
   grid-template-columns: 4fr 2fr;
   grid-gap: 5rem; */
-  max-width: 920px;
+  max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -64,11 +64,14 @@
 }
 
 .introText {
-  font-size: 2rem;
-  line-height: 1.5;
-  background-color: var(--lightGray);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  background: var(--lighterBlue);
+  border: 1px solid var(--blue);
+  color: var(--blue);
   padding: 2rem;
-  border-radius: 15px;
+  border-radius: 10px;
 }
 
 .body {
@@ -76,6 +79,9 @@
   grid-template-columns: repeat(1, 1fr);
   gap: 3rem;
   line-height: 1.5;
+  background-color: var(--white);
+  padding: 2rem;
+  border-radius: 10px;
 }
 
 .body p {
@@ -83,15 +89,14 @@
   /* background-color: red; */
 }
 
-.ptH2 {
+/* .ptH2 {
   font-size: 3.2rem;
   font-weight: 500;
   line-height: 1.2em;
   letter-spacing: -1.6px;
-}
+} */
 
 .ptH3 {
-  /* font-size: 1.4rem; */
   margin-top: 1.5rem;
 }
 
