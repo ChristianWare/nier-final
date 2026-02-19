@@ -18,8 +18,8 @@ const localBusinessSchema = {
   "@type": "LimousineBusService",
   name: "Nier Transportation",
   url: "https://www.niertransportation.com",
-  logo: "https://www.niertransportation.com/images/logo.png",
-  image: "https://www.niertransportation.com/images/og-image.jpg",
+  logo: "https://www.niertransportation.com/nierLogo.png",
+  image: "https://www.niertransportation.com/nierLogo.png",
   telephone: "+1-480-300-6003",
   email: "info@niertransportation.com",
   address: {
