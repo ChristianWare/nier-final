@@ -1,5 +1,5 @@
 .container {
-  background-color: var(--cream);
+  background-color: var(--white);
   padding: 10rem 0rem;
 }
 
@@ -19,6 +19,10 @@
   gap: 1rem;
   margin-top: 4rem;
   margin-bottom: 3rem;
+  background: var(--lightBlue);
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid var(--blue);
 }
 
 .desc {
@@ -82,7 +86,7 @@
 }
 
 .rightContent {
-  background-color: var(--white);
+  background-color: var(--cream);
   border-radius: 10px;
   padding: 3rem;
   align-self: flex-start;

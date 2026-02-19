@@ -59,7 +59,7 @@ function SectionList({
   const ListTag = ordered ? "ol" : "ul";
   return (
     <section className={styles.section}>
-      <h3 className={`cardTitle h5 bgWhite`}>{title}</h3>
+      <h3 className={`cardTitle h5`}>{title}</h3>
       <ListTag className={styles.list}>
         {items.map((item, i) => (
           <li key={i} className={styles.listItem}>
@@ -158,7 +158,7 @@ export default function ServiceDetails({ service }: { service: Service }) {
           <div className={styles.left}>
             <ServiceSlugPageIntro service={normalizedService} />
             <div className={styles.serviceoverview}>
-              <h2 className={styles.heading}>Overview</h2>
+              <h2 className={`${styles.heading} h3`}>Overview</h2>
               {service.description && (
                 <p className={styles.desc}>{service.description}</p>
               )}

@@ -15,7 +15,7 @@ export default function ServiceDetailsClient({
 }) {
   return (
     <main>
-      <Nav background='cream' />
+      <Nav background='white' />
       {/* <ServiceSlugPageIntro service={service} /> */}
       <ServiceDetails service={service} />
     </main>
