@@ -5,6 +5,7 @@ import "./globals.css";
 import Footer from "@/components/shared/Footer/Footer";
 import SessionProviderWrap from "@/components/Providers/SessionProvider";
 import ToastsProvider from "@/components/Providers/ToastsProvider";
+import ScrollToTop from "@/components/ServicesPage/ScrollToTop/ScrollToTop";
 
 const inter = Inter({
   variable: "--inter",
@@ -99,6 +100,7 @@ export default function RootLayout({
             __html: JSON.stringify(organizationSchema),
           }}
         />
+        <ScrollToTop />
         <SessionProviderWrap>
           <ToastsProvider />
           {children}
