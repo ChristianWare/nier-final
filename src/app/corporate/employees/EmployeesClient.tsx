@@ -68,9 +68,7 @@ export default function EmployeesClient({
   // ─── Filters ───
   const [search, setSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("ALL");
-  const [statusFilter, setStatusFilter] = useState<
-    "ALL" | "ACTIVE" | "INACTIVE"
-  >("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
 
   // ─── Add Modal ───
   const [addOpen, setAddOpen] = useState(false);
@@ -80,6 +78,12 @@ export default function EmployeesClient({
   const [editOpen, setEditOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<EmployeeForm>({ ...EMPTY_FORM });
+
+  // ─── Toggle Modal ───
+  const [toggleOpen, setToggleOpen] = useState(false);
+  const [pendingToggleEmp, setPendingToggleEmp] = useState<Employee | null>(
+    null,
+  );
 
   // ─── Filtered list ───
   const filtered = useMemo(() => {
@@ -173,10 +177,14 @@ export default function EmployeesClient({
     });
   }
 
-  function handleToggle(emp: Employee) {
-    const verb = emp.active ? "deactivate" : "reactivate";
-    if (!window.confirm(`Are you sure you want to ${verb} ${emp.name}?`))
-      return;
+  function handleToggleClick(emp: Employee) {
+    setPendingToggleEmp(emp);
+    setToggleOpen(true);
+  }
+
+  function handleToggleConfirm() {
+    if (!pendingToggleEmp) return;
+    const emp = pendingToggleEmp;
 
     startTransition(async () => {
       const res = await toggleEmployeeActive(emp.id, !emp.active);
@@ -184,6 +192,8 @@ export default function EmployeesClient({
         toast.success(
           emp.active ? "Employee deactivated." : "Employee reactivated.",
         );
+        setToggleOpen(false);
+        setPendingToggleEmp(null);
         router.refresh();
       } else {
         toast.error(res.error ?? "Failed.");
@@ -397,7 +407,7 @@ export default function EmployeesClient({
                         </button>
                         <button
                           className={emp.active ? "warningBtn" : "goodBtn"}
-                          onClick={() => handleToggle(emp)}
+                          onClick={() => handleToggleClick(emp)}
                           disabled={isPending}
                         >
                           {emp.active ? "Deactivate" : "Reactivate"}
@@ -468,6 +478,63 @@ export default function EmployeesClient({
               <button
                 className='neutralBtn'
                 onClick={() => setEditOpen(false)}
+                disabled={isPending}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ─── Toggle Active Modal ─── */}
+      {toggleOpen && pendingToggleEmp && (
+        <Modal
+          isOpen={toggleOpen}
+          onClose={() => {
+            setToggleOpen(false);
+            setPendingToggleEmp(null);
+          }}
+        >
+          <div className={styles.modalContent}>
+            <h3 className='h4'>
+              {pendingToggleEmp.active ? "Deactivate" : "Reactivate"} Employee
+            </h3>
+            <p className={styles.modalSub}>
+              {pendingToggleEmp.active ? (
+                <>
+                  Are you sure you want to deactivate{" "}
+                  <strong>{pendingToggleEmp.name}</strong>? They will no longer
+                  appear when booking rides.
+                </>
+              ) : (
+                <>
+                  Are you sure you want to reactivate{" "}
+                  <strong>{pendingToggleEmp.name}</strong>? They will be
+                  available again when booking rides.
+                </>
+              )}
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                className={pendingToggleEmp.active ? "warningBtn" : "goodBtn"}
+                onClick={handleToggleConfirm}
+                disabled={isPending}
+              >
+                {isPending
+                  ? pendingToggleEmp.active
+                    ? "Deactivating…"
+                    : "Reactivating…"
+                  : pendingToggleEmp.active
+                    ? "Yes, Deactivate"
+                    : "Yes, Reactivate"}
+              </button>
+              <button
+                className='neutralBtn'
+                onClick={() => {
+                  setToggleOpen(false);
+                  setPendingToggleEmp(null);
+                }}
                 disabled={isPending}
               >
                 Cancel

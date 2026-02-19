@@ -39,7 +39,6 @@ export function EditPaymentSettingsClient({
   const [isPending, startTransition] = useTransition();
   const [editing, setEditing] = useState(false);
 
-  // Form state
   const [billingCycle, setBillingCycle] = useState(currentBillingCycle);
   const [paymentMethod, setPaymentMethod] = useState(currentPaymentMethod);
   const [paymentTerms, setPaymentTerms] = useState(currentPaymentTerms);
@@ -56,7 +55,6 @@ export function EditPaymentSettingsClient({
   );
 
   function handleCancel() {
-    // Reset to current values
     setBillingCycle(currentBillingCycle);
     setPaymentMethod(currentPaymentMethod);
     setPaymentTerms(currentPaymentTerms);
@@ -126,7 +124,6 @@ export function EditPaymentSettingsClient({
   return (
     <div className={styles.editPaymentSection}>
       <div className={styles.editPaymentGrid}>
-        {/* Billing Cycle */}
         <div className={styles.formField}>
           <label className={styles.formLabel}>Billing Cycle</label>
           <select
@@ -141,7 +138,6 @@ export function EditPaymentSettingsClient({
           </select>
         </div>
 
-        {/* Payment Method */}
         <div className={styles.formField}>
           <label className={styles.formLabel}>Payment Method</label>
           <select
@@ -156,7 +152,6 @@ export function EditPaymentSettingsClient({
           </select>
         </div>
 
-        {/* Payment Terms */}
         <div className={styles.formField}>
           <label className={styles.formLabel}>Payment Terms</label>
           <select
@@ -172,7 +167,6 @@ export function EditPaymentSettingsClient({
           </select>
         </div>
 
-        {/* Discount */}
         <div className={styles.formField}>
           <label className={styles.formLabel}>Discount (%)</label>
           <input
@@ -189,7 +183,6 @@ export function EditPaymentSettingsClient({
           />
         </div>
 
-        {/* Monthly Limit */}
         <div className={styles.formField}>
           <label className={styles.formLabel}>Monthly Limit ($)</label>
           <input
@@ -206,7 +199,6 @@ export function EditPaymentSettingsClient({
           />
         </div>
 
-        {/* Check Payable To — only if method is CHECK */}
         {paymentMethod === "CHECK" && (
           <div className={styles.formField}>
             <label className={styles.formLabel}>Check Payable To</label>
@@ -257,6 +249,7 @@ export function AccountStatusClient({
   // Modal state
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [resendOpen, setResendOpen] = useState(false);
 
   // Close account confirmation
   const [confirmText, setConfirmText] = useState("");
@@ -284,20 +277,15 @@ export function AccountStatusClient({
     });
   }
 
-  function handleResendWelcome() {
-    if (
-      !window.confirm(
-        "Resend the welcome email with a new password setup link?",
-      )
-    )
-      return;
-
+  function handleResendConfirm() {
     startTransition(async () => {
       const res = await resendCorporateWelcomeEmail(accountId);
       if (res.ok) {
         toast.success("Welcome email sent! Link is valid for 48 hours.");
+        setResendOpen(false);
       } else {
         toast.error(res.error ?? "Failed to send email.");
+        setResendOpen(false);
       }
     });
   }
@@ -324,7 +312,7 @@ export function AccountStatusClient({
             </div>
             <button
               className='primaryBtn'
-              onClick={handleResendWelcome}
+              onClick={() => setResendOpen(true)}
               disabled={isPending}
             >
               {isPending ? "Sending..." : "Resend Welcome Email"}
@@ -362,6 +350,36 @@ export function AccountStatusClient({
           )}
         </div>
       </div>
+
+      {/* ─── Resend Welcome Email Modal ─── */}
+      <Modal isOpen={resendOpen} onClose={() => setResendOpen(false)}>
+        <div className={styles.modalContent}>
+          <div className='cardTitle h5'>Resend Welcome Email?</div>
+          <p className='paragraph'>
+            This will send a new password setup link to the primary contact. Any
+            previously sent links will be invalidated. The new link will be
+            valid for 48 hours.
+          </p>
+          <div className={styles.modalActions}>
+            <button
+              type='button'
+              className='primaryBtn'
+              onClick={() => setResendOpen(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='goodBtnii'
+              onClick={handleResendConfirm}
+              disabled={isPending}
+            >
+              {isPending ? "Sending..." : "Yes, Resend Email"}
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* ─── Suspend Modal ─── */}
       <Modal isOpen={suspendOpen} onClose={() => setSuspendOpen(false)}>
@@ -539,9 +557,6 @@ export function AddPassengerClient({ accountId }: { accountId: string }) {
 
   return (
     <>
-      {/* <button className='neutralBtn' onClick={() => setModalOpen(true)}>
-        + Add Passenger
-      </button> */}
       <Button
         onClick={() => setModalOpen(true)}
         type='button'

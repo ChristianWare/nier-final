@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateBookingStatus } from "../../../../../actions/admin/bookings";
+import Modal from "@/components/shared/Modal/Modal";
 import styles from "./AdminBookingDetailPage.module.css";
 
 type BookingStatus =
@@ -51,7 +52,6 @@ const CANCEL_ACTION: QuickAction = {
   confirm: "Are you sure you want to cancel this booking?",
 };
 
-// Check if today is the day of the booking (or after)
 function isBookingDay(pickupAt: Date): boolean {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -63,7 +63,6 @@ function isBookingDay(pickupAt: Date): boolean {
   return today >= bookingDay;
 }
 
-// Check if the booking day has passed (day after or later)
 function isAfterBookingDay(pickupAt: Date): boolean {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -82,17 +81,20 @@ export default function QuickActionsClient({
 }: {
   bookingId: string;
   currentStatus: BookingStatus;
-  pickupAt: string; // ISO string
+  pickupAt: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  /* ── Confirm modal state ── */
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<QuickAction | null>(null);
+
   const pickupDate = new Date(pickupAt);
   const isTodayOrAfter = isBookingDay(pickupDate);
   const isDayAfterOrLater = isAfterBookingDay(pickupDate);
 
-  // Finalized statuses - no actions available
   const finalizedStatuses: BookingStatus[] = [
     "COMPLETED",
     "CANCELLED",
@@ -103,11 +105,9 @@ export default function QuickActionsClient({
 
   const isFinalized = finalizedStatuses.includes(currentStatus);
 
-  // Filter trip actions based on current status
   const availableTripActions = TRIP_ACTIONS.filter((action) => {
     if (action.status === currentStatus) return false;
 
-    // No trip actions for draft, pending review, or declined
     if (
       currentStatus === "DRAFT" ||
       currentStatus === "PENDING_REVIEW" ||
@@ -117,11 +117,11 @@ export default function QuickActionsClient({
     }
 
     if (currentStatus === "PENDING_PAYMENT") {
-      return action.status === "NO_SHOW"; // Only no-show allowed
+      return action.status === "NO_SHOW";
     }
 
     if (currentStatus === "CONFIRMED" || currentStatus === "ASSIGNED") {
-      return true; // All trip actions available
+      return true;
     }
 
     if (currentStatus === "EN_ROUTE") {
@@ -141,7 +141,6 @@ export default function QuickActionsClient({
     return false;
   });
 
-  // Show cancel button unless already finalized or declined
   const showCancelButton =
     !isFinalized &&
     currentStatus !== "DECLINED" &&
@@ -149,16 +148,22 @@ export default function QuickActionsClient({
       ? true
       : currentStatus === "DRAFT" || currentStatus === "PENDING_REVIEW");
 
-  // Cancel button is disabled after booking is completed or day after pickup
   const isCancelDisabled = isFinalized || isDayAfterOrLater;
 
-  async function handleAction(action: QuickAction) {
+  function handleAction(action: QuickAction) {
     setError(null);
 
-    if (action.confirm && !window.confirm(action.confirm)) {
+    // If this action needs confirmation, open the modal instead
+    if (action.confirm) {
+      setPendingAction(action);
+      setConfirmModalOpen(true);
       return;
     }
 
+    executeAction(action);
+  }
+
+  function executeAction(action: QuickAction) {
     const formData = new FormData();
     formData.append("bookingId", bookingId);
     formData.append("status", action.status);
@@ -173,7 +178,18 @@ export default function QuickActionsClient({
     });
   }
 
-  // If finalized, show message
+  function handleConfirm() {
+    if (!pendingAction) return;
+    setConfirmModalOpen(false);
+    executeAction(pendingAction);
+    setPendingAction(null);
+  }
+
+  function handleModalClose() {
+    setConfirmModalOpen(false);
+    setPendingAction(null);
+  }
+
   if (isFinalized) {
     return (
       <div className={styles.quickActionsFinalized}>
@@ -186,7 +202,6 @@ export default function QuickActionsClient({
     );
   }
 
-  // If declined, show message
   if (currentStatus === "DECLINED") {
     return (
       <div className={styles.quickActionsFinalized}>
@@ -200,7 +215,6 @@ export default function QuickActionsClient({
 
   return (
     <div className={styles.quickActions}>
-      {/* Trip action buttons - each on its own line */}
       <div className={styles.quickActionsColumn}>
         {availableTripActions.map((action) => {
           const isDisabled = isPending || !isTodayOrAfter;
@@ -222,13 +236,13 @@ export default function QuickActionsClient({
           );
         })}
       </div>
+
       {!isTodayOrAfter && availableTripActions.length > 0 && (
         <p className={styles.disabledNote}>
           Trip actions will be available on the day of the booking.
         </p>
       )}
 
-      {/* Cancel button - separate row */}
       {showCancelButton && (
         <div className={styles.cancelActionRow}>
           <button
@@ -247,6 +261,30 @@ export default function QuickActionsClient({
       )}
 
       {error && <p className={styles.errorText}>{error}</p>}
+
+      {/* Confirm modal — used for No-Show and Cancel */}
+      <Modal isOpen={confirmModalOpen} onClose={handleModalClose}>
+        <div className={styles.modalContent}>
+          <h3 className='h4'>Confirm Action</h3>
+          <p className='subheading'>{pendingAction?.confirm}</p>
+          <div className={styles.modalActions}>
+            <button
+              className='dangerBtn'
+              onClick={handleConfirm}
+              disabled={isPending}
+            >
+              {isPending ? "Updating..." : "Yes, Confirm"}
+            </button>
+            <button
+              className='neutralBtn'
+              onClick={handleModalClose}
+              disabled={isPending}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from "../../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import Modal from "@/components/shared/Modal/Modal";
 
 type Note = {
   id: string;
@@ -36,6 +37,10 @@ export default function BookingNotesClient({
 
   const [content, setContent] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  /* ── Delete modal state ── */
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const isDirty = isEditing && content.trim().length > 0;
 
@@ -91,11 +96,16 @@ export default function BookingNotesClient({
     });
   }
 
-  async function handleDelete(noteId: string) {
-    if (!window.confirm("Delete this note?")) return;
+  function handleDeleteClick(noteId: string) {
+    setPendingDeleteId(noteId);
+    setDeleteModalOpen(true);
+  }
+
+  function handleDeleteConfirm() {
+    if (!pendingDeleteId) return;
 
     const formData = new FormData();
-    formData.append("noteId", noteId);
+    formData.append("noteId", pendingDeleteId);
     formData.append("bookingId", bookingId);
 
     startTransition(async () => {
@@ -105,6 +115,8 @@ export default function BookingNotesClient({
       } else {
         router.refresh();
       }
+      setDeleteModalOpen(false);
+      setPendingDeleteId(null);
     });
   }
 
@@ -190,7 +202,7 @@ export default function BookingNotesClient({
               <button
                 type='button'
                 className='dangerBtn'
-                onClick={() => handleDelete(note.id)}
+                onClick={() => handleDeleteClick(note.id)}
                 disabled={isPending}
               >
                 Delete note
@@ -199,6 +211,32 @@ export default function BookingNotesClient({
           ))}
         </ul>
       )}
+
+      {/* Delete confirmation modal */}
+      <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
+        <div className={styles.modalContent}>
+          <h3 className='h4'>Delete Note</h3>
+          <p className='subheading'>
+            Are you sure you want to delete this note? This cannot be undone.
+          </p>
+          <div className={styles.modalActions}>
+            <button
+              className='dangerBtn'
+              onClick={handleDeleteConfirm}
+              disabled={isPending}
+            >
+              {isPending ? "Deleting..." : "Yes, Delete"}
+            </button>
+            <button
+              className='neutralBtn'
+              onClick={() => setDeleteModalOpen(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
