@@ -11,6 +11,7 @@ import CorporateSearchFormClient from "./CorporateSearchFormClient";
 import CorporateFilterSelectClient from "./CorporateFilterSelectClient";
 import CorporateCustomRangeFormClient from "./CorporateCustomRangeFormClient";
 import CorporateClearFiltersButton from "./CorporateClearFiltersButton";
+import Button from "@/components/shared/Button/Button";
 
 export const metadata = { title: "Bookings | Corporate" };
 export const runtime = "nodejs";
@@ -352,10 +353,7 @@ function buildWhere(args: {
       });
     }
 
-    where.AND = [
-      ...existingAnd,
-      { OR: searchConditions },
-    ];
+    where.AND = [...existingAnd, { OR: searchConditions }];
   }
 
   return where;
@@ -591,7 +589,7 @@ export default async function CorporateBookingsPage({
   return (
     <section className={styles.container} aria-label='Corporate Bookings'>
       <header className={styles.header}>
-        <div className={styles.headerTop}>
+        <div className={`${styles.headerTop} underline`}>
           <div className={styles.top}>
             <Link href='/corporate' className='backBtn'>
               ← Back to Dashboard
@@ -600,11 +598,13 @@ export default async function CorporateBookingsPage({
           </div>
 
           <div className={styles.meta}>
-            <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong> bookings
+            <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong>{" "}
+            bookings
             {spendThisMonthCents > 0 && (
               <>
                 {" "}
-                · <strong style={{ fontSize: "1.4rem" }}>
+                ·{" "}
+                <strong style={{ fontSize: "1.4rem" }}>
                   {formatMoney(spendThisMonthCents)}
                 </strong>{" "}
                 this month
@@ -617,6 +617,16 @@ export default async function CorporateBookingsPage({
               </span>
             ) : null}
           </div>
+        </div>
+        <div
+          className={styles.headerActions}
+          style={{ width: "fit-content", marginBottom: "2rem" }}
+        >
+          <Button
+            href='/corporate/bookings/new'
+            text='New Booking'
+            btnType='greenReg'
+          />
         </div>
 
         <div className={styles.filters}>
@@ -820,8 +830,7 @@ export default async function CorporateBookingsPage({
                       : tone;
 
                   const driverName = b.assignment?.driver?.name ?? null;
-                  const passengerName =
-                    b.corporatePassenger?.name ?? "—";
+                  const passengerName = b.corporatePassenger?.name ?? "—";
 
                   return (
                     <tr key={b.id} className={styles.tr}>
@@ -887,9 +896,7 @@ export default async function CorporateBookingsPage({
                           tabIndex={-1}
                           style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
-                        <div className={styles.cellStrong}>
-                          {passengerName}
-                        </div>
+                        <div className={styles.cellStrong}>{passengerName}</div>
                       </td>
 
                       {/* Route */}
