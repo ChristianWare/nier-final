@@ -8,8 +8,9 @@
 }
 
 .heading {
-  text-align: center;
+  /* text-align: center; */
   margin-bottom: 7rem;
+  width: 100%;
 }
 
 .copy {

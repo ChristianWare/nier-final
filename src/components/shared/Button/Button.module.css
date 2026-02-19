@@ -137,6 +137,8 @@
   border-bottom: 1px solid var(--white);
   border-radius: 0px;
   padding: 5px 0px;
+  font-size: 2rem;
+
   justify-content: space-between;
 }
 
@@ -178,6 +180,24 @@
   border: 1px solid var(--black);
   display: flex;
   justify-content: space-between;
+}
+
+.white,
+.white:link,
+.white:visited {
+  background-color: var(--white);
+  color: var(--black);
+  border: 1px solid var(--white);
+  display: flex;
+  justify-content: space-between;
+}
+
+.white .arrowContainer {
+  background-color: var(--black);
+}
+
+.white .arrowContainer .arrow {
+  color: var(--white);
 }
 
 .gray,

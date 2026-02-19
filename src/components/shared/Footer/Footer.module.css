@@ -7,6 +7,8 @@
 .top {
   display: grid;
   grid-template-columns: 2fr 4fr;
+  border-top: 2px solid var(--stroke);
+  padding-top: 2rem;
 }
 
 .logoDetailsSocials {
@@ -68,7 +70,7 @@
 
 .links {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   padding-left: 5rem;
 }
@@ -78,7 +80,7 @@
   font-weight: 500;
   letter-spacing: normal;
   color: var(--paragraph);
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .linkSectionList {
@@ -90,7 +92,7 @@
 }
 
 .linkSectionItem {
-  font-size: 16px;
+  font-size: 1.6rem;
   line-height: 1.2em;
   letter-spacing: -0.8px;
   font-weight: 500;
@@ -130,6 +132,8 @@
 
   .links {
     padding-left: 0rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4rem;
   }
 }
 
@@ -140,12 +144,12 @@
   }
 
   .copy {
-    width: 60%;
+    width: 95%;
   }
 
   .links {
     grid-template-columns: repeat(1, 1fr);
-    grid-gap: 5rem;
+    gap: 5rem;
   }
 
   .logoDetailsSocials,
@@ -154,10 +158,6 @@
     align-items: center;
     text-align: center;
     gap: 2rem;
-  }
-
-  .copy {
-    width: 95%;
   }
 
   .socialsContainer {

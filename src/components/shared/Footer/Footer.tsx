@@ -46,7 +46,7 @@ const data: Section[] = [
         href: "/services/corporate-events",
       },
       { id: 1.4, option: "Party Bus", href: "/services/party-bus" },
-      { id: 1.5, option: "Weddings", href: "/services/party-bus-weddings" },
+      { id: 1.5, option: "Weddings", href: "/services/weddings" },
     ],
   },
   {
@@ -55,11 +55,62 @@ const data: Section[] = [
     options: [
       { id: 2.1, option: "About", href: "/about" },
       { id: 2.2, option: "Services", href: "/services" },
-      { id: 2.3, option: "Blog", href: "/blog" },
-      { id: 2.4, option: "Contact", href: "/contact" },
-      { id: 2.5, option: "Login", href: "/login" },
-      { id: 2.6, option: "Register", href: "/register" },
+      { id: 2.3, option: "Fleet", href: "/fleet" },
+      { id: 2.4, option: "Blog", href: "/blog" },
+      { id: 2.5, option: "Contact", href: "/contact" },
+      { id: 2.6, option: "Login", href: "/login" },
       { id: 2.7, option: "My Account", href: "/dashboard" },
+    ],
+  },
+  {
+    id: 4,
+    title: "Service Areas",
+    options: [
+      {
+        id: 4.1,
+        option: "Scottsdale",
+        href: "/services/airport-transfers/scottsdale",
+      },
+      {
+        id: 4.2,
+        option: "Phoenix",
+        href: "/services/airport-transfers/phoenix",
+      },
+      {
+        id: 4.3,
+        option: "Paradise Valley",
+        href: "/services/airport-transfers/paradise-valley",
+      },
+      {
+        id: 4.4,
+        option: "Tempe",
+        href: "/services/airport-transfers/tempe",
+      },
+      {
+        id: 4.5,
+        option: "Chandler",
+        href: "/services/airport-transfers/chandler",
+      },
+      {
+        id: 4.6,
+        option: "Mesa",
+        href: "/services/airport-transfers/mesa",
+      },
+      {
+        id: 4.7,
+        option: "Gilbert",
+        href: "/services/airport-transfers/gilbert",
+      },
+      {
+        id: 4.8,
+        option: "Cave Creek",
+        href: "/services/airport-transfers/cave-creek",
+      },
+      {
+        id: 4.9,
+        option: "View all locations →",
+        href: "/locations",
+      },
     ],
   },
 ];
@@ -82,7 +133,6 @@ const SOCIAL_ICON_MAP: Record<
 export default async function Footer() {
   const settings = await getCompanySettings();
 
-  // Build social links dynamically — only renders icons for configured platforms
   const socialLinks = [
     { key: "instagram", url: settings.instagramUrl, label: "Instagram" },
     { key: "facebook", url: settings.facebookUrl, label: "Facebook" },
@@ -94,7 +144,6 @@ export default async function Footer() {
     { key: "youtube", url: settings.youtubeUrl, label: "YouTube" },
   ].filter((s) => s.url?.trim());
 
-  // Build the Connect section dynamically from settings
   const connectOptions: Option[] = [];
   let connectId = 3.1;
 
@@ -202,7 +251,7 @@ export default async function Footer() {
           </div>
           <div className={styles.bottom}>
             <div className={styles.bottomLeft}>
-              <small className={styles.small}>© 2025 {companyName}</small>
+              <small className={styles.small}>© 2026 {companyName}</small>
             </div>
             <div className={styles.bottomRight}>
               <small className={styles.small}>

@@ -1,0 +1,168 @@
+.container {
+  padding: 10rem 0rem;
+  padding-bottom: 0rem;
+  background-color: var(--cream);
+}
+
+.content {
+  width: 100%;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-gap: 10rem;
+  position: relative;
+  z-index: 2;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.right {
+  position: relative;
+  z-index: 2;
+}
+
+.statBox {
+  background-color: var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3rem;
+  padding: 2rem;
+  max-width: 360px;
+  border-radius: 10px;
+  color: var(--black);
+  position: relative;
+  z-index: 4;
+}
+
+.stat {
+  line-height: 1.2em;
+  color: var(--cream);
+}
+
+.statiii {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+  width: 100%;
+}
+
+.imgSmall {
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid var(--cream);
+  padding: 0.5rem;
+}
+
+.statiiiText {
+  color: var(--cream);
+  font-size: 1.4rem;
+}
+
+.bottom {
+  margin-top: -12rem;
+  position: relative;
+  z-index: 1;
+}
+
+.imgContainer {
+  width: 100%;
+  height: 550px;
+  position: relative;
+  z-index: 1;
+}
+
+.img {
+  object-fit: cover;
+}
+
+.right .imgContainer {
+  display: none;
+}
+
+@media screen and (max-width: 1268px) {
+  .top {
+    grid-template-columns: 1fr;
+    grid-gap: 5rem;
+  }
+
+  .heading {
+    width: 80%;
+  }
+
+  .right {
+    display: grid;
+    grid-template-columns: 2fr 4fr;
+    grid-gap: 2rem;
+  }
+
+  .imgContainer {
+    height: 100%;
+  }
+
+  .right .imgContainer {
+    display: block;
+    position: relative;
+    z-index: 1;
+  }
+
+  .bottom .imgContainer {
+    display: none;
+  }
+
+  .statBox {
+    margin-left: auto;
+    margin-right: auto;
+    top: 0;
+    min-width: 100%;
+  }
+
+  .bottom {
+    margin-top: 0rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding-top: 10rem;
+  }
+
+  .right {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .left {
+    align-items: center;
+    text-align: center;
+  }
+
+  .heading {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .right {
+    grid-template-columns: repeat(1, 1fr);
+    width: 100%;
+  }
+
+  .imgContainer {
+    height: 300px;
+  }
+
+  .br {
+    display: none;
+  }
+}

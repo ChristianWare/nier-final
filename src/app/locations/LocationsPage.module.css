@@ -1,0 +1,137 @@
+.intro {
+  padding: 10rem 0rem;
+  background-color: var(--cream);
+}
+
+.introContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+  max-width: 720px;
+}
+
+
+
+.lead {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+}
+
+.citiesSection {
+  padding: 10rem 0rem;
+  background-color: var(--white);
+}
+
+.citiesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4rem;
+}
+
+.cityCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 3rem;
+  background-color: var(--cream);
+  border-radius: 12px;
+  border: 1px solid var(--stroke);
+  transition: border-color 0.2s ease;
+}
+
+.cityCard:hover {
+  border-color: var(--accent);
+}
+
+.cityHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cityName {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--text-primary);
+}
+
+.cityNote {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  line-height: 1.6;
+}
+
+.serviceList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 1px solid var(--stroke);
+  padding-top: 2rem;
+}
+
+.serviceLink {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: color 0.2s ease;
+}
+
+.serviceLink:hover {
+  color: var(--accent);
+}
+
+.serviceLink::before {
+  content: "→";
+  font-size: 1.4rem;
+  color: var(--accent);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease;
+}
+
+.serviceLink:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.cityCta {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: auto;
+  padding-top: 2rem;
+  border-top: 1px solid var(--stroke);
+  transition: opacity 0.2s ease;
+}
+
+.cityCta:hover {
+  opacity: 0.7;
+}
+
+@media screen and (max-width: 1068px) {
+  .citiesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .citiesGrid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .introContent {
+    max-width: 100%;
+  }
+}

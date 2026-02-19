@@ -1,0 +1,68 @@
+.container {
+  background-color: var(--white);
+  padding: 10rem 0rem;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--stroke),
+    var(--stroke) 1px,
+    transparent 1px,
+    transparent
+  );
+  background-size: 500px 500px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.heading {
+  max-width: 1200px;
+  text-align: center;
+}
+
+.copy {
+  color: var(--paragraph);
+  text-align: center;
+  max-width: 700px;
+}
+
+.btnContainer {
+  margin-top: 1rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .container {
+    background-size: 300px 300px;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .container {
+    background-size: 250px 250px;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    background-size: 75px 75px;
+  }
+
+  .content {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  .heading,
+  .copy {
+    text-align: left;
+  }
+
+  .btnContainer {
+    display: grid;
+    width: 100%;
+  }
+}
