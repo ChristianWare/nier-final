@@ -1,0 +1,90 @@
+.container {
+  padding: 10rem 0rem;
+  background-image: linear-gradient(#040000, #210000);
+}
+
+.content {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 7rem;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+}
+
+.heading {
+  color: var(--cream);
+  font-size: 15rem;
+  letter-spacing: -3px;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  -webkit-font-smoothing: antialiased;
+}
+
+.bottom {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 15rem;
+}
+
+.bottomRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 3rem;
+}
+
+.copy1 {
+  font-size: 1.6rem;
+  color: var(--accent);
+  max-width: 600px;
+  font-weight: 700;
+  letter-spacing: normal;
+}
+
+.copy2 {
+  color: var(--cream);
+}
+
+@media screen and (max-width: 1468px) {
+  .heading {
+    font-size: 12rem;
+  }
+}
+
+@media screen and (max-width: 1268px) {
+  .heading {
+    font-size: 10rem;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .heading {
+    letter-spacing: -2.2px;
+    font-size: 8rem;
+  }
+
+  .bottom {
+    grid-gap: 10rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .content,
+  .bottom {
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 3rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .heading {
+    letter-spacing: -1px;
+    font-size: 4.6rem;
+  }
+}

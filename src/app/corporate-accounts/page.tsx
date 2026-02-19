@@ -6,8 +6,10 @@ import WhyCorporate from "@/components/corporate/ WhyCorporate/WhyCorporate";
 import { homeQuestions } from "@/lib/data";
 import Faq from "@/components/shared/Faq/Faq";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
-import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import WhoWeWorkWith from "@/components/corporate/WhoWeWorkWith/WhoWeWorkWith";
+import AboutTestimonials from "@/components/AboutPage/AboutTestimonials/AboutTestimonials";
+import SimplifyCTA from "@/components/corporate/SimplifyCTA/SimplifyCTA";
+import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
 export const metadata = {
   title: "Corporate Accounts | Nier Transportation",
@@ -23,8 +25,10 @@ export default function CorporateAccountsPage() {
       <WhyCorporate />
       <CorporateBenefits />
       <WhoWeWorkWith />
-      <CorporateInquirySection />
+      <AboutTestimonials />
       <Faq items={homeQuestions} />
+      <SimplifyCTA />
+      <CorporateInquirySection />
       <BlogSection />
       <AboutNumbers />
     </main>
