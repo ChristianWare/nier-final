@@ -71,8 +71,17 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
 
   const isLoggedIn = Boolean((req as any).auth?.user);
 
+  // TEMP DEBUG
+  // console.log("roles:", getRoles(req), "pathname:", pathname);
+
+  // Logged-in users should not see auth pages
   // Logged-in users should not see auth pages
   if (isLoggedIn && authPages.has(pathname)) {
+    return NextResponse.redirect(new URL(roleHome(req), nextUrl));
+  }
+
+  // ✅ Logged-in users hitting "/" go straight to their role dashboard
+  if (isLoggedIn && pathname === "/") {
     return NextResponse.redirect(new URL(roleHome(req), nextUrl));
   }
 

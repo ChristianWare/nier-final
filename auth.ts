@@ -12,8 +12,7 @@ import { getUserByEmail } from "@/lib/user";
 import { LoginSchema } from "@/schemas/LoginSchema";
 import bcryptjs from "bcryptjs";
 
-export type AppRole = "USER" | "ADMIN" | "DRIVER";
-
+export type AppRole = "USER" | "ADMIN" | "DRIVER" | "CORPORATE";
 declare module "next-auth" {
   interface Session {
     user: {
