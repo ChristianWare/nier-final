@@ -7,6 +7,7 @@ import { homeQuestions } from "@/lib/data";
 import Faq from "@/components/shared/Faq/Faq";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
+import WhoWeWorkWith from "@/components/corporate/WhoWeWorkWith/WhoWeWorkWith";
 
 export const metadata = {
   title: "Corporate Accounts | Nier Transportation",
@@ -21,10 +22,11 @@ export default function CorporateAccountsPage() {
       <CorporatePageIntro />
       <WhyCorporate />
       <CorporateBenefits />
+      <WhoWeWorkWith />
       <CorporateInquirySection />
-           <Faq items={homeQuestions} />
-            <BlogSection />
-            <AboutNumbers />
+      <Faq items={homeQuestions} />
+      <BlogSection />
+      <AboutNumbers />
     </main>
   );
 }

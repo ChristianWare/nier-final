@@ -26,4 +26,6 @@
 
 .cream {
   color: var(--cream);
+    background-color: var(--accent);
+
 }
