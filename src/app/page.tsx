@@ -13,9 +13,84 @@ import Nav from "@/components/shared/Nav/Nav";
 import Testimonials from "@/components/shared/Testimonials/Testimonials";
 import { homeQuestions } from "@/lib/data";
 
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "LimousineBusService",
+  name: "Nier Transportation",
+  url: "https://www.niertransportation.com",
+  logo: "https://www.niertransportation.com/images/logo.png",
+  image: "https://www.niertransportation.com/images/og-image.jpg",
+  telephone: "+1-480-300-6003",
+  email: "info@niertransportation.com",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "10105 E Via Linda, Ste A-105",
+    addressLocality: "Scottsdale",
+    addressRegion: "AZ",
+    postalCode: "85258",
+    addressCountry: "US",
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 33.5611,
+    longitude: -111.8896,
+  },
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ],
+    opens: "00:00",
+    closes: "23:59",
+  },
+  areaServed: [
+    "Phoenix, AZ",
+    "Scottsdale, AZ",
+    "Tempe, AZ",
+    "Mesa, AZ",
+    "Chandler, AZ",
+    "Gilbert, AZ",
+    "Peoria, AZ",
+    "Glendale, AZ",
+    "Paradise Valley, AZ",
+    "Cave Creek, AZ",
+    "Fountain Hills, AZ",
+  ],
+  priceRange: "$$",
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: homeQuestions.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
 export default function HomePage() {
   return (
     <main>
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(localBusinessSchema),
+        }}
+      />
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <Nav />
       <Hero />
       <AboutUsIntro />
