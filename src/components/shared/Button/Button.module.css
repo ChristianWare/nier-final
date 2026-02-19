@@ -152,6 +152,14 @@
   justify-content: space-between;
 }
 
+.underlinedBlack .arrowContainer {
+  background-color: var(--accent);
+}
+
+.underlinedBlack .arrowContainer .arrow {
+  color: var(--white);
+}
+
 .black,
 .black:link,
 .black:visited {

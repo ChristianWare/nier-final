@@ -68,7 +68,7 @@
   border-radius: 50%;
   background-color: var(--stroke);
   color: var(--black);
-  font-size: 1.4rem;
+  font-size: 2rem;
   cursor: pointer;
   flex-shrink: 0;
   transition: background-color 0.2s ease;
@@ -76,7 +76,7 @@
 
 .clearBtn:hover {
   background-color: var(--accent);
-  color: var(--yellow);
+  color: var(--white);
 }
 
 @media screen and (max-width: 568px) {

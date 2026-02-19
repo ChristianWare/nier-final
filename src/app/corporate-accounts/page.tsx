@@ -2,6 +2,11 @@ import CorporatePageIntro from "@/components/corporate/CorporatePageIntro/Corpor
 import CorporateBenefits from "@/components/corporate/CorporateBenefits/CorporateBenefits";
 import CorporateInquirySection from "@/components/corporate/CorporateInquirySection/CorporateInquirySection";
 import Nav from "@/components/shared/Nav/Nav";
+import WhyCorporate from "@/components/corporate/ WhyCorporate/WhyCorporate";
+import { homeQuestions } from "@/lib/data";
+import Faq from "@/components/shared/Faq/Faq";
+import BlogSection from "@/components/shared/BlogSection/BlogSection";
+import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
 export const metadata = {
   title: "Corporate Accounts | Nier Transportation",
@@ -14,8 +19,12 @@ export default function CorporateAccountsPage() {
     <main>
       <Nav background='white' />
       <CorporatePageIntro />
+      <WhyCorporate />
       <CorporateBenefits />
       <CorporateInquirySection />
+           <Faq items={homeQuestions} />
+            <BlogSection />
+            <AboutNumbers />
     </main>
   );
 }

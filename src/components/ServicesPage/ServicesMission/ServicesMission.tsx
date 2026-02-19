@@ -8,7 +8,7 @@ export default function ServicesMission() {
     <section className={styles.container}>
       <LayoutWrapper>
         <div className={styles.content}>
-          <SectionHeading text='Mission' color='red' />
+          <SectionHeading text='Mission' color='red' dot />
           <h2 className={styles.heading}>
             Our mission is to provide a seamless booking experience that allows
             our clients to focus on what truly matters – their journey.
