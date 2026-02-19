@@ -4,11 +4,8 @@
 import styles from "./ServiceDetails.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Link from "next/link";
-// import Image from "next/image";
 import Button from "@/components/shared/Button/Button";
 import Faq from "@/components/shared/Faq/Faq";
-// import AddOns from "../AddOns/AddOns";
-
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import AboutTestimonials from "@/components/AboutPage/AboutTestimonials/AboutTestimonials";
 import ServiceSlugPageIntro from "../ServiceSlugPageIntro/ServiceSlugPageIntro";
@@ -40,7 +37,6 @@ type Service = {
   communicationAndTracking?: ReadonlyArray<string>;
   whatToExpect?: ReadonlyArray<string>;
   faqs?: ReadonlyArray<{ q: string; a: string }>;
-  // ⬇️ Was ReadonlyArray<string>; change to object list:
   addOns?: ReadonlyArray<AddOnItem> | ReadonlyArray<string>;
   forTravelManagers?: ReadonlyArray<string>;
   features?: ReadonlyArray<{
@@ -76,7 +72,7 @@ function SectionList({
 }
 
 function toAddOnItems(
-  addOns?: ReadonlyArray<AddOnItem> | ReadonlyArray<string>
+  addOns?: ReadonlyArray<AddOnItem> | ReadonlyArray<string>,
 ): AddOnItem[] {
   if (!addOns) return [];
   if (typeof addOns[0] === "string") {
@@ -113,15 +109,46 @@ export default function ServiceDetails({ service }: { service: Service }) {
   };
 
   const bookHref = `/book?service=${encodeURIComponent(service.slug)}`;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Service",
     name: service.title,
     description:
       service.description || service.marketingCopy || service.copy || "",
-    areaServed: "Phoenix Metro, Arizona",
-    provider: { "@type": "LocalBusiness", name: "Nier Transportation" },
+    url: `https://www.niertransportation.com/services/${service.slug}`,
+    provider: {
+      "@type": "LocalBusiness",
+      name: "Nier Transportation",
+      telephone: "+1-480-300-6003",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "10105 E Via Linda, Ste A-105",
+        addressLocality: "Scottsdale",
+        addressRegion: "AZ",
+        postalCode: "85258",
+        addressCountry: "US",
+      },
+    },
+    areaServed: {
+      "@type": "State",
+      name: "Arizona",
+    },
     category: "Ground Transportation",
+    ...(service.faqs &&
+      service.faqs.length > 0 && {
+        mainEntityOfPage: {
+          "@type": "FAQPage",
+          mainEntity: service.faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: faq.a,
+            },
+          })),
+        },
+      }),
   };
 
   return (
@@ -145,18 +172,8 @@ export default function ServiceDetails({ service }: { service: Service }) {
                 title={service.coverageTitle || "Coverage & Service Area"}
                 items={service.coverageAndAirports}
               />
-              {/* {service.src2 && (
-                <div className={styles.imgContainer}>
-                  <Image
-                    src={service.src2}
-                    fill
-                    alt={service.title || "Service image"}
-                    className={styles.img}
-                  />
-                </div>
-              )} */}
               <SectionList
-                title='What’s included'
+                title="What's included"
                 items={service.whatsIncluded}
               />
               <SectionList
@@ -199,7 +216,6 @@ export default function ServiceDetails({ service }: { service: Service }) {
             <div className={styles.rightContent}>
               <div className='h4'>Service details</div>
               <p className={styles.copy}>{service.copy}</p>
-
               <div className={styles.mapDataContainer}>
                 {service.features && service.features.length > 0 && (
                   <div className={styles.featureContainer}>
@@ -239,7 +255,6 @@ export default function ServiceDetails({ service }: { service: Service }) {
       />
       <HowItWorks />
       <AboutTestimonials />
-
       <AboutNumbers />
       <script
         type='application/ld+json'

@@ -26,11 +26,67 @@ export async function generateMetadata({
 
 export default async function Page({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
-  const vehicle: VehicleData | undefined = fleetData.find((f) => f.slug === slug);
+  const vehicle: VehicleData | undefined = fleetData.find(
+    (f) => f.slug === slug,
+  );
   if (!vehicle) notFound();
+
+  const vehicleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Vehicle",
+    name: vehicle.title,
+    description: vehicle.longDesc ?? vehicle.shortDesc ?? vehicle.desc,
+    vehicleConfiguration: vehicle.class,
+    seatingCapacity: vehicle.seats,
+    url: `https://www.niertransportation.com/fleet/${vehicle.slug}`,
+    provider: {
+      "@type": "LocalBusiness",
+      name: "Nier Transportation",
+      telephone: "+1-480-300-6003",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "10105 E Via Linda, Ste A-105",
+        addressLocality: "Scottsdale",
+        addressRegion: "AZ",
+        postalCode: "85258",
+        addressCountry: "US",
+      },
+    },
+    ...(vehicle.rateRules?.hourlyFromUSD && {
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "USD",
+        price: vehicle.rateRules.hourlyFromUSD,
+        unitText: "per hour",
+        seller: {
+          "@type": "Organization",
+          name: "Nier Transportation",
+        },
+        areaServed: "Phoenix Metro, Arizona",
+      },
+    }),
+    ...(vehicle.faqs &&
+      vehicle.faqs.length > 0 && {
+        mainEntityOfPage: {
+          "@type": "FAQPage",
+          mainEntity: vehicle.faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: faq.a,
+            },
+          })),
+        },
+      }),
+  };
 
   return (
     <main>
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(vehicleSchema) }}
+      />
       <Nav background='accent' />
       <FleetSlugPageIntro vehicle={vehicle} />
       <FleetDetails vehicle={vehicle} />

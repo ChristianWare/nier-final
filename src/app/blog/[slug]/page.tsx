@@ -9,10 +9,7 @@ import { PortableText, PortableTextComponents } from "@portabletext/react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import MoreInsights from "@/components/BlogPage/MoreInsights/MoreInsights";
-
 import type { Metadata } from "next";
-// import SearchIcon from "@/components/shared/icons/SearchIcon/SearchIcon";
-// import BlogPostSidebarCategories from "@/components/BlogPage/BlogPostSidebarCategories/BlogPostSidebarCategories";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 
 type Tag = { _id: string; name: string; slug?: { current?: string } };
@@ -33,7 +30,6 @@ type Post = {
 };
 
 const CLIENT_NAME = process.env.CLIENT_NAME || "Nier Transportation";
-
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://example.com";
@@ -217,12 +213,56 @@ export default async function BlogPostPage({
     ? urlFor(post.coverImage).width(2000).height(1200).fit("crop").url()
     : undefined;
 
-  // const initialCategorySlug =
-  //   post.tags?.find((t) => t.slug?.current)?.slug?.current || "all";
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt || "",
+    url: `${SITE_URL}/blog/${post.slug.current}`,
+    datePublished: post.publishedAt,
+    dateModified: post.publishedAt,
+    author: {
+      "@type": "Person",
+      name: "Barry LaNier",
+      jobTitle: "Owner, CEO",
+      worksFor: {
+        "@type": "Organization",
+        name: CLIENT_NAME,
+      },
+    },
+    publisher: {
+      "@type": "Organization",
+      name: CLIENT_NAME,
+      logo: {
+        "@type": "ImageObject",
+        url: "https://www.niertransportation.com/nierLogo.png",
+      },
+    },
+    ...(coverSrc && {
+      image: {
+        "@type": "ImageObject",
+        url: coverSrc,
+        width: 2000,
+        height: 1200,
+      },
+    }),
+    ...(post.tags &&
+      post.tags.length > 0 && {
+        keywords: post.tags.map((t) => t.name).join(", "),
+      }),
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/blog/${post.slug.current}`,
+    },
+  };
 
   return (
     <main className={styles.container}>
-      <Nav background='cream' />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <Nav background="cream" />
       <LayoutWrapper>
         <div className={styles.top}>
           <div className={styles.left}>
@@ -272,25 +312,6 @@ export default async function BlogPostPage({
               </article>
             </div>
           </div>
-
-          {/* <div className={styles.right}>
-            <div className={styles.rightContent}>
-              <div className={styles.searchContainerParent}>
-                <span className={`${styles.searchHeading} h3`}>Search</span>
-                <div className={styles.searchContainer}>
-                  <SearchIcon className={styles.icon} />
-                  <small className={styles.small}>Search</small>
-                </div>
-              </div>
-              <div className={styles.categoriesContainer}>
-                <span className={`${styles.searchHeading} h3`}>Categories</span>
-                <BlogPostSidebarCategories
-                  tags={tags}
-                  initialSlug={initialCategorySlug}
-                />
-              </div>
-            </div>
-          </div> */}
         </div>
         <div className={styles.categoriesContainer}>
           <span className={`${styles.searchHeading} h3`}>Recent Posts</span>
