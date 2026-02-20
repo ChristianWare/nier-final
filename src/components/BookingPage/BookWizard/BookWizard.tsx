@@ -1000,7 +1000,7 @@ export default function BookingWizard({
             ? `/book/success?id=${encodeURIComponent(String(groupBookingId))}&t=${encodeURIComponent(String(groupClaimToken))}`
             : `/book/success?id=${encodeURIComponent(String(groupBookingId))}`
           : "/book/success";
-        window.location.href = groupHref;
+        router.push(groupHref);
         return;
       }
 
@@ -1060,7 +1060,7 @@ export default function BookingWizard({
           ? `/book/success?id=${encodeURIComponent(String(bookingId))}&t=${encodeURIComponent(String(claimToken))}`
           : `/book/success?id=${encodeURIComponent(String(bookingId))}`
         : "/book/success";
-      window.location.href = href;
+      router.push(href);
     } catch (e: any) {
       toast.error(e?.message ?? "Something went wrong. Please try again.");
       setSubmitting(false);

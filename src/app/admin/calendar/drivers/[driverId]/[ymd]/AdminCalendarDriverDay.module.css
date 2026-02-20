@@ -1,0 +1,470 @@
+/* AdminCalendarDriverDay.module.css */
+
+.container {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.header {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 3rem;
+}
+
+.headerTop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+/* ── Driver nameplate ── */
+
+.driverNameplate {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--lighterBlue);
+  border: 1px solid var(--blue);
+  border-radius: 10px;
+  width: 100%;
+}
+
+.driverAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--stroke);
+  flex-shrink: 0;
+}
+
+.driverAvatarFallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--black);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  border: 2px solid var(--stroke);
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.driverNameplateInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.driverNameplateLabel {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+  line-height: 1;
+}
+
+.driverNameplateName {
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* ── Rest of header ── */
+
+.top {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  width: 100%;
+}
+
+.heading {
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.meta {
+  font-size: 1.4rem;
+  opacity: 0.75;
+}
+
+.metaSep {
+  margin-left: 1rem;
+}
+
+.filters {
+  display: grid;
+  gap: 2rem;
+}
+
+.filterGroup {
+  display: grid;
+  gap: 1rem;
+}
+
+.filterTitle {
+  font-size: 1.4rem;
+  font-weight: 900;
+  opacity: 0.6;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tabRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ── Pagination ── */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.paginationLeft {
+  display: flex;
+  align-items: center;
+}
+
+.paginationMeta {
+  font-size: 1.4rem;
+  opacity: 0.8;
+}
+
+.paginationRight {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.pageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1rem;
+  border-radius: 5px;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  color: var(--black);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.4rem;
+  white-space: nowrap;
+}
+
+.pageBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pageBtnDisabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.pageBtnActive {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+  pointer-events: none;
+}
+
+/* ── Table ── */
+
+.tableWrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-height: none;
+}
+
+.tableCard {
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.thead {
+  background: var(--white);
+  z-index: 2;
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  white-space: nowrap;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  opacity: 0.7;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: top;
+  position: relative;
+  z-index: 2;
+}
+
+.tdRight {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: all 0.3s ease-in;
+  position: relative;
+}
+
+.tr:hover {
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
+}
+
+.rowLink {
+  text-decoration: none;
+  display: inline-block;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.pickupCell {
+  display: grid;
+  gap: 8px;
+}
+
+.pickupMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pill {
+  font-size: 1.4rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.cellStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.cellStrong {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.cellSub {
+  font-size: 1.4rem;
+  opacity: 0.7;
+}
+
+.totalCell {
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+/* ── Empty state ── */
+
+.empty {
+  padding: 14px 2px;
+  display: grid;
+  gap: 8px;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.emptyCopy {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.btnContainer {
+  margin-top: 1rem;
+}
+
+/* ── Mobile ── */
+
+@media screen and (max-width: 768px) {
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+    max-height: none;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+  }
+
+  .tr:hover {
+    background: var(--white);
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--stroke);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: normal;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .tdRight {
+    text-align: left;
+  }
+
+  .totalCell {
+    font-size: 1.4rem;
+    white-space: normal;
+  }
+
+  .driverNameplate {
+    padding: 1rem 1.25rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .meta {
+    font-size: 1.4rem;
+  }
+
+  .tabRow {
+    gap: 1rem;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .paginationRight {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .pageBtn {
+    font-size: 1.4rem;
+    padding: 0.6rem 1rem;
+  }
+
+  .td::before {
+    font-size: 1.4rem;
+  }
+
+  .cellSub {
+    font-size: 1.4rem;
+  }
+
+  .pill {
+    font-size: 1.4rem;
+    padding: 0.5rem 1rem;
+  }
+}

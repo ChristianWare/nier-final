@@ -33,6 +33,7 @@ import * as tz from "@/lib/timezone";
 import { getTripGroupForBooking } from "@/lib/tripGroup/getTripGroupForBooking";
 import TripGroupCard from "@/components/admin/TripGroupCard/TripGroupCard";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import Image from "next/image";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -436,7 +437,9 @@ export default async function AdminBookingDetailPage({
       },
       assignment: {
         include: {
-          driver: { select: { id: true, name: true, email: true } },
+          driver: {
+            select: { id: true, name: true, email: true, image: true },
+          },
           vehicleUnit: { select: { id: true, name: true, plate: true } },
         },
       },
@@ -962,7 +965,7 @@ export default async function AdminBookingDetailPage({
   const totalFeesCents =
     booking.fees?.reduce((sum, f) => sum + f.amountCents, 0) ?? 0;
 
-    const stripePublishableKey = await getStripePublishableKey();
+  const stripePublishableKey = await getStripePublishableKey();
 
   return (
     <DirtyFormProvider>
@@ -1035,13 +1038,17 @@ export default async function AdminBookingDetailPage({
 
                 {/* Show tip amount if present */}
                 {tipCents > 0 && (
-                  <div className={styles.tipDisplay}>
+                  <a
+                    href='#driver-pay-section'
+                    className={styles.tipDisplay}
+                  >
                     <span className={styles.tipIcon}>💰</span>
                     <span className={styles.tipLabel}>Driver Tip:</span>
                     <span className={styles.tipAmount}>
                       {formatMoney(tipCents, booking.currency)}
                     </span>
-                  </div>
+                    <div className='backBtn'>More details</div>
+                  </a>
                 )}
 
                 {/* Show balance due if applicable */}
@@ -1079,6 +1086,48 @@ export default async function AdminBookingDetailPage({
                       {formatMoney(booking.totalCents, booking.currency)})
                     </span>
                   </div>
+                )}
+              </div>
+              {/* Driver */}
+              <div
+                style={{ marginTop: 20 }}
+                className={styles.driverSectionArea}
+              >
+                <div className='emptyTitle'>Driver:</div>
+                {booking.assignment?.driver ? (
+                  <div className={styles.driverNameplate}>
+                    {booking.assignment.driver.image ? (
+                      <Image
+                        src={booking.assignment.driver.image}
+                        alt={booking.assignment.driver.name ?? "Driver"}
+                        width={36}
+                        height={36}
+                        className={styles.driverNameplateAvatar}
+                      />
+                    ) : (
+                      <div className={styles.driverNameplateAvatarFallback}>
+                        {(
+                          booking.assignment.driver.name ??
+                          booking.assignment.driver.email
+                        )
+                          .split(" ")
+                          .map((w) => w[0]?.toUpperCase() ?? "")
+                          .slice(0, 2)
+                          .join("")}
+                      </div>
+                    )}
+                    <span className={styles.driverNameplateName}>
+                      {booking.assignment.driver.name?.trim() ||
+                        booking.assignment.driver.email}
+                    </span>
+                  </div>
+                ) : (
+                  <span
+                    className='badge badge_neutral'
+                    style={{ marginTop: 6, display: "inline-block" }}
+                  >
+                    Unassigned
+                  </span>
                 )}
               </div>
             </div>

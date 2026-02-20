@@ -31,21 +31,18 @@
 .box {
   width: 100%;
   display: grid;
-  /* grid-template-columns: repeat(2, 1fr); */
   grid-gap: 2rem;
 }
 
 .boxRight {
   margin-right: auto;
   border: 1px solid var(--stroke);
-  padding: 1rem;
+  padding: 2rem;
   border-radius: 10px;
   width: 100%;
-  /* text-align: right; */
 }
 
 .badge {
-  /* margin-left: auto; */
   width: fit-content;
 }
 
@@ -729,8 +726,11 @@
 
 .tipDisplay {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  
+  gap: 1rem;
   margin-top: 10px;
   padding: 10px 14px;
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
@@ -1077,6 +1077,51 @@
   padding-top: 1rem;
   border-top: 1px solid var(--stroke);
   margin-top: 1rem;
+}
+
+.driverSectionArea {
+  background: var(--lighterBlue);
+  border: 1px solid var(--lightBlue);
+  padding: 1rem;
+  border-radius: 7px;
+}
+
+.driverNameplate {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.driverNameplateAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--stroke);
+  flex-shrink: 0;
+}
+
+.driverNameplateAvatarFallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--black);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  border: 2px solid var(--stroke);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.driverNameplateName {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
 }
 
 @media screen and (max-width: 1468px) {

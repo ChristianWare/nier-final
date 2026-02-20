@@ -293,6 +293,7 @@ export default async function AdminHome() {
     todaysRidesRaw,
     calendarRidesRaw,
     calendarBlackoutsRaw,
+    recentTipsRaw,
     balanceDueBookingsRaw,
     unpaidUpcomingTripsRaw,
     upcomingAssignmentsForOverlapCheck,
@@ -832,6 +833,36 @@ export default async function AdminHome() {
         },
       },
       select: { ymd: true },
+    }),
+    db.payment.findMany({
+      where: {
+        paidAt: { gte: verifiedCutoff },
+        tipCents: { gt: 0 },
+      },
+      orderBy: [{ paidAt: "desc" }],
+      take: 20,
+      select: {
+        id: true,
+        paidAt: true,
+        tipCents: true,
+        currency: true,
+        booking: {
+          select: {
+            id: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            user: { select: { name: true, email: true } },
+            guestName: true,
+            guestEmail: true,
+            serviceType: { select: { name: true } },
+            assignment: {
+              select: {
+                driver: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
     }),
     // Bookings with balance due (paid but total increased)
     db.booking.findMany({
@@ -1812,6 +1843,56 @@ export default async function AdminHome() {
           ? `${pendingCorporateInquiries} companies have submitted corporate account inquiries. Review and reach out to discuss their needs.`
           : `A company has submitted a corporate account inquiry. Review and reach out to discuss their needs.`,
       timestamp: "Action needed",
+    });
+  }
+
+  // ==========================================
+  // INFO: Tips received in last 24 hours
+  // ==========================================
+  const recentTips = (recentTipsRaw as any[]).filter(
+    (p) => p.booking && (p.tipCents ?? 0) > 0,
+  );
+
+  if (recentTips.length > 0) {
+    const totalTipCents = recentTips.reduce(
+      (sum, p) => sum + (p.tipCents ?? 0),
+      0,
+    );
+
+    const detailRows = recentTips.slice(0, 5).map((p) => {
+      const b = p.booking;
+      const customerName =
+        b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+      const driverName = b.assignment?.driver?.name?.trim() || "Unassigned";
+
+      return {
+        id: p.id,
+        href: `/admin/bookings/${b.id}#payment-section`,
+        badge: {
+          label: `$${(p.tipCents / 100).toFixed(2)} tip`,
+          tone: "good" as const,
+        },
+        cells: [
+          {
+            label: "Paid at",
+            value: formatAlertPickup(new Date(p.paidAt), companyTz),
+          },
+          { label: "Customer", value: customerName },
+          { label: "Driver", value: driverName },
+          { label: "Service", value: b.serviceType?.name ?? "—" },
+        ],
+      };
+    });
+
+    alerts.push({
+      id: "recent-tips",
+      severity: "info",
+      message: `💰 ${recentTips.length} tip${recentTips.length > 1 ? "s" : ""} received in the last 24 hours ($${(totalTipCents / 100).toFixed(2)} total)`,
+      href: "/admin/bookings",
+      ctaLabel: "View Bookings",
+      details: `These customers left tips during checkout. Make sure to pass the tip amount to the assigned driver.`,
+      detailRows,
+      timestamp: "Last 24 hours",
     });
   }
 

@@ -19,7 +19,6 @@ export type AlertItem = {
   message: string;
   href?: string;
   ctaLabel?: string;
-  // Fields for expanded details
   details?: string;
   detailRows?: AlertDetailRow[];
   timestamp?: string;
@@ -29,7 +28,6 @@ type Props = {
   alerts: AlertItem[];
 };
 
-// Slide drawer component for smooth animation
 function SlideDrawer({
   isOpen,
   children,
@@ -80,7 +78,6 @@ export default function AdminAlerts({ alerts }: Props) {
         <h2 className={`cardTitle h4${count > 0 ? " redBorder" : ""}`}>
           Alerts
         </h2>
-
         <div className='miniNote'>
           {count === 0 ? null : (
             <BadgeCount value={count} max={99} hideIfZero />
@@ -100,7 +97,6 @@ export default function AdminAlerts({ alerts }: Props) {
             return (
               <li key={a.id} className={`${styles.row} ${styles[a.severity]}`}>
                 <div className={styles.alertContent}>
-                  {/* Main Row */}
                   <div className={styles.mainRow}>
                     <div className={styles.left}>
                       <div className='emptyTitle'>
@@ -131,20 +127,18 @@ export default function AdminAlerts({ alerts }: Props) {
                     </div>
                   </div>
 
-                  {/* Slide Drawer for Details */}
                   <SlideDrawer isOpen={isExpanded}>
                     {a.details && (
                       <p className={styles.detailsText}>{a.details}</p>
                     )}
 
-                    {/* Table-style detail rows */}
                     {a.detailRows && a.detailRows.length > 0 && (
                       <div className={styles.detailsTableCard}>
                         <table className={styles.detailsTable}>
                           <thead className={styles.detailsThead}>
                             <tr>
                               {a.detailRows[0]?.badge && (
-                                <th className={styles.detailsTh}>Status</th>
+                                <th className={styles.detailsTh}>Tip</th>
                               )}
                               {a.detailRows[0]?.cells.map((cell, idx) => (
                                 <th key={idx} className={styles.detailsTh}>
@@ -162,7 +156,7 @@ export default function AdminAlerts({ alerts }: Props) {
                                 {row.badge && (
                                   <td
                                     className={styles.detailsTd}
-                                    data-label='Status'
+                                    data-label='Tip'
                                   >
                                     <Link
                                       href={row.href}
@@ -213,7 +207,6 @@ export default function AdminAlerts({ alerts }: Props) {
                       </div>
                     )}
 
-                    {/* Fallback View All button if no detail rows but has href */}
                     {(!a.detailRows || a.detailRows.length === 0) && a.href && (
                       <div className={styles.detailsActions}>
                         <Link className='primaryBtn' href={a.href}>
@@ -222,7 +215,6 @@ export default function AdminAlerts({ alerts }: Props) {
                       </div>
                     )}
 
-                    {/* View All link at bottom if there are detail rows */}
                     {a.detailRows && a.detailRows.length > 0 && a.href && (
                       <div className={styles.detailsFooter}>
                         <Link className='backBtn' href={a.href}>
