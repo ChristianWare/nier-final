@@ -1,0 +1,52 @@
+/* AdminDriversCalendarSection.module.css */
+
+.section {
+  display: grid;
+  gap: 3rem;
+  margin-top: 4rem;
+  padding-top: 4rem;
+  border-top: 2px solid var(--stroke);
+}
+
+.header {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.group {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.groupLabel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.groupCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.07);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0 6px;
+}
+
+.list {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.empty {
+  padding: 3rem;
+  text-align: center;
+  border: 1px dashed var(--stroke);
+  border-radius: 12px;
+  display: grid;
+  gap: 0.5rem;
+}

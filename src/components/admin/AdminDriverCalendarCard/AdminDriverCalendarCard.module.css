@@ -1,0 +1,373 @@
+/* AdminDriverCalendarCard.module.css */
+
+.card {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
+
+.cardInactive {
+  opacity: 0.65;
+}
+
+/* ── Left: Driver panel ── */
+
+.driverPanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2rem 1.5rem;
+  border-right: 1px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.015);
+  text-align: center;
+}
+
+/* Avatar */
+
+.avatarWrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--stroke);
+}
+
+.avatarFallback {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--black);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 800;
+  border: 2px solid var(--stroke);
+  letter-spacing: -0.5px;
+  user-select: none;
+}
+
+.inactiveDot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #9ca3af;
+  border: 2px solid var(--white);
+}
+
+/* Driver text */
+
+.driverMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  overflow: hidden;
+}
+
+.driverName {
+  font-size: 1.4rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.driverEmail {
+  font-size: 1.1rem;
+  opacity: 0.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inactiveBadge {
+  align-self: center;
+  margin-top: 0.25rem;
+}
+
+/* Stats */
+
+.driverStats {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: auto;
+}
+
+.statRow {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+}
+
+.statNum {
+  font-size: 1.8rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+.statLbl {
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.statDivider {
+  width: 1px;
+  background: var(--stroke);
+  flex-shrink: 0;
+}
+
+/* ── Right: Calendar panel ── */
+
+.calPanel {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem 1rem;
+  gap: 0.5rem;
+}
+
+/* Nav row */
+
+.calNav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.navBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--stroke);
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.8rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--black);
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.navBtn:hover {
+  background: var(--lightGray);
+  border-color: var(--black);
+}
+
+.monthLabel {
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--black);
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.monthLabel:hover {
+  background: var(--lightGray);
+}
+
+.loadingDot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--black);
+  opacity: 0.3;
+  animation: pulse 1s ease-in-out infinite;
+  margin-left: 4px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+/* Day-of-week header */
+
+.calHead {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.dowCell {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  opacity: 0.4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 0;
+}
+
+/* Day grid */
+
+.calGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  transition: opacity 0.2s ease;
+}
+
+.calGridLoading {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.dayCell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px;
+  transition: all 0.15s ease;
+  position: relative;
+  min-width: 0;
+}
+
+.dayCell:hover:not(:disabled) {
+  background: var(--lightGray);
+  border-color: var(--stroke);
+}
+
+.dayCellOther {
+  opacity: 0.2;
+  cursor: default;
+  pointer-events: none;
+}
+
+.today {
+  border-color: var(--black) !important;
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.today .dayNum {
+  font-weight: 900;
+}
+
+.hasRides {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.hasRides:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.dayNum {
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.countDot {
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--white);
+  background: var(--black);
+  border-radius: 999px;
+  min-width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+/* ── Responsive ── */
+
+@media screen and (max-width: 900px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+
+  .driverPanel {
+    border-right: none;
+    border-bottom: 1px solid var(--stroke);
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .driverMeta {
+    flex: 1;
+  }
+
+  .driverStats {
+    width: auto;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  .calPanel {
+    padding: 1rem;
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .driverStats {
+    display: none;
+  }
+
+  .avatarWrap {
+    width: 48px;
+    height: 48px;
+  }
+
+  .avatar,
+  .avatarFallback {
+    width: 48px;
+    height: 48px;
+    font-size: 1.6rem;
+  }
+}

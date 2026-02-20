@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import AdminRideCalendar from "@/components/admin/AdminRideCalendar/AdminRideCalendar";
+import AdminDriversCalendarSection from "@/components/admin/AdminDriversCalendarSection/AdminDriversCalendarSection";
 import { db } from "@/lib/db";
 import { startOfNextMonth } from "../lib/phxDates";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
@@ -77,6 +78,8 @@ export default async function AdminCalendarPage(props: {
     blackoutsByYmd[b.ymd] = true;
   }
 
+  const mk = monthKey(baseMonth);
+
   return (
     <section className='container' aria-label='Admin calendar'>
       <header className='header'>
@@ -87,7 +90,7 @@ export default async function AdminCalendarPage(props: {
       </header>
 
       <AdminRideCalendar
-        initialMonth={monthKey(baseMonth)}
+        initialMonth={mk}
         countsByYmd={countsByYmd}
         blackoutsByYmd={blackoutsByYmd}
         todayYmd={formatIsoDate(now, tz)}
@@ -99,6 +102,9 @@ export default async function AdminCalendarPage(props: {
       </div>
 
       <AdminBlackoutDatesSection />
+
+      {/* ── Driver schedules ── */}
+      <AdminDriversCalendarSection initialMonth={mk} />
     </section>
   );
 }
