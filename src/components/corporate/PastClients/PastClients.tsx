@@ -5,7 +5,7 @@ import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 export default function PastClients() {
   return (
     <section className={styles.container}>
-      <SectionHeading text='Current Clients' dot />
+      <SectionHeading text='Our Partners' dot />
       <Marquee
         words={["Arizona Cardinals", "Snapcare", "We Ko Pa Casino & Resort"]}
         speedSeconds={90}
