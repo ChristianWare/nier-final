@@ -55,7 +55,7 @@ export default function ServiceCityPricing({ service, city }: Props) {
               {vehiclesWithRates.map((vehicle) => (
                 <div key={vehicle.slug} className={styles.rateCard}>
                   <div className={styles.rateCardTop}>
-                    <h3 className={styles.vehicleName}>{vehicle.title}</h3>
+                    <h3 className={`${styles.vehicleName} cardTitle h5`}>{vehicle.title}</h3>
                     <p className={styles.vehicleSeats}>{vehicle.seats}</p>
                   </div>
                   <div className={styles.rateCardRates}>

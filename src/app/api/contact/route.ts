@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
     const toEmail =
       supportEmail?.trim() ||
       process.env.CONTACT_TO ||
-      "reservations@niertransportation.com";
+      "chris.ware.dev@gmail.com";
 
     const subject = `New inquiry — ${payload.firstName} ${payload.lastName}${
       payload.serviceNeeded ? ` — ${payload.serviceNeeded}` : ""

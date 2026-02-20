@@ -8,6 +8,9 @@ import { serviceAreaCities } from "@/lib/cities";
 import { servicesData as services } from "@/lib/services";
 import styles from "./LocationsPage.module.css";
 import Button from "@/components/shared/Button/Button";
+import Image from "next/image";
+import HeroImg from "../../../public/images/sub.avif";
+
 
 export const metadata: Metadata = {
   title: "Service Areas | Nier Transportation",
@@ -48,15 +51,27 @@ export default function LocationsPage() {
       <section className={styles.intro}>
         <LayoutWrapper>
           <div className={styles.introContent}>
-            <SectionHeading text='Service Areas' dot />
-            <h1 className={`${styles.heading} h1`}>
-              Luxury Black Car Service Across Metro Phoenix
-            </h1>
-            <p className={styles.lead}>
-              Nier Transportation serves Scottsdale, Phoenix, and 40+ cities
-              across the Valley and greater Arizona. Select your city below to
-              explore available services in your area.
-            </p>
+            <div className={styles.left}>
+              <SectionHeading text='Service Areas' dot />
+              <h1 className={`${styles.heading} h1`}>
+                Luxury Black Car Service Across Metro Phoenix
+              </h1>
+              <p className={styles.lead}>
+                Nier Transportation serves Scottsdale, Phoenix, and 40+ cities
+                across the Valley and greater Arizona. Select your city below to
+                explore available services in your area.
+              </p>
+            </div>
+            <div className={styles.right}>
+              <div className={styles.imgContainerMain}>
+                <Image
+                  src={HeroImg}
+                  alt="Luxury Black Car Service"
+                  fill
+                  className={styles.imgMain}
+                />
+              </div>
+            </div>
           </div>
         </LayoutWrapper>
       </section>
@@ -68,7 +83,18 @@ export default function LocationsPage() {
             {serviceAreaCities.map((city) => (
               <div key={city.slug} className={styles.cityCard}>
                 <div className={styles.cityHeader}>
-                  <h2 className={styles.cityName}>{city.name}</h2>
+                  <h2 className={`${styles.cityName} h4 cardTitle`}>
+                    {city.name}
+                  </h2>
+                  <div className={styles.imgContainer}>
+                    <Image
+                      src={city.src}
+                      alt={city.name}
+                      title={city.name}
+                      fill
+                      className={styles.img}
+                    />
+                  </div>
                   <p className={styles.cityNote}>{city.note}</p>
                 </div>
                 <ul className={styles.serviceList}>
@@ -83,11 +109,10 @@ export default function LocationsPage() {
                     </li>
                   ))}
                 </ul>
-
                 <Button
                   href={`/locations/${city.slug}`}
                   text={`View all services in ${city.name} →`}
-                  btnType='white'
+                  btnType='black'
                   arrow
                 />
               </div>

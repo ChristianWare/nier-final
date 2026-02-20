@@ -89,18 +89,6 @@
   padding-bottom: 2rem;
 }
 
-.vehicleName {
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: normal;
-  line-height: 1;
-  color: var(--text-primary);
-  background: var(--lighterBlue);
-  padding: 1rem;
-  border: 1px solid var(--stroke);
-  border-radius: 5px;
-}
-
 .vehicleSeats {
   font-size: 1.4rem;
   color: var(--paragraph);
