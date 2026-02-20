@@ -87,7 +87,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--white);
+  background-color: var(--black);
   width: 5rem;
   height: 5rem;
   border-radius: 5px;
@@ -97,9 +97,9 @@
 .icon {
   cursor: pointer;
   transition: all 0.4s ease-in-out;
-  color: var(--accent);
-  width: 3rem;
-  height: 3rem;
+  color: var(--cream);
+  width: 2rem;
+  height: 2rem;
   transform: rotate(45deg);
 }
 
@@ -108,8 +108,8 @@
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   color: var(--accent);
-  width: 3rem;
-  height: 3rem;
+  width: 2rem;
+  height: 2rem;
 }
 
 .h3Container {
