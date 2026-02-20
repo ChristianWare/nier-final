@@ -175,8 +175,8 @@ export default function Areas() {
   }, [onScroll, measure]);
 
   return (
-      <section className={styles.container}>
-    <LayoutWrapper>
+    <section className={styles.container}>
+      <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.left}>
             <div className={styles.sectionHeadingContainer}>
@@ -184,8 +184,16 @@ export default function Areas() {
             </div>
 
             <h2 className={`${styles.heading} `}>
-              Serving the <br /> Phoenix metropolitan area
+              {/* Serving the <br /> Phoenix metropolitan area */}
+              Proudly Serving <br /> the Valley and Beyond
             </h2>
+            <p className={styles.copy}>
+              Based in the Phoenix metro area, we provide luxury ground
+              transportation across Arizona — from Scottsdale to Sedona, Phoenix
+              to Tucson, and everywhere in between. Whether you need a quick
+              airport transfer or a multi-stop corporate itinerary, we&apos;ve got
+              the coverage.
+            </p>
 
             <div className={styles.imgContainer}>
               <div className={styles.imageStack}>
@@ -266,7 +274,7 @@ export default function Areas() {
             </div>
           </div>
         </div>
-    </LayoutWrapper>
-      </section>
+      </LayoutWrapper>
+    </section>
   );
 }

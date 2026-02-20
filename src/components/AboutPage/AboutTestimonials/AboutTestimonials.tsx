@@ -32,7 +32,7 @@ export default function AboutTestimonials() {
       { kind: "next" as const, index: idx(currentReviewIndex + 1) },
       { kind: "next2" as const, index: idx(currentReviewIndex + 2) },
     ],
-    [currentReviewIndex, total]
+    [currentReviewIndex, total],
   );
 
   const nextReview = () => {
@@ -120,13 +120,14 @@ export default function AboutTestimonials() {
                           <p className={`${styles.reviewer} h4`}>
                             {reviews[index].reviewer}
                           </p>
-                          <p className={styles.from}>From Germany</p>
+                          <p className={styles.from}>Arizona</p>
                         </div>
                       </div>
 
                       <div className={`${styles.subHeading} h4`}>
-                        &ldquo;Order fulfillment became faster, safer, and far
-                        more predictable.&rdquo;
+                        &ldquo;
+                        {reviews[index].summary}
+                        &rdquo;
                       </div>
 
                       <p className={styles.review}>
@@ -135,15 +136,14 @@ export default function AboutTestimonials() {
                     </div>
 
                     <div className={styles.cardRight}>
-                      <div className={styles.cardRightTop}>
-                        <div className='h5'>View More Testimonials</div>
-                      </div>
-                      <div className={styles.cardRightBottom}>
-                        <div className={styles.number}>41%</div>
-                        <p className={styles.copy}>
-                          Increase in order processing speed after robotics
-                          deployment
-                        </p>
+                      <div className={styles.imgContainerRight}>
+                        <Image
+                          src={reviews[index].person || Img1}
+                          alt=''
+                          title=''
+                          fill
+                          className={styles.imgRight}
+                        />
                       </div>
                     </div>
                   </div>
