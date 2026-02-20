@@ -139,13 +139,13 @@ export default async function AdminDriversCalendarSection({
       style={{
         marginTop: "4rem",
         paddingTop: "4rem",
-        borderTop: "2px solid var(--stroke)",
+        
         display: "grid",
         gap: "2rem",
       }}
     >
-      <header style={{ display: "grid", gap: "0.5rem" }}>
-        <h2 className='h3'>Driver Schedules</h2>
+      <header style={{ display: "grid", gap: "1rem" }}>
+        <h2 className='h3 underline'>Driver Schedules</h2>
         <p className='subheading'>
           Select a driver to view their monthly schedule.
         </p>

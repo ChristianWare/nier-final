@@ -29,12 +29,12 @@
 
 .copy {
   color: var(--paragraph);
-  max-width: 350px;
 }
 
 .bottomCopy {
   color: var(--accent);
   max-width: 500px;
+  line-height: 1.2;
 }
 
 .btnContainer {

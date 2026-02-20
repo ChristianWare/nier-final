@@ -1016,7 +1016,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       "The iconic stretch limo — perfect for weddings, proms, anniversaries, and VIP arrivals that demand a grand entrance.",
     longDesc:
       "Nothing signals a special occasion quite like a stretch limousine. With a plush extended cabin, ambient lighting, and a dedicated chauffeur, it's the classic choice for weddings, anniversaries, milestone birthdays, and any event where the arrival is part of the experience.",
-    seats: "8–10 seater",
+    seats: "10–18 seater",
     luggage: "Light luggage and personal items",
     cargo: "Limited — designed for passengers",
     cargoCuFt: "Config-dependent",
@@ -1101,7 +1101,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
   },
   {
     id: 6,
-    title: "Party Bus",
+    title: "Mini Bus",
     slug: "mini-party-bus-20",
     class: "Party/Limo Bus",
     heroLine: "Group celebrations with room to move.",

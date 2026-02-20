@@ -29,14 +29,26 @@ export default function MissionValues() {
             <div className={styles.left}>
               <SectionHeading text='Our mission: ' color='red' />
               <h2 className={`${styles.heading} h3`}>
-                To revolutionize urban mobility with sustainable, efficient, and
-                accessible transportation solutions.
+                To deliver the kind of transportation experience that makes life
+                easier — reliable, refined, and built around you.
               </h2>
               <p className={styles.mainCopy}>
-                We strive to make sustainable transportation accessible to all,
-                fostering a future where cities are cleaner, quieter, and more
-                connected.
+                Whether you&apos;re a frequent business traveler, a corporate
+                team coordinating group logistics, or a family marking a special
+                occasion, Nier Transportation is committed to exceeding your
+                expectations every single time.
               </p>
+              {/* <p className={styles.mainCopy}>
+                When you book with Nier, you get a dedicated professional — not
+                an algorithm routing the nearest available driver. You get a
+                vehicle that reflects the standard of the occasion. You get a
+                chauffeur who knows your name, confirms your pickup the day
+                before, and waits for you — not the other way around.
+              </p>
+              <p className={styles.mainCopy}>
+                For airport runs, corporate travel, and any moment that matters,
+                that difference is everything.
+              </p> */}
               <div className={styles.mapDataContainer}>
                 {data.map((item) => (
                   <div key={item.id} className={styles.card}>
@@ -61,19 +73,20 @@ export default function MissionValues() {
                   playsInline
                   className={styles.video}
                 >
-                  <source src='/videos/phx.mp4' type='video/mp4' />
+                  <source src='/videos/101.mp4' type='video/mp4' />
                 </video>
                 <div className={styles.imgOverlay} />
               </div>
 
               <div className={styles.statBox}>
-                <div className={styles.statNumber}>250+</div>
+                <div className={styles.statNumber}>20+</div>
                 <h4 className={styles.subheading}>
-                  Systems deployed worldwide
+                  Years of Excellence in Transportation Services
                 </h4>
                 <p className={styles.copy}>
-                  Our proven track record shows the trust global leaders place
-                  in Modix to deliver reliable, future-ready industrial systems.
+                  Nier Transportation has established itself as a trusted leader
+                  in the industry, consistently delivering exceptional service
+                  and reliability to our clients.
                 </p>
               </div>
             </div>

@@ -12,12 +12,14 @@ export default function AboutPageIntro() {
             <div className={styles.top}>
               <SectionHeading text='About us' dot />
               <h1 className={`${styles.heading} h2`}>
-                We&apos;ve been at the forefront of the travel industry for over
-                a decade.{" "}
+                {/* We&apos;ve been at the forefront of the travel industry for over
+                a decade.{" "} */}
+                Scottsdale & Phoenix&apos;s premier black car service
               </h1>
               <p className={styles.copy}>
-                At Nier Transportation, we are passionate about connecting
-                travelers with unforgettable experiences.
+                For over two decades, Nier Transportation has set the standard
+                for luxury ground transportation across the Valley. We don&apos;t
+                just get you there — we make the journey worth remembering.
               </p>
               <div className={styles.btnContainer}>
                 <Button
@@ -35,10 +37,10 @@ export default function AboutPageIntro() {
               </div>
             </div>
             <div className={styles.bottom}>
-              <p className={styles.bottomCopy}>
+              <b className={styles.bottomCopy}>
                 Our commitment to excellence and innovation has made us a
                 trusted partner for travelers worldwide.
-              </p>
+              </b>
             </div>
           </div>
         </div>
