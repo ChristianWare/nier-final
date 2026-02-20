@@ -50,9 +50,8 @@ export default async function BlogSection() {
               Insights, updates, and <br /> practical knowledge
             </h2>
             <p className={styles.copy}>
-              Stay informed with our latest blog posts, featuring expert
-              insights, industry trends, and practical tips to help you navigate
-              the world of web development and design.
+              Stay informed with our latest posts on travel tips, Phoenix
+              events, and what to expect from a premium black car experience.
             </p>
           </div>
 
