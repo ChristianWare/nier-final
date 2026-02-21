@@ -10,7 +10,6 @@ import { useState, useTransition } from "react";
 import { login } from "../../../../actions/auth/login";
 import Alert from "@/components/shared/Alert/Alert";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LOGIN_REDIRECT } from "../../../../routes";
 import Button from "@/components/shared/Button/Button";
 
 export default function LoginForm() {
@@ -38,7 +37,7 @@ export default function LoginForm() {
 
     const next = searchParams.get("next");
     const safeNext = next && next.startsWith("/") ? next : null;
-    const destination = safeNext ?? LOGIN_REDIRECT;
+    const destination = safeNext ?? "/dashboard";
 
     startTransition(() => {
       login(data).then((res) => {
@@ -118,7 +117,7 @@ export default function LoginForm() {
 
       <footer className={styles.cardFooter}>
         <p className={styles.footerText}>
-          Don’t have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href='/register' className={styles.link}>
             Sign up
           </Link>

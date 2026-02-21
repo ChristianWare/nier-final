@@ -80,11 +80,6 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
     return NextResponse.redirect(new URL(roleHome(req), nextUrl));
   }
 
-  // ✅ Logged-in users hitting "/" go straight to their role dashboard
-  if (isLoggedIn && pathname === "/") {
-    return NextResponse.redirect(new URL(roleHome(req), nextUrl));
-  }
-
   // Not logged in → redirect to login for protected areas
   if (!isLoggedIn && authedOnly) {
     const url = new URL("/login", nextUrl);
@@ -99,6 +94,11 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
     !hasAnyRole(req, ["ADMIN"])
   ) {
     return NextResponse.redirect(new URL("/corporate", nextUrl));
+  }
+
+  // Admin users landing on /dashboard should go to /admin
+  if (isUserDashboard && hasAnyRole(req, ["ADMIN"])) {
+    return NextResponse.redirect(new URL("/admin", nextUrl));
   }
 
   // Admin area requires ADMIN
