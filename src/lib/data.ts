@@ -1078,14 +1078,14 @@ export const fleetData: ReadonlyArray<VehicleData> = [
   {
     id: 6,
     title: "Mini Bus",
-    slug: "mini-party-bus-20",
+    slug: "mini-party-bus-20-40",
     class: "Party/Limo Bus",
     heroLine: "Group celebrations with room to move.",
     shortDesc:
       "Open-plan seating, standing room, and lighting for a celebratory atmosphere—perfect for nights out and weddings.",
     longDesc:
       "Designed for celebrations and group fun with safety at the forefront. Great for bachelor/ette parties, concert nights, and wedding guest moves.",
-    seats: "20 seater",
+    seats: "20–40 seater",
     luggage: "Ample cabin storage",
     cargo: "Ample cabin storage",
     cargoCuFt: "Config-dependent",
@@ -1179,7 +1179,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       "Reclining seats, overhead storage, and a smooth highway ride—built for corporate shuttles, wedding guests, and large group outings.",
     longDesc:
       "When your group outgrows a sprinter van, the motorcoach delivers. Full-size coach seating with reclining chairs, overhead compartments, and undercarriage luggage bays handle everything from corporate conference shuttles to multi-stop wedding guest transport.",
-    seats: "40+ seater",
+    seats: "56 seater",
     luggage: "Undercarriage luggage bays for full-size suitcases",
     cargo: "Undercarriage luggage bays",
     cargoCuFt: "Large undercarriage bays (config-dependent)",
