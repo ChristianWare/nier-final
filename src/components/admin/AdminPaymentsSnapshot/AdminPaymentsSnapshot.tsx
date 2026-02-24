@@ -184,7 +184,7 @@ export default function AdminPaymentsSnapshot({
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>
             <span className={styles.cc}>💳</span>
-            Payments
+            Payments Received
           </h2>
 
           <div className={styles.kpis}>

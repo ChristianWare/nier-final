@@ -36,6 +36,9 @@ import AdminQuickActions from "@/components/admin/AdminQuickActions/AdminQuickAc
 import AdminIncompleteApprovals, {
   IncompleteApprovalItem,
 } from "@/components/admin/AdminIncompleteApprovals/AdminIncompleteApprovals";
+import AdminOutstandingBalances, {
+  OutstandingBalanceItem,
+} from "@/components/admin/AdminOutstandingBalances/AdminOutstandingBalances";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -299,6 +302,7 @@ export default async function AdminHome() {
     upcomingAssignmentsForOverlapCheck,
     pendingCorporateInquiries,
     incompleteApprovalsRaw,
+    pendingPaymentBookingsRaw,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -1012,8 +1016,32 @@ export default async function AdminHome() {
         },
       },
     }),
+    db.booking.findMany({
+      where: {
+        status: "PENDING_PAYMENT",
+        pickupAt: { gte: now },
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      take: 100,
+      select: {
+        id: true,
+        status: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        totalCents: true,
+        currency: true,
+        user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        serviceType: { select: { name: true } },
+        vehicle: { select: { name: true } },
+        assignment: {
+          select: { driver: { select: { name: true, email: true } } },
+        },
+      },
+    }),
   ]);
-
   const driversAssignedToday = driversAssignedTodayDistinct.length;
 
   const setupAlerts = await getBookingWizardSetupAlerts();
@@ -1571,6 +1599,63 @@ export default async function AdminHome() {
     },
   );
 
+  // --- Build outstanding balance items for AdminOutstandingBalances ---
+  const unpaidItems: OutstandingBalanceItem[] = (
+    pendingPaymentBookingsRaw as any[]
+  ).map((b) => ({
+    id: b.id,
+    status: b.status,
+    pickupAtIso: new Date(b.pickupAt).toISOString(),
+    pickupAddress: b.pickupAddress,
+    dropoffAddress: b.dropoffAddress,
+    serviceName: b.serviceType?.name ?? "—",
+    vehicleName: b.vehicle?.name ?? null,
+    driverName: b.assignment?.driver?.name?.trim() ?? null,
+    totalCents: b.totalCents ?? 0,
+    paidCents: 0,
+    outstandingCents: b.totalCents ?? 0,
+    currency: b.currency ?? "usd",
+    balanceType: "unpaid" as const,
+    customer: {
+      name: b.user?.name?.trim() || b.guestName?.trim() || "Customer",
+      email: b.user?.email || b.guestEmail || null,
+    },
+  }));
+
+  const partialItems: OutstandingBalanceItem[] = bookingsWithBalanceDue.map(
+    (b: any) => {
+      const paidCents = b.payment?.amountPaidCents ?? 0;
+      const totalCents = b.totalCents ?? 0;
+      return {
+        id: b.id,
+        status: b.status,
+        pickupAtIso: new Date(b.pickupAt).toISOString(),
+        pickupAddress: b.pickupAddress,
+        dropoffAddress: b.dropoffAddress,
+        serviceName: b.serviceType?.name ?? "—",
+        vehicleName: b.vehicle?.name ?? null,
+        driverName: null,
+        totalCents,
+        paidCents,
+        outstandingCents: totalCents - paidCents,
+        currency: b.currency ?? "usd",
+        balanceType: "partial" as const,
+        customer: {
+          name: b.user?.name?.trim() || b.guestName?.trim() || "Customer",
+          email: b.user?.email || b.guestEmail || null,
+        },
+      };
+    },
+  );
+
+  const outstandingBalanceItems: OutstandingBalanceItem[] = [
+    ...unpaidItems,
+    ...partialItems,
+  ].sort(
+    (a, b) =>
+      new Date(a.pickupAtIso).getTime() - new Date(b.pickupAtIso).getTime(),
+  );
+
   // ==========================================
   // WARNING: Bookings with balance due
   // ==========================================
@@ -1910,6 +1995,19 @@ export default async function AdminHome() {
         bookingHrefBase='/admin/bookings'
       />
       <AdminAlerts alerts={alerts} />
+      <AdminPaymentsSnapshot
+        paymentsToday={paymentsToday}
+        paymentsThisWeek={paymentsThisWeek}
+        paymentLinksToday={paymentLinksToday}
+        paymentLinksThisWeek={paymentLinksThisWeek}
+        timeZone={companyTz}
+        bookingHrefBase='/admin/bookings'
+      />
+      <AdminOutstandingBalances
+        items={outstandingBalanceItems}
+        timeZone={companyTz}
+        bookingHrefBase='/admin/bookings'
+      />
       {/* <div className={styles.graphCalendarContainer}>
         <AdminQuickActions />
       </div> */}
@@ -1936,14 +2034,6 @@ export default async function AdminHome() {
         timeZone={companyTz}
       />
       <AdminDriverSnapshot />
-      <AdminPaymentsSnapshot
-        paymentsToday={paymentsToday}
-        paymentsThisWeek={paymentsThisWeek}
-        paymentLinksToday={paymentLinksToday}
-        paymentLinksThisWeek={paymentLinksThisWeek}
-        timeZone={companyTz}
-        bookingHrefBase='/admin/bookings'
-      />
 
       <AdminScheduleSnapshot
         today={{

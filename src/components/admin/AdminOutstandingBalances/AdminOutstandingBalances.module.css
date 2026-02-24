@@ -1,0 +1,412 @@
+.container {
+  display: grid;
+  gap: 2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2rem;
+}
+
+.header {
+  display: grid;
+  gap: 12px;
+}
+
+.titleRow {
+  display: grid;
+  gap: 10px;
+}
+
+.kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  opacity: 0.8;
+  font-size: 12px;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 1rem;
+}
+
+.kpi {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--stroke);
+  background: rgba(0, 0, 0, 0.02);
+  font-weight: 700;
+}
+
+.kpiWarning {
+  background: rgba(239, 200, 0, 0.12);
+  border-color: rgba(239, 200, 0, 0.4);
+  color: #a16207;
+}
+
+.kpiDanger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Stats Row */
+.statsRow {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem 1.5rem;
+  background: var(--lightGray);
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.statNumber {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.statDanger {
+  color: #dc2626;
+}
+
+.statGood {
+  color: #16a34a;
+}
+
+.statLabel {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.statDivider {
+  width: 1px;
+  height: 32px;
+  background: var(--stroke);
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  gap: 1rem;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+}
+
+.emptyText {
+  font-size: 1.5rem;
+  color: var(--paragraph);
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+}
+
+/* Table */
+.tableCard {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1100px;
+}
+
+.thead {
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 2;
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.thRight {
+  text-align: right;
+}
+
+/* Row urgency variants */
+.tr {
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.tr_neutral {
+  background: linear-gradient(135deg, #fef9c314 0%, #fef08a1f 100%);
+  border-left: 4px solid #fde04799;
+}
+
+.tr_warning {
+  background: linear-gradient(135deg, #fef3c714 0%, #fcd34d1f 100%);
+  border-left: 4px solid #f59e0b99;
+}
+
+.tr_danger {
+  background: linear-gradient(135deg, #fee2e214 0%, #fca5a51f 100%);
+  border-left: 4px solid #ef444499;
+}
+
+.tr:hover {
+  background: var(--lightGray);
+}
+
+.td {
+  padding: 12px 14px;
+  vertical-align: top;
+  position: relative;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cellInner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tdRight {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.rowLink {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+}
+
+.cellStack {
+  display: grid;
+  gap: 4px;
+}
+
+.cellSub {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  line-height: 1.25;
+}
+
+.cellMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Amount columns */
+.amountNeutral {
+  font-size: 1.4rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--paragraph);
+}
+
+.amountPaid {
+  font-size: 1.4rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #16a34a;
+}
+
+.amountDue {
+  font-size: 1.4rem;
+  font-weight: 800;
+  white-space: nowrap;
+  color: #dc2626;
+  text-decoration: underline;
+}
+
+/* Badges */
+.badge {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  text-transform: uppercase;
+  font-weight: 800;
+  width: fit-content;
+  white-space: nowrap;
+}
+
+.badge_warning {
+  background: rgba(255, 200, 9, 0.2);
+  border-color: rgba(255, 200, 9, 0.55);
+}
+
+.badge_danger {
+  background: rgba(180, 0, 0, 0.12);
+  border-color: rgba(180, 0, 0, 0.35);
+  color: #dc2626;
+}
+
+.urgentBadge {
+  font-size: 11px;
+}
+
+.pill {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 4px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  white-space: nowrap;
+}
+
+.pillDanger {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.unassignedCell {
+  background: #ef444414;
+  border: 2px solid #ef44444d;
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .statsRow {
+    justify-content: space-around;
+    padding: 1rem;
+  }
+
+  .statDivider {
+    display: none;
+  }
+
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid var(--stroke);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+    border-left-width: 4px;
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--stroke);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 900;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .tdRight {
+    text-align: left;
+  }
+
+  .footer {
+    justify-content: center;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .statNumber {
+    font-size: 1.6rem;
+  }
+
+  .statLabel {
+    font-size: 1rem;
+  }
+}
