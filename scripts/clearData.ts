@@ -1,7 +1,5 @@
 // scripts/clearData.ts
-// Clears all test/booking data while preserving:
-//   - Users, accounts, sessions (your admin/driver accounts)
-//   - CompanySettings, Vehicle, VehicleUnit, ServiceType, ServiceFee, Airport (your config)
+// Clears ALL data except users, accounts, and sessions.
 //
 // Run with: npx tsx scripts/clearData.ts
 
@@ -9,8 +7,9 @@ import { PrismaClient } from "@prisma/client";
 const db = new PrismaClient();
 
 async function main() {
-  console.log("🗑️  Clearing test data...");
+  console.log("🗑️  Clearing all data (keeping users)...");
 
+  // ── Corporate ────────────────────────────────────────────
   await db.corporateInvoiceEvent.deleteMany();
   console.log("  ✓ corporateInvoiceEvent");
 
@@ -32,6 +31,7 @@ async function main() {
   await db.corporateAccount.deleteMany();
   console.log("  ✓ corporateAccount");
 
+  // ── Bookings ─────────────────────────────────────────────
   await db.bookingNote.deleteMany();
   console.log("  ✓ bookingNote");
 
@@ -59,6 +59,7 @@ async function main() {
   await db.tripGroup.deleteMany();
   console.log("  ✓ tripGroup");
 
+  // ── Notifications & Push ─────────────────────────────────
   await db.notificationJob.deleteMany();
   console.log("  ✓ notificationJob");
 
@@ -71,15 +72,31 @@ async function main() {
   await db.userPushPreferences.deleteMany();
   console.log("  ✓ userPushPreferences");
 
+  // ── Config ───────────────────────────────────────────────
   await db.blackoutDate.deleteMany();
   console.log("  ✓ blackoutDate");
 
-  console.log("\n✅ Done! The following were preserved:");
-  console.log("   - Users, accounts, sessions");
-  console.log("   - CompanySettings");
-  console.log("   - Vehicles, VehicleUnits");
-  console.log("   - ServiceTypes, ServiceFees");
-  console.log("   - Airports");
+  await db.bookingFee.deleteMany().catch(() => null);
+
+  await db.serviceFee.deleteMany();
+  console.log("  ✓ serviceFee");
+
+  await db.serviceType.deleteMany();
+  console.log("  ✓ serviceType");
+
+  await db.airport.deleteMany();
+  console.log("  ✓ airport");
+
+  await db.vehicleUnit.deleteMany();
+  console.log("  ✓ vehicleUnit");
+
+  await db.vehicle.deleteMany();
+  console.log("  ✓ vehicle");
+
+  await db.companySettings.deleteMany();
+  console.log("  ✓ companySettings");
+
+  console.log("\n✅ Done! Only users, accounts, and sessions were preserved.");
 }
 
 main()

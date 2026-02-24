@@ -219,10 +219,10 @@ export default function ContactSection() {
 
             {/* reCAPTCHA */}
             <div className={styles.recaptchaContainer}>
-              {/* <ReCAPTCHA
+              <ReCAPTCHA
                 ref={recaptchaRef}
                 sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-              /> */}
+              />
             </div>
 
             {/* Submit */}
