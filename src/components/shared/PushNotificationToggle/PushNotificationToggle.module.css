@@ -1,0 +1,82 @@
+/* components/shared/PushNotificationToggle/PushNotificationToggle.module.css */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.subscribeRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: var(--cream);
+  border: 1px solid var(--stroke);
+}
+
+@media (max-width: 600px) {
+  .subscribeRow {
+    flex-direction: column;
+  }
+}
+
+.prefsForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border-radius: 12px;
+  background-color: var(--cream);
+  border: 1px solid var(--stroke);
+}
+
+.masterToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.divider {
+  height: 1px;
+  background-color: var(--stroke);
+  margin: 4px 0;
+}
+
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 4px;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--paragraph);
+}
+
+.checkRow input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--black);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.unsupported,
+.denied {
+  padding: 16px 20px;
+  border-radius: 12px;
+  background-color: var(--cream);
+  border: 1px solid var(--stroke);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
