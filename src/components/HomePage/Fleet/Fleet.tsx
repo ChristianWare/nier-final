@@ -21,6 +21,7 @@ export default function Fleet() {
           {fleetData.map((x) => (
             <div className={styles.card} key={x.id}>
               <div className={styles.left}>
+                <h3 className={`${styles.title} cardTitle h4`}>{x.title}</h3>{" "}
                 <SectionHeading text='Available' dot />
                 <div className={styles.imgContainer}>
                   <Image
@@ -33,9 +34,7 @@ export default function Fleet() {
                 </div>
               </div>
               <div className={styles.right}>
-                <div className={styles.featureContainer}>
-                  <h3 className={styles.title}>{x.title}</h3>{" "}
-                </div>
+                {/* <div className={styles.featureContainer}></div> */}
                 <div className={styles.featureContainer}>
                   <p className={styles.detail}>{x.desc}</p>
                 </div>

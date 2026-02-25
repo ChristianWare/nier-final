@@ -265,7 +265,7 @@ export default function Areas() {
                       </div>
                     </div>
                     <div className={styles.cardRight}>
-                      <h4 className={styles.feature}>{x.feature}</h4>
+                      <h4 className={`${styles.feature} cardTitle bgWhite h5`}>{x.feature}</h4>
                       <p className={styles.desc}>{x.desc}</p>
                     </div>
                   </div>
