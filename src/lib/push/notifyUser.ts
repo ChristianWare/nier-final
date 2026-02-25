@@ -67,7 +67,6 @@ export async function notifyAdminsPush(
       body: `${name} paid${total} · Booking ${code}`,
       url: bookingUrl,
       tag: `booking-paid-${code}`,
-      urgent: false,
     },
     PAYMENT_LINK_SENT: {
       title: "🔗 Payment Link Sent",
@@ -77,7 +76,7 @@ export async function notifyAdminsPush(
     },
     BOOKING_CANCELLED: {
       title: "❌ Booking Cancelled",
-      body: `${name} · ${time} · ${origin}`,
+      body: `${name} · ${time ? `${time} · ` : ""}${origin}`,
       url: bookingUrl,
       tag: `booking-cancel-${code}`,
       urgent: true,
@@ -87,6 +86,25 @@ export async function notifyAdminsPush(
       body: `${name} · Booking ${code}`,
       url: bookingUrl,
       tag: `booking-declined-${code}`,
+    },
+    NO_SHOW: {
+      title: "🚨 No Show",
+      body: `${name} was a no-show · ${time ? `${time} · ` : ""}${origin}`,
+      url: bookingUrl,
+      tag: `booking-noshow-${code}`,
+      urgent: true,
+    },
+    TRIP_COMPLETED: {
+      title: "✅ Trip Completed",
+      body: `${name} · ${origin}${dest ? ` → ${dest}` : ""}`,
+      url: bookingUrl,
+      tag: `trip-done-${code}`,
+    },
+    REFUND_ISSUED: {
+      title: "↩️ Refund Issued",
+      body: `${name}${total ? ` · ${total}` : ""} · Booking ${code}`,
+      url: bookingUrl,
+      tag: `booking-refund-${code}`,
     },
     DRIVER_EN_ROUTE: {
       title: "🚗 Driver En Route",
@@ -99,12 +117,6 @@ export async function notifyAdminsPush(
       body: `Driver is at ${origin}`,
       url: bookingUrl,
       tag: `trip-arrived-${code}`,
-    },
-    TRIP_COMPLETED: {
-      title: "✅ Trip Completed",
-      body: `${name} · ${origin}${dest ? ` → ${dest}` : ""}`,
-      url: bookingUrl,
-      tag: `trip-done-${code}`,
     },
   };
 

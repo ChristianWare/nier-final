@@ -151,12 +151,14 @@ model UserPushPreferences {
   pushPaymentLinkSent  Boolean @default(false)
   pushBookingCancelled Boolean @default(true)
   pushBookingDeclined  Boolean @default(true)
+  pushNoShow           Boolean @default(true)
+  pushTripCompleted    Boolean @default(true)
+  pushRefundIssued     Boolean @default(true)
 
   // Driver events
-  pushRideAssigned  Boolean @default(true)
-  pushRideReminder  Boolean @default(true)
-  pushTripUpdated   Boolean @default(true)
-  pushTripCompleted Boolean @default(true)
+  pushRideAssigned Boolean @default(true)
+  pushRideReminder Boolean @default(true)
+  pushTripUpdated  Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

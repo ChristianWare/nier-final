@@ -14,7 +14,6 @@ export type PushPayload = {
   urgent?: boolean;
 };
 
-// Map NotificationEventType → push payload builder
 export type PushEvent =
   | "NEW_BOOKING"
   | "PAYMENT_RECEIVED"
@@ -26,7 +25,9 @@ export type PushEvent =
   | "TRIP_UPDATED"
   | "TRIP_COMPLETED"
   | "DRIVER_EN_ROUTE"
-  | "DRIVER_ARRIVED";
+  | "DRIVER_ARRIVED"
+  | "NO_SHOW"
+  | "REFUND_ISSUED";
 
 // ─── Send to a single userId ────────────────────────────────────────────────
 export async function sendPushToUser(
@@ -101,7 +102,6 @@ export async function sendPushToUserIfEnabled(
   event: PushEvent,
   payload: PushPayload,
 ): Promise<void> {
-  // Check if user has push preferences and if this event type is enabled
   const prefs = await db.userPushPreferences.findUnique({
     where: { userId },
   });
@@ -116,10 +116,12 @@ export async function sendPushToUserIfEnabled(
       PAYMENT_LINK_SENT: "pushPaymentLinkSent",
       BOOKING_CANCELLED: "pushBookingCancelled",
       BOOKING_DECLINED: "pushBookingDeclined",
+      NO_SHOW: "pushNoShow",
+      TRIP_COMPLETED: "pushTripCompleted",
+      REFUND_ISSUED: "pushRefundIssued",
       DRIVER_ASSIGNED: "pushRideAssigned",
       RIDE_REMINDER: "pushRideReminder",
       TRIP_UPDATED: "pushTripUpdated",
-      TRIP_COMPLETED: "pushTripCompleted",
       DRIVER_EN_ROUTE: "pushTripUpdated",
       DRIVER_ARRIVED: "pushTripUpdated",
     };

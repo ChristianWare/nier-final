@@ -6,70 +6,203 @@
   gap: 24px;
 }
 
+/* ── Device subscription row ── */
 .subscribeRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 20px;
-  border-radius: 12px;
-  background-color: var(--cream);
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+  padding: 2rem;
+  border-radius: 10px;
   border: 1px solid var(--stroke);
+}
+
+/* ── Styled checkbox (used for "Enabled on this device") ── */
+.checkboxWrap {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.checkboxDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.checkboxInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.checkboxCustom {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--stroke);
+  background-color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.checkboxInput:checked + .checkboxCustom {
+  background-color: var(--black);
+  border-color: var(--black);
+}
+
+.checkmark {
+  width: 12px;
+  height: 10px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.checkboxInput:checked + .checkboxCustom .checkmark {
+  opacity: 1;
+}
+
+.checkboxLabel {
+  font-size: 14px;
+  color: var(--paragraph);
+  white-space: nowrap;
+}
+
+/* ── Preferences card ── */
+.prefsCard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid var(--stroke);
+}
+
+/* ── Master "all notifications" row ── */
+.masterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
 }
 
 @media (max-width: 600px) {
-  .subscribeRow {
+  .masterRow {
     flex-direction: column;
+    align-items: flex-start;
   }
 }
 
-.prefsForm {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px;
-  border-radius: 12px;
-  background-color: var(--cream);
-  border: 1px solid var(--stroke);
-}
-
-.masterToggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
+/* ── Divider ── */
 .divider {
   height: 1px;
   background-color: var(--stroke);
-  margin: 4px 0;
 }
 
-.checkList {
+/* ── Individual pref rows ── */
+.prefList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-left: 4px;
+  gap: 0;
 }
 
-.checkRow {
+.prefRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--stroke);
+  transition: opacity 0.2s ease;
+}
+
+.prefRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.prefRow:first-child {
+  padding-top: 0;
+}
+
+.prefRowDisabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.prefLabel {
   font-size: 14px;
   color: var(--paragraph);
 }
 
-.checkRow input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: var(--black);
-  cursor: pointer;
+/* ── Sliding toggle ── */
+.toggleWrap {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
   flex-shrink: 0;
 }
 
+.toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggleOn {
+  background-color: #16a34a;
+}
+
+.toggleOff {
+  background-color: #d1d5db;
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease;
+}
+
+.toggleOn .toggleThumb {
+  transform: translateX(24px);
+}
+
+.toggleOff .toggleThumb {
+  transform: translateX(0px);
+}
+
+.toggleLabel {
+  font-size: 14px;
+  color: var(--paragraph);
+  white-space: nowrap;
+}
+
+/* ── Unsupported / denied states ── */
 .unsupported,
 .denied {
   padding: 16px 20px;

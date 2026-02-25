@@ -13,7 +13,7 @@ export default async function NotificationsPage() {
       {/* ── Email Notification Settings ── */}
       <section className='container'>
         <header className='header'>
-          <h1 className='heading h2'>Notification settings</h1>
+          <h1 className='heading h2'>Email Notifications</h1>
           <p className='subheading'>
             Control which booking events trigger admin alerts via email.
           </p>
@@ -23,9 +23,9 @@ export default async function NotificationsPage() {
       </section>
 
       {/* ── Push Notification Settings ── */}
-      <section className='container'>
+      <section className='container' style={{ marginTop: "7rem" }}>
         <header className='header'>
-          <h2 className='heading h3'>Push notifications</h2>
+          <h2 className='heading h2'>Push notifications</h2>
           <p className='subheading'>
             Enable push alerts on this device for new bookings, payments, and
             cancellations. Each device must be enabled separately.

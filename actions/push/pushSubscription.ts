@@ -34,7 +34,6 @@ export async function getMyPushPreferences() {
     where: { userId: actorId },
   });
 
-  // Check if user has any active push subscriptions
   const subCount = await db.pushSubscription.count({
     where: { userId: actorId },
   });
@@ -49,11 +48,13 @@ export async function getMyPushPreferences() {
     pushPaymentLinkSent: prefs?.pushPaymentLinkSent ?? false,
     pushBookingCancelled: prefs?.pushBookingCancelled ?? true,
     pushBookingDeclined: prefs?.pushBookingDeclined ?? true,
+    pushNoShow: prefs?.pushNoShow ?? true,
+    pushTripCompleted: prefs?.pushTripCompleted ?? true,
+    pushRefundIssued: prefs?.pushRefundIssued ?? true,
     // Driver events
     pushRideAssigned: prefs?.pushRideAssigned ?? true,
     pushRideReminder: prefs?.pushRideReminder ?? true,
     pushTripUpdated: prefs?.pushTripUpdated ?? true,
-    pushTripCompleted: prefs?.pushTripCompleted ?? true,
   };
 }
 
@@ -79,10 +80,12 @@ export async function saveMyPushPreferences(formData: FormData) {
       pushPaymentLinkSent: bool("pushPaymentLinkSent"),
       pushBookingCancelled: bool("pushBookingCancelled"),
       pushBookingDeclined: bool("pushBookingDeclined"),
+      pushNoShow: bool("pushNoShow"),
+      pushTripCompleted: bool("pushTripCompleted"),
+      pushRefundIssued: bool("pushRefundIssued"),
       pushRideAssigned: bool("pushRideAssigned"),
       pushRideReminder: bool("pushRideReminder"),
       pushTripUpdated: bool("pushTripUpdated"),
-      pushTripCompleted: bool("pushTripCompleted"),
     },
     create: {
       userId: actorId,
@@ -92,10 +95,12 @@ export async function saveMyPushPreferences(formData: FormData) {
       pushPaymentLinkSent: bool("pushPaymentLinkSent"),
       pushBookingCancelled: bool("pushBookingCancelled"),
       pushBookingDeclined: bool("pushBookingDeclined"),
+      pushNoShow: bool("pushNoShow"),
+      pushTripCompleted: bool("pushTripCompleted"),
+      pushRefundIssued: bool("pushRefundIssued"),
       pushRideAssigned: bool("pushRideAssigned"),
       pushRideReminder: bool("pushRideReminder"),
       pushTripUpdated: bool("pushTripUpdated"),
-      pushTripCompleted: bool("pushTripCompleted"),
     },
   });
 
