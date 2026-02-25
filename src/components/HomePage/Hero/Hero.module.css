@@ -157,4 +157,8 @@
   .cc2 {
     padding: 5rem 1.7rem;
   }
+
+  .copy { 
+    display: none;
+  }
 }

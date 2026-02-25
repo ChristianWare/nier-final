@@ -9,6 +9,70 @@ import { buildAdminNotification } from "./templates";
 import { sendSms } from "@/lib/sms/sendSms";
 import { sendAdminNotificationEmail } from "@/lib/email/sendAdminNotificationEmail";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
+import { notifyAdminsPush } from "@/lib/push/notifyUser";
+import type { PushEvent } from "@/lib/push/send";
+
+// ─── Map NotificationEvent → PushEvent ───────────────────────────────────────
+//
+// Only events that have a matching payload in notifyAdminsPush are included.
+// Any NotificationEvent not listed here simply won't trigger a push.
+
+const NOTIFICATION_TO_PUSH_EVENT: Partial<
+  Record<NotificationEvent, PushEvent>
+> = {
+  BOOKING_REQUESTED: "NEW_BOOKING",
+  BOOKING_CANCELLED: "BOOKING_CANCELLED",
+  BOOKING_DECLINED: "BOOKING_DECLINED",
+  PAYMENT_RECEIVED: "PAYMENT_RECEIVED",
+  PAYMENT_LINK_SENT: "PAYMENT_LINK_SENT",
+  TRIP_COMPLETED: "TRIP_COMPLETED",
+  NO_SHOW: "NO_SHOW",
+  REFUND_ISSUED: "REFUND_ISSUED",
+  DRIVER_EN_ROUTE: "DRIVER_EN_ROUTE",
+  DRIVER_ARRIVED: "DRIVER_ARRIVED",
+  // DRIVER_ASSIGNED, DRIVER_PICKED_UP → no admin push payload defined
+};
+
+/**
+ * Internal helper — resolves a NotificationEvent + bookingId into a
+ * notifyAdminsPush() call. Silently no-ops for events with no push mapping.
+ */
+async function fireAdminPush(
+  event: NotificationEvent,
+  bookingId: string,
+): Promise<void> {
+  const pushEvent = NOTIFICATION_TO_PUSH_EVENT[event];
+  if (!pushEvent) return; // no push payload defined for this event
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    select: {
+      id: true,
+      pickupAddress: true,
+      dropoffAddress: true,
+      pickupAt: true,
+      totalCents: true,
+      currency: true,
+      user: { select: { name: true } },
+      guestName: true,
+    },
+  });
+
+  if (!booking) return;
+
+  await notifyAdminsPush(pushEvent, {
+    id: booking.id,
+    pickupAddress: booking.pickupAddress,
+    dropoffAddress: booking.dropoffAddress,
+    pickupAt: booking.pickupAt,
+    totalCents: booking.totalCents,
+    currency: booking.currency,
+    customerName: booking.user?.name ?? null,
+    guestName: booking.guestName ?? null,
+  });
+}
+
+// ─── Existing types ───────────────────────────────────────────────────────────
 
 type AdminSettings = {
   emailEnabled: boolean;
@@ -174,8 +238,9 @@ async function buildNotificationJobs(args: {
 }
 
 /**
- * Queue notifications for later processing by a worker/cron
- * Use this if you want to decouple notification sending from the main request
+ * Queue notifications for later processing by a worker/cron.
+ * Also fires push notifications immediately — push is stateless and
+ * doesn't need a queue since it's a fire-and-forget call.
  */
 export async function queueAdminNotificationsForBookingEvent(args: {
   event: NotificationEvent;
@@ -183,36 +248,44 @@ export async function queueAdminNotificationsForBookingEvent(args: {
 }) {
   const jobs = await buildNotificationJobs(args);
 
-  if (jobs.length === 0) return;
+  if (jobs.length > 0) {
+    // Create email/SMS jobs idempotently
+    await db.notificationJob.createMany({
+      data: jobs.map((j) => ({
+        channel: j.channel as any,
+        event: j.event as any,
+        to: j.to,
+        subject: j.subject ?? null,
+        body: j.body,
+        bookingId: j.bookingId,
+        userId: j.userId,
+        dedupeKey: j.dedupeKey,
+        payload: { ...j.payload, htmlBody: j.htmlBody },
+      })),
+      skipDuplicates: true,
+    });
+  }
 
-  // Create jobs idempotently
-  await db.notificationJob.createMany({
-    data: jobs.map((j) => ({
-      channel: j.channel as any,
-      event: j.event as any,
-      to: j.to,
-      subject: j.subject ?? null,
-      body: j.body,
-      bookingId: j.bookingId,
-      userId: j.userId,
-      dedupeKey: j.dedupeKey,
-      payload: { ...j.payload, htmlBody: j.htmlBody },
-    })),
-    skipDuplicates: true,
+  // Push is fire-and-forget — always attempt regardless of email/SMS jobs
+  fireAdminPush(args.event, args.bookingId).catch((e) => {
+    console.error("[push] queueAdminNotificationsForBookingEvent failed:", e);
   });
 }
 
 /**
- * Send notifications IMMEDIATELY (no queue)
- * Use this for time-sensitive notifications where you want instant delivery
- *
- * Note: This will slow down the request slightly but ensures immediate delivery
+ * Send notifications IMMEDIATELY (no queue).
+ * Also fires push notifications alongside email/SMS.
  */
 export async function sendAdminNotificationsForBookingEvent(args: {
   event: NotificationEvent;
   bookingId: string;
 }) {
   const jobs = await buildNotificationJobs(args);
+
+  // Push is fire-and-forget — runs in parallel with email/SMS, never blocks
+  fireAdminPush(args.event, args.bookingId).catch((e) => {
+    console.error("[push] sendAdminNotificationsForBookingEvent failed:", e);
+  });
 
   if (jobs.length === 0) return { sent: 0, failed: 0 };
 

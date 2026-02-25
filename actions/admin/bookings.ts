@@ -1076,6 +1076,11 @@ export async function updateBookingStatus(formData: FormData) {
       event: "DRIVER_PICKED_UP",
       bookingId,
     });
+  } else if (status === "NO_SHOW") {
+    await queueAdminNotificationsForBookingEvent({
+      event: "NO_SHOW",
+      bookingId,
+    });
   }
 
   revalidatePath(`/admin/bookings/${bookingId}`);
@@ -1823,6 +1828,11 @@ export async function issueRefund(formData: FormData) {
     );
 
     await db.$transaction(tx);
+
+    await queueAdminNotificationsForBookingEvent({
+      event: "REFUND_ISSUED",
+      bookingId,
+    });
 
     revalidatePath(`/admin/bookings/${bookingId}`);
 

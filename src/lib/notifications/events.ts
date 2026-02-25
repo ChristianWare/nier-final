@@ -1,6 +1,7 @@
 export type NotificationEvent =
   | "BOOKING_REQUESTED"
   | "BOOKING_DECLINED"
+  | "BOOKING_CANCELLED"
   | "PAYMENT_LINK_SENT"
   | "PAYMENT_RECEIVED"
   | "DRIVER_ASSIGNED"
@@ -8,7 +9,8 @@ export type NotificationEvent =
   | "DRIVER_ARRIVED"
   | "DRIVER_PICKED_UP"
   | "TRIP_COMPLETED"
-  | "BOOKING_CANCELLED";
+  | "NO_SHOW"
+  | "REFUND_ISSUED";
 
 export const EVENT_META: Record<
   NotificationEvent,
@@ -17,12 +19,14 @@ export const EVENT_META: Record<
   BOOKING_REQUESTED: { label: "New booking request", group: "Bookings" },
   BOOKING_DECLINED: { label: "Booking declined", group: "Bookings" },
   BOOKING_CANCELLED: { label: "Booking cancelled", group: "Bookings" },
+  NO_SHOW: { label: "Passenger no-show", group: "Bookings" },
 
   PAYMENT_LINK_SENT: {
     label: "Payment link sent to client",
     group: "Payments",
   },
   PAYMENT_RECEIVED: { label: "Client payment received", group: "Payments" },
+  REFUND_ISSUED: { label: "Refund issued", group: "Payments" },
 
   DRIVER_ASSIGNED: { label: "Driver assigned", group: "Driver & Trip" },
   DRIVER_EN_ROUTE: { label: "Driver en route", group: "Driver & Trip" },
@@ -35,10 +39,10 @@ export const DEFAULT_EMAIL_EVENTS: NotificationEvent[] = [
   "BOOKING_REQUESTED",
   "PAYMENT_RECEIVED",
   "DRIVER_PICKED_UP",
+  "NO_SHOW",
 ];
 
 export const DEFAULT_SMS_EVENTS: NotificationEvent[] = [
-  // Start conservative; admin can enable more
   "BOOKING_REQUESTED",
   "PAYMENT_RECEIVED",
 ];
