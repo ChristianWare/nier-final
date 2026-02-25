@@ -51,10 +51,10 @@ type Props = {
 type Bucket = "review" | "payment" | "all";
 type CustomerFilter = "all" | "guests" | "accounts" | "corporate";
 
-function shortAddress(address: string) {
-  if (!address) return "";
-  return address.split(",")[0]?.trim() || address;
-}
+// function shortAddress(address: string) {
+//   if (!address) return "";
+//   return address.split(",")[0]?.trim() || address;
+// }
 
 function formatAt(iso: string, timeZone: string) {
   const d = new Date(iso);
@@ -253,7 +253,7 @@ export default function AdminRecentBookingRequests({
                 <th className={styles.th}>Client</th>
                 <th className={styles.th}>Service</th>
                 <th className={styles.th}>Vehicle</th>
-                <th className={styles.th}>Route</th>
+                {/* <th className={styles.th}>Route</th> */}
                 <th className={`${styles.th} ${styles.thRight}`}></th>
               </tr>
             </thead>
@@ -264,7 +264,7 @@ export default function AdminRecentBookingRequests({
                 const pickup = formatAt(b.pickupAtIso, timeZone);
                 const tone = statusTone(b.status);
 
-                const route = `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`;
+                // const route = `${shortAddress(b.pickupAddress)} → ${shortAddress(b.dropoffAddress)}`;
                 const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}`;
 
                 const customerLine =
@@ -389,7 +389,7 @@ export default function AdminRecentBookingRequests({
                       </div>
                     </td>
 
-                    <td className={styles.td} data-label='Route'>
+                    {/* <td className={styles.td} data-label='Route'>
                       <Link
                         href={href}
                         className={styles.rowStretchedLink}
@@ -399,7 +399,7 @@ export default function AdminRecentBookingRequests({
                       <div className={styles.cellInner}>
                         <div className={styles.route}>{route}</div>
                       </div>
-                    </td>
+                    </td> */}
 
                     <td
                       className={`${styles.td} ${styles.tdRight}`}
