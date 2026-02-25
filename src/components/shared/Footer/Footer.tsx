@@ -59,7 +59,8 @@ const data: Section[] = [
       { id: 2.4, option: "Blog", href: "/blog" },
       { id: 2.5, option: "Contact", href: "/contact" },
       { id: 2.6, option: "Login", href: "/login" },
-      { id: 2.7, option: "My Account", href: "/dashboard" },
+      { id: 2.7, option: "Register", href: "/register" },
+      { id: 2.8, option: "My Account", href: "/dashboard" },
     ],
   },
   {
