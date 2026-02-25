@@ -1,12 +1,12 @@
 "use client";
 
 import styles from "./AdminVehicleCategoriesPage.module.css";
-import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import Modal from "@/components/shared/Modal/Modal";
 import { toggleVehicleCategory } from "../../../../actions/admin/vehicleCategories";
+import Button from "@/components/shared/Button/Button";
 
 export default function VehicleCategoryActionsClient({
   id,
@@ -45,17 +45,18 @@ export default function VehicleCategoryActionsClient({
   return (
     <>
       <div className={styles.actions}>
-        <Link href={editHref} className={styles.editLink}>
-          Edit
-        </Link>
+        <Button href={editHref} text='More details' btnType='blackRegSmall' />
 
         <button
           type='button'
-          className={active ? "dangerBtn" : "goodBtn"}
+          role='switch'
+          aria-checked={active}
+          aria-label={active ? "Disable category" : "Enable category"}
+          className={`${styles.toggle} ${active ? styles.toggleOn : styles.toggleOff}`}
           onClick={onToggleClick}
           disabled={isPending}
         >
-          {active ? "Disable" : "Enable"}
+          <span className={styles.toggleThumb} />
         </button>
       </div>
 

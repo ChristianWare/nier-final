@@ -273,6 +273,17 @@
   padding: 8px 15px;
 }
 
+.blackRegSmall {
+  background-color: var(--black);
+  color: var(--white) !important;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  padding: 5px 10px;
+  font-size: 1.4rem;
+}
+
 .greenReg {
   background-color: var(--green);
   color: var(--white) !important;

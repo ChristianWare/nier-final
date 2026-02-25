@@ -164,7 +164,7 @@ export default async function AdminVehicleCategoriesPage({
                   <th className={styles.th}>Status</th>
                   <th className={styles.th}>Bookings</th>
                   <th className={styles.th}>Added</th>
-                  <th className={styles.th}>Actions</th>
+                  <th className={styles.th}>Enable/Disable</th>
                 </tr>
               </thead>
 
@@ -178,68 +178,31 @@ export default async function AdminVehicleCategoriesPage({
                       key={c.id}
                       className={`${styles.tr} ${!c.active ? styles.trInactive : ""}`}
                     >
-                      <td
-                        className={styles.td}
-                        data-label='Name'
-                        style={{ position: "relative" }}
-                      >
+                      {/* ── Name — stretched link is relative to tr (no position:relative on td) ── */}
+                      <td className={styles.td} data-label='Name'>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
                           aria-label='Open category'
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
                         <div className={styles.cellStrong}>{c.name}</div>
                       </td>
 
-                      <td
-                        className={styles.td}
-                        data-label='Capacity'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
+                      <td className={styles.td} data-label='Capacity'>
                         <div className={styles.capacityBadge}>
                           <span className={styles.capacityIcon}>👤</span>
                           {c.capacity}
                         </div>
                       </td>
 
-                      <td
-                        className={styles.td}
-                        data-label='Luggage'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
+                      <td className={styles.td} data-label='Luggage'>
                         <div className={styles.capacityBadge}>
                           <span className={styles.capacityIcon}>🧳</span>
                           {c.luggageCapacity}
                         </div>
                       </td>
 
-                      <td
-                        className={styles.td}
-                        data-label='Status'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
+                      <td className={styles.td} data-label='Status'>
                         <span
                           className={`badge ${c.active ? "badge_good" : "badge_neutral"}`}
                         >
@@ -247,35 +210,13 @@ export default async function AdminVehicleCategoriesPage({
                         </span>
                       </td>
 
-                      <td
-                        className={styles.td}
-                        data-label='Bookings'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
+                      <td className={styles.td} data-label='Bookings'>
                         <div className={styles.cellStrong}>
                           {c._count.bookings}
                         </div>
                       </td>
 
-                      <td
-                        className={styles.td}
-                        data-label='Added'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
+                      <td className={styles.td} data-label='Added'>
                         <div className={styles.cellStack}>
                           <span className={styles.cellSub}>
                             {tz.formatDate(c.createdAt, companyTz)}
@@ -286,6 +227,7 @@ export default async function AdminVehicleCategoriesPage({
                         </div>
                       </td>
 
+                      {/* ── Actions — zIndex above the stretched link ── */}
                       <td
                         className={styles.td}
                         data-label='Actions'
