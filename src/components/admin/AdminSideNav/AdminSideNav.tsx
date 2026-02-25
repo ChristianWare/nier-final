@@ -14,7 +14,6 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Cog from "@/components/shared/icons/Cog/Cog";
-// import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
 import Plane from "@/components/shared/icons/Plane/Plane";
 import Money from "@/components/shared/icons/Money/Money";
@@ -80,10 +79,6 @@ export default function AdminSideNav(
                 ? pathname === "/admin"
                 : pathname === href || pathname.startsWith(href + "/");
 
-              // const showBookingsBadge = href === "/admin/bookings";
-              // const showBadge =
-              //   showBookingsBadge && (bookingNeedsAttentionCount ?? 0) > 0;
-
               return (
                 <li key={href}>
                   <Link
@@ -95,25 +90,24 @@ export default function AdminSideNav(
                     aria-current={active ? "page" : undefined}
                   >
                     {icon}
-                    {title}
+                    <span className={styles.title}>{title}</span>
 
-                    {/* {showBadge ? (
-                      <BadgeCount value={bookingNeedsAttentionCount} max={99} />
-                    ) : null} */}
+                  
                   </Link>
                 </li>
               );
             })}
-
-            <Link href='/dashboard' className={styles.dshbrdBtn}>
-              User Dashboard <Arrow className={styles.arrow} />
-            </Link>
-            <Link href='/driver-dashboard' className={styles.drvrDshbrdBtn}>
-              Driver Dashboard <Arrow className={styles.arrow} />
-            </Link>
-            <button className={styles.signOutBtn} onClick={() => signOut()}>
-              Sign Out <SignOutLogo className={styles.signOutLogo} />
-            </button>
+            <div className={styles.actionBtns}>
+              <Link href='/dashboard' className={styles.dshbrdBtn}>
+                User Dashboard <Arrow className={styles.arrow} />
+              </Link>
+              <Link href='/driver-dashboard' className={styles.drvrDshbrdBtn}>
+                Driver Dashboard <Arrow className={styles.arrow} />
+              </Link>
+              <button className={styles.signOutBtn} onClick={() => signOut()}>
+                Sign Out <SignOutLogo className={styles.signOutLogo} />
+              </button>
+            </div>
           </div>
         </ul>
       </nav>

@@ -1,6 +1,5 @@
 .container {
   padding: 10rem 0rem;
-  
 }
 
 .content {
@@ -16,30 +15,27 @@
   width: 100%;
 }
 
-/* .AdminSideNavContainer {
-  position: sticky;
-  top: 80px;
-  align-self: start;
-  z-index: 10;
-} */
-
 .right {
   width: 100%;
-  /* border: 2px solid var(--accent);
-  border-radius: 20px;
-  padding: 2rem; */
 }
 
 @media screen and (max-width: 968px) {
-  .content {
-    grid-template-columns: 1fr;
-    grid-gap: 7rem;
-  }
-
   .heading {
     display: block;
     text-align: center;
     width: 100%;
     margin-bottom: 1rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    padding-top: 5rem;
+  }
+
+  .AdminSideNavContainer {
+    position: sticky;
+    top: 80px;
+    align-self: start;
   }
 }
