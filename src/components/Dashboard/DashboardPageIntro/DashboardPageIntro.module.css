@@ -32,10 +32,6 @@
 }
 
 @media screen and (max-width: 968px) {
-  .heading {
-    display: none;
-  }
-
   .kpiGrid {
     grid-template-columns: 1fr;
     grid-gap: 1rem;

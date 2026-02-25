@@ -15,6 +15,7 @@ import Cog from "@/components/shared/icons/Cog/Cog";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import Appointments from "@/components/shared/icons/Appointments/Appointments";
+import Modal from "@/components/shared/Modal/Modal";
 
 const NAV_ITEMS = [
   {
@@ -62,9 +63,9 @@ const NAV_ITEMS = [
 ];
 
 export type DriverSideNavProps = {
-  unreadNotificationsCount?: number; // bell badge
-  tripsNeedAttentionCount?: number; // trips badge (time changed, missing info, etc.)
-  documentsAlertCount?: number; // profile/docs badge (expiring soon)
+  unreadNotificationsCount?: number;
+  tripsNeedAttentionCount?: number;
+  documentsAlertCount?: number;
 };
 
 export default function DriverSideNav({
@@ -73,76 +74,133 @@ export default function DriverSideNav({
   documentsAlertCount = 0,
 }: DriverSideNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuModalOpen, setMenuModalOpen] = useState(false);
   const pathname = usePathname();
 
   return (
-    <aside className={styles.container}>
-      <nav className={styles.nav}>
-        <ul
-          className={
-            isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
-          }
-        >
-          <div className={styles.closeWrapper}>
-            <FalseButton
-              text='Close'
-              btnType='blue'
-              onClick={() => setIsOpen(false)}
-            />
+    <>
+      <aside className={styles.container}>
+        <nav className={styles.nav}>
+          <ul
+            className={
+              isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
+            }
+          >
+            <div className={styles.closeWrapper}>
+              <FalseButton
+                text='Close'
+                btnType='blue'
+                onClick={() => setIsOpen(false)}
+              />
+            </div>
+
+            <div className={styles.linksWrapper}>
+              {NAV_ITEMS.map(({ title, href, icon }) => {
+                const isRoot = href === "/driver-dashboard";
+                const active = isRoot
+                  ? pathname === "/driver-dashboard"
+                  : pathname === href || pathname.startsWith(href + "/");
+
+                const showNotificationsBadge =
+                  href === "/driver-dashboard/notifications" &&
+                  unreadNotificationsCount > 0;
+
+                const showTripsBadge =
+                  href === "/driver-dashboard/trips" &&
+                  tripsNeedAttentionCount > 0;
+
+                const showDocsBadge =
+                  href === "/driver-dashboard/profile" &&
+                  documentsAlertCount > 0;
+
+                const badgeValue = showNotificationsBadge
+                  ? unreadNotificationsCount
+                  : showTripsBadge
+                    ? tripsNeedAttentionCount
+                    : showDocsBadge
+                      ? documentsAlertCount
+                      : 0;
+
+                const showBadge = badgeValue > 0;
+
+                return (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
+                      onClick={() => setIsOpen(false)}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {icon}
+                      <span className={styles.title}>{title}</span>
+                      {showBadge ? (
+                        <BadgeCount value={badgeValue} max={99} />
+                      ) : null}
+                    </Link>
+                  </li>
+                );
+              })}
+
+              {/* Full sign out button — hidden at ≤968px via CSS */}
+              <div className={styles.actionBtns}>
+                <button className={styles.signOutBtn} onClick={() => signOut()}>
+                  Sign Out <Arrow className={styles.arrow} />
+                </button>
+              </div>
+
+              {/* Compact menu button — shown only at ≤968px via CSS */}
+              <div className={styles.compactMenuBtn}>
+                <button
+                  type='button'
+                  className={styles.moreBtn}
+                  onClick={() => setMenuModalOpen(true)}
+                  aria-label='Open navigation menu'
+                >
+                  <span className={styles.moreBtnDot} />
+                  <span className={styles.moreBtnDot} />
+                  <span className={styles.moreBtnDot} />
+                </button>
+              </div>
+            </div>
+          </ul>
+        </nav>
+      </aside>
+
+      <Modal isOpen={menuModalOpen} onClose={() => setMenuModalOpen(false)}>
+        <div className={styles.modalContent}>
+          <p className={`cardTitle h5 ${styles.modalTitle}`}>Navigate</p>
+
+          <div className={styles.modalNav}>
+            <Link
+              href='/dashboard'
+              className={styles.modalNavLink}
+              onClick={() => setMenuModalOpen(false)}
+            >
+              User Dashboard <Arrow className={styles.modalArrow} />
+            </Link>
           </div>
 
-          <div className={styles.linksWrapper}>
-            {NAV_ITEMS.map(({ title, href, icon }) => {
-              const isRoot = href === "/driver-dashboard";
-              const active = isRoot
-                ? pathname === "/driver-dashboard"
-                : pathname === href || pathname.startsWith(href + "/");
-
-              const showNotificationsBadge =
-                href === "/driver-dashboard/notifications" &&
-                unreadNotificationsCount > 0;
-
-              const showTripsBadge =
-                href === "/driver-dashboard/trips" &&
-                tripsNeedAttentionCount > 0;
-
-              const showDocsBadge =
-                href === "/driver-dashboard/profile" && documentsAlertCount > 0;
-
-              const badgeValue = showNotificationsBadge
-                ? unreadNotificationsCount
-                : showTripsBadge
-                  ? tripsNeedAttentionCount
-                  : showDocsBadge
-                    ? documentsAlertCount
-                    : 0;
-
-              const showBadge = badgeValue > 0;
-
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
-                    onClick={() => setIsOpen(false)}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    {icon}
-                    {title}
-
-                    {showBadge ? (
-                      <BadgeCount value={badgeValue} max={99} />
-                    ) : null}
-                  </Link>
-                </li>
-              );
-            })}
-           <button className={styles.signOutBtn} onClick={() => signOut()}>
-              Sign Out <Arrow className={styles.arrow} />
+          <div className={styles.modalActions}>
+            <button
+              type='button'
+              className='primaryBtn'
+              onClick={() => setMenuModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='dangerBtn'
+              onClick={() => {
+                setMenuModalOpen(false);
+                signOut();
+              }}
+            >
+              Log Out
             </button>
           </div>
-        </ul>
-      </nav>
-    </aside>
+        </div>
+      </Modal>
+    </>
   );
 }

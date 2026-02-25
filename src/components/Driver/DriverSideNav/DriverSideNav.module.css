@@ -64,6 +64,10 @@
   transition: all 0.2s ease-in;
 }
 
+.title {
+  color: inherit;
+}
+
 .navLinkActive {
   background-color: var(--accent);
   color: var(--white);
@@ -95,6 +99,85 @@
   transform: rotate(90deg);
 }
 
+.actionBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Compact "more" button — hidden by default, shown at ≤968px */
+.compactMenuBtn {
+  display: none;
+}
+
+.moreBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--stroke);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in;
+}
+
+.moreBtnDot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--black);
+}
+
+/* Modal styles */
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.modalTitle {
+  margin: 0;
+}
+
+.modalNav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalNavLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 1.2rem 2rem;
+  border-radius: 5px;
+  background-color: var(--lightGray);
+  border: 1px solid var(--strokeii);
+  color: var(--black);
+  transition: background-color 0.2s ease-in;
+}
+
+.modalArrow {
+  transform: rotate(90deg);
+  flex-shrink: 0;
+}
+
+.modalActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 /* ── Hover only on devices that support true hover (mouse, not touch) ── */
 @media (hover: hover) {
   .navLink:hover {
@@ -109,12 +192,24 @@
   .homeBtn:hover {
     background-color: var(--black300);
   }
+
+  .moreBtn:hover {
+    background-color: var(--accent);
+  }
+
+  .moreBtn:hover .moreBtnDot {
+    background-color: var(--white);
+  }
+
+  .modalNavLink:hover {
+    background-color: var(--black300);
+  }
 }
 
 @media screen and (max-width: 968px) {
   .linksWrapper {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(1, 1fr);
   }
 
   .navLink {
@@ -127,22 +222,21 @@
     padding: 1rem;
   }
 
-  .signOutBtn,
-  .drvrDshbrdBtn,
-  .dshbrdBtn {
+  .title {
+    display: none;
+  }
+
+  /* Hide full sign out, show compact trigger instead */
+  .actionBtns {
+    display: none;
     grid-column: span 3;
-    padding: 3rem 2rem;
+  }
+
+  .compactMenuBtn {
+    display: block;
   }
 }
 
 @media screen and (max-width: 568px) {
-  .linksWrapper {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .signOutBtn,
-  .drvrDshbrdBtn,
-  .dshbrdBtn {
-    grid-column: span 2;
-  }
+ 
 }

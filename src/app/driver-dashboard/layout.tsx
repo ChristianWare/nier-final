@@ -19,7 +19,7 @@ function normalizeRoles(roles: any): AppRole[] {
 }
 
 async function resolveViewer(
-  session: any
+  session: any,
 ): Promise<{ userId: string; roles: AppRole[] }> {
   // Prefer standardized userId from your auth.ts session callback
   const userId =
@@ -60,9 +60,6 @@ export default async function DriverDashboardLayout({
   // ✅ gate driver dashboard
   if (!isDriver && !isAdmin) redirect("/");
 
-  const fullName = (session.user?.name ?? "").trim();
-  const firstName = fullName.split(/\s+/)[0] || "there";
-
   return (
     <main>
       <Nav background='white' />
@@ -70,7 +67,6 @@ export default async function DriverDashboardLayout({
         <section className={styles.container}>
           <div className={styles.content}>
             <div className={styles.left}>
-              <h1 className={`${styles.heading} h2`}>Welcome {firstName}!</h1>
               <div className={styles.AdminSideNavContainer}>
                 <DriverSideNav />
               </div>
