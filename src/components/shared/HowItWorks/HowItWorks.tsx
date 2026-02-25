@@ -36,7 +36,7 @@ export default function HowItWorks() {
           <div className={styles.top}>
             <SectionHeading text='How It Works' dot />
             <h3 className={styles.heading}>
-              Book your ride in just three simple steps – it&#39;s fast, easy,
+              Book your ride in just three simple steps – <br /> it&#39;s fast, easy,
               and hassle-free!
             </h3>
             <div className={styles.btnClusterContainer}>

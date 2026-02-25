@@ -93,6 +93,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
+      <head>
+        {/* ── Video preload — loads hero video before React mounts ── */}
+        <link
+          rel='preload'
+          href='/videos/phx.mp4'
+          as='video'
+          type='video/mp4'
+        />
+
+        {/* ── PWA ── */}
+        <link rel='manifest' href='/manifest.json' />
+        <meta name='theme-color' content='#000000' />
+        <meta name='apple-mobile-web-app-capable' content='yes' />
+        <meta
+          name='apple-mobile-web-app-status-bar-style'
+          content='black-translucent'
+        />
+        <meta name='apple-mobile-web-app-title' content='Nier' />
+        <link rel='apple-touch-icon' href='/apple-touch-icon.png' />
+      </head>
       <body className={`${inter.variable} `}>
         <script
           type='application/ld+json'
