@@ -78,8 +78,7 @@
   position: relative;
 }
 
-.navLinkActive,
-.navLink:hover {
+.navLinkActive {
   background-color: var(--accent);
   color: var(--white);
 }
@@ -130,10 +129,6 @@
   line-height: 1;
 }
 
-.dshbrdBtn:hover {
-  background-color: var(--black300);
-}
-
 .signOutBtn {
   display: flex;
   align-items: center;
@@ -154,16 +149,28 @@
   line-height: 1;
 }
 
-.signOutBtn:hover {
-  background-color: var(--black400);
-}
-
 .arrow {
   transform: rotate(90deg);
 }
 
 .signOutLogo {
   color: var(--cream);
+}
+
+/* ── Hover only on devices that support true hover (mouse, not touch) ── */
+@media (hover: hover) {
+  .navLink:hover {
+    background-color: var(--accent);
+    color: var(--white);
+  }
+
+  .dshbrdBtn:hover {
+    background-color: var(--black300);
+  }
+
+  .signOutBtn:hover {
+    background-color: var(--black400);
+  }
 }
 
 @media screen and (max-width: 968px) {

@@ -47,7 +47,8 @@
 
 .navLink,
 .signOutBtn,
-.dshbrdBtn, .drvrDshbrdBtn {
+.dshbrdBtn,
+.drvrDshbrdBtn {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -64,8 +65,7 @@
   transition: all 0.2s ease-in;
 }
 
-.navLinkActive,
-.navLink:hover {
+.navLinkActive {
   background-color: var(--accent);
   color: var(--white);
 }
@@ -78,7 +78,8 @@
 }
 
 .signOutBtn,
-.dshbrdBtn, .drvrDshbrdBtn {
+.dshbrdBtn,
+.drvrDshbrdBtn {
   cursor: pointer;
   background-color: var(--black);
   color: var(--cream);
@@ -88,18 +89,10 @@
   justify-content: space-between;
 }
 
-.signOutBtn:hover {
-  background-color: var(--black400);
-}
-
 .dshbrdBtn {
   background-color: var(--lightGray);
   border: 1px solid var(--strokeii);
-  color: var(--black)
-}
-
-.dshbrdBtn:hover {
-  background-color: var(--black300);
+  color: var(--black);
 }
 
 .drvrDshbrdBtn {
@@ -107,16 +100,32 @@
   border: 1px solid var(--black400);
 }
 
-.drvrDshbrdBtn:hover {
-  background-color: var(--black300);
-}
-
 .arrow {
   transform: rotate(90deg);
 }
 
 .signOutLogo {
-  color: var(--cream)
+  color: var(--cream);
+}
+
+/* ── Hover only on devices that support true hover (mouse, not touch) ── */
+@media (hover: hover) {
+  .navLink:hover {
+    background-color: var(--accent);
+    color: var(--white);
+  }
+
+  .signOutBtn:hover {
+    background-color: var(--black400);
+  }
+
+  .dshbrdBtn:hover {
+    background-color: var(--black300);
+  }
+
+  .drvrDshbrdBtn:hover {
+    background-color: var(--black300);
+  }
 }
 
 @media screen and (max-width: 968px) {
@@ -141,9 +150,10 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .signOutBtn, .drvrDshbrdBtn, .dshbrdBtn {
+  .signOutBtn,
+  .drvrDshbrdBtn,
+  .dshbrdBtn {
     grid-column: span 2;
     padding: 3rem 2rem;
   }
 }
-

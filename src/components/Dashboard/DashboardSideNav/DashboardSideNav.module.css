@@ -64,8 +64,7 @@
   transition: all 0.2s ease-in;
 }
 
-.navLinkActive,
-.navLink:hover {
+.navLinkActive {
   background-color: var(--accent);
   color: var(--white);
 }
@@ -88,20 +87,28 @@
   justify-content: space-between;
 }
 
-.signOutBtn:hover {
-  background-color: var(--black400);
-}
-
 .homeBtn {
   background-color: var(--paragraph);
 }
 
-.homeBtn:hover {
-  background-color: var(--black300);
-}
-
 .arrow {
   transform: rotate(90deg);
+}
+
+/* ── Hover only on devices that support true hover (mouse, not touch) ── */
+@media (hover: hover) {
+  .navLink:hover {
+    background-color: var(--accent);
+    color: var(--white);
+  }
+
+  .signOutBtn:hover {
+    background-color: var(--black400);
+  }
+
+  .homeBtn:hover {
+    background-color: var(--black300);
+  }
 }
 
 @media screen and (max-width: 968px) {
