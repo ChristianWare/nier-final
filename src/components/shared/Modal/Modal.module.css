@@ -24,6 +24,7 @@
   max-height: 95vh;
   overflow: auto;
   position: relative;
+  z-index: 10001 !important; /* add this */
   transform: scale(0.98);
   opacity: 0;
   transition: opacity 0.25s ease;

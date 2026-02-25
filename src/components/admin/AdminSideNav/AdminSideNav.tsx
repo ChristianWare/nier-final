@@ -22,6 +22,7 @@ import Company from "@/components/shared/icons/Company/Company";
 import Appointments from "@/components/shared/icons/Appointments/Appointments";
 import Analytics from "@/components/shared/icons/Analytics/Analytics";
 import Business from "@/components/shared/icons/Business/Business";
+import Modal from "@/components/shared/Modal/Modal";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
@@ -54,63 +55,123 @@ export default function AdminSideNav(
   }: AdminSideNavProps,
 ) {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuModalOpen, setMenuModalOpen] = useState(false);
   const pathname = usePathname();
 
   return (
-    <aside className={styles.container}>
-      <nav className={styles.nav}>
-        <ul
-          className={
-            isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
-          }
-        >
-          <div className={styles.closeWrapper}>
-            <FalseButton
-              text='Close'
-              btnType='blue'
-              onClick={() => setIsOpen(false)}
-            />
-          </div>
-
-          <div className={styles.linksWrapper}>
-            {NAV_ITEMS.map(({ title, href, icon }) => {
-              const isDashboard = href === "/admin";
-              const active = isDashboard
-                ? pathname === "/admin"
-                : pathname === href || pathname.startsWith(href + "/");
-
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className={`${styles.navLink} ${
-                      active ? styles.navLinkActive : ""
-                    }`}
-                    onClick={() => setIsOpen(false)}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    {icon}
-                    <span className={styles.title}>{title}</span>
-
-                  
-                  </Link>
-                </li>
-              );
-            })}
-            <div className={styles.actionBtns}>
-              <Link href='/dashboard' className={styles.dshbrdBtn}>
-                User Dashboard <Arrow className={styles.arrow} />
-              </Link>
-              <Link href='/driver-dashboard' className={styles.drvrDshbrdBtn}>
-                Driver Dashboard <Arrow className={styles.arrow} />
-              </Link>
-              <button className={styles.signOutBtn} onClick={() => signOut()}>
-                Sign Out <SignOutLogo className={styles.signOutLogo} />
-              </button>
+    <>
+      <aside className={styles.container}>
+        <nav className={styles.nav}>
+          <ul
+            className={
+              isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
+            }
+          >
+            <div className={styles.closeWrapper}>
+              <FalseButton
+                text='Close'
+                btnType='blue'
+                onClick={() => setIsOpen(false)}
+              />
             </div>
+
+            <div className={styles.linksWrapper}>
+              {NAV_ITEMS.map(({ title, href, icon }) => {
+                const isDashboard = href === "/admin";
+                const active = isDashboard
+                  ? pathname === "/admin"
+                  : pathname === href || pathname.startsWith(href + "/");
+
+                return (
+                  <li key={href}>
+                    <Link
+                      href={href}
+                      className={`${styles.navLink} ${
+                        active ? styles.navLinkActive : ""
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {icon}
+                      <span className={styles.title}>{title}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+
+              {/* Full action buttons — hidden at ≤968px via CSS */}
+              <div className={styles.actionBtns}>
+                <Link href='/dashboard' className={styles.dshbrdBtn}>
+                  User Dashboard <Arrow className={styles.arrow} />
+                </Link>
+                <Link href='/driver-dashboard' className={styles.drvrDshbrdBtn}>
+                  Driver Dashboard <Arrow className={styles.arrow} />
+                </Link>
+                <button className={styles.signOutBtn} onClick={() => signOut()}>
+                  Sign Out <SignOutLogo className={styles.signOutLogo} />
+                </button>
+              </div>
+
+              {/* Compact menu button — shown only at ≤968px via CSS */}
+              <div className={styles.compactMenuBtn}>
+                <button
+                  type='button'
+                  className={styles.moreBtn}
+                  onClick={() => setMenuModalOpen(true)}
+                  aria-label='Open navigation menu'
+                >
+                  <span className={styles.moreBtnDot} />
+                  <span className={styles.moreBtnDot} />
+                  <span className={styles.moreBtnDot} />
+                </button>
+              </div>
+            </div>
+          </ul>
+        </nav>
+      </aside>
+
+      <Modal isOpen={menuModalOpen} onClose={() => setMenuModalOpen(false)}>
+        <div className={styles.modalContent}>
+          <p className={`cardTitle h5 ${styles.modalTitle}`}>Navigate</p>
+
+          <div className={styles.modalNav}>
+            <Link
+              href='/dashboard'
+              className={styles.modalNavLink}
+              onClick={() => setMenuModalOpen(false)}
+            >
+              User Dashboard <Arrow className={styles.modalArrow} />
+            </Link>
+            <Link
+              href='/driver-dashboard'
+              className={`${styles.modalNavLink} ${styles.modalNavLinkDark}`}
+              onClick={() => setMenuModalOpen(false)}
+            >
+              Driver Dashboard <Arrow className={styles.modalArrow} />
+            </Link>
           </div>
-        </ul>
-      </nav>
-    </aside>
+
+          <div className={styles.modalActions}>
+            <button
+              type='button'
+              className='primaryBtn'
+              onClick={() => setMenuModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='dangerBtn'
+              onClick={() => {
+                setMenuModalOpen(false);
+                signOut();
+              }}
+            >
+              Log Out
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }

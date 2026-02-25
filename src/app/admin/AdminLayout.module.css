@@ -32,6 +32,11 @@
   .container {
     padding-top: 5rem;
   }
+  
+  .right {
+    z-index: -999;
+
+  }
 
   .AdminSideNavContainer {
     position: sticky;
