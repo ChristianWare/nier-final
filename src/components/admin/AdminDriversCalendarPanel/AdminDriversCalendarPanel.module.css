@@ -1,6 +1,4 @@
-/* AdminDriversCalendarPanel.module.css */
-
-/* ── Outer shell: left sidebar + right calendar ── */
+/* ── Outer shell ── */
 
 .shell {
   display: grid;
@@ -45,15 +43,12 @@
   opacity: 0.4;
 }
 
-/* Driver row button */
-
 .driverRow {
   display: flex;
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.25rem;
   background: transparent;
-  border: none;
   cursor: pointer;
   text-align: left;
   width: 100%;
@@ -67,14 +62,12 @@
   background: var(--lighterBlue);
   border: 1px solid var(--blue);
   border-radius: 7px;
-  transition: all 0.2s ease-in;
 }
 
 .driverRowSelected {
   border: 1px solid var(--blue);
   background: var(--lighterBlue) !important;
   border-radius: 7px;
-  transition: all 0.2s ease-in;
 }
 
 .driverRowInactive {
@@ -151,8 +144,6 @@
   min-width: 0;
 }
 
-/* Driver nameplate above calendar */
-
 .driverNameplate {
   display: flex;
   align-items: center;
@@ -182,8 +173,6 @@
   font-weight: 500;
 }
 
-/* Empty state */
-
 .emptyState {
   flex: 1;
   display: flex;
@@ -196,9 +185,7 @@
   opacity: 0.5;
 }
 
-/* ═══════════════════════════════
-   CALENDAR — exact AdminRideCalendar match
-═══════════════════════════════ */
+/* ── Calendar wrap ── */
 
 .wrap {
   overflow: hidden;
@@ -292,7 +279,6 @@
   color: #222;
   border: 1px solid var(--stroke);
   cursor: pointer;
-
   font-size: 22px;
   line-height: 1;
   display: grid;
@@ -310,12 +296,18 @@
   border-radius: 5px;
   border: 1px solid rgba(0, 0, 0, 0.18);
   background: #fff;
-
   line-height: 1;
 }
 
 .todayBtn {
   padding: 10px 12px;
+}
+
+/* ── Desktop grid ── */
+
+.desktopGrid {
+  display: grid;
+  gap: 0;
 }
 
 .gridHead {
@@ -330,7 +322,6 @@
   background-color: var(--lightGray);
   padding: 1rem;
   text-align: center;
-
   font-weight: 600;
   border-radius: 5px;
   height: fit-content;
@@ -371,7 +362,6 @@
   border-color: #bfe8cc;
   outline: 2px solid #4e94ec33;
   outline-offset: 0;
-  color: var(--black) !important;
 }
 
 .dayCell:active {
@@ -380,15 +370,10 @@
 
 .dayNum {
   font-weight: 700;
-  letter-spacing: normal;
   color: #222;
   font-size: 14px;
   position: relative;
   z-index: 2;
-}
-
-.dayCell:hover .dayNum {
-  color: var(--black);
 }
 
 .dayCellOther {
@@ -426,34 +411,27 @@
   justify-content: flex-start;
   padding-left: 6px;
   padding-bottom: 4px;
-
   font-weight: 900;
-  letter-spacing: normal;
   font-size: 1.4rem;
   line-height: 1;
   z-index: 3;
 }
-
-/* Month stats footer */
 
 .monthStats {
   padding: 0 1rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-start;
 }
 
 .monthStatsItem {
   display: inline;
 }
 
-/* Mobile legend */
-
 .mobileLegend {
   display: none;
   gap: 10px;
-  padding: 0 10px 10px 10px;
+  padding: 0 10px 10px;
   flex-wrap: wrap;
 }
 
@@ -487,7 +465,194 @@
   padding: 1rem;
 }
 
-/* Tablet: stack sidebar above calendar */
+/* ── Mobile agenda — hidden on desktop ── */
+
+.mobileAgenda {
+  display: none;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.agendaList {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.agendaRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--white);
+  border: none;
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.agendaRow:last-child {
+  border-bottom: none;
+}
+
+.agendaRow:active {
+  background: var(--lightGray);
+}
+
+.agendaRowToday {
+  background: #eaf8ee;
+}
+
+.agendaDate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 68px;
+  padding: 14px 12px;
+  border-right: 1px solid var(--stroke);
+  gap: 1px;
+  background: var(--cream);
+}
+
+.agendaDateToday {
+  background: #d1fae5;
+}
+
+.agendaDow {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--paragraph);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+}
+
+.agendaDay {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--black);
+  line-height: 1.1;
+}
+
+.agendaMon {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--paragraph);
+  line-height: 1;
+}
+
+.agendaContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 12px;
+}
+
+.agendaRideChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(22, 163, 74, 0.12);
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  border-radius: 999px;
+  padding: 6px 12px;
+  width: fit-content;
+}
+
+.agendaRideCount {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--darkGreen);
+  line-height: 1;
+}
+
+.agendaRideLabel {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--darkGreen);
+  line-height: 1;
+}
+
+.agendaArrow {
+  font-size: 2rem;
+  color: var(--paragraph);
+  padding-right: 14px;
+  line-height: 1;
+  opacity: 0.4;
+}
+
+.agendaEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: var(--white);
+}
+
+.agendaEmptyIcon {
+  font-size: 3.2rem;
+}
+
+.agendaEmptyText {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--paragraph);
+}
+
+.agendaStats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--white);
+}
+
+.agendaStatItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.4rem 1rem;
+  gap: 2px;
+}
+
+.agendaStatValue {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: var(--black);
+  line-height: 1;
+}
+
+.agendaStatLabel {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--paragraph);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.agendaStatDivider {
+  width: 1px;
+  height: 40px;
+  background: var(--stroke);
+  flex-shrink: 0;
+}
+
+/* ── Tablet: stack sidebar above calendar ── */
+
 @media screen and (max-width: 1068px) {
   .shell {
     grid-template-columns: 1fr;
@@ -545,14 +710,11 @@
 
   .driverNameplate {
     padding: 1rem 1.5rem;
+    border-top-right-radius: 0;
   }
 
   .nameplateStats {
     display: none;
-  }
-
-  .driverNameplate {
-    border-top-right-radius: 0px;
   }
 
   .mobileSelect {
@@ -564,39 +726,30 @@
   }
 }
 
-/* Mobile: calendar nav switches */
+/* ── Mobile: swap grid for agenda ── */
+
 @media screen and (max-width: 568px) {
+  .wrap {
+    gap: 2rem;
+    padding: 1.25rem;
+  }
+
   .controlsDesktop {
     display: none;
   }
 
   .controlsMobile {
     display: flex;
+    flex-wrap: wrap;
   }
 
-  .gridDays {
-    grid-template-columns: repeat(7, 1fr);
-    gap: 6px;
-    padding: 10px;
+  /* Hide desktop grid, show agenda */
+  .desktopGrid {
+    display: none;
   }
 
-  .dayCell {
-    min-height: 44px;
-    padding: 8px;
-    border-radius: 5px;
-  }
-
-  .dayNum {
-    font-size: 1.4rem;
-  }
-
-  .mobileLegend {
+  .mobileAgenda {
     display: flex;
-  }
-
-  .wrap {
-    gap: 2rem;
-    padding: 1.25rem;
   }
 }
 
@@ -606,8 +759,12 @@
     height: 38px;
   }
 
-  .dayCell {
-    min-height: 40px;
-    padding: 1rem;
+  .agendaDate {
+    min-width: 58px;
+    padding: 12px 8px;
+  }
+
+  .agendaDay {
+    font-size: 2rem;
   }
 }

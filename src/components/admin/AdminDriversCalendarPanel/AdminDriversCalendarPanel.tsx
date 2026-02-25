@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./AdminDriversCalendarPanel.module.css";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -22,15 +22,30 @@ export interface DriverCalendarData {
 interface Props {
   activeDrivers: DriverInfo[];
   inactiveDrivers: DriverInfo[];
-  /** Pre-fetched counts for the initial month, keyed by driverId */
   initialDataByDriver: Record<string, Record<string, number>>;
-  initialMonth: string; // "YYYY-MM"
+  initialMonth: string;
   todayYmd: string;
   timeZone: string;
 }
 
-
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -89,7 +104,16 @@ function buildGrid(monthDate: Date): Date[] {
   return days;
 }
 
-// ─── Main component ─────────────────────────────────────────────────────────
+function getDaysInMonth(monthDate: Date): Date[] {
+  const year = monthDate.getUTCFullYear();
+  const month = monthDate.getUTCMonth();
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const days: Date[] = [];
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(new Date(Date.UTC(year, month, i, 12, 0, 0)));
+  }
+  return days;
+}
 
 export default function AdminDriversCalendarPanel({
   activeDrivers,
@@ -111,22 +135,17 @@ export default function AdminDriversCalendarPanel({
     return startOfMonthUTCNoon(parsed ?? new Date());
   });
 
-  // countsByYmd for the currently selected driver + current month
   const [countsByYmd, setCountsByYmd] = useState<Record<string, number>>(
     () => initialDataByDriver[selectedId ?? ""] ?? {},
   );
   const [loading, setLoading] = useState(false);
 
-  // When selecting a different driver, load their data for the current month
   function selectDriver(id: string) {
     if (id === selectedId) return;
     setSelectedId(id);
-
     const mk = monthKeyFromUTCNoon(monthDate);
-    // Check if we already have this data from the initial load
     const initial = initialDataByDriver[id];
-    const initialMk = initialMonth;
-    if (mk === initialMk && initial) {
+    if (mk === initialMonth && initial) {
       setCountsByYmd(initial);
       return;
     }
@@ -195,7 +214,6 @@ export default function AdminDriversCalendarPanel({
     router.push(`/admin/calendar/drivers/${selectedId}/${ymd}`);
   }
 
-  // Mobile month picker
   const mobileMonthValue = monthKeyFromUTCNoon(monthDate);
   function onPickMonthMobile(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value;
@@ -207,23 +225,38 @@ export default function AdminDriversCalendarPanel({
     if (selectedId) fetchCounts(selectedId, next);
   }
 
+  // Mobile agenda — only days in this month that have rides
+  const agendaDays = useMemo(() => {
+    const allDays = getDaysInMonth(monthDate);
+    return allDays
+      .map((d) => {
+        const ymd = ymdInTz(d, timeZone);
+        const count = countsByYmd[ymd] ?? 0;
+        const isToday = ymd === todayYmd;
+        return { d, ymd, count, isToday };
+      })
+      .filter(({ count }) => count > 0);
+  }, [monthDate, countsByYmd, todayYmd, timeZone]);
+
   const grid = buildGrid(monthDate);
   const label = monthLabel(monthDate, timeZone);
-  const monthKey = monthKeyFromUTCNoon(monthDate);
+  const mk = monthKeyFromUTCNoon(monthDate);
 
   const monthTotal = Object.entries(countsByYmd)
-    .filter(([ymd]) => ymd.startsWith(monthKey))
+    .filter(([ymd]) => ymd.startsWith(mk))
     .reduce((sum, [, c]) => sum + c, 0);
 
   const selectedDriver = allDrivers.find((d) => d.id === selectedId) ?? null;
 
   return (
     <div className={styles.shell}>
+      {/* ── Sidebar ── */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
           <span className='cardTitle h5'>Drivers</span>
         </div>
-        {/* Mobile dropdown — shown only at ≤1068px */}
+
+        {/* Mobile dropdown */}
         <div className={styles.mobileSelect}>
           <select
             className='selectBorder emptySmall'
@@ -254,6 +287,7 @@ export default function AdminDriversCalendarPanel({
             )}
           </select>
         </div>
+
         {activeDrivers.length > 0 && (
           <div className={styles.driverGroup}>
             <div className={styles.groupHeading}>Active</div>
@@ -287,7 +321,6 @@ export default function AdminDriversCalendarPanel({
       <div className={styles.calendarPane}>
         {selectedDriver ? (
           <>
-            {/* Selected driver nameplate above calendar */}
             <div className={styles.driverNameplate}>
               <DriverAvatar driver={selectedDriver} size={36} />
               <span className={styles.nameplateName}>
@@ -369,80 +402,155 @@ export default function AdminDriversCalendarPanel({
                 </div>
               </div>
 
-              <div className={styles.gridHead}>
-                {WEEKDAYS.map((d) => (
-                  <div key={d} className={styles.dowCell}>
-                    {d}
-                  </div>
-                ))}
-              </div>
+              {/* ── Desktop grid ── */}
+              <div className={styles.desktopGrid}>
+                <div className={styles.gridHead}>
+                  {WEEKDAYS.map((d) => (
+                    <div key={d} className={styles.dowCell}>
+                      {d}
+                    </div>
+                  ))}
+                </div>
 
-              <div
-                className={`${styles.gridDays} ${loading ? styles.gridDaysLoading : ""}`}
-              >
-                {grid.map((d) => {
-                  const ymd = ymdInTz(d, timeZone);
-                  const isOtherMonth =
-                    d.getUTCMonth() !== monthDate.getUTCMonth();
-                  const isToday = ymd === todayYmd;
-                  const count = countsByYmd[ymd] ?? 0;
-
-                  return (
-                    <button
-                      key={ymd}
-                      type='button'
-                      onClick={() => openDay(ymd)}
-                      className={`${styles.dayCell} ${
-                        isOtherMonth ? styles.dayCellOther : ""
-                      } ${isToday ? styles.today : ""}`}
-                      aria-label={`${ymd}${count > 0 ? `, ${count} ride${count > 1 ? "s" : ""}` : ""}`}
-                    >
-                      <span className={styles.dayNum}>{d.getUTCDate()}</span>
-                      {count > 0 && (
-                        <span className={styles.countPill}>{count}</span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className={styles.monthStats}>
                 <div
-                  className={styles.monthStatsItem}
-                  style={{ marginBottom: "1rem" }}
+                  className={`${styles.gridDays} ${loading ? styles.gridDaysLoading : ""}`}
                 >
-                  <span
-                    className='subheading'
-                    style={{ textDecoration: "underline" }}
-                  >
-                    Rides this month:
-                  </span>{" "}
-                  <span className='subheading emptyTitle'>{monthTotal}</span>
+                  {grid.map((d) => {
+                    const ymd = ymdInTz(d, timeZone);
+                    const isOtherMonth =
+                      d.getUTCMonth() !== monthDate.getUTCMonth();
+                    const isToday = ymd === todayYmd;
+                    const count = countsByYmd[ymd] ?? 0;
+
+                    return (
+                      <button
+                        key={ymd}
+                        type='button'
+                        onClick={() => openDay(ymd)}
+                        className={`${styles.dayCell} ${
+                          isOtherMonth ? styles.dayCellOther : ""
+                        } ${isToday ? styles.today : ""}`}
+                        aria-label={`${ymd}${count > 0 ? `, ${count} ride${count > 1 ? "s" : ""}` : ""}`}
+                      >
+                        <span className={styles.dayNum}>{d.getUTCDate()}</span>
+                        {count > 0 && (
+                          <span className={styles.countPill}>{count}</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <div className={styles.monthStatsItem}>
-                  <span
-                    className='subheading'
-                    style={{ textDecoration: "underline" }}
+
+                <div className={styles.monthStats}>
+                  <div
+                    className={styles.monthStatsItem}
+                    style={{ marginBottom: "1rem" }}
                   >
-                    Upcoming:
-                  </span>{" "}
-                  <span className='subheading emptyTitle'>
-                    {selectedDriver.upcomingCount}
-                  </span>
+                    <span
+                      className='subheading'
+                      style={{ textDecoration: "underline" }}
+                    >
+                      Rides this month:
+                    </span>{" "}
+                    <span className='subheading emptyTitle'>{monthTotal}</span>
+                  </div>
+                  <div className={styles.monthStatsItem}>
+                    <span
+                      className='subheading'
+                      style={{ textDecoration: "underline" }}
+                    >
+                      Upcoming:
+                    </span>{" "}
+                    <span className='subheading emptyTitle'>
+                      {selectedDriver.upcomingCount}
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.mobileLegend}>
+                  <div className={styles.legendItem}>
+                    <span
+                      className={`${styles.legendDot} ${styles.legendToday}`}
+                    />
+                    <span>Today</span>
+                  </div>
+                  <div className={styles.legendItem}>
+                    <span
+                      className={`${styles.legendDot} ${styles.legendHas}`}
+                    />
+                    <span>Has rides</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Mobile legend */}
-              <div className={styles.mobileLegend}>
-                <div className={styles.legendItem}>
-                  <span
-                    className={`${styles.legendDot} ${styles.legendToday}`}
-                  />
-                  <span>Today</span>
-                </div>
-                <div className={styles.legendItem}>
-                  <span className={`${styles.legendDot} ${styles.legendHas}`} />
-                  <span>Has rides</span>
+              {/* ── Mobile agenda ── */}
+              <div
+                className={`${styles.mobileAgenda} ${loading ? styles.gridDaysLoading : ""}`}
+              >
+                {agendaDays.length === 0 ? (
+                  <div className={styles.agendaEmpty}>
+                    <span className={styles.agendaEmptyIcon}>📭</span>
+                    <p className={styles.agendaEmptyText}>
+                      No rides this month
+                    </p>
+                  </div>
+                ) : (
+                  <div className={styles.agendaList}>
+                    {agendaDays.map(({ d, ymd, count, isToday }) => {
+                      const dayOfWeek = DAY_NAMES[d.getUTCDay()];
+                      const dayNum = d.getUTCDate();
+                      const monthName = MONTH_NAMES[d.getUTCMonth()];
+
+                      return (
+                        <button
+                          key={ymd}
+                          type='button'
+                          className={`${styles.agendaRow} ${isToday ? styles.agendaRowToday : ""}`}
+                          onClick={() => openDay(ymd)}
+                        >
+                          <div
+                            className={`${styles.agendaDate} ${isToday ? styles.agendaDateToday : ""}`}
+                          >
+                            <span className={styles.agendaDow}>
+                              {dayOfWeek}
+                            </span>
+                            <span className={styles.agendaDay}>{dayNum}</span>
+                            <span className={styles.agendaMon}>
+                              {monthName}
+                            </span>
+                          </div>
+
+                          <div className={styles.agendaContent}>
+                            <div className={styles.agendaRideChip}>
+                              <span className={styles.agendaRideCount}>
+                                {count}
+                              </span>
+                              <span className={styles.agendaRideLabel}>
+                                {count === 1 ? "ride" : "rides"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <span className={styles.agendaArrow}>›</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Stats bar */}
+                <div className={styles.agendaStats}>
+                  <div className={styles.agendaStatItem}>
+                    <span className={styles.agendaStatValue}>{monthTotal}</span>
+                    <span className={styles.agendaStatLabel}>This Month</span>
+                  </div>
+                  <div className={styles.agendaStatDivider} />
+                  <div className={styles.agendaStatItem}>
+                    <span className={styles.agendaStatValue}>
+                      {selectedDriver.upcomingCount}
+                    </span>
+                    <span className={styles.agendaStatLabel}>Upcoming</span>
+                  </div>
                 </div>
               </div>
             </div>
