@@ -1,0 +1,108 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  border-radius: 10px;
+  transition:
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+/* ── Locked display ── */
+.lockedWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.lockedValues {
+  display: grid;
+  gap: 0;
+}
+
+.lockedRow {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.lockedRow:last-child {
+  border-bottom: none;
+}
+
+.lockedLabel {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+}
+
+.lockedValue {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--black);
+}
+
+/* ── Editing fields ── */
+.fields {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.label {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+}
+
+.input {
+  width: 100%;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.015);
+}
+
+/* ── Editing state ── */
+.sectionEditing {
+  padding: 1.5rem;
+  background: var(--lighterBlue);
+  border: 2px solid var(--lightBlue);
+}
+
+/* ── Saved flash ── */
+.sectionSaved {
+  padding: 1.5rem;
+  background: rgba(22, 163, 74, 0.015);
+  border: 2px solid rgb(34, 197, 94);
+}
+
+/* ── Actions row ── */
+.sectionActionsRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+}
+
+@media screen and (max-width: 568px) {
+  .sectionActionsRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

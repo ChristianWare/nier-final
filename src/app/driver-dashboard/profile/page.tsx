@@ -9,6 +9,7 @@ import * as tz from "@/lib/timezone";
 import DefaultProfileImg from "../../../../public/images/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import ProfilePhotoUpload from "@/components/Driver/ProfilePhotoUpload/ProfilePhotoUpload";
+import DriverEditProfileForm from "@/components/Driver/DriverEditProfileForm/DriverEditProfileForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -101,7 +102,6 @@ export default async function DriverProfilePage() {
   const now = new Date();
   const { timezone: companyTz } = await getCompanySettings();
 
-  // Fetch driver user data
   const user = await db.user.findUnique({
     where: { id: driverId },
     include: {
@@ -113,7 +113,6 @@ export default async function DriverProfilePage() {
 
   const profileImage = user.image ?? null;
 
-  // Get completed trips count
   const completedTripsCount = await db.assignment.count({
     where: {
       driverId,
@@ -121,7 +120,6 @@ export default async function DriverProfilePage() {
     },
   });
 
-  // Get this month's stats
   const monthStart = tz.startOfMonth(now, companyTz);
   const nextMonthStart = tz.addMonths(monthStart, 1, companyTz);
 
@@ -140,7 +138,6 @@ export default async function DriverProfilePage() {
   const monthTrips = Number(monthStats[0]?.count || 0);
   const monthEarnings = Number(monthStats[0]?.earnings || 0);
 
-  // Get YTD stats
   const yearStart = tz.startOfYear(now, companyTz);
 
   const ytdStats = await db.$queryRaw<any[]>`
@@ -157,7 +154,6 @@ export default async function DriverProfilePage() {
   const ytdTrips = Number(ytdStats[0]?.count || 0);
   const ytdEarnings = Number(ytdStats[0]?.earnings || 0);
 
-  // Get upcoming trips count
   const upcomingTripsCount = await db.assignment.count({
     where: {
       driverId,
@@ -170,7 +166,6 @@ export default async function DriverProfilePage() {
     },
   });
 
-  // Get recent assignments (last 10 completed)
   const recentAssignments = await db.assignment.findMany({
     where: {
       driverId,
@@ -194,9 +189,7 @@ export default async function DriverProfilePage() {
     },
   });
 
-  // Calculate average earnings per trip
-  const avgEarnings =
-    completedTripsCount > 0 ? Math.round(ytdEarnings / ytdTrips) : 0;
+  const avgEarnings = ytdTrips > 0 ? Math.round(ytdEarnings / ytdTrips) : 0;
 
   return (
     <section className={styles.container}>
@@ -207,7 +200,6 @@ export default async function DriverProfilePage() {
         <div className={styles.headerTop}>
           <div className={styles.top}>
             <div className={styles.profileSection}>
-              {/* Profile Photo with Upload Button */}
               <ProfilePhotoUpload
                 currentImage={profileImage}
                 userName={user.name || "Driver"}
@@ -229,8 +221,8 @@ export default async function DriverProfilePage() {
         </div>
       </header>
 
-      {/* Account Details & Stats Grid */}
       <div className={styles.grid}>
+        {/* Account Details */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Account Details</h2>
@@ -241,22 +233,19 @@ export default async function DriverProfilePage() {
               <span className={styles.infoValue}>{user.email}</span>
             </div>
             <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Name</span>
-              <span className={styles.infoValue}>{user.name || "—"}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Phone</span>
-              <span className={styles.infoValue}>{user.phone || "—"}</span>
-            </div>
-            <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Member Since</span>
               <span className={styles.infoValue}>
                 {formatDateTime(user.createdAt, companyTz)}
               </span>
             </div>
+            <DriverEditProfileForm
+              initialName={user.name ?? null}
+              initialPhone={(user as any).phone ?? null}
+            />
           </div>
         </div>
 
+        {/* Trip Statistics */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Trip Statistics</h2>
@@ -275,6 +264,7 @@ export default async function DriverProfilePage() {
           </div>
         </div>
 
+        {/* Quick Links */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Quick Links</h2>
@@ -521,7 +511,7 @@ export default async function DriverProfilePage() {
         </div>
       )}
 
-      {/* Contact Support Card */}
+      {/* Contact Support */}
       <div className={styles.section}>
         <div className={styles.supportCard}>
           <div className={styles.supportContent}>

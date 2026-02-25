@@ -5,6 +5,7 @@
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 
 type AppRole = "USER" | "DRIVER" | "ADMIN";
 
@@ -77,7 +78,7 @@ export async function updateUserRoles(formData: FormData) {
       const hadAdmin = currentRoles.includes("ADMIN");
       const willHaveAdmin = nextRoles.includes("ADMIN");
 
-      // ✅ Prevent removing ADMIN from the last remaining admin (roles-only)
+      // Prevent removing ADMIN from the last remaining admin
       if (hadAdmin && !willHaveAdmin) {
         const adminCount = await tx.user.count({
           where: { roles: { has: "ADMIN" } },
@@ -88,7 +89,6 @@ export async function updateUserRoles(formData: FormData) {
         }
       }
 
-      // ✅ Update roles only
       await tx.user.update({
         where: { id: userId },
         data: {
@@ -100,5 +100,49 @@ export async function updateUserRoles(formData: FormData) {
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Failed to update roles." };
+  }
+}
+
+const UpdateProfileSchema = z.object({
+  userId: z.string().min(1),
+  phone: z.string().trim().max(30).optional().nullable(),
+  name: z.string().trim().max(100).optional().nullable(),
+});
+
+export async function updateUserProfile(formData: FormData) {
+  await requireAdmin();
+
+  const parsed = UpdateProfileSchema.safeParse({
+    userId: String(formData.get("userId") ?? ""),
+    phone: String(formData.get("phone") ?? "").trim() || null,
+    name: String(formData.get("name") ?? "").trim() || null,
+  });
+
+  if (!parsed.success) return { error: "Invalid data." };
+
+  const { userId, phone, name } = parsed.data;
+
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!user) return { error: "User not found." };
+
+    await db.user.update({
+      where: { id: userId },
+      data: {
+        ...(phone !== undefined && { phone }),
+        ...(name !== undefined && { name }),
+      },
+    });
+
+    revalidatePath(`/admin/users/${userId}`);
+    revalidatePath("/admin/users");
+
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Failed to update profile." };
   }
 }

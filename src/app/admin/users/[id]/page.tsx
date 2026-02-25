@@ -14,6 +14,7 @@ import DefaultProfileImg from "../../../../../public/images/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
+import EditUserProfileForm from "@/components/admin/EditUserProfileForm/EditUserProfileForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -404,7 +405,13 @@ export default async function UserDetailPage({
                   {roles.map((role) => (
                     <span
                       key={role}
-                      className={`badge ${role === "ADMIN" ? "badge_accent" : role === "DRIVER" ? "badge_good" : "badge_neutral"}`}
+                      className={`badge ${
+                        role === "ADMIN"
+                          ? "badge_accent"
+                          : role === "DRIVER"
+                            ? "badge_good"
+                            : "badge_neutral"
+                      }`}
                     >
                       {role}
                     </span>
@@ -417,6 +424,7 @@ export default async function UserDetailPage({
       </header>
 
       <div className={styles.grid}>
+        {/* Account Details */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Account Details</h2>
@@ -425,10 +433,6 @@ export default async function UserDetailPage({
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Email</span>
               <span className={styles.infoValue}>{user.email}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Name</span>
-              <span className={styles.infoValue}>{user.name || "—"}</span>
             </div>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Email Verified</span>
@@ -450,8 +454,17 @@ export default async function UserDetailPage({
                 {user.id}
               </span>
             </div>
+
+            {/* Editable name + phone */}
+            <EditUserProfileForm
+              userId={user.id}
+              initialName={user.name ?? null}
+              initialPhone={(user as any).phone ?? null}
+            />
           </div>
         </div>
+
+        {/* Statistics */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Statistics</h2>
@@ -473,6 +486,8 @@ export default async function UserDetailPage({
             </div>
           </div>
         </div>
+
+        {/* Manage Roles */}
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Manage Roles</h2>
@@ -484,7 +499,7 @@ export default async function UserDetailPage({
                 (r): r is "USER" | "ADMIN" | "DRIVER" =>
                   ["USER", "ADMIN", "DRIVER"].includes(r),
               )}
-            />{" "}
+            />
           </div>
         </div>
       </div>

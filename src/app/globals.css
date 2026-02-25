@@ -51,7 +51,6 @@
   /* overscroll-behavior: none; */
 }
 
-
 html {
   font-size: 62.5%;
   height: 100%;
@@ -253,6 +252,10 @@ select:focus {
   .stat {
     font-size: 7.5rem;
     letter-spacing: -2px;
+  }
+
+  .badge {
+    overflow: ellipsis;
   }
 }
 

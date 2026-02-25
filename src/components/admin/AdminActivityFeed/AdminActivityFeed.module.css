@@ -4,6 +4,7 @@
   border: 1px solid var(--stroke);
   border-radius: 10px;
   padding: 2rem;
+  overflow: hidden;
 }
 
 .header {
@@ -79,6 +80,13 @@
   border-radius: 12px;
   background: var(--white);
   border: 1px solid var(--stroke);
+  overflow: hidden;
+}
+
+.tone {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .left {
