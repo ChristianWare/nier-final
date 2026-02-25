@@ -36,8 +36,8 @@ export default function HowItWorks() {
           <div className={styles.top}>
             <SectionHeading text='How It Works' dot />
             <h3 className={styles.heading}>
-              Book your ride in just three simple steps – <br /> it&#39;s fast, easy,
-              and hassle-free!
+              Book your ride in just three simple steps – <br /> it&#39;s fast,
+              easy, and hassle-free!
             </h3>
             <div className={styles.btnClusterContainer}>
               <Button href='/' text='Book your ride' btnType='black' arrow />
@@ -47,9 +47,13 @@ export default function HowItWorks() {
             <div className={styles.mapDataContainer}>
               {data.map((item) => (
                 <div key={item.id} className={styles.card}>
-                  <span className={`${styles.index} stat`}>0{item.id}</span>
-                  <h4 className={styles.title}>{item.title}</h4>
-                  <p className={styles.desc}>{item.description}</p>
+                  <div className={styles.cardTop}>
+                    <span className={`${styles.index} stat`}>0{item.id}</span>
+                  </div>
+                  <div className={styles.cardBottom}>
+                    <h4 className={styles.title}>{item.title}</h4>
+                    <p className={styles.desc}>{item.description}</p>
+                  </div>
                 </div>
               ))}
             </div>

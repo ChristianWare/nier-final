@@ -36,10 +36,10 @@
   align-items: flex-start;
   justify-content: flex-start;
   gap: 1rem;
-  /* background-color: var(--white); */
+  background-color: var(--white);
   padding: 2rem;
   border-radius: 10px;
-  border: 2px solid var(--stroke);
+  /* border: 2px solid var(--stroke); */
 }
 
 .imgContainer {
