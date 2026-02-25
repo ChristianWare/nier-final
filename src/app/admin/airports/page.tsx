@@ -33,7 +33,7 @@ export default async function AdminAirportsPage() {
         </p>
         <Button
           href='/admin/airports/new'
-          text='New Airport'
+          text='New Airport +'
           btnType='greenReg'
         />
       </header>

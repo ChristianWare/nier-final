@@ -104,7 +104,7 @@ export default async function AdminVehicleCategoriesPage({
           <div className={styles.headerActions}>
             <Button
               href='/admin/vehicle-categories/new'
-              text='New Category'
+              text='New Category +'
               btnType='greenReg'
             />
           </div>

@@ -624,7 +624,7 @@ export default async function CorporateBookingsPage({
         >
           <Button
             href='/corporate/bookings/new'
-            text='New Booking'
+            text='New Booking +'
             btnType='greenReg'
           />
         </div>

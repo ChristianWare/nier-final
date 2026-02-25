@@ -136,7 +136,7 @@ export default async function AdminVehiclesPage({
           <div className={styles.headerActions}>
             <Button
               href='/admin/vehicles/new'
-              text='New Vehicle'
+              text='New Vehicle +'
               btnType='greenReg'
             />
           </div>

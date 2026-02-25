@@ -1,13 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import styles from "./ServicesPage.module.css";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import Link from "next/link";
 import Modal from "@/components/shared/Modal/Modal";
 import { toggleService } from "../../../../actions/admin/services";
+import Button from "@/components/shared/Button/Button";
 
 export default function ServiceActionsClient({
   id,
@@ -26,13 +25,10 @@ export default function ServiceActionsClient({
     startTransition(async () => {
       try {
         await toggleService(id);
-
         toast.success(active ? "Service disabled" : "Service enabled");
         setConfirmOpen(false);
-
-        // refresh the server component data without a full reload
         router.refresh();
-      } catch (e) {
+      } catch {
         toast.error("Something went wrong. Please try again.");
       }
     });
@@ -40,29 +36,27 @@ export default function ServiceActionsClient({
 
   function onToggleClick() {
     if (active) {
-      // disabling => confirm modal
       setConfirmOpen(true);
       return;
     }
-    // enabling => just do it
     runToggle();
   }
 
   return (
     <>
       <div className={styles.actions}>
-        <Link href={editHref} className={styles.editLink}>
-          Edit
-        </Link>
+        <Button href={editHref} text='More details' btnType='blackRegSmall' />
 
         <button
           type='button'
-          //   className='dangerBtn'
-          className={active ? "dangerBtn" : "goodBtn"}
+          role='switch'
+          aria-checked={active}
+          aria-label={active ? "Disable service" : "Enable service"}
+          className={`${styles.toggle} ${active ? styles.toggleOn : styles.toggleOff}`}
           onClick={onToggleClick}
           disabled={isPending}
         >
-          {active ? "Disable" : "Enable"}
+          <span className={styles.toggleThumb} />
         </button>
       </div>
 

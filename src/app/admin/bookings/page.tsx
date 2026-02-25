@@ -737,7 +737,7 @@ export default async function AdminBookingsPage({
           <div className={styles.headerActions}>
             <Button
               href='/admin/bookings/new'
-              text='New Booking'
+              text='New Booking +'
               btnType='greenReg'
             />
           </div>

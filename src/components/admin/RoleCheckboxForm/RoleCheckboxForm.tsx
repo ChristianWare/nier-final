@@ -4,9 +4,12 @@
 import { useMemo, useState, useTransition } from "react";
 import toast from "react-hot-toast";
 import { updateUserRoles } from "../../../../actions/admin/users";
+import styles from "./RoleCheckboxForm.module.css";
 
-const ALL_ROLES = ["USER", "DRIVER", "ADMIN"] as const;
-type AppRole = (typeof ALL_ROLES)[number];
+// USER is always present — not shown as a toggleable option
+const TOGGLEABLE_ROLES = ["DRIVER", "ADMIN"] as const;
+type AppRole = "USER" | "DRIVER" | "ADMIN";
+type ToggleableRole = (typeof TOGGLEABLE_ROLES)[number];
 
 export default function RoleCheckboxForm({
   userId,
@@ -19,28 +22,29 @@ export default function RoleCheckboxForm({
 }) {
   const initial = useMemo(() => {
     const deduped = Array.from(new Set(initialRoles));
-    return deduped.length > 0 ? deduped : (["USER"] as AppRole[]);
+    // Always ensure USER is present
+    if (!deduped.includes("USER")) deduped.push("USER");
+    return deduped;
   }, [initialRoles]);
 
   const [roles, setRoles] = useState<AppRole[]>(initial);
-  const [isPending, startTransition] = useTransition();
+  const [savingRole, setSavingRole] = useState<ToggleableRole | null>(null);
+  const [, startTransition] = useTransition();
 
-  const isDisabled = disabled || isPending;
+  const isDisabled = disabled || savingRole !== null;
 
-  function toggle(role: AppRole, checked: boolean) {
+  function toggle(role: ToggleableRole) {
+    const isOn = roles.includes(role);
     const prev = roles;
 
-    const next = checked
-      ? Array.from(new Set([...roles, role]))
-      : roles.filter((r) => r !== role);
+    // Always keep USER, toggle the target role
+    const next: AppRole[] = isOn
+      ? roles.filter((r) => r !== role)
+      : [...roles, role];
 
-    if (next.length === 0) {
-      toast.error("User must have at least 1 role.");
-      return;
-    }
-
-    // optimistic UI
+    // Optimistic update
     setRoles(next);
+    setSavingRole(role);
 
     startTransition(async () => {
       const fd = new FormData();
@@ -50,47 +54,45 @@ export default function RoleCheckboxForm({
       const res = await updateUserRoles(fd);
 
       if (res?.error) {
-        setRoles(prev); // revert
+        setRoles(prev);
         toast.error(res.error);
-        return;
+      } else {
+        toast.success("Roles updated.");
       }
 
-      toast.success("Roles updated.");
+      setSavingRole(null);
     });
   }
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: 12,
-        flexWrap: "wrap",
-        alignItems: "center",
-      }}
-    >
-      {ALL_ROLES.map((r) => {
-        const checked = roles.includes(r);
+    <div className={styles.roleList}>
+      {TOGGLEABLE_ROLES.map((role) => {
+        const isOn = roles.includes(role);
+        const isSaving = savingRole === role;
 
         return (
-          <label
-            key={r}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              opacity: isDisabled ? 0.6 : 1,
-              cursor: isDisabled ? "not-allowed" : "pointer",
-              userSelect: "none",
-            }}
-          >
-            <input
-              type='checkbox'
-              checked={checked}
-              disabled={isDisabled}
-              onChange={(e) => toggle(r, e.target.checked)}
-            />
-            <span>{r}</span>
-          </label>
+          <div key={role} className={styles.roleRow}>
+            <div className={styles.roleInfo}>
+              <span className={styles.roleLabel}>{role}</span>
+              <span className={styles.roleDesc}>
+                {role === "DRIVER"
+                  ? "Can receive trip assignments and access the driver portal."
+                  : "Full access to the admin dashboard and all settings."}
+              </span>
+            </div>
+
+            <button
+              type='button'
+              role='switch'
+              aria-checked={isOn}
+              aria-label={`${isOn ? "Remove" : "Grant"} ${role} role`}
+              disabled={isDisabled && !isSaving}
+              className={`${styles.toggle} ${isOn ? styles.toggleOn : styles.toggleOff}`}
+              onClick={() => toggle(role)}
+            >
+              <span className={styles.toggleThumb} />
+            </button>
+          </div>
         );
       })}
     </div>

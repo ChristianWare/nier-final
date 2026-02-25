@@ -7,10 +7,54 @@ import ServiceActionsClient from "./ServiceActionsClient";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export default async function AdminServicesPage() {
-  const services = await db.serviceType.findMany({
+type StatusFilter = "ALL" | "ACTIVE" | "INACTIVE";
+
+function buildHref(
+  base: string,
+  params: Record<string, string | undefined | null>,
+) {
+  const usp = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (!v) continue;
+    const s = String(v).trim();
+    if (!s) continue;
+    usp.set(k, s);
+  }
+  const qs = usp.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+
+export default async function AdminServicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    status?: StatusFilter;
+  }>;
+}) {
+  const sp = await searchParams;
+  const statusFilter: StatusFilter = sp.status ?? "ALL";
+
+  const allServices = await db.serviceType.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
   });
+
+  const totalCount = allServices.length;
+  const activeCount = allServices.filter((s) => s.active).length;
+  const inactiveCount = allServices.filter((s) => !s.active).length;
+
+  let services = [...allServices];
+
+  if (statusFilter === "ACTIVE") {
+    services = services.filter((s) => s.active);
+  } else if (statusFilter === "INACTIVE") {
+    services = services.filter((s) => !s.active);
+  }
+
+  const statusCounts = {
+    ALL: totalCount,
+    ACTIVE: activeCount,
+    INACTIVE: inactiveCount,
+  };
 
   return (
     <section className={styles.container}>
@@ -33,19 +77,30 @@ export default async function AdminServicesPage() {
             total
           </div>
         </div>
+
+        <div className={styles.filters}>
+          <div className={styles.filterGroup}>
+            <div className={styles.filterTitle}>Filter by status</div>
+            <StatusTabs active={statusFilter} counts={statusCounts} />
+          </div>
+        </div>
       </header>
 
       {services.length === 0 ? (
         <div className={styles.empty}>
           <p className={styles.emptyTitle}>No services found.</p>
           <p className={styles.emptyCopy}>
-            Add your first service to get started.
+            {statusFilter !== "ALL"
+              ? "Try adjusting your filters."
+              : "Add your first service to get started."}
           </p>
-          <Button
-            href='/admin/services/new'
-            text='Add Service'
-            btnType='blackReg'
-          />
+          {statusFilter === "ALL" && (
+            <Button
+              href='/admin/services/new'
+              text='Add Service'
+              btnType='blackReg'
+            />
+          )}
         </div>
       ) : (
         <div className={styles.tableCard}>
@@ -57,7 +112,7 @@ export default async function AdminServicesPage() {
                   <th className={styles.th}>Slug</th>
                   <th className={styles.th}>Strategy</th>
                   <th className={styles.th}>Status</th>
-                  <th className={styles.th}>Actions</th>
+                  <th className={styles.th}>Enable/Disable</th>
                 </tr>
               </thead>
 
@@ -70,66 +125,24 @@ export default async function AdminServicesPage() {
                       key={s.id}
                       className={`${styles.tr} ${!s.active ? styles.trInactive : ""}`}
                     >
-                      {/* Name */}
-                      <td
-                        className={styles.td}
-                        data-label='Name'
-                        style={{ position: "relative" }}
-                      >
+                      <td className={styles.td} data-label='Name'>
                         <Link
                           href={href}
                           className={styles.rowStretchedLink}
                           aria-label='Open service'
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
                         />
                         <div className={styles.cellStrong}>{s.name}</div>
                       </td>
 
-                      {/* Slug */}
-                      <td
-                        className={styles.td}
-                        data-label='Slug'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
+                      <td className={styles.td} data-label='Slug'>
                         <span className={styles.cellSub}>{s.slug}</span>
                       </td>
 
-                      {/* Strategy */}
-                      <td
-                        className={styles.td}
-                        data-label='Strategy'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
+                      <td className={styles.td} data-label='Strategy'>
                         <span className={styles.pill}>{s.pricingStrategy}</span>
                       </td>
 
-                      {/* Status */}
-                      <td
-                        className={styles.td}
-                        data-label='Status'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
+                      <td className={styles.td} data-label='Status'>
                         <span
                           className={`badge ${s.active ? "badge_good" : "badge_neutral"}`}
                         >
@@ -137,10 +150,9 @@ export default async function AdminServicesPage() {
                         </span>
                       </td>
 
-                      {/* Actions */}
                       <td
                         className={styles.td}
-                        data-label='Actions'
+                        data-label='Enable/Disable'
                         style={{ position: "relative", zIndex: 10 }}
                       >
                         <ServiceActionsClient
@@ -158,5 +170,46 @@ export default async function AdminServicesPage() {
         </div>
       )}
     </section>
+  );
+}
+
+function StatusTabs({
+  active,
+  counts,
+}: {
+  active: StatusFilter;
+  counts: Record<StatusFilter, number>;
+}) {
+  const items: { label: string; value: StatusFilter }[] = [
+    { label: "All", value: "ALL" },
+    { label: "Active", value: "ACTIVE" },
+    { label: "Inactive", value: "INACTIVE" },
+  ];
+
+  return (
+    <div className={styles.tabRow}>
+      {items.map((x) => {
+        const isActive = x.value === active;
+        const href = buildHref("/admin/services", {
+          status: x.value === "ALL" ? undefined : x.value,
+        });
+
+        return (
+          <Link
+            key={x.value}
+            href={href}
+            prefetch
+            className={`tab ${isActive ? "tabActive" : ""}`}
+          >
+            {x.label}
+            <span
+              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
+            >
+              {counts[x.value] ?? 0}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
   );
 }

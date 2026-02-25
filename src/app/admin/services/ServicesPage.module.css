@@ -39,6 +39,31 @@
   opacity: 0.75;
 }
 
+/* Filters */
+.filters {
+  display: grid;
+  gap: 2rem;
+}
+
+.filterGroup {
+  display: grid;
+  gap: 1rem;
+}
+
+.filterTitle {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: normal;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.tabRow {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 /* Table */
 .tableWrap {
   overflow-x: auto;
@@ -79,12 +104,14 @@
   opacity: 0.7;
 }
 
+.th:last-child {
+  text-align: right;
+}
+
 .td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--stroke);
   vertical-align: middle;
-  position: relative;
-  z-index: 2;
 }
 
 .tr {
@@ -115,6 +142,7 @@
   opacity: 1;
 }
 
+/* Stretched link covers the entire tr */
 .rowStretchedLink {
   position: absolute;
   inset: 0;
@@ -149,32 +177,54 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: 2rem;
 }
 
-.editLink {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--black);
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
-  border: 1px solid var(--stroke);
-  background: var(--white);
-  transition: background 0.2s ease;
-}
-
-.editLink:hover {
-  background: var(--lightGray);
-}
-
-.toggleBtn {
-  cursor: pointer;
-  background: transparent;
+/* ── Sliding toggle ── */
+.toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border-radius: 999px;
   border: none;
+  cursor: pointer;
   padding: 0;
-  font: inherit;
-  text-decoration: underline;
+  transition: background-color 0.25s ease;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggleOn {
+  background-color: #16a34a;
+}
+
+.toggleOff {
+  background-color: #d1d5db;
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease;
+}
+
+.toggleOn .toggleThumb {
+  transform: translateX(24px);
+}
+
+.toggleOff .toggleThumb {
+  transform: translateX(0px);
 }
 
 /* Empty State */
@@ -286,5 +336,9 @@
 
   .actions {
     justify-content: flex-start;
+  }
+
+  .tabRow {
+    gap: 1rem;
   }
 }
