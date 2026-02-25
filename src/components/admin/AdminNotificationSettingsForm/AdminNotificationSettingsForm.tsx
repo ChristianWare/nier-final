@@ -47,67 +47,12 @@ export default function AdminNotificationSettingsForm({ initial }: Props) {
         });
       }}
     >
-      {/* <div className={styles.section}>
-        <div className='cardTitle h4'>Channels</div>
-
-        <div className={styles.channelRow}>
-          <label className={styles.checkRow}>
-            <input
-              type='checkbox'
-              name='emailEnabled'
-              defaultChecked={initial.emailEnabled}
-            />
-            <span>Email notifications</span>
-          </label>
-
-          <div className={styles.field}>
-            <div className='emptyTitleSmall'>Send to (optional override)</div>
-            <input
-              name='emailTo'
-              className='input emptySmall'
-              placeholder='ops@yourdomain.com'
-              defaultValue={initial.emailTo ?? ""}
-              inputMode='email'
-            />
-            <div className='val' style={{ opacity: 0.75, fontSize: 12 }}>
-              If blank, we’ll use your admin account email.
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.channelRow}>
-          <label className={styles.checkRow}>
-            <input
-              type='checkbox'
-              name='smsEnabled'
-              defaultChecked={initial.smsEnabled}
-            />
-            <span>SMS notifications</span>
-          </label>
-
-          <div className={styles.field}>
-            <div className='emptyTitleSmall'>Send to (E.164)</div>
-            <input
-              name='smsTo'
-              className='input emptySmall'
-              placeholder='+16025551234'
-              defaultValue={initial.smsTo ?? ""}
-              inputMode='tel'
-            />
-            <div className='val' style={{ opacity: 0.75, fontSize: 12 }}>
-              Use E.164 format (example: +16025551234).
-            </div>
-          </div>
-        </div>
-      </div> */}
-
       <div className={styles.section}>
-        <div className='cardTitle h4'>Event triggers</div>
+        <div className='cardTitle h4'>Email event triggers</div>
         <div className={styles.table}>
           <div className={styles.headerRow}>
             <div className='emptyTitleSmall'>Event</div>
             <div className='emptyTitleSmall'>Email</div>
-            <div className='emptyTitleSmall'>SMS</div>
           </div>
 
           {Object.entries(groups).map(([groupName, items]) => (
@@ -126,24 +71,10 @@ export default function AdminNotificationSettingsForm({ initial }: Props) {
                       defaultChecked={initial.emailEvents.includes(it.key)}
                     />
                   </div>
-
-                  <div className={styles.colCheck}>
-                    <input
-                      type='checkbox'
-                      name='smsEvents'
-                      value={it.key}
-                      defaultChecked={initial.smsEvents.includes(it.key)}
-                    />
-                  </div>
                 </div>
               ))}
             </div>
           ))}
-        </div>
-
-        <div className='miniNote'>
-          Tip: keep SMS to only high-urgency events (new booking + payment
-          received).
         </div>
       </div>
 

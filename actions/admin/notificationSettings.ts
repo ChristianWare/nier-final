@@ -4,10 +4,7 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
-import {
-  DEFAULT_EMAIL_EVENTS,
-  DEFAULT_SMS_EVENTS,
-} from "@/lib/notifications/events";
+import { DEFAULT_EMAIL_EVENTS } from "@/lib/notifications/events";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -41,55 +38,42 @@ export async function getMyAdminNotificationSettings() {
     where: { userId: actorId },
   });
 
-  // Provide sensible defaults for UI even if row doesn't exist yet
   return {
     emailEnabled: row?.emailEnabled ?? true,
-    smsEnabled: row?.smsEnabled ?? false,
+    smsEnabled: false,
     emailTo: row?.emailTo ?? null,
-    smsTo: row?.smsTo ?? null,
+    smsTo: null,
     emailEvents: (row?.emailEvents as any as string[] | undefined)?.length
       ? (row?.emailEvents as any as string[])
       : DEFAULT_EMAIL_EVENTS,
-    smsEvents: (row?.smsEvents as any as string[] | undefined)?.length
-      ? (row?.smsEvents as any as string[])
-      : DEFAULT_SMS_EVENTS,
+    smsEvents: [],
   };
 }
 
 const SaveSchema = z.object({
   emailEnabled: z.boolean(),
-  smsEnabled: z.boolean(),
   emailTo: z.string().trim().email().optional().or(z.literal("")),
-  smsTo: z.string().trim().optional().or(z.literal("")),
   emailEvents: z.array(z.string()).default([]),
-  smsEvents: z.array(z.string()).default([]),
 });
 
 export async function saveMyAdminNotificationSettings(formData: FormData) {
   const { actorId } = await requireAdmin();
 
-  const emailEnabled = formData.get("emailEnabled") === "on";
-  const smsEnabled = formData.get("smsEnabled") === "on";
-
+  // emailEnabled is not in the form currently (channel toggle is hidden)
+  // default to true so email always sends
+  const emailEnabled = true;
   const emailTo = String(formData.get("emailTo") ?? "").trim();
-  const smsTo = String(formData.get("smsTo") ?? "").trim();
-
   const emailEvents = formData.getAll("emailEvents").map(String);
-  const smsEvents = formData.getAll("smsEvents").map(String);
 
   const parsed = SaveSchema.safeParse({
     emailEnabled,
-    smsEnabled,
     emailTo,
-    smsTo,
     emailEvents,
-    smsEvents,
   });
 
   if (!parsed.success) {
     return {
-      error:
-        "Invalid settings. Check email/phone format and try again." as const,
+      error: "Invalid settings. Check email format and try again." as const,
     };
   }
 
@@ -99,20 +83,20 @@ export async function saveMyAdminNotificationSettings(formData: FormData) {
     where: { userId: actorId },
     update: {
       emailEnabled: d.emailEnabled,
-      smsEnabled: d.smsEnabled,
+      smsEnabled: false,
       emailTo: d.emailTo ? d.emailTo.trim().toLowerCase() : null,
-      smsTo: d.smsTo ? d.smsTo.trim() : null,
+      smsTo: null,
       emailEvents: d.emailEvents as any,
-      smsEvents: d.smsEvents as any,
+      smsEvents: [] as any,
     },
     create: {
       userId: actorId,
       emailEnabled: d.emailEnabled,
-      smsEnabled: d.smsEnabled,
+      smsEnabled: false,
       emailTo: d.emailTo ? d.emailTo.trim().toLowerCase() : null,
-      smsTo: d.smsTo ? d.smsTo.trim() : null,
+      smsTo: null,
       emailEvents: d.emailEvents as any,
-      smsEvents: d.smsEvents as any,
+      smsEvents: [] as any,
     },
   });
 
