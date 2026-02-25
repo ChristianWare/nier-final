@@ -15,7 +15,7 @@ export default function Hero() {
           loop
           playsInline
           className={styles.video}
-          poster='/videos/phx-poster.jpg'
+          poster='/videos/phx-poster.png'
         >
           <source src='/videos/phx.mp4' type='video/mp4' />
         </video>
