@@ -8,7 +8,7 @@ import Bell from "@/components/shared/icons/Bell/Bell";
 import Users from "@/components/shared/icons/Users/Users";
 import Car from "@/components/shared/icons/Car/Car";
 import Listing from "@/components/shared/icons/Listing/Listing";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
@@ -57,6 +57,15 @@ export default function AdminSideNav(
   const [isOpen, setIsOpen] = useState(false);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (menuModalOpen) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [menuModalOpen]);
 
   return (
     <>

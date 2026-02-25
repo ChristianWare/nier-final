@@ -79,6 +79,16 @@ const eventBadgeColors: Record<
     border: colors.red,
     text: colors.darkRed,
   },
+  NO_SHOW: {
+    bg: colors.lightRed,
+    border: colors.red,
+    text: colors.darkRed,
+  },
+  REFUND_ISSUED: {
+    bg: colors.lightYellow,
+    border: colors.yellow,
+    text: colors.darkYellow,
+  },
 };
 
 // Event to emoji mapping
@@ -93,6 +103,8 @@ const eventEmoji: Record<NotificationEvent, string> = {
   DRIVER_PICKED_UP: "👋",
   TRIP_COMPLETED: "🏁",
   BOOKING_CANCELLED: "🚫",
+  NO_SHOW: "🚷",
+  REFUND_ISSUED: "💰",
 };
 
 export function buildAdminNotification(args: {
@@ -132,6 +144,8 @@ export function buildAdminNotification(args: {
     DRIVER_PICKED_UP: `👋 Client picked up • ${baseLine}`,
     TRIP_COMPLETED: `🏁 Trip completed • ${baseLine}`,
     BOOKING_CANCELLED: `🚫 Booking cancelled • ${baseLine}`,
+    NO_SHOW: `🚷 No-show recorded • ${baseLine}`,
+    REFUND_ISSUED: `💰 Refund issued • ${baseLine}`,
   };
 
   const titleMap: Record<NotificationEvent, string> = {
@@ -145,6 +159,8 @@ export function buildAdminNotification(args: {
     DRIVER_PICKED_UP: "Client Picked Up",
     TRIP_COMPLETED: "Trip Completed",
     BOOKING_CANCELLED: "Booking Cancelled",
+    NO_SHOW: "No-Show Recorded",
+    REFUND_ISSUED: "Refund Issued",
   };
 
   const descriptionMap: Record<NotificationEvent, string> = {
@@ -159,6 +175,8 @@ export function buildAdminNotification(args: {
     DRIVER_PICKED_UP: "The client has been picked up. Trip is in progress.",
     TRIP_COMPLETED: "This trip has been completed successfully.",
     BOOKING_CANCELLED: "This booking has been cancelled.",
+    NO_SHOW: "The customer did not show up for this booking.",
+    REFUND_ISSUED: "A refund has been issued for this booking.",
   };
 
   const badge = eventBadgeColors[event];
@@ -430,8 +448,8 @@ export function buildAdminNotification(args: {
 
   return {
     subject: subjectMap[event],
-    emailBody, // Plain text version
-    htmlBody, // HTML version
+    emailBody,
+    htmlBody,
     smsBody,
   };
 }

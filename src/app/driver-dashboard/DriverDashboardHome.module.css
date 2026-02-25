@@ -233,9 +233,8 @@
 }
 
 @media screen and (max-width: 568px) {
-  .pageContainer {
-    padding: 1rem;
-    gap: 2rem;
+  .pageContainer {    
+    gap: 5rem;
   }
 
   .headerKpis {

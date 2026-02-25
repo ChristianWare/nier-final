@@ -32,15 +32,15 @@
   .container {
     padding-top: 5rem;
   }
-  
-  .right {
-    z-index: -999;
-
-  }
 
   .AdminSideNavContainer {
     position: sticky;
     top: 80px;
     align-self: start;
   }
+}
+
+:global(body.modal-open) .right {
+  position: relative;
+  z-index: -999;
 }

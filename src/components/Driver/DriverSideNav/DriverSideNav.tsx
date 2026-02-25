@@ -2,7 +2,7 @@
 
 import styles from "./DriverSideNav.module.css";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
@@ -76,6 +76,15 @@ export default function DriverSideNav({
   const [isOpen, setIsOpen] = useState(false);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (menuModalOpen) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [menuModalOpen]);
 
   return (
     <>
