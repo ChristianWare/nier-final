@@ -11,8 +11,27 @@ export const RegisterSchema = z
   .object({
     name: z
       .string()
-      .min(4, { message: "Name must be at least 4 characters" })
-      .max(30, { message: "Name must be fewer than 30 characters" }),
+      .min(2, { message: "Name must be at least 2 characters" })
+      .max(50, { message: "Name must be fewer than 50 characters" })
+      .regex(/^[a-zA-ZÀ-ÿ\s'\-\.]+$/, {
+        message:
+          "Name can only contain letters, spaces, hyphens, and apostrophes",
+      })
+      .refine(
+        (val) =>
+          /[aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûüÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜ]/.test(
+            val,
+          ),
+        {
+          message: "Please enter a valid name",
+        },
+      )
+      .refine(
+        (val) => !/[^aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûü\s'\-\.]{6,}/i.test(val),
+        {
+          message: "Please enter a valid name",
+        },
+      ),
     email: z.string().email(),
     password: z
       .string()
