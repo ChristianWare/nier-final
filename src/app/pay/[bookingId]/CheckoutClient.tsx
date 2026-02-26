@@ -216,7 +216,7 @@ export default function CheckoutClient({
     setCardOnFileCharging(true);
     setCardOnFileConfirming(false);
     try {
-      const result = await chargeCardOnFileForCheckout({ bookingId });
+      const result = await chargeCardOnFileForCheckout({ bookingId, tipCents });
       if ("error" in result) {
         setError(result.error);
         return;

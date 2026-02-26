@@ -3,7 +3,6 @@
 
 import { db } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
-
 export async function adminChargeCardOnFile({
   bookingId,
 }: {
@@ -124,6 +123,28 @@ export async function adminChargeCardOnFile({
       stripePaymentIntentId: pi.id,
     },
   });
+
+  // Update booking status and create activity timeline entry
+  if (isFullyPaid) {
+    await db.booking.update({
+      where: { id: booking.id },
+      data: { status: "CONFIRMED" },
+    });
+
+    await db.bookingStatusEvent.create({
+      data: {
+        bookingId: booking.id,
+        status: "CONFIRMED",
+        eventType: "PAYMENT_RECEIVED",
+        metadata: {
+          amountCents: amountToCharge,
+          method: "card_on_file",
+          last4: activePm.card?.last4 ?? null,
+          stripePaymentIntentId: pi.id,
+        },
+      },
+    });
+  }
 
   return {
     success: true,

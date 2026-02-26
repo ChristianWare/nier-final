@@ -6,8 +6,10 @@ import { getStripe } from "@/lib/stripe";
 
 export async function chargeCardOnFileForCheckout({
   bookingId,
+  tipCents,
 }: {
   bookingId: string;
+  tipCents?: number;
 }): Promise<
   { success: true; last4: string; amountCents: number } | { error: string }
 > {
@@ -46,8 +48,8 @@ export async function chargeCardOnFileForCheckout({
   }
 
   const amountPaidCents = Number(booking.payment?.amountPaidCents ?? 0);
-  const amountToCharge = totalCents - amountPaidCents;
-
+  const tip = tipCents ?? 0;
+  const amountToCharge = totalCents - amountPaidCents + tip;
   if (amountToCharge <= 0) {
     return { error: "This booking is already fully paid." };
   }
@@ -98,6 +100,7 @@ export async function chargeCardOnFileForCheckout({
     off_session: true,
     metadata: {
       bookingId: booking.id,
+      tipCents: tip.toString(),
       kind: "CARD_ON_FILE_CHECKOUT",
       isBalancePayment: isBalancePayment ? "true" : "false",
       originalTotal: totalCents.toString(),
