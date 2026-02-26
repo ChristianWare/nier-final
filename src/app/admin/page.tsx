@@ -975,6 +975,13 @@ export default async function AdminHome() {
           { routeApproved: false },
           { priceApproved: false },
           { assignment: { is: null } },
+          {
+            assignment: {
+              is: {
+                OR: [{ driverPaymentCents: null }, { driverPaymentCents: 0 }],
+              },
+            },
+          },
         ],
       },
       orderBy: [{ pickupAt: "asc" }],
@@ -1237,17 +1244,40 @@ export default async function AdminHome() {
   // This alert automatically disappears after 24 hours from verification
   // ==========================================
   if (newVerifiedUsersCount > 0) {
+    const newVerifiedUsersRows = await db.user.findMany({
+      where: {
+        emailVerified: { not: null, gte: verifiedCutoff },
+        createdAt: { gte: verifiedCutoff },
+      },
+      orderBy: [{ emailVerified: "desc" }],
+      take: 5,
+      select: { id: true, name: true, email: true, emailVerified: true },
+    });
+
     alerts.push({
       id: "new-verified-users",
       severity: "info",
       message: `${newVerifiedUsersCount} new verified user(s) in the last 24 hours`,
       href: "/admin/users",
       ctaLabel: "View All Users",
-      details:
-        newVerifiedUsersCount > 1
-          ? `${newVerifiedUsersCount} new customers have verified their email and can now book rides. Latest: ${latestVerifiedUser?.name?.trim() || latestVerifiedUser?.email || "Unknown"}`
-          : `A new customer has verified their email and can now book rides: ${latestVerifiedUser?.name?.trim() || latestVerifiedUser?.email || "Unknown"}`,
+      details: `These customers have verified their email and can now book rides.`,
       timestamp: "Last 24 hours",
+      detailRows: newVerifiedUsersRows.map((u) => ({
+        id: u.id,
+        href: `/admin/users/${u.id}`,
+        badge: {
+          label: "Verified",
+          tone: "good" as const,
+        },
+        cells: [
+          { label: "Name", value: u.name?.trim() || "—" },
+          { label: "Email", value: u.email },
+          {
+            label: "Verified at",
+            value: formatAlertPickup(new Date(u.emailVerified!), companyTz),
+          },
+        ],
+      })),
     });
   }
 
