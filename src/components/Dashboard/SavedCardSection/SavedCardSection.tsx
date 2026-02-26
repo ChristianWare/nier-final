@@ -12,6 +12,7 @@ import {
 import {
   createSetupIntent,
   removeSavedCard,
+  getSavedPaymentMethods,
 } from "../../../../actions/user/savedPaymentMethod";
 import { useRouter } from "next/navigation";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
@@ -302,9 +303,26 @@ export default function SavedCardSection({
     setRemovingId(null);
   }
 
-  function handleAddSuccess() {
+  async function handleAddSuccess() {
     setIsAdding(false);
     showToast("success", "Card saved successfully!");
+
+    // Immediately fetch updated cards so UI doesn't flash empty state
+    try {
+      const { methods } = await getSavedPaymentMethods();
+      setCards(
+        methods.map((pm) => ({
+          id: pm.id,
+          brand: pm.card?.brand ?? "unknown",
+          last4: pm.card?.last4 ?? "••••",
+          exp_month: pm.card?.exp_month ?? 0,
+          exp_year: pm.card?.exp_year ?? 0,
+        })),
+      );
+    } catch {
+      // fallback — server refresh will correct state
+    }
+
     router.refresh();
   }
 

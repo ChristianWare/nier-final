@@ -16,6 +16,7 @@ import Modal from "@/components/shared/Modal/Modal";
 import {
   adminCreateSetupIntentForUser,
   adminRemoveCardForUser,
+  adminGetCardsForUser,
 } from "../../../../actions/admin/adminManageUserCard";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -153,7 +154,7 @@ function AddCardForm({
       <div className={styles.formActions}>
         <button
           type='button'
-          className='secondaryBtn'
+          className='dangerBtn'
           onClick={onCancel}
           disabled={saving}
         >
@@ -161,7 +162,7 @@ function AddCardForm({
         </button>
         <button
           type='button'
-          className='primaryBtn'
+          className='goodBtnii'
           onClick={handleSave}
           disabled={!stripe || !elements || !cardComplete || saving}
         >
@@ -193,10 +194,16 @@ export default function AdminSaveCardForUser({
     stripePublishableKey ? loadStripe(stripePublishableKey) : null,
   );
 
-  const handleSaved = useCallback(() => {
+  const handleSaved = useCallback(async () => {
     setShowAddForm(false);
+    try {
+      const updated = await adminGetCardsForUser(userId);
+      setCards(updated);
+    } catch {
+      // fallback — server refresh will correct state
+    }
     router.refresh();
-  }, [router]);
+  }, [router, userId]);
 
   async function handleRemove() {
     if (!removeTarget) return;
@@ -273,7 +280,7 @@ export default function AdminSaveCardForUser({
                   )}
                   <button
                     type='button'
-                    className='redBtn'
+                    className='dangerBtn'
                     onClick={() => setRemoveTarget(card)}
                   >
                     Remove
@@ -300,11 +307,15 @@ export default function AdminSaveCardForUser({
       ) : (
         <button
           type='button'
-          className='primaryBtn'
+          className='goodBtnii'
+          style={{
+            display: "block",
+            width: "fit-content",
+            marginTop: cards.length > 0 ? 12 : 0,
+          }}
           onClick={() => setShowAddForm(true)}
-          style={{ marginTop: cards.length > 0 ? 12 : 0 }}
         >
-          {cards.length > 0 ? "Add another card" : "Add card"}
+          {cards.length > 0 ? "Add another card +" : "Add card +"}
         </button>
       )}
 
@@ -334,7 +345,7 @@ export default function AdminSaveCardForUser({
             </button>
             <button
               type='button'
-              className='primaryBtn'
+              className='dangerBtn'
               style={{ background: "rgba(180,0,0,0.85)" }}
               onClick={handleRemove}
               disabled={removing}

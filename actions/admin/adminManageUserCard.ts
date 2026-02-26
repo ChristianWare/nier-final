@@ -82,3 +82,41 @@ export async function adminRemoveCardForUser({
 
   return { success: true };
 }
+
+export async function adminGetCardsForUser(userId: string): Promise<
+  {
+    id: string;
+    brand: string;
+    last4: string;
+    exp_month: number;
+    exp_year: number;
+  }[]
+> {
+  if (!userId) return [];
+
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { stripeCustomerId: true },
+  });
+
+  const customerId = user?.stripeCustomerId ?? null;
+  if (!customerId) return [];
+
+  try {
+    const stripe = await getStripe();
+    const result = await stripe.paymentMethods.list({
+      customer: customerId,
+      type: "card",
+      limit: 10,
+    });
+    return result.data.map((pm) => ({
+      id: pm.id,
+      brand: pm.card?.brand ?? "unknown",
+      last4: pm.card?.last4 ?? "••••",
+      exp_month: pm.card?.exp_month ?? 0,
+      exp_year: pm.card?.exp_year ?? 0,
+    }));
+  } catch {
+    return [];
+  }
+}
