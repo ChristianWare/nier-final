@@ -6,6 +6,7 @@ import Footer from "@/components/shared/Footer/Footer";
 import SessionProviderWrap from "@/components/Providers/SessionProvider";
 import ToastsProvider from "@/components/Providers/ToastsProvider";
 import ScrollToTop from "@/components/ServicesPage/ScrollToTop/ScrollToTop";
+import PlausibleProvider from "next-plausible";
 
 const inter = Inter({
   variable: "--inter",
@@ -120,11 +121,17 @@ export default function RootLayout({
           }}
         />
         <ScrollToTop />
-        <SessionProviderWrap>
-          <ToastsProvider />
-          {children}
-          <Footer />
-        </SessionProviderWrap>
+        <PlausibleProvider
+          domain='niertransportation.com'
+          trackLocalhost={false}
+          enabled={true}
+        >
+          <SessionProviderWrap>
+            <ToastsProvider />
+            {children}
+            <Footer />
+          </SessionProviderWrap>
+        </PlausibleProvider>
       </body>
     </html>
   );
