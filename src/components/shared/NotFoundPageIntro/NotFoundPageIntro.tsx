@@ -39,7 +39,12 @@ export default function NotFoundPageIntro() {
           </p>
           <div className={styles.btnContainer}>
             <Button text='Go Home' btnType='black' href='/' arrow />
-            <Button text='Contact Us' btnType='cream' href='/services' arrow />
+            <Button
+              text='Our Services'
+              btnType='cream'
+              href='/services'
+              arrow
+            />
           </div>
           <div className={styles.mapDataContainer}>
             {data.map((item) => (
