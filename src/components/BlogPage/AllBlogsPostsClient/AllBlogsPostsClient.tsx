@@ -118,19 +118,24 @@ export default function AllBlogsPostsClient({
 
       <div className={styles.content}>
         {filtered.map((p) => (
-          <BlogCardTwo
-            key={p._id}
-            post={{
-              title: p.title,
-              href: `/blog/${p.slug.current}`,
-              date: p.publishedAt,
-              excerpt: p.excerpt ?? "",
-              imageUrl: p.coverImage
-                ? urlFor(p.coverImage).width(800).height(600).fit("crop").url()
-                : undefined,
-              imageAlt: p.coverImage?.alt ?? p.title,
-            }}
-          />
+          <div className={styles.cardContainer} key={p._id}>
+            <BlogCardTwo
+              post={{
+                title: p.title,
+                href: `/blog/${p.slug.current}`,
+                date: p.publishedAt,
+                excerpt: p.excerpt ?? "",
+                imageUrl: p.coverImage
+                  ? urlFor(p.coverImage)
+                      .width(800)
+                      .height(600)
+                      .fit("crop")
+                      .url()
+                  : undefined,
+                imageAlt: p.coverImage?.alt ?? p.title,
+              }}
+            />
+          </div>
         ))}
       </div>
     </section>
