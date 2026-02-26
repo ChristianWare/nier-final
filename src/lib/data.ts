@@ -494,46 +494,134 @@ export const homeQuestions = [
 
 export const aboutQuestions = [
   {
-    id: 1,
-    question: "How do you handle flight delays or early arrivals?",
+    id: "a1",
+    question: "How long has Nier Transportation been in business?",
     answer:
-      "We monitor your flight in real time and automatically adjust your pickup window at no extra charge. If your flight arrives early, your chauffeur will be standing by; if it’s delayed, we’ll wait up to 60 minutes after landing before any fees apply.",
+      "Nier Transportation has been serving the Phoenix and Scottsdale area since 2004. Over two decades of operation have allowed us to build a reputation for reliability, professionalism, and luxury service that our clients trust.",
   },
   {
-    id: 1.1,
-    question: "What is your cancellation policy?",
+    id: "a2",
+    question: "Are your chauffeurs professionally trained and vetted?",
     answer:
-      "You can cancel or modify your reservation free of charge up to 24 hours before your scheduled pickup. Cancellations made within 24 hours may incur a fee equal to one hour of service or 50% of the trip fare, whichever is less.",
+      "Yes — every chauffeur undergoes a thorough background check, holds a valid commercial driver's license, and completes annual defensive-driving recertification before joining our team. We only hire experienced professionals who meet our service standards.",
   },
   {
-    id: 1.2,
-    question: "Can I bring pets or special equipment?",
+    id: "a3",
+    question: "Is Nier Transportation a locally owned company?",
     answer:
-      "Yes—small pets are welcome in our vehicles at no extra cost (please use a carrier). For larger animals or special equipment (golf clubs, skis, wheelchairs), select the appropriate add-on during booking and we’ll provide secure storage and handling.",
+      "Yes, we are a family-owned and operated business based in Scottsdale, Arizona. As a local company, we take pride in knowing our service area inside and out and delivering a personal level of service that larger national chains simply can't match.",
   },
   {
-    id: 1.3,
-    question: "Are gratuities included in the fare?",
+    id: "a4",
+    question: "What areas do you serve?",
     answer:
-      "Our fares represent the total cost of your transportation.  However, if you feel inclined, tips are always welcomed and appreciated.",
+      "We serve the entire Metro Phoenix area including Scottsdale, Phoenix, Tempe, Mesa, Chandler, Gilbert, Paradise Valley, and surrounding communities. We also accommodate long-distance trips throughout Arizona.",
   },
   {
-    id: 1.4,
-    question: "What safety measures do you have in place?",
+    id: "a5",
+    question: "How do you maintain your fleet?",
     answer:
-      "Every vehicle is cleaned and sanitized before each trip, and all chauffeurs undergo annual defensive-driving recertification and background checks. We also maintain 256-bit SSL encryption on our booking and payment systems to protect your data.",
+      "Every vehicle in our fleet is inspected and serviced on a regular maintenance schedule. Before each trip, vehicles are cleaned and sanitized to ensure a pristine experience for every passenger.",
+  },
+] as const;
+
+export const serviceQuestions = [
+  {
+    id: "s1",
+    question: "What types of transportation services do you offer?",
+    answer:
+      "We offer a full range of luxury ground transportation including airport transfers, hourly chauffeur service, corporate travel, wedding transportation, special events, and long-distance rides throughout Arizona.",
   },
   {
-    id: 1.5,
-    question: "How can I add extra stops or change my route?",
+    id: "s2",
+    question: "How do I know which service is right for my trip?",
     answer:
-      "You can add up to three additional stops or modify your itinerary at any time via our mobile app, website, or by calling your chauffeur directly. All changes are confirmed instantly and reflected in your final fare.",
+      "For point-to-point trips like airport pickups, a flat-rate transfer is the most straightforward option. For events, sightseeing, or multi-stop itineraries, hourly chauffeur service gives you the most flexibility. If you're unsure, our team is happy to recommend the best fit.",
   },
   {
-    id: 1.6,
-    question: "Do you offer group or corporate discounts?",
+    id: "s3",
+    question: "Do you offer flat-rate airport pricing?",
     answer:
-      "Yes—teams of five or more traveling together, or accounts with recurring ride volume, qualify for custom corporate pricing and priority booking. Contact our sales team for a tailored rate sheet and service agreement.",
+      "Yes — all airport transfers are priced at a flat rate with no surge pricing. The fare you see at booking is the fare you pay, regardless of traffic or flight delays.",
+  },
+  {
+    id: "s4",
+    question: "How far in advance should I book?",
+    answer:
+      "We recommend booking at least 24 hours in advance to guarantee vehicle availability, especially for larger vehicles or weekend events. Same-day bookings are accepted based on availability.",
+  },
+  {
+    id: "s5",
+    question: "Can I book a service for a group or corporate event?",
+    answer:
+      "Absolutely. We accommodate groups of all sizes with our fleet of SUVs, Sprinter vans, and motorcoaches. Corporate accounts with recurring travel needs also qualify for custom pricing and priority booking.",
+  },
+] as const;
+
+export const fleetQuestions = [
+  {
+    id: "f1",
+    question: "How do I choose the right vehicle for my trip?",
+    answer:
+      "The right vehicle depends on your group size, luggage needs, and the occasion. Executive sedans are ideal for solo or couples travel, SUVs handle small groups with luggage comfortably, and Sprinter vans or motorcoaches are best for larger parties or events. If you're unsure, our team is happy to help you select the right fit.",
+  },
+  {
+    id: "f2",
+    question: "How many passengers can your vehicles accommodate?",
+    answer:
+      "Our fleet ranges from executive sedans seating up to 3 passengers all the way to motorcoaches accommodating large groups. Each vehicle listing includes exact passenger and luggage capacity so you can book with confidence.",
+  },
+  {
+    id: "f3",
+    question: "Are all vehicles in the fleet available 24/7?",
+    answer:
+      "Yes — our full fleet is available around the clock, 365 days a year. We recommend booking in advance for larger vehicles, particularly during weekends and peak event seasons, to guarantee your preferred vehicle.",
+  },
+  {
+    id: "f4",
+    question: "What amenities are included in the vehicles?",
+    answer:
+      "All vehicles are equipped with premium leather seating, climate control, and complimentary bottled water. Larger vehicles such as Sprinter vans and party buses include additional amenities — check the individual vehicle page for a full list.",
+  },
+  {
+    id: "f5",
+    question: "Can I request a specific vehicle for my booking?",
+    answer:
+      "Yes — you can select your preferred vehicle directly during the booking process. If your requested vehicle is unavailable for your date, we will contact you to arrange a comparable alternative at no extra charge.",
+  },
+] as const;
+
+export const corporateQuestions = [
+  {
+    id: "c1",
+    question: "How does a corporate account work?",
+    answer:
+      "A corporate account gives your organization a centralized billing profile, allowing employees to book rides without paying out of pocket. All trips are invoiced to your account on a schedule that works for your finance team — weekly, bi-weekly, or monthly.",
+  },
+  {
+    id: "c2",
+    question:
+      "Is there a minimum spend or volume requirement to open a corporate account?",
+    answer:
+      "No minimum spend is required to get started. We work with companies of all sizes, from small teams with occasional travel needs to large organizations with high-volume recurring bookings.",
+  },
+  {
+    id: "c3",
+    question: "Can we set travel policies or spending limits for employees?",
+    answer:
+      "Yes — corporate accounts include configurable controls so you can set per-trip spending limits, require approval for certain vehicle classes, and restrict bookings to specific destinations or time windows.",
+  },
+  {
+    id: "c4",
+    question: "How do employees book rides under our corporate account?",
+    answer:
+      "Employees book directly through our website or app using your company's account credentials. Trips are automatically tagged to your account for billing, with no need to submit expense reports or reimbursements.",
+  },
+  {
+    id: "c5",
+    question: "What reporting is available for corporate accounts?",
+    answer:
+      "Your account dashboard provides full trip history, per-employee usage breakdowns, and downloadable invoices. This makes it easy to track transportation spend and reconcile billing at the end of each period.",
   },
 ] as const;
 

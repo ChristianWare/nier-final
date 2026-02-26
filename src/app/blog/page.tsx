@@ -7,7 +7,7 @@ import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Blog | Nier Transportation",
+  title: "Blog | Luxury Transportation Tips & Travel Guides",
   description:
     "Tips, guides, and insights on luxury ground transportation, airport travel, and getting around Scottsdale and Phoenix in style.",
 };
@@ -19,9 +19,11 @@ const blogSchema = {
   description:
     "Tips, guides, and insights on luxury ground transportation, airport travel, and getting around Scottsdale and Phoenix in style.",
   url: "https://www.niertransportation.com/blog",
+  inLanguage: "en-US",
   publisher: {
     "@type": "Organization",
     name: "Nier Transportation",
+    url: "https://www.niertransportation.com",
     logo: "https://www.niertransportation.com/nierLogo.png",
   },
 };

@@ -1,4 +1,4 @@
-import { services } from "@/lib/data"; 
+import { serviceQuestions, services } from "@/lib/data";
 import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
 import ServicePageIntro from "@/components/ServicesPage/ServicePageIntro/ServicePageIntro";
 import ServicesMission from "@/components/ServicesPage/ServicesMission/ServicesMission";
@@ -6,19 +6,21 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import Nav from "@/components/shared/Nav/Nav";
 import type { Metadata } from "next";
+import Faq from "@/components/shared/Faq/Faq";
 
 export const metadata: Metadata = {
-  title: "Our Services | Nier Transportation",
+  title: "Services | Luxury Black Car & Limo Service Phoenix",
   description:
-    "Luxury ground transportation in Scottsdale, Phoenix, and greater Metro Phoenix — airport transfers, hourly chauffeur, corporate events, weddings, party buses, and more.",
+    "Luxury ground transportation in Phoenix and Scottsdale — airport transfers, hourly chauffeur, corporate travel, weddings, and special events. Available 24/7.",
 };
 
 const servicesSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
   name: "Nier Transportation Services",
+  url: "https://www.niertransportation.com/services",
   description:
-    "Luxury ground transportation services serving Scottsdale, Phoenix, and greater Metro Phoenix",
+    "Luxury black car and limousine services serving Phoenix, Scottsdale, and greater Metro Phoenix.",
   itemListElement: services.map((service, index) => ({
     "@type": "ListItem",
     position: index + 1,
@@ -30,9 +32,26 @@ const servicesSchema = {
       provider: {
         "@type": "LocalBusiness",
         name: "Nier Transportation",
+        url: "https://www.niertransportation.com",
       },
-      areaServed: "Phoenix Metro, Arizona",
-      category: "Ground Transportation",
+      areaServed: {
+        "@type": "State",
+        name: "Arizona",
+      },
+      serviceType: "Ground Transportation",
+    },
+  })),
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: serviceQuestions.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
     },
   })),
 };
@@ -44,11 +63,16 @@ export default function ServicesPage() {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(servicesSchema) }}
       />
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <Nav background='cream' />
       <ServicePageIntro />
       <ServicesMission />
       <ServicesPreview />
       <HowItWorks />
+      <Faq items={serviceQuestions} />
       <AboutNumbers />
     </main>
   );

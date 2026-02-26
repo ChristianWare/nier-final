@@ -14,10 +14,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title:
-    "Nier Transportation | Luxury Black Car Service in Scottsdale & Phoenix",
+  title: "Nier Transportation | Black Car Service Phoenix & Scottsdale",
   description:
-    "Professional black car and limousine service in Scottsdale, Phoenix, and the greater Metro Phoenix area. Airport transfers, hourly chauffeur, and special events. Available 24/7.",
+    "Professional black car and limousine service in Phoenix, Scottsdale, and Metro Phoenix. Airport transfers, hourly chauffeur, and special events. Available 24/7.",
 };
 
 const organizationSchema = {

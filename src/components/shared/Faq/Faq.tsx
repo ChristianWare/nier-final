@@ -1,6 +1,5 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./Faq.module.css";
 import Image from "next/image";
@@ -11,12 +10,17 @@ import Arrow from "../icons/Arrow/Arrow";
 
 type FAQItem = { id: number | string; question: string; answer: string };
 
-export default function Faq({ items }: { items: ReadonlyArray<FAQItem> }) {
-  const [selected, setSelected] = useState<null | number>(null);
+export default function Faq({
+  items,
+  limit = 5,
+}: {
+  items: ReadonlyArray<FAQItem>;
+  limit?: number;
+}) {
+  const [selected, setSelected] = useState<null | number | string>(null);
 
-  const toggle = (i: any) => {
-    if (selected === i) return setSelected(null);
-    setSelected(i);
+  const toggle = (id: number | string) => {
+    setSelected((prev) => (prev === id ? null : id));
   };
 
   return (
@@ -36,43 +40,29 @@ export default function Faq({ items }: { items: ReadonlyArray<FAQItem> }) {
               <SectionHeading text='Faqs' dot />
             </div>
             <div className={styles.mapDataContainer}>
-              {items.slice(0, 5).map((x, i) => (
+              {items.slice(0, limit).map((x) => (
                 <div
                   key={x.id}
-                  className={
-                    selected === i
-                      ? styles.qaContainer + " " + styles.showBorder
-                      : styles.qaContainer
-                  }
-                  onClick={() => toggle(i)}
+                  className={`${styles.qaContainer} ${selected === x.id ? styles.showBorder : ""}`}
+                  onClick={() => toggle(x.id)}
                 >
                   <div className={styles.headingArrowContainer}>
                     <h3
-                      className={`${styles.question} h5 ${
-                        selected === i ? styles.questionActive : ""
-                      }`}
+                      className={`${styles.question} h5 ${selected === x.id ? styles.questionActive : ""}`}
                       lang='en'
                     >
                       {x.question}
                     </h3>
                     <div className={styles.arrowContainer}>
-                      {selected === i ? (
-                        <div className={styles.arrowContainer}>
-                          <Arrow className={styles.iconFlip} />
-                        </div>
-                      ) : (
-                        <div className={styles.arrowContainer}>
-                          <Arrow className={styles.icon} />
-                        </div>
-                      )}
+                      <Arrow
+                        className={
+                          selected === x.id ? styles.iconFlip : styles.icon
+                        }
+                      />
                     </div>
                   </div>
                   <div
-                    className={
-                      selected === i
-                        ? styles.answerContainer + " " + styles.show
-                        : styles.answerContainer
-                    }
+                    className={`${styles.answerContainer} ${selected === x.id ? styles.show : ""}`}
                   >
                     <p className={styles.answer} lang='en'>
                       {x.answer}
