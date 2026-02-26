@@ -15,6 +15,7 @@ import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import EditUserProfileForm from "@/components/admin/EditUserProfileForm/EditUserProfileForm";
+import UserSavedPaymentCard from "@/components/UserSavedPaymentCard/UserSavedPaymentCard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -499,6 +500,18 @@ export default async function UserDetailPage({
                 (r): r is "USER" | "ADMIN" | "DRIVER" =>
                   ["USER", "ADMIN", "DRIVER"].includes(r),
               )}
+            />
+          </div>
+        </div>
+
+        {/* Saved Payment Method */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2 className='cardTitle h4'>Payment on File</h2>
+          </div>
+          <div className={styles.cardBody}>
+            <UserSavedPaymentCard
+              stripeCustomerId={(user as any).stripeCustomerId ?? null}
             />
           </div>
         </div>

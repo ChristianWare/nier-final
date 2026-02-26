@@ -1,0 +1,108 @@
+/* ── Empty state ── */
+.emptyState {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.emptyIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.emptyText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.emptyTitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.emptyNote {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  opacity: 0.7;
+}
+
+/* ── Error state ── */
+.errorState {
+  padding: 1.2rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  color: #991b1b;
+}
+
+/* ── Card list ── */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.2rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.cardInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cardLabel {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.cardExpiry {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  opacity: 0.7;
+}
+
+.cardExpired {
+  color: #dc2626;
+  opacity: 1;
+}
+
+.cardBadges {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* ── Stripe note ── */
+.stripeNote {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.6;
+  margin: 0;
+  padding-top: 0.5rem;
+}
+
+.customerId {
+  font-size: 1.1rem;
+  background: #f1f5f9;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-family: monospace;
+  word-break: break-all;
+}
