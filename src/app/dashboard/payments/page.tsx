@@ -8,6 +8,10 @@ import Link from "next/link";
 import PaymentDownloadBtn from "./PaymentDownloadBtn";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
+import { getStripe, getStripePublishableKey } from "@/lib/stripe";
+import SavedCardSection, {
+  SavedCard,
+} from "@/components/Dashboard/SavedCardSection/SavedCardSection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -113,6 +117,39 @@ function buildHref(
   return qs ? `${base}?${qs}` : base;
 }
 
+// ── Fetch saved cards for the current user ─────────────────────────────────────
+
+async function fetchSavedCards(userId: string): Promise<SavedCard[]> {
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { stripeCustomerId: true } as any,
+    });
+
+    const customerId = (user as any)?.stripeCustomerId as string | null;
+    if (!customerId) return [];
+
+    const stripe = await getStripe();
+    const result = await stripe.paymentMethods.list({
+      customer: customerId,
+      type: "card",
+      limit: 10,
+    });
+
+    return result.data.map((pm) => ({
+      id: pm.id,
+      brand: pm.card?.brand ?? "unknown",
+      last4: pm.card?.last4 ?? "••••",
+      exp_month: pm.card?.exp_month ?? 0,
+      exp_year: pm.card?.exp_year ?? 0,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+// ── Page ───────────────────────────────────────────────────────────────────────
+
 export default async function DashboardPaymentsPage({
   searchParams,
 }: {
@@ -131,53 +168,56 @@ export default async function DashboardPaymentsPage({
   const now = new Date();
   const { timezone: companyTz } = await getCompanySettings();
 
-  const [counts, filteredCount, allPayments] = await Promise.all([
-    (async () => {
-      const [all, paid, pending, failed, refunded] = await Promise.all([
-        db.payment.count({ where: { booking: { userId } } }),
-        db.payment.count({
-          where: { booking: { userId }, status: { in: FILTER_MAP.paid } },
-        }),
-        db.payment.count({
-          where: { booking: { userId }, status: { in: FILTER_MAP.pending } },
-        }),
-        db.payment.count({
-          where: { booking: { userId }, status: { in: FILTER_MAP.failed } },
-        }),
-        db.payment.count({
-          where: { booking: { userId }, status: { in: FILTER_MAP.refunded } },
-        }),
-      ]);
-      return { all, paid, pending, failed, refunded };
-    })(),
-    db.payment.count({
-      where:
-        filter === "all"
-          ? { booking: { userId } }
-          : { booking: { userId }, status: { in: FILTER_MAP[filter] } },
-    }),
-    db.payment.findMany({
-      where:
-        filter === "all"
-          ? { booking: { userId } }
-          : { booking: { userId }, status: { in: FILTER_MAP[filter] } },
-      orderBy: [{ booking: { pickupAt: "desc" } }, { updatedAt: "desc" }],
-      include: {
-        booking: {
-          select: {
-            id: true,
-            pickupAt: true,
-            pickupAddress: true,
-            dropoffAddress: true,
-            status: true,
-            totalCents: true,
-            currency: true,
-            serviceType: { select: { name: true } },
+  const [savedCards, stripePublishableKey, counts, filteredCount, allPayments] =
+    await Promise.all([
+      fetchSavedCards(userId),
+      getStripePublishableKey(),
+      (async () => {
+        const [all, paid, pending, failed, refunded] = await Promise.all([
+          db.payment.count({ where: { booking: { userId } } }),
+          db.payment.count({
+            where: { booking: { userId }, status: { in: FILTER_MAP.paid } },
+          }),
+          db.payment.count({
+            where: { booking: { userId }, status: { in: FILTER_MAP.pending } },
+          }),
+          db.payment.count({
+            where: { booking: { userId }, status: { in: FILTER_MAP.failed } },
+          }),
+          db.payment.count({
+            where: { booking: { userId }, status: { in: FILTER_MAP.refunded } },
+          }),
+        ]);
+        return { all, paid, pending, failed, refunded };
+      })(),
+      db.payment.count({
+        where:
+          filter === "all"
+            ? { booking: { userId } }
+            : { booking: { userId }, status: { in: FILTER_MAP[filter] } },
+      }),
+      db.payment.findMany({
+        where:
+          filter === "all"
+            ? { booking: { userId } }
+            : { booking: { userId }, status: { in: FILTER_MAP[filter] } },
+        orderBy: [{ booking: { pickupAt: "desc" } }, { updatedAt: "desc" }],
+        include: {
+          booking: {
+            select: {
+              id: true,
+              pickupAt: true,
+              pickupAddress: true,
+              dropoffAddress: true,
+              status: true,
+              totalCents: true,
+              currency: true,
+              serviceType: { select: { name: true } },
+            },
           },
         },
-      },
-    }),
-  ]);
+      }),
+    ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -195,6 +235,7 @@ export default async function DashboardPaymentsPage({
 
   return (
     <section className={styles.container}>
+      {/* ── Payments history ── */}
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <div className={styles.top}>
@@ -367,6 +408,11 @@ export default async function DashboardPaymentsPage({
         page={safePage}
         totalPages={totalPages}
         current={pageParams}
+      />
+      {/* ── Saved payment methods ── */}
+      <SavedCardSection
+        stripePublishableKey={stripePublishableKey ?? ""}
+        savedCards={savedCards}
       />
     </section>
   );
