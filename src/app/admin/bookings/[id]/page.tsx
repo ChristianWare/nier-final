@@ -12,6 +12,7 @@ import { BookingStatus, Role } from "@prisma/client";
 import Link from "next/link";
 import DeleteBookingDangerZoneClient from "./DeleteBookingDangerZoneClient";
 import AdminManualCardPaymentClient from "./AdminManualCardPaymentClient";
+import AdminChargeCardOnFileButton from "@/components/admin/AdminChargeCardOnFileButton/AdminChargeCardOnFileButton";
 import QuickActionsClient from "./QuickActionsClient";
 import BookingNotesClient from "./BookingNotesClient";
 import EditTripDetailsClient, { PricingData } from "./EditTripDetailsClient";
@@ -1038,10 +1039,7 @@ export default async function AdminBookingDetailPage({
 
                 {/* Show tip amount if present */}
                 {tipCents > 0 && (
-                  <a
-                    href='#driver-pay-section'
-                    className={styles.tipDisplay}
-                  >
+                  <a href='#driver-pay-section' className={styles.tipDisplay}>
                     <span className={styles.tipIcon}>💰</span>
                     <span className={styles.tipLabel}>Driver Tip:</span>
                     <span className={styles.tipAmount}>
@@ -1681,6 +1679,25 @@ export default async function AdminBookingDetailPage({
                       isApproved={isApproved}
                       amountPaidCents={amountPaidCents}
                       stripePublishableKey={stripePublishableKey}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 18 }}>
+                  <div className='cardTitle h5'>Charge card on file</div>
+                  <div
+                    className='miniNote'
+                    style={{ marginTop: 6, marginBottom: "30px" }}
+                  >
+                    Charge the customer&apos;s saved card directly — no payment
+                    link required.
+                  </div>
+                  <div style={{ marginTop: 10 }}>
+                    <AdminChargeCardOnFileButton
+                      bookingId={booking.id}
+                      userId={booking.userId ?? ""}
+                      amountCents={booking.totalCents}
+                      currency={booking.currency}
                     />
                   </div>
                 </div>

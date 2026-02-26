@@ -15,7 +15,10 @@ import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import EditUserProfileForm from "@/components/admin/EditUserProfileForm/EditUserProfileForm";
-import UserSavedPaymentCard from "@/components/UserSavedPaymentCard/UserSavedPaymentCard";
+import AdminSaveCardForUser from "@/components/admin/AdminSaveCardForUser/AdminSaveCardForUser";
+import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import { getStripePublishableKey } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -224,13 +227,45 @@ export default async function UserDetailPage({
   const now = new Date();
   const { timezone: companyTz } = await getCompanySettings();
 
-  const user = await db.user.findUnique({
-    where: { id },
-    include: {
-      _count: { select: { bookings: true, driverAssignments: true } },
-    },
-  });
+  const [user, stripePublishableKey] = await Promise.all([
+    db.user.findUnique({
+      where: { id },
+      include: {
+        _count: { select: { bookings: true, driverAssignments: true } },
+      },
+    }),
+    getStripePublishableKey(),
+  ]);
   if (!user) notFound();
+
+  // Fetch saved cards for this user
+  let initialCards: {
+    id: string;
+    brand: string;
+    last4: string;
+    exp_month: number;
+    exp_year: number;
+  }[] = [];
+  const stripeCustomerId = (user as any).stripeCustomerId as string | null;
+  if (stripeCustomerId) {
+    try {
+      const stripe = await getStripe();
+      const pmList = await stripe.paymentMethods.list({
+        customer: stripeCustomerId,
+        type: "card",
+        limit: 10,
+      });
+      initialCards = pmList.data.map((pm) => ({
+        id: pm.id,
+        brand: pm.card?.brand ?? "unknown",
+        last4: pm.card?.last4 ?? "????",
+        exp_month: pm.card?.exp_month ?? 0,
+        exp_year: pm.card?.exp_year ?? 0,
+      }));
+    } catch {
+      // silently fail — component will show empty state
+    }
+  }
 
   const roles = (user.roles?.length ? user.roles : ["USER"]) as Role[];
   const isDriver = roles.includes("DRIVER");
@@ -505,14 +540,18 @@ export default async function UserDetailPage({
         </div>
 
         {/* Saved Payment Method */}
-        <div className={styles.card}>
+        <div className={`${styles.card} ${styles.fullWidth}`}>
           <div className={styles.cardHeader}>
             <h2 className='cardTitle h4'>Payment on File</h2>
           </div>
           <div className={styles.cardBody}>
-            <UserSavedPaymentCard
-              stripeCustomerId={(user as any).stripeCustomerId ?? null}
-            />
+            <DirtyFormProvider>
+              <AdminSaveCardForUser
+                userId={user.id}
+                stripePublishableKey={stripePublishableKey ?? ""}
+                initialCards={initialCards}
+              />
+            </DirtyFormProvider>
           </div>
         </div>
       </div>

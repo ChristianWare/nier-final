@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import Nav from "@/components/shared/Nav/Nav";
 import CheckoutClient from "./CheckoutClient";
 import { getStripePublishableKey } from "@/lib/stripe";
+import { getSavedCardForBooking } from "../../../../actions/payments/chargeCardOnFileForCheckout";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -84,7 +85,10 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     address: s.address,
   }));
 
-  const stripePublishableKey = await getStripePublishableKey();
+  const [stripePublishableKey, savedCard] = await Promise.all([
+    getStripePublishableKey(),
+    getSavedCardForBooking(bookingId),
+  ]);
 
   return (
     <main>
@@ -106,6 +110,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
         isBalancePayment={isBalancePayment}
         amountPaidCents={amountPaidCents}
         totalBookingCents={booking.totalCents}
+        savedCard={savedCard}
       />
     </main>
   );

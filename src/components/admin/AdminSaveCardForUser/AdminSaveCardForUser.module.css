@@ -1,0 +1,125 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* ── Empty state ── */
+.emptyState {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.6rem;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+}
+
+.emptyIcon {
+  font-size: 2.4rem;
+  flex-shrink: 0;
+}
+
+.emptyText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.emptyTitle {
+  font-family: var(--interTight);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.emptyNote {
+  font-family: var(--interTight);
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  opacity: 0.7;
+}
+
+/* ── Card list ── */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.cardRow {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.2rem 1.4rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.cardInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cardLabel {
+  font-family: var(--interTight);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.cardExpiry {
+  font-family: var(--interTight);
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  opacity: 0.7;
+}
+
+.expired {
+  color: #dc2626;
+  opacity: 1;
+}
+
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* ── Add card form ── */
+.addCardForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding: 1.6rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.stripeField {
+  padding: 1.2rem;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+}
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.adminNote {
+  font-family: var(--interTight);
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  opacity: 0.55;
+  margin: 0;
+  line-height: 1.5;
+}

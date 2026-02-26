@@ -12,6 +12,8 @@ import {
 import styles from "./Checkout.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Button from "@/components/shared/Button/Button";
+import { chargeCardOnFileForCheckout } from "../../../../actions/payments/chargeCardOnFileForCheckout";
+import Modal from "@/components/shared/Modal/Modal";
 
 // ✅ Stop type
 type Stop = {
@@ -36,8 +38,15 @@ type Props = {
   isBalancePayment: boolean;
   amountPaidCents: number;
   totalBookingCents: number;
+  savedCard?: {
+    hasCard: boolean;
+    brand: string | null;
+    last4: string | null;
+    exp_month: number | null;
+    exp_year: number | null;
+    isExpired: boolean;
+  } | null;
 };
-
 const TIP_PRESETS = [
   { label: "15%", percent: 15 },
   { label: "20%", percent: 20 },
@@ -175,6 +184,7 @@ export default function CheckoutClient({
   amountPaidCents,
   totalBookingCents,
   stripePublishableKey,
+  savedCard,
 }: Props & { stripePublishableKey: string }) {
   const stripePromise = useMemo(
     () => loadStripe(stripePublishableKey),
@@ -188,6 +198,37 @@ export default function CheckoutClient({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cardOnFileConfirming, setCardOnFileConfirming] = useState(false);
+  const [cardOnFileCharging, setCardOnFileCharging] = useState(false);
+  const [cardOnFileSuccess, setCardOnFileSuccess] = useState(false);
+
+  const BRAND_LABELS: Record<string, string> = {
+    visa: "Visa",
+    mastercard: "Mastercard",
+    amex: "American Express",
+    discover: "Discover",
+    diners: "Diners Club",
+    jcb: "JCB",
+    unionpay: "UnionPay",
+  };
+
+  async function handleCardOnFileCharge() {
+    setCardOnFileCharging(true);
+    setCardOnFileConfirming(false);
+    try {
+      const result = await chargeCardOnFileForCheckout({ bookingId });
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      setCardOnFileSuccess(true);
+      window.location.href = `/pay/${bookingId}/success`;
+    } catch {
+      setError("Something went wrong. Please try the card form below.");
+    } finally {
+      setCardOnFileCharging(false);
+    }
+  }
 
   // Calculate tip amount
   const tipCents = isCustomTip
@@ -483,6 +524,105 @@ export default function CheckoutClient({
 
             {/* Right Column - Payment Form */}
             <div className={styles.rightColumn}>
+              {/* Card on file option */}
+              {savedCard?.hasCard && !savedCard.isExpired && (
+                <div
+                  className={styles.paymentCard}
+                  style={{ marginBottom: "2rem" }}
+                >
+                  <div className={styles.cardHeader}>
+                    <h2 className='cardTitle h5'>Pay with saved card</h2>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "1.2rem",
+                      padding: "1.2rem 0",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "1rem",
+                      }}
+                    >
+                      <span style={{ fontSize: "2rem" }}>💳</span>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: "1.4rem" }}>
+                          {BRAND_LABELS[savedCard.brand ?? ""] ??
+                            savedCard.brand}{" "}
+                          •••• {savedCard.last4}
+                        </div>
+                        <div style={{ fontSize: "1.3rem", opacity: 0.6 }}>
+                          Expires {String(savedCard.exp_month).padStart(2, "0")}
+                          /{String(savedCard.exp_year).slice(-2)}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type='button'
+                      className='goodBtnii'
+                      onClick={() => setCardOnFileConfirming(true)}
+                      disabled={cardOnFileCharging || cardOnFileSuccess}
+                    >
+                      {cardOnFileCharging
+                        ? "Charging…"
+                        : `Pay ${formatMoney(totalCents, currency)}`}
+                    </button>
+                  </div>
+                  <p style={{ fontSize: "1.2rem", opacity: 0.5, margin: 0 }}>
+                    Or use a different card below.
+                  </p>
+
+                  <Modal
+                    isOpen={cardOnFileConfirming}
+                    onClose={() => setCardOnFileConfirming(false)}
+                  >
+                    <div style={{ display: "grid", gap: 16, padding: 8 }}>
+                      <div className='cardTitle h5'>Confirm payment</div>
+                      <p className='paragraph'>
+                        Charge{" "}
+                        <strong>{formatMoney(totalCents, currency)}</strong> to{" "}
+                        {BRAND_LABELS[savedCard.brand ?? ""] ?? savedCard.brand}{" "}
+                        •••• {savedCard.last4}?
+                      </p>
+                      {tipCents > 0 && (
+                        <p className='miniNote'>
+                          Includes {formatMoney(tipCents, currency)} tip for
+                          your driver.
+                        </p>
+                      )}
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 10,
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        <button
+                          type='button'
+                          className='secondaryBtn'
+                          onClick={() => setCardOnFileConfirming(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type='button'
+                          className='goodBtnii'
+                          onClick={handleCardOnFileCharge}
+                        >
+                          Yes, pay now
+                        </button>
+                      </div>
+                    </div>
+                  </Modal>
+                </div>
+              )}
+
               <div className={styles.paymentCard}>
                 <div className={styles.cardHeader}>
                   <h2 className='cardTitle h5'>Payment Details</h2>

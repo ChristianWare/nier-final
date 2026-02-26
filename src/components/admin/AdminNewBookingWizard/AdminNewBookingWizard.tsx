@@ -55,6 +55,7 @@ import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect"
 import BookingWizardChecklist from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
 import { localToUtcIso } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import AdminChargeCardOnFileButton from "@/components/admin/AdminChargeCardOnFileButton/AdminChargeCardOnFileButton";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -3598,7 +3599,7 @@ export default function AdminNewBookingWizard({
                 <p className='subheading'>
                   {isCorporateBooking
                     ? "This booking will be billed to the corporate account."
-                    : "Send a payment link or take a card payment."}
+                    : "Send a payment link, take a card payment, or charge their card on file."}{" "}
                 </p>
 
                 {isCorporateBooking && bookingId ? (
@@ -3740,6 +3741,28 @@ export default function AdminNewBookingWizard({
 
                       <AdminManualCardPayment
                         bookingId={bookingId}
+                        amountCents={bookingData?.totalCents ?? estimateCents}
+                        currency={bookingData?.currency ?? "USD"}
+                        onSuccess={async () => {
+                          await refreshBookingData(bookingId);
+                        }}
+                      />
+                    </div>
+
+                    <div className='box'>
+                      <div className='cardTitle h5'>Charge card on file</div>
+                      <div
+                        className='miniNote'
+                        style={{ marginBottom: "2rem", marginTop: "2rem" }}
+                      >
+                        Charge the customer&apos;s saved card directly — no link
+                        required.
+                      </div>
+                      <AdminChargeCardOnFileButton
+                        bookingId={bookingId}
+                        userId={
+                          selectedUser?.id ?? (bookingData as any)?.userId ?? ""
+                        }
                         amountCents={bookingData?.totalCents ?? estimateCents}
                         currency={bookingData?.currency ?? "USD"}
                         onSuccess={async () => {
