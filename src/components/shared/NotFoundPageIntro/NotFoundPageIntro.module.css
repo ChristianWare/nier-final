@@ -1,0 +1,85 @@
+.container {
+  background-color: var(--white);
+  padding: 10rem 0rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  text-align: center;
+}
+
+.copy {
+  color: var(--paragraph);
+  max-width: 500px;
+}
+
+.mapDataContainer {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 2rem;
+  margin-top: 2rem;
+
+  border-top: 1px solid var(--darkGrayii);
+  width: 50vw;
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2rem;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 1rem;
+}
+
+.icon {
+  background-color: var(--accent);
+  color: var(--cream);
+  border-radius: 5px;
+  padding: 0.8rem;
+  font-size: 4rem;
+}
+
+.title {
+  font-weight: 500;
+  word-break: break-all;
+  text-align: left;
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  margin-top: 5rem;
+}
+
+.img {
+  object-fit: contain;
+}
+
+.btnContainer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+  width: 50vw;
+}
+
+@media screen and (max-width: 968px) {
+  .mapDataContainer,
+  .btnContainer {
+    width: 70vw;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .mapDataContainer, .btnContainer {
+    grid-template-columns: repeat(1, 1fr);
+    width: 100%;
+  }
+
+
+}
