@@ -75,7 +75,7 @@ export default function EmailVerificationClient({ token }: Props) {
             </>
           )}
           {success && (
-            <div>
+            <div className={styles.right}>
               <h1 className='h2'>You’re all set</h1>
               <p className={styles.copy}>
                 Thanks for verifying your email. You can now request, pay for,
