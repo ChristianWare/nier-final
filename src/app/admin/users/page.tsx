@@ -4,12 +4,13 @@ import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
+import FilterSelectClient from "../bookings/FilterSelectClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type RoleFilter = "ALL" | "ADMIN" | "DRIVER" | "USER";
-type AppRole = "USER" | "ADMIN" | "DRIVER";
+type RoleFilter = "ALL" | "ADMIN" | "DRIVER" | "USER" | "CORPORATE";
+type AppRole = "USER" | "ADMIN" | "DRIVER" | "CORPORATE";
 
 const PAGE_SIZE = 50;
 
@@ -53,12 +54,14 @@ export default async function AdminUsersPage({
         };
 
   // Get counts for each role
-  const [totalCount, adminCount, driverCount, userCount] = await Promise.all([
-    db.user.count(),
-    db.user.count({ where: { roles: { has: "ADMIN" } } }),
-    db.user.count({ where: { roles: { has: "DRIVER" } } }),
-    db.user.count({ where: { roles: { has: "USER" } } }),
-  ]);
+  const [totalCount, adminCount, driverCount, userCount, corporateCount] =
+    await Promise.all([
+      db.user.count(),
+      db.user.count({ where: { roles: { has: "ADMIN" } } }),
+      db.user.count({ where: { roles: { has: "DRIVER" } } }),
+      db.user.count({ where: { roles: { has: "USER" } } }),
+      db.user.count({ where: { roles: { has: "CORPORATE" } } }),
+    ]);
 
   const filteredCount = await db.user.count({ where });
   const totalPages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
@@ -118,6 +121,7 @@ export default async function AdminUsersPage({
     ADMIN: adminCount,
     DRIVER: driverCount,
     USER: userCount,
+    CORPORATE: corporateCount,
   };
 
   return (
@@ -149,9 +153,25 @@ export default async function AdminUsersPage({
         </div>
 
         <div className={styles.filters}>
-          <div className={styles.filterGroup}>
-            <div className={styles.filterTitle}>Filter by role</div>
-            <RoleTabs active={roleFilter} counts={counts} />
+          <div className={styles.filterRow}>
+            <FilterSelectClient
+              label='Role'
+              paramName='role'
+              defaultValue='ALL'
+              basePath='/admin/users'
+              current={baseParams}
+              options={[
+                { value: "ALL", label: "All roles", count: counts.ALL },
+                { value: "ADMIN", label: "Admins", count: counts.ADMIN },
+                { value: "DRIVER", label: "Drivers", count: counts.DRIVER },
+                { value: "USER", label: "Users", count: counts.USER },
+                {
+                  value: "CORPORATE",
+                  label: "Corporate",
+                  count: counts.CORPORATE,
+                },
+              ]}
+            />
           </div>
         </div>
 
@@ -269,7 +289,9 @@ export default async function AdminUsersPage({
                                   ? "badge_accent"
                                   : role === "DRIVER"
                                     ? "badge_good"
-                                    : "badge_neutral"
+                                    : role === "CORPORATE"
+                                      ? "badge_purple"
+                                      : "badge_neutral"
                               }`}
                             >
                               {role}
@@ -349,47 +371,6 @@ export default async function AdminUsersPage({
         current={pageParams}
       />
     </section>
-  );
-}
-
-function RoleTabs({
-  active,
-  counts,
-}: {
-  active: RoleFilter;
-  counts: Record<RoleFilter, number>;
-}) {
-  const items: { label: string; value: RoleFilter }[] = [
-    { label: "All", value: "ALL" },
-    { label: "Admins", value: "ADMIN" },
-    { label: "Drivers", value: "DRIVER" },
-    { label: "Users", value: "USER" },
-  ];
-
-  return (
-    <div className={styles.tabRow}>
-      {items.map((x) => {
-        const isActive = x.value === active;
-        const href =
-          x.value === "ALL" ? "/admin/users" : `/admin/users?role=${x.value}`;
-
-        return (
-          <Link
-            key={x.value}
-            href={href}
-            prefetch
-            className={`tab ${isActive ? "tabActive" : ""}`}
-          >
-            {x.label}
-            <span
-              className={`countPill ${isActive ? "countPillWhiteText" : ""}`}
-            >
-              {counts[x.value] ?? 0}
-            </span>
-          </Link>
-        );
-      })}
-    </div>
   );
 }
 

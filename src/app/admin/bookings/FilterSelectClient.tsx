@@ -30,12 +30,14 @@ export default function FilterSelectClient({
   options,
   current,
   defaultValue,
+  basePath = "/admin/bookings",
 }: {
   label: string;
   paramName: string;
   options: Option[];
   current: Record<string, string | undefined>;
   defaultValue?: string;
+  basePath?: string;
 }) {
   const router = useRouter();
 
@@ -56,7 +58,7 @@ export default function FilterSelectClient({
       next.to = undefined;
     }
 
-    const href = buildHref("/admin/bookings", next);
+    const href = buildHref(basePath, next);
     router.replace(href, { scroll: false });
   }
 

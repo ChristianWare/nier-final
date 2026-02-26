@@ -61,6 +61,13 @@
   text-transform: uppercase;
 }
 
+.filterRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 2rem;
+  width: 100%;
+}
+
 .tabRow {
   display: flex;
   gap: 1rem;
@@ -262,6 +269,13 @@
   opacity: 0.75;
 }
 
+@media screen and (max-width: 1068px) {
+  .filterRow {
+    grid-template-columns: repeat(2, 1fr);
+    grid-row-gap: 2rem;
+  }
+}
+
 @media screen and (max-width: 768px) {
   .tableCard {
     border: 0;
@@ -320,6 +334,10 @@
     font-weight: 900;
     opacity: 0.6;
     margin-bottom: 6px;
+  }
+
+  .filterRow {
+    grid-template-columns: 1fr;
   }
 }
 

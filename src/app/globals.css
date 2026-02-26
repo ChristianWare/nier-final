@@ -20,6 +20,7 @@
   --lighterGreen: #bfe8cc;
   --lightestGreen: #4e94ec33;
   --darkGreen: #0b7547;
+  --darkPurple: #6b0080;
   --red: #dc2626;
   --darkRed: #8b1a1a;
   --yellow: #ffca44;
@@ -501,6 +502,11 @@ th {
 .badge_accent {
   background: rgba(255, 200, 9, 0.25);
   color: var(--darkYellow);
+}
+
+.badge_purple {
+  background: rgba(128, 0, 128, 0.25);
+  color: var(--darkPurple);
 }
 
 .badge_bad {

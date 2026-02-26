@@ -231,6 +231,12 @@ export default async function UserDetailPage({
       where: { id },
       include: {
         _count: { select: { bookings: true, driverAssignments: true } },
+        corporateContacts: {
+          where: { active: true },
+          include: {
+            corporateAccount: { select: { id: true, name: true } },
+          },
+        },
       },
     }),
     getStripePublishableKey(),
@@ -450,6 +456,17 @@ export default async function UserDetailPage({
                     >
                       {role}
                     </span>
+                  ))}
+                  {user.corporateContacts.map((cc) => (
+                    <Link
+                      key={cc.corporateAccount.id}
+                      href={`/admin/corporate/${cc.corporateAccount.id}`}
+                      className='backBtn'
+                      style={{ marginTop: "1rem" }}
+                    >
+                      {cc.corporateAccount.name}
+                      <Arrow style={{ transform: "rotate(90deg)" }} />
+                    </Link>
                   ))}
                 </div>
               </div>
