@@ -27,7 +27,7 @@ export default function FinalCTA() {
                   <Button
                     as='span'
                     text='Contact Us'
-                    btnType='underlinedBlack'
+                    btnType='black'
                     arrow
                   />
                 </div>

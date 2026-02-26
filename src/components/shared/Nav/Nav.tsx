@@ -25,8 +25,6 @@ type AppRole = "USER" | "ADMIN" | "DRIVER";
 function getRoles(session: any): AppRole[] {
   const roles = (session?.user as any)?.roles;
   if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
-
-  // ✅ roles-only app: if authed but roles missing (stale session), treat as USER
   return session?.user ? (["USER"] as AppRole[]) : [];
 }
 
@@ -131,7 +129,8 @@ export default function Nav({
     { text: "Contact", href: "/contact" },
   ];
 
-  const shouldBlend = !scrolled && !isOpen;
+  // Only blend (white text) when truly transparent — at top, not open, no forced bg
+  const shouldBlend = !scrolled && !isOpen && !background;
 
   const bgClass =
     background === "white"
@@ -148,15 +147,14 @@ export default function Nav({
 
   useEffect(() => {
     if (status === "loading") return;
-
     if (lastPathRef.current !== pathname) {
       lastPathRef.current = pathname;
-      update(); // re-fetches /api/auth/session so the name updates without refresh
+      update();
     }
   }, [pathname, status, update]);
 
   const accountActive = ["/dashboard", "/admin", "/driver-dashboard"].some(
-    (base) => pathname === base || pathname.startsWith(`${base}/`)
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
   );
 
   return (
@@ -226,7 +224,7 @@ export default function Nav({
         {isOpen &&
           createPortal(
             <div className={styles.overlay} onClick={closeMenu} />,
-            document.body
+            document.body,
           )}
 
         <div className={styles.btnContainer}>

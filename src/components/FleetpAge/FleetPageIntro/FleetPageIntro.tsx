@@ -18,12 +18,7 @@ export default function FleetPageIntro() {
             and in-cabin comfort.
           </p>
           <div className={styles.btnContainer}>
-            <Button
-              href='/book'
-              text='Book your Ride'
-              btnType='underlinedBlack'
-              arrow
-            />
+            <Button href='/book' text='Book your Ride' btnType='black' arrow />
           </div>
         </div>
       </LayoutWrapper>

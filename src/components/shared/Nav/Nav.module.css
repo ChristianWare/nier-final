@@ -36,7 +36,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: #000000;
+  background: var(--cream);
   opacity: 0;
   transition: opacity 0.35s ease-in-out;
   pointer-events: none;
@@ -54,6 +54,13 @@
 }
 .scrolled::after {
   opacity: 1;
+}
+
+/* When scrolled, flip all nav text/icons to black */
+.scrolled {
+  --nav-fg: var(--black);
+  --nav-border: rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
 }
 
 .open::before {
@@ -113,12 +120,14 @@
   letter-spacing: -0.5px;
   position: relative;
   top: 6px;
+  transition: color 0.35s ease-in-out;
 }
 
 .logo {
   width: 3rem;
   height: 3rem;
   color: var(--nav-fg);
+  transition: color 0.35s ease-in-out;
 }
 
 .logoText {
@@ -147,6 +156,7 @@
   z-index: 999;
   white-space: nowrap;
   position: relative;
+  transition: color 0.35s ease-in-out;
 }
 
 .navItemActive::after,
@@ -170,12 +180,6 @@
 .white {
   color: var(--white);
 }
-
-/* .btnContainer {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-} */
 
 .navItemsMobile,
 .btnContainerMobile {
@@ -208,7 +212,7 @@
   transition:
     transform 0.3s ease-in-out,
     opacity 0.2s ease-in-out,
-    background-color 0.2s ease-in-out;
+    background-color 0.35s ease-in-out;
 }
 
 .hamburgerBlack {
@@ -263,6 +267,32 @@
   font-family: var(--DotSansMedium);
   font-size: 1.4rem;
   letter-spacing: -0.02em;
+}
+
+.bgAccent.scrolled::before {
+  opacity: 0;
+}
+
+.bgAccent.scrolled::after {
+  opacity: 1;
+}
+
+.bgAccent.scrolled {
+  --nav-fg: var(--black);
+  --nav-border: rgba(0, 0, 0, 0.12);
+}
+
+.bgWhite.scrolled::before {
+  opacity: 0;
+}
+
+.bgWhite.scrolled::after {
+  opacity: 1;
+}
+
+.bgWhite.scrolled {
+  --nav-fg: var(--black);
+  --nav-border: rgba(0, 0, 0, 0.12);
 }
 
 @media screen and (max-width: 1368px) {
