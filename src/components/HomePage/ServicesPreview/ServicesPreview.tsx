@@ -61,9 +61,9 @@ export default function ServicesPreview() {
               <div key={x.id} className={styles.card}>
                 <div className={styles.titleDescBox}>
                   <div className={styles.idTitleBox}>
-                    <div className={styles.idBox}>
+                    {/* <div className={styles.idBox}>
                       <span className={styles.id}>{x.id}</span>
-                    </div>
+                    </div> */}
                     <h3 className={`cardTitle h5`}>{x.title}</h3>
                   </div>
                   <p className={styles.desc}>{x.copy}</p>

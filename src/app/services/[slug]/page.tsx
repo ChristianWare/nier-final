@@ -7,17 +7,23 @@ import ServiceDetailsClient from "./components/ServiceDetailsClient/ServiceDetai
 type Params = { slug: string };
 
 /* ——— dynamic <title> ——— */
-export async function generateMetadata(
-  { params }: { params: Promise<Params> } // ← accept the promise
-): Promise<Metadata> {
-  const { slug } = await params; // ← await it
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<Params>;
+}): Promise<Metadata> {
+  const { slug } = await params;
   const svc = servicesData.find((s) => s.slug === slug);
-  return { title: svc ? svc.title : "Service Not Found" };
+  if (!svc) return { title: "Service Not Found" };
+  return {
+    title: `${svc.title} | Luxury Black Car Service Phoenix`,
+    description: svc.description || svc.marketingCopy || svc.copy || "",
+  };
 }
 
 /* ——— page component ——— */
 export default async function Page(
-  { params }: { params: Promise<Params> } // ← accept the promise
+  { params }: { params: Promise<Params> }, // ← accept the promise
 ) {
   const { slug } = await params; // ← await it
   const svc = servicesData.find((s) => s.slug === slug);

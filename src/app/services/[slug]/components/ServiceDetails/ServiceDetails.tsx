@@ -117,9 +117,11 @@ export default function ServiceDetails({ service }: { service: Service }) {
     description:
       service.description || service.marketingCopy || service.copy || "",
     url: `https://www.niertransportation.com/services/${service.slug}`,
+    serviceType: "Ground Transportation",
     provider: {
       "@type": "LocalBusiness",
       name: "Nier Transportation",
+      url: "https://www.niertransportation.com",
       telephone: "+1-480-300-6003",
       address: {
         "@type": "PostalAddress",
@@ -134,10 +136,12 @@ export default function ServiceDetails({ service }: { service: Service }) {
       "@type": "State",
       name: "Arizona",
     },
-    category: "Ground Transportation",
-    ...(service.faqs &&
-      service.faqs.length > 0 && {
-        mainEntityOfPage: {
+  };
+
+  const faqJsonLd =
+    service.faqs && service.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: service.faqs.map((faq) => ({
             "@type": "Question",
@@ -147,12 +151,21 @@ export default function ServiceDetails({ service }: { service: Service }) {
               text: faq.a,
             },
           })),
-        },
-      }),
-  };
+        }
+      : null;
 
   return (
     <section className={styles.container}>
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {faqJsonLd && (
+        <script
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.left}>
@@ -256,10 +269,6 @@ export default function ServiceDetails({ service }: { service: Service }) {
       <HowItWorks />
       <AboutTestimonials />
       <AboutNumbers />
-      <script
-        type='application/ld+json'
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
     </section>
   );
 }

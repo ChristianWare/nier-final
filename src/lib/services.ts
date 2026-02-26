@@ -1,4 +1,3 @@
-
 import Airport from "../../public/images/airport.jpg";
 import Airport2 from "../../public/images/airport2.jpg";
 import Golf from "../../public/images/golf.jpg";
@@ -60,7 +59,7 @@ export const servicesData = [
     src: Airport,
     src2: Airport2,
     description:
-      "Start and end every trip on time—and in comfort. Nier Transportation provides premium airport transfers across the Phoenix metro, including Sky Harbor (PHX), Scottsdale Airport (SDL), and Phoenix–Mesa Gateway (AZA), plus private and corporate FBOs. Professional chauffeurs, real-time flight tracking, and door-to-door service make your airport run simple, punctual, and stress-free.",
+      "Premium airport transfers to PHX, SDL, and AZA with real-time flight tracking, 60-minute grace period, and door-to-door service across Metro Phoenix.",
     whoThisIsFor: [
       "Business travelers who need on-time pickups and quiet, climate-controlled rides to work in transit",
       "Families with luggage, strollers, and child seats who want hands-on help from curb to door",
@@ -235,7 +234,7 @@ export const servicesData = [
     src: Hourly,
     src2: Hourly2,
     description:
-      "Keep the car and chauffeur with you the entire time. Perfect for stacked meetings, shopping days, date nights, and VIP guest hosting. No ride-share roulette—just a clean vehicle, professional chauffeur, and smooth door-to-door flow.",
+      "Keep a dedicated chauffeur and vehicle on-call by the hour. Perfect for back-to-back meetings, shopping days, and nights out across Phoenix and Scottsdale.",
     whoThisIsFor: [
       "Executives with back-to-back meetings across town",
       "Visitors who want seamless transport between attractions and dining",
@@ -401,7 +400,7 @@ export const servicesData = [
     src: Wedding,
     src2: Wedding,
     description:
-      "When you only need a single transfer, we make it exact. Perfect for dinners, meetings, medical appointments, and hotel-to-venue runs. We stage on time, load quickly, and choose the fastest route.",
+      "Flat-rate, door-to-door city transfers with no surge pricing across Phoenix and Scottsdale. Private, non-stop rides staged on time every time.",
     whoThisIsFor: [
       "Professionals heading to client meetings",
       "Guests transferring between hotels, venues, and dining",
@@ -557,7 +556,7 @@ export const servicesData = [
     src: Golf,
     src2: Golf2,
     description:
-      "From resort pick-up to the first tee and 19th hole, we handle staging, club loading, and group coordination. Ideal for buddy trips, corporate foursomes, and tournament days.",
+      "Luxury SUVs and vans to Scottsdale's top golf courses. We handle club loading, tee-time staging, and resort coordination for groups of any size.",
     whoThisIsFor: [
       "Golf groups with multiple sets of clubs",
       "Corporate hospitality hosting clients on course",
@@ -716,7 +715,7 @@ export const servicesData = [
     src: Corporate,
     src2: Corporate,
     description:
-      "We build a transportation plan for your agenda: executive arrivals, speaker moves, client dinners, and shuttle loops. Expect clear comms, clean vehicles, and on-time staging.",
+      "Multi-vehicle ground transportation for conferences, off-sites, and corporate events. Dedicated coordinator, live manifests, and on-time staging.",
     whoThisIsFor: [
       "Event planners needing multi-vehicle control",
       "Corporate admins coordinating VIPs and teams",
@@ -1472,7 +1471,7 @@ export const servicesData = [
     src: Wedding,
     src2: Wedding,
     description:
-      "We coordinate ceremony arrivals, photo timings, and reception departures. From quiet VIP sedans to group shuttles, we keep your day on schedule and picture-perfect.",
+      "Elegant wedding transportation for bridal parties, guest shuttles, and getaway cars. We manage your timeline so every transition is picture-perfect.",
     whoThisIsFor: [
       "Couples wanting a polished, reliable experience",
       "Planners coordinating multi-location timelines",
