@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { db } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
+
 export async function adminChargeCardOnFile({
   bookingId,
 }: {
@@ -46,30 +46,28 @@ export async function adminChargeCardOnFile({
     return { error: "This booking has no associated user account." };
   }
 
-  // Get the user's Stripe customer ID
   const user = await db.user.findUnique({
     where: { id: booking.userId },
-    select: { stripeCustomerId: true } as any,
+    select: { stripeCustomerId: true },
   });
 
-  const customerId = (user as any)?.stripeCustomerId as string | null;
+  const customerId = user?.stripeCustomerId ?? null;
   if (!customerId) {
     return { error: "This customer has no card on file." };
   }
 
   const stripe = await getStripe();
 
-  // Get their default/first active payment method
   const pmList = await stripe.paymentMethods.list({
     customer: customerId,
     type: "card",
     limit: 10,
   });
 
+  const now = new Date();
   const activePm = pmList.data.find((pm) => {
     const card = pm.card;
     if (!card) return false;
-    const now = new Date();
     const expDate = new Date(card.exp_year, card.exp_month - 1, 1);
     return expDate >= new Date(now.getFullYear(), now.getMonth(), 1);
   });
@@ -81,7 +79,6 @@ export async function adminChargeCardOnFile({
   const currency = (booking.currency ?? "USD").toLowerCase();
   const isBalancePayment = amountPaidCents > 0;
 
-  // Create and immediately confirm the PaymentIntent off-session
   const pi = await stripe.paymentIntents.create({
     amount: amountToCharge,
     currency,
@@ -105,9 +102,9 @@ export async function adminChargeCardOnFile({
     };
   }
 
-  // Mirror the same DB update pattern as the webhook handler
   const newAmountPaid = amountPaidCents + amountToCharge;
   const isFullyPaid = newAmountPaid >= totalCents;
+  const paidAt = new Date();
 
   await db.payment.upsert({
     where: { bookingId: booking.id },
@@ -116,15 +113,16 @@ export async function adminChargeCardOnFile({
       status: "PAID",
       amountPaidCents: newAmountPaid,
       stripePaymentIntentId: pi.id,
+      paidAt,
     },
     update: {
       status: isFullyPaid ? "PAID" : "PARTIALLY_REFUNDED",
       amountPaidCents: newAmountPaid,
       stripePaymentIntentId: pi.id,
+      paidAt: isFullyPaid ? paidAt : undefined,
     },
   });
 
-  // Update booking status and create activity timeline entry
   if (isFullyPaid) {
     await db.booking.update({
       where: { id: booking.id },
@@ -167,10 +165,10 @@ export async function adminGetCardOnFile(userId: string): Promise<{
 
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { stripeCustomerId: true } as any,
+    select: { stripeCustomerId: true },
   });
 
-  const customerId = (user as any)?.stripeCustomerId as string | null;
+  const customerId = user?.stripeCustomerId ?? null;
   if (!customerId)
     return {
       hasCard: false,

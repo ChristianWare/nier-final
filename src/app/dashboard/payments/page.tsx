@@ -123,10 +123,10 @@ async function fetchSavedCards(userId: string): Promise<SavedCard[]> {
   try {
     const user = await db.user.findUnique({
       where: { id: userId },
-      select: { stripeCustomerId: true } as any,
+      select: { stripeCustomerId: true },
     });
 
-    const customerId = (user as any)?.stripeCustomerId as string | null;
+    const customerId = user?.stripeCustomerId ?? null;
     if (!customerId) return [];
 
     const stripe = await getStripe();

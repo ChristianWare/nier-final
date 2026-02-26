@@ -17,8 +17,7 @@ import * as tz from "@/lib/timezone";
 import EditUserProfileForm from "@/components/admin/EditUserProfileForm/EditUserProfileForm";
 import AdminSaveCardForUser from "@/components/admin/AdminSaveCardForUser/AdminSaveCardForUser";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
-import { getStripePublishableKey } from "@/lib/stripe";
-import { getStripe } from "@/lib/stripe";
+import { getStripePublishableKey, getStripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -246,7 +245,7 @@ export default async function UserDetailPage({
     exp_month: number;
     exp_year: number;
   }[] = [];
-  const stripeCustomerId = (user as any).stripeCustomerId as string | null;
+  const stripeCustomerId = user.stripeCustomerId ?? null;
   if (stripeCustomerId) {
     try {
       const stripe = await getStripe();

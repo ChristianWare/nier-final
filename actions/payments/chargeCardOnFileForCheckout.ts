@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { db } from "@/lib/db";
@@ -50,6 +49,7 @@ export async function chargeCardOnFileForCheckout({
   const amountPaidCents = Number(booking.payment?.amountPaidCents ?? 0);
   const tip = tipCents ?? 0;
   const amountToCharge = totalCents - amountPaidCents + tip;
+
   if (amountToCharge <= 0) {
     return { error: "This booking is already fully paid." };
   }
@@ -60,10 +60,10 @@ export async function chargeCardOnFileForCheckout({
 
   const user = await db.user.findUnique({
     where: { id: booking.userId },
-    select: { stripeCustomerId: true } as any,
+    select: { stripeCustomerId: true },
   });
 
-  const customerId = (user as any)?.stripeCustomerId as string | null;
+  const customerId = user?.stripeCustomerId ?? null;
   if (!customerId) {
     return { error: "No card on file." };
   }
@@ -116,6 +116,7 @@ export async function chargeCardOnFileForCheckout({
 
   const newAmountPaid = amountPaidCents + amountToCharge;
   const isFullyPaid = newAmountPaid >= totalCents;
+  const paidAt = new Date();
 
   await db.payment.upsert({
     where: { bookingId: booking.id },
@@ -123,14 +124,40 @@ export async function chargeCardOnFileForCheckout({
       bookingId: booking.id,
       status: "PAID",
       amountPaidCents: newAmountPaid,
+      tipCents: tip > 0 ? tip : undefined,
       stripePaymentIntentId: pi.id,
+      paidAt,
     },
     update: {
       status: isFullyPaid ? "PAID" : "PARTIALLY_REFUNDED",
       amountPaidCents: newAmountPaid,
+      tipCents: tip > 0 ? tip : undefined,
       stripePaymentIntentId: pi.id,
+      paidAt: isFullyPaid ? paidAt : undefined,
     },
   });
+
+  if (isFullyPaid) {
+    await db.booking.update({
+      where: { id: booking.id },
+      data: { status: "CONFIRMED" },
+    });
+
+    await db.bookingStatusEvent.create({
+      data: {
+        bookingId: booking.id,
+        status: "CONFIRMED",
+        eventType: "PAYMENT_RECEIVED",
+        metadata: {
+          amountCents: amountToCharge,
+          tipCents: tip,
+          method: "card_on_file",
+          last4: activePm.card?.last4 ?? null,
+          stripePaymentIntentId: pi.id,
+        },
+      },
+    });
+  }
 
   return {
     success: true,
@@ -160,10 +187,10 @@ export async function getSavedCardForBooking(bookingId: string): Promise<{
 
   const user = await db.user.findUnique({
     where: { id: booking.userId },
-    select: { stripeCustomerId: true } as any,
+    select: { stripeCustomerId: true },
   });
 
-  const customerId = (user as any)?.stripeCustomerId as string | null;
+  const customerId = user?.stripeCustomerId ?? null;
   if (!customerId)
     return {
       hasCard: false,

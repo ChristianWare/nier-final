@@ -35,18 +35,6 @@ async function requireUser() {
   return { userId };
 }
 
-// Helper type for the fields we need that aren't in generated Prisma types yet
-type UserWithStripe = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  stripeCustomerId: string | null;
-};
-
-type UserStripeOnly = {
-  stripeCustomerId: string | null;
-};
-
 /**
  * Creates a Stripe SetupIntent for saving a card.
  * Also creates a Stripe Customer for the user if they don't have one yet.
@@ -57,44 +45,32 @@ export async function createSetupIntent(): Promise<
   try {
     const { userId } = await requireUser();
 
-    const rawUser = await db.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         name: true,
         email: true,
-        // stripeCustomerId will be available after migration
+        stripeCustomerId: true,
       },
     });
 
-    if (!rawUser) return { error: "User not found." };
-
-    // Cast through unknown to access stripeCustomerId added by migration
-    const user = rawUser as unknown as UserWithStripe;
+    if (!user) return { error: "User not found." };
 
     const stripe = await getStripe();
     let customerId = user.stripeCustomerId;
 
-    // Create Stripe Customer if they don't have one
     if (!customerId) {
-      const customerParams: Record<string, unknown> = {
+      const customerParams = {
         metadata: { userId },
-      };
-      if (user.email) customerParams.email = user.email;
-      if (user.name) customerParams.name = user.name;
+        ...(user.email ? { email: user.email } : {}),
+        ...(user.name ? { name: user.name } : {}),
+      } as Parameters<typeof stripe.customers.create>[0];
 
-      const customer = await stripe.customers.create(
-        customerParams as Parameters<typeof stripe.customers.create>[0],
-      );
-
+      const customer = await stripe.customers.create(customerParams);
       customerId = customer.id;
 
-      type UpdateFn = (args: {
-        where: { id: string };
-        data: Record<string, unknown>;
-      }) => Promise<unknown>;
-
-      await (db.user.update as unknown as UpdateFn)({
+      await db.user.update({
         where: { id: userId },
         data: { stripeCustomerId: customerId },
       });
@@ -135,12 +111,11 @@ export async function removeSavedCard(
 
     const { paymentMethodId } = parsed.data;
 
-    const rawUser = await db.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { stripeCustomerId: true },
     });
 
-    const user = rawUser as unknown as UserStripeOnly | null;
     const customerId = user?.stripeCustomerId ?? null;
     if (!customerId) return { error: "No payment methods on file." };
 
@@ -168,12 +143,11 @@ export async function getSavedPaymentMethods() {
   try {
     const { userId } = await requireUser();
 
-    const rawUser = await db.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
-      select: { id: true },
+      select: { stripeCustomerId: true },
     });
 
-    const user = rawUser as unknown as UserStripeOnly | null;
     const customerId = user?.stripeCustomerId ?? null;
     if (!customerId) return { methods: [], customerId: null };
 

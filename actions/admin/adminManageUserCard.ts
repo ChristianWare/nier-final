@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { db } from "@/lib/db";
@@ -18,24 +17,25 @@ export async function adminCreateSetupIntentForUser({
       name: true,
       email: true,
       stripeCustomerId: true,
-    } as any,
+    },
   });
 
   if (!user) return { error: "User not found" };
 
   const stripe = await getStripe();
-  let customerId = (user as any).stripeCustomerId as string | null;
+  let customerId = user.stripeCustomerId;
 
   if (!customerId) {
     const customerParams = {
-      email: user.email,
+      email: user.email ?? undefined,
       name: user.name ?? undefined,
       metadata: { userId: user.id },
     } as Parameters<typeof stripe.customers.create>[0];
+
     const customer = await stripe.customers.create(customerParams);
     customerId = customer.id;
 
-    await (db.user.update as any)({
+    await db.user.update({
       where: { id: userId },
       data: { stripeCustomerId: customerId },
     });
@@ -65,15 +65,14 @@ export async function adminRemoveCardForUser({
 
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { stripeCustomerId: true } as any,
+    select: { stripeCustomerId: true },
   });
 
-  const customerId = (user as any)?.stripeCustomerId as string | null;
+  const customerId = user?.stripeCustomerId ?? null;
   if (!customerId) return { error: "User has no Stripe customer" };
 
   const stripe = await getStripe();
 
-  // Verify the PM belongs to this customer before detaching
   const pm = await stripe.paymentMethods.retrieve(paymentMethodId);
   if (pm.customer !== customerId) {
     return { error: "Payment method does not belong to this user" };
