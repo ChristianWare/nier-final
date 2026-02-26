@@ -39,7 +39,7 @@ export async function generateMetadata({
   if (!service || !city) return {};
 
   return {
-    title: `${service.title} in ${city.name}, AZ | Nier Transportation`,
+    title: `${service.title} in ${city.name} | Nier Transportation`,
     description: `Professional ${service.title.toLowerCase()} in ${city.name}, Arizona. ${service.copy}`,
     alternates: {
       canonical: `https://www.niertransportation.com/services/${service.slug}/${city.slug}`,
@@ -69,9 +69,11 @@ export default async function ServiceCityPage({
     name: `${service.title} in ${city.name}, AZ`,
     description: service.description,
     url: `https://www.niertransportation.com/services/${service.slug}/${city.slug}`,
+    serviceType: "Ground Transportation",
     provider: {
       "@type": "LocalBusiness",
       name: "Nier Transportation",
+      url: "https://www.niertransportation.com",
       telephone: "+1-480-300-6003",
       address: {
         "@type": "PostalAddress",
@@ -90,10 +92,12 @@ export default async function ServiceCityPage({
         name: "Arizona",
       },
     },
-    category: "Ground Transportation",
-    ...(service.faqs &&
-      service.faqs.length > 0 && {
-        mainEntityOfPage: {
+  };
+
+  const faqJsonLd =
+    service.faqs && service.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: service.faqs.map((faq) => ({
             "@type": "Question",
@@ -103,9 +107,8 @@ export default async function ServiceCityPage({
               text: faq.a,
             },
           })),
-        },
-      }),
-  };
+        }
+      : null;
 
   return (
     <main>
@@ -113,6 +116,12 @@ export default async function ServiceCityPage({
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <Nav background='cream' />
 
       {/* Hero / Intro */}

@@ -8,7 +8,6 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import LocationCityIntro from "@/components/LocationCityPage/LocationCityIntro/LocationCityIntro";
 import LocationCityMission from "@/components/LocationCityPage/LocationCityMission/LocationCityMission";
 import LocationCityServicesGrid from "@/components/LocationCityPage/LocationCityServicesGrid/LocationCityServicesGrid";
-// import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
 
 type Params = { city: string };
 
@@ -26,7 +25,7 @@ export async function generateMetadata({
   if (!city) return {};
 
   return {
-    title: `Luxury Black Car Service in ${city.name}, AZ | Nier Transportation`,
+    title: `Black Car Service ${city.name}, AZ | Nier Transportation`,
     description: `Premium chauffeur services in ${city.name}, Arizona — airport transfers, hourly chauffeur, corporate events, weddings, and more. Available 24/7 with no surge pricing.`,
     alternates: {
       canonical: `https://www.niertransportation.com/locations/${city.slug}`,
@@ -41,16 +40,7 @@ export default async function LocationCityPage({
 }) {
   const resolvedParams = await params;
   const citySlug = resolvedParams.city;
-
-  console.log("citySlug:", citySlug);
-  console.log(
-    "available slugs:",
-    serviceAreaCities.map((c) => c.slug),
-  );
-
   const city = serviceAreaCities.find((c) => c.slug === citySlug);
-
-  console.log("found city:", city);
 
   if (!city) notFound();
 
@@ -71,12 +61,13 @@ export default async function LocationCityPage({
         provider: {
           "@type": "LocalBusiness",
           name: "Nier Transportation",
+          url: "https://www.niertransportation.com",
         },
         areaServed: {
           "@type": "City",
           name: city.name,
         },
-        category: "Ground Transportation",
+        serviceType: "Ground Transportation",
       },
     })),
   };
@@ -91,7 +82,6 @@ export default async function LocationCityPage({
       <LocationCityIntro city={city} />
       <LocationCityMission city={city} />
       <LocationCityServicesGrid city={city} />
-      {/* <ServicesPreview /> */}
       <HowItWorks />
       <AboutNumbers />
     </main>

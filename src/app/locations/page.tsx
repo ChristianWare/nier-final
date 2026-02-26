@@ -11,7 +11,6 @@ import Button from "@/components/shared/Button/Button";
 import Image from "next/image";
 import HeroImg from "../../../public/images/sub.avif";
 
-
 export const metadata: Metadata = {
   title: "Service Areas | Nier Transportation",
   description:
@@ -33,7 +32,7 @@ const locationSchema = {
     item: {
       "@type": "City",
       name: city.name,
-      url: `https://www.niertransportation.com/services/airport-transfers/${city.slug}`,
+      url: `https://www.niertransportation.com/locations/${city.slug}`,
     },
   })),
 };
@@ -66,7 +65,7 @@ export default function LocationsPage() {
               <div className={styles.imgContainerMain}>
                 <Image
                   src={HeroImg}
-                  alt="Luxury Black Car Service"
+                  alt='Luxury Black Car Service'
                   fill
                   className={styles.imgMain}
                 />
