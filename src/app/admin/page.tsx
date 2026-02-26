@@ -2025,6 +2025,11 @@ export default async function AdminHome() {
         bookingHrefBase='/admin/bookings'
       />
       <AdminAlerts alerts={alerts} />
+      <AdminIncompleteApprovals
+        items={incompleteApprovals}
+        timeZone={companyTz}
+        bookingHrefBase='/admin/bookings'
+      />
       <AdminPaymentsSnapshot
         paymentsToday={paymentsToday}
         paymentsThisWeek={paymentsThisWeek}
@@ -2051,11 +2056,7 @@ export default async function AdminHome() {
         timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
       />
-      <AdminIncompleteApprovals
-        items={incompleteApprovals}
-        timeZone={companyTz}
-        bookingHrefBase='/admin/bookings'
-      />
+
       <AdminRideCalendar
         initialMonth={tz.monthKey(baseMonth, companyTz)}
         countsByYmd={countsByYmd}
