@@ -204,9 +204,10 @@ model User {
   // Trip group relations
   tripGroups TripGroup[] @relation("TripGroupUser")
 
-  createdAt                 DateTime                   @default(now())
-  updatedAt                 DateTime                   @updatedAt
-  adminNotificationSettings AdminNotificationSettings?
+  createdAt                  DateTime                    @default(now())
+  updatedAt                  DateTime                    @updatedAt
+  adminNotificationSettings  AdminNotificationSettings?
+  driverNotificationSettings DriverNotificationSettings?
 }
 
 model Account {
@@ -1088,4 +1089,21 @@ model TripGroup {
   @@index([userId])
   @@index([corporateAccountId])
   @@index([paymentStatus])
+}
+
+model DriverNotificationSettings {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emailEnabled Boolean @default(true)
+  emailTo      String? // Override address (defaults to user's account email)
+
+  emailRideAssigned  Boolean @default(true)
+  emailRideReminder  Boolean @default(true)
+  emailTripUpdated   Boolean @default(true)
+  emailTripCancelled Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

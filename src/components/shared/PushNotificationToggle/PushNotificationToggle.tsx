@@ -81,21 +81,29 @@ export default function PushNotificationToggle({
   });
   const [savingKey, setSavingKey] = useState<PrefKey | null>(null);
 
-  useEffect(() => {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-      setSupportStatus("unsupported");
-      return;
-    }
-    if (Notification.permission === "denied") {
-      setSupportStatus("denied");
-      return;
-    }
-    setSupportStatus("ready");
+useEffect(() => {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    setSupportStatus("unsupported");
+    return;
+  }
+  if (Notification.permission === "denied") {
+    setSupportStatus("denied");
+    return;
+  }
+  setSupportStatus("ready");
 
-    navigator.serviceWorker.register("/sw.js").catch((err) => {
+  navigator.serviceWorker
+    .register("/sw.js")
+    .then(async () => {
+      const registration = await navigator.serviceWorker.ready;
+      const existingSub = await registration.pushManager.getSubscription();
+      // Override the server-side value with what this browser actually has
+      setIsSubscribed(!!existingSub);
+    })
+    .catch((err) => {
       console.error("[PWA] Service worker registration failed:", err);
     });
-  }, []);
+}, []);
 
   // ─── Subscribe / Unsubscribe ─────────────────────────────────────────────
 

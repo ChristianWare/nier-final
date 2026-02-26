@@ -295,6 +295,18 @@
   --nav-border: rgba(0, 0, 0, 0.12);
 }
 
+.open .whiteBar {
+  background-color: var(--black);
+}
+
+.open .logo {
+  color: var(--black);
+}
+
+.open .text {
+  color: var(--black);
+}
+
 @media screen and (max-width: 1368px) {
   .navbar {
     display: flex;
