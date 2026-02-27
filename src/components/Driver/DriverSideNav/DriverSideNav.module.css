@@ -238,5 +238,32 @@
 }
 
 @media screen and (max-width: 568px) {
- 
+  .linksWrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .linksWrapper > li {
+    flex: 1;
+    display: flex;
+  }
+
+  .navLink {
+    flex: 1;
+    width: 100%;
+  }
+
+  .compactMenuBtn {
+    flex: 1;
+    display: flex;
+  }
+
+  .moreBtn {
+    flex: 1;
+    width: 100%;
+  }
 }

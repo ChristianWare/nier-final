@@ -47,8 +47,7 @@
 
 .navLink,
 .signOutBtn,
-.dshbrdBtn,
-.drvrDshbrdBtn {
+.homeBtn {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -69,7 +68,7 @@
   color: inherit;
 }
 
-.navLinkActive {
+.navLink.navLinkActive {
   background-color: var(--accent);
   color: var(--white);
 }
@@ -82,8 +81,7 @@
 }
 
 .signOutBtn,
-.dshbrdBtn,
-.drvrDshbrdBtn {
+.homeBtn {
   cursor: pointer;
   background-color: var(--black);
   color: var(--cream);
@@ -93,23 +91,12 @@
   justify-content: space-between;
 }
 
-.dshbrdBtn {
-  background-color: var(--lightGray);
-  border: 1px solid var(--strokeii);
-  color: var(--black);
-}
-
-.drvrDshbrdBtn {
-  background-color: var(--black400);
-  border: 1px solid var(--black400);
+.homeBtn {
+  background-color: var(--paragraph);
 }
 
 .arrow {
   transform: rotate(90deg);
-}
-
-.signOutLogo {
-  color: var(--cream);
 }
 
 .actionBtns {
@@ -179,12 +166,6 @@
   transition: background-color 0.2s ease-in;
 }
 
-.modalNavLinkDark {
-  background-color: var(--black400);
-  border-color: var(--black400);
-  color: var(--cream);
-}
-
 .modalArrow {
   transform: rotate(90deg);
   flex-shrink: 0;
@@ -195,8 +176,73 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-  z-index: 999;
 }
+
+.btnContainer {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.navLink,
+.signOutBtn,
+.dshbrdBtn,
+.drvrDshbrdBtn {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--black);
+  text-decoration: none;
+  background-color: var(--stroke);
+  border-radius: 5px;
+  width: 100%;
+  padding: 1rem 2rem;
+  white-space: nowrap;
+  transition: all 0.2s ease-in;
+}
+
+.signOutBtn,
+.dshbrdBtn,
+.drvrDshbrdBtn {
+  cursor: pointer;
+  background-color: var(--black);
+  color: var(--cream);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dshbrdBtn {
+  background-color: var(--lightGray);
+  border: 1px solid var(--strokeii);
+  color: var(--black);
+}
+
+.drvrDshbrdBtn {
+  background-color: var(--black400);
+  border: 1px solid var(--black400);
+}
+
+.arrow {
+  transform: rotate(90deg);
+}
+
+.signOutLogo {
+  color: var(--cream);
+}
+
+.actionBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
 
 /* ── Hover only on devices that support true hover (mouse, not touch) ── */
 @media (hover: hover) {
@@ -209,11 +255,7 @@
     background-color: var(--black400);
   }
 
-  .dshbrdBtn:hover {
-    background-color: var(--black300);
-  }
-
-  .drvrDshbrdBtn:hover {
+  .homeBtn:hover {
     background-color: var(--black300);
   }
 
@@ -228,13 +270,14 @@
   .modalNavLink:hover {
     background-color: var(--black300);
   }
-
-  .modalNavLinkDark:hover {
-    background-color: var(--black300);
-  }
 }
 
 @media screen and (max-width: 968px) {
+  .linksWrapper {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+  }
+
   .navLink {
     width: 100%;
     text-overflow: ellipsis;
@@ -249,9 +292,10 @@
     display: none;
   }
 
-  /* Hide full action buttons, show compact trigger instead */
+  /* Hide full sign out, show compact trigger instead */
   .actionBtns {
     display: none;
+    grid-column: span 3;
   }
 
   .compactMenuBtn {
@@ -261,13 +305,31 @@
 
 @media screen and (max-width: 568px) {
   .linksWrapper {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+    width: 100%;
+    overflow: hidden;
   }
 
-  .signOutBtn,
-  .drvrDshbrdBtn,
-  .dshbrdBtn {
-    grid-column: span 2;
-    padding: 3rem 2rem;
+  .linksWrapper > li {
+    flex: 1;
+    display: flex;
+  }
+
+  .navLink {
+    flex: 1;
+    width: 100%;
+  }
+
+  .compactMenuBtn {
+    flex: 1;
+    display: flex;
+  }
+
+  .moreBtn {
+    flex: 1;
+    width: 100%;
   }
 }

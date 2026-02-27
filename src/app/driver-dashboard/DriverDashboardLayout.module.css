@@ -40,6 +40,12 @@
     padding-top: 5rem;
   }
 
+  .content {
+    grid-template-columns: 1fr;
+        gap: 7rem;
+
+  }
+
   .AdminSideNavContainer {
     position: sticky;
     top: 80px;
