@@ -1,0 +1,156 @@
+.container {
+  background-color: var(--cream);
+  padding: 10rem 0rem;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-gap: 10rem;
+  align-items: start;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.heading {
+  width: 90%;
+}
+
+.copy1 {
+  background: var(--lighterBlue);
+  border: 2px solid var(--lightBlue);
+  border-radius: 10px;
+  padding: 2rem;
+  font-weight: 600;
+}
+
+.copy {
+  color: var(--paragraph);
+}
+
+.trustItems {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin-top: 2rem;
+}
+
+.trustItem {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 2px solid var(--stroke);
+  padding: 2rem 0rem;
+}
+
+.trustItem:last-child {
+  padding-bottom: 0rem;
+}
+
+.trustLabel {
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--accent);
+}
+
+.trustDesc {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.ratesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.rateCard {
+  background-color: var(--white);
+  border-radius: 7px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid var(--stroke);
+  transition: border-color 0.2s ease;
+}
+
+.rateCard:hover {
+  border-color: var(--accent);
+}
+
+.rateCardTop {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-bottom: 1px solid var(--stroke);
+  padding-bottom: 2rem;
+}
+
+.vehicleSeats {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+}
+
+.rateCardRates {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rateRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rateLabel {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+}
+
+.rateValue {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--text-primary);
+}
+
+.rateUnit {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--paragraph);
+}
+
+.disclaimer {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  font-style: italic;
+}
+
+@media screen and (max-width: 1268px) {
+  .content {
+    grid-template-columns: 1fr;
+    grid-gap: 5rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .ratesGrid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .heading {
+    width: 100%;
+  }
+}

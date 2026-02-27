@@ -15,7 +15,7 @@ export default function WhyCharter() {
               color='red'
               dot
             />
-            <h2 className={styles.heading}>Why Does Phoenix Depend On It?</h2>
+            <h2 className={styles.heading}>Why does Phoenix depend on it?</h2>
           </div>
           <div className={styles.bottom}>
             <div className={styles.bottomLeft}>
