@@ -11,8 +11,8 @@ export default function CharterPageIntro() {
           <div className={styles.top}>
             <SectionHeading text='Charter Bus Rental Phoenix' dot />
             <h1 className={styles.heading}>
-              Phoenix Charter Bus Rental: Nier Transportation&apos;s Premier Charter
-              Bus Rental Service in AZ
+              Phoenix charter bus rental: Nier Transportation&apos;s premier charter
+              bus rental service in AZ
             </h1>
             <p className={styles.copy}>
               When your group needs to move through the Valley in comfort,
