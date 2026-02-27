@@ -451,6 +451,12 @@ export function getPreviousPeriodRange(
       const ymd = yesterday.toISOString().split("T")[0];
       return [ymd, ymd];
     }
+    case "yesterday": {
+      const twoDaysAgo = new Date(today);
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      const ymd = twoDaysAgo.toISOString().split("T")[0];
+      return [ymd, ymd];
+    }
     case "7d": {
       const end = new Date(today);
       end.setDate(end.getDate() - 7);
@@ -507,6 +513,7 @@ export function getIntervalForRange(
 ): "hour" | "day" | "week" | "month" {
   switch (range) {
     case "day":
+    case "yesterday":
       return "hour";
     case "7d":
       return "day";

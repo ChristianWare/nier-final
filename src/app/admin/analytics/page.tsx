@@ -35,11 +35,19 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const fetchCache = "force-no-store";
 
-const VALID_RANGES = ["day", "7d", "30d", "month", "12mo"] as const;
+const VALID_RANGES = [
+  "day",
+  "yesterday",
+  "7d",
+  "30d",
+  "month",
+  "12mo",
+] as const;
 type ValidRange = (typeof VALID_RANGES)[number];
 
 const RANGE_LABELS: Record<ValidRange, string> = {
   day: "Today",
+  yesterday: "Yesterday",
   "7d": "Last 7 Days",
   "30d": "Last 30 Days",
   month: "This Month",
@@ -86,6 +94,12 @@ async function AnalyticsContent({ range }: { range: ValidRange }) {
   const previousRange = getPreviousPeriodRange(range);
   const interval = getIntervalForRange(range);
 
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayYmd = yesterday.toISOString().split("T")[0];
+  const resolvedRange: string | [string, string] =
+    range === "yesterday" ? [yesterdayYmd, yesterdayYmd] : range;
+
   const [
     current,
     previous,
@@ -101,18 +115,18 @@ async function AnalyticsContent({ range }: { range: ValidRange }) {
     browsers,
     realtimeVisitors,
   ] = await Promise.all([
-    getAggregateStats(range),
+    getAggregateStats(resolvedRange),
     getAggregateStats(previousRange),
-    getTimeseries(range, interval),
-    getTopPages(range, 10),
-    getTrafficSources(range, 10),
-    getCountries(range, 10),
-    getRegions(range, 10),
-    getCities(range, 10),
-    getDevices(range),
-    getEntryPages(range, 10),
-    getExitPages(range, 10),
-    getBrowsers(range),
+    getTimeseries(resolvedRange, interval),
+    getTopPages(resolvedRange, 10),
+    getTrafficSources(resolvedRange, 10),
+    getCountries(resolvedRange, 10),
+    getRegions(resolvedRange, 10),
+    getCities(resolvedRange, 10),
+    getDevices(resolvedRange),
+    getEntryPages(resolvedRange, 10),
+    getExitPages(resolvedRange, 10),
+    getBrowsers(resolvedRange),
     getRealtimeVisitors(),
   ]);
 
@@ -191,7 +205,7 @@ export default async function AdminAnalyticsPage({
   searchParams: Promise<{ range?: string }>;
 }) {
   const params = await searchParams;
-  const rangeParam = params.range ?? "30d";
+  const rangeParam = params.range ?? "day";
   const range: ValidRange = isValidRange(rangeParam) ? rangeParam : "30d";
 
   return (

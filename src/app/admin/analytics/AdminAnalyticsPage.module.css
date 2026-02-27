@@ -547,6 +547,7 @@
   letter-spacing: normal;
   word-break: break-all;
   max-width: 280px;
+  overflow: hidden;
 }
 
 .barCell {
@@ -727,5 +728,14 @@
     height: 36px;
     padding: 0 10px;
     font-size: 1.4rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .pageCell {
+    max-width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
   }
 }
