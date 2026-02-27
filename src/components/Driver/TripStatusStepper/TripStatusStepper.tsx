@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { BookingStatus } from "@prisma/client";
 import toast from "react-hot-toast";
 import styles from "./TripStatusStepper.module.css";
-import { driverUpdateTripStatus } from "../../../../actions/driver-dashboard/driverUpdateTripStatus"; 
+import { driverUpdateTripStatus } from "../../../../actions/driver-dashboard/driverUpdateTripStatus";
 // Status order for the stepper
 const STATUS_ORDER: BookingStatus[] = [
   BookingStatus.ASSIGNED,
@@ -132,7 +132,8 @@ export default function TripStatusStepper({
     pickupDate.getMonth(),
     pickupDate.getDate(),
   );
-  const isTodayOrPast = pickupDay <= today;
+  const threeHoursBefore = new Date(pickupDate.getTime() - 3 * 60 * 60 * 1000);
+  const isTodayOrPast = now >= threeHoursBefore;
 
   // Get current step index based on display status
   const currentIndex = STATUS_ORDER.indexOf(displayStatus);
@@ -298,7 +299,7 @@ export default function TripStatusStepper({
           <span className={styles.futureIcon}>📅</span>
           <div className={styles.futureText}>
             <strong>Scheduled for {formattedDate}</strong>
-            <p>Trip controls will be available on the day of your trip.</p>
+            <p>Trip controls will be available 3 hours before your pickup.</p>
           </div>
         </div>
       </div>
