@@ -78,10 +78,35 @@ export default function CorporateInquiryForm() {
           id='companyName'
           type='text'
           placeholder='Acme Inc.'
-          {...register("companyName", { required: true })}
+          {...register("companyName", {
+            required: "Company name is required",
+            minLength: {
+              value: 2,
+              message: "Company name must be at least 2 characters",
+            },
+            maxLength: {
+              value: 100,
+              message: "Company name must be fewer than 100 characters",
+            },
+            pattern: {
+              value: /^[a-zA-ZÀ-ÿ0-9\s'\-\.\&\,]+$/,
+              message: "Company name contains invalid characters",
+            },
+            validate: (val) => {
+              if (!/[aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûü]/i.test(val))
+                return "Please enter a valid company name";
+              if (
+                /[^aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûü\s'\-\.&,0-9]{6,}/i.test(
+                  val,
+                )
+              )
+                return "Please enter a valid company name";
+              return true;
+            },
+          })}
         />
         {errors.companyName && (
-          <span className={styles.error}>Company name is required</span>
+          <span className={styles.error}>{errors.companyName.message}</span>
         )}
       </div>
 
@@ -94,10 +119,32 @@ export default function CorporateInquiryForm() {
           id='contactName'
           type='text'
           placeholder='John Smith'
-          {...register("contactName", { required: true })}
+          {...register("contactName", {
+            required: "Contact name is required",
+            minLength: {
+              value: 2,
+              message: "Name must be at least 2 characters",
+            },
+            maxLength: {
+              value: 50,
+              message: "Name must be fewer than 50 characters",
+            },
+            pattern: {
+              value: /^[a-zA-ZÀ-ÿ\s'\-\.]+$/,
+              message:
+                "Name can only contain letters, spaces, hyphens, and apostrophes",
+            },
+            validate: (val) => {
+              if (!/[aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûü]/i.test(val))
+                return "Please enter a valid name";
+              if (/[^aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûü\s'\-\.]{6,}/i.test(val))
+                return "Please enter a valid name";
+              return true;
+            },
+          })}
         />
         {errors.contactName && (
-          <span className={styles.error}>Contact name is required</span>
+          <span className={styles.error}>{errors.contactName.message}</span>
         )}
       </div>
 
@@ -130,9 +177,33 @@ export default function CorporateInquiryForm() {
           <input
             id='inquiryPhone'
             type='tel'
-            placeholder='(480) 555-0123'
-            {...register("phone")}
+            placeholder='(480)555-0123'
+            {...register("phone", {
+              onChange: (e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 10);
+                let formatted = digits;
+                if (digits.length >= 7) {
+                  formatted = `(${digits.slice(0, 3)})${digits.slice(3, 6)}-${digits.slice(6)}`;
+                } else if (digits.length >= 4) {
+                  formatted = `(${digits.slice(0, 3)})${digits.slice(3)}`;
+                } else if (digits.length >= 1) {
+                  formatted = `(${digits}`;
+                }
+                e.target.value = formatted;
+              },
+              validate: (val) => {
+                if (!val) return true;
+                const digits = val.replace(/\D/g, "");
+                return (
+                  digits.length === 10 ||
+                  "Please enter a valid 10-digit phone number"
+                );
+              },
+            })}
           />
+          {errors.phone && (
+            <span className={styles.error}>{errors.phone.message}</span>
+          )}
         </div>
       </div>
 
