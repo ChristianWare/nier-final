@@ -108,8 +108,8 @@ export default function AboutTestimonials() {
                           <div className={styles.imgContainer}>
                             <Image
                               src={reviews[index].person || Img1}
-                              alt=''
-                              title=''
+                              alt={reviews[index].reviewer}
+                              title={reviews[index].reviewer}
                               width={80}
                               height={80}
                               className={styles.img}
@@ -139,8 +139,8 @@ export default function AboutTestimonials() {
                       <div className={styles.imgContainerRight}>
                         <Image
                           src={reviews[index].person || Img1}
-                          alt=''
-                          title=''
+                          alt={reviews[index].reviewer}
+                          title={reviews[index].reviewer}
                           fill
                           className={styles.imgRight}
                         />

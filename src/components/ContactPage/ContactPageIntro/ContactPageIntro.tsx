@@ -57,8 +57,8 @@ export default function ContactPageIntro() {
               <Image
                 src={Suburban}
                 fill
-                alt=''
-                title=''
+                alt='Contact Nier Transportation'
+                title='Contact Nier Transportation'
                 className={styles.img}
                 priority
                 loading='eager'

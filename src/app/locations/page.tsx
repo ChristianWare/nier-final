@@ -66,6 +66,7 @@ export default function LocationsPage() {
                 <Image
                   src={HeroImg}
                   alt='Luxury Black Car Service'
+                  title='Luxury Black Car Service'
                   fill
                   className={styles.imgMain}
                 />

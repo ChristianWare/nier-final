@@ -8,7 +8,11 @@ import Button from "@/components/shared/Button/Button";
 import type { VehicleData } from "@/lib/types/fleet";
 import ImgFallback from "../../../../../../public/images/vip.jpg";
 
-export default function FleetSlugPageIntro({ vehicle }: { vehicle: VehicleData }) {
+export default function FleetSlugPageIntro({
+  vehicle,
+}: {
+  vehicle: VehicleData;
+}) {
   const heroImg =
     (vehicle.images?.[0]?.src as any) || (vehicle.src as any) || ImgFallback;
   const heroAlt = vehicle.images?.[0]?.alt ?? vehicle.title;
@@ -20,7 +24,13 @@ export default function FleetSlugPageIntro({ vehicle }: { vehicle: VehicleData }
         <div className={styles.content}>
           <div className={styles.left}>
             <div className={styles.imgContainer}>
-              <Image src={heroImg} alt={heroAlt} fill className={styles.img} />
+              <Image
+                src={heroImg}
+                alt={heroAlt}
+                title={heroAlt}
+                fill
+                className={styles.img}
+              />
             </div>
           </div>
           <div className={styles.right}>

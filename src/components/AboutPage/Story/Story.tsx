@@ -95,6 +95,7 @@ export default function Story() {
                         <Image
                           src={x.src}
                           alt={x.title}
+                          title={x.title}
                           fill
                           className={styles.img}
                         />

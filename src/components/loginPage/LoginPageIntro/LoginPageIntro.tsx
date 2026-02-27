@@ -12,7 +12,13 @@ export default function LoginPageIntro() {
         <div className={styles.content}>
           <div className={styles.left}>
             <div className={styles.imgContainer}>
-              <Image src={Img1} alt='' fill className={styles.img} />
+              <Image
+                src={Img1}
+                alt='Book with Nier Transportation'
+                title='Book with Nier Transportation'
+                fill
+                className={styles.img}
+              />
             </div>
           </div>
           <div className={styles.right}>

@@ -31,6 +31,7 @@ export default function ServicePageIntro() {
                   <Image
                     src={Img2}
                     alt='hero image'
+                    title='hero image'
                     width={60}
                     height={60}
                     className={styles.imgSmall}
@@ -42,6 +43,7 @@ export default function ServicePageIntro() {
                 <Image
                   src={Img1}
                   alt='hero image'
+                  title='hero image'
                   className={styles.img}
                   priority
                   fill
@@ -56,6 +58,7 @@ export default function ServicePageIntro() {
           <Image
             src={Img1}
             alt='hero image'
+            title='hero image'
             className={styles.img}
             priority
             fill

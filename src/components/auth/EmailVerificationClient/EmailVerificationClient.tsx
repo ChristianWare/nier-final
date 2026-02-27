@@ -56,7 +56,7 @@ export default function EmailVerificationClient({ token }: Props) {
         <div className={styles.content}>
           <div className={styles.left}>
               <div className={styles.imgContainer}>
-                <Image src={Yay} alt='happy face' fill className={styles.img} />
+                <Image src={Yay} alt='happy face' title='happy face' fill className={styles.img} />
               </div>
           </div>
           {pending && <div>Verifying email...</div>}
@@ -67,6 +67,7 @@ export default function EmailVerificationClient({ token }: Props) {
                 <Image
                   src={Angry}
                   alt='angry face'
+                  title='angry face'
                   fill
                   className={styles.img}
                 />

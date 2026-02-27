@@ -264,6 +264,7 @@ export default function AdminPhotoModal({
               <Image
                 src={currentImage}
                 alt='Current profile'
+                title='Current profile'
                 width={120}
                 height={120}
                 className={styles.currentImage}

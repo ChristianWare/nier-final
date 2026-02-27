@@ -71,7 +71,7 @@ export default function ServiceAreas() {
               <Logo className={styles.logo} />
             </div>
 
-            <Image src={Img1} alt='Phoenix' fill className={styles.img} />
+            <Image src={Img1} alt='Phoenix Nier Transportation' title='Phoenix Nier Transportation' fill className={styles.img} />
           </div>
         </div>
       </div>

@@ -28,18 +28,24 @@ export default function ServiceSlugPageIntro({
   return (
     <section className={styles.container}>
       {/* <LayoutWrapper> */}
-        <div className={styles.content}>
-          <div className={styles.top}>
-            <SectionHeading text='service' dot />
-            <h1 className={`${styles.heading} underline`}>{service.title}</h1>
-            {/* <p className={styles.copy}>{service.copy}</p> */}
-            {service.src && (
-              <div className={styles.imgContainer}>
-                <Image src={service.src} fill alt='' className={styles.img} />
-              </div>
-            )}
-          </div>
+      <div className={styles.content}>
+        <div className={styles.top}>
+          <SectionHeading text='service' dot />
+          <h1 className={`${styles.heading} underline`}>{service.title}</h1>
+          {/* <p className={styles.copy}>{service.copy}</p> */}
+          {service.src && (
+            <div className={styles.imgContainer}>
+              <Image
+                src={service.src}
+                fill
+                alt={service.title}
+                title={service.title}
+                className={styles.img}
+              />
+            </div>
+          )}
         </div>
+      </div>
       {/* </LayoutWrapper> */}
     </section>
   );

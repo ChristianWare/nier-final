@@ -347,6 +347,7 @@ export default async function CorporateBookingDetailPage({
               <Image
                 src={driverImage || DefaultProfileImg}
                 alt={driverName}
+                title={driverName}
                 width={80}
                 height={80}
                 className={styles.driverImage}

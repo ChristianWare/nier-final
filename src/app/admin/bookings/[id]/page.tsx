@@ -1098,6 +1098,7 @@ export default async function AdminBookingDetailPage({
                       <Image
                         src={booking.assignment.driver.image}
                         alt={booking.assignment.driver.name ?? "Driver"}
+                        title={booking.assignment.driver.name ?? "Driver"}
                         width={36}
                         height={36}
                         className={styles.driverNameplateAvatar}

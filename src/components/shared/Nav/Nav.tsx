@@ -200,7 +200,7 @@ export default function Nav({
           })}
 
           <div className={styles.menuImage}>
-            <Image src={Img1} alt='Menu image' fill className={styles.img} />
+            <Image src={Img1} alt='Menu image' title='Menu image' fill className={styles.img} />
             <div className={styles.menuImageOverlay}>
               <Logo className={styles.logoii} />
             </div>

@@ -33,6 +33,7 @@ export default function BlogCardOne({ post }: Props) {
               <Image
                 src={post.imageUrl}
                 alt={post.imageAlt || "Blog Image"}
+                title={post.imageAlt || "Blog Image"}
                 fill
                 className={styles.img}
                 sizes='(max-width: 1024px) 100vw, 50vw'

@@ -58,8 +58,8 @@ export default function NotFoundPageIntro() {
             <Image
               src={Suburban}
               fill
-              alt=''
-              title=''
+              alt='Book with Nier Transportation'
+              title='Book with Nier Transportation'
               className={styles.img}
               priority
               loading='eager'

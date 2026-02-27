@@ -587,6 +587,7 @@ function DriverAvatar({
       <Image
         src={driver.image}
         alt={displayName}
+        title={displayName}
         width={size}
         height={size}
         className={styles.avatar}

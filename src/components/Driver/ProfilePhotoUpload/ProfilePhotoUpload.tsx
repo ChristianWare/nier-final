@@ -31,6 +31,7 @@ export default function ProfilePhotoUpload({
           <Image
             src={displayImage}
             alt={userName || "Driver"}
+            title={userName || "Driver"}
             width={80}
             height={80}
             className={styles.profileImage}
@@ -39,6 +40,7 @@ export default function ProfilePhotoUpload({
           <Image
             src={defaultImage}
             alt={userName || "Driver"}
+            title={userName || "Driver"}
             width={80}
             height={80}
             className={styles.profileImage}

@@ -42,6 +42,7 @@ export default function LocationCityServicesGrid({ city }: { city: CityData }) {
                   <Image
                     src={x.src}
                     alt={x.title}
+                    title={x.title}
                     fill
                     className={styles.img}
                   />

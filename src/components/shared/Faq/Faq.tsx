@@ -32,7 +32,7 @@ export default function Faq({
               <SectionHeading text='Faqs' />
             </div>
             <div className={styles.imgContainer}>
-              <Image src={Img1} alt='hero image' className={styles.img} fill />
+              <Image src={Img1} alt='hero image' title='hero image' className={styles.img} fill />
             </div>
           </div>
           <div className={styles.right}>

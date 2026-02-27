@@ -31,6 +31,7 @@ export default function LocationCityIntro({ city }: { city: CityData }) {
                   <Image
                     src={Img2}
                     alt='Illeana L.'
+                    title='Illeana L.'
                     width={60}
                     height={60}
                     className={styles.imgSmall}
@@ -42,6 +43,7 @@ export default function LocationCityIntro({ city }: { city: CityData }) {
                 <Image
                   src={Img1}
                   alt={`Luxury black car service in ${city.name}`}
+                  title={`Luxury black car service in ${city.name}`}
                   className={styles.img}
                   fill
                 />
@@ -55,6 +57,7 @@ export default function LocationCityIntro({ city }: { city: CityData }) {
           <Image
             src={Img1}
             alt={`Luxury black car service in ${city.name}`}
+            title={`Luxury black car service in ${city.name}`}
             className={styles.img}
             fill
           />

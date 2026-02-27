@@ -11,8 +11,8 @@ export default function BookingPageIntro() {
         <div className={styles.hero}>
           <Image
             src={Img1}
-            alt=''
-            title=''
+            alt='Booking with Nier Transportation'
+            title='Booking with Nier Transportation'
             fill
             priority
             className={styles.img}

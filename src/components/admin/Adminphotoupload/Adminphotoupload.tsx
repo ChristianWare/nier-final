@@ -37,6 +37,7 @@ export default function AdminPhotoUpload({
           <Image
             src={displayImage}
             alt={userName || "User"}
+            title={userName || "User"}
             width={80}
             height={80}
             className={styles.profileImage}
@@ -45,6 +46,7 @@ export default function AdminPhotoUpload({
           <Image
             src={defaultImage}
             alt={userName || "User"}
+            title={userName || "User"}
             width={80}
             height={80}
             className={styles.profileImage}

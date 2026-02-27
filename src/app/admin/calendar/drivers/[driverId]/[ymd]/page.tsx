@@ -276,6 +276,7 @@ export default async function AdminCalendarDriverDayPage(props: {
               <Image
                 src={driver.image}
                 alt={driverName}
+                title={driverName}
                 width={44}
                 height={44}
                 className={styles.driverAvatar}

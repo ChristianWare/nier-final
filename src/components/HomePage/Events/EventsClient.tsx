@@ -134,6 +134,7 @@ export default function EventsClient({ posts }: { posts: EventPost[] }) {
                       <Image
                         src={img}
                         alt={event.coverImage?.alt || event.title}
+                        title={event.coverImage?.alt || event.title}
                         fill
                         className={styles.img}
                       />

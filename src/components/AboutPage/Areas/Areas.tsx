@@ -202,6 +202,7 @@ export default function Areas() {
                     key={s.id}
                     src={s.src}
                     alt={s.feature}
+                    title={s.feature}
                     className={`${styles.imgLayer} ${
                       idx === activeIndex ? styles.visible : ""
                     }`}
@@ -257,6 +258,7 @@ export default function Areas() {
                         <Image
                           src={x.src}
                           alt={x.feature}
+                          title={x.feature}
                           fill
                           quality={100}
                           sizes='(max-width: 768px) 100vw, 100vw'

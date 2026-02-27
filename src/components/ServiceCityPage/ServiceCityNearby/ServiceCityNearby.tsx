@@ -47,6 +47,7 @@ export default function ServiceCityNearby({
                 <Image
                   src={nearbyCity.src}
                   alt={nearbyCity.name}
+                  title={nearbyCity.name}
                   layout='fill'
                   objectFit='cover'
                   className={styles.img}

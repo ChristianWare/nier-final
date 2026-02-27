@@ -82,6 +82,7 @@ export default function ServicesPreview() {
                   <Image
                     src={x.src}
                     alt={x.title}
+                    title={x.title}
                     fill
                     className={styles.img}
                   />

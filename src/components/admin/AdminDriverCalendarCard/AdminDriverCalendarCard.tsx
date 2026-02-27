@@ -197,6 +197,7 @@ export default function AdminDriverCalendarCard({
             <Image
               src={avatarSrc}
               alt={displayName}
+              title={displayName}
               width={64}
               height={64}
               className={styles.avatar}

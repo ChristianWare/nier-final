@@ -32,6 +32,7 @@ export default function ImageMarquee() {
             <Image
               src={src}
               alt={title}
+              title={title}
               fill
               className={styles.img}
               sizes='(max-width: 768px) 100vw, 300px'

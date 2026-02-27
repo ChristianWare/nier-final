@@ -37,7 +37,7 @@ export default function FinalCTA() {
         </div>
         <div className={styles.right}>
           <div className={styles.imgContainer}>
-            <Image src={Img1} fill alt='Airport Ride' className={styles.img} />
+            <Image src={Img1} fill alt='Airport Ride' title='Airport Ride' className={styles.img} />
           </div>
         </div>
       </div>

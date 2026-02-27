@@ -290,6 +290,7 @@ export default async function AdminDriverSnapshot() {
                           <Image
                             src={driver.image ?? DefaultProfileImg}
                             alt={driver.name ?? "Driver"}
+                            title={driver.name ?? "Driver"}
                             width={40}
                             height={40}
                             className={styles.driverImage}

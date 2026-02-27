@@ -140,6 +140,7 @@ const ptComponents: PortableTextComponents = {
           <Image
             src={src}
             alt={alt}
+            title={alt}
             width={1600}
             height={900}
             className={styles.ptImageEl}
@@ -293,6 +294,7 @@ export default async function BlogPostPage({
                     <Image
                       src={coverSrc}
                       alt={post?.coverImage?.alt || post.title}
+                      title={post?.coverImage?.alt || post.title}
                       fill
                       priority
                       className={styles.img}

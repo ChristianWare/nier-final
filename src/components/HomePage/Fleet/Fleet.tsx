@@ -27,8 +27,8 @@ export default function Fleet() {
                   <Image
                     src={x.src}
                     fill
-                    alt=''
-                    title=''
+                    alt='Book with Nier Transportation'
+                    title='Book with Nier Transportation'
                     className={styles.img}
                   />
                 </div>

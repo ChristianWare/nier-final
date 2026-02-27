@@ -36,6 +36,7 @@ export default function VehiclePhotoUpload({
           <Image
             src={displayImage}
             alt={vehicleName || "Vehicle"}
+            title={vehicleName || "Vehicle"}
             width={100}
             height={100}
             className={styles.vehicleImage}
@@ -44,6 +45,7 @@ export default function VehiclePhotoUpload({
           <Image
             src={defaultImage}
             alt={vehicleName || "Vehicle"}
+            title={vehicleName || "Vehicle"}
             width={100}
             height={100}
             className={styles.vehicleImage}

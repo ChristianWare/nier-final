@@ -177,6 +177,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
                 <Image
                   src={heroImg}
                   alt={heroAlt}
+                  title={heroAlt}
                   fill
                   className={styles.img}
                 />

@@ -263,6 +263,7 @@ export default function VehiclePhotoModal({
               <Image
                 src={currentImage}
                 alt='Current vehicle'
+                title='Current vehicle'
                 width={200}
                 height={150}
                 className={styles.currentImage}

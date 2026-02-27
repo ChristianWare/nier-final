@@ -498,6 +498,7 @@ export default async function UserTripDetailPage({
               <Image
                 src={driverImage || DefaultProfileImg}
                 alt={driverName}
+                title={driverName}
                 width={80}
                 height={80}
                 className={styles.driverImage}
