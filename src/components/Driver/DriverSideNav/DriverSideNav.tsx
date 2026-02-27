@@ -9,13 +9,14 @@ import FalseButton from "@/components/shared/FalseButton/FalseButton";
 import House from "@/components/shared/icons/House/House";
 import Calendar from "@/components/shared/icons/Calendar/Calendar";
 import Bell from "@/components/shared/icons/Bell/Bell";
-import Listing from "@/components/shared/icons/Listing/Listing";
+// import Listing from "@/components/shared/icons/Listing/Listing";
 import Users from "@/components/shared/icons/Users/Users";
 import Cog from "@/components/shared/icons/Cog/Cog";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import Appointments from "@/components/shared/icons/Appointments/Appointments";
 import Modal from "@/components/shared/Modal/Modal";
+import Money from "@/components/shared/icons/Money/Money";
 
 const NAV_ITEMS = [
   {
@@ -23,6 +24,18 @@ const NAV_ITEMS = [
     href: "/driver-dashboard",
     key: "overview",
     icon: <House />,
+  },
+  {
+    title: "Profile",
+    href: "/driver-dashboard/profile",
+    key: "profile",
+    icon: <Users />,
+  },
+  {
+    title: "Earnings",
+    href: "/driver-dashboard/earnings",
+    key: "earnings",
+    icon: <Money />,
   },
   {
     title: "Trips",
@@ -37,22 +50,10 @@ const NAV_ITEMS = [
     icon: <Bell />,
   },
   {
-    title: "Earnings",
-    href: "/driver-dashboard/earnings",
-    key: "earnings",
-    icon: <Listing />,
-  },
-  {
     title: "Schedule",
     href: "/driver-dashboard/schedule",
     key: "schedule",
     icon: <Calendar />,
-  },
-  {
-    title: "Profile",
-    href: "/driver-dashboard/profile",
-    key: "profile",
-    icon: <Users />,
   },
   {
     title: "Support",

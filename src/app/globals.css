@@ -658,7 +658,7 @@ th {
   border-bottom: 3px solid var(--stroke);
   background: white;
   font-size: 1.6rem;
-  color: var(--paragraph);
+  color: var(--black);
   font-weight: 500;
   width: 100%;
 }

@@ -57,6 +57,13 @@ import { localToUtcIso } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import AdminChargeCardOnFileButton from "@/components/admin/AdminChargeCardOnFileButton/AdminChargeCardOnFileButton";
 
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 10);
+  if (digits.length < 4) return digits;
+  if (digits.length < 7) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
 
@@ -2212,7 +2219,7 @@ export default function AdminNewBookingWizard({
                               value={customerPhone}
                               onChange={(e) => {
                                 resetCreatedBooking();
-                                setCustomerPhone(e.target.value);
+                                setCustomerPhone(formatPhone(e.target.value));
                               }}
                               placeholder='(602) 555-1234'
                               inputMode='tel'
