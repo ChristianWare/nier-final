@@ -13,6 +13,7 @@ import RoutePickerAdmin, {
 } from "@/components/admin/Routepickeradmin/Routepickeradmin";
 import toast from "react-hot-toast";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import { useBookingEdit } from "./BookingEditContext";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 
@@ -140,6 +141,9 @@ export default function EditTripDetailsClient({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  /* ── Context sync ── */
+  const { setLivePickupAt, setIsEditing: setContextEditing } = useBookingEdit();
+
   /* ── Lock / Unlock state ── */
   const [isEditing, setIsEditing] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
@@ -223,11 +227,17 @@ export default function EditTripDetailsClient({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]:
         name === "passengers" || name === "luggage" ? Number(value) : value,
     }));
+
+    // Keep boxRight date in sync while editing
+    if (name === "pickupAt") {
+      setLivePickupAt(value);
+    }
   }
 
   function handleRouteChange(data: RouteData) {
@@ -270,6 +280,8 @@ export default function EditTripDetailsClient({
       durationMinutes: initialData.durationMinutes,
     });
     setIsEditing(false);
+    setContextEditing(false);
+    setLivePickupAt(null);
     setError(null);
   }
 
@@ -325,6 +337,8 @@ export default function EditTripDetailsClient({
         setTimeout(() => {
           setJustSaved(false);
           setIsEditing(false);
+          setContextEditing(false);
+          setLivePickupAt(null);
         }, 2000);
         router.refresh();
       }
@@ -378,7 +392,11 @@ export default function EditTripDetailsClient({
           text='Edit Trip Details'
           btnType='blackReg'
           type='button'
-          onClick={() => setIsEditing(true)}
+          onClick={() => {
+            setIsEditing(true);
+            setContextEditing(true);
+            setLivePickupAt(formData.pickupAt);
+          }}
         />
       </div>
     );
