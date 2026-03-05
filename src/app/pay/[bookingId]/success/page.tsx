@@ -5,6 +5,7 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import PaymentSuccessClient from "./Paymentsuccessclient";
 import Button from "@/components/shared/Button/Button";
 import styles from "./PaymentSuccess.module.css";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -67,8 +68,8 @@ export default async function PaymentSuccessPage({
                 </div>
                 <h1 className={styles.title}>Booking Not Found</h1>
                 <p className={styles.subtitle}>
-                  We couldn&#39;t find this booking. Please contact support if you
-                  believe this is an error.
+                  We couldn&#39;t find this booking. Please contact support if
+                  you believe this is an error.
                 </p>
                 <div className={styles.actions}>
                   <Button href='/' text='Return Home' btnType='black' arrow />
@@ -81,20 +82,25 @@ export default async function PaymentSuccessPage({
     );
   }
 
+  const companySettings = await getCompanySettings();
+  const companyTz = companySettings.timezone;
+
   const isPaid = booking.payment?.status === "PAID";
   const paymentFailed = redirectStatus === "failed";
 
-  // Format date and time
+  // Format date and time using company timezone
   const pickupDate = booking.pickupAt.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: companyTz,
   });
   const pickupTime = booking.pickupAt.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    timeZone: companyTz,
   });
 
   if (paymentFailed) {
