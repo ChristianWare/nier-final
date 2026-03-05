@@ -1,0 +1,946 @@
+/* ─────────────────────────────────────────────
+   HERO
+───────────────────────────────────────────── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.heroMedia {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.heroVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  padding-top: 18rem;
+  padding-bottom: 10rem;
+  max-width: 900px;
+}
+
+.heroTag {
+  margin-bottom: 2rem;
+}
+
+.heroHeading {
+  font-size: 11rem;
+  font-weight: 900;
+  letter-spacing: -3px;
+  line-height: 1em;
+  color: var(--cream);
+  text-transform: uppercase;
+  margin-bottom: 3rem;
+}
+
+.heroCopy {
+  color: var(--white);
+  font-size: 1.8rem;
+  line-height: 1.6;
+  max-width: 560px;
+  margin-bottom: 3rem;
+}
+
+.heroBtns {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+/* ─────────────────────────────────────────────
+   STATS BAR
+───────────────────────────────────────────── */
+.statsBar {
+  background-color: var(--black);
+  padding: 4rem 0;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.statItem:last-child {
+  border-right: none;
+}
+
+.statValue {
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.statLabel {
+  font-size: 1.4rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* ─────────────────────────────────────────────
+   INTRO / OVERVIEW
+───────────────────────────────────────────── */
+.intro {
+  background-color: var(--cream);
+  padding: 10rem 0;
+}
+
+.introContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8rem;
+  align-items: center;
+}
+
+.introLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.introHeading {
+  max-width: 520px;
+}
+
+.introCopy {
+  color: var(--paragraph);
+  line-height: 1.7;
+  max-width: 520px;
+}
+
+.introBtn {
+  margin-top: 1rem;
+}
+
+.introRight {
+  position: relative;
+}
+
+.introImgWrap {
+  position: relative;
+  width: 100%;
+  height: 580px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.introImg {
+  object-fit: cover;
+}
+
+.introImgBadge {
+  position: absolute;
+  bottom: 3rem;
+  left: 3rem;
+  background-color: var(--accent);
+  border-radius: 10px;
+  padding: 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.badgeEyebrow {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.badgeText {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+  color: var(--cream);
+}
+
+/* ─────────────────────────────────────────────
+   TWO COURSES
+───────────────────────────────────────────── */
+.courses {
+  background-color: var(--cream);
+  padding: 10rem 0;
+  padding-top: 0;
+}
+
+.coursesTop {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 5rem;
+  border-top: 2px solid var(--stroke);
+  padding-top: 5rem;
+}
+
+.coursesHeading {
+  max-width: 700px;
+}
+
+.coursesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 3rem;
+}
+
+.courseCard {
+  border-radius: 10px;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  min-height: 500px;
+}
+
+.courseCardDark {
+  background-color: var(--black);
+}
+
+.courseCardLight {
+  background-color: var(--white);
+  border: 2px solid var(--stroke);
+}
+
+.courseCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.courseType {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+.coursePar {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 0.5rem 1.2rem;
+  border-radius: 100px;
+  border: 1px solid;
+}
+
+.courseCardDark .coursePar {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.courseCardLight .coursePar {
+  border-color: var(--stroke);
+  color: var(--paragraph);
+}
+
+.courseName {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+}
+
+.courseCardDark .courseName {
+  color: var(--cream);
+}
+
+.courseCardLight .courseName {
+  color: var(--black);
+}
+
+.courseDesigner {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.courseDesc {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  flex: 1;
+}
+
+.courseCardDark .courseDesc {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.courseCardLight .courseDesc {
+  color: var(--paragraph);
+}
+
+.courseTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.courseTag {
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.6rem 1.2rem;
+  border-radius: 100px;
+}
+
+.courseCardDark .courseTag {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.courseCardLight .courseTag {
+  background-color: var(--cream);
+  color: var(--paragraph);
+}
+
+/* ─────────────────────────────────────────────
+   DESIGNERS CALLOUT
+───────────────────────────────────────────── */
+.designers {
+  background-color: var(--black);
+  padding: 10rem 0;
+}
+
+.designersContent {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 8rem;
+  align-items: start;
+}
+
+.designersLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: sticky;
+  top: 10rem;
+}
+
+.designersHeading {
+  font-size: 6rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1.05;
+  color: var(--cream);
+}
+
+.designersRight {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.designersCopy {
+  font-size: 1.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.7;
+}
+
+.designersQuote {
+  margin-top: 2rem;
+  border-left: 3px solid var(--accent);
+  padding-left: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.designersQMark {
+  font-size: 6rem;
+  line-height: 1;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.designersQuoteText {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+  color: var(--cream);
+  font-style: italic;
+}
+
+/* ─────────────────────────────────────────────
+   CLUB FACILITIES
+───────────────────────────────────────────── */
+.facilities {
+  background-color: var(--cream);
+  padding: 10rem 0;
+}
+
+.facilitiesTop {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 5rem;
+}
+
+.facilitiesHeading {
+  max-width: 600px;
+}
+
+.facilitiesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.facilityCard {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border: 1px solid var(--stroke);
+  transition: border-color 0.2s ease;
+}
+
+.facilityCard:hover {
+  border-color: var(--black);
+}
+
+.facilityNumber {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.facilityTitle {
+  letter-spacing: normal;
+}
+
+.facilityDesc {
+  font-size: 1.5rem;
+  color: var(--paragraph);
+  line-height: 1.6;
+}
+
+/* ─────────────────────────────────────────────
+   LOCATION
+───────────────────────────────────────────── */
+.location {
+  background-color: var(--cream);
+  padding: 0 0 10rem;
+}
+
+.locationContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  align-items: center;
+}
+
+.locationMedia {
+  position: relative;
+  width: 100%;
+  height: 600px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.locationVideo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.locationOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.locationRight {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.locationHeading {
+  max-width: 480px;
+}
+
+.locationCopy {
+  color: var(--paragraph);
+  line-height: 1.7;
+  max-width: 460px;
+}
+
+.locationDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 1rem;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--stroke);
+}
+
+.locationDetail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.8rem 2.5rem;
+  background-color: var(--white);
+  border-bottom: 1px solid var(--stroke);
+}
+
+.locationDetail:last-child {
+  border-bottom: none;
+}
+
+.locationDetailLabel {
+  font-size: 1.5rem;
+  color: var(--paragraph);
+}
+
+.locationDetailValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--black);
+}
+
+.locationBtn {
+  margin-top: 1rem;
+}
+
+/* ─────────────────────────────────────────────
+   NIER PARTNERSHIP
+───────────────────────────────────────────── */
+.partnership {
+  background-color: var(--black);
+  padding: 10rem 0;
+}
+
+.partnershipTop {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.partnershipTopInner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  align-items: start;
+}
+
+.partnershipHeading {
+  font-size: 7rem;
+  font-weight: 900;
+  letter-spacing: -2.5px;
+  line-height: 1.05;
+  color: var(--cream);
+}
+
+.partnershipCopy {
+  font-size: 1.7rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.7;
+  align-self: center;
+}
+
+.partnershipGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.partnershipCard {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  transition: border-color 0.2s ease;
+}
+
+.partnershipCard:hover {
+  border-color: var(--accent);
+}
+
+.partnershipNum {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.partnershipCardTitle {
+  color: var(--cream);
+  letter-spacing: normal;
+}
+
+.partnershipCardDesc {
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+}
+
+.partnershipCTA {
+  margin-top: 5rem;
+  display: flex;
+  justify-content: center;
+  padding-top: 5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ─────────────────────────────────────────────
+   BOOKING CTA
+───────────────────────────────────────────── */
+.booking {
+  background-color: var(--cream);
+  padding: 10rem 0;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--stroke),
+    var(--stroke) 1px,
+    transparent 1px,
+    transparent
+  );
+  background-size: 500px 500px;
+}
+
+.bookingContent {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 8rem;
+  align-items: center;
+}
+
+.bookingLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.bookingHeading {
+  max-width: 520px;
+}
+
+.bookingCopy {
+  color: var(--paragraph);
+  line-height: 1.7;
+  max-width: 500px;
+}
+
+.bookingRight {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background-color: var(--white);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--stroke);
+}
+
+.bookingExternalBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 3rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--stroke);
+  transition: background-color 0.2s ease;
+}
+
+.bookingExternalBtn:hover {
+  background-color: var(--cream);
+}
+
+.bookingDivider {
+  display: none;
+}
+
+.bookingNierBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 3rem;
+}
+
+.bookingBtnLabel {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+.bookingBtnText {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.3px;
+}
+
+/* ─────────────────────────────────────────────
+   SUMMARY
+───────────────────────────────────────────── */
+.summary {
+  background-color: var(--black);
+  padding: 10rem 0;
+}
+
+.summaryContent {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 8rem;
+  align-items: start;
+}
+
+.summaryLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: sticky;
+  top: 10rem;
+}
+
+.summaryHeading {
+  color: var(--cream);
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1.1;
+}
+
+.summaryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 2.5rem;
+  padding: 2.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.summaryItem:first-child {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.summaryIndex {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  min-width: 32px;
+  padding-top: 0.3rem;
+}
+
+.summaryText {
+  font-size: 1.6rem;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+}
+
+/* ─────────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────────── */
+@media screen and (max-width: 1268px) {
+  .heroHeading {
+    font-size: 9rem;
+  }
+
+  .partnershipTopInner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .partnershipHeading {
+    font-size: 6rem;
+  }
+
+  .introContent {
+    grid-template-columns: 1fr;
+    gap: 5rem;
+  }
+
+  .introImgWrap {
+    height: 420px;
+  }
+
+  .designersContent {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+
+  .designersLeft {
+    position: static;
+  }
+
+  .bookingContent {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+
+  .summaryContent {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+
+  .summaryLeft {
+    position: static;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .heroHeading {
+    font-size: 7rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .statItem {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .facilitiesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .locationContent {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+
+  .locationMedia {
+    height: 400px;
+  }
+
+  .coursesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .partnershipGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .booking {
+    background-size: 250px 250px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .heroHeading {
+    font-size: 5.5rem;
+    letter-spacing: -2px;
+  }
+
+  .heroContent {
+    padding-top: 12rem;
+    padding-bottom: 7rem;
+  }
+
+  .heroCopy {
+    font-size: 1.6rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .facilitiesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .designersHeading {
+    font-size: 4.5rem;
+  }
+
+  .partnershipHeading {
+    font-size: 4.5rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .heroHeading {
+    font-size: 4rem;
+    letter-spacing: -1.5px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .statValue {
+    font-size: 3.5rem;
+  }
+
+  .introImgWrap {
+    height: 320px;
+  }
+
+  .courseCard {
+    padding: 2.5rem;
+  }
+
+  .courseName {
+    font-size: 3rem;
+  }
+
+  .booking {
+    background-size: 75px 75px;
+  }
+
+  .summaryHeading {
+    font-size: 3.5rem;
+  }
+}
