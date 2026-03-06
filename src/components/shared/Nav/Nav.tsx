@@ -125,6 +125,7 @@ export default function Nav({
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
     { text: "Corporate", href: "/corporate-accounts" },
+    { text: "Wekopa", href: "/wekopa" },
     { text: "Blog", href: "/blog" },
     { text: "Contact", href: "/contact" },
   ];

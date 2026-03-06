@@ -1,5 +1,4 @@
 .parent {
-  padding-top: 10rem;
   background-color: var(--cream);
 }
 
@@ -27,6 +26,10 @@
   align-items: flex-start;
   justify-content: flex-start;
   gap: 1rem;
+}
+
+.btnContainer {
+  margin-top: 2rem;
 }
 
 .logo {

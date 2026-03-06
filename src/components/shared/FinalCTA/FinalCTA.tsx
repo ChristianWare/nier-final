@@ -26,8 +26,8 @@ export default function FinalCTA() {
                 <div className={styles.btnContainer}>
                   <Button
                     as='span'
-                    text='Contact Us'
-                    btnType='black'
+                    text='Contact Nier Transportation'
+                    btnType='underlinedBlackii'
                     arrow
                   />
                 </div>
@@ -37,7 +37,13 @@ export default function FinalCTA() {
         </div>
         <div className={styles.right}>
           <div className={styles.imgContainer}>
-            <Image src={Img1} fill alt='Airport Ride' title='Airport Ride' className={styles.img} />
+            <Image
+              src={Img1}
+              fill
+              alt='Airport Ride'
+              title='Airport Ride'
+              className={styles.img}
+            />
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import styles from "./AboutPageIntro.module.css";
-import Button from "@/components/shared/Button/Button";
+// import Button from "@/components/shared/Button/Button";
 import Marquee from "@/components/shared/Marquee/Marquee";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 
@@ -21,7 +21,7 @@ export default function AboutPageIntro() {
                 for luxury ground transportation across the Valley. We don&apos;t
                 just get you there — we make the journey worth remembering.
               </p>
-              <div className={styles.btnContainer}>
+              {/* <div className={styles.btnContainer}>
                 <Button
                   text='Get in touch'
                   btnType='red'
@@ -34,7 +34,7 @@ export default function AboutPageIntro() {
                   href='/services'
                   arrow
                 />
-              </div>
+              </div> */}
             </div>
             <div className={styles.bottom}>
               <b className={styles.bottomCopy}>
