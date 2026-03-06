@@ -194,32 +194,32 @@
   /* border: none; */
   border-radius: 5px;
   background-color: var(--stroke);
-  border: 1px solid var(--stroke);
+  /* border: 1px solid var(--stroke); */
   color: var(--black);
   font: inherit;
   font-weight: 600;
   font-size: 1.4rem;
   cursor: pointer;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .tab:hover {
   background-color: var(--accent);
-  border-color: var(--accent);
+  color: var(--white);
+  /* border-color: var(--accent); */
 }
 
 .tabActive {
   background-color: var(--accent);
   color: var(--white);
   border-color: var(--accent);
+  transition: all 0.3s ease;
 }
 
-.tabActive:hover {
+/* .tabActive:hover {
   background-color: var(--stroke);
   color: var(--black);
-}
+} */
 
 .tabCount {
   display: inline-flex;
@@ -230,13 +230,18 @@
   padding: 0 0.4rem;
   border-radius: 50px;
   border: 1px solid var(--black);
-  /* background-color: rgba(0, 0, 0, 0.12); */
   font-size: 1.4rem;
   font-weight: 700;
   line-height: 1;
+  transition: all 0.3s ease;
 }
 
 .tabActive .tabCount {
+  border-color: var(--white);
+  color: var(--white);
+}
+
+.tab:hover .tabCount {
   border-color: var(--white);
   color: var(--white);
 }

@@ -30,10 +30,28 @@
 
 .right {
   width: 100%;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 5rem;
+}
+
+.desktopHeading {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.copy {
+  background: var(--lightBlue);
+  border: 1px solid var(--blue);
+  border-radius: 7px;
+  padding: 1.5rem;
+  font-weight: 600;
 }
 
 .mapDataContainer {
-  margin-top: 10rem;
   width: 100%;
 }
 
@@ -146,6 +164,11 @@
 
   .mobileHeading {
     display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 2rem;
     margin-bottom: 2rem;
   }
 }

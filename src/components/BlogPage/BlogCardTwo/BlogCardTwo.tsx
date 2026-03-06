@@ -2,7 +2,7 @@ import styles from "./BlogCardTwo.module.css";
 import Image from "next/image";
 import Link from "next/link";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
-import Button from "@/components/shared/Button/Button";
+// import Button from "@/components/shared/Button/Button";
 
 type CardPost = {
   title: string;
@@ -46,16 +46,16 @@ export default function BlogCardTwo({ post }: Props) {
         <div className={styles.bottom}>
           <SectionHeading text={prettyDate} color='red' />
           <h5 className={`${styles.title} h4`}>{post.title}</h5>
-          <p className={styles.desc}>{post.excerpt}</p>
+          {/* <p className={styles.desc}>{post.excerpt}</p> */}
 
-          <div className={styles.btnContainer}>
+          {/* <div className={styles.btnContainer}>
             <Button
               as='span'
               text='Read More'
               btnType='cream'
               arrow
             />
-          </div>
+          </div> */}
         </div>
       </Link>
     </article>

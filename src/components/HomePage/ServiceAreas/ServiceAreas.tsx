@@ -48,15 +48,18 @@ export default function ServiceAreas() {
               <li>
                 <span className={styles.dot}>•</span> Avondale
               </li>
+
               <li>
                 <span className={styles.dot}>•</span> Goodyear
               </li>
-              {/* <li>And surrounding communities</li> */}
+              <li>
+                <span className={styles.dot}>•</span> And More!
+              </li>
             </ul>
             <div className={styles.btnContainer}>
               <Button
-                href='/'
-                text='Learn More about us'
+                href='/locations'
+                text='See all locations'
                 btnType='cream'
                 arrow
               />
@@ -71,7 +74,13 @@ export default function ServiceAreas() {
               <Logo className={styles.logo} />
             </div>
 
-            <Image src={Img1} alt='Phoenix Nier Transportation' title='Phoenix Nier Transportation' fill className={styles.img} />
+            <Image
+              src={Img1}
+              alt='Phoenix Nier Transportation'
+              title='Phoenix Nier Transportation'
+              fill
+              className={styles.img}
+            />
           </div>
         </div>
       </div>
