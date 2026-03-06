@@ -5,6 +5,10 @@ import Button from "@/components/shared/Button/Button";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Img1 from "../../../public/images/phoenix.jpg";
 import Nav from "@/components/shared/Nav/Nav";
+import CountUp from "@/components/shared/CountUp/CountUp";
+import Faq from "@/components/shared/Faq/Faq";
+import { wekopaQuestions } from "@/lib/data";
+import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
 const stats = [
   { id: 1, value: "36", label: "Hole Golf Facility" },
@@ -165,7 +169,14 @@ export default function WekoPaPage() {
           <div className={styles.statsGrid}>
             {stats.map((s) => (
               <div key={s.id} className={styles.statItem}>
-                <span className={`${styles.statValue} stat`}>{s.value}</span>
+                {/* <span className={`${styles.statValue} stat`}>{s.value}</span> */}
+                <CountUp
+                  from={0}
+                  to={parseInt(s.value.replace(/\D/g, ""), 10)}
+                  duration={1.2}
+                  separator=','
+                  className={styles.statValue}
+                />
                 <span className={styles.statLabel}>{s.label}</span>
               </div>
             ))}
@@ -202,6 +213,7 @@ export default function WekoPaPage() {
                 <Button
                   href='https://wekopa.com'
                   text='Visit We-Ko-Pa'
+                  target='_blank'
                   btnType='underlinedBlack'
                   arrow
                 />
@@ -250,7 +262,8 @@ export default function WekoPaPage() {
                 className={`${styles.courseCard} ${i === 0 ? styles.courseCardDark : styles.courseCardLight}`}
               >
                 <div className={styles.courseCardHeader}>
-                  <span className={styles.courseType}>{c.type}</span>
+                  {/* <span className={styles.courseType}>{c.type}</span> */}
+                  <SectionHeading text={c.type} color='red' dot />
                   <span className={styles.coursePar}>{c.par}</span>
                 </div>
                 <h3 className={styles.courseName}>{c.name}</h3>
@@ -437,7 +450,7 @@ export default function WekoPaPage() {
             <Button
               href='/book'
               text='Book Your Ride to We-Ko-Pa'
-              btnType='underlinedWhite'
+              btnType='red'
               arrow
             />
           </div>
@@ -465,24 +478,22 @@ export default function WekoPaPage() {
               </p>
             </div>
             <div className={styles.bookingRight}>
-              <a
-                href='https://wekopa.com'
-                target='_blank'
-                rel='noopener noreferrer'
-                className={styles.bookingExternalBtn}
-              >
+              <div className={styles.bookingExternalBtn}>
                 <span className={styles.bookingBtnLabel}>Step 1</span>
-                <span className={styles.bookingBtnText}>
-                  Book Tee Time at We-Ko-Pa ↗
-                </span>
-              </a>
+                <Button
+                  href='/book'
+                  text='Book Tee Time at We-Ko-Pa'
+                  btnType='black'
+                  arrow
+                />
+              </div>
               <div className={styles.bookingDivider} />
               <div className={styles.bookingNierBtn}>
                 <span className={styles.bookingBtnLabel}>Step 2</span>
                 <Button
                   href='/book'
                   text='Book Your Nier Ride'
-                  btnType='black'
+                  btnType='red'
                   arrow
                 />
               </div>
@@ -496,7 +507,7 @@ export default function WekoPaPage() {
         <LayoutWrapper>
           <div className={styles.summaryContent}>
             <div className={styles.summaryLeft}>
-              <SectionHeading text='Key Takeaways' dot />
+              <SectionHeading text='Key Takeaways' dot color='cream' />
               <h2 className={styles.summaryHeading}>
                 Everything You
                 <br />
@@ -516,6 +527,8 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
+      <Faq items={wekopaQuestions} />
+      <AboutNumbers />
     </main>
   );
 }

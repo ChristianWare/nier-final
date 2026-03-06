@@ -625,6 +625,55 @@ export const corporateQuestions = [
   },
 ] as const;
 
+export const wekopaQuestions = [
+  {
+    id: 1,
+    question:
+      "How far is We-Ko-Pa Golf Club from Scottsdale and Sky Harbor Airport?",
+    answer:
+      "We-Ko-Pa Golf Club is located in Fort McDowell, AZ 85264, northeast of Scottsdale. From central Scottsdale, expect a 30–45 minute drive. From Phoenix Sky Harbor International Airport, plan for 45–60 minutes depending on traffic. Nier Transportation provides direct door-to-course service from any Phoenix metro hotel, airport, or resort.",
+  },
+  {
+    id: 1.1,
+    question:
+      "Can Nier Transportation take me to We-Ko-Pa if my flight arrives early or late?",
+    answer:
+      "Absolutely. We monitor your inbound flight in real time and automatically adjust your pickup window at no extra charge. If your flight lands early, your chauffeur will be ready; if it's delayed, we update your schedule accordingly — so your tee time stays intact regardless of what the airline does.",
+  },
+  {
+    id: 1.2,
+    question: "What vehicles are available for the ride to We-Ko-Pa?",
+    answer:
+      "We offer late-model executive sedans for solo travelers or pairs, luxury SUVs for small groups with luggage, and Sprinter vans for full golf groups who need space for multiple passengers and club bags. Select your vehicle during booking based on your group size and gear.",
+  },
+  {
+    id: 1.3,
+    question:
+      "Can Nier handle transportation for a corporate golf outing at We-Ko-Pa?",
+    answer:
+      "Yes — corporate golf outings are one of our specialties. We can coordinate multi-pickup logistics across several hotels or airports, ensure every passenger arrives on time, and handle the full return trip after your round. Ask about our corporate account options for priority scheduling and flat negotiated rates.",
+  },
+  {
+    id: 1.4,
+    question: "Will my driver know where to drop off at We-Ko-Pa Golf Club?",
+    answer:
+      "Yes. Our chauffeurs are familiar with the route to Fort McDowell and know exactly where to pull up for bag drop at the club. We also coordinate your pickup timing after your round so you're not waiting around after the 18th hole.",
+  },
+  {
+    id: 1.5,
+    question: "Can I transport golf clubs in a Nier vehicle?",
+    answer:
+      "Yes — just select the appropriate vehicle size during booking to ensure there's enough cargo space for your bags. Our SUVs and Sprinter vans comfortably accommodate multiple sets of clubs alongside passenger luggage.",
+  },
+  {
+    id: 1.6,
+    question:
+      "Does Nier Transportation offer rides back from We-Ko-Pa after the round?",
+    answer:
+      "Yes. We handle both arrival and return transportation. When booking, provide your estimated tee time and round duration and we'll schedule your return pickup accordingly. You can also call or text your chauffeur directly when your round wraps up to confirm the exact timing.",
+  },
+] as const;
+
 export type Vehicle = {
   id: number;
   title: string;

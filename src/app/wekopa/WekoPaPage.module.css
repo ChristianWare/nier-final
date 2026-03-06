@@ -88,9 +88,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 2rem;
   padding: 2rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .statItem:last-child {
@@ -98,11 +98,11 @@
 }
 
 .statValue {
-  font-size: 5rem;
-  font-weight: 900;
-  letter-spacing: -2px;
-  line-height: 1;
   color: var(--accent);
+  letter-spacing: -3px;
+  font-size: 6rem;
+  font-weight: 900;
+  line-height: 1em;
 }
 
 .statLabel {
@@ -180,11 +180,12 @@
   font-size: 1.2rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: normal;
   color: rgba(255, 255, 255, 0.7);
 }
 
 .badgeText {
+  text-transform: uppercase;
   font-size: 1.8rem;
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -317,7 +318,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 0.6rem 1.2rem;
+  padding: 1rem 1.5rem;
   border-radius: 100px;
 }
 
@@ -443,16 +444,18 @@
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: 1px;
+  /* letter-spacing: 1px; */
   text-transform: uppercase;
 }
 
 .facilityTitle {
-  letter-spacing: normal;
+  border-bottom: 1px solid var(--stroke);
+  padding-bottom: 1rem;
+  /* letter-spacing: normal; */
 }
 
 .facilityDesc {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   color: var(--paragraph);
   line-height: 1.6;
 }
@@ -683,7 +686,7 @@
 .bookingExternalBtn {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
   padding: 3rem;
   text-decoration: none;
   border-bottom: 1px solid var(--stroke);
@@ -701,7 +704,7 @@
 .bookingNierBtn {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1rem;
   padding: 3rem;
 }
 
@@ -765,18 +768,17 @@
   align-items: flex-start;
   gap: 2.5rem;
   padding: 2.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .summaryItem:first-child {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .summaryIndex {
-  font-size: 1.2rem;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: 1px;
+
   min-width: 32px;
   padding-top: 0.3rem;
 }
