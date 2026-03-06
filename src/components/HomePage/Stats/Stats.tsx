@@ -51,7 +51,7 @@ export default function Stats({ flipped = false }: StatsProps) {
                 <Button
                   href='/book'
                   text='Book your Ride'
-                  btnType='underlinedWhite'
+                  btnType='red'
                   arrow
                 />
               </div>

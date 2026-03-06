@@ -60,7 +60,7 @@ export default function ServiceAreas() {
               <Button
                 href='/locations'
                 text='See all locations'
-                btnType='cream'
+                btnType='black'
                 arrow
               />
             </div>

@@ -114,6 +114,10 @@
   color: var(--white);
 }
 
+.btnContainer {
+  display: flex;
+}
+
 @media screen and (max-width: 1268px) {
   .content {
     grid-template-columns: 1fr 1fr;

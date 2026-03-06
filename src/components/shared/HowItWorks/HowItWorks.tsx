@@ -40,7 +40,7 @@ export default function HowItWorks() {
               easy, and hassle-free!
             </h3>
             <div className={styles.btnClusterContainer}>
-              <Button href='/' text='Book your ride' btnType='black' arrow />
+              <Button href='/' text='Book your ride' btnType='red' arrow />
             </div>
           </div>
           <div className={styles.bottom}>
