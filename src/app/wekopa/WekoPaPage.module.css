@@ -561,30 +561,29 @@
 .partnershipTop {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 2rem;
   margin-bottom: 5rem;
 }
 
-.partnershipTopInner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6rem;
-  align-items: start;
-}
+/* .partnershipTopInner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2rem;
+} */
 
 .partnershipHeading {
-  font-size: 7rem;
-  font-weight: 900;
-  letter-spacing: -2.5px;
-  line-height: 1.05;
   color: var(--cream);
+  /* text-align: center; */
 }
 
 .partnershipCopy {
-  font-size: 1.7rem;
+  max-width: 800px;
   color: rgba(255, 255, 255, 0.65);
-  line-height: 1.7;
-  align-self: center;
+  /* text-align: center; */
 }
 
 .partnershipGrid {

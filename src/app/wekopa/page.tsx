@@ -9,6 +9,7 @@ import CountUp from "@/components/shared/CountUp/CountUp";
 import Faq from "@/components/shared/Faq/Faq";
 import { wekopaQuestions } from "@/lib/data";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
+import WekoPaPricing from "@/components/Wekopa/WekoPaPricing/WekoPaPricing";
 
 const stats = [
   { id: 1, value: "36", label: "Hole Golf Facility" },
@@ -40,38 +41,38 @@ const courses = [
   },
 ];
 
-const facilities = [
-  {
-    id: 1,
-    title: "The Pro Shop",
-    desc: "A fully stocked golf shop with premium equipment, apparel, and We-Ko-Pa logo merchandise — one of the best-stocked operations in Arizona golf.",
-  },
-  {
-    id: 2,
-    title: "Practice Facilities",
-    desc: "Full driving range, chipping areas, and putting greens that mirror the pace and character of the course. Arrive early — it is worth it.",
-  },
-  {
-    id: 3,
-    title: "The Clubhouse",
-    desc: "A focused, well-appointed clubhouse built entirely around the game. No distractions — just great golf, great views, and the Sonoran Desert.",
-  },
-  {
-    id: 4,
-    title: "We-Ko-Pa Casino Resort",
-    desc: "The adjacent We-Ko-Pa Casino Resort offers dining, hotel accommodations, and the option to extend your stay in the Fort McDowell area.",
-  },
-  {
-    id: 5,
-    title: "Golf Packages",
-    desc: "Bundled tee time and resort packages available. Peak season (fall and spring) delivers ideal desert conditions — book your tee time early.",
-  },
-  {
-    id: 6,
-    title: "Public Access",
-    desc: "We-Ko-Pa is a public course — no membership required. Tee times can be reserved at wekopa.com or by calling the pro shop directly.",
-  },
-];
+// const facilities = [
+//   {
+//     id: 1,
+//     title: "The Pro Shop",
+//     desc: "A fully stocked golf shop with premium equipment, apparel, and We-Ko-Pa logo merchandise — one of the best-stocked operations in Arizona golf.",
+//   },
+//   {
+//     id: 2,
+//     title: "Practice Facilities",
+//     desc: "Full driving range, chipping areas, and putting greens that mirror the pace and character of the course. Arrive early — it is worth it.",
+//   },
+//   {
+//     id: 3,
+//     title: "The Clubhouse",
+//     desc: "A focused, well-appointed clubhouse built entirely around the game. No distractions — just great golf, great views, and the Sonoran Desert.",
+//   },
+//   {
+//     id: 4,
+//     title: "We-Ko-Pa Casino Resort",
+//     desc: "The adjacent We-Ko-Pa Casino Resort offers dining, hotel accommodations, and the option to extend your stay in the Fort McDowell area.",
+//   },
+//   {
+//     id: 5,
+//     title: "Golf Packages",
+//     desc: "Bundled tee time and resort packages available. Peak season (fall and spring) delivers ideal desert conditions — book your tee time early.",
+//   },
+//   {
+//     id: 6,
+//     title: "Public Access",
+//     desc: "We-Ko-Pa is a public course — no membership required. Tee times can be reserved at wekopa.com or by calling the pro shop directly.",
+//   },
+// ];
 
 const nierBenefits = [
   {
@@ -111,7 +112,6 @@ export default function WekoPaPage() {
   return (
     <main>
       <Nav />
-
       {/* ─── HERO ─── */}
       <section className={styles.hero}>
         <div className={styles.heroMedia}>
@@ -162,7 +162,6 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
-
       {/* ─── STATS BAR ─── */}
       <section className={styles.statsBar}>
         <LayoutWrapper>
@@ -183,7 +182,6 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
-
       {/* ─── INTRO / OVERVIEW ─── */}
       <section className={styles.intro}>
         <LayoutWrapper>
@@ -242,7 +240,6 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
-
       {/* ─── TWO COURSES ─── */}
       <section className={styles.courses}>
         <LayoutWrapper>
@@ -262,7 +259,6 @@ export default function WekoPaPage() {
                 className={`${styles.courseCard} ${i === 0 ? styles.courseCardDark : styles.courseCardLight}`}
               >
                 <div className={styles.courseCardHeader}>
-                  {/* <span className={styles.courseType}>{c.type}</span> */}
                   <SectionHeading text={c.type} color='red' dot />
                   <span className={styles.coursePar}>{c.par}</span>
                 </div>
@@ -283,9 +279,8 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
-
       {/* ─── DESIGNERS CALLOUT ─── */}
-      <section className={styles.designers}>
+      {/* <section className={styles.designers}>
         <LayoutWrapper>
           <div className={styles.designersContent}>
             <div className={styles.designersLeft}>
@@ -323,10 +318,9 @@ export default function WekoPaPage() {
             </div>
           </div>
         </LayoutWrapper>
-      </section>
-
+      </section> */}
       {/* ─── CLUB FACILITIES ─── */}
-      <section className={styles.facilities}>
+      {/* <section className={styles.facilities}>
         <LayoutWrapper>
           <div className={styles.facilitiesTop}>
             <SectionHeading text='Club Facilities' dot />
@@ -346,8 +340,7 @@ export default function WekoPaPage() {
             ))}
           </div>
         </LayoutWrapper>
-      </section>
-
+      </section> */}
       {/* ─── LOCATION / GETTING THERE ─── */}
       <section className={styles.location}>
         <LayoutWrapper>
@@ -416,22 +409,20 @@ export default function WekoPaPage() {
               color='cream'
               dot
             />
-            <div className={styles.partnershipTopInner}>
-              <h2 className={styles.partnershipHeading}>
-                Your Round Starts
-                <br />
-                Before You Arrive
-              </h2>
-              <p className={styles.partnershipCopy}>
-                Nier Transportation has served the Phoenix and Scottsdale area
-                since 2004. A round at We-Ko-Pa is an investment in a premium
-                golf experience. The tee time, the travel, the occasion — all of
-                it deserves transportation that matches the caliber of the
-                destination. Our late-model luxury vehicles arrive clean, on
-                time, and driven by professionals who understand that your trip
-                begins the moment you get in the car.
-              </p>
-            </div>
+            <h2 className={`${styles.partnershipHeading}`}>
+              Your Round Starts
+              <br />
+              Before You Arrive
+            </h2>
+            <p className={styles.partnershipCopy}>
+              Nier Transportation has served the Phoenix and Scottsdale area
+              since 2004. A round at We-Ko-Pa is an investment in a premium golf
+              experience. The tee time, the travel, the occasion — all of it
+              deserves transportation that matches the caliber of the
+              destination. Our late-model luxury vehicles arrive clean, on time,
+              and driven by professionals who understand that your trip begins
+              the moment you get in the car.
+            </p>
           </div>
 
           <div className={styles.partnershipGrid}>
@@ -456,7 +447,6 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
-
       {/* ─── BOOKING CTA ─── */}
       <section className={styles.booking}>
         <LayoutWrapper>
@@ -501,6 +491,8 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
+
+      <WekoPaPricing />
 
       {/* ─── SUMMARY ─── */}
       <section className={styles.summary}>

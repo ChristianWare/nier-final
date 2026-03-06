@@ -1,0 +1,309 @@
+.container {
+  background-color: var(--cream);
+  padding: 10rem 0;
+}
+
+/* ── TOP ── */
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 5rem;
+  text-align: center;
+}
+
+.heading {
+  max-width: 600px;
+}
+
+.subCopy {
+  color: var(--paragraph);
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* ── DIRECTION TOGGLE ── */
+.toggleWrap {
+  display: flex;
+  align-items: center;
+  background-color: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 100px;
+  padding: 5px;
+  gap: 4px;
+  margin-top: 1rem;
+}
+
+.toggleBtn {
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  padding: 1rem 2.2rem;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: var(--paragraph);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.toggleActive {
+  background-color: var(--black);
+  color: var(--cream);
+}
+
+.directionSub {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  letter-spacing: -0.2px;
+}
+
+/* ── CARDS ── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.card {
+  border-radius: 10px;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  position: relative;
+}
+
+.cardBase {
+  background-color: var(--white);
+  border: 1px solid var(--stroke);
+}
+
+.cardPopular {
+  background-color: var(--black);
+  border: 1px solid var(--black);
+}
+
+/* ── POPULAR BADGE ── */
+.popularBadge {
+  position: absolute;
+  top: -1px;
+  right: 3rem;
+  background-color: var(--accent);
+  color: var(--cream);
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 0.5rem 1.4rem;
+  border-radius: 0 0 8px 8px;
+}
+
+/* ── CARD TOP ── */
+.cardTop {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.planName {
+  font-size: 2.8rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.cardBase .planName {
+  color: var(--black);
+}
+
+.cardPopular .planName {
+  color: var(--cream);
+}
+
+.planTagline {
+  font-size: 1.5rem;
+  line-height: 1.5;
+}
+
+.cardBase .planTagline {
+  color: var(--paragraph);
+}
+
+.cardPopular .planTagline {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.priceDollar {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.cardBase .priceDollar {
+  color: var(--black);
+}
+
+.cardPopular .priceDollar {
+  color: var(--cream);
+}
+
+.priceValue {
+  font-size: 7rem;
+  /* font-weight: 900; */
+  letter-spacing: -3px;
+  line-height: 1;
+}
+
+.cardBase .priceValue {
+  color: var(--black);
+}
+
+.cardPopular .priceValue {
+  color: var(--cream);
+}
+
+.priceUnit {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.cardBase .priceUnit {
+  color: var(--paragraph);
+}
+
+.cardPopular .priceUnit {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ── CTA ── */
+.cardCta {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  width: 100%;
+  height: 1px;
+}
+
+.cardBase .divider {
+  background-color: var(--stroke);
+}
+
+.cardPopular .divider {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ── FEATURE LIST ── */
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+}
+
+.featureStar {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.4rem;
+}
+
+.cardBase .featureStar {
+  color: var(--black);
+}
+
+.cardPopular .featureStar {
+  color: var(--accent);
+}
+
+.featureText {
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+
+.cardBase .featureText {
+  color: var(--black);
+}
+
+.cardPopular .featureText {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── FOOTNOTE ── */
+.footnote {
+  text-align: center;
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  margin-top: 3rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+.footnoteLink {
+  color: var(--black);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── RESPONSIVE ── */
+@media screen and (max-width: 768px) {
+  .cards {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+  }
+
+  .toggleBtn {
+    font-size: 1.3rem;
+    padding: 0.9rem 1.6rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .card {
+    padding: 3rem 2.5rem;
+  }
+
+  .priceValue {
+    font-size: 5.5rem;
+  }
+
+  .toggleWrap {
+    flex-direction: column;
+    border-radius: 12px;
+    width: 100%;
+  }
+
+  .toggleBtn {
+    width: 100%;
+    text-align: center;
+    border-radius: 8px;
+  }
+}
