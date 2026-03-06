@@ -24,9 +24,9 @@ export default function Hero() {
           <div className={styles.cc2}>
             <div className={styles.left2}>
               <p className={styles.copyii}>
-                Executive sedans, luxury SUVs, and Sprinter vans — available
-                24/7 across the Phoenix metro. Book your ride in under two
-                minutes.
+                Executive sedans, luxury SUVs, Sprinter vans, and 56 passenger
+                Motor Coach Buses — available 24/7 across the Phoenix metro.
+                Book your ride in under two minutes.
               </p>
             </div>
             <div className={styles.right2}>

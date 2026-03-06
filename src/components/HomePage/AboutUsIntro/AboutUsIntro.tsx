@@ -59,7 +59,12 @@ export default function AboutUsIntro() {
                 it&apos;s our reputation on the line — because it is.
               </p>
               <div className={styles.btnContanier}>
-                <Button btnType='black' text='Book your ride' arrow />
+                <Button
+                  btnType='black'
+                  text='About us'
+                  href='/about'
+                  arrow
+                />
               </div>
             </div>
           </div>
