@@ -120,7 +120,7 @@ export default function WekoPaPage() {
             className={styles.heroVideo}
             poster='/videos/phx-poster.png'
           >
-            <source src='/videos/phx.mp4' type='video/mp4' />
+            <source src='/videos/golf.mp4' type='video/mp4' />
           </video>
           <div className={styles.heroOverlay} />
         </div>
