@@ -274,7 +274,7 @@
 }
 
 /* ── RESPONSIVE ── */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 968px) {
   .cards {
     grid-template-columns: 1fr;
     max-width: 560px;

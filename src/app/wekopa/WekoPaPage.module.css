@@ -73,7 +73,7 @@
    STATS BAR
 ───────────────────────────────────────────── */
 .statsBar {
-  background-color: var(--black);
+  background-color: var(--white);
   padding: 4rem 0;
 }
 
@@ -90,7 +90,9 @@
   justify-content: center;
   gap: 2rem;
   padding: 2rem;
-  border-right: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--stroke);
+  background-color: var(--cream);
+  border-radius: 10px;
 }
 
 .statItem:last-child {
@@ -107,7 +109,7 @@
 
 .statLabel {
   font-size: 1.4rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--black);
   text-align: center;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -160,8 +162,12 @@
   overflow: hidden;
 }
 
+/* ↓ fixed: video needs explicit sizing unlike Next.js Image */
 .introImg {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .introImgBadge {
@@ -444,14 +450,12 @@
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--accent);
-  /* letter-spacing: 1px; */
   text-transform: uppercase;
 }
 
 .facilityTitle {
   border-bottom: 1px solid var(--stroke);
   padding-bottom: 1rem;
-  /* letter-spacing: normal; */
 }
 
 .facilityDesc {
@@ -554,7 +558,7 @@
    NIER PARTNERSHIP
 ───────────────────────────────────────────── */
 .partnership {
-  background-color: var(--black);
+  background-color: var(--white);
   padding: 10rem 0;
 }
 
@@ -567,23 +571,12 @@
   margin-bottom: 5rem;
 }
 
-/* .partnershipTopInner {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2rem;
-} */
-
 .partnershipHeading {
-  color: var(--cream);
-  /* text-align: center; */
+  color: var(--black);
 }
 
 .partnershipCopy {
   max-width: 800px;
-  color: rgba(255, 255, 255, 0.65);
-  /* text-align: center; */
 }
 
 .partnershipGrid {
@@ -593,13 +586,13 @@
 }
 
 .partnershipCard {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--stroke);
   border-radius: 10px;
-  padding: 3rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
   transition: border-color 0.2s ease;
 }
 
@@ -611,17 +604,15 @@
   font-size: 1.4rem;
   font-weight: 700;
   color: var(--accent);
-  letter-spacing: 1px;
 }
 
 .partnershipCardTitle {
-  color: var(--cream);
-  letter-spacing: normal;
+  color: var(--black);
 }
 
 .partnershipCardDesc {
-  font-size: 1.5rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.4rem;
+  color: rgba(0, 0, 0, 0.6);
   line-height: 1.6;
 }
 
@@ -630,7 +621,7 @@
   display: flex;
   justify-content: center;
   padding-top: 5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 /* ─────────────────────────────────────────────
@@ -777,7 +768,6 @@
 .summaryIndex {
   font-weight: 700;
   color: var(--accent);
-
   min-width: 32px;
   padding-top: 0.3rem;
 }
@@ -943,5 +933,52 @@
 
   .summaryHeading {
     font-size: 3.5rem;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   PARTNERSHIP STATS STRIP
+   Add these rules to WekoPaPage.module.css
+   inside the existing NIER PARTNERSHIP block
+───────────────────────────────────────────── */
+
+.partnershipStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 5rem;
+  padding: 4rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.partnershipStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.partnershipStatValue {
+  font-size: 5rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1em;
+  color: var(--accent);
+}
+
+.partnershipStatLabel {
+  font-size: 1.4rem;
+  /* color: rgba(255, 255, 255, 0.5); */
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive — stack to 1 col on mobile */
+@media screen and (max-width: 768px) {
+  .partnershipStats {
+    grid-template-columns: 1fr;
+    gap: 3rem;
   }
 }

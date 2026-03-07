@@ -16,6 +16,14 @@
   z-index: 2;
 }
 
+.heading {
+  max-width: 600px;
+}
+
+.btn {
+  margin-bottom: 8rem;
+}
+
 .left {
   display: flex;
   flex-direction: column;
@@ -107,6 +115,10 @@
     width: 80%;
   }
 
+  .btn {
+    margin-bottom: 0rem;
+  }
+
   .right {
     display: grid;
     grid-template-columns: 2fr 4fr;
@@ -115,6 +127,10 @@
 
   .imgContainer {
     height: 100%;
+  }
+
+  .img {
+    border-radius: 10px;
   }
 
   .right .imgContainer {
@@ -157,6 +173,10 @@
   .copy {
     width: 100%;
     text-align: center;
+  }
+
+  .heading {
+    max-width: 500px;
   }
 
   .btnClusterContainer {

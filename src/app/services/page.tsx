@@ -7,6 +7,10 @@ import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import Nav from "@/components/shared/Nav/Nav";
 import type { Metadata } from "next";
 import Faq from "@/components/shared/Faq/Faq";
+import Img2 from "../../../public/images/linda.jpg";
+import Img1 from "../../../public/images/services.jpg";
+
+
 
 export const metadata: Metadata = {
   title: "Services | Luxury Black Car & Limo Service Phoenix",
@@ -68,7 +72,17 @@ export default function ServicesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       <Nav background='cream' />
-      <ServicePageIntro />
+      <ServicePageIntro
+        heading='Chauffeur servicestailored to every journey.'
+        label='Services'
+        stat={{
+          quote:
+            "Have used this service multiple times. The drivers are great. Always very professional and prompt. You can tell they care about safety and a great customer experience, would definitely recommend it.",
+          authorImage: Img2,
+          authorName: "Illeana L.",
+        }}
+        heroImage={Img1}
+      />{" "}
       <ServicesMission />
       <ServicesPreview />
       <HowItWorks />

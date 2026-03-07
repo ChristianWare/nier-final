@@ -22,6 +22,7 @@ import Modal from "@/components/shared/Modal/Modal";
 import BookingWizardChecklist, {
   type ChecklistItem,
 } from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
+import Stepper from "@/components/BookingPage/Stepper/Stepper";
 
 // ─── Fixed Locations ──────────────────────────────────────────────────────────
 const SKY_HARBOR = {
@@ -33,7 +34,8 @@ const SKY_HARBOR = {
 };
 
 const WEKOPA = {
-  address: "We-Ko-Pa Golf Club, 18200 E Toh Vee Circle, Fort McDowell, AZ 85264",
+  address:
+    "We-Ko-Pa Golf Club, 18200 E Toh Vee Circle, Fort McDowell, AZ 85264",
   placeId: null as string | null,
   lat: 33.6219,
   lng: -111.7187,
@@ -41,8 +43,7 @@ const WEKOPA = {
 
 const ROUTE_DISTANCE_MILES = 38;
 const ROUTE_DURATION_MINUTES = 50;
-const MAX_PASSENGERS_ONLINE = 28;
-
+const MAX_PASSENGERS_ONLINE = 14;
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Direction = "to_wekopa" | "from_wekopa";
 
@@ -299,14 +300,23 @@ export default function WekoPaBookingWizard({
 
   // ─── Dirty form guard ─────────────────────────────────────────────────────
   const wizardHasInput = Boolean(
-    direction || pickupAtDate || pickupAtTime || passengers > 0 || savedLegs.length > 0,
+    direction ||
+    pickupAtDate ||
+    pickupAtTime ||
+    passengers > 0 ||
+    savedLegs.length > 0,
   );
   useDirtyForm("wekopa-booking-wizard", wizardHasInput && !submitted);
 
   // ─── Too-soon check ───────────────────────────────────────────────────────
   const pickupTooSoon = useMemo(() => {
     if (!pickupAtDate || !pickupAtTime) return false;
-    return isPickupTooSoon(pickupAtDate, pickupAtTime, companyTimezone, 36 * 60);
+    return isPickupTooSoon(
+      pickupAtDate,
+      pickupAtTime,
+      companyTimezone,
+      36 * 60,
+    );
   }, [pickupAtDate, pickupAtTime, companyTimezone]);
 
   // ─── Vehicle config ───────────────────────────────────────────────────────
@@ -375,7 +385,10 @@ export default function WekoPaBookingWizard({
       didMountRef.current = true;
       return;
     }
-    wizardTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    wizardTopRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }, [step]);
 
   // ─── Navigation ───────────────────────────────────────────────────────────
@@ -436,7 +449,11 @@ export default function WekoPaBookingWizard({
     }
 
     const v = getValues();
-    const pickupAtIso = localToUtcIso(v.pickupAtDate, v.pickupAtTime, companyTimezone);
+    const pickupAtIso = localToUtcIso(
+      v.pickupAtDate,
+      v.pickupAtTime,
+      companyTimezone,
+    );
 
     const multiVehicleNote = vehicleConfig.isMultiVehicle
       ? `⚠️ MULTI-VEHICLE: ${vehicleConfig.label} required for ${v.passengers} passengers. Total: $${(vehicleConfig.totalCents / 100).toFixed(2)}. Dispatch must coordinate all vehicles.`
@@ -459,7 +476,10 @@ export default function WekoPaBookingWizard({
       specialRequests: combinedRequests || null,
       flightAirline: v.flightAirline || null,
       flightNumber: v.flightNumber || null,
-      flightScheduledAt: buildFlightIso(v.flightScheduledAtDate, v.flightScheduledAtTime),
+      flightScheduledAt: buildFlightIso(
+        v.flightScheduledAtDate,
+        v.flightScheduledAtTime,
+      ),
       flightTerminal: v.flightTerminal || null,
     };
 
@@ -510,7 +530,11 @@ export default function WekoPaBookingWizard({
       return;
     }
 
-    const pickupAtIso = localToUtcIso(v.pickupAtDate, v.pickupAtTime, companyTimezone);
+    const pickupAtIso = localToUtcIso(
+      v.pickupAtDate,
+      v.pickupAtTime,
+      companyTimezone,
+    );
     const flightScheduledAtIso = buildFlightIso(
       v.flightScheduledAtDate,
       v.flightScheduledAtTime,
@@ -823,12 +847,11 @@ export default function WekoPaBookingWizard({
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <section id="wekopa-booking" className={styles.container}>
+    <section id='wekopa-booking' className={styles.container}>
       <LayoutWrapper>
         <div ref={wizardTopRef} className={styles.wizardTop} />
 
         <div className={styles.content}>
-
           {/* ── LEFT: sticky checklist (desktop only) ─────────────────── */}
           {!isMobile && (
             <div className={styles.checklistContainer}>{checklistNode}</div>
@@ -836,20 +859,20 @@ export default function WekoPaBookingWizard({
 
           {/* ── RIGHT: wizard steps ───────────────────────────────────── */}
           <div className={styles.right}>
-
             {isMobile && (
-              <div className={styles.checklistMobile}>{checklistNode}</div>
+              <div className={styles.checklistMobile}>
+                <Stepper step={step} />
+              </div>
             )}
 
             <div className={styles.wizard}>
-
               {/* ───────────────────────────────────────────────────────
                   STEP 1 — Trip Details
               ─────────────────────────────────────────────────────── */}
               {step === 1 && (
                 <div className={`${styles.contentBox} ${styles.stepPane}`}>
-                  <h2 className="underline">1. Trip details</h2>
-                  <p className="subheading">
+                  <h2 className='underline'>1. Trip details</h2>
+                  <p className='subheading'>
                     {isMultiLeg
                       ? `Adding ride ${savedLegs.length + 1} to your trip`
                       : "Date, time, and party size"}
@@ -859,7 +882,8 @@ export default function WekoPaBookingWizard({
                   {isMultiLeg && (
                     <div className={styles.savedLegsBanner}>
                       <strong>
-                        🗓️ {savedLegs.length} ride{savedLegs.length > 1 ? "s" : ""} added
+                        🗓️ {savedLegs.length} ride
+                        {savedLegs.length > 1 ? "s" : ""} added
                       </strong>
                       <span style={{ opacity: 0.7, marginLeft: 8 }}>
                         (${(savedLegsTotal / 100).toFixed(0)} so far)
@@ -868,25 +892,28 @@ export default function WekoPaBookingWizard({
                   )}
 
                   {/* Direction */}
-                  <div id="wekopa-field-direction" className={styles.sectionBox}>
+                  <div
+                    id='wekopa-field-direction'
+                    className={styles.sectionBox}
+                  >
                     <label className={labelCx(false)}>Direction</label>
                     <select
                       value={direction}
                       onChange={(e) =>
                         setDirection(e.target.value as Direction | "")
                       }
-                      className="selectBorder emptySmall"
+                      className='selectBorder emptySmall'
                     >
-                      <option value="">Select a direction...</option>
-                      <option value="to_wekopa">
+                      <option value=''>Select a direction...</option>
+                      <option value='to_wekopa'>
                         Sky Harbor Airport → We-Ko-Pa Golf Club
                       </option>
-                      <option value="from_wekopa">
+                      <option value='from_wekopa'>
                         We-Ko-Pa Golf Club → Sky Harbor Airport
                       </option>
                     </select>
                     {direction && (
-                      <p className="miniNote">
+                      <p className='miniNote'>
                         {direction === "to_wekopa"
                           ? "Pickup at Sky Harbor — drop-off at the club."
                           : "Pickup at the club — drop-off at Sky Harbor."}
@@ -895,7 +922,7 @@ export default function WekoPaBookingWizard({
                   </div>
 
                   {/* Date & time */}
-                  <div id="wekopa-field-datetime" className={styles.sectionBox}>
+                  <div id='wekopa-field-datetime' className={styles.sectionBox}>
                     <label
                       className={labelCx(
                         Boolean(errors.pickupAtDate || errors.pickupAtTime),
@@ -922,12 +949,12 @@ export default function WekoPaBookingWizard({
                       }}
                       timeZone={companyTimezone}
                     />
-                    <p className="miniNote">
+                    <p className='miniNote'>
                       🕐 All times are in {companyTimezoneLabel}
                     </p>
                     {pickupTooSoon && (
                       <p
-                        className="miniNote"
+                        className='miniNote'
                         style={{
                           color: "rgba(180,0,0,0.85)",
                           fontWeight: 700,
@@ -943,7 +970,10 @@ export default function WekoPaBookingWizard({
                   </div>
 
                   {/* Passengers & Luggage */}
-                  <div id="wekopa-field-passengers" className={styles.sectionBox}>
+                  <div
+                    id='wekopa-field-passengers'
+                    className={styles.sectionBox}
+                  >
                     <div className={styles.fieldRow}>
                       <div style={{ display: "grid", gap: 10 }}>
                         <label className={labelCx(Boolean(errors.passengers))}>
@@ -958,7 +988,7 @@ export default function WekoPaBookingWizard({
                             });
                             clearErrors("passengers");
                           }}
-                          className="selectBorder emptySmall"
+                          className='selectBorder emptySmall'
                         >
                           <option value={0}>Select...</option>
                           {Array.from(
@@ -970,10 +1000,10 @@ export default function WekoPaBookingWizard({
                             </option>
                           ))}
                         </select>
-                        <p className="miniNote">
+                        <p className='miniNote'>
                           Groups over {MAX_PASSENGERS_ONLINE}?{" "}
                           <a
-                            href="tel:+14803004885"
+                            href='tel:+14803004885'
                             className={styles.inlineLink}
                           >
                             Call us
@@ -983,7 +1013,7 @@ export default function WekoPaBookingWizard({
                       </div>
 
                       <div style={{ display: "grid", gap: 10 }}>
-                        <label className="cardTitle h5">
+                        <label className='cardTitle h5'>
                           Luggage &amp; golf bags
                         </label>
                         <select
@@ -993,15 +1023,17 @@ export default function WekoPaBookingWizard({
                               shouldDirty: true,
                             })
                           }
-                          className="selectBorder emptySmall"
+                          className='selectBorder emptySmall'
                         >
-                          {Array.from({ length: 29 }, (_, i) => i).map((n) => (
+                          {Array.from({ length: 15 }, (_, i) => i).map((n) => (
                             <option key={n} value={n}>
                               {n}
                             </option>
                           ))}
                         </select>
-                        <p className="miniNote">Include golf bags in your count</p>
+                        <p className='miniNote'>
+                          Include golf bags in your count
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1040,9 +1072,9 @@ export default function WekoPaBookingWizard({
 
                   <div className={styles.btnContainer}>
                     <button
-                      type="button"
+                      type='button'
                       onClick={goStep2}
-                      className="primaryBtn"
+                      className='primaryBtn'
                     >
                       Next
                     </button>
@@ -1055,13 +1087,13 @@ export default function WekoPaBookingWizard({
               ─────────────────────────────────────────────────────── */}
               {step === 2 && vehicleConfig && (
                 <div className={`${styles.contentBox} ${styles.stepPane}`}>
-                  <h2 className="underline">2. Vehicle &amp; Flight</h2>
-                  <p className="subheading">
+                  <h2 className='underline'>2. Vehicle &amp; Flight</h2>
+                  <p className='subheading'>
                     Confirm your vehicle and add optional flight details
                   </p>
 
                   {/* Vehicle confirmation card */}
-                  <div id="wekopa-field-vehicle" className={styles.vehicleCard}>
+                  <div id='wekopa-field-vehicle' className={styles.vehicleCard}>
                     <div className={styles.vehicleCardTop}>
                       <div>
                         <span className={styles.vehicleCardEyebrow}>
@@ -1071,7 +1103,8 @@ export default function WekoPaBookingWizard({
                           {vehicleConfig.label}
                         </h4>
                         <p className={styles.vehicleCardCapacity}>
-                          Total capacity: {vehicleConfig.totalCapacity} passengers
+                          Total capacity: {vehicleConfig.totalCapacity}{" "}
+                          passengers
                         </p>
                       </div>
                       <div className={styles.vehicleCardPriceBlock}>
@@ -1099,7 +1132,11 @@ export default function WekoPaBookingWizard({
                                 {vehicleConfig.vans} × {vanVehicle.name}
                               </span>
                               <span>
-                                ${((vehicleConfig.vans * vanPriceCents) / 100).toFixed(0)}
+                                $
+                                {(
+                                  (vehicleConfig.vans * vanPriceCents) /
+                                  100
+                                ).toFixed(0)}
                               </span>
                             </div>
                           )}
@@ -1109,7 +1146,11 @@ export default function WekoPaBookingWizard({
                                 {vehicleConfig.suvs} × {suvVehicle.name}
                               </span>
                               <span>
-                                ${((vehicleConfig.suvs * suvPriceCents) / 100).toFixed(0)}
+                                $
+                                {(
+                                  (vehicleConfig.suvs * suvPriceCents) /
+                                  100
+                                ).toFixed(0)}
                               </span>
                             </div>
                           )}
@@ -1130,7 +1171,7 @@ export default function WekoPaBookingWizard({
                     )}
 
                     <button
-                      type="button"
+                      type='button'
                       className={styles.vehicleCardEditBtn}
                       onClick={() => setStep(1)}
                     >
@@ -1145,15 +1186,19 @@ export default function WekoPaBookingWizard({
                       style={{ padding: "1.25rem" }}
                     >
                       <div
-                        className="cardTitle h5"
-                        style={{ display: "flex", alignItems: "center", gap: 8 }}
+                        className='cardTitle h5'
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
                       >
                         <span>✈️</span> Flight Information{" "}
                         <span style={{ fontWeight: 400, opacity: 0.7 }}>
                           (optional)
                         </span>
                       </div>
-                      <p className="miniNote" style={{ marginBottom: 4 }}>
+                      <p className='miniNote' style={{ marginBottom: 4 }}>
                         {isAirportPickup
                           ? "Give us your flight details and we'll monitor for delays — adjusting your pickup automatically at no charge."
                           : "Providing your departure flight helps your driver drop you at the right terminal."}
@@ -1161,7 +1206,7 @@ export default function WekoPaBookingWizard({
 
                       <div className={styles.fieldRow}>
                         <div style={{ display: "grid", gap: 8 }}>
-                          <label className="cardTitle h5">Airline</label>
+                          <label className='cardTitle h5'>Airline</label>
                           <input
                             value={flightAirline}
                             onChange={(e) =>
@@ -1169,12 +1214,12 @@ export default function WekoPaBookingWizard({
                                 shouldDirty: true,
                               })
                             }
-                            className="input emptySmall"
-                            placeholder="e.g. American Airlines"
+                            className='input emptySmall'
+                            placeholder='e.g. American Airlines'
                           />
                         </div>
                         <div style={{ display: "grid", gap: 8 }}>
-                          <label className="cardTitle h5">Flight number</label>
+                          <label className='cardTitle h5'>Flight number</label>
                           <input
                             value={flightNumber}
                             onChange={(e) =>
@@ -1184,19 +1229,21 @@ export default function WekoPaBookingWizard({
                                 { shouldDirty: true },
                               )
                             }
-                            className="input emptySmall"
-                            placeholder="e.g. AA1234"
+                            className='input emptySmall'
+                            placeholder='e.g. AA1234'
                           />
                         </div>
                       </div>
 
                       <div className={styles.fieldRow}>
                         <div style={{ display: "grid", gap: 8 }}>
-                          <label className="cardTitle h5">
-                            {isAirportPickup ? "Arrival date" : "Departure date"}
+                          <label className='cardTitle h5'>
+                            {isAirportPickup
+                              ? "Arrival date"
+                              : "Departure date"}
                           </label>
                           <input
-                            type="date"
+                            type='date'
                             value={flightScheduledAtDate}
                             onChange={(e) =>
                               setValue(
@@ -1205,15 +1252,17 @@ export default function WekoPaBookingWizard({
                                 { shouldDirty: true },
                               )
                             }
-                            className="input emptySmall"
+                            className='input emptySmall'
                           />
                         </div>
                         <div style={{ display: "grid", gap: 8 }}>
-                          <label className="cardTitle h5">
-                            {isAirportPickup ? "Arrival time" : "Departure time"}
+                          <label className='cardTitle h5'>
+                            {isAirportPickup
+                              ? "Arrival time"
+                              : "Departure time"}
                           </label>
                           <input
-                            type="time"
+                            type='time'
                             value={flightScheduledAtTime}
                             onChange={(e) =>
                               setValue(
@@ -1222,13 +1271,13 @@ export default function WekoPaBookingWizard({
                                 { shouldDirty: true },
                               )
                             }
-                            className="input emptySmall"
+                            className='input emptySmall'
                           />
                         </div>
                       </div>
 
                       <div style={{ display: "grid", gap: 8 }}>
-                        <label className="cardTitle h5">
+                        <label className='cardTitle h5'>
                           Terminal (optional)
                         </label>
                         <input
@@ -1238,8 +1287,8 @@ export default function WekoPaBookingWizard({
                               shouldDirty: true,
                             })
                           }
-                          className="input emptySmall"
-                          placeholder="e.g. Terminal 4"
+                          className='input emptySmall'
+                          placeholder='e.g. Terminal 4'
                         />
                       </div>
                     </div>
@@ -1253,16 +1302,16 @@ export default function WekoPaBookingWizard({
                     }}
                   >
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => setStep(1)}
-                      className="secondaryBtn"
+                      className='secondaryBtn'
                     >
                       Back
                     </button>
                     <button
-                      type="button"
+                      type='button'
                       onClick={goStep3}
-                      className="primaryBtn"
+                      className='primaryBtn'
                     >
                       Next
                     </button>
@@ -1278,11 +1327,11 @@ export default function WekoPaBookingWizard({
                   className={styles.stepPane}
                   style={{ display: "grid", gap: 30 }}
                 >
-                  <h2 className="underline">3. Confirm</h2>
-                  <p className="subheading">Review your trip and submit</p>
+                  <h2 className='underline'>3. Confirm</h2>
+                  <p className='subheading'>Review your trip and submit</p>
 
                   {/* Booking summary */}
-                  <div className="box">
+                  <div className='box'>
                     <div className={styles.summaryRow}>
                       <span className={styles.summaryKey}>Route</span>
                       <span className={styles.summaryVal}>
@@ -1337,7 +1386,7 @@ export default function WekoPaBookingWizard({
                           }}
                         >
                           <div
-                            className="cardTitle h6"
+                            className='cardTitle h6'
                             style={{ marginBottom: 8, opacity: 0.7 }}
                           >
                             ✈️ Flight Information
@@ -1346,13 +1395,17 @@ export default function WekoPaBookingWizard({
                         {flightAirline && (
                           <div className={styles.summaryRow}>
                             <span className={styles.summaryKey}>Airline</span>
-                            <span className={styles.summaryVal}>{flightAirline}</span>
+                            <span className={styles.summaryVal}>
+                              {flightAirline}
+                            </span>
                           </div>
                         )}
                         {flightNumber && (
                           <div className={styles.summaryRow}>
                             <span className={styles.summaryKey}>Flight #</span>
-                            <span className={styles.summaryVal}>{flightNumber}</span>
+                            <span className={styles.summaryVal}>
+                              {flightNumber}
+                            </span>
                           </div>
                         )}
                         {flightScheduledAtDate && (
@@ -1371,7 +1424,9 @@ export default function WekoPaBookingWizard({
                         {flightTerminal && (
                           <div className={styles.summaryRow}>
                             <span className={styles.summaryKey}>Terminal</span>
-                            <span className={styles.summaryVal}>{flightTerminal}</span>
+                            <span className={styles.summaryVal}>
+                              {flightTerminal}
+                            </span>
                           </div>
                         )}
                       </>
@@ -1393,10 +1448,13 @@ export default function WekoPaBookingWizard({
                           color: "var(--accent)",
                         }}
                       >
-                        ${vehicleConfig ? (vehicleConfig.totalCents / 100).toFixed(0) : "—"}
+                        $
+                        {vehicleConfig
+                          ? (vehicleConfig.totalCents / 100).toFixed(0)
+                          : "—"}
                       </span>
                     </div>
-                    <p className="miniNote" style={{ marginTop: 6 }}>
+                    <p className='miniNote' style={{ marginTop: 6 }}>
                       This is a flat-rate transfer. No surge pricing, no hidden
                       fees. Dispatch may confirm details within 24 hours.
                     </p>
@@ -1404,15 +1462,23 @@ export default function WekoPaBookingWizard({
 
                   {/* Multi-leg trip summary */}
                   {savedLegs.length > 0 && (
-                    <div className="box" style={{ background: "rgba(0,0,0,0.02)" }}>
-                      <div className="cardTitle h5" style={{ marginBottom: 12 }}>
+                    <div
+                      className='box'
+                      style={{ background: "rgba(0,0,0,0.02)" }}
+                    >
+                      <div
+                        className='cardTitle h5'
+                        style={{ marginBottom: 12 }}
+                      >
                         <span style={{ marginRight: 10 }}>🗓️</span> Your trip (
                         {savedLegs.length + 1} rides)
                       </div>
                       {savedLegs.map((leg, idx) => (
                         <div key={leg.id} className={styles.savedLegRow}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontWeight: 600, fontSize: "1.4rem" }}>
+                            <div
+                              style={{ fontWeight: 600, fontSize: "1.4rem" }}
+                            >
                               Ride {idx + 1}: {directionLabel(leg.direction)}
                             </div>
                             <div
@@ -1427,13 +1493,15 @@ export default function WekoPaBookingWizard({
                             </div>
                           </div>
                           <div className={styles.savedLegRight}>
-                            <span style={{ fontWeight: 700, fontSize: "1.4rem" }}>
+                            <span
+                              style={{ fontWeight: 700, fontSize: "1.4rem" }}
+                            >
                               ${(leg.estimateCents / 100).toFixed(0)}
                             </span>
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => setRemoveLegId(leg.id)}
-                              title="Remove this ride"
+                              title='Remove this ride'
                               className={styles.removeLegBtn}
                             >
                               ✕
@@ -1446,14 +1514,25 @@ export default function WekoPaBookingWizard({
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontWeight: 600, fontSize: "1.4rem" }}>
                             Ride {savedLegs.length + 1}:{" "}
-                            {direction ? directionLabel(direction as Direction) : "—"}{" "}
+                            {direction
+                              ? directionLabel(direction as Direction)
+                              : "—"}{" "}
                             <span style={{ fontWeight: 400, opacity: 0.7 }}>
                               (this ride)
                             </span>
                           </div>
                         </div>
-                        <span style={{ fontWeight: 700, fontSize: "1.4rem", flexShrink: 0 }}>
-                          ${vehicleConfig ? (vehicleConfig.totalCents / 100).toFixed(0) : "—"}
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "1.4rem",
+                            flexShrink: 0,
+                          }}
+                        >
+                          $
+                          {vehicleConfig
+                            ? (vehicleConfig.totalCents / 100).toFixed(0)
+                            : "—"}
                         </span>
                       </div>
                       {/* Trip total */}
@@ -1467,7 +1546,7 @@ export default function WekoPaBookingWizard({
                   {/* Contact fields */}
                   {!isAuthed ? (
                     <div
-                      id="wekopa-field-contact"
+                      id='wekopa-field-contact'
                       className={styles.sectionBox}
                     >
                       <div style={{ display: "grid", gap: 10 }}>
@@ -1483,13 +1562,15 @@ export default function WekoPaBookingWizard({
                             });
                             clearErrors("guestName");
                           }}
-                          className="input subheading"
-                          placeholder="Your name"
+                          className='input subheading'
+                          placeholder='Your name'
                         />
                       </div>
                       <div className={styles.fieldRow}>
                         <div style={{ display: "grid", gap: 10 }}>
-                          <label className={labelCx(Boolean(errors.guestEmail))}>
+                          <label
+                            className={labelCx(Boolean(errors.guestEmail))}
+                          >
                             Email
                           </label>
                           <input
@@ -1501,13 +1582,15 @@ export default function WekoPaBookingWizard({
                               });
                               clearErrors("guestEmail");
                             }}
-                            className="input subheading"
-                            placeholder="you@email.com"
-                            inputMode="email"
+                            className='input subheading'
+                            placeholder='you@email.com'
+                            inputMode='email'
                           />
                         </div>
                         <div style={{ display: "grid", gap: 10 }}>
-                          <label className={labelCx(Boolean(errors.guestPhone))}>
+                          <label
+                            className={labelCx(Boolean(errors.guestPhone))}
+                          >
                             Phone
                           </label>
                           <input
@@ -1522,20 +1605,22 @@ export default function WekoPaBookingWizard({
                               });
                               clearErrors("guestPhone");
                             }}
-                            className="input subheading"
-                            placeholder="(602) 555-1234"
-                            inputMode="tel"
+                            className='input subheading'
+                            placeholder='(602) 555-1234'
+                            inputMode='tel'
                           />
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div
-                      id="wekopa-field-contact"
+                      id='wekopa-field-contact'
                       className={styles.sectionBox}
                     >
                       <div style={{ display: "grid", gap: 8 }}>
-                        <label className={labelCx(Boolean(errors.contactPhone))}>
+                        <label
+                          className={labelCx(Boolean(errors.contactPhone))}
+                        >
                           Phone number for this trip
                         </label>
                         <input
@@ -1550,17 +1635,18 @@ export default function WekoPaBookingWizard({
                             });
                             clearErrors("contactPhone");
                           }}
-                          className="input subheading"
-                          placeholder="(602) 555-1234"
-                          inputMode="tel"
+                          className='input subheading'
+                          placeholder='(602) 555-1234'
+                          inputMode='tel'
                         />
-                        <p className="miniNote">
+                        <p className='miniNote'>
                           Your driver will use this number to contact you.
-                          {phoneWasPrefilled.current && contactPhone?.trim() && (
-                            <span style={{ marginLeft: 6, fontWeight: 600 }}>
-                              (already on file)
-                            </span>
-                          )}
+                          {phoneWasPrefilled.current &&
+                            contactPhone?.trim() && (
+                              <span style={{ marginLeft: 6, fontWeight: 600 }}>
+                                (already on file)
+                              </span>
+                            )}
                         </p>
                       </div>
                     </div>
@@ -1568,7 +1654,7 @@ export default function WekoPaBookingWizard({
 
                   {/* Special requests */}
                   <div style={{ display: "grid", gap: 8 }}>
-                    <div className="cardTitle h5">
+                    <div className='cardTitle h5'>
                       Special requests{" "}
                       <span style={{ fontWeight: 400, opacity: 0.7 }}>
                         (optional)
@@ -1581,17 +1667,17 @@ export default function WekoPaBookingWizard({
                           shouldDirty: true,
                         })
                       }
-                      className="input subheading"
+                      className='input subheading'
                       style={{ minHeight: 90 }}
-                      placeholder="Child seat, accessibility needs, meet & greet, early arrival..."
+                      placeholder='Child seat, accessibility needs, meet & greet, early arrival...'
                     />
                   </div>
 
                   {/* Add another ride */}
                   <button
-                    type="button"
+                    type='button'
                     onClick={addAnotherRide}
-                    className="secondaryBtn"
+                    className='secondaryBtn'
                     disabled={submitting || submitted}
                     style={{ width: "100%", textAlign: "center" }}
                   >
@@ -1599,7 +1685,7 @@ export default function WekoPaBookingWizard({
                   </button>
                   {savedLegs.length === 0 && (
                     <div
-                      className="miniNote"
+                      className='miniNote'
                       style={{ textAlign: "center", marginTop: -4 }}
                     >
                       Need rides on multiple days? Add them all here and submit
@@ -1615,17 +1701,17 @@ export default function WekoPaBookingWizard({
                     }}
                   >
                     <button
-                      type="button"
+                      type='button'
                       onClick={() => setStep(2)}
-                      className="secondaryBtn"
+                      className='secondaryBtn'
                       disabled={submitting || submitted}
                     >
                       Back
                     </button>
                     <button
-                      type="button"
+                      type='button'
                       onClick={handleSubmit}
-                      className="primaryBtn"
+                      className='primaryBtn'
                       disabled={submitting || submitted}
                     >
                       {submitted
@@ -1647,8 +1733,8 @@ export default function WekoPaBookingWizard({
       {/* Remove ride confirmation modal */}
       <Modal isOpen={removeLegId !== null} onClose={() => setRemoveLegId(null)}>
         <div className={styles.modalContent}>
-          <div className="cardTitle h5">Remove this ride?</div>
-          <p className="paragraph">
+          <div className='cardTitle h5'>Remove this ride?</div>
+          <p className='paragraph'>
             Are you sure you want to remove this ride from your trip?
             <br />
             <span className={styles.modalSubnote}>
@@ -1657,15 +1743,15 @@ export default function WekoPaBookingWizard({
           </p>
           <div className={styles.modalActions}>
             <button
-              type="button"
-              className="secondaryBtn"
+              type='button'
+              className='secondaryBtn'
               onClick={() => setRemoveLegId(null)}
             >
               Cancel
             </button>
             <button
-              type="button"
-              className="primaryBtn"
+              type='button'
+              className='primaryBtn'
               style={{ background: "rgba(180,0,0,0.85)" }}
               onClick={confirmRemoveLeg}
             >

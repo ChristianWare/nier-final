@@ -119,7 +119,7 @@ export default function WekoPaPricing() {
 
               <div className={styles.cardCta}>
                 <Button
-                  href='/book'
+                  href='/wekopa/#booking'
                   text='Book This Vehicle'
                   btnType={plan.popular ? "underlinedWhite" : "black"}
                   arrow
