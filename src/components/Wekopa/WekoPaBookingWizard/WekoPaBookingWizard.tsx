@@ -389,6 +389,9 @@ export default function WekoPaBookingWizard({
       behavior: "smooth",
       block: "start",
     });
+    return () => {
+      didMountRef.current = false;
+    };
   }, [step]);
 
   // ─── Navigation ───────────────────────────────────────────────────────────
