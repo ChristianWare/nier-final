@@ -968,7 +968,9 @@ export default async function AdminBookingsPage({
                   const confirmationCode = getConfirmationCode(b.id);
 
                   const isCorporate = Boolean((b as any).corporateAccount);
-
+                  const isWekopa =
+                    !isCorporate &&
+                    (b as any).eventType === "Golf Transfer — We-Ko-Pa";
                   const tripGroup = (b as any).tripGroup ?? null;
                   const legNumber = tripGroup
                     ? tripGroup.bookings.findIndex(
@@ -1022,7 +1024,7 @@ export default async function AdminBookingsPage({
                   return (
                     <tr
                       key={b.id}
-                      className={`${styles.tr} ${isCorporate ? styles.trCorporate : ""}`}
+                      className={`${styles.tr} ${isCorporate ? styles.trCorporate : isWekopa ? styles.trWekopa : ""}`}
                     >
                       <td
                         className={styles.td}

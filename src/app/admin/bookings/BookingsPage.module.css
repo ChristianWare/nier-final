@@ -391,6 +391,12 @@
   outline-offset: -1px;
 }
 
+.trWekopa {
+  background: rgba(22, 163, 74, 0.08);
+  outline: 1px solid rgba(22, 163, 74, 0.2);
+  outline-offset: -1px;
+}
+
 .filterSelect {
   appearance: none;
   -webkit-appearance: none;

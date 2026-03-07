@@ -992,7 +992,7 @@ export default async function AdminBookingDetailPage({
                   booking.eventType === "Golf Transfer — We-Ko-Pa" && (
                     <span
                       style={{
-                        color: "var(--accent)",
+                        color: "var(--green)",
                         textTransform: "lowercase",
                       }}
                     >
