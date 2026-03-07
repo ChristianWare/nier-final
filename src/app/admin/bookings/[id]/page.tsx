@@ -988,6 +988,17 @@ export default async function AdminBookingDetailPage({
                     (corporate)
                   </span>
                 )}
+                {!isCorporateBooking &&
+                  booking.eventType === "Golf Transfer — We-Ko-Pa" && (
+                    <span
+                      style={{
+                        color: "var(--accent)",
+                        textTransform: "lowercase",
+                      }}
+                    >
+                      (we-ko-pa)
+                    </span>
+                  )}
               </h1>
 
               <div className={styles.boxRight}>

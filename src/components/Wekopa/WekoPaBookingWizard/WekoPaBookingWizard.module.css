@@ -1,0 +1,431 @@
+/* ─── Outer section ──────────────────────────────────────────────────────── */
+.container {
+  padding: 8rem 0;
+}
+
+/* Scroll anchor — matches the booking wizard pattern */
+.wizardTop {
+  scroll-margin-top: 110px;
+}
+
+/* ─── Two-column layout: checklist | wizard ──────────────────────────────── */
+.content {
+  display: grid;
+  grid-template-columns: 2fr 4fr;
+  grid-gap: 15rem;
+  align-items: start;
+}
+
+/* ─── Left: sticky checklist ─────────────────────────────────────────────── */
+.checklistContainer {
+  position: sticky;
+  top: 85px;
+  z-index: 10;
+  height: fit-content;
+}
+
+/* ─── Right: wizard steps ────────────────────────────────────────────────── */
+.right {
+  align-self: start;
+}
+
+/* Mobile checklist — sticky above the form */
+.checklistMobile {
+  position: sticky;
+  top: 54px;
+  z-index: 10;
+  height: fit-content;
+  margin-bottom: 3rem;
+}
+
+/* ─── Step pane ──────────────────────────────────────────────────────────── */
+.contentBox {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 3rem;
+}
+
+.stepPane {
+  animation: stepFadeIn 220ms ease-out both;
+}
+
+@keyframes stepFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepPane {
+    animation: none;
+  }
+}
+
+/* ─── Field sections ─────────────────────────────────────────────────────── */
+.sectionBox {
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  display: grid;
+  grid-gap: 1rem;
+  padding: 2rem;
+}
+
+/* Two-column field row (e.g. passengers / luggage, airline / flight #) */
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────────────────── */
+.btnContainer {
+  display: grid;
+  width: 100%;
+}
+
+/* ─── Vehicle auto-recommendation preview (step 1) ───────────────────────── */
+.vehiclePreview {
+  background: var(--black, #111);
+  color: white;
+  border-radius: 12px;
+  padding: 2rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.vehiclePreviewTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.vehiclePreviewLabel {
+  font-size: 1.4rem;
+  opacity: 0.7;
+}
+
+.vehiclePreviewPrice {
+  font-size: 2.8rem;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+  color: white;
+}
+
+.vehiclePreviewUnit {
+  font-size: 1.4rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  opacity: 0.6;
+}
+
+.vehiclePreviewConfig {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: white;
+}
+
+.vehiclePreviewSavings {
+  font-size: 1.4rem;
+  color: #4ade80;
+  letter-spacing: normal;
+}
+
+.vehiclePreviewMulti {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  letter-spacing: normal;
+}
+
+/* ─── Vehicle confirmation card (step 2) ────────────────────────────────── */
+.vehicleCard {
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 2rem;
+  background: white;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.vehicleCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.vehicleCardEyebrow {
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.vehicleCardName {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.vehicleCardCapacity {
+  font-size: 1.4rem;
+  opacity: 0.65;
+  margin: 4px 0 0;
+}
+
+.vehicleCardPriceBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.vehicleCardPrice {
+  font-size: 3.2rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+}
+
+.vehicleCardPriceSub {
+  font-size: 1.2rem;
+  opacity: 0.55;
+  letter-spacing: normal;
+}
+
+.vehicleCardSavings {
+  font-size: 1.4rem;
+  color: #15803d;
+  font-weight: 600;
+  letter-spacing: normal;
+}
+
+.vehicleBreakdown {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 1.2rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.breakdownRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.4rem;
+  letter-spacing: normal;
+}
+
+.breakdownTotal {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 0.8rem;
+  font-weight: 700;
+}
+
+.vehicleCardMultiNote {
+  font-size: 1.4rem;
+  opacity: 0.6;
+  letter-spacing: normal;
+}
+
+.vehicleCardEditBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.4rem;
+  color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: normal;
+  text-decoration: underline;
+  width: fit-content;
+}
+
+.vehicleCardEditBtn:hover {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+/* ─── Flight info section ────────────────────────────────────────────────── */
+.flightInfoSection {
+  border: 2px solid var(--stroke);
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.flightInfoFields {
+  display: grid;
+  gap: 1rem;
+  animation: flightFieldsFadeIn 200ms ease-out;
+}
+
+@keyframes flightFieldsFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flightInfoFields {
+    animation: none;
+  }
+}
+
+/* ─── Summary rows (step 3) ─────────────────────────────────────────────── */
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.summaryRow:last-child {
+  border-bottom: none;
+}
+
+.summaryKey {
+  font-weight: 600;
+  opacity: 0.6;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.summaryVal {
+  text-align: right;
+}
+
+/* ─── Saved legs banner (step 1 when isMultiLeg) ────────────────────────── */
+.savedLegsBanner {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 1.4rem;
+}
+
+/* ─── Saved leg rows (step 3 multi-leg summary) ──────────────────────────── */
+.savedLegRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  gap: 12px;
+}
+
+.savedLegRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.removeLegBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.4rem;
+  opacity: 0.45;
+  padding: 2px 6px;
+  line-height: 1;
+}
+
+.removeLegBtn:hover {
+  opacity: 0.8;
+}
+
+.tripTotal {
+  display: flex;
+  justify-content: space-between;
+  border-top: 2px solid rgba(0, 0, 0, 0.12);
+  margin-top: 8px;
+  padding-top: 12px;
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: normal;
+}
+
+/* ─── Modal content ──────────────────────────────────────────────────────── */
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.modalSubnote {
+  display: inline-block;
+  margin-top: 1rem;
+  opacity: 0.8;
+}
+
+.modalActions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+/* ─── Inline link ────────────────────────────────────────────────────────── */
+.inlineLink {
+  color: var(--accent);
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.inlineLink:hover {
+  opacity: 0.8;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
+@media screen and (max-width: 1268px) {
+  .content {
+    grid-gap: 8rem;
+    grid-template-columns: 1.5fr 2fr;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .content {
+    grid-template-columns: 1fr;
+    grid-gap: 0;
+  }
+
+  .checklistMobile {
+    display: block;
+    top: 54px;
+    margin-bottom: 4rem;
+  }
+
+  .fieldRow {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media screen and (min-width: 1069px) {
+  .checklistMobile {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .checklistMobile {
+    top: 45px;
+  }
+}

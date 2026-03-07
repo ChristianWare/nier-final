@@ -72,6 +72,8 @@ export type CreateTripGroupInput = {
 
   // Optional group label
   label?: string | null;
+  /** WeKoPa-only: skip the active check for intentionally-inactive vehicle categories */
+  skipVehicleActiveCheck?: boolean;
 };
 
 function isValidEmail(v: string) {
@@ -171,7 +173,10 @@ export async function createTripGroupBooking(input: CreateTripGroupInput) {
       ? await db.vehicle.findUnique({ where: { id: leg.vehicleId } })
       : null;
 
-    if (leg.vehicleId && (!vehicle || !vehicle.active)) {
+    if (
+      leg.vehicleId &&
+      (!vehicle || (!vehicle.active && !input.skipVehicleActiveCheck))
+    ) {
       return { error: `${legLabel}: Vehicle not available.` };
     }
 

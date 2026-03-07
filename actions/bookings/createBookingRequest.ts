@@ -61,6 +61,8 @@ type CreateBookingRequestInput = {
   // Phone for logged-in users
   contactPhone?: string | null;
   eventType?: string | null;
+  /** WeKoPa-only: skip the active check for intentionally-inactive vehicle categories */
+  skipVehicleActiveCheck?: boolean;
 };
 
 function isValidEmail(v: string) {
@@ -139,7 +141,10 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     ? await db.vehicle.findUnique({ where: { id: input.vehicleId } })
     : null;
 
-  if (input.vehicleId && (!vehicle || !vehicle.active)) {
+  if (
+    input.vehicleId &&
+    (!vehicle || (!vehicle.active && !input.skipVehicleActiveCheck))
+  ) {
     return { error: "Vehicle not available" as const };
   }
 

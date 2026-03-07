@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import styles from "./WekoPaPage.module.css";
 import Image from "next/image";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
@@ -8,8 +9,11 @@ import Nav from "@/components/shared/Nav/Nav";
 import CountUp from "@/components/shared/CountUp/CountUp";
 import Faq from "@/components/shared/Faq/Faq";
 import { wekopaQuestions } from "@/lib/data";
-import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
+import WekoPaBookingModal from "@/components/Wekopa/WekoPaBookingModal/WekoPaBookingModal";
+import WekoPaBookingSection from "@/components/Wekopa/WekoPaBookingSection/WekoPaBookingSection";
+import WekoPaBookingTrigger from "@/components/Wekopa/WekoPaBookingTrigger/WekoPaBookingTrigger";
 import WekoPaPricing from "@/components/Wekopa/WekoPaPricing/WekoPaPricing";
+import WekopaFinalCTA from "@/components/Wekopa/WekopaFinalCTA/WekopaFinalCTA";
 
 const stats = [
   { id: 1, value: "36", label: "Hole Golf Facility" },
@@ -42,36 +46,8 @@ const courses = [
 ];
 
 // const facilities = [
-//   {
-//     id: 1,
-//     title: "The Pro Shop",
-//     desc: "A fully stocked golf shop with premium equipment, apparel, and We-Ko-Pa logo merchandise — one of the best-stocked operations in Arizona golf.",
-//   },
-//   {
-//     id: 2,
-//     title: "Practice Facilities",
-//     desc: "Full driving range, chipping areas, and putting greens that mirror the pace and character of the course. Arrive early — it is worth it.",
-//   },
-//   {
-//     id: 3,
-//     title: "The Clubhouse",
-//     desc: "A focused, well-appointed clubhouse built entirely around the game. No distractions — just great golf, great views, and the Sonoran Desert.",
-//   },
-//   {
-//     id: 4,
-//     title: "We-Ko-Pa Casino Resort",
-//     desc: "The adjacent We-Ko-Pa Casino Resort offers dining, hotel accommodations, and the option to extend your stay in the Fort McDowell area.",
-//   },
-//   {
-//     id: 5,
-//     title: "Golf Packages",
-//     desc: "Bundled tee time and resort packages available. Peak season (fall and spring) delivers ideal desert conditions — book your tee time early.",
-//   },
-//   {
-//     id: 6,
-//     title: "Public Access",
-//     desc: "We-Ko-Pa is a public course — no membership required. Tee times can be reserved at wekopa.com or by calling the pro shop directly.",
-//   },
+//   { id: 1, title: "The Pro Shop", desc: "..." },
+//   ...
 // ];
 
 const nierBenefits = [
@@ -112,6 +88,7 @@ export default function WekoPaPage() {
   return (
     <main>
       <Nav />
+
       {/* ─── HERO ─── */}
       <section className={styles.hero}>
         <div className={styles.heroMedia}>
@@ -152,23 +129,21 @@ export default function WekoPaPage() {
               on time, in a vehicle that matches the caliber of the course.
             </p>
             <div className={styles.heroBtns}>
-              <Button
-                href='/book'
+              <WekoPaBookingTrigger
                 text='Book Your Ride'
                 btnType='underlinedWhite'
-                arrow
               />
             </div>
           </div>
         </LayoutWrapper>
       </section>
+
       {/* ─── STATS BAR ─── */}
       <section className={styles.statsBar}>
         <LayoutWrapper>
           <div className={styles.statsGrid}>
             {stats.map((s) => (
               <div key={s.id} className={styles.statItem}>
-                {/* <span className={`${styles.statValue} stat`}>{s.value}</span> */}
                 <CountUp
                   from={0}
                   to={parseInt(s.value.replace(/\D/g, ""), 10)}
@@ -182,6 +157,7 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
+
       {/* ─── INTRO / OVERVIEW ─── */}
       <section className={styles.intro}>
         <LayoutWrapper>
@@ -240,6 +216,7 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
+
       {/* ─── TWO COURSES ─── */}
       <section className={styles.courses}>
         <LayoutWrapper>
@@ -279,68 +256,13 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
+
       {/* ─── DESIGNERS CALLOUT ─── */}
-      {/* <section className={styles.designers}>
-        <LayoutWrapper>
-          <div className={styles.designersContent}>
-            <div className={styles.designersLeft}>
-              <SectionHeading text='Course Architecture' color='cream' dot />
-              <h2 className={styles.designersHeading}>
-                Designed by
-                <br />
-                Bill Coore &amp;
-                <br />
-                Ben Crenshaw
-              </h2>
-            </div>
-            <div className={styles.designersRight}>
-              <p className={styles.designersCopy}>
-                Two of the most respected names in golf course architecture
-                shaped the Cholla course at We-Ko-Pa Golf Club. Their
-                philosophy: find the golf course that&apos;s already there.
-                Minimize earthwork. Maximize the character of the natural
-                landscape.
-              </p>
-              <p className={styles.designersCopy}>
-                At We-Ko-Pa, that approach produced one of the most celebrated
-                desert golf experiences in the country. Fairways that bend
-                toward natural drainage. Greens that slope with the hillside.
-                Tee boxes that feel like they grew from the Sonoran Desert
-                floor. It&apos;s golf that respects the land it was built on —
-                and it&apos;s why Golf Digest keeps sending reviewers back.
-              </p>
-              <div className={styles.designersQuote}>
-                <span className={styles.designersQMark}>&ldquo;</span>
-                <p className={styles.designersQuoteText}>
-                  Find the golf course that&apos;s already there.
-                </p>
-              </div>
-            </div>
-          </div>
-        </LayoutWrapper>
-      </section> */}
+      {/* <section className={styles.designers}>...</section> */}
+
       {/* ─── CLUB FACILITIES ─── */}
-      {/* <section className={styles.facilities}>
-        <LayoutWrapper>
-          <div className={styles.facilitiesTop}>
-            <SectionHeading text='Club Facilities' dot />
-            <h2 className={styles.facilitiesHeading}>
-              Everything a Serious Golfer Needs
-            </h2>
-          </div>
-          <div className={styles.facilitiesGrid}>
-            {facilities.map((f) => (
-              <div key={f.id} className={styles.facilityCard}>
-                <span className={styles.facilityNumber}>
-                  {String(f.id).padStart(2, "0")}
-                </span>
-                <h3 className={`${styles.facilityTitle} h4`}>{f.title}</h3>
-                <p className={styles.facilityDesc}>{f.desc}</p>
-              </div>
-            ))}
-          </div>
-        </LayoutWrapper>
-      </section> */}
+      {/* <section className={styles.facilities}>...</section> */}
+
       {/* ─── LOCATION / GETTING THERE ─── */}
       <section className={styles.location}>
         <LayoutWrapper>
@@ -388,11 +310,9 @@ export default function WekoPaPage() {
                 ))}
               </div>
               <div className={styles.locationBtn}>
-                <Button
-                  href='/book'
+                <WekoPaBookingTrigger
                   text='Book Your Ride There'
                   btnType='black'
-                  arrow
                 />
               </div>
             </div>
@@ -438,16 +358,16 @@ export default function WekoPaPage() {
           </div>
 
           <div className={styles.partnershipCTA}>
-            <Button
-              href='/book'
+            <WekoPaBookingTrigger
               text='Book Your Ride to We-Ko-Pa'
               btnType='red'
-              arrow
             />
           </div>
         </LayoutWrapper>
       </section>
+
       {/* ─── BOOKING CTA ─── */}
+      <WekoPaPricing />
       <section className={styles.booking}>
         <LayoutWrapper>
           <div className={styles.bookingContent}>
@@ -470,9 +390,11 @@ export default function WekoPaPage() {
             <div className={styles.bookingRight}>
               <div className={styles.bookingExternalBtn}>
                 <span className={styles.bookingBtnLabel}>Step 1</span>
+                {/* Intentional external navigation — stays as Button */}
                 <Button
-                  href='/book'
+                  href='https://wekopa.com'
                   text='Book Tee Time at We-Ko-Pa'
+                  target='_blank'
                   btnType='black'
                   arrow
                 />
@@ -480,19 +402,15 @@ export default function WekoPaPage() {
               <div className={styles.bookingDivider} />
               <div className={styles.bookingNierBtn}>
                 <span className={styles.bookingBtnLabel}>Step 2</span>
-                <Button
-                  href='/book'
+                <WekoPaBookingTrigger
                   text='Book Your Nier Ride'
                   btnType='red'
-                  arrow
                 />
               </div>
             </div>
           </div>
         </LayoutWrapper>
       </section>
-
-      <WekoPaPricing />
 
       {/* ─── SUMMARY ─── */}
       <section className={styles.summary}>
@@ -519,8 +437,33 @@ export default function WekoPaPage() {
           </div>
         </LayoutWrapper>
       </section>
+
       <Faq items={wekopaQuestions} />
-      <AboutNumbers />
+      <WekopaFinalCTA />
+
+      {/* ─── BOOKING MODAL ───────────────────────────────────────────────────
+          Mounted once at the root. WekoPaBookingSection is a server component
+          — its DB queries run at page-load time on the server. The modal just
+          reveals the already-rendered output when the user clicks any trigger.
+      ─────────────────────────────────────────────────────────────────────── */}
+      <WekoPaBookingModal>
+        <Suspense
+          fallback={
+            <div
+              style={{
+                padding: "6rem 3rem",
+                textAlign: "center",
+                fontSize: "1.6rem",
+                opacity: 0.4,
+              }}
+            >
+              Loading...
+            </div>
+          }
+        >
+          <WekoPaBookingSection />
+        </Suspense>
+      </WekoPaBookingModal>
     </main>
   );
 }
