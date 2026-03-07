@@ -1,6 +1,8 @@
 .container {
   background-color: var(--cream);
   padding: 10rem 0;
+      background-image: repeating-linear-gradient(to right, var(--stroke), var(--stroke) 1px, transparent 1px, transparent);
+    background-size: 500px 500px;
 }
 
 /* ── TOP ── */
@@ -305,5 +307,23 @@
     width: 100%;
     text-align: center;
     border-radius: 8px;
+  }
+}
+
+@media screen and (max-width: 1268px) {
+  .container {
+    background-size: 300px 300px;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .container {
+    background-size: 250px 250px;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .container {
+    background-size: 75px 75px;
   }
 }

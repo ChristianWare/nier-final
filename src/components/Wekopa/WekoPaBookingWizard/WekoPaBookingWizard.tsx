@@ -242,7 +242,7 @@ export default function WekoPaBookingWizard({
   const [removeLegId, setRemoveLegId] = useState<string | null>(null);
 
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
-  const didMountRef = useRef(false);
+  // const didMountRef = useRef(false);
   const phoneWasPrefilled = useRef(Boolean(userPhone?.trim()));
 
   const suvPriceCents = suvVehicle.baseFareCents;
@@ -380,18 +380,21 @@ export default function WekoPaBookingWizard({
   }, [register, isAuthed]);
 
   // ─── Scroll to top on step change ─────────────────────────────────────────
+  const prevStepRef = useRef<1 | 2 | 3 | null>(null);
+
   useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
+    if (prevStepRef.current === null) {
+      // First mount — just record the initial step, never scroll
+      prevStepRef.current = step;
       return;
     }
-    wizardTopRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    return () => {
-      didMountRef.current = false;
-    };
+    if (prevStepRef.current !== step) {
+      wizardTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      prevStepRef.current = step;
+    }
   }, [step]);
 
   // ─── Navigation ───────────────────────────────────────────────────────────

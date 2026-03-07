@@ -61,6 +61,14 @@ const directionLabels: Record<Direction, { label: string; sub: string }> = {
 export default function WekoPaPricing() {
   const [direction, setDirection] = useState<Direction>("to");
 
+  function scrollToBooking(e: React.MouseEvent) {
+    e.preventDefault();
+    const el = document.getElementById("booking");
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.pageYOffset - 100;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }
+
   return (
     <section className={styles.container}>
       <LayoutWrapper>
@@ -119,10 +127,13 @@ export default function WekoPaPricing() {
 
               <div className={styles.cardCta}>
                 <Button
-                  href='/wekopa/#booking'
+                  href='#booking'
                   text='Book This Vehicle'
                   btnType={plan.popular ? "underlinedWhite" : "black"}
                   arrow
+                  onClick={
+                    scrollToBooking as React.MouseEventHandler<HTMLButtonElement>
+                  }
                 />
               </div>
 

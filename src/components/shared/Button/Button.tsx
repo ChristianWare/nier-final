@@ -17,7 +17,6 @@ import Check from "../icons/Check/Check";
 import Email from "../icons/Email/Email";
 import RefundIcon from "../icons/RefundIcon/RefundIcon";
 
-
 interface Props {
   href?: string;
   text?: string;
@@ -34,7 +33,7 @@ interface Props {
   checkIcon?: boolean;
   type?: "button" | "submit" | "reset";
   as?: "auto" | "button" | "span";
-  onClick?: MouseEventHandler<HTMLButtonElement>;
+  onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
 }
 
 // Changed from spring to tween to remove bounce
@@ -259,6 +258,7 @@ export default function Button({
       rel={target === "_blank" ? "noopener noreferrer" : undefined}
       className={className}
       onMouseEnter={hoverStart}
+      onClick={onClick as MouseEventHandler<HTMLAnchorElement>}
     >
       {Inner}
     </Link>

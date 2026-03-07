@@ -7,32 +7,33 @@ import WekoPaBookingSection from "@/components/Wekopa/WekoPaBookingSection/WekoP
 import WekoPaPricing from "@/components/Wekopa/WekoPaPricing/WekoPaPricing";
 import WekopaFinalCTA from "@/components/Wekopa/WekopaFinalCTA/WekopaFinalCTA";
 import ServicePageIntro from "@/components/ServicesPage/ServicePageIntro/ServicePageIntro";
-import Button from "@/components/shared/Button/Button";
 import WekoImage from "../../../public/images/Wekopa.jpg";
+import Img2 from "../../../public/images/linda.jpg";
 import Marquee from "@/components/shared/Marquee/Marquee";
+import ScrollToSectionButton from "@/components/shared/ScrollToSectionButton/ScrollToSectionButton";
+import ClearHash from "@/components/shared/ClearHash/ClearHash";
 
 export default function WekoPaPage() {
   return (
     <main>
+      <ClearHash />
       <Nav background='cream' />
 
       {/* ─── HERO ─── */}
       <ServicePageIntro
-        heading='Sky Harbor to We-Ko-Pa — The Transfer Done Right'
+        heading='Sky Harbor to Wekopa, Wekopa to Sky Harbor'
         label='We-Ko-Pa transfers'
         stat={{
           quote:
             "Have used this service multiple times. The drivers are great. Always very professional and prompt. You can tell they care about safety and a great customer experience, would definitely recommend it.",
-          authorImage: WekoImage,
+          authorImage: Img2,
           authorName: "Illeana L.",
         }}
         heroImage={WekoImage}
         button={
-          <Button
-            href='#booking'
+          <ScrollToSectionButton
+            sectionId='booking'
             text='Book Your Transfer'
-            btnType='black'
-            arrow
           />
         }
       />
