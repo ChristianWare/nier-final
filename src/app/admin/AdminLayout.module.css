@@ -28,7 +28,7 @@
   }
 }
 
-@media screen and (max-width: 568px) {
+@media screen and (max-width: 768px) {
   .container {
     padding-top: 5rem;
   }

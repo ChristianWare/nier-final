@@ -39,7 +39,7 @@ export default function WekoPaPage() {
       />
 
       <Marquee
-        words={["Sky Harbor", "→", "We-Ko-Pa", "Golf", "&", "Casino", "Resort"]}
+        words={["We-Ko-Pa", "Golf", "&", "Casino", "Resort"]}
         speedSeconds={90}
       />
 

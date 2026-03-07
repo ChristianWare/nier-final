@@ -55,6 +55,7 @@ import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect"
 import BookingWizardChecklist from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
 import { localToUtcIso } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import Button from "@/components/shared/Button/Button";
 import AdminChargeCardOnFileButton from "@/components/admin/AdminChargeCardOnFileButton/AdminChargeCardOnFileButton";
 
 function formatPhone(raw: string): string {
@@ -2780,27 +2781,25 @@ export default function AdminNewBookingWizard({
                   />
                 </div>
 
-                <div className={styles.btnRow}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginLeft: "auto" }}
+                >
+                  <Button
                     type='button'
-                    className='primaryBtn'
-                    disabled={isPending}
+                    text='Next: Choose Vehicle →'
+                    btnType='greenReg'
                     onClick={() => {
                       setAttemptTripNext(true);
-
                       const errs = computeTripErrors();
                       const hasErr = Object.values(errs).some(Boolean);
-
                       if (hasErr) {
                         toast.error("Please complete all required fields.");
                         return;
                       }
-
                       setStep(2);
                     }}
-                  >
-                    Next
-                  </button>
+                  />
                 </div>
               </div>
             ) : null}
@@ -2958,15 +2957,13 @@ export default function AdminNewBookingWizard({
                 </div>
 
                 {/* "Add another ride" button */}
-                <button
+                <Button
                   type='button'
+                  text='Add another ride to this trip'
+                  btnType='greenii'
                   onClick={addAnotherRide}
-                  className='secondaryBtn'
-                  disabled={isPending}
-                  style={{ width: "100%", textAlign: "center" }}
-                >
-                  ➕ Add another ride to this trip
-                </button>
+                  plus
+                />
                 {savedLegs.length === 0 && (
                   <div
                     className='miniNote'
@@ -2976,47 +2973,45 @@ export default function AdminNewBookingWizard({
                   </div>
                 )}
 
-                <div className={styles.actionsBetween}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginTop: "5rem" }}
+                >
+                  <Button
                     type='button'
-                    className='secondaryBtn'
+                    text='← Back: Trip Details'
+                    btnType='blackReg'
                     onClick={() => setStep(1)}
-                  >
-                    Back
-                  </button>
-
-                  <button
+                  />
+                  <Button
                     type='button'
-                    className='primaryBtn'
-                    disabled={isPending}
+                    text={
+                      isPending
+                        ? "Creating..."
+                        : isMultiLeg
+                          ? `Create ${savedLegs.length + 1} rides →`
+                          : "Next: Approve & Price →"
+                    }
+                    btnType='greenReg'
                     onClick={() => {
-                      // ensure trip still valid (route picker can change)
                       if (!tripIsValid()) {
                         setAttemptTripNext(true);
                         toast.error("Please complete all required fields.");
                         setStep(1);
                         return;
                       }
-
                       setAttemptVehicleNext(true);
                       if (!vehicleId) {
                         toast.error("Please choose a vehicle category.");
                         return;
                       }
-
                       startTransition(async () => {
                         const id = await ensureBookingCreated();
                         if (!id) return;
                         setStep(3);
                       });
                     }}
-                  >
-                    {isPending
-                      ? "Creating..."
-                      : isMultiLeg
-                        ? `Create ${savedLegs.length + 1} rides`
-                        : "Next"}
-                  </button>
+                  />
                 </div>
               </div>
             ) : null}
@@ -3080,18 +3075,20 @@ export default function AdminNewBookingWizard({
                   </div>
                 )}
 
-                <div className={styles.actionsBetween}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginTop: "5rem" }}
+                >
+                  <Button
                     type='button'
-                    className='secondaryBtn'
+                    text='← Back: Vehicle'
+                    btnType='blackReg'
                     onClick={() => setStep(2)}
-                  >
-                    Back
-                  </button>
-
-                  <button
+                  />
+                  <Button
                     type='button'
-                    className='primaryBtn'
+                    text='Next: Assign →'
+                    btnType='greenReg'
                     onClick={() => {
                       if (!bookingId) {
                         toast.error("Booking missing. Go back and create it.");
@@ -3099,9 +3096,7 @@ export default function AdminNewBookingWizard({
                       }
                       setStep(4);
                     }}
-                  >
-                    Next
-                  </button>
+                  />
                 </div>
               </div>
             ) : null}
@@ -3209,33 +3204,31 @@ export default function AdminNewBookingWizard({
                   </div>
                 )}
 
-                <div className={styles.actionsBetween}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginTop: "5rem" }}
+                >
+                  <Button
                     type='button'
-                    className='secondaryBtn'
+                    text='← Back: Price'
+                    btnType='blackReg'
                     onClick={() => setStep(3)}
-                  >
-                    Back
-                  </button>
-
-                  {/* ✅ Important: refresh bookingData BEFORE going to Confirm */}
-                  <button
+                  />
+                  <Button
                     type='button'
-                    className='primaryBtn'
+                    text='Next: Confirm →'
+                    btnType='greenReg'
                     onClick={() => {
                       if (!bookingId) {
                         toast.error("Booking missing. Go back and create it.");
                         return;
                       }
-
                       startTransition(async () => {
                         await refreshBookingData(bookingId);
                         setStep(5);
                       });
                     }}
-                  >
-                    Next
-                  </button>
+                  />
                 </div>
               </div>
             ) : null}
@@ -3568,30 +3561,28 @@ export default function AdminNewBookingWizard({
                   </div>
                 )}
 
-                <div className={styles.actionsBetween}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginTop: "5rem" }}
+                >
+                  <Button
                     type='button'
-                    className='secondaryBtn'
+                    text='← Back: Assign'
+                    btnType='blackReg'
                     onClick={() => setStep(4)}
-                  >
-                    Back
-                  </button>
-
-                  <button
+                  />
+                  <Button
                     type='button'
-                    className='primaryBtn'
+                    text='Proceed to Payment →'
+                    btnType='greenReg'
                     onClick={() => {
                       if (!bookingId) return;
-
                       startTransition(async () => {
                         await refreshBookingData(bookingId);
                         setStep(6);
                       });
                     }}
-                    disabled={!bookingId}
-                  >
-                    Proceed to payment
-                  </button>
+                  />
                 </div>
               </div>
             ) : null}
@@ -3780,26 +3771,25 @@ export default function AdminNewBookingWizard({
                   </>
                 )}
 
-                <div className={styles.actionsBetween}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginTop: "5rem" }}
+                >
+                  <Button
                     type='button'
-                    className='secondaryBtn'
+                    text='← Back: Confirm'
+                    btnType='blackReg'
                     onClick={() => setStep(5)}
-                  >
-                    Back
-                  </button>
-
-                  <button
+                  />
+                  <Button
                     type='button'
-                    className='primaryBtn'
+                    text='Finish →'
+                    btnType='greenReg'
                     onClick={() => {
                       if (!bookingId) return;
                       router.push(`/admin/bookings/${bookingId}`);
                     }}
-                    disabled={!bookingId}
-                  >
-                    Finish
-                  </button>
+                  />
                 </div>
               </div>
             ) : null}

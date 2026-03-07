@@ -35,6 +35,7 @@ import Modal from "@/components/shared/Modal/Modal";
 import { localToUtcIso } from "@/lib/timezone";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import Button from "@/components/shared/Button/Button";
 // ───────────── Types ─────────────
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
@@ -1784,11 +1785,14 @@ export default function CorporateNewBookingWizard({
                 </div>
 
                 {/* Next */}
-                <div className={styles.btnRow}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginLeft: "auto" }}
+                >
+                  <Button
                     type='button'
-                    className='primaryBtn'
-                    disabled={isPending}
+                    text='Next: Choose Vehicle →'
+                    btnType='greenReg'
                     onClick={() => {
                       setAttemptTripNext(true);
                       const errs = computeTripErrors();
@@ -1798,9 +1802,7 @@ export default function CorporateNewBookingWizard({
                       }
                       setStep(2);
                     }}
-                  >
-                    Next
-                  </button>
+                  />
                 </div>
               </div>
             )}
@@ -1943,18 +1945,20 @@ export default function CorporateNewBookingWizard({
                   />
                 </div>
 
-                <div className={styles.actionsBetween}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginTop: "5rem" }}
+                >
+                  <Button
                     type='button'
-                    className='secondaryBtn'
+                    text='← Back: Trip Details'
+                    btnType='blackReg'
                     onClick={() => setStep(1)}
-                  >
-                    Back
-                  </button>
-                  <button
+                  />
+                  <Button
                     type='button'
-                    className='primaryBtn'
-                    disabled={isPending}
+                    text='Next: Review →'
+                    btnType='greenReg'
                     onClick={() => {
                       if (!tripIsValid()) {
                         setAttemptTripNext(true);
@@ -1969,9 +1973,7 @@ export default function CorporateNewBookingWizard({
                       }
                       setStep(3);
                     }}
-                  >
-                    Review booking
-                  </button>
+                  />
                 </div>
               </div>
             )}
@@ -2302,15 +2304,13 @@ export default function CorporateNewBookingWizard({
                 )}
 
                 {/* "Add another ride" button */}
-                <button
+                <Button
                   type='button'
+                  text='Add another ride to this trip'
+                  btnType='greenii'
                   onClick={addAnotherRide}
-                  className='secondaryBtn'
-                  disabled={isPending}
-                  style={{ width: "100%", textAlign: "center" }}
-                >
-                  ➕ Add another ride to this trip
-                </button>
+                  plus
+                />
                 {savedLegs.length === 0 && (
                   <div
                     className='miniNote'
@@ -2321,30 +2321,32 @@ export default function CorporateNewBookingWizard({
                   </div>
                 )}
 
-                <div className={styles.actionsBetween}>
-                  <button
+                <div
+                  className={styles.bottomBtnContainer}
+                  style={{ marginTop: "5rem" }}
+                >
+                  <Button
                     type='button'
-                    className='secondaryBtn'
+                    text='← Back: Vehicle'
+                    btnType='blackReg'
                     onClick={() => setStep(2)}
-                  >
-                    Back
-                  </button>
-                  <button
+                  />
+                  <Button
                     type='button'
-                    className='primaryBtn'
-                    disabled={isPending}
+                    text={
+                      isPending
+                        ? "Booking..."
+                        : isMultiLeg
+                          ? `Submit ${savedLegs.length + 1} rides →`
+                          : "Confirm & Book →"
+                    }
+                    btnType='greenReg'
                     onClick={() => {
                       startTransition(async () => {
                         await submitBooking();
                       });
                     }}
-                  >
-                    {isPending
-                      ? "Booking..."
-                      : isMultiLeg
-                        ? `Submit ${savedLegs.length + 1} rides`
-                        : "Confirm & Book"}
-                  </button>
+                  />
                 </div>
               </div>
             )}

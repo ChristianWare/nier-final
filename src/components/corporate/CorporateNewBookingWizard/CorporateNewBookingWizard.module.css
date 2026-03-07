@@ -341,3 +341,19 @@
     padding: 1.4rem;
   }
 }
+
+.bottomBtnContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5rem;
+}
+
+@media screen and (max-width: 568px) {
+  .bottomBtnContainer {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 4rem;
+  }
+}

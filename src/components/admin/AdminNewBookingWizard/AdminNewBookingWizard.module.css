@@ -57,8 +57,6 @@
   padding: 2rem;
 }
 
-
-
 /* ✅ step fade-in */
 .stepPane {
   animation: stepFadeIn 220ms ease-out both;
@@ -277,5 +275,21 @@
   .left {
     position: static;
     top: auto;
+  }
+}
+
+.bottomBtnContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5rem;
+}
+
+@media screen and (max-width: 568px) {
+  .bottomBtnContainer {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 4rem;
   }
 }

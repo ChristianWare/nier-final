@@ -25,7 +25,6 @@ import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 import {
   calcQuoteCents,
-  
   EXTRA_STOP_FEE_CENTS,
   STOP_WAIT_TIME_MINUTES,
 } from "@/lib/pricing/calcQuote";
@@ -37,6 +36,7 @@ import Stepper from "../Stepper/Stepper";
 import Modal from "@/components/shared/Modal/Modal";
 import { localToUtcIso, isPickupTooSoon } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import Button from "@/components/shared/Button/Button";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -1858,17 +1858,16 @@ export default function BookingWizard({
                     </div>
                   )}
 
-                  <div>
-                    <div className={styles.btnContainer}>
-                      <button
-                        type='button'
-                        onClick={goStep2}
-                        className='primaryBtn'
-                        disabled={hasNoServices}
-                      >
-                        Next
-                      </button>
-                    </div>
+                  <div
+                    className={styles.bottomBtnContainer}
+                    style={{ marginLeft: "auto" }}
+                  >
+                    <Button
+                      type='button'
+                      text='Next: Choose Vehicle →'
+                      btnType='greenReg'
+                      onClick={goStep2}
+                    />
                   </div>
                 </div>
               ) : null}
@@ -2021,7 +2020,7 @@ export default function BookingWizard({
                     </div>
                   </div>
 
-                  <div
+                  {/* <div
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
@@ -2043,6 +2042,23 @@ export default function BookingWizard({
                     >
                       Next
                     </button>
+                  </div> */}
+                  <div
+                    className={styles.bottomBtnContainer}
+                    style={{ marginTop: "5rem" }}
+                  >
+                    <Button
+                      type='button'
+                      text='← Back: Trip Details'
+                      btnType='blackReg'
+                      onClick={() => setStep(1)}
+                    />
+                    <Button
+                      type='button'
+                      text='Next: Confirm →'
+                      btnType='greenReg'
+                      onClick={goStep3}
+                    />
                   </div>
                 </div>
               ) : null}
@@ -2514,7 +2530,7 @@ export default function BookingWizard({
                   </div>
 
                   {/* "Add another ride" button */}
-                  <button
+                  {/* <button
                     type='button'
                     onClick={addAnotherRide}
                     className='secondaryBtn'
@@ -2522,7 +2538,14 @@ export default function BookingWizard({
                     style={{ width: "100%", textAlign: "center" }}
                   >
                     ➕ Add another ride to this trip
-                  </button>
+                  </button> */}
+                  <Button
+                    type='button'
+                    text='Add another ride to this trip'
+                    btnType='greenii'
+                    onClick={addAnotherRide}
+                    plus
+                  />
                   {savedLegs.length === 0 && (
                     <div
                       className='miniNote'
@@ -2533,7 +2556,7 @@ export default function BookingWizard({
                     </div>
                   )}
 
-                  <div
+                  {/* <div
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
@@ -2562,6 +2585,31 @@ export default function BookingWizard({
                             ? `Submit ${savedLegs.length + 1} rides`
                             : "Submit request"}
                     </button>
+                  </div> */}
+                  <div
+                    className={styles.bottomBtnContainer}
+                    style={{ marginTop: "5rem" }}
+                  >
+                    <Button
+                      type='button'
+                      text='← Back: Vehicle Details'
+                      btnType='blackReg'
+                      onClick={() => setStep(2)}
+                    />
+                    <Button
+                      type='button'
+                      text={
+                        submitted
+                          ? "Submitted"
+                          : submitting
+                            ? "Submitting..."
+                            : isMultiLeg
+                              ? `Submit ${savedLegs.length + 1} rides →`
+                              : "Submit request →"
+                      }
+                      btnType='greenReg'
+                      onClick={goStep3}
+                    />
                   </div>
                 </div>
               ) : null}

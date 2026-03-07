@@ -114,6 +114,13 @@
   gap: 10px;
 }
 
+.bottomBtnContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5rem;
+}
+
 .button {
   padding: 0.8rem 1rem;
   border-radius: 5px;
@@ -364,7 +371,7 @@
   }
 
   .routePickerInline {
-    padding: 0.75rem;
+    padding: 1rem;
   }
 }
 
@@ -378,12 +385,20 @@
   .checklistMobile {
     top: 45px;
   }
-}
-.modalActions {
-  flex-direction: column;
-  width: 100%;
-}
 
-.modalActions > * {
-  width: 100%;
+  .bottomBtnContainer {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 4rem;
+  }
+
+  .modalActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .modalActions > * {
+    width: 100%;
+  }
 }
