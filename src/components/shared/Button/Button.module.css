@@ -250,6 +250,18 @@
   justify-content: space-between;
 }
 
+.greenii,
+.greenii:link,
+.greenii:visited {
+  background-color: var(--lighterGreen);
+  color: var(--green);
+  font-weight: 700;
+  letter-spacing: normal;
+  border: 1px solid var(--darkGreen);
+  display: flex;
+  justify-content: space-between;
+}
+
 .lightRed,
 .lightRed:link,
 .lightRed:visited {

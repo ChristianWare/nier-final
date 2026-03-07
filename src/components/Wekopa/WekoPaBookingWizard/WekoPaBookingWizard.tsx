@@ -23,6 +23,8 @@ import BookingWizardChecklist, {
   type ChecklistItem,
 } from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
 import Stepper from "@/components/BookingPage/Stepper/Stepper";
+import FlightLookupInput from "@/components/BookingPage/FlightLookupInput/FlightLookupInput";
+import Button from "@/components/shared/Button/Button";
 
 // ─── Fixed Locations ──────────────────────────────────────────────────────────
 const SKY_HARBOR = {
@@ -1077,13 +1079,19 @@ export default function WekoPaBookingWizard({
                   )}
 
                   <div className={styles.btnContainer}>
-                    <button
+                    {/* <button
                       type='button'
                       onClick={goStep2}
                       className='primaryBtn'
                     >
                       Next
-                    </button>
+                    </button> */}
+                    <Button
+                      type='button'
+                      text='Next: Vehicle & Flight →'
+                      btnType='greenReg'
+                      onClick={goStep2}
+                    />
                   </div>
                 </div>
               )}
@@ -1210,36 +1218,36 @@ export default function WekoPaBookingWizard({
                           : "Providing your departure flight helps your driver drop you at the right terminal."}
                       </p>
 
-                      <div className={styles.fieldRow}>
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <label className='cardTitle h5'>Airline</label>
-                          <input
-                            value={flightAirline}
-                            onChange={(e) =>
-                              setValue("flightAirline", e.target.value, {
-                                shouldDirty: true,
-                              })
-                            }
-                            className='input emptySmall'
-                            placeholder='e.g. American Airlines'
-                          />
-                        </div>
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <label className='cardTitle h5'>Flight number</label>
-                          <input
-                            value={flightNumber}
-                            onChange={(e) =>
-                              setValue(
-                                "flightNumber",
-                                e.target.value.toUpperCase(),
-                                { shouldDirty: true },
-                              )
-                            }
-                            className='input emptySmall'
-                            placeholder='e.g. AA1234'
-                          />
-                        </div>
-                      </div>
+                      <FlightLookupInput
+                        flightNumber={flightNumber}
+                        flightDate={pickupAtDate}
+                        airportLeg={isAirportPickup ? "PICKUP" : "DROPOFF"}
+                        onFlightNumberChange={(val) =>
+                          setValue("flightNumber", val, { shouldDirty: true })
+                        }
+                        onFlightFound={(data) => {
+                          if (data.airline)
+                            setValue("flightAirline", data.airline, {
+                              shouldDirty: true,
+                            });
+                          if (data.terminal)
+                            setValue("flightTerminal", data.terminal, {
+                              shouldDirty: true,
+                            });
+                          if (data.scheduledDate)
+                            setValue(
+                              "flightScheduledAtDate",
+                              data.scheduledDate,
+                              { shouldDirty: true },
+                            );
+                          if (data.scheduledTime)
+                            setValue(
+                              "flightScheduledAtTime",
+                              data.scheduledTime,
+                              { shouldDirty: true },
+                            );
+                        }}
+                      />
 
                       <div className={styles.fieldRow}>
                         <div style={{ display: "grid", gap: 8 }}>
@@ -1301,26 +1309,23 @@ export default function WekoPaBookingWizard({
                   </div>
 
                   <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 10,
-                    }}
+                 
+                    className={styles.bottomBtnContainer}
                   >
-                    <button
+                   
+                    <Button
                       type='button'
+                      text='← Back: Trip Details'
+                      btnType='blackReg'
                       onClick={() => setStep(1)}
-                      className='secondaryBtn'
-                    >
-                      Back
-                    </button>
-                    <button
+                    />
+                  
+                    <Button
                       type='button'
-                      onClick={goStep3}
-                      className='primaryBtn'
-                    >
-                      Next
-                    </button>
+                      text='Next: Confirm →'
+                      btnType='greenReg'
+                      onClick={() => setStep(3)}
+                    />
                   </div>
                 </div>
               )}
@@ -1680,7 +1685,7 @@ export default function WekoPaBookingWizard({
                   </div>
 
                   {/* Add another ride */}
-                  <button
+                  {/* <button
                     type='button'
                     onClick={addAnotherRide}
                     className='secondaryBtn'
@@ -1688,7 +1693,14 @@ export default function WekoPaBookingWizard({
                     style={{ width: "100%", textAlign: "center" }}
                   >
                     ➕ Add another ride to this trip
-                  </button>
+                  </button> */}
+                  <Button
+                    type='button'
+                    text='Add another ride to this trip'
+                    btnType='greenii'
+                    onClick={() => setStep(1)}
+                    plus
+                  />
                   {savedLegs.length === 0 && (
                     <div
                       className='miniNote'
@@ -1700,34 +1712,31 @@ export default function WekoPaBookingWizard({
                   )}
 
                   <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      gap: 10,
-                    }}
+                 
+                    className={styles.bottomBtnContainer}
                   >
-                    <button
+                   
+                    <Button
                       type='button'
+                      text='← Back: Vehicle & Flight'
+                      btnType='blackReg'
                       onClick={() => setStep(2)}
-                      className='secondaryBtn'
-                      disabled={submitting || submitted}
-                    >
-                      Back
-                    </button>
-                    <button
+                    />
+                    
+                    <Button
                       type='button'
-                      onClick={handleSubmit}
-                      className='primaryBtn'
-                      disabled={submitting || submitted}
-                    >
-                      {submitted
-                        ? "Submitted"
-                        : submitting
-                          ? "Submitting..."
-                          : isMultiLeg
-                            ? `Submit ${savedLegs.length + 1} rides`
-                            : "Submit request"}
-                    </button>
+                      text={
+                        submitted
+                          ? "Submitted"
+                          : submitting
+                            ? "Submitting..."
+                            : isMultiLeg
+                              ? `Submit ${savedLegs.length + 1} rides`
+                              : "Submit request →"
+                      }
+                      btnType='greenReg'
+                      onClick={() => setStep(2)}
+                    />
                   </div>
                 </div>
               )}

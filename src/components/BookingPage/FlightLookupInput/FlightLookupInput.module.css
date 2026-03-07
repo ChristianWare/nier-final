@@ -1,6 +1,6 @@
 .container {
   display: grid;
-  gap: 8px;
+  gap: 1rem;
 }
 
 .inputWrapper {

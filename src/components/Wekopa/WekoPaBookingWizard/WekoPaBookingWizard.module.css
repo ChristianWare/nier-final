@@ -84,8 +84,16 @@
 
 /* ─── Buttons ────────────────────────────────────────────────────────────── */
 .btnContainer {
-  display: grid;
-  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.bottomBtnContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5rem;
 }
 
 /* ─── Vehicle auto-recommendation preview (step 1) ───────────────────────── */
@@ -427,5 +435,12 @@
 @media screen and (max-width: 568px) {
   .checklistMobile {
     top: 45px;
+  }
+
+  .bottomBtnContainer {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 4rem;
   }
 }
