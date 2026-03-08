@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 
 const STATUSES = [
   "ALL",
+  "PAYMENT_RECEIVED",
   "PENDING_REVIEW",
   "DECLINED",
   "PENDING_PAYMENT",
@@ -175,6 +176,8 @@ function statusTabLabel(status: StatusFilter): string {
   switch (status) {
     case "ALL":
       return "All";
+    case "PAYMENT_RECEIVED":
+      return "Payment Received";
     case "PENDING_REVIEW":
       return "Pending";
     case "DECLINED":
@@ -326,8 +329,12 @@ function buildWhere(args: {
 
   if (pickupAtFilter) where.pickupAt = pickupAtFilter;
 
-  if (status !== "ALL") where.status = status as BookingStatus;
-
+if (status === "PAYMENT_RECEIVED") {
+  where.status = { in: ["CONFIRMED", "PENDING_PAYMENT"] as BookingStatus[] };
+  where.payment = { is: { status: "PAID" } };
+} else if (status !== "ALL") {
+  where.status = status as BookingStatus;
+}
   // Pay filters (mutually exclusive)
   if (paid) {
     where.payment = { is: { status: "PAID" } };
