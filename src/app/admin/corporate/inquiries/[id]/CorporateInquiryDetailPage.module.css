@@ -170,6 +170,54 @@
   background: rgba(0, 0, 0, 0.015);
 }
 
+/* ─── Danger Zone ─── */
+
+.dangerZone {
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.03);
+  border-radius: 10px;
+  padding: 2rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.dangerTop {
+  display: grid;
+  gap: 1rem;
+}
+
+.dangerImpactBox {
+  padding: 16px 20px;
+  border-radius: 10px;
+  font-size: 1.4rem;
+  line-height: 1.5;
+  width: 100%;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #7f1d1d;
+}
+
+.impactList {
+  margin: 0.75rem 0 0;
+  padding-left: 1.8rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.confirmBlock {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.confirmLabel {
+  font-weight: 900;
+  opacity: 0.7;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+}
+
 @media screen and (max-width: 600px) {
   .keyVal {
     grid-template-columns: 1fr;

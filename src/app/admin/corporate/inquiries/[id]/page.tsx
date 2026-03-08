@@ -3,6 +3,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import InquiryActionsClient from "./InquiryActionsClient";
+import DeleteInquiryDangerZoneClient from "./DeleteInquiryDangerZoneClient";
 import { getCompanySettings } from "../../../../../../actions/admin/companySettings";
 import { formatDateTime } from "@/lib/timezone";
 
@@ -118,6 +119,9 @@ export default async function CorporateInquiryDetailPage({
         currentStatus={inquiry.status}
         currentNotes={inquiry.adminNotes || ""}
       />
+
+      {/* Danger Zone */}
+      <DeleteInquiryDangerZoneClient inquiryId={inquiry.id} />
     </section>
   );
 }

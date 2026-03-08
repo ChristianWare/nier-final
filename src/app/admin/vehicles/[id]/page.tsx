@@ -13,6 +13,7 @@ import DefaultVehicleImg from "../../../../../public/images/mesaii.jpg";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import DeleteVehicleUnitClient from "./DeleteVehicleUnitClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -485,6 +486,21 @@ export default async function EditVehicleUnitPage({
               />
             </div>
           </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className={styles.section}>
+          {/* <div className={styles.sectionHeader}>
+            <h2 className='h4' style={{ color: "var(--red, #dc2626)" }}>
+              Danger Zone
+            </h2>
+            <p className='miniNote'>Irreversible actions for this vehicle</p>
+          </div> */}
+          <DeleteVehicleUnitClient
+            unitId={unit.id}
+            unitName={unit.name}
+            assignmentCount={unit._count.assignments}
+          />
         </div>
       </section>
     </DirtyFormProvider>

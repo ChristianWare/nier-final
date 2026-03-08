@@ -4,17 +4,12 @@ import { db } from "@/lib/db";
 import { CorporateInquiryStatus, Prisma } from "@prisma/client";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import { formatDateTime } from "@/lib/timezone";
+import InquiriesTableClient from "./InquiriesTableClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const STATUSES = [
-  "ALL",
-  "PENDING",
-  "CONTACTED",
-  "APPROVED",
-  "DECLINED",
-] as const;
+const STATUSES = ["ALL", "PENDING", "CONTACTED", "DECLINED"] as const;
 type StatusFilter = (typeof STATUSES)[number];
 
 const PAGE_SIZE = 15;
@@ -39,14 +34,6 @@ function clampPage(raw: string | undefined) {
   return Math.floor(n);
 }
 
-function statusBadgeTone(status: CorporateInquiryStatus) {
-  if (status === "PENDING") return "warn";
-  if (status === "CONTACTED") return "accent";
-  if (status === "APPROVED") return "good";
-  if (status === "DECLINED") return "bad";
-  return "neutral";
-}
-
 type SearchParams = {
   status?: string;
   page?: string;
@@ -65,7 +52,9 @@ export default async function AdminCorporateInquiriesPage({
   const page = clampPage(sp.page);
   const { timezone: companyTz } = await getCompanySettings();
 
-  const where: Prisma.CorporateInquiryWhereInput = {};
+  const where: Prisma.CorporateInquiryWhereInput = {
+    status: { not: "APPROVED" },
+  };
   if (status !== "ALL") {
     where.status = status as CorporateInquiryStatus;
   }
@@ -105,6 +94,17 @@ export default async function AdminCorporateInquiriesPage({
     ...baseParams,
     page: safePage > 1 ? String(safePage) : undefined,
   };
+
+  // Serialize for client component (no Date objects)
+  const serializedInquiries = inquiries.map((inq) => ({
+    id: inq.id,
+    companyName: inq.companyName,
+    contactName: inq.contactName,
+    email: inq.email,
+    estimatedMonthlyRides: inq.estimatedMonthlyRides ?? null,
+    status: inq.status,
+    formattedDate: formatDateTime(inq.createdAt, companyTz),
+  }));
 
   return (
     <section className={styles.container}>
@@ -171,119 +171,7 @@ export default async function AdminCorporateInquiriesPage({
           </p>
         </div>
       ) : (
-        <div className={styles.tableCard}>
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead className={styles.thead}>
-                <tr className={styles.trHead}>
-                  <th className={styles.th}>Company</th>
-                  <th className={styles.th}>Contact</th>
-                  <th className={styles.th}>Email</th>
-                  <th className={styles.th}>Phone</th>
-                  <th className={styles.th}>Est. Monthly Rides</th>
-                  <th className={styles.th}>Status</th>
-                  <th className={styles.th}>Submitted</th>
-                </tr>
-              </thead>
-              <tbody>
-                {inquiries.map((inq) => {
-                  const href = `/admin/corporate/inquiries/${inq.id}`;
-                  return (
-                    <tr key={inq.id} className={styles.tr}>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link href={href} className={styles.rowStretchedLink} />
-                        <div className={styles.cellStrong}>
-                          <Link href={href} className={styles.rowLink}>
-                            {inq.companyName}
-                          </Link>
-                        </div>
-                      </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden
-                          tabIndex={-1}
-                        />
-                        {inq.contactName}
-                      </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden
-                          tabIndex={-1}
-                        />
-                        <div className={styles.cellSub}>{inq.email}</div>
-                      </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden
-                          tabIndex={-1}
-                        />
-                        {inq.phone || "—"}
-                      </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden
-                          tabIndex={-1}
-                        />
-                        {inq.estimatedMonthlyRides || "—"}
-                      </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden
-                          tabIndex={-1}
-                        />
-                        <span
-                          className={`badge badge_${statusBadgeTone(inq.status)}`}
-                        >
-                          {inq.status}
-                        </span>
-                      </td>
-                      <td
-                        className={styles.td}
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden
-                          tabIndex={-1}
-                        />
-                        {formatDateTime(inq.createdAt, companyTz)}{" "}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <InquiriesTableClient inquiries={serializedInquiries} />
       )}
 
       <Pagination

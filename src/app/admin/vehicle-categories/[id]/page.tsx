@@ -12,6 +12,7 @@ import Button from "@/components/shared/Button/Button";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
+import DeleteVehicleCategoryClient from "./DeleteVehicleCategoryClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -672,6 +673,22 @@ export default async function EditVehicleCategoryPage({
               />
             </div>
           </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <h2 className='cardTitle h4' style={{ color: "var(--darkRed)" }}>
+              Danger Zone
+            </h2>
+            <b className='miniNote'>Irreversible actions for this category</b>
+          </div>
+          <DeleteVehicleCategoryClient
+            categoryId={category.id}
+            categoryName={category.name}
+            bookingCount={category._count.bookings}
+            unitCount={category._count.units}
+          />
         </div>
       </section>
     </DirtyFormProvider>

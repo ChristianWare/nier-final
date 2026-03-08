@@ -69,6 +69,24 @@
   gap: 1rem;
 }
 
+/* ── Bulk action bar ── */
+.bulkBar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.4rem;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+}
+
+.bulkCount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-right: auto;
+}
+
+/* ── Table ── */
 .tableCard {
   background: var(--white);
   border: 1px solid var(--stroke);
@@ -83,7 +101,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 850px;
+  min-width: 800px;
 }
 
 .thead {
@@ -95,6 +113,26 @@
 
 .trHead {
   border-bottom: 1px solid var(--stroke);
+}
+
+.thCheck {
+  width: 44px;
+  padding: 12px 8px 12px 14px;
+  text-align: center;
+}
+
+.tdCheck {
+  width: 44px;
+  padding: 12px 8px 12px 14px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--green, #16a34a);
 }
 
 .th {
@@ -121,6 +159,16 @@
 
 .tr:hover {
   background: rgba(0, 0, 0, 0.03);
+}
+
+.trSelected {
+  background: rgba(22, 163, 74, 0.07);
+  outline: 1px solid rgba(22, 163, 74, 0.2);
+  outline-offset: -1px;
+}
+
+.trSelected:hover {
+  background: rgba(22, 163, 74, 0.1);
 }
 
 .rowStretchedLink {
@@ -150,6 +198,72 @@
   opacity: 0.7;
 }
 
+/* ── Modal content ── */
+.modalContent {
+  display: grid;
+  gap: 2rem;
+  min-width: 100%;
+}
+
+.modalTitle {
+  margin: 0;
+}
+
+.modalBody {
+  font-size: 1.4rem;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.deleteList {
+  display: grid;
+  gap: 0;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(239, 68, 68, 0.03);
+  max-height: 28rem;
+  overflow-y: auto;
+}
+
+.deleteListItem {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1.2rem 1.6rem;
+  border-bottom: 1px solid rgba(239, 68, 68, 0.1);
+}
+
+.deleteListItem:last-child {
+  border-bottom: none;
+}
+
+.deleteListCompany {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.deleteListMeta {
+  font-size: 1.3rem;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.deleteListSep {
+  opacity: 0.4;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* ── Pagination ── */
 .pagination {
   display: flex;
   align-items: center;
