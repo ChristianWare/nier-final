@@ -3,7 +3,7 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./Faq.module.css";
 import Image from "next/image";
-import Img1 from "../../../../public/images/chauffeur.jpg";
+import Img1 from "../../../../public/images/other/chauffeur.jpg";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import { useState } from "react";
 import Arrow from "../icons/Arrow/Arrow";

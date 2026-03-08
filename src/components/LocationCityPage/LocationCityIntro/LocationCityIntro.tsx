@@ -1,8 +1,8 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./LocationCityIntro.module.css";
 import Image from "next/image";
-import Img1 from "../../../../public/images/services.jpg";
-import Img2 from "../../../../public/images/Adam.jpg";
+import Img1 from "../../../../public/images/other/services.jpg";
+import Img2 from "../../../../public/images/people/Adam.jpg";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import type { CityData } from "@/lib/cities";
 

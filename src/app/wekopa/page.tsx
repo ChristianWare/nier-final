@@ -7,8 +7,8 @@ import WekoPaBookingSection from "@/components/Wekopa/WekoPaBookingSection/WekoP
 import WekoPaPricing from "@/components/Wekopa/WekoPaPricing/WekoPaPricing";
 import WekopaFinalCTA from "@/components/Wekopa/WekopaFinalCTA/WekopaFinalCTA";
 import ServicePageIntro from "@/components/ServicesPage/ServicePageIntro/ServicePageIntro";
-import WekoImage from "../../../public/images/Wekopa.jpg";
-import Img2 from "../../../public/images/linda.jpg";
+import WekoImage from "../../../public/images/other/Wekopa.jpg";
+import Img2 from "../../../public/images/people/linda.jpg";
 import Marquee from "@/components/shared/Marquee/Marquee";
 import ScrollToSectionButton from "@/components/shared/ScrollToSectionButton/ScrollToSectionButton";
 import ClearHash from "@/components/shared/ClearHash/ClearHash";

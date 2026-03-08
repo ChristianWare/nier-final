@@ -7,8 +7,8 @@ import Alert from "@/components/shared/Alert/Alert";
 import Button from "@/components/shared/Button/Button";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Image from "next/image";
-import Yay from "../../../../public/images/areas.jpg";
-import Angry from "../../../../public/images/brewery.jpg";
+import Yay from "../../../../public/images/people/areas.jpg";
+import Angry from "../../../../public/images/areas/brewery.jpg";
 
 type Props = { token?: string };
 
@@ -38,7 +38,7 @@ export default function EmailVerificationClient({ token }: Props) {
       } catch {
         if (!isMounted) return;
         setError(
-          "Something went wrong verifying your email. Please try again."
+          "Something went wrong verifying your email. Please try again.",
         );
       } finally {
         if (isMounted) setPending(false);
@@ -55,9 +55,15 @@ export default function EmailVerificationClient({ token }: Props) {
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.left}>
-              <div className={styles.imgContainer}>
-                <Image src={Yay} alt='happy face' title='happy face' fill className={styles.img} />
-              </div>
+            <div className={styles.imgContainer}>
+              <Image
+                src={Yay}
+                alt='happy face'
+                title='happy face'
+                fill
+                className={styles.img}
+              />
+            </div>
           </div>
           {pending && <div>Verifying email...</div>}
           {/* {success && <Alert message={success} success />} */}

@@ -22,6 +22,7 @@ import Company from "@/components/shared/icons/Company/Company";
 import Appointments from "@/components/shared/icons/Appointments/Appointments";
 import Analytics from "@/components/shared/icons/Analytics/Analytics";
 import Business from "@/components/shared/icons/Business/Business";
+import ImageIcon from "@/components/shared/icons/ImageIcon/ImageIcon";
 import Modal from "@/components/shared/Modal/Modal";
 
 const NAV_ITEMS = [
@@ -43,6 +44,7 @@ const NAV_ITEMS = [
   { title: "Company", href: "/admin/company", icon: <Company /> },
   { title: "Website Analytics", href: "/admin/analytics", icon: <Analytics /> },
   { title: "Notifications", href: "/admin/notifications", icon: <Cog /> },
+  { title: "Assets", href: "/admin/assets", icon: <ImageIcon /> },
 ];
 
 export type AdminSideNavProps = {

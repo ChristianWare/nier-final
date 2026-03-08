@@ -1,6 +1,6 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./BookingPageIntro.module.css";
-import Img1 from "../../../../public/images/BookingPage/booking1.jpg";
+import Img1 from "../../../../public/images/other/booking1.jpg";
 import Image from "next/image";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 

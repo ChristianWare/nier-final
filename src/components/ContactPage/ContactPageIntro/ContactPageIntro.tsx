@@ -1,6 +1,6 @@
 import styles from "./ContactPageIntro.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
-import Suburban from "../../../../public/images/taho.png";
+import Suburban from "../../../../public/images/vehicles/taho.png";
 import Image from "next/image";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import ContactSection from "@/components/shared/ContactSection/ContactSection";

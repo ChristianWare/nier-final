@@ -9,7 +9,7 @@ import { servicesData as services } from "@/lib/services";
 import styles from "./LocationsPage.module.css";
 import Button from "@/components/shared/Button/Button";
 import Image from "next/image";
-import HeroImg from "../../../public/images/sub.png";
+import HeroImg from "../../../public/images/vehicles/sub.png";
 
 export const metadata: Metadata = {
   title: "Service Areas | Nier Transportation",

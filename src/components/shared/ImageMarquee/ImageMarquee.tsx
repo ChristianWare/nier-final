@@ -1,12 +1,12 @@
 import styles from "./ImageMarquee.module.css";
 import Image from "next/image";
-import Img1 from "../../../../public/images/imgMarq1.jpg";
-import Img2 from "../../../../public/images/imgMarq2.jpg";
-import Img3 from "../../../../public/images/imgMarq3.jpg";
-import Img4 from "../../../../public/images/imgMarq4.jpg";
-import Img5 from "../../../../public/images/imgMarq5.jpg";
-import Img6 from "../../../../public/images/imgMarq6.jpg";
-import Img7 from "../../../../public/images/imgMarq7.jpg";
+import Img1 from "../../../../public/images/other/imgMarq1.jpg";
+import Img2 from "../../../../public/images/other/imgMarq2.jpg";
+import Img3 from "../../../../public/images/other/imgMarq3.jpg";
+import Img4 from "../../../../public/images/other/imgMarq4.jpg";
+import Img5 from "../../../../public/images/other/imgMarq5.jpg";
+import Img6 from "../../../../public/images/other/imgMarq6.jpg";
+import Img7 from "../../../../public/images/other/imgMarq7.jpg";
 import { StaticImageData } from "next/image";
 
 // DATA

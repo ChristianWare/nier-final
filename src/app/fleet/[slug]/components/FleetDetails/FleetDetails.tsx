@@ -7,7 +7,7 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Faq from "@/components/shared/Faq/Faq";
 import Button from "@/components/shared/Button/Button";
 import Image from "next/image";
-import ImgFallback from "../../../../../../public/images/vip.jpg";
+import ImgFallback from "../../../../../../public/images/other/vip.jpg";
 
 type Vehicle = (typeof fleetData)[number];
 

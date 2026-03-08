@@ -2,7 +2,7 @@ import styles from "./RegisterPageIntro.module.css";
 import LayoutWrapper from "../shared/LayoutWrapper";
 import RegisterForm from "../auth/RegisterForm/RegisterForm";
 import Image from "next/image";
-import Img1 from "../../../public/images/airport2.jpg";
+import Img1 from "../../../public/images/other/airport2.jpg";
 import SectionHeading from "../shared/SectionHeading/SectionHeading";
 
 export default function RegisterPageIntro() {

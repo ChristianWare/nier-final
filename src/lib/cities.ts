@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import Scottsdale from "../../public/images/scottsdale.jpg";
-import Phoenix from "../../public/images/phoenix.jpg";
-import Tempe from "../../public/images/tempe.jpg";
-import Mesa from "../../public/images/mesa.jpg";
-import Chandler from "../../public/images/chandler.jpg";
-import Gilbert from "../../public/images/gilbert.webp";
-import Peoria from "../../public/images/westValleyiii.jpg";
-import Glendale from "../../public/images/westValleyii.jpg";
-import ParadiseValley from "../../public/images/yuma.jpg";
+import Scottsdale from "../../public/images/areas/scottsdale.jpg";
+import Phoenix from "../../public/images/areas/phoenix.jpg";
+import Tempe from "../../public/images/areas/tempe.jpg";
+import Mesa from "../../public/images/areas/mesa.jpg";
+import Chandler from "../../public/images/areas/chandler.jpg";
+import Gilbert from "../../public/images/areas/gilbert.webp";
+import Peoria from "../../public/images/areas/westValleyiii.jpg";
+import Glendale from "../../public/images/areas/westValleyii.jpg";
+import ParadiseValley from "../../public/images/areas/yuma.jpg";
 import type { StaticImageData } from "next/image";
 
 export const serviceAreaCities = [

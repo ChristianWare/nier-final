@@ -9,7 +9,7 @@ import styles from "./VehicleUnitDetailPage.module.css";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Button from "@/components/shared/Button/Button";
 import VehiclePhotoUpload from "@/components/admin/VehiclePhotoUpload/VehiclePhotoUpload";
-import DefaultVehicleImg from "../../../../../public/images/mesaii.jpg";
+import DefaultVehicleImg from "../../../../../public/images/areas/mesaii.jpg";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";

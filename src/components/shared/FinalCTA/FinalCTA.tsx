@@ -3,7 +3,7 @@ import LayoutWrapper from "../LayoutWrapper";
 import SectionHeading from "../SectionHeading/SectionHeading";
 import styles from "./FinalCTA.module.css";
 import Image from "next/image";
-import Img1 from "../../../../public/images/airport2.jpg";
+import Img1 from "../../../../public/images/other/airport2.jpg";
 
 export default function FinalCTA() {
   return (

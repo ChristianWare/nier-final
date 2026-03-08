@@ -10,7 +10,7 @@ import UserEarningsChart from "./Userearningschart";
 import UserEarningsControls from "./Userearningscontrols";
 import DeleteUserDangerZoneClient from "./DeleteUserDangerZoneClient";
 import AdminPhotoUpload from "@/components/admin/Adminphotoupload/Adminphotoupload";
-import DefaultProfileImg from "../../../../../public/images/mesaii.jpg";
+import DefaultProfileImg from "../../../../../public/images/areas/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";

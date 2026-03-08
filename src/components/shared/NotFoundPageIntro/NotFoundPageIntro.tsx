@@ -5,7 +5,7 @@ import Location from "../icons/Location/Location";
 import Phone from "../icons/Phone/Phone";
 import LayoutWrapper from "../LayoutWrapper";
 import SectionHeading from "../SectionHeading/SectionHeading";
-import Suburban from "../../../../public/images/taho.png";
+import Suburban from "../../../../public/images/vehicles/taho.png";
 import Button from "../Button/Button";
 
 const data = [

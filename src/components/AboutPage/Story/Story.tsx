@@ -2,9 +2,9 @@ import styles from "./Story.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Image from "next/image";
-import Img1 from "../../../../public/images/safety.jpg";
-import Img2 from "../../../../public/images/punctuality.jpg";
-import Img3 from "../../../../public/images/exceptional.jpg";
+import Img1 from "../../../../public/images/other/safety.jpg";
+import Img2 from "../../../../public/images/other/punctuality.jpg";
+import Img3 from "../../../../public/images/people/exceptional.jpg";
 
 const values = [
   {
@@ -87,7 +87,11 @@ export default function Story() {
                           {/* <div className={styles.idBox}>
                             <span className={styles.id}>{x.id}</span>
                           </div> */}
-                          <h3 className={`${styles.title} cardTitle bgWhite h5`}>{x.title}</h3>
+                          <h3
+                            className={`${styles.title} cardTitle bgWhite h5`}
+                          >
+                            {x.title}
+                          </h3>
                         </div>
                         <p className={styles.desc}>{x.description}</p>
                       </div>

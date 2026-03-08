@@ -1,11 +1,11 @@
-import Airport from "../../public/images/airport.jpg";
-import Airport2 from "../../public/images/airport2.jpg";
-import Golf from "../../public/images/golf.jpg";
-import Golf2 from "../../public/images/golf2.jpg";
-import Corporate from "../../public/images/corporateii.jpg";
-import Hourly from "../../public/images/hourly4.jpg";
-import Hourly2 from "../../public/images/hourly2.jpg";
-import Wedding from "../../public/images/wedding.jpg";
+import Airport from "../../public/images/other/airport.jpg";
+import Airport2 from "../../public/images/other/airport2.jpg";
+import Golf from "../../public/images/other/golf.jpg";
+import Golf2 from "../../public/images/other/golf2.jpg";
+import Corporate from "../../public/images/other/corporateii.jpg";
+import Hourly from "../../public/images/other/hourly4.jpg";
+import Hourly2 from "../../public/images/other/hourly2.jpg";
+import Wedding from "../../public/images/other/wedding.jpg";
 
 import type { StaticImageData } from "next/image";
 

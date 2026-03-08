@@ -5,7 +5,7 @@
 import { useMemo, useState } from "react";
 import styles from "./AboutTestimonials.module.css";
 import Image from "next/image";
-import Img1 from "../../../../public/images/Adam.jpg";
+import Img1 from "../../../../public/images/people/Adam.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import { reviews } from "@/lib/data";

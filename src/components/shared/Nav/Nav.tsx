@@ -8,7 +8,7 @@ import Button from "../Button/Button";
 import { useEffect, useState, MouseEvent, useRef } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
-import Img1 from "../../../../public/images/road.jpg";
+import Img1 from "../../../../public/images/other/road.jpg";
 import { usePathname } from "next/navigation";
 import Logo from "../Logo/Logo";
 import { useSession } from "next-auth/react";

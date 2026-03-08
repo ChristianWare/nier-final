@@ -7,10 +7,8 @@ import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import Nav from "@/components/shared/Nav/Nav";
 import type { Metadata } from "next";
 import Faq from "@/components/shared/Faq/Faq";
-import Img2 from "../../../public/images/linda.jpg";
-import Img1 from "../../../public/images/services.jpg";
-
-
+import Img2 from "../../../public/images/people/linda.jpg";
+import Img1 from "../../../public/images/other/services.jpg";
 
 export const metadata: Metadata = {
   title: "Services | Luxury Black Car & Limo Service Phoenix",

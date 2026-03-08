@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { auth } from "../../../../auth";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
-import DefaultProfileImg from "../../../../public/images/mesaii.jpg";
+import DefaultProfileImg from "../../../../public/images/areas/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import ProfilePhotoUpload from "@/components/Driver/ProfilePhotoUpload/ProfilePhotoUpload";
 import DriverEditProfileForm from "@/components/Driver/DriverEditProfileForm/DriverEditProfileForm";

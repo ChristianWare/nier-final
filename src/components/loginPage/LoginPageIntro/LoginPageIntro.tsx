@@ -2,7 +2,7 @@ import styles from "./LoginPageIntro.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import LoginForm from "@/components/auth/LoginForm/LoginForm";
 import Image from "next/image";
-import Img1 from "../../../../public/images/airport3.jpg";
+import Img1 from "../../../../public/images/other/airport3.jpg";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 
 export default function LoginPageIntro() {

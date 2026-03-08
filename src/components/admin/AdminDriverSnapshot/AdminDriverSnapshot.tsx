@@ -5,7 +5,7 @@ import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import Link from "next/link";
 import Image from "next/image";
-import DefaultProfileImg from "../../../../public/images/mesaii.jpg";
+import DefaultProfileImg from "../../../../public/images/areas/mesaii.jpg";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,7 +43,8 @@ function getTodayLabel(timeZone: string) {
 export default async function AdminDriverSnapshot() {
   const { timezone: companyTz } = await getCompanySettings();
 
-  const { todayStart, todayEnd, monthStart, monthEnd } = getDateRanges(companyTz);
+  const { todayStart, todayEnd, monthStart, monthEnd } =
+    getDateRanges(companyTz);
   const monthLabel = getMonthLabel(companyTz);
   const todayLabel = getTodayLabel(companyTz);
 

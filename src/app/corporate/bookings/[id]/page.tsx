@@ -11,7 +11,7 @@ import styles from "./CorporateBookingDetailPage.module.css";
 import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
-import DefaultProfileImg from "../../../../../public/images/mesaii.jpg";
+import DefaultProfileImg from "../../../../../public/images/areas/mesaii.jpg";
 import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
 import InvoiceSection from "@/app/dashboard/trips/[id]/InvoiceSection";
 import { getCorporateInvoiceData } from "../../../../../actions/corporate/getCorporateInvoiceData";

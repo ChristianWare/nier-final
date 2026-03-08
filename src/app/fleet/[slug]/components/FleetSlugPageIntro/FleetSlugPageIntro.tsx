@@ -6,7 +6,7 @@ import styles from "./FleetSlugPageIntro.module.css";
 import Image from "next/image";
 import Button from "@/components/shared/Button/Button";
 import type { VehicleData } from "@/lib/types/fleet";
-import ImgFallback from "../../../../../../public/images/vip.jpg";
+import ImgFallback from "../../../../../../public/images/other/vip.jpg";
 
 export default function FleetSlugPageIntro({
   vehicle,

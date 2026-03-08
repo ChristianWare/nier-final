@@ -1,6 +1,6 @@
 import styles from "./ServiceAreas.module.css";
 import Image from "next/image";
-import Img1 from "../../../../public/images/phoenix.jpg";
+import Img1 from "../../../../public/images/areas/phoenix.jpg";
 import Button from "@/components/shared/Button/Button";
 import Logo from "@/components/shared/Logo/Logo";
 
