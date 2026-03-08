@@ -14,6 +14,7 @@ const plans = [
     name: "Executive SUV",
     tagline: "Perfect for small groups and solo travelers.",
     price: 90,
+    priceDetails: "$75 base fare + $15 gratuity",
     popular: false,
     passengers: "Up to 7 passengers",
     features: [
@@ -32,6 +33,7 @@ const plans = [
     name: "14-Passenger Van",
     tagline: "Ideal for golf groups, corporate outings, and full parties.",
     price: 162,
+    priceDetails: "$135 base fare + $27 gratuity",
     popular: true,
     passengers: "Up to 14 passengers",
     features: [
@@ -81,7 +83,7 @@ export default function WekoPaPricing() {
           </h2>
           <p className={styles.subCopy}>
             One fixed price per vehicle. No surge fees, no hidden charges — just
-            the rate you see, door to course.
+            the rate you see.
           </p>
 
           {/* Direction Toggle */}
@@ -123,6 +125,10 @@ export default function WekoPaPricing() {
                   <span className={styles.priceValue}>{plan.price}</span>
                   <span className={styles.priceUnit}>/ one way</span>
                 </div>
+                <hr />
+                <p className={`${styles.priceDetails} badge badge_neutral`}>
+                  ({plan.priceDetails})
+                </p>
               </div>
 
               <div className={styles.cardCta}>

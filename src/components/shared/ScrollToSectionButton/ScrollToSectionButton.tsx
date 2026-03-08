@@ -5,9 +5,14 @@ import Button from "@/components/shared/Button/Button";
 interface Props {
   sectionId: string;
   text: string;
+  btnType?: "black" | "underlinedWhite";
 }
 
-export default function ScrollToSectionButton({ sectionId, text }: Props) {
+export default function ScrollToSectionButton({
+  sectionId,
+  text,
+  btnType = "black",
+}: Props) {
   function handleClick(e: React.MouseEvent) {
     e.preventDefault();
     const el = document.getElementById(sectionId);
@@ -20,7 +25,7 @@ export default function ScrollToSectionButton({ sectionId, text }: Props) {
     <Button
       href={`#${sectionId}`}
       text={text}
-      btnType='black'
+      btnType={btnType}
       arrow
       onClick={handleClick as React.MouseEventHandler<HTMLButtonElement>}
     />

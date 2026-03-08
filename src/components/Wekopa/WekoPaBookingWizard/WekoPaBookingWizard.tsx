@@ -14,7 +14,7 @@ import {
   createTripGroupBooking,
   type CreateTripGroupInput,
 } from "../../../../actions/bookings/createTripGroupBooking";
-import { localToUtcIso, isPickupTooSoon } from "@/lib/timezone";
+import { localToUtcIso } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import BookingDateTimeWithBlackouts from "@/components/BookingPage/BookingDateTimeWithBlackouts/BookingDateTimeWithBlackouts";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
@@ -46,6 +46,7 @@ const WEKOPA = {
 const ROUTE_DISTANCE_MILES = 38;
 const ROUTE_DURATION_MINUTES = 50;
 const MAX_PASSENGERS_ONLINE = 14;
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Direction = "to_wekopa" | "from_wekopa";
 
@@ -244,7 +245,6 @@ export default function WekoPaBookingWizard({
   const [removeLegId, setRemoveLegId] = useState<string | null>(null);
 
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
-  // const didMountRef = useRef(false);
   const phoneWasPrefilled = useRef(Boolean(userPhone?.trim()));
 
   const suvPriceCents = suvVehicle.baseFareCents;
@@ -303,23 +303,12 @@ export default function WekoPaBookingWizard({
   // ─── Dirty form guard ─────────────────────────────────────────────────────
   const wizardHasInput = Boolean(
     direction ||
-    pickupAtDate ||
-    pickupAtTime ||
-    passengers > 0 ||
-    savedLegs.length > 0,
+      pickupAtDate ||
+      pickupAtTime ||
+      passengers > 0 ||
+      savedLegs.length > 0,
   );
   useDirtyForm("wekopa-booking-wizard", wizardHasInput && !submitted);
-
-  // ─── Too-soon check ───────────────────────────────────────────────────────
-  const pickupTooSoon = useMemo(() => {
-    if (!pickupAtDate || !pickupAtTime) return false;
-    return isPickupTooSoon(
-      pickupAtDate,
-      pickupAtTime,
-      companyTimezone,
-      36 * 60,
-    );
-  }, [pickupAtDate, pickupAtTime, companyTimezone]);
 
   // ─── Vehicle config ───────────────────────────────────────────────────────
   const vehicleConfig = useMemo(
@@ -335,6 +324,41 @@ export default function WekoPaBookingWizard({
         : null,
     [passengers, suvVehicle, vanVehicle, suvPriceCents, vanPriceCents],
   );
+
+  // ─── Min time for today (2-hour buffer) ───────────────────────────────────
+  const minTime = useMemo(() => {
+    if (!pickupAtDate) return null;
+    const now = new Date();
+    const todayStr = new Intl.DateTimeFormat("en-CA", {
+      timeZone: companyTimezone,
+    }).format(now);
+    if (pickupAtDate !== todayStr) return null;
+
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: companyTimezone,
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(now);
+
+    const h = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0");
+    const m = parseInt(parts.find((p) => p.type === "minute")?.value ?? "0");
+
+    let totalMinutes = h * 60 + m + 120; // +2 hours
+    const remainder = totalMinutes % 15;
+    if (remainder !== 0) totalMinutes += 15 - remainder; // round up to nearest 15
+
+    if (totalMinutes >= 24 * 60) return null; // buffer pushes past midnight
+
+    const finalH = Math.floor(totalMinutes / 60);
+    const finalM = totalMinutes % 60;
+    return `${String(finalH).padStart(2, "0")}:${String(finalM).padStart(2, "0")}`;
+  }, [pickupAtDate, companyTimezone]);
+
+  const timeIsStale = useMemo(() => {
+    if (!pickupAtTime || !minTime) return false;
+    return pickupAtTime < minTime;
+  }, [pickupAtTime, minTime]);
 
   const isAirportPickup = direction === "to_wekopa";
   const pickupLocation = isAirportPickup ? SKY_HARBOR : WEKOPA;
@@ -386,7 +410,6 @@ export default function WekoPaBookingWizard({
 
   useEffect(() => {
     if (prevStepRef.current === null) {
-      // First mount — just record the initial step, never scroll
       prevStepRef.current = step;
       return;
     }
@@ -405,8 +428,8 @@ export default function WekoPaBookingWizard({
       toast.error("Please select a direction.");
       return;
     }
-    if (pickupTooSoon) {
-      toast.error("Bookings must be made at least 36 hours in advance.");
+    if (timeIsStale) {
+      toast.error("Please select a time at least 2 hours from now.");
       return;
     }
     const ok = await trigger(["pickupAtDate", "pickupAtTime", "passengers"], {
@@ -440,8 +463,8 @@ export default function WekoPaBookingWizard({
       toast.error("Please select a direction.");
       return;
     }
-    if (pickupTooSoon) {
-      toast.error("Bookings must be made at least 36 hours in advance.");
+    if (timeIsStale) {
+      toast.error("Please select a time at least 2 hours from now.");
       return;
     }
     const ok = await trigger(["pickupAtDate", "pickupAtTime", "passengers"], {
@@ -493,7 +516,6 @@ export default function WekoPaBookingWizard({
 
     setSavedLegs((prev) => [...prev, newLeg]);
 
-    // Reset form for next leg (keep contact info)
     setValue("pickupAtDate", "", { shouldDirty: false });
     setValue("pickupAtTime", "", { shouldDirty: false });
     setValue("passengers", 0, { shouldDirty: false });
@@ -956,11 +978,12 @@ export default function WekoPaBookingWizard({
                         clearErrors("pickupAtTime");
                       }}
                       timeZone={companyTimezone}
+                      minTime={minTime ?? undefined}
                     />
                     <p className='miniNote'>
                       🕐 All times are in {companyTimezoneLabel}
                     </p>
-                    {pickupTooSoon && (
+                    {timeIsStale && (
                       <p
                         className='miniNote'
                         style={{
@@ -971,8 +994,8 @@ export default function WekoPaBookingWizard({
                           lineHeight: 1.2,
                         }}
                       >
-                        Bookings must be made at least 36 hours in advance.
-                        Please choose a later date or time.
+                        That time has already passed. Please select a time at
+                        least 2 hours from now.
                       </p>
                     )}
                   </div>
@@ -1079,13 +1102,6 @@ export default function WekoPaBookingWizard({
                   )}
 
                   <div className={styles.btnContainer}>
-                    {/* <button
-                      type='button'
-                      onClick={goStep2}
-                      className='primaryBtn'
-                    >
-                      Next
-                    </button> */}
                     <Button
                       type='button'
                       text='Next: Vehicle & Flight →'
@@ -1308,18 +1324,13 @@ export default function WekoPaBookingWizard({
                     </div>
                   </div>
 
-                  <div
-                 
-                    className={styles.bottomBtnContainer}
-                  >
-                   
+                  <div className={styles.bottomBtnContainer}>
                     <Button
                       type='button'
                       text='← Back: Trip Details'
                       btnType='blackReg'
                       onClick={() => setStep(1)}
                     />
-                  
                     <Button
                       type='button'
                       text='Next: Confirm →'
@@ -1685,15 +1696,6 @@ export default function WekoPaBookingWizard({
                   </div>
 
                   {/* Add another ride */}
-                  {/* <button
-                    type='button'
-                    onClick={addAnotherRide}
-                    className='secondaryBtn'
-                    disabled={submitting || submitted}
-                    style={{ width: "100%", textAlign: "center" }}
-                  >
-                    ➕ Add another ride to this trip
-                  </button> */}
                   <Button
                     type='button'
                     text='Add another ride to this trip'
@@ -1711,18 +1713,13 @@ export default function WekoPaBookingWizard({
                     </div>
                   )}
 
-                  <div
-                 
-                    className={styles.bottomBtnContainer}
-                  >
-                   
+                  <div className={styles.bottomBtnContainer}>
                     <Button
                       type='button'
                       text='← Back: Vehicle & Flight'
                       btnType='blackReg'
                       onClick={() => setStep(2)}
                     />
-                    
                     <Button
                       type='button'
                       text={
@@ -1735,7 +1732,7 @@ export default function WekoPaBookingWizard({
                               : "Submit request →"
                       }
                       btnType='greenReg'
-                      onClick={() => setStep(2)}
+                      onClick={handleSubmit}
                     />
                   </div>
                 </div>

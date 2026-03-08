@@ -1,7 +1,7 @@
 import styles from "./WekopaFinalCTA.module.css";
 import CountUp from "@/components/shared/CountUp/CountUp";
-import WekoPaBookingTrigger from "@/components/Wekopa/WekoPaBookingTrigger/WekoPaBookingTrigger";
 import ContentPadding from "@/components/shared/ContentPadding/ContentPadding";
+import ScrollToSectionButton from "@/components/shared/ScrollToSectionButton/ScrollToSectionButton";
 
 const data = [
   { id: 1, number: "22", detail: "Years serving the Valley" },
@@ -40,8 +40,13 @@ export default function WekopaFinalCTA() {
               <br className={styles.br} /> you leave home.
             </h2>
             <div className={styles.btnClusterContainer}>
-              <WekoPaBookingTrigger
+              {/* <WekoPaBookingTrigger
                 text='Reserve your transfer'
+                btnType='underlinedWhite'
+              /> */}
+              <ScrollToSectionButton
+                sectionId='booking'
+                text='Book Your Transfer'
                 btnType='underlinedWhite'
               />
             </div>

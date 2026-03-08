@@ -22,6 +22,7 @@ export default function BookingDateTimeWithBlackouts({
   onChangeTime,
   disablePast = true,
   timeZone,
+  minTime,
 }: {
   date: string;
   time: string;
@@ -29,6 +30,7 @@ export default function BookingDateTimeWithBlackouts({
   onChangeTime: (v: string) => void;
   disablePast?: boolean;
   timeZone: string;
+  minTime?: string | null;
 }) {
   const initialMonth = useMemo(
     () => monthFromYmd(date) ?? currentMonthKey(),
@@ -44,9 +46,7 @@ export default function BookingDateTimeWithBlackouts({
     async function run() {
       const res = await fetch(
         `/api/blackouts?month=${encodeURIComponent(visibleMonth)}`,
-        {
-          cache: "no-store",
-        },
+        { cache: "no-store" },
       );
       const data = await res.json();
       if (cancelled) return;
@@ -70,6 +70,7 @@ export default function BookingDateTimeWithBlackouts({
       blockedDates={blocked}
       onVisibleMonthChange={setVisibleMonth}
       timeZone={timeZone}
+      minTime={minTime ?? undefined}
     />
   );
 }

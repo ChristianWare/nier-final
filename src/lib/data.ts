@@ -631,14 +631,14 @@ export const wekopaQuestions = [
     question:
       "How far is We-Ko-Pa Golf Club from Scottsdale and Sky Harbor Airport?",
     answer:
-      "We-Ko-Pa Golf Club is located in Fort McDowell, AZ 85264, northeast of Scottsdale. From central Scottsdale, expect a 30–45 minute drive. From Phoenix Sky Harbor International Airport, plan for 45–60 minutes depending on traffic. Nier Transportation provides direct door-to-course service from any Phoenix metro hotel, airport, or resort.",
+      "We-Ko-Pa Golf Club is located in Fort McDowell, AZ 85264, northeast of Scottsdale. From central Scottsdale, expect a 30–35 minute drive. From Phoenix Sky Harbor International Airport, plan for 30-35 minutes depending on traffic. Nier Transportation provides direct door-to-course service from any Phoenix metro hotel, airport, or resort.",
   },
   {
     id: 1.1,
     question:
       "Can Nier Transportation take me to We-Ko-Pa if my flight arrives early or late?",
     answer:
-      "Absolutely. We monitor your inbound flight in real time and automatically adjust your pickup window at no extra charge. If your flight lands early, your chauffeur will be ready; if it's delayed, we update your schedule accordingly — so your tee time stays intact regardless of what the airline does.",
+      "Absolutely. We monitor your inbound flight in real time and automatically adjust your pickup window at no extra charge. If your flight lands early, your chauffeur will be ready; if it's delayed, we update your schedule accordingly.",
   },
   {
     id: 1.2,

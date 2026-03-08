@@ -11,9 +11,7 @@ export default function CorporateIntro() {
           <div className={styles.top}>
             <SectionHeading text='Corporate Accounts' dot />
             <h2 className={styles.heading}>
-              We provide seamless ground transportation solutions for businesses
-              of all sizes, ensuring your employees and clients get to their
-              destinations safely, comfortably, and on time.
+              Seamless ground transportation solutions for businesses of all sizes.
             </h2>
             <p className={styles.copy}>
               Simplify how your company moves. With a Nier Transportation

@@ -35,7 +35,7 @@ export default function WekopaIntro() {
                 rate, flight tracked, and on time.
               </h2>
               <p className={styles.mainCopy}>
-                We-Ko-Pa Golf Club is 38 miles from Sky Harbor International
+                We-Ko-Pa is 30 miutues from Sky Harbor International
                 Airport. Rideshare apps don&apos;t specialize in this corridor —
                 Nier does. We&apos;ve served Phoenix and Scottsdale since 2004
                 and the Sky Harbor to We-Ko-Pa run is one of our most requested
@@ -83,7 +83,7 @@ export default function WekopaIntro() {
               <div className={styles.statBox}>
                 <div className={styles.statNumber}>38mi</div>
                 <h4 className={styles.subheading}>
-                  Door-to-Door — Sky Harbor to We-Ko-Pa Golf Club
+                  Door-to-Door — Sky Harbor to We-Ko-Pa Casino & Resort
                 </h4>
                 <p className={styles.copy}>
                   One flat rate. One dedicated driver. We handle the 38 miles so

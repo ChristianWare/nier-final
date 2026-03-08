@@ -47,7 +47,6 @@ function monthKey(date: Date) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
 }
-
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -59,6 +58,16 @@ function to12h(h24: number) {
 
 const MINUTE_OPTIONS = ["00", "15", "30", "45"] as const;
 
+// Returns total minutes from "HH:MM" string, or null if invalid
+function hhmToMinutes(hhmm: string | null | undefined): number | null {
+  if (!hhmm) return null;
+  const [hhRaw, mmRaw] = hhmm.split(":");
+  const h = parseInt(hhRaw, 10);
+  const m = parseInt(mmRaw, 10);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  return h * 60 + m;
+}
+
 export default function BookingDateTimePicker({
   date,
   time,
@@ -68,6 +77,7 @@ export default function BookingDateTimePicker({
   blockedDates = [],
   onVisibleMonthChange,
   timeZone,
+  minTime,
 }: {
   date: string;
   time: string;
@@ -77,6 +87,7 @@ export default function BookingDateTimePicker({
   blockedDates?: string[];
   onVisibleMonthChange?: (month: string) => void;
   timeZone: string;
+  minTime?: string; // "HH:MM" — if set, options before this time are disabled
 }) {
   const todayYMD = useMemo(() => ymdInTz(new Date(), timeZone), [timeZone]);
   const blockedSet = useMemo(() => new Set(blockedDates ?? []), [blockedDates]);
@@ -137,58 +148,75 @@ export default function BookingDateTimePicker({
     onChangeDate(key);
   }
 
-  // ---- Time dropdowns (Hour + Minute in 15-min increments) ----
-  const hourOptions = useMemo(
-    () =>
-      Array.from({ length: 24 }, (_, h24) => {
-        const { h12, meridiem } = to12h(h24);
-        return { value: pad2(h24), label: `${h12} ${meridiem}` };
-      }),
-    [],
-  );
+  // ─── minTime as total minutes ────────────────────────────────────────────
+  const minTotalMinutes = useMemo(() => hhmToMinutes(minTime), [minTime]);
+
+  // ─── Hour options — disable any hour where ALL minute slots are before minTime ─
+  const hourOptions = useMemo(() => {
+    return Array.from({ length: 24 }, (_, h24) => {
+      const { h12, meridiem } = to12h(h24);
+      // An hour is disabled if even its latest minute slot (h24:45) is before minTime
+      const latestMinuteInHour = h24 * 60 + 45;
+      const disabled =
+        minTotalMinutes !== null && latestMinuteInHour < minTotalMinutes;
+      return { value: pad2(h24), label: `${h12} ${meridiem}`, disabled };
+    });
+  }, [minTotalMinutes]);
 
   const { selectedHH, selectedMM } = useMemo(() => {
     if (!time) return { selectedHH: "", selectedMM: "" };
-
     const [hhRaw = "", mmRaw = ""] = time.split(":");
     const hhNum = Number(hhRaw);
     const mmNum = Number(mmRaw);
-
     if (!Number.isFinite(hhNum) || !Number.isFinite(mmNum)) {
       return { selectedHH: "", selectedMM: "" };
     }
-
     const hh = pad2(Math.min(23, Math.max(0, hhNum)));
     const mm = pad2(Math.min(59, Math.max(0, mmNum)));
-
     return {
       selectedHH: hh,
       selectedMM: (MINUTE_OPTIONS as readonly string[]).includes(mm) ? mm : "",
     };
   }, [time]);
 
+  // ─── Minute options — disable slots before minTime for the selected hour ─
+  const minuteOptions = useMemo(() => {
+    const hh = parseInt(selectedHH, 10);
+    return MINUTE_OPTIONS.map((mm) => {
+      const slotMinutes = hh * 60 + parseInt(mm, 10);
+      const disabled =
+        !Number.isNaN(hh) &&
+        minTotalMinutes !== null &&
+        slotMinutes < minTotalMinutes;
+      return { value: mm, disabled };
+    });
+  }, [selectedHH, minTotalMinutes]);
+
   function onHourChange(e: ChangeEvent<HTMLSelectElement>) {
     const hh = e.target.value;
-
     if (!hh) {
       onChangeTime("");
       return;
     }
+    // If the currently selected minute is now disabled at this new hour, clear it
+    const hhNum = parseInt(hh, 10);
+    const mmNum = parseInt(selectedMM, 10);
+    const slotMinutes = hhNum * 60 + (Number.isNaN(mmNum) ? 0 : mmNum);
+    const mmStillValid =
+      selectedMM &&
+      (minTotalMinutes === null || slotMinutes >= minTotalMinutes);
 
-    const mm = selectedMM || "00";
+    const mm = mmStillValid ? selectedMM : "00";
     onChangeTime(`${hh}:${mm}`);
   }
 
   function onMinuteChange(e: ChangeEvent<HTMLSelectElement>) {
     const mm = e.target.value;
-
     if (!selectedHH) return;
-
     if (!mm) {
       onChangeTime("");
       return;
     }
-
     onChangeTime(`${selectedHH}:${mm}`);
   }
 
@@ -228,7 +256,6 @@ export default function BookingDateTimePicker({
             >
               ‹
             </button>
-
             <input
               type='month'
               value={mobileMonthValue}
@@ -236,7 +263,6 @@ export default function BookingDateTimePicker({
               className={styles.monthPicker}
               aria-label='Pick month'
             />
-
             <button
               type='button'
               className={styles.iconBtn}
@@ -245,7 +271,6 @@ export default function BookingDateTimePicker({
             >
               ›
             </button>
-
             <button
               type='button'
               className={`${styles.btn} ${styles.primary} ${styles.todayBtn}`}
@@ -328,7 +353,7 @@ export default function BookingDateTimePicker({
           >
             <option value=''>Hour</option>
             {hourOptions.map((o) => (
-              <option key={o.value} value={o.value}>
+              <option key={o.value} value={o.value} disabled={o.disabled}>
                 {o.label}
               </option>
             ))}
@@ -342,13 +367,25 @@ export default function BookingDateTimePicker({
             disabled={!selectedHH}
           >
             <option value=''>Minutes</option>
-            {MINUTE_OPTIONS.map((mm) => (
-              <option key={mm} value={mm}>
-                {mm}
+            {minuteOptions.map((o) => (
+              <option key={o.value} value={o.value} disabled={o.disabled}>
+                {o.value}
               </option>
             ))}
           </select>
         </div>
+
+        {minTime && (
+          <p className='miniNote' style={{ marginTop: 6 }}>
+            ⚠️ Same-day bookings require at least 2 hours notice. Earliest
+            available:{" "}
+            {(() => {
+              const [hh, mm] = minTime.split(":");
+              const { h12, meridiem } = to12h(parseInt(hh, 10));
+              return `${h12}:${mm} ${meridiem}`;
+            })()}
+          </p>
+        )}
       </div>
     </div>
   );
