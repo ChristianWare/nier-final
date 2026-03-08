@@ -1,4 +1,5 @@
 import AboutUsIntro from "@/components/HomePage/AboutUsIntro/AboutUsIntro";
+import CorporateIntro from "@/components/HomePage/CorporateIntro/CorporateIntro";
 import Events from "@/components/HomePage/Events/Events";
 import Fleet from "@/components/HomePage/Fleet/Fleet";
 import Hero from "@/components/HomePage/Hero/Hero";
@@ -98,6 +99,7 @@ export default function HomePage() {
       <ServicesPreview />
       <HowItWorks />
       <ServiceAreas />
+      <CorporateIntro />
       <Fleet />
       <Testimonials />
       <Events />

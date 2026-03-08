@@ -1,18 +1,20 @@
-import styles from "./CorporatePageIntro.module.css";
+import styles from "./CorporateIntro.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
 
-export default function CorporatePageIntro() {
+export default function CorporateIntro() {
   return (
     <section className={styles.container}>
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.top}>
             <SectionHeading text='Corporate Accounts' dot />
-            <h1 className={styles.heading}>
-              Reliable Ground Transportation for Your Entire Organization
-            </h1>
+            <h2 className={styles.heading}>
+              We provide seamless ground transportation solutions for businesses
+              of all sizes, ensuring your employees and clients get to their
+              destinations safely, comfortably, and on time.
+            </h2>
             <p className={styles.copy}>
               Simplify how your company moves. With a Nier Transportation
               corporate account, you get centralized billing, a dedicated
@@ -21,7 +23,7 @@ export default function CorporatePageIntro() {
             </p>
             <div className={styles.btnContainer}>
               <Button
-                href='#inquiry'
+                href='/corporate-accounts'
                 text='Apply for a Corporate Account'
                 btnType='underlinedBlack'
                 arrow
