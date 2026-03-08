@@ -16,6 +16,7 @@ import ServiceCityPricing from "@/components/ServiceCityPage/ServiceCityPricing/
 import ServiceCityCTA from "@/components/ServiceCityPage/ServiceCityCTA/ServiceCityCTA";
 import ServiceCityNearby from "@/components/ServiceCityPage/ServiceCityNearby/ServiceCityNearby";
 import Logo from "@/components/shared/Logo/Logo";
+import Image from "next/image";
 
 type Params = { slug: string; city: string };
 
@@ -128,30 +129,43 @@ export default async function ServiceCityPage({
       <section className={styles.intro}>
         <LayoutWrapper>
           <div className={styles.introContent}>
-            <SectionHeading
-              text={`Nier Transportation · ${city.name}, AZ`}
-              dot
-            />
-            <h1 className={`${styles.heading} underline`}>
-              {service.title} in {city.name}, AZ
-            </h1>
-            <p className={styles.lead}>
-              Professional {service.title.toLowerCase()} serving {city.name},{" "}
-              {city.note}. Available 24/7 with no surge pricing.
-            </p>
-            <div className={styles.btnContainer}>
-              <Button
-                href={bookHref}
-                text='Book your ride'
-                btnType='black'
-                arrow
+            <div className={styles.left}>
+              <SectionHeading
+                text={`Nier Transportation · ${city.name}, AZ`}
+                dot
               />
-              <Button
-                href={`/services/${service.slug}`}
-                text='Learn more'
-                btnType='underlinedBlack'
-                arrow
-              />
+              <h1 className={`${styles.heading} underline`}>
+                {service.title} in {city.name}, AZ
+              </h1>
+              <p className={styles.lead}>
+                Professional {service.title.toLowerCase()} serving {city.name},{" "}
+                {city.note}. Available 24/7 with no surge pricing.
+              </p>
+
+              <div className={styles.btnContainer}>
+                <Button
+                  href={bookHref}
+                  text='Book your ride'
+                  btnType='black'
+                  arrow
+                />
+                <Button
+                  href={`/services/${service.slug}`}
+                  text='Learn more'
+                  btnType='underlinedBlack'
+                  arrow
+                />
+              </div>
+            </div>
+            <div className={styles.right}>
+              <div className={styles.imgContainer}>
+                <Image
+                  src={service.src}
+                  alt={service.title}
+                  fill
+                  className={styles.img}
+                />
+              </div>
             </div>
           </div>
         </LayoutWrapper>
