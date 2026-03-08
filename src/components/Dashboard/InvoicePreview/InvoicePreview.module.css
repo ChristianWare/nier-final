@@ -46,6 +46,12 @@
   color: #000;
 }
 
+.logoImage {
+  width: 2.5rem;
+  height: 2.5rem;
+
+}
+
 .logoText {
   font-size: 1.5rem;
   font-weight: 600;

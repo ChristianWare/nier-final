@@ -91,6 +91,18 @@ export type InvoiceData = {
 
   /** Corporate account name (if different from customer name) */
   corporateAccountName?: string;
+
+  /**
+   * Human-readable description of how the ride was paid.
+   * Shown on both the invoice preview and the PDF.
+   * Examples:
+   *   "Credit Card ending in 4242"
+   *   "Zelle"
+   *   "Cash"
+   *   "Check"
+   *   "Manual Payment"
+   */
+  paymentMethodDisplay?: string | null;
 };
 
 export function formatMoney(

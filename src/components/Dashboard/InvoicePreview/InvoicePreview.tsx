@@ -28,25 +28,18 @@ export default function InvoicePreview({
 
   return (
     <div className={styles.container}>
-      {/* Invoice Document */}
       <div className={styles.invoice}>
-        {/* Header */}
+        {/* ── Header ── */}
         <header className={styles.header}>
           <div className={styles.logoSection}>
             <div className={styles.logoWrap}>
               {invoice.logoUrl ? (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={invoice.logoUrl}
-                    alt={invoice.company.name}
-                    style={{
-                      maxHeight: 40,
-                      maxWidth: 160,
-                      objectFit: "contain",
-                    }}
-                  />
-                </>
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={invoice.logoUrl}
+                  alt={invoice.company.name}
+                  className={styles.logoImage}
+                />
               ) : (
                 <Logo className={styles.logo} />
               )}
@@ -113,7 +106,7 @@ export default function InvoicePreview({
           </div>
         </header>
 
-        {/* Bill To */}
+        {/* ── Bill To ── */}
         <section className={styles.billTo}>
           <h2 className={styles.sectionTitle}>Bill To</h2>
           <div className={styles.customerInfo}>
@@ -123,7 +116,17 @@ export default function InvoicePreview({
           </div>
         </section>
 
-        {/* Payment & Billing Info (corporate only) */}
+        {/* ── Payment Method (how the ride was paid) ── */}
+        {invoice.paymentMethodDisplay && (
+          <section className={styles.paymentMethodSection}>
+            <span className={styles.paymentMethodLabel}>Payment Method</span>
+            <span className={styles.paymentMethodValue}>
+              {invoice.paymentMethodDisplay}
+            </span>
+          </section>
+        )}
+
+        {/* ── Corporate billing info ── */}
         {isCorporate && (
           <section className={styles.paymentSection}>
             <h2 className={styles.sectionTitle}>Payment Information</h2>
@@ -156,7 +159,7 @@ export default function InvoicePreview({
           </section>
         )}
 
-        {/* Trip Details */}
+        {/* ── Trip Details ── */}
         <section className={styles.tripSection}>
           <h2 className={styles.sectionTitle}>Trip Details</h2>
           <div className={styles.tripGrid}>
@@ -235,7 +238,7 @@ export default function InvoicePreview({
           </div>
         </section>
 
-        {/* Line Items */}
+        {/* ── Line Items ── */}
         <section className={styles.lineItemsSection}>
           <table className={styles.lineItemsTable}>
             <thead>
@@ -257,7 +260,7 @@ export default function InvoicePreview({
           </table>
         </section>
 
-        {/* Totals */}
+        {/* ── Totals ── */}
         <section className={styles.totalsSection}>
           <div className={styles.totalsGrid}>
             <div className={styles.totalsRow}>
@@ -283,7 +286,7 @@ export default function InvoicePreview({
               <span>{formatMoney(invoice.totalCents, invoice.currency)}</span>
             </div>
             {hasTip && (
-              <div className={styles.totalsRow}>
+              <div className={`${styles.totalsRow} ${styles.tipRow}`}>
                 <span>Driver Tip</span>
                 <span>{formatMoney(invoice.tipCents, invoice.currency)}</span>
               </div>
@@ -306,7 +309,7 @@ export default function InvoicePreview({
           </div>
         </section>
 
-        {/* Paid Stamp */}
+        {/* ── Paid Stamp ── */}
         {(invoice.paidDate || invoice.invoiceStatus === "PAID") && (
           <div className={styles.paidStamp}>
             <span className={styles.paidText}>PAID</span>
@@ -316,7 +319,7 @@ export default function InvoicePreview({
           </div>
         )}
 
-        {/* Footer */}
+        {/* ── Footer ── */}
         <footer className={styles.footer}>
           <p>Thank you for choosing {invoice.company.name}!</p>
           <p className={styles.footerSmall}>
@@ -326,7 +329,7 @@ export default function InvoicePreview({
         </footer>
       </div>
 
-      {/* Download Button */}
+      {/* ── Download Button ── */}
       <div className={styles.actions}>
         <button
           type='button'

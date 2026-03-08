@@ -421,6 +421,23 @@ function getConfirmationCode(bookingId: string): string {
   return bookingId.slice(0, 8).toUpperCase();
 }
 
+// ─── Build a human-readable payment method string for the invoice ───────────
+function buildPaymentMethodDisplay(
+  payment: {
+    stripePaymentIntentId?: string | null;
+    method?: string | null;
+  } | null,
+): string | null {
+  if (!payment) return null;
+  if (payment.stripePaymentIntentId) {
+    return "Credit Card (online)";
+  }
+  if (payment.method) {
+    return payment.method.charAt(0).toUpperCase() + payment.method.slice(1);
+  }
+  return "Manual Payment";
+}
+
 export default async function AdminBookingDetailPage({
   params,
 }: {
@@ -908,12 +925,41 @@ export default async function AdminBookingDetailPage({
       });
     }
 
+    // ── Customer name: use the most specific name available, never fall
+    //    back to a generic placeholder like "Customer".
+    const invoiceCustomerName =
+      booking.user?.name?.trim() ||
+      booking.guestName?.trim() ||
+      booking.corporatePassenger?.name?.trim() ||
+      booking.user?.email ||
+      booking.guestEmail ||
+      "Guest";
+
+    const invoiceCustomerEmail =
+      booking.user?.email || booking.guestEmail || "";
+
+    const invoiceCustomerPhone =
+      booking.user?.phone?.trim() ||
+      booking.guestPhone?.trim() ||
+      booking.corporatePassenger?.phone?.trim() ||
+      null;
+
+    // ── Amount paid: amountPaidCents in the DB stores only the fare.
+    //    The tip is tracked separately. Add it here so the invoice shows
+    //    what the customer's card was actually charged (fare + tip).
+    const invoiceAmountPaidCents =
+      Math.abs(amountPaidCents - booking.totalCents) <= 100
+        ? amountPaidCents + tipCents
+        : amountPaidCents;
+
     invoiceData = {
       invoiceNumber: booking.id.slice(0, 8).toUpperCase(),
       invoiceDate: formatInvoiceDate(booking.createdAt),
       paidDate: booking.payment?.paidAt
         ? formatInvoiceDate(booking.payment.paidAt)
         : null,
+
+      logoUrl: (companySettings as any).logoUrl ?? undefined,
 
       company: {
         name: companySettings.officeName || "Nier Transportation",
@@ -924,13 +970,9 @@ export default async function AdminBookingDetailPage({
       },
 
       customer: {
-        name:
-          booking.user?.name?.trim() ||
-          booking.guestName?.trim() ||
-          booking.user?.email ||
-          "Customer",
-        email: booking.user?.email || booking.guestEmail || "",
-        phone: booking.user?.phone || booking.guestPhone || null,
+        name: invoiceCustomerName,
+        email: invoiceCustomerEmail,
+        phone: invoiceCustomerPhone,
       },
 
       trip: {
@@ -956,10 +998,16 @@ export default async function AdminBookingDetailPage({
       taxesCents: booking.taxesCents,
       totalCents: booking.totalCents,
       tipCents,
-      amountPaidCents,
+      amountPaidCents: invoiceAmountPaidCents,
       amountRefundedCents,
 
       currency: booking.currency,
+
+      paymentMethodDisplay: buildPaymentMethodDisplay(booking.payment),
+
+      driverName: booking.assignment?.driver?.name ?? undefined,
+
+      bookingConfirmation: booking.id.slice(0, 8).toUpperCase(),
     };
   }
 
