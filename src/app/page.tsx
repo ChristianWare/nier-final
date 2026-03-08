@@ -6,6 +6,7 @@ import Hero from "@/components/HomePage/Hero/Hero";
 import ServiceAreas from "@/components/HomePage/ServiceAreas/ServiceAreas";
 import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
 import Stats from "@/components/HomePage/Stats/Stats";
+import WekopaIntro from "@/components/HomePage/WekopaIntro/WekopaIntro";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import Faq from "@/components/shared/Faq/Faq";
@@ -100,6 +101,7 @@ export default function HomePage() {
       <HowItWorks />
       <ServiceAreas />
       <CorporateIntro />
+      <WekopaIntro />
       <Fleet />
       <Testimonials />
       <Events />

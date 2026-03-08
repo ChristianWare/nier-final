@@ -457,7 +457,10 @@ export default function AdminOutstandingBalances({
 
       {filtered.length > 0 && (
         <div className={styles.footer}>
-          <Link href='/admin/bookings?filter=balance-due' className='backBtn'>
+          <Link
+            href='/admin/bookings?status=PENDING_PAYMENT&range=year'
+            className='backBtn'
+          >
             View all unpaid bookings →
           </Link>
         </div>
