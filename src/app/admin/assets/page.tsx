@@ -6,8 +6,8 @@ import type { AssetFile } from "@/components/admin/assets/assetUtils";
 import { formatSize, capitalize } from "@/components/admin/assets/assetUtils";
 import AssetTable from "@/components/admin/AssetTable/AssetTable";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+// export const runtime = "nodejs";
+// export const dynamic = "force-dynamic";
 
 const IMAGE_EXTENSIONS = [
   ".jpg",
