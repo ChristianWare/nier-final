@@ -14,10 +14,6 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
 
-  outputFileTracingExcludes: {
-    "/admin/assets": ["./public/images/**/*", "./public/videos/**/*"],
-  },
-
   ...(isProd ? {} : { turbopack: {} }),
 };
 
