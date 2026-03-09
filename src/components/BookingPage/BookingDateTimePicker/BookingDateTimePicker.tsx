@@ -377,7 +377,7 @@ export default function BookingDateTimePicker({
 
         {minTime && (
           <p className='miniNote' style={{ marginTop: 6 }}>
-            ⚠️ Same-day bookings require at least 2 hours notice. Earliest
+            ⚠️ Same-day bookings require at least 6 hours notice. Earliest
             available:{" "}
             {(() => {
               const [hh, mm] = minTime.split(":");

@@ -303,10 +303,10 @@ export default function WekoPaBookingWizard({
   // ─── Dirty form guard ─────────────────────────────────────────────────────
   const wizardHasInput = Boolean(
     direction ||
-      pickupAtDate ||
-      pickupAtTime ||
-      passengers > 0 ||
-      savedLegs.length > 0,
+    pickupAtDate ||
+    pickupAtTime ||
+    passengers > 0 ||
+    savedLegs.length > 0,
   );
   useDirtyForm("wekopa-booking-wizard", wizardHasInput && !submitted);
 
@@ -344,7 +344,7 @@ export default function WekoPaBookingWizard({
     const h = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0");
     const m = parseInt(parts.find((p) => p.type === "minute")?.value ?? "0");
 
-    let totalMinutes = h * 60 + m + 120; // +2 hours
+    let totalMinutes = h * 60 + m + 360; // +6 hours
     const remainder = totalMinutes % 15;
     if (remainder !== 0) totalMinutes += 15 - remainder; // round up to nearest 15
 
@@ -429,7 +429,7 @@ export default function WekoPaBookingWizard({
       return;
     }
     if (timeIsStale) {
-      toast.error("Please select a time at least 2 hours from now.");
+      toast.error("Please select a time at least 6 hours from now.");
       return;
     }
     const ok = await trigger(["pickupAtDate", "pickupAtTime", "passengers"], {
@@ -995,7 +995,7 @@ export default function WekoPaBookingWizard({
                         }}
                       >
                         That time has already passed. Please select a time at
-                        least 2 hours from now.
+                        least 6 hours from now.
                       </p>
                     )}
                   </div>
