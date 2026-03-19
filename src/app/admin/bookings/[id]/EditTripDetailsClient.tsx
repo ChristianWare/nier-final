@@ -14,6 +14,8 @@ import RoutePickerAdmin, {
 import toast from "react-hot-toast";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import { useBookingEdit } from "./BookingEditContext";
+import { localToUtcIso } from "@/lib/timezone";
+import { toZonedTime, format } from "date-fns-tz";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 
@@ -129,14 +131,21 @@ function calculateQuote(
   return subtotalCents;
 }
 
+function toLocalInputValue(isoString: string, tz: string): string {
+  const zoned = toZonedTime(new Date(isoString), tz);
+  return format(zoned, "yyyy-MM-dd'T'HH:mm", { timeZone: tz });
+}
+
 export default function EditTripDetailsClient({
   bookingId,
   initialData,
   pricingData,
+  companyTimezone,
 }: {
   bookingId: string;
   initialData: TripData;
   pricingData?: PricingData;
+  companyTimezone: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -149,8 +158,10 @@ export default function EditTripDetailsClient({
   const [justSaved, setJustSaved] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<TripData>(initialData);
-
+  const [formData, setFormData] = useState<TripData>({
+    ...initialData,
+    pickupAt: toLocalInputValue(initialData.pickupAt, companyTimezone),
+  });
   const [routeData, setRouteData] = useState<RouteData>({
     pickup: {
       address: initialData.pickupAddress,
@@ -295,7 +306,14 @@ export default function EditTripDetailsClient({
 
     const fd = new FormData();
     fd.append("bookingId", bookingId);
-    fd.append("pickupAt", formData.pickupAt);
+    // formData.pickupAt is "YYYY-MM-DDTHH:mm" (local company time from the input)
+    const [datePart, timePart] = formData.pickupAt.split("T");
+    const pickupAtUtc = localToUtcIso(
+      datePart,
+      timePart.slice(0, 5),
+      companyTimezone,
+    );
+    fd.append("pickupAt", pickupAtUtc);
     fd.append("pickupAddress", routeData.pickup.address);
     fd.append("dropoffAddress", routeData.dropoff.address);
     fd.append("pickupPlaceId", routeData.pickup.placeId || "");

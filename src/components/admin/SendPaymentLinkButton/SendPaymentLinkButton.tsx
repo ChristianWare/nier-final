@@ -15,6 +15,10 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(n);
 }
 
+function isValidEmail(v: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+
 type Props = {
   bookingId: string;
   totalCents: number;
@@ -28,17 +32,19 @@ export default function SendPaymentLinkButton({
   totalCents,
   amountPaidCents,
   currency,
-  isApproved = true, // Default to true for backward compatibility
+  isApproved = true,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [showOverride, setShowOverride] = useState(false);
+  const [overrideEmail, setOverrideEmail] = useState("");
+  const [overrideError, setOverrideError] = useState<string | null>(null);
 
   const balanceDueCents = totalCents - amountPaidCents;
   const hasBalanceDue = amountPaidCents > 0 && balanceDueCents > 0;
   const isFullyPaid = amountPaidCents >= totalCents && totalCents > 0;
 
-  // ✅ Block if booking is not approved
   if (!isApproved) {
     return (
       <div
@@ -85,10 +91,25 @@ export default function SendPaymentLinkButton({
 
   async function handleSend(isBalancePayment: boolean) {
     setError(null);
+    setOverrideError(null);
+
+    if (showOverride) {
+      if (!overrideEmail.trim()) {
+        setOverrideError("Please enter an email address.");
+        return;
+      }
+      if (!isValidEmail(overrideEmail.trim())) {
+        setOverrideError("Please enter a valid email address.");
+        return;
+      }
+    }
 
     const formData = new FormData();
     formData.append("bookingId", bookingId);
     formData.append("isBalancePayment", isBalancePayment ? "true" : "false");
+    if (showOverride && overrideEmail.trim()) {
+      formData.append("overrideEmail", overrideEmail.trim());
+    }
 
     startTransition(async () => {
       const result = await createPaymentLinkAndEmail(formData);
@@ -100,16 +121,21 @@ export default function SendPaymentLinkButton({
       }
 
       if (result.success) {
+        const target =
+          showOverride && overrideEmail.trim() ? overrideEmail.trim() : null;
         const msg = isBalancePayment
-          ? `Balance payment link sent! (${formatMoney(balanceDueCents, currency)})`
-          : "Payment link sent to customer!";
+          ? `Balance link sent${target ? ` to ${target}` : ""}! (${formatMoney(balanceDueCents, currency)})`
+          : `Payment link sent${target ? ` to ${target}` : " to customer"}!`;
         toast.success(msg);
+        if (showOverride) {
+          setShowOverride(false);
+          setOverrideEmail("");
+        }
         router.refresh();
       }
     });
   }
 
-  // Determine button text
   let buttonText = "Email payment link";
   if (isPending) {
     buttonText = "Sending...";
@@ -121,7 +147,7 @@ export default function SendPaymentLinkButton({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      {/* Show balance info if applicable */}
+      {/* Balance due banner */}
       {hasBalanceDue && (
         <div
           style={{
@@ -148,14 +174,66 @@ export default function SendPaymentLinkButton({
         </div>
       )}
 
+      {/* Primary send button */}
       <Button
         disabled={isPending || totalCents <= 0}
         type='button'
         text={buttonText}
         btnType='greenReg'
-        // emailIcon
         onClick={() => handleSend(hasBalanceDue)}
       />
+
+      {/* Override toggle button */}
+      <button
+        type='button'
+        className='secondaryBtn'
+        onClick={() => {
+          setShowOverride((prev) => !prev);
+          setOverrideEmail("");
+          setOverrideError(null);
+        }}
+      >
+        {showOverride
+          ? "✕ Cancel — use original email"
+          : "📧 Send to a different email"}
+      </button>
+
+      {/* Override email input — only shown when toggle is open */}
+      {showOverride && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <input
+            type='email'
+            value={overrideEmail}
+            onChange={(e) => {
+              setOverrideEmail(e.target.value);
+              setOverrideError(null);
+            }}
+            placeholder='Enter alternate email address...'
+            className='input emptySmall'
+            autoFocus
+            style={{
+              borderColor: overrideError ? "rgba(180,0,0,0.6)" : undefined,
+            }}
+          />
+          {overrideError && (
+            <p style={{ color: "#c00", fontSize: "1.4rem", margin: 0 }}>
+              {overrideError}
+            </p>
+          )}
+          <p
+            style={{
+              fontSize: "1.3rem",
+              color: "var(--paragraph, #676767)",
+              margin: 0,
+              opacity: 0.85,
+            }}
+          >
+            The payment link will be sent to this address instead of the
+            customer&apos;s email on file. Then click the green button above to
+            send.
+          </p>
+        </div>
+      )}
 
       {error && (
         <p style={{ color: "#c00", fontSize: "1.4rem", margin: 0 }}>{error}</p>

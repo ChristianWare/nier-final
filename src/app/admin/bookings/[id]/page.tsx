@@ -1620,6 +1620,7 @@ export default async function AdminBookingDetailPage({
                   bookingId={booking.id}
                   initialData={tripEditData}
                   pricingData={pricingData}
+                  companyTimezone={companyTz}
                 />
               </div>
             </Card>

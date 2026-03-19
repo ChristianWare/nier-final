@@ -856,8 +856,10 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const parsed = SendPaymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid request." };
 
-  const { bookingId, isBalancePayment } = parsed.data;
-
+const { bookingId, isBalancePayment } = parsed.data;
+const overrideEmail =
+  (formData.get("overrideEmail") as string | null)?.trim().toLowerCase() ||
+  null;
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
     include: { user: true, serviceType: true, vehicle: true, payment: true },
@@ -879,9 +881,8 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     return { error: "This booking is cancelled/no-show. Don't send payment." };
   }
 
-  const recipientEmail = (b.user?.email ?? b.guestEmail ?? "")
-    .trim()
-    .toLowerCase();
+  const recipientEmail =
+    overrideEmail || (b.user?.email ?? b.guestEmail ?? "").trim().toLowerCase();
   const recipientName = (b.user?.name ?? b.guestName ?? "").trim() || null;
 
   if (!recipientEmail) return { error: "Customer email missing." };
