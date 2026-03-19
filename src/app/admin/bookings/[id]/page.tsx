@@ -436,7 +436,7 @@ function buildPaymentMethodDisplay(
   if (payment.method) {
     return payment.method.charAt(0).toUpperCase() + payment.method.slice(1);
   }
-  return "Manual Payment";
+  return "Manual Payment (Cash)";
 }
 
 export default async function AdminBookingDetailPage({

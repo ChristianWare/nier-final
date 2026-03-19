@@ -1,18 +1,45 @@
 .container {
   min-height: calc(100vh - 80px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 0 4rem;
+  padding: 10rem 0 6rem;
   background: linear-gradient(180deg, #f8fdf8 0%, #ffffff 100%);
 }
 
-.content {
+/* ── Two-column layout ── */
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 3rem;
+  align-items: start;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Single content (error states, no invoice) ── */
+.singleContent {
   max-width: 600px;
   margin: 0 auto;
   width: 100%;
 }
 
+.left {
+  position: sticky;
+  top: 100px;
+}
+
+.right {
+  width: 100%;
+  min-width: 0;
+}
+
+.invoiceWrapper {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Card ── */
 .card {
   background: white;
   border-radius: 24px;
@@ -22,9 +49,7 @@
   text-align: center;
 }
 
-/* ================================
-   Success/Error Icons
-   ================================ */
+/* ── Icons ── */
 .iconSuccess {
   width: 80px;
   height: 80px;
@@ -72,9 +97,7 @@
   }
 }
 
-/* ================================
-   Typography
-   ================================ */
+/* ── Typography ── */
 .title {
   font-size: 2rem;
   font-weight: 700;
@@ -90,9 +113,7 @@
   line-height: 1.5;
 }
 
-/* ================================
-   Confirmation Box
-   ================================ */
+/* ── Confirmation Box ── */
 .confirmationBox {
   background: var(--cream);
   border-radius: 12px;
@@ -122,9 +143,7 @@
   letter-spacing: 0.05em;
 }
 
-/* ================================
-   Trip Summary
-   ================================ */
+/* ── Trip Summary ── */
 .tripSummary {
   text-align: left;
   background: #fafafa;
@@ -194,9 +213,7 @@
   word-break: break-word;
 }
 
-/* ================================
-   Next Steps
-   ================================ */
+/* ── Next Steps ── */
 .nextSteps {
   text-align: left;
   background: #f0f9ff;
@@ -230,9 +247,7 @@
   margin-bottom: 0;
 }
 
-/* ================================
-   Actions
-   ================================ */
+/* ── Actions ── */
 .actions {
   display: flex;
   flex-direction: column;
@@ -244,9 +259,7 @@
   width: 100%;
 }
 
-/* ================================
-   Help Text
-   ================================ */
+/* ── Help Text ── */
 .helpText {
   font-size: 1.4rem;
   color: #888;
@@ -265,36 +278,30 @@
   color: var(--accent);
 }
 
-/* ================================
-   Responsive
-   ================================ */
-@media screen and (max-width: 600px) {
+/* ── Responsive ── */
+@media screen and (max-width: 1068px) {
+  .twoCol {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 5rem 0 4rem;
+  }
+
+  .twoCol {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .left {
+    position: static;
+  }
+
   .card {
     padding: 2rem 1.5rem;
     border-radius: 16px;
   }
-
-  /* .title {
-    font-size: 1.5rem;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-  }
-
-  .iconSuccess,
-  .iconError {
-    width: 64px;
-    height: 64px;
-  }
-
-  .iconSuccess svg,
-  .iconError svg {
-    width: 32px;
-    height: 32px;
-  }
-
-  .confirmationId {
-    font-size: 1.4rem;
-  } */
 }

@@ -62,13 +62,24 @@ export default function SendPaymentLinkButton({
 
   if (isFullyPaid) {
     return (
-      <Button
-        disabled
-        type='button'
-        text='Fully paid'
-        btnType='greenReg'
-        onClick={() => {}}
-      />
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <Button
+          disabled
+          type='button'
+          text='✓ Fully paid'
+          btnType='greenReg'
+          onClick={() => {}}
+        />
+        <a
+          href={`/pay/${bookingId}/success?already_paid=1`}
+          target='_blank'
+          rel='noopener noreferrer'
+          className='backBtn'
+          style={{ display: "inline-block", fontSize: "1.4rem" }}
+        >
+          View payment success page →
+        </a>
+      </div>
     );
   }
 
