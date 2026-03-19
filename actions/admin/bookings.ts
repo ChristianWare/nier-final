@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
@@ -2241,21 +2240,25 @@ export async function recordCashPayment(formData: FormData) {
   if (booking.tripGroupId) {
     const group = await db.tripGroup.findUnique({
       where: { id: booking.tripGroupId },
-      include: { bookings: { select: { id: true, status: true } } },
+      include: {
+        bookings: { select: { id: true, status: true, totalCents: true } },
+      },
     });
     if (!group) return { error: "Trip group not found." };
 
-    const groupTotal = group.bookings.reduce((sum, b) => {
-      // We'll recalc from siblings - but group.totalCents is close enough here
-      return sum;
-    }, 0);
+    // Always compute live from siblings — never trust the cached group.totalCents
+    const liveGroupTotal = group.bookings.reduce(
+      (sum, b) => sum + b.totalCents,
+      0,
+    );
 
     const tx: any[] = [
       db.tripGroup.update({
         where: { id: booking.tripGroupId },
         data: {
           paymentStatus: "PAID",
-          amountPaidCents: group.totalCents,
+          amountPaidCents: liveGroupTotal,
+          totalCents: liveGroupTotal, // sync the cache while we're here
           paidAt: new Date(),
         },
       }),
@@ -2267,7 +2270,7 @@ export async function recordCashPayment(formData: FormData) {
           eventType: "PAYMENT_RECEIVED",
           metadata: {
             method: "cash",
-            amountCents: group.totalCents,
+            amountCents: liveGroupTotal,
             currency: group.currency,
             note: "Cash payment recorded by admin (group booking)",
           },
@@ -2278,7 +2281,13 @@ export async function recordCashPayment(formData: FormData) {
 
     // Move all sibling bookings to CONFIRMED
     for (const sibling of group.bookings) {
-      const skip = ["COMPLETED", "CANCELLED", "NO_SHOW", "REFUNDED", "PARTIALLY_REFUNDED"];
+      const skip = [
+        "COMPLETED",
+        "CANCELLED",
+        "NO_SHOW",
+        "REFUNDED",
+        "PARTIALLY_REFUNDED",
+      ];
       if (!skip.includes(sibling.status)) {
         tx.push(
           db.booking.update({

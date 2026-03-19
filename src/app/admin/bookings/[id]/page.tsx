@@ -522,8 +522,13 @@ export default async function AdminBookingDetailPage({
   const groupTotalCents = tripGroupData
     ? tripGroupData.siblings.reduce((sum, s) => sum + s.totalCents, 0)
     : 0;
-  const groupAmountPaidCents = tripGroupData?.tripGroup.amountPaidCents ?? 0;
+  // If the group is marked PAID, use the live total as the paid amount.
+  // The cached amountPaidCents on TripGroup can be stale if leg prices were
+  // edited after payment was recorded.
   const isGroupPaid = groupPaymentStatus === "PAID";
+  const groupAmountPaidCents = isGroupPaid
+    ? groupTotalCents
+    : (tripGroupData?.tripGroup.amountPaidCents ?? 0);
 
   // ─── Corporate invoice lookup (via line item bookingId) ───
   let corporateInvoice: {
