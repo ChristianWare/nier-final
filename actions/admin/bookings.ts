@@ -337,9 +337,32 @@ export async function unapproveBooking(formData: FormData) {
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { payment: true },
+    select: {
+      id: true,
+      status: true,
+      tripGroupId: true,
+      totalCents: true,
+      subtotalCents: true,
+      currency: true,
+      pickupAt: true,
+      pickupAddress: true,
+      dropoffAddress: true,
+      guestEmail: true,
+      guestName: true,
+      stopSurchargeCents: true,
+      user: { select: { name: true, email: true } },
+      payment: {
+        select: {
+          id: true,
+          status: true,
+          amountPaidCents: true,
+          amountTotalCents: true,
+          amountRefundedCents: true,
+          stripePaymentIntentId: true,
+        },
+      },
+    },
   });
-
   if (!booking) return { error: "Booking not found." };
 
   if (booking.payment?.status === "PAID") {
@@ -1732,9 +1755,23 @@ export async function issueRefund(formData: FormData) {
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { payment: true },
+    select: {
+      id: true,
+      status: true,
+      tripGroupId: true,
+      totalCents: true,
+      subtotalCents: true,
+      currency: true,
+      pickupAt: true,
+      pickupAddress: true,
+      dropoffAddress: true,
+      guestEmail: true,
+      guestName: true,
+      stopSurchargeCents: true,
+      user: { select: { name: true, email: true } },
+      payment: true,
+    },
   });
-
   if (!booking) return { error: "Booking not found." };
 
   const payment = booking.payment;
@@ -2229,19 +2266,47 @@ export async function recordCashPayment(formData: FormData) {
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { payment: true },
+    select: {
+      id: true,
+      status: true,
+      tripGroupId: true,
+      totalCents: true,
+      subtotalCents: true,
+      currency: true,
+      pickupAt: true,
+      pickupAddress: true,
+      dropoffAddress: true,
+      guestEmail: true,
+      guestName: true,
+      stopSurchargeCents: true,
+      user: { select: { name: true, email: true } },
+      payment: {
+        select: {
+          id: true,
+          status: true,
+          amountPaidCents: true,
+          amountTotalCents: true,
+        },
+      },
+    },
   });
   if (!booking) return { error: "Booking not found." };
 
   const totalCents = booking.totalCents;
-  if (totalCents <= 0) return { error: "Set a price before recording payment." };
+  if (totalCents <= 0)
+    return { error: "Set a price before recording payment." };
 
   // ── Group booking: write to TripGroup instead ──
   if (booking.tripGroupId) {
     const group = await db.tripGroup.findUnique({
       where: { id: booking.tripGroupId },
-      include: {
-        bookings: { select: { id: true, status: true, totalCents: true } },
+      select: {
+        id: true,
+        currency: true,
+        totalCents: true,
+        bookings: {
+          select: { id: true, status: true, totalCents: true },
+        },
       },
     });
     if (!group) return { error: "Trip group not found." };
@@ -2299,6 +2364,36 @@ export async function recordCashPayment(formData: FormData) {
     }
 
     await db.$transaction(tx);
+
+    // ── Send confirmation email with PDF invoice (group) ──
+    try {
+      const { buildInvoiceDataForBooking, sendPaymentConfirmationEmail } =
+        await import("@/lib/email/sendPaymentConfirmationEmail");
+      const recipient = booking.user?.email || booking.guestEmail || null;
+      if (recipient) {
+        const { invoiceData, emailArgs } =
+          await buildInvoiceDataForBooking(bookingId);
+        await sendPaymentConfirmationEmail({
+          to: recipient,
+          name: booking.user?.name ?? booking.guestName ?? null,
+          bookingId,
+          invoiceData,
+          pickupAtISO: emailArgs.pickupAtISO ?? booking.pickupAt.toISOString(),
+          pickupAddress: emailArgs.pickupAddress ?? booking.pickupAddress,
+          dropoffAddress: emailArgs.dropoffAddress ?? booking.dropoffAddress,
+          totalCents: emailArgs.totalCents ?? liveGroupTotal,
+          amountPaidCents: emailArgs.amountPaidCents ?? liveGroupTotal,
+          currency: emailArgs.currency ?? group.currency,
+          ...emailArgs,
+        });
+      }
+    } catch (e) {
+      console.error(
+        "Failed to send cash payment confirmation email (group):",
+        e,
+      );
+    }
+
     revalidatePath(`/admin/bookings/${bookingId}`);
     return { success: true };
   }
@@ -2350,6 +2445,32 @@ export async function recordCashPayment(formData: FormData) {
     event: "PAYMENT_RECEIVED",
     bookingId,
   });
+
+  // ── Send confirmation email with PDF invoice ──
+  try {
+    const { buildInvoiceDataForBooking, sendPaymentConfirmationEmail } =
+      await import("@/lib/email/sendPaymentConfirmationEmail");
+    const recipient = booking.user?.email || booking.guestEmail || null;
+    if (recipient) {
+      const { invoiceData, emailArgs } =
+        await buildInvoiceDataForBooking(bookingId);
+      await sendPaymentConfirmationEmail({
+        to: recipient,
+        name: booking.user?.name ?? booking.guestName ?? null,
+        bookingId,
+        invoiceData,
+        pickupAtISO: emailArgs.pickupAtISO ?? booking.pickupAt.toISOString(),
+        pickupAddress: emailArgs.pickupAddress ?? booking.pickupAddress,
+        dropoffAddress: emailArgs.dropoffAddress ?? booking.dropoffAddress,
+        totalCents: emailArgs.totalCents ?? totalCents,
+        amountPaidCents: emailArgs.amountPaidCents ?? totalCents,
+        currency: emailArgs.currency ?? booking.currency,
+        ...emailArgs,
+      });
+    }
+  } catch (e) {
+    console.error("Failed to send cash payment confirmation email:", e);
+  }
 
   revalidatePath(`/admin/bookings/${bookingId}`);
   return { success: true };

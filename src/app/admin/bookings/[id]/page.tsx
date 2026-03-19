@@ -1178,6 +1178,27 @@ export default async function AdminBookingDetailPage({
                   </div>
                 )}
 
+                {/* Client Type */}
+                <div style={{ marginTop: 30 }}>
+                  <div className='emptyTitle'>Client Type:</div>
+                  <div style={{ marginTop: 6 }}>
+                    {isCorporateBooking ? (
+                      <span className={`badge badge_accent ${styles.badge}`}>
+                        🏢 Corporate —{" "}
+                        {booking.corporateAccount?.name ?? "Account"}
+                      </span>
+                    ) : booking.userId ? (
+                      <span className={`badge badge_good ${styles.badge}`}>
+                        👤 Registered User
+                      </span>
+                    ) : (
+                      <span className={`badge badge_neutral ${styles.badge}`}>
+                        🧾 Guest Checkout
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 {/* Updated Payment status with balance display */}
                 {/* Ride Type badge */}
                 <div style={{ marginTop: 30 }}>

@@ -5,6 +5,10 @@ import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { BookingStatus } from "@prisma/client";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
+import {
+  buildInvoiceDataForBooking,
+  sendPaymentConfirmationEmail,
+} from "@/lib/email/sendPaymentConfirmationEmail";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,7 +70,6 @@ async function finalizePaid(args: {
     const previouslyPaidCents = existingPayment?.amountPaidCents ?? 0;
     const previousTipCents = existingPayment?.tipCents ?? 0;
 
-    // Calculate the new payment amount (excluding tip for booking total comparison)
     let newPaymentAmount: number;
     if (isBalancePayment && balanceAmount) {
       newPaymentAmount = balanceAmount;
@@ -76,19 +79,13 @@ async function finalizePaid(args: {
       newPaymentAmount = booking.totalCents ?? 0;
     }
 
-    // Tip is tracked separately
     const totalTipCents = previousTipCents + (tipCents ?? 0);
-
-    // Amount paid towards the booking fare (excluding tips)
     const baseFarePayment = newPaymentAmount - (tipCents ?? 0);
-
     const totalPaidCents = isBalancePayment
       ? previouslyPaidCents + baseFarePayment
       : baseFarePayment;
 
     const safeCurrency = (currency ?? booking.currency ?? "usd").toLowerCase();
-
-    // Check if booking fare is fully paid (tips don't count towards this)
     const isFullyPaid = totalPaidCents >= (booking.totalCents ?? 0);
 
     console.log(
@@ -130,7 +127,6 @@ async function finalizePaid(args: {
       },
     });
 
-    // Only update booking status if not in a terminal state
     const terminal: BookingStatus[] = ["CANCELLED", "NO_SHOW", "COMPLETED"];
     const shouldUpdateStatus =
       !terminal.includes(booking.status) &&
@@ -144,10 +140,8 @@ async function finalizePaid(args: {
         data: { status: nextStatus },
       });
 
-      // ✅ Flag to send notification after transaction commits
       shouldSendNotification = true;
 
-      // ✅ Log payment event with eventType and metadata including tip
       await tx.bookingStatusEvent.create({
         data: {
           bookingId,
@@ -168,7 +162,6 @@ async function finalizePaid(args: {
         },
       });
     } else {
-      // ✅ Still log the payment event even if status doesn't change
       await tx.bookingStatusEvent.create({
         data: {
           bookingId,
@@ -191,7 +184,7 @@ async function finalizePaid(args: {
     }
   });
 
-  // ── If this booking belongs to a trip group, update group payment status ──
+  // ── Trip group: update group payment status and confirm all siblings ──
   try {
     const paidBooking = await db.booking.findUnique({
       where: { id: bookingId },
@@ -214,7 +207,6 @@ async function finalizePaid(args: {
           0,
         );
 
-        // Update the group payment status
         await db.tripGroup.update({
           where: { id: paidBooking.tripGroupId },
           data: {
@@ -224,7 +216,6 @@ async function finalizePaid(args: {
           },
         });
 
-        // Move all sibling bookings to CONFIRMED if they're still pending
         const terminalStatuses: BookingStatus[] = [
           "CANCELLED",
           "NO_SHOW",
@@ -265,10 +256,54 @@ async function finalizePaid(args: {
     }
   } catch (e) {
     console.error("❌ Failed to update trip group after payment:", e);
+  }
+
+  // ── Send payment confirmation email with PDF invoice ──
+  try {
+    const bookingForEmail = await db.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        user: { select: { email: true, name: true } },
+        guestEmail: true,
+        guestName: true,
+      },
+    });
+
+    const customerEmail = (
+      bookingForEmail?.user?.email ??
+      bookingForEmail?.guestEmail ??
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+    const customerName =
+      bookingForEmail?.user?.name ?? bookingForEmail?.guestName ?? null;
+
+    if (customerEmail) {
+      const { invoiceData, emailArgs } =
+        await buildInvoiceDataForBooking(bookingId);
+
+      await sendPaymentConfirmationEmail({
+        to: customerEmail,
+        name: customerName,
+        bookingId,
+        invoiceData,
+        pickupAtISO: emailArgs.pickupAtISO ?? new Date().toISOString(),
+        pickupAddress: emailArgs.pickupAddress ?? "",
+        dropoffAddress: emailArgs.dropoffAddress ?? "",
+        totalCents: emailArgs.totalCents ?? 0,
+        amountPaidCents: emailArgs.amountPaidCents ?? 0,
+        currency: emailArgs.currency ?? "usd",
+        ...emailArgs,
+      });
+    }
+  } catch (e) {
+    console.error("❌ Failed to send payment confirmation email:", e);
     // Non-critical — don't fail the webhook
   }
 
-  // ✅ Send admin notification AFTER transaction commits successfully
+  // ── Admin notification ──
   if (shouldSendNotification) {
     try {
       await sendAdminNotificationsForBookingEvent({
@@ -293,7 +328,6 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
     ? parseInt(incoming.metadata.balanceAmount, 10)
     : null;
 
-  // DB fallback by session id
   if (!bookingId && sessionId) {
     const p = await db.payment.findUnique({
       where: { stripeCheckoutSessionId: sessionId },
@@ -302,7 +336,6 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
     bookingId = p?.bookingId ?? null;
   }
 
-  // Stripe retrieve fallback
   let fullSession: any | null = null;
   if (!bookingId && sessionId) {
     try {
@@ -314,7 +347,6 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
     } catch (e: any) {
       const msg = e?.message ?? String(e);
       console.warn("⚠️ checkout.sessions.retrieve failed:", msg);
-
       if (sessionId.startsWith("cs_test_")) {
         console.warn(
           "⚠️ This is a TEST session (cs_test). If your STRIPE_SECRET_KEY is sk_live, retrieval will fail. Use sk_test locally.",
@@ -440,7 +472,6 @@ export async function POST(req: Request) {
         ? parseInt(pi.metadata.balanceAmount, 10)
         : null;
 
-      // ✅ Extract tip amount from metadata
       const tipCents = pi?.metadata?.tipCents
         ? parseInt(pi.metadata.tipCents, 10)
         : 0;
@@ -541,14 +572,12 @@ export async function POST(req: Request) {
         },
       });
 
-      // Update booking status if fully refunded
       if (newStatus === "REFUNDED") {
         await db.booking.update({
           where: { id: payment.bookingId },
           data: { status: "REFUNDED" },
         });
 
-        // ✅ Log refund event from webhook
         await db.bookingStatusEvent.create({
           data: {
             bookingId: payment.bookingId,
@@ -562,7 +591,6 @@ export async function POST(req: Request) {
           },
         });
       } else if (newStatus === "PARTIALLY_REFUNDED") {
-        // ✅ Log partial refund event from webhook
         const booking = await db.booking.findUnique({
           where: { id: payment.bookingId },
           select: { status: true },
