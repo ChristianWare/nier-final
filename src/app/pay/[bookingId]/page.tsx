@@ -111,10 +111,44 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     getSavedCardForBooking(bookingId),
   ]);
 
+  // Fetch sibling legs for multi-trip display
+  let groupLegs: Array<{
+    legNumber: number;
+    pickupAt: string;
+    pickupAddress: string;
+    dropoffAddress: string;
+    serviceName: string;
+    totalCents: number;
+  }> = [];
+
+  if (booking.tripGroupId) {
+    const siblings = await db.booking.findMany({
+      where: { tripGroupId: booking.tripGroupId },
+      select: {
+        id: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        totalCents: true,
+        serviceType: { select: { name: true } },
+      },
+      orderBy: { pickupAt: "asc" },
+    });
+    groupLegs = siblings.map((s, idx) => ({
+      legNumber: idx + 1,
+      pickupAt: s.pickupAt.toISOString(),
+      pickupAddress: s.pickupAddress,
+      dropoffAddress: s.dropoffAddress,
+      serviceName: s.serviceType?.name ?? "Transportation",
+      totalCents: s.totalCents,
+    }));
+  }
+
   return (
     <main>
       <Nav background='white' />
       <CheckoutClient
+        groupLegs={groupLegs}
         stripePublishableKey={stripePublishableKey ?? ""}
         bookingId={booking.id}
         serviceName={booking.serviceType?.name ?? "Transportation"}

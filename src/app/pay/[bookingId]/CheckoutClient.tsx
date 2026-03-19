@@ -24,6 +24,14 @@ type Stop = {
 
 type Props = {
   bookingId: string;
+  groupLegs?: Array<{
+    legNumber: number;
+    pickupAt: string;
+    pickupAddress: string;
+    dropoffAddress: string;
+    serviceName: string;
+    totalCents: number;
+  }>;
   serviceName: string;
   vehicleName: string;
   pickupAt: string;
@@ -169,6 +177,7 @@ function CheckoutForm({
 
 export default function CheckoutClient({
   bookingId,
+  groupLegs = [],
   serviceName,
   vehicleName,
   pickupAt,
@@ -407,6 +416,78 @@ export default function CheckoutClient({
                   )}
                 </div>
               </div>
+
+              {/* Multi-trip itinerary */}
+              {groupLegs.length > 1 && (
+                <div className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <h2 className='cardTitle h5'>
+                      Trip Itinerary ({groupLegs.length} Rides)
+                    </h2>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 12,
+                    }}
+                  >
+                    {groupLegs.map((leg) => (
+                      <div
+                        key={leg.legNumber}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "28px 1fr auto",
+                          gap: "10px",
+                          alignItems: "start",
+                          paddingBottom: 12,
+                          borderBottom: "1px solid rgba(0,0,0,0.08)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: "50%",
+                            background: "#000",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 11,
+                            fontWeight: 700,
+                            flexShrink: 0,
+                            marginTop: 2,
+                          }}
+                        >
+                          {leg.legNumber}
+                        </div>
+                        <div style={{ display: "grid", gap: 2 }}>
+                          <span style={{ fontWeight: 600, fontSize: "1.4rem" }}>
+                            {leg.serviceName}
+                          </span>
+                          <span style={{ fontSize: "1.3rem", opacity: 0.6 }}>
+                            {formatDate(leg.pickupAt)} ·{" "}
+                            {formatTime(leg.pickupAt)}
+                          </span>
+                          <span style={{ fontSize: "1.3rem", opacity: 0.75 }}>
+                            {leg.pickupAddress} → {leg.dropoffAddress}
+                          </span>
+                        </div>
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "1.4rem",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {formatMoney(leg.totalCents, currency)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Tip Selection Card */}
               <div className={styles.card}>
