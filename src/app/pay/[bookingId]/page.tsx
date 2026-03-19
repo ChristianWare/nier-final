@@ -49,10 +49,31 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     notFound();
   }
 
+  // ── Group booking: use group total instead of individual leg total ──
+  let effectiveTotalCents = booking.totalCents;
+  let effectiveAmountPaidCents = booking.payment?.amountPaidCents ?? 0;
+
+  if (booking.tripGroupId) {
+    const tripGroup = await db.tripGroup.findUnique({
+      where: { id: booking.tripGroupId },
+      include: {
+        bookings: { select: { totalCents: true } },
+      },
+    });
+    if (tripGroup) {
+      // Recalculate live from siblings (same pattern as the admin page)
+      effectiveTotalCents = tripGroup.bookings.reduce(
+        (sum, b) => sum + b.totalCents,
+        0,
+      );
+      effectiveAmountPaidCents = tripGroup.amountPaidCents;
+    }
+  }
+
   // Check if already fully paid
-  const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
+  const amountPaidCents = effectiveAmountPaidCents;
   const isFullyPaid =
-    amountPaidCents >= (booking.totalCents ?? 0) && booking.totalCents > 0;
+    amountPaidCents >= effectiveTotalCents && effectiveTotalCents > 0;
 
   if (isFullyPaid) {
     redirect(`/pay/${bookingId}/success?already_paid=1`);
@@ -72,7 +93,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
   }
 
   // Calculate balance if partial payment exists
-  const balanceDueCents = booking.totalCents - amountPaidCents;
+  const balanceDueCents = effectiveTotalCents - amountPaidCents;
   const isBalancePayment = amountPaidCents > 0 && balanceDueCents > 0;
 
   const customerName = booking.user?.name ?? booking.guestName ?? "Guest";
@@ -103,13 +124,13 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
         dropoffAddress={booking.dropoffAddress}
         stops={stops}
         stopSurchargeCents={booking.stopSurchargeCents ?? 0}
-        baseFareCents={isBalancePayment ? balanceDueCents : booking.totalCents}
+        baseFareCents={isBalancePayment ? balanceDueCents : effectiveTotalCents}
         currency={booking.currency ?? "usd"}
         customerName={customerName}
         customerEmail={customerEmail}
         isBalancePayment={isBalancePayment}
         amountPaidCents={amountPaidCents}
-        totalBookingCents={booking.totalCents}
+        totalBookingCents={effectiveTotalCents}
         savedCard={savedCard}
       />
     </main>

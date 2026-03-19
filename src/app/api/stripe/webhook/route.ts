@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
@@ -189,6 +190,83 @@ async function finalizePaid(args: {
       });
     }
   });
+
+  // ── If this booking belongs to a trip group, update group payment status ──
+  try {
+    const paidBooking = await db.booking.findUnique({
+      where: { id: bookingId },
+      select: { tripGroupId: true, status: true },
+    });
+
+    if (paidBooking?.tripGroupId) {
+      const group = await db.tripGroup.findUnique({
+        where: { id: paidBooking.tripGroupId },
+        include: {
+          bookings: {
+            select: { id: true, totalCents: true, status: true },
+          },
+        },
+      });
+
+      if (group) {
+        const groupTotal = group.bookings.reduce(
+          (sum, b) => sum + b.totalCents,
+          0,
+        );
+
+        // Update the group payment status
+        await db.tripGroup.update({
+          where: { id: paidBooking.tripGroupId },
+          data: {
+            paymentStatus: "PAID",
+            amountPaidCents: groupTotal + (tipCents ?? 0),
+            paidAt: new Date(),
+          },
+        });
+
+        // Move all sibling bookings to CONFIRMED if they're still pending
+        const terminalStatuses: BookingStatus[] = [
+          "CANCELLED",
+          "NO_SHOW",
+          "COMPLETED",
+          "REFUNDED",
+          "PARTIALLY_REFUNDED",
+        ];
+        const upgradableStatuses: BookingStatus[] = [
+          "PENDING_PAYMENT",
+          "PENDING_REVIEW",
+          "ASSIGNED",
+        ];
+
+        for (const sibling of group.bookings) {
+          if (
+            sibling.id !== bookingId &&
+            upgradableStatuses.includes(sibling.status as BookingStatus)
+          ) {
+            await db.booking.update({
+              where: { id: sibling.id },
+              data: { status: "CONFIRMED" },
+            });
+            await db.bookingStatusEvent.create({
+              data: {
+                bookingId: sibling.id,
+                status: "CONFIRMED",
+                eventType: "PAYMENT_RECEIVED",
+                metadata: {
+                  method: "online",
+                  note: "Confirmed via group payment",
+                  groupId: paidBooking.tripGroupId,
+                },
+              },
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error("❌ Failed to update trip group after payment:", e);
+    // Non-critical — don't fail the webhook
+  }
 
   // ✅ Send admin notification AFTER transaction commits successfully
   if (shouldSendNotification) {

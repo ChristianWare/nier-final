@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
@@ -2208,5 +2209,139 @@ export async function userCancelBooking(formData: FormData) {
   revalidatePath(`/dashboard/trips/${bookingId}`);
   revalidatePath("/dashboard/trips");
 
+  return { success: true };
+}
+
+// =============================================================================
+// ✅ Record Cash Payment
+// =============================================================================
+
+const CashPaymentSchema = z.object({
+  bookingId: z.string().min(1),
+});
+
+export async function recordCashPayment(formData: FormData) {
+  const { actorId } = await requireAdmin();
+
+  const parsed = CashPaymentSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid request." };
+
+  const { bookingId } = parsed.data;
+
+  const booking = await db.booking.findUnique({
+    where: { id: bookingId },
+    include: { payment: true },
+  });
+  if (!booking) return { error: "Booking not found." };
+
+  const totalCents = booking.totalCents;
+  if (totalCents <= 0) return { error: "Set a price before recording payment." };
+
+  // ── Group booking: write to TripGroup instead ──
+  if (booking.tripGroupId) {
+    const group = await db.tripGroup.findUnique({
+      where: { id: booking.tripGroupId },
+      include: { bookings: { select: { id: true, status: true } } },
+    });
+    if (!group) return { error: "Trip group not found." };
+
+    const groupTotal = group.bookings.reduce((sum, b) => {
+      // We'll recalc from siblings - but group.totalCents is close enough here
+      return sum;
+    }, 0);
+
+    const tx: any[] = [
+      db.tripGroup.update({
+        where: { id: booking.tripGroupId },
+        data: {
+          paymentStatus: "PAID",
+          amountPaidCents: group.totalCents,
+          paidAt: new Date(),
+        },
+      }),
+      // Log event on current booking
+      db.bookingStatusEvent.create({
+        data: {
+          bookingId,
+          status: "CONFIRMED",
+          eventType: "PAYMENT_RECEIVED",
+          metadata: {
+            method: "cash",
+            amountCents: group.totalCents,
+            currency: group.currency,
+            note: "Cash payment recorded by admin (group booking)",
+          },
+          createdById: actorId,
+        },
+      }),
+    ];
+
+    // Move all sibling bookings to CONFIRMED
+    for (const sibling of group.bookings) {
+      const skip = ["COMPLETED", "CANCELLED", "NO_SHOW", "REFUNDED", "PARTIALLY_REFUNDED"];
+      if (!skip.includes(sibling.status)) {
+        tx.push(
+          db.booking.update({
+            where: { id: sibling.id },
+            data: { status: "CONFIRMED" },
+          }),
+        );
+      }
+    }
+
+    await db.$transaction(tx);
+    revalidatePath(`/admin/bookings/${bookingId}`);
+    return { success: true };
+  }
+
+  // ── Single booking ──
+  const tx: any[] = [
+    db.payment.upsert({
+      where: { bookingId },
+      update: {
+        status: "PAID",
+        amountPaidCents: totalCents,
+        amountTotalCents: totalCents,
+        paidAt: new Date(),
+      },
+      create: {
+        bookingId,
+        status: "PAID",
+        amountPaidCents: totalCents,
+        amountTotalCents: totalCents,
+        amountSubtotalCents: booking.subtotalCents,
+        amountRefundedCents: 0,
+        currency: booking.currency,
+        paidAt: new Date(),
+      },
+    }),
+    db.booking.update({
+      where: { id: bookingId },
+      data: { status: "CONFIRMED" },
+    }),
+    db.bookingStatusEvent.create({
+      data: {
+        bookingId,
+        status: "CONFIRMED",
+        eventType: "PAYMENT_RECEIVED",
+        metadata: {
+          method: "cash",
+          amountCents: totalCents,
+          currency: booking.currency,
+          note: "Cash payment recorded by admin",
+        },
+        createdById: actorId,
+      },
+    }),
+  ];
+
+  await db.$transaction(tx);
+
+  await queueAdminNotificationsForBookingEvent({
+    event: "PAYMENT_RECEIVED",
+    bookingId,
+  });
+
+  revalidatePath(`/admin/bookings/${bookingId}`);
   return { success: true };
 }

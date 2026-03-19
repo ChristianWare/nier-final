@@ -20,6 +20,8 @@ type TripGroupData = {
   totalCents: number;
   paymentStatus: string;
   paidAt: Date | null;
+  amountPaidCents: number;
+  currency: string;
 };
 
 function centsToUsd(cents: number) {
@@ -175,7 +177,13 @@ export default function TripGroupCard({
           <span className={styles.footerAmount}>${centsToUsd(groupTotal)}</span>
         </div>
         <div className={styles.footerRight}>
-          {allPricesApproved ? (
+          {tripGroup.paymentStatus === "PAID" ? (
+            <span
+              style={{ color: "#065f46", fontSize: "1.2rem", fontWeight: 700 }}
+            >
+              ✅ Paid in full
+            </span>
+          ) : allPricesApproved ? (
             <span style={{ color: "#065f46", fontSize: "1.2rem" }}>
               ✅ All prices approved
             </span>

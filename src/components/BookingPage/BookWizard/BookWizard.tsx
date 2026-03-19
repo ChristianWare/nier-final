@@ -1173,7 +1173,106 @@ export default function BookingWizard({
         <div className={styles.content}>
           {/* ✅ LEFT COLUMN: Sticky checklist (desktop only) */}
           {!isMobile && (
-            <div className={styles.checklistContainer}>{checklistNode}</div>
+            <div className={styles.checklistContainer}>
+              {checklistNode}
+              {isMultiLeg && (
+                <div
+                  style={{
+                    background: "rgba(0,0,0,0.04)",
+                    border: "1px solid rgba(0,0,0,0.1)",
+                    borderRadius: 8,
+                    padding: "10px 14px",
+                    marginTop: 12,
+                    backgroundColor: "#eaf8ee",
+                    borderColor: "#bfe8cc",
+                    outline: "2px solid #4e94ec33",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    justifyContent: "flex-start",
+                    gap: "1rem",
+                  }}
+                >
+                  <strong>
+                    🗓️ {savedLegs.length} ride
+                    {savedLegs.length > 1 ? "s" : ""} added
+                  </strong>
+                  <span style={{ opacity: 0.7, marginLeft: 8 }}>
+                    {savedLegs.some((l) => l.callForPricing)
+                      ? `(from $${centsToUsd(savedLegsTotal)}+ so far)`
+                      : `($${centsToUsd(savedLegsTotal)} so far)`}
+                  </span>{" "}
+                  {savedLegs.map((leg, idx) => (
+                    <div
+                      key={leg.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        padding: "10px 0",
+                        borderBottom: "1px solid rgba(0,0,0,0.08)",
+                        gap: 12,
+                      }}
+                    >
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 600, fontSize: "1.4rem" }}>
+                          Ride {idx + 1}: {leg.serviceName}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "1.3rem",
+                            opacity: 0.7,
+                            marginTop: 2,
+                          }}
+                        >
+                          {leg.pickupAtDate} @ {leg.pickupAtTime} ·{" "}
+                          {leg.vehicleName}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "1.2rem",
+                            opacity: 0.6,
+                            marginTop: 2,
+                          }}
+                        >
+                          {shortAddress(leg.pickupAddress, 45)} →{" "}
+                          {shortAddress(leg.dropoffAddress, 45)}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span style={{ fontWeight: 700, fontSize: "1.4rem" }}>
+                          {leg.callForPricing
+                            ? "TBD"
+                            : `$${centsToUsd(leg.estimateCents)}`}
+                        </span>
+                        <button
+                          type='button'
+                          onClick={() => setRemoveLegId(leg.id)}
+                          title='Remove this ride'
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: 16,
+                            opacity: 0.5,
+                            padding: "2px 6px",
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           <div className={styles.right}>
@@ -1182,6 +1281,33 @@ export default function BookingWizard({
             {/* ✅ Mobile checklist (shown above wizard on mobile) */}
             {isMobile && (
               <div className={styles.checklistMobile}>
+                {isMultiLeg && (
+                  <div
+                    style={{
+                      background: "rgba(0,0,0,0.04)",
+                      border: "1px solid rgba(0,0,0,0.1)",
+                      borderRadius: 5,
+                      padding: "10px 14px",
+                      marginTop: 12,
+                      fontSize: "2rem",
+                      backgroundColor: "#eaf8ee",
+                      borderColor: "#bfe8cc",
+                      outline: "2px solid #4e94ec33",
+                    }}
+                  >
+                    <strong>
+                      🗓️ {savedLegs.length} ride
+                      {savedLegs.length > 1 ? "s" : ""} added
+                    </strong>
+                    <span style={{ opacity: 0.7, marginLeft: 8 }}>
+                      {savedLegs.some((l) => l.callForPricing)
+                        ? `(from $${centsToUsd(savedLegsTotal)}+ so far)`
+                        : `($${centsToUsd(savedLegsTotal)} so far)`}
+                    </span>
+                  </div>
+                )}
+                <br />
+
                 <Stepper step={step} />
               </div>
             )}
@@ -1196,28 +1322,7 @@ export default function BookingWizard({
                       ? `Adding ride ${savedLegs.length + 1} to your trip`
                       : "Please provide the details for your trip below"}
                   </p>
-                  {isMultiLeg && (
-                    <div
-                      style={{
-                        background: "rgba(0,0,0,0.04)",
-                        border: "1px solid rgba(0,0,0,0.1)",
-                        borderRadius: 8,
-                        padding: "10px 14px",
-                        marginBottom: 12,
-                        fontSize: "1.4rem",
-                      }}
-                    >
-                      <strong>
-                        🗓️ {savedLegs.length} ride
-                        {savedLegs.length > 1 ? "s" : ""} added
-                      </strong>
-                      <span style={{ opacity: 0.7, marginLeft: 8 }}>
-                        {savedLegs.some((l) => l.callForPricing)
-                          ? `(from $${centsToUsd(savedLegsTotal)}+ so far)`
-                          : `($${centsToUsd(savedLegsTotal)} so far)`}
-                      </span>
-                    </div>
-                  )}
+
                   {hasNoServices ? (
                     <div
                       className='miniNote'
@@ -2608,7 +2713,7 @@ export default function BookingWizard({
                               : "Submit request →"
                       }
                       btnType='greenReg'
-                      onClick={goStep3}
+                      onClick={handleSubmit}
                     />
                   </div>
                 </div>

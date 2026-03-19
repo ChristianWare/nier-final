@@ -89,6 +89,16 @@ export type InvoiceData = {
   /** Booking confirmation code e.g. "CMLFV6RJ" */
   bookingConfirmation?: string;
 
+  /** Multi-leg trip support — populated for trip group invoices */
+  legs?: Array<{
+    legNumber: number;
+    date: string;
+    pickupAddress: string;
+    dropoffAddress: string;
+    serviceName: string;
+    amountCents: number;
+  }>;
+
   /** Corporate account name (if different from customer name) */
   corporateAccountName?: string;
 

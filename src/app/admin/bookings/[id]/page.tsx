@@ -37,6 +37,7 @@ import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormPr
 import Image from "next/image";
 import { BookingEditProvider } from "./BookingEditContext"; // named: { BookingEditProvider }
 import BoxRightDateDisplay from "./BoxRightDateDisplay";
+import AdminCashPaymentButton from "@/components/admin/AdminCashPaymentButton/AdminCashPaymentButton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -516,6 +517,14 @@ export default async function AdminBookingDetailPage({
 
   const isCorporateBooking = Boolean(booking.corporateAccountId);
 
+  const isGroupBooking = Boolean(tripGroupData);
+  const groupPaymentStatus = tripGroupData?.tripGroup.paymentStatus ?? null;
+  const groupTotalCents = tripGroupData
+    ? tripGroupData.siblings.reduce((sum, s) => sum + s.totalCents, 0)
+    : 0;
+  const groupAmountPaidCents = tripGroupData?.tripGroup.amountPaidCents ?? 0;
+  const isGroupPaid = groupPaymentStatus === "PAID";
+
   // ─── Corporate invoice lookup (via line item bookingId) ───
   let corporateInvoice: {
     id: string;
@@ -692,7 +701,9 @@ export default async function AdminBookingDetailPage({
     createdByDisplay = parts.join(" • ");
   }
 
-  const isPaid = booking.payment?.status === "PAID";
+  const isPaid = isGroupBooking
+    ? isGroupPaid
+    : booking.payment?.status === "PAID";
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
   const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
   const tipCents = booking.payment?.tipCents ?? 0;
@@ -721,10 +732,13 @@ export default async function AdminBookingDetailPage({
     : "warning";
 
   // Payment card
-  const isPaidOrRefunded =
-    booking.payment?.status === "PAID" ||
-    booking.payment?.status === "REFUNDED" ||
-    booking.payment?.status === "PARTIALLY_REFUNDED";
+  const isPaidOrRefunded = isGroupBooking
+    ? groupPaymentStatus === "PAID" ||
+      groupPaymentStatus === "REFUNDED" ||
+      groupPaymentStatus === "PARTIALLY_REFUNDED"
+    : booking.payment?.status === "PAID" ||
+      booking.payment?.status === "REFUNDED" ||
+      booking.payment?.status === "PARTIALLY_REFUNDED";
 
   const paymentIndicator: IndicatorStatus = isCorporateBooking
     ? "complete"
@@ -776,12 +790,19 @@ export default async function AdminBookingDetailPage({
         hasRefundDue: false,
         refundDueCents: 0,
       }
-    : getPaymentStatusDisplay(
-        booking.payment?.status,
-        booking.totalCents,
-        amountPaidCents,
-        amountRefundedCents,
-      );
+    : isGroupBooking
+      ? getPaymentStatusDisplay(
+          groupPaymentStatus,
+          groupTotalCents,
+          groupAmountPaidCents,
+          0,
+        )
+      : getPaymentStatusDisplay(
+          booking.payment?.status,
+          booking.totalCents,
+          amountPaidCents,
+          amountRefundedCents,
+        );
   // Prepare data for EditTripDetailsClient
   const tripEditData = {
     pickupAt: formatDateTimeLocal(booking.pickupAt, companyTz),
@@ -887,11 +908,84 @@ export default async function AdminBookingDetailPage({
   let invoiceData: InvoiceData | null = null;
 
   if (isCorporateBooking && corporateInvoice) {
-    // Corporate: use the dedicated action
     const result = await getCorporateInvoiceData(corporateInvoice.id);
     if (result.ok) {
       invoiceData = result.data;
     }
+  } else if (isGroupBooking && isGroupPaid && tripGroupData) {
+    // Multi-leg group: build a combined invoice from all sibling legs
+    const groupSiblings = tripGroupData.siblings;
+    const groupInvoiceNumber = tripGroupData.tripGroup.id
+      .slice(0, 8)
+      .toUpperCase();
+
+    const invoiceCustomerName =
+      booking.user?.name?.trim() ||
+      booking.guestName?.trim() ||
+      booking.user?.email ||
+      booking.guestEmail ||
+      "Guest";
+
+    invoiceData = {
+      invoiceNumber: groupInvoiceNumber,
+      invoiceDate: formatInvoiceDate(booking.createdAt),
+      paidDate: tripGroupData.tripGroup.paidAt
+        ? formatInvoiceDate(tripGroupData.tripGroup.paidAt)
+        : null,
+      logoUrl: (companySettings as any).logoUrl ?? undefined,
+      company: {
+        name: companySettings.officeName || "Nier Transportation",
+        address: companySettings.officeAddress || "",
+        city: companySettings.officeCity || "",
+        phone: companySettings.dispatchPhone || "",
+        email: companySettings.supportEmail || "",
+      },
+      customer: {
+        name: invoiceCustomerName,
+        email: booking.user?.email || booking.guestEmail || "",
+        phone:
+          booking.user?.phone?.trim() || booking.guestPhone?.trim() || null,
+      },
+      trip: {
+        date: formatTripDateTime(
+          groupSiblings[0]?.pickupAt ?? booking.pickupAt,
+          companyTz,
+        ),
+        pickupAddress: groupSiblings[0]?.pickupAddress ?? booking.pickupAddress,
+        dropoffAddress:
+          groupSiblings[groupSiblings.length - 1]?.dropoffAddress ??
+          booking.dropoffAddress,
+        stops: [],
+        serviceName: "Multi-leg Trip",
+        vehicleName: `${groupSiblings.length} rides`,
+        passengers: booking.passengers,
+        luggage: booking.luggage,
+        distanceMiles: null,
+        durationMinutes: null,
+      },
+      lineItems: groupSiblings.map((sibling, idx) => ({
+        description: `Ride ${idx + 1}: ${sibling.serviceName} — ${formatTripDateTime(sibling.pickupAt, companyTz)}`,
+        amount: sibling.totalCents,
+      })),
+      legs: groupSiblings.map((sibling, idx) => ({
+        legNumber: idx + 1,
+        date: formatTripDateTime(sibling.pickupAt, companyTz),
+        pickupAddress: sibling.pickupAddress,
+        dropoffAddress: sibling.dropoffAddress,
+        serviceName: sibling.serviceName,
+        amountCents: sibling.totalCents,
+      })),
+      subtotalCents: groupTotalCents,
+      feesCents: 0,
+      taxesCents: 0,
+      totalCents: groupTotalCents,
+      tipCents: 0,
+      amountPaidCents: groupAmountPaidCents,
+      amountRefundedCents: 0,
+      currency: tripGroupData.tripGroup.currency,
+      paymentMethodDisplay: null,
+      bookingConfirmation: groupInvoiceNumber,
+    };
   } else if (isPaid) {
     // Regular (guest / account): build inline when paid
     const baseFareCents =
@@ -1080,17 +1174,38 @@ export default async function AdminBookingDetailPage({
                 )}
 
                 {/* Updated Payment status with balance display */}
+                {/* Ride Type badge */}
                 <div style={{ marginTop: 30 }}>
-                  <div className='emptyTitle'>Payment:</div>
+                  <div className='emptyTitle'>Ride Type:</div>
+                  <div style={{ marginTop: 6 }}>
+                    <span
+                      className={`badge badge_${isGroupBooking ? "accent" : "neutral"} ${styles.badge}`}
+                    >
+                      {isGroupBooking
+                        ? `Multi Trip (${tripGroupData!.siblings.length} rides)`
+                        : "Single Ride"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Updated Payment status with balance display */}
+                <div style={{ marginTop: 30 }}>
+                  <div className='emptyTitle'>Total Payment Due:</div>
                   <div className={styles.paymentInfo}>
                     <span
                       className={`badge badge_${paymentStatusDisplay.tone} ${styles.badge}`}
                     >
                       {paymentStatusDisplay.label}
                     </span>
-                    {booking.totalCents > 0 && (
+                    {(isGroupBooking ? groupTotalCents : booking.totalCents) >
+                      0 && (
                       <span className={styles.paymentAmount}>
-                        {formatMoney(booking.totalCents, booking.currency)}
+                        {formatMoney(
+                          isGroupBooking ? groupTotalCents : booking.totalCents,
+                          isGroupBooking
+                            ? tripGroupData!.tripGroup.currency
+                            : booking.currency,
+                        )}
                       </span>
                     )}
                     {booking.payment?.paidAt && (
@@ -1672,17 +1787,28 @@ export default async function AdminBookingDetailPage({
                 <div className={styles.paymentBlock}>
                   <div className={styles.paymentStatus}>
                     Payment status:{" "}
-                    <strong>{booking.payment?.status ?? "NONE"}</strong>
-                    {amountPaidCents > 0 && (
+                    <strong>
+                      {isGroupBooking
+                        ? (groupPaymentStatus ?? "NONE")
+                        : (booking.payment?.status ?? "NONE")}
+                    </strong>
+                    {(isGroupBooking ? groupAmountPaidCents : amountPaidCents) >
+                      0 && (
                       <span style={{ marginLeft: 10 }}>
-                        (Paid: {formatMoney(amountPaidCents, booking.currency)}
-                        {amountRefundedCents > 0 && (
+                        (Paid:{" "}
+                        {formatMoney(
+                          isGroupBooking
+                            ? groupAmountPaidCents
+                            : amountPaidCents,
+                          booking.currency,
+                        )}
+                        {!isGroupBooking && amountRefundedCents > 0 && (
                           <>
                             , Refunded:{" "}
                             {formatMoney(amountRefundedCents, booking.currency)}
                           </>
                         )}
-                        {tipCents > 0 && (
+                        {!isGroupBooking && tipCents > 0 && (
                           <>, Tip: {formatMoney(tipCents, booking.currency)}</>
                         )}
                         )
@@ -1712,8 +1838,12 @@ export default async function AdminBookingDetailPage({
                   {/* Send Payment Link Button */}
                   <SendPaymentLinkButton
                     bookingId={booking.id}
-                    totalCents={booking.totalCents}
-                    amountPaidCents={amountPaidCents}
+                    totalCents={
+                      isGroupBooking ? groupTotalCents : booking.totalCents
+                    }
+                    amountPaidCents={
+                      isGroupBooking ? groupAmountPaidCents : amountPaidCents
+                    }
                     currency={booking.currency}
                     isApproved={isApproved}
                   />
@@ -1748,7 +1878,9 @@ export default async function AdminBookingDetailPage({
                     <div style={{ marginTop: 10 }}>
                       <AdminManualCardPaymentClient
                         bookingId={booking.id}
-                        amountCents={booking.totalCents}
+                        amountCents={
+                          isGroupBooking ? groupTotalCents : booking.totalCents
+                        }
                         currency={booking.currency}
                         isPaid={isPaid}
                         isApproved={isApproved}
@@ -1771,9 +1903,33 @@ export default async function AdminBookingDetailPage({
                       <AdminChargeCardOnFileButton
                         bookingId={booking.id}
                         userId={booking.userId ?? ""}
-                        amountCents={booking.totalCents}
+                        amountCents={
+                          isGroupBooking ? groupTotalCents : booking.totalCents
+                        }
                         currency={booking.currency}
                       />
+                    </div>
+                    <div style={{ marginTop: 18 }}>
+                      <div className='cardTitle h5'>Record cash payment</div>
+                      <div
+                        className='miniNote'
+                        style={{ marginTop: 6, marginBottom: "30px" }}
+                      >
+                        Customer paid in person with cash. Marks booking as
+                        confirmed and paid.
+                      </div>
+                      <div style={{ marginTop: 10 }}>
+                        <AdminCashPaymentButton
+                          bookingId={booking.id}
+                          amountCents={
+                            isGroupBooking
+                              ? groupTotalCents
+                              : booking.totalCents
+                          }
+                          currency={booking.currency}
+                          isPaid={isPaid}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

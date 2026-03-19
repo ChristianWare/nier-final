@@ -19,6 +19,8 @@ export async function getTripGroupForBooking(bookingId: string) {
       totalCents: true,
       paymentStatus: true,
       paidAt: true,
+      amountPaidCents: true,
+      currency: true,
       bookings: {
         select: {
           id: true,
@@ -50,6 +52,8 @@ export async function getTripGroupForBooking(bookingId: string) {
       totalCents: tripGroup.totalCents,
       paymentStatus: tripGroup.paymentStatus,
       paidAt: tripGroup.paidAt,
+      amountPaidCents: tripGroup.amountPaidCents,
+      currency: tripGroup.currency,
     },
     siblings: tripGroup.bookings.map((b) => ({
       id: b.id,

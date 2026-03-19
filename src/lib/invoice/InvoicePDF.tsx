@@ -243,6 +243,23 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
           </View>
         </View>
 
+        {/* ── Multi-leg trip summary ── */}
+        {invoice.legs && invoice.legs.length > 0 ? (
+          <View style={s.tripSection}>
+            <Text style={s.sectionLabel}>TRIP ITINERARY</Text>
+            {invoice.legs.map((leg) => (
+              <View key={leg.legNumber} style={s.tripItem}>
+                <Text style={s.tripItemLabel}>
+                  RIDE {leg.legNumber} — {leg.date}
+                </Text>
+                <Text style={s.tripItemValue}>
+                  {leg.pickupAddress} → {leg.dropoffAddress}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         {/* ── Line items ── */}
         <View style={s.lineItemsSection}>
           <View style={s.lineItemsHeader}>
