@@ -34,7 +34,15 @@ const STATUSES = [
   "DRAFT",
 ] as const;
 
-const RANGES = ["month", "year", "today", "next24", "next7", "range"] as const;
+const RANGES = [
+  "all",
+  "month",
+  "year",
+  "today",
+  "next24",
+  "next7",
+  "range",
+] as const;
 
 const SORT_COLUMNS = [
   "created",
@@ -308,6 +316,7 @@ function buildWhere(args: {
   if (range === "month")
     pickupAtFilter = { gte: monthStart, lt: nextMonthStart };
   if (range === "year") pickupAtFilter = { gte: yearStart, lt: nextYearStart };
+  // "all" intentionally sets no date filter
 
   if (range === "range") {
     const f = parseYMD(fromYmd);
@@ -329,12 +338,12 @@ function buildWhere(args: {
 
   if (pickupAtFilter) where.pickupAt = pickupAtFilter;
 
-if (status === "PAYMENT_RECEIVED") {
-  where.status = { in: ["CONFIRMED", "PENDING_PAYMENT"] as BookingStatus[] };
-  where.payment = { is: { status: "PAID" } };
-} else if (status !== "ALL") {
-  where.status = status as BookingStatus;
-}
+  if (status === "PAYMENT_RECEIVED") {
+    where.status = { in: ["CONFIRMED", "PENDING_PAYMENT"] as BookingStatus[] };
+    where.payment = { is: { status: "PAID" } };
+  } else if (status !== "ALL") {
+    where.status = status as BookingStatus;
+  }
   // Pay filters (mutually exclusive)
   if (paid) {
     where.payment = { is: { status: "PAID" } };
@@ -508,7 +517,10 @@ export default async function AdminBookingsPage({
   const sp = await searchParams;
 
   const status = safeStatus(sp.status) as StatusFilter;
-  const range = safeRange(sp.range) as RangeFilter;
+  // When searching, default to all-time so results aren't hidden by date range
+  const range = safeRange(
+    sp.range ?? (sp.q?.trim() ? "all" : "month"),
+  ) as RangeFilter;
   const sort = safeSort(sp.sort);
   const order = safeOrder(sp.order);
   const customerType = safeCustomerType(sp.customerType);
@@ -769,6 +781,11 @@ export default async function AdminBookingsPage({
               defaultValue='month'
               current={baseParams}
               options={[
+                {
+                  value: "all",
+                  label: "All time",
+                  count: rangeCounts.all,
+                },
                 {
                   value: "month",
                   label: "Current month",
