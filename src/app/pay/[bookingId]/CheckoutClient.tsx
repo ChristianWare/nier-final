@@ -24,6 +24,7 @@ type Stop = {
 
 type Props = {
   bookingId: string;
+  timezone: string;
   groupLegs?: Array<{
     legNumber: number;
     pickupAt: string;
@@ -70,22 +71,24 @@ function formatMoney(cents: number, currency = "usd") {
   }).format(cents / 100);
 }
 
-function formatDate(isoString: string) {
+function formatDate(isoString: string, tz: string) {
   const date = new Date(isoString);
   return date.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: tz,
   });
 }
 
-function formatTime(isoString: string) {
+function formatTime(isoString: string, tz: string) {
   const date = new Date(isoString);
   return date.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    timeZone: tz,
   });
 }
 
@@ -177,6 +180,7 @@ function CheckoutForm({
 
 export default function CheckoutClient({
   bookingId,
+  timezone,
   groupLegs = [],
   serviceName,
   vehicleName,
@@ -349,10 +353,10 @@ export default function CheckoutClient({
                     <span className={styles.tripIcon}>📅</span>
                     <div className={styles.tripInfo}>
                       <span className={styles.tripLabel}>
-                        {formatDate(pickupAt)}
+                        {formatDate(pickupAt, timezone)}
                       </span>
                       <span className={styles.tripValue}>
-                        {formatTime(pickupAt)}
+                        {formatTime(pickupAt, timezone)}
                       </span>
                     </div>
                   </div>
@@ -467,8 +471,8 @@ export default function CheckoutClient({
                             {leg.serviceName}
                           </span>
                           <span style={{ fontSize: "1.3rem", opacity: 0.6 }}>
-                            {formatDate(leg.pickupAt)} ·{" "}
-                            {formatTime(leg.pickupAt)}
+                            {formatDate(leg.pickupAt, timezone)} ·{" "}
+                            {formatTime(leg.pickupAt, timezone)}
                           </span>
                           <span style={{ fontSize: "1.3rem", opacity: 0.75 }}>
                             {leg.pickupAddress} → {leg.dropoffAddress}

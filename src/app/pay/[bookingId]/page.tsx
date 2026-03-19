@@ -5,6 +5,7 @@ import Nav from "@/components/shared/Nav/Nav";
 import CheckoutClient from "./CheckoutClient";
 import { getStripePublishableKey } from "@/lib/stripe";
 import { getSavedCardForBooking } from "../../../../actions/payments/chargeCardOnFileForCheckout";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -106,10 +107,13 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     address: s.address,
   }));
 
-  const [stripePublishableKey, savedCard] = await Promise.all([
+  const [stripePublishableKey, savedCard, companySettings] = await Promise.all([
     getStripePublishableKey(),
     getSavedCardForBooking(bookingId),
+    getCompanySettings(),
   ]);
+
+  const timezone = companySettings.timezone ?? "America/Phoenix";
 
   // Fetch sibling legs for multi-trip display
   let groupLegs: Array<{
@@ -151,6 +155,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
         groupLegs={groupLegs}
         stripePublishableKey={stripePublishableKey ?? ""}
         bookingId={booking.id}
+        timezone={timezone}
         serviceName={booking.serviceType?.name ?? "Transportation"}
         vehicleName={booking.vehicle?.name ?? "Vehicle"}
         pickupAt={booking.pickupAt.toISOString()}
