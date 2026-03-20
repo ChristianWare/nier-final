@@ -51,10 +51,44 @@ const es = StyleSheet.create({
     color: "#1e40af",
     textAlign: "right" as const,
   },
+  hoursBox: {
+    backgroundColor: "#f0f9ff",
+    borderWidth: 1,
+    borderColor: "#bae6fd",
+    borderRadius: 4,
+    padding: 10,
+    marginBottom: 14,
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    alignItems: "center" as const,
+  },
+  hoursLabel: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: "#0369a1",
+  },
+  hoursValue: {
+    fontSize: 11,
+    fontFamily: "Helvetica-Bold",
+    color: "#0369a1",
+  },
 });
 
-export default function EstimatePDF({ invoice }: { invoice: InvoiceData }) {
+type EstimateInvoiceData = InvoiceData & {
+  hoursRequested?: number | null;
+  hoursBilled?: number | null;
+  pricingStrategy?: string | null;
+};
+
+export default function EstimatePDF({
+  invoice,
+}: {
+  invoice: EstimateInvoiceData;
+}) {
   const hasStops = invoice.trip.stops.length > 0;
+  const isHourly = invoice.pricingStrategy === "HOURLY";
+  const hoursRequested = invoice.hoursRequested;
+  const hoursBilled = invoice.hoursBilled;
 
   return (
     <Document>
@@ -63,9 +97,9 @@ export default function EstimatePDF({ invoice }: { invoice: InvoiceData }) {
         <View style={s.header}>
           <View style={s.logoSection}>
             <View style={s.logoFallbackRow}>
-              {/* <View style={s.logoBox}>
+              <View style={s.logoBox}>
                 <Text style={s.logoBoxLetter}>N</Text>
-              </View> */}
+              </View>
               <Text style={s.companyName}>{invoice.company.name}</Text>
             </View>
             <View style={{ marginTop: 6 }}>
@@ -129,6 +163,32 @@ export default function EstimatePDF({ invoice }: { invoice: InvoiceData }) {
           ) : null}
         </View>
 
+        {/* ── Hours box for charter/hourly bookings ── */}
+        {isHourly && hoursRequested ? (
+          <View style={es.hoursBox}>
+            <View>
+              <Text style={es.hoursLabel}>CHARTER SERVICE — HOURS</Text>
+              <Text style={{ fontSize: 8, color: "#0369a1", marginTop: 2 }}>
+                Final charge based on actual hours used
+              </Text>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={es.hoursValue}>
+                {hoursBilled ?? Math.ceil(hoursRequested)} hrs billed
+              </Text>
+              {hoursBilled && hoursBilled !== hoursRequested ? (
+                <Text style={{ fontSize: 8, color: "#64748b", marginTop: 2 }}>
+                  ({hoursRequested} hrs requested, minimum applied)
+                </Text>
+              ) : (
+                <Text style={{ fontSize: 8, color: "#64748b", marginTop: 2 }}>
+                  ({hoursRequested} hrs requested)
+                </Text>
+              )}
+            </View>
+          </View>
+        ) : null}
+
         {/* ── Trip details ── */}
         <View style={s.tripSection}>
           <Text style={s.sectionLabel}>TRIP DETAILS</Text>
@@ -151,7 +211,19 @@ export default function EstimatePDF({ invoice }: { invoice: InvoiceData }) {
                 {invoice.trip.passengers} / {invoice.trip.luggage}
               </Text>
             </View>
-            {invoice.trip.distanceMiles ? (
+            {isHourly && hoursRequested ? (
+              <View style={s.tripItem}>
+                <Text style={s.tripItemLabel}>HOURS REQUESTED</Text>
+                <Text style={s.tripItemValue}>{hoursRequested} hrs</Text>
+              </View>
+            ) : null}
+            {isHourly && hoursBilled ? (
+              <View style={s.tripItem}>
+                <Text style={s.tripItemLabel}>HOURS BILLED (MIN. APPLIED)</Text>
+                <Text style={s.tripItemValue}>{hoursBilled} hrs</Text>
+              </View>
+            ) : null}
+            {!isHourly && invoice.trip.distanceMiles ? (
               <View style={s.tripItem}>
                 <Text style={s.tripItemLabel}>EST. DISTANCE</Text>
                 <Text style={s.tripItemValue}>
