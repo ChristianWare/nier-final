@@ -18,9 +18,6 @@ function str(v: any) {
 }
 
 // ── Save card for charter overage charges after payment succeeds ──────────────
-// When a charter booking uses setup_future_usage: "off_session", Stripe saves
-// the payment method to the customer. We store the customer ID so we can
-// charge overage fees later without requiring the customer to re-enter their card.
 async function saveCharterPaymentMethod(
   bookingId: string,
   paymentIntentId: string,
@@ -29,7 +26,6 @@ async function saveCharterPaymentMethod(
     const stripe = await getStripe();
     const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-    // Only save if setup_future_usage was set (charter bookings only)
     if (!pi.setup_future_usage) return;
 
     const customerId =
@@ -47,13 +43,11 @@ async function saveCharterPaymentMethod(
     if (!booking) return;
 
     if (booking.userId) {
-      // Registered user — save customer ID to their user record if not already set
       await db.user.updateMany({
         where: { id: booking.userId, stripeCustomerId: null },
         data: { stripeCustomerId: customerId },
       });
     } else {
-      // Guest — save customer ID to the booking record
       await db.booking.update({
         where: { id: bookingId },
         data: { guestStripeCustomerId: customerId },
@@ -65,7 +59,6 @@ async function saveCharterPaymentMethod(
     );
   } catch (e) {
     console.error("❌ Failed to save charter payment method:", e);
-    // Non-critical — don't fail the webhook
   }
 }
 
@@ -248,7 +241,18 @@ async function finalizePaid(args: {
         where: { id: paidBooking.tripGroupId },
         include: {
           bookings: {
-            select: { id: true, totalCents: true, status: true },
+            select: {
+              id: true,
+              totalCents: true,
+              status: true,
+              payment: {
+                select: {
+                  status: true,
+                  amountPaidCents: true,
+                  tipCents: true,
+                },
+              },
+            },
           },
         },
       });
@@ -259,49 +263,70 @@ async function finalizePaid(args: {
           0,
         );
 
+        // Sum what has actually been paid across all sibling payment records
+        const totalActuallyPaid = group.bookings.reduce(
+          (sum, b) => sum + (b.payment?.amountPaidCents ?? 0),
+          0,
+        );
+        const totalTips = group.bookings.reduce(
+          (sum, b) => sum + (b.payment?.tipCents ?? 0),
+          0,
+        );
+
+        // Only mark group as PAID if ALL siblings have a PAID payment record
+        const allSiblingsPaid = group.bookings.every(
+          (b) => b.payment?.status === "PAID",
+        );
+        const anySiblingPaid = group.bookings.some(
+          (b) => b.payment?.status === "PAID",
+        );
+
+        const newGroupPaymentStatus = allSiblingsPaid ? "PAID" : "NONE";
+
         await db.tripGroup.update({
           where: { id: paidBooking.tripGroupId },
           data: {
-            paymentStatus: "PAID",
-            amountPaidCents: groupTotal + (tipCents ?? 0),
-            paidAt: new Date(),
+            paymentStatus: newGroupPaymentStatus,
+            amountPaidCents: totalActuallyPaid + totalTips,
+            paidAt: allSiblingsPaid ? new Date() : undefined,
           },
         });
 
-        const terminalStatuses: BookingStatus[] = [
-          "CANCELLED",
-          "NO_SHOW",
-          "COMPLETED",
-          "REFUNDED",
-          "PARTIALLY_REFUNDED",
-        ];
-        const upgradableStatuses: BookingStatus[] = [
-          "PENDING_PAYMENT",
-          "PENDING_REVIEW",
-          "ASSIGNED",
-        ];
+        console.log(
+          `✅ Trip group ${paidBooking.tripGroupId} payment status: ${newGroupPaymentStatus}`,
+          `(${(totalActuallyPaid / 100).toFixed(2)} of ${(groupTotal / 100).toFixed(2)} paid)`,
+        );
 
-        for (const sibling of group.bookings) {
-          if (
-            sibling.id !== bookingId &&
-            upgradableStatuses.includes(sibling.status as BookingStatus)
-          ) {
-            await db.booking.update({
-              where: { id: sibling.id },
-              data: { status: "CONFIRMED" },
-            });
-            await db.bookingStatusEvent.create({
-              data: {
-                bookingId: sibling.id,
-                status: "CONFIRMED",
-                eventType: "PAYMENT_RECEIVED",
-                metadata: {
-                  method: "online",
-                  note: "Confirmed via group payment",
-                  groupId: paidBooking.tripGroupId,
+        // Confirm unpaid siblings only when the full group is paid
+        if (allSiblingsPaid) {
+          const upgradableStatuses: BookingStatus[] = [
+            "PENDING_PAYMENT",
+            "PENDING_REVIEW",
+            "ASSIGNED",
+          ];
+
+          for (const sibling of group.bookings) {
+            if (
+              sibling.id !== bookingId &&
+              upgradableStatuses.includes(sibling.status as BookingStatus)
+            ) {
+              await db.booking.update({
+                where: { id: sibling.id },
+                data: { status: "CONFIRMED" },
+              });
+              await db.bookingStatusEvent.create({
+                data: {
+                  bookingId: sibling.id,
+                  status: "CONFIRMED",
+                  eventType: "PAYMENT_RECEIVED",
+                  metadata: {
+                    method: "online",
+                    note: "Confirmed via group payment",
+                    groupId: paidBooking.tripGroupId,
+                  },
                 },
-              },
-            });
+              });
+            }
           }
         }
       }
@@ -352,7 +377,6 @@ async function finalizePaid(args: {
     }
   } catch (e) {
     console.error("❌ Failed to send payment confirmation email:", e);
-    // Non-critical — don't fail the webhook
   }
 
   // ── Admin notification ──
@@ -511,7 +535,6 @@ export async function POST(req: Request) {
         balanceAmount,
       });
 
-      // ── Save card for charter overage charges ──
       if (paymentIntentId) {
         await saveCharterPaymentMethod(bookingId, paymentIntentId);
       }
@@ -582,7 +605,6 @@ export async function POST(req: Request) {
         tipCents,
       });
 
-      // ── Save card for charter overage charges ──
       if (paymentIntentId) {
         await saveCharterPaymentMethod(bookingId, paymentIntentId);
       }
@@ -590,7 +612,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
-    // Handle refund events
     if (
       event.type === "charge.refunded" ||
       event.type === "charge.refund.updated"
