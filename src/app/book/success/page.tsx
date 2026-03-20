@@ -8,6 +8,7 @@ import Button from "@/components/shared/Button/Button";
 import Faq from "@/components/shared/Faq/Faq";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import WhatHappensNext from "@/components/shared/WhatHappensNext";
+import EstimateDownload from "./EstimateDownload";
 import { homeQuestions } from "@/lib/data";
 
 export const runtime = "nodejs";
@@ -53,6 +54,9 @@ export default async function BookSuccessPage(props: {
               {/* ✅ What Happens Next - shows the step-by-step process */}
               <WhatHappensNext />
 
+              {/* ✅ Estimate download — only show if we have a booking ID */}
+              {id && <EstimateDownload bookingId={id} />}
+
               <div className={styles.actions}>
                 {trackHref ? (
                   <Button
@@ -94,8 +98,8 @@ export default async function BookSuccessPage(props: {
               ) : null}
 
               <div className='miniNote' style={{ marginTop: 16 }}>
-                📧 Check your email! We&apos;ve sent you a confirmation with your
-                booking details.
+                📧 Check your email! We&apos;ve sent you a confirmation with
+                your booking details.
               </div>
 
               <div className='miniNote'>

@@ -74,7 +74,7 @@
    ================================ */
 .arrowContainer,
 .plusContainer {
-  background-color: var(--white);
+  /* background-color: var(--white); */
   border-radius: 4px 4px 10px;
   display: flex;
   align-items: center;
@@ -340,6 +340,16 @@
   background-color: var(--black300);
   color: var(--black) !important;
   border: 1px solid var(--black300);
+  border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  padding: 8px 15px;
+}
+
+.blueReg {
+  background-color: var(--blue);
+  color: var(--white) !important;
+  border: 1px solid var(--blue);
   border-radius: 5px;
   display: flex;
   justify-content: center;

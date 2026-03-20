@@ -522,6 +522,7 @@ th {
 .dangerBtn,
 .neutralBtn,
 .goodBtn,
+.blueBtn,
 .goodBtnii {
   text-decoration: none;
   border-radius: 5px;
@@ -559,6 +560,12 @@ th {
 .tertiaryBtn {
   background: transparent;
   color: var(--black);
+}
+
+.blueBtn {
+  background: var(--blue);
+  color: var(--white);
+  border: 1px solid var(--blue);
 }
 
 .tertiaryBtn:disabled {

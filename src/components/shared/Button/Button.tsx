@@ -16,6 +16,7 @@ import Close from "../icons/Close/Close";
 import Check from "../icons/Check/Check";
 import Email from "../icons/Email/Email";
 import RefundIcon from "../icons/RefundIcon/RefundIcon";
+import FileIcon from "../icons/FileIcon/FileIcon";
 
 interface Props {
   href?: string;
@@ -31,6 +32,7 @@ interface Props {
   downloadIcon?: boolean;
   closeIcon?: boolean;
   checkIcon?: boolean;
+  fileIcon?: boolean;
   type?: "button" | "submit" | "reset";
   as?: "auto" | "button" | "span";
   onClick?: MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
@@ -124,6 +126,7 @@ export default function Button({
   arrow,
   refundIcon,
   closeIcon,
+  fileIcon,
   plus,
   email,
   checkIcon,
@@ -222,6 +225,13 @@ export default function Button({
           icon={RefundIcon}
           className={styles.optionalIcon}
           containerClassName={styles.plusContainer}
+        />
+      )}
+      {fileIcon && (
+        <IconSlide
+          icon={FileIcon}
+          className={styles.optionalIcon}
+          // containerClassName={styles.plusContainer}
         />
       )}
     </>

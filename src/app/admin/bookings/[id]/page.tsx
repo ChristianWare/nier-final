@@ -40,6 +40,7 @@ import BoxRightDateDisplay from "./BoxRightDateDisplay";
 import AdminCashPaymentButton from "@/components/admin/AdminCashPaymentButton/AdminCashPaymentButton";
 import PriceBreakdownCard from "@/components/admin/PriceBreakdownCard/PriceBreakdownCard";
 import { getSavedCardForBooking } from "../../../../../actions/payments/chargeCardOnFileForCheckout";
+import SendEstimateButton from "./SendEstimateButton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1630,56 +1631,60 @@ export default async function AdminBookingDetailPage({
             PRICE CARD
             ═══════════════════════════════════════════════════════════════════ */}
             <Card title='Price' indicator={priceIndicator} id='price-section'>
-              {(booking.vehicle?.overageFeeCents ?? 0) > 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "1rem",
-                    padding: "1.2rem 1.6rem",
-                    marginBottom: "2rem",
-                    background: "#fffbeb",
-                    border: "1px solid #f59e0b",
-                    borderRadius: 8,
-                    fontSize: "1.4rem",
-                  }}
-                >
-                  <span>⚠️</span>
-                  <span>
-                    <strong>Overage policy:</strong>{" "}
-                    {formatMoney(
-                      booking.vehicle?.overageFeeCents ?? 0,
-                      booking.currency,
-                    )}{" "}
-                    per {booking.vehicle?.overageIncrementMinutes ?? 30} minutes
-                    — a card will be saved at checkout to cover any overages.
-                  </span>
-                </div>
-              )}
+              {booking.serviceType?.pricingStrategy === "HOURLY" &&
+                (booking.vehicle?.overageFeeCents ?? 0) > 0 && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "1rem",
+                      padding: "1.2rem 1.6rem",
+                      marginBottom: "2rem",
+                      background: "#fffbeb",
+                      border: "1px solid #f59e0b",
+                      borderRadius: 8,
+                      fontSize: "1.4rem",
+                    }}
+                  >
+                    <span>⚠️</span>
+                    <span>
+                      <strong>Overage policy:</strong>{" "}
+                      {formatMoney(
+                        booking.vehicle?.overageFeeCents ?? 0,
+                        booking.currency,
+                      )}{" "}
+                      per {booking.vehicle?.overageIncrementMinutes ?? 30}{" "}
+                      minutes — a card will be saved at checkout to cover any
+                      overages.
+                    </span>
+                  </div>
+                )}
               {pricingData && (
-                <PriceBreakdownCard
-                  pricingStrategy={pricingData.pricingStrategy}
-                  servicePerMileCents={pricingData.servicePerMileCents}
-                  servicePerMinuteCents={pricingData.servicePerMinuteCents}
-                  servicePerHourCents={pricingData.servicePerHourCents}
-                  serviceBaseFeeCents={pricingData.serviceBaseFeeCents}
-                  serviceMinFareCents={pricingData.serviceMinFareCents}
-                  serviceMinHours={0}
-                  vehicleBaseFareCents={pricingData.vehicleBaseFareCents}
-                  vehiclePerMileCents={pricingData.vehiclePerMileCents}
-                  vehiclePerMinuteCents={pricingData.vehiclePerMinuteCents}
-                  vehiclePerHourCents={pricingData.vehiclePerHourCents}
-                  vehicleMinHours={pricingData.vehicleMinHours}
-                  distanceMiles={decimalToNumber(booking.distanceMiles)}
-                  durationMinutes={booking.durationMinutes}
-                  hoursRequested={decimalToNumber(booking.hoursRequested)}
-                  stopCount={stopCount}
-                  stopSurchargeCents={stopSurchargeCents}
-                  totalCents={booking.totalCents}
-                  currency={booking.currency}
-                  vehicleCategoryName={booking.vehicle?.name ?? null}
-                  feesCents={booking.feesCents ?? 0}
-                />
+                <>
+                  <PriceBreakdownCard
+                    pricingStrategy={pricingData.pricingStrategy}
+                    servicePerMileCents={pricingData.servicePerMileCents}
+                    servicePerMinuteCents={pricingData.servicePerMinuteCents}
+                    servicePerHourCents={pricingData.servicePerHourCents}
+                    serviceBaseFeeCents={pricingData.serviceBaseFeeCents}
+                    serviceMinFareCents={pricingData.serviceMinFareCents}
+                    serviceMinHours={0}
+                    vehicleBaseFareCents={pricingData.vehicleBaseFareCents}
+                    vehiclePerMileCents={pricingData.vehiclePerMileCents}
+                    vehiclePerMinuteCents={pricingData.vehiclePerMinuteCents}
+                    vehiclePerHourCents={pricingData.vehiclePerHourCents}
+                    vehicleMinHours={pricingData.vehicleMinHours}
+                    distanceMiles={decimalToNumber(booking.distanceMiles)}
+                    durationMinutes={booking.durationMinutes}
+                    hoursRequested={decimalToNumber(booking.hoursRequested)}
+                    stopCount={stopCount}
+                    stopSurchargeCents={stopSurchargeCents}
+                    totalCents={booking.totalCents}
+                    currency={booking.currency}
+                    vehicleCategoryName={booking.vehicle?.name ?? null}
+                    feesCents={booking.feesCents ?? 0}
+                  />
+                </>
               )}
               <br />
               <PriceForm
@@ -2109,6 +2114,9 @@ export default async function AdminBookingDetailPage({
                     } else if (eventType === "BOOKING_DECLINED") {
                       tone = "bad";
                       label = "Booking declined";
+                    } else if (eventType === "ESTIMATE_SENT") {
+                      tone = "accent";
+                      label = "Estimate sent";
                     }
 
                     const actorLabel = getEventActorLabel(
@@ -2218,6 +2226,13 @@ export default async function AdminBookingDetailPage({
               />
               <div className={styles.quickActionsDivider} />
               <DuplicateBookingClient bookingId={booking.id} />
+              <div className={styles.quickActionsDivider} />
+              <SendEstimateButton
+                bookingId={booking.id}
+                customerEmail={
+                  booking.user?.email ?? booking.guestEmail ?? null
+                }
+              />
             </Card>
           </div>
         </section>

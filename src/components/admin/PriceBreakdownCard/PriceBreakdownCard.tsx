@@ -51,6 +51,13 @@ type BreakdownRow = {
   highlight?: "floor" | "surcharge" | "total" | "zero";
 };
 
+function sumRows(rows: BreakdownRow[]): number {
+  return rows.reduce(
+    (sum, r) => sum + (r.highlight === "zero" ? 0 : r.cents),
+    0,
+  );
+}
+
 function buildBreakdown(props: Props): BreakdownRow[] {
   const {
     pricingStrategy,
@@ -241,12 +248,16 @@ export default function PriceBreakdownCard(props: Props) {
         ? "Point to Point"
         : "Flat Rate";
 
+  const calculatedTotal = sumRows(rows) + props.feesCents;
+  const isManuallyAdjusted = Math.abs(totalCents - calculatedTotal) >= 10;
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>
         <span className={styles.title}>Price Breakdown</span>
         <span className={styles.strategy}>{strategyLabel}</span>
       </div>
+
       {props.vehicleCategoryName && (
         <div className={styles.vehicleRow}>
           <span className={styles.vehicleLabel}>Vehicle Category</span>
@@ -281,11 +292,45 @@ export default function PriceBreakdownCard(props: Props) {
           );
         })}
       </div>
+
       {props.feesCents > 0 && (
         <div className={styles.vehicleRow}>
           <span className={styles.vehicleLabel}>Service Fees</span>
           <span className={styles.vehicleName}>
             {fmt(props.feesCents, currency)}
+          </span>
+        </div>
+      )}
+
+      {isManuallyAdjusted && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            gap: "2rem",
+            padding: "1.2rem 2rem",
+            borderBottom: "1px solid rgba(0,0,0,0.05)",
+            background: "#fffbeb",
+            borderLeft: "3px solid #f59e0b",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontSize: "1.4rem", fontWeight: 600 }}>
+              Price manually adjusted
+            </span>
+            <span style={{ fontSize: "1.2rem", color: "#666" }}>
+              Calculated {fmt(calculatedTotal, currency)} → overridden by admin
+            </span>
+          </div>
+          <span
+            style={{
+              fontSize: "1.4rem",
+              fontWeight: 700,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {fmt(totalCents, currency)}
           </span>
         </div>
       )}
