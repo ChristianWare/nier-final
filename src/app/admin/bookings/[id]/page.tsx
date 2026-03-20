@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/admin/bookings/[id]/page.tsx
 import styles from "./AdminBookingDetailPage.module.css";
@@ -1165,7 +1164,9 @@ export default async function AdminBookingDetailPage({
                 <div style={{ marginTop: 30 }}>
                   <div className='emptyTitle'>Current Status:</div>
                   <div style={{ marginTop: 6 }}>
-                    <span className={`emptySmall ${styles.badge}`}>
+                    <span
+                      className={`badge badge_${currentStatusTone} ${styles.badge}`}
+                    >
                       {currentStatusLabel}
                     </span>
                   </div>
