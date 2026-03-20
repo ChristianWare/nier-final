@@ -290,6 +290,8 @@ function buildWhere(args: {
   q?: string;
   customerType?: string;
   driver?: string;
+  serviceType?: string;
+  rideType?: string;
 }) {
   const { now, timezone, status, range, paid, stuck, fromYmd, toYmd, q } = args;
 
@@ -456,6 +458,16 @@ function buildWhere(args: {
     where.assignment = { isNot: null };
   }
 
+  if (args.serviceType && args.serviceType !== "all") {
+    where.serviceTypeId = args.serviceType;
+  }
+
+  if (args.rideType === "single") {
+    where.tripGroupId = null;
+  } else if (args.rideType === "multi") {
+    where.tripGroupId = { not: null };
+  }
+
   return where;
 }
 
@@ -558,6 +570,17 @@ export default async function AdminBookingsPage({
     })),
   ];
 
+  const allServiceTypes = await db.serviceType.findMany({
+    where: { active: true },
+    select: { id: true, name: true },
+    orderBy: { sortOrder: "asc" },
+  });
+
+  const serviceTypeFilterOptions = [
+    { value: "all", label: "All services" },
+    ...allServiceTypes.map((s) => ({ value: s.id, label: s.name })),
+  ];
+
   const driverFilter = (sp as any).driver ?? "all";
   const isDriverSelected = driverFilter !== "all";
 
@@ -578,8 +601,9 @@ export default async function AdminBookingsPage({
     q,
     customerType,
     driver: driverFilter,
+    serviceType: (sp as any).serviceType ?? "all",
+    rideType: (sp as any).rideType ?? "all",
   });
-
   const orderBy = buildOrderBy(sort, order, status, stuck);
 
   const totalCount = await db.booking.count({ where });
@@ -639,6 +663,8 @@ export default async function AdminBookingsPage({
     q?: string;
     customerType?: string;
     driver?: string;
+    serviceType?: string;
+    rideType?: string;
   }) {
     const w = buildWhere({
       now,
@@ -658,6 +684,8 @@ export default async function AdminBookingsPage({
       q: next.q ?? q,
       customerType: next.customerType ?? customerType,
       driver: next.driver ?? driverFilter,
+      serviceType: next.serviceType ?? (sp as any).serviceType ?? "all",
+      rideType: next.rideType ?? (sp as any).rideType ?? "all",
     });
     return db.booking.count({ where: w });
   }
@@ -706,24 +734,27 @@ export default async function AdminBookingsPage({
     number
   >;
 
-  const baseParams: Record<string, string | undefined> = {
-    status: status === "ALL" ? "ALL" : status,
-    range: range === "month" ? undefined : range,
-    unassigned: unassigned ? "1" : undefined,
-    assigned: assigned ? "1" : undefined,
-    paid: paid ? "1" : undefined,
-    unpaid: unpaid ? "1" : undefined,
-    stuck: stuck ? "1" : undefined,
-    completed: completed ? "1" : undefined,
-    future: future ? "1" : undefined,
-    from: range === "range" ? fromYmd : undefined,
-    to: range === "range" ? toYmd : undefined,
-    q: q.length ? q : undefined,
-    sort: sort,
-    order: sort ? order : undefined,
-    customerType: customerType !== "all" ? customerType : undefined,
-    driver: driverFilter !== "all" ? driverFilter : undefined,
-  };
+const baseParams: Record<string, string | undefined> = {
+  status: status === "ALL" ? "ALL" : status,
+  range: range === "month" ? undefined : range,
+  unassigned: unassigned ? "1" : undefined,
+  assigned: assigned ? "1" : undefined,
+  paid: paid ? "1" : undefined,
+  unpaid: unpaid ? "1" : undefined,
+  stuck: stuck ? "1" : undefined,
+  completed: completed ? "1" : undefined,
+  future: future ? "1" : undefined,
+  from: range === "range" ? fromYmd : undefined,
+  to: range === "range" ? toYmd : undefined,
+  q: q.length ? q : undefined,
+  sort: sort,
+  order: sort ? order : undefined,
+  customerType: customerType !== "all" ? customerType : undefined,
+  driver: driverFilter !== "all" ? driverFilter : undefined,
+  serviceType:
+    (sp as any).serviceType !== "all" ? (sp as any).serviceType : undefined,
+  rideType: (sp as any).rideType !== "all" ? (sp as any).rideType : undefined,
+};
 
   const hasActiveFilters =
     status !== "ALL" ||
@@ -849,6 +880,26 @@ export default async function AdminBookingsPage({
               defaultValue='all'
               current={baseParams}
               options={driverFilterOptions}
+            />
+
+            <FilterSelectClient
+              label='Service'
+              paramName='serviceType'
+              defaultValue='all'
+              current={baseParams}
+              options={serviceTypeFilterOptions}
+            />
+
+            <FilterSelectClient
+              label='Ride Type'
+              paramName='rideType'
+              defaultValue='all'
+              current={baseParams}
+              options={[
+                { value: "all", label: "All ride types" },
+                { value: "single", label: "Single Ride" },
+                { value: "multi", label: "Multi Trip" },
+              ]}
             />
           </div>
 
