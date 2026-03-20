@@ -72,7 +72,7 @@ export default function BoxRightDateDisplay({
       : initialFormatted;
 
   return (
-    <p className='emptySmall' style={{ transition: "color 0.2s" }}>
+    <p className={`emptySmall`} style={{ fontSize: "1.6rem" }}>
       {display}
       {isEditing && livePickupAt && (
         <span

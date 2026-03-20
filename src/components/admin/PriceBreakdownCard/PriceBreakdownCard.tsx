@@ -28,6 +28,8 @@ type Props = {
   // Final total stored on booking
   totalCents: number;
   currency: string;
+  vehicleCategoryName: string | null;
+  feesCents: number;
 };
 
 function fmt(cents: number, currency = "USD") {
@@ -103,7 +105,12 @@ function buildBreakdown(props: Props): BreakdownRow[] {
 
     rows.push({
       label: "Billed hours",
-      detail: `${billed} hrs (rounded up from ${requested.toFixed(2)})`,
+      detail:
+        billed > Math.ceil(requested)
+          ? `${billed} hrs (minimum applied)`
+          : billed !== requested
+            ? `${billed} hrs (rounded up from ${requested.toFixed(2)})`
+            : `${billed} hrs`,
       cents: 0,
       highlight: "zero",
     });
@@ -240,6 +247,14 @@ export default function PriceBreakdownCard(props: Props) {
         <span className={styles.title}>Price Breakdown</span>
         <span className={styles.strategy}>{strategyLabel}</span>
       </div>
+      {props.vehicleCategoryName && (
+        <div className={styles.vehicleRow}>
+          <span className={styles.vehicleLabel}>Vehicle Category</span>
+          <span className={styles.vehicleName}>
+            {props.vehicleCategoryName}
+          </span>
+        </div>
+      )}
 
       <div className={styles.rows}>
         {rows.map((row, i) => {
@@ -266,6 +281,14 @@ export default function PriceBreakdownCard(props: Props) {
           );
         })}
       </div>
+      {props.feesCents > 0 && (
+        <div className={styles.vehicleRow}>
+          <span className={styles.vehicleLabel}>Service Fees</span>
+          <span className={styles.vehicleName}>
+            {fmt(props.feesCents, currency)}
+          </span>
+        </div>
+      )}
 
       <div className={styles.total}>
         <span className={styles.totalLabel}>Total Charged</span>

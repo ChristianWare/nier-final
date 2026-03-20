@@ -467,13 +467,13 @@ th {
 }
 
 .badge {
-  font-size: 12px;
+  font-size: 1.4rem;
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.12);
   white-space: nowrap;
   font-weight: 700;
-  letter-spacing: normal;
+  letter-spacing: .5px;
   width: fit-content;
   text-transform: uppercase;
   line-height: 1;

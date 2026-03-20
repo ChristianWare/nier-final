@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/admin/bookings/[id]/page.tsx
 import styles from "./AdminBookingDetailPage.module.css";
@@ -1158,15 +1159,13 @@ export default async function AdminBookingDetailPage({
 
                 <div style={{ marginTop: 30 }}>
                   <div className='emptyTitle'>Booking ID:</div>
-                  <p className='emptySmall'>{booking.id}</p>
+                  <p className={`emptySmall ${styles.badge}`}>{booking.id}</p>
                 </div>
                 {/* Current status badge */}
                 <div style={{ marginTop: 30 }}>
                   <div className='emptyTitle'>Current Status:</div>
                   <div style={{ marginTop: 6 }}>
-                    <span
-                      className={`badge badge_${currentStatusTone} ${styles.badge}`}
-                    >
+                    <span className={`emptySmall ${styles.badge}`}>
                       {currentStatusLabel}
                     </span>
                   </div>
@@ -1184,16 +1183,16 @@ export default async function AdminBookingDetailPage({
                   <div className='emptyTitle'>Client Type:</div>
                   <div style={{ marginTop: 6 }}>
                     {isCorporateBooking ? (
-                      <span className={`badge badge_accent ${styles.badge}`}>
+                      <span className={`emptySmall ${styles.badge}`}>
                         🏢 Corporate —{" "}
                         {booking.corporateAccount?.name ?? "Account"}
                       </span>
                     ) : booking.userId ? (
-                      <span className={`badge badge_good ${styles.badge}`}>
+                      <span className={`emptySmall ${styles.badge}`}>
                         👤 Registered User
                       </span>
                     ) : (
-                      <span className={`badge badge_neutral ${styles.badge}`}>
+                      <span className={`emptySmall ${styles.badge}`}>
                         🧾 Guest Checkout
                       </span>
                     )}
@@ -1205,9 +1204,7 @@ export default async function AdminBookingDetailPage({
                 <div style={{ marginTop: 30 }}>
                   <div className='emptyTitle'>Ride Type:</div>
                   <div style={{ marginTop: 6 }}>
-                    <span
-                      className={`badge badge_${isGroupBooking ? "accent" : "neutral"} ${styles.badge}`}
-                    >
+                    <span className={`emptySmall ${styles.badge}`}>
                       {isGroupBooking
                         ? `Multi Trip (${tripGroupData!.siblings.length} rides)`
                         : "Single Ride"}
@@ -1219,9 +1216,7 @@ export default async function AdminBookingDetailPage({
                 <div style={{ marginTop: 30 }}>
                   <div className='emptyTitle'>Total Payment Due:</div>
                   <div className={styles.paymentInfo}>
-                    <span
-                      className={`badge badge_${paymentStatusDisplay.tone} ${styles.badge}`}
-                    >
+                    <span className={`emptySmall ${styles.badge}`}>
                       {paymentStatusDisplay.label}
                     </span>
                     {(isGroupBooking ? groupTotalCents : booking.totalCents) >
@@ -1651,8 +1646,11 @@ export default async function AdminBookingDetailPage({
                   stopSurchargeCents={stopSurchargeCents}
                   totalCents={booking.totalCents}
                   currency={booking.currency}
+                  vehicleCategoryName={booking.vehicle?.name ?? null}
+                  feesCents={booking.feesCents ?? 0}
                 />
               )}
+              <br />
               <PriceForm
                 bookingId={booking.id}
                 currency={booking.currency}
