@@ -1123,6 +1123,13 @@ export default async function AdminBookingDetailPage({
     getSavedCardForBooking(booking.id),
   ]);
 
+  const estimateSentEvents = booking.statusEvents
+    .filter((e) => (e as any).eventType === "ESTIMATE_SENT")
+    .map((e) => ({
+      sentAt: e.createdAt.toISOString(),
+      recipientEmail: (e as any).metadata?.recipientEmail ?? null,
+    }));
+
   return (
     <DirtyFormProvider>
       <BookingEditProvider>
@@ -1342,6 +1349,7 @@ export default async function AdminBookingDetailPage({
                   customerEmail={
                     booking.user?.email ?? booking.guestEmail ?? null
                   }
+                  estimateSentEvents={estimateSentEvents}
                 />
               </div>
             </header>

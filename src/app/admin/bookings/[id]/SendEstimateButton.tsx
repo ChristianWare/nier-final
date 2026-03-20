@@ -17,11 +17,13 @@ function isValidEmail(v: string) {
 type Props = {
   bookingId: string;
   customerEmail: string | null;
-};
+  estimateSentEvents?: { sentAt: string; recipientEmail: string | null }[];
+  };
 
 export default function SendEstimateButton({
   bookingId,
   customerEmail,
+  estimateSentEvents = [],
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -144,6 +146,28 @@ export default function SendEstimateButton({
           type='button'
         />
       </div>
+
+      {estimateSentEvents.length > 0 && (
+        <div className={styles.sentHistory}>
+          <div className={styles.sentHistoryTitle}>Estimate history</div>
+          {estimateSentEvents.map((e, i) => (
+            <div key={i} className={styles.sentHistoryRow}>
+              <span className={styles.sentHistoryEmail}>
+                {e.recipientEmail ?? "unknown"}
+              </span>
+              <span className={styles.sentHistoryDate}>
+                {new Intl.DateTimeFormat("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                }).format(new Date(e.sentAt))}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Alternate email modal */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)}>

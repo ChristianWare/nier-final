@@ -35,3 +35,43 @@
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   grid-gap: 1rem;
 }
+
+.sentHistory {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.2rem 1.4rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-top: 0.4rem;
+}
+
+.sentHistoryTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #888;
+  margin-bottom: 0.4rem;
+}
+
+.sentHistoryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.3rem;
+}
+
+.sentHistoryEmail {
+  color: #1a1a1a;
+  font-weight: 500;
+  word-break: break-all;
+}
+
+.sentHistoryDate {
+  color: #888;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
