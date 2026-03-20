@@ -97,9 +97,9 @@ export default function EstimatePDF({
         <View style={s.header}>
           <View style={s.logoSection}>
             <View style={s.logoFallbackRow}>
-              <View style={s.logoBox}>
+              {/* <View style={s.logoBox}>
                 <Text style={s.logoBoxLetter}>N</Text>
-              </View>
+              </View> */}
               <Text style={s.companyName}>{invoice.company.name}</Text>
             </View>
             <View style={{ marginTop: 6 }}>
