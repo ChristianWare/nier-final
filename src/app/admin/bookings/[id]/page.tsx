@@ -1335,6 +1335,14 @@ export default async function AdminBookingDetailPage({
                     </span>
                   )}
                 </div>
+                <br />
+                <br />
+                <SendEstimateButton
+                  bookingId={booking.id}
+                  customerEmail={
+                    booking.user?.email ?? booking.guestEmail ?? null
+                  }
+                />
               </div>
             </header>
 
@@ -2226,13 +2234,7 @@ export default async function AdminBookingDetailPage({
               />
               <div className={styles.quickActionsDivider} />
               <DuplicateBookingClient bookingId={booking.id} />
-              <div className={styles.quickActionsDivider} />
-              <SendEstimateButton
-                bookingId={booking.id}
-                customerEmail={
-                  booking.user?.email ?? booking.guestEmail ?? null
-                }
-              />
+              {/* <div className={styles.quickActionsDivider} /> */}
             </Card>
           </div>
         </section>
