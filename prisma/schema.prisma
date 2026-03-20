@@ -307,6 +307,9 @@ model Vehicle {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  overageFeeCents         Int @default(0)
+  overageIncrementMinutes Int @default(30)
+
   @@index([active])
   @@index([sortOrder])
 }
@@ -494,6 +497,9 @@ model Booking {
   eventType String?
 
   discountCents Int?
+
+  guestStripeCustomerId      String?
+  guestStripePaymentMethodId String?
 
   @@index([userId])
   @@index([serviceTypeId])

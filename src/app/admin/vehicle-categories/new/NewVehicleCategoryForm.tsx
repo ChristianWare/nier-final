@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { createVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
 
+const OVERAGE_INCREMENT_OPTIONS = [15, 30, 45, 60];
+
 export default function NewVehicleCategoryForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -18,8 +20,6 @@ export default function NewVehicleCategoryForm() {
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
 
-        // Manually set the callForPricing value since unchecked checkboxes
-        // don't appear in FormData
         if (!callForPricing) {
           fd.delete("callForPricing");
         }
@@ -108,7 +108,10 @@ export default function NewVehicleCategoryForm() {
         />
       </Field>
 
-      <div className={styles.sectionTitle}>Pricing (cents)</div>
+      <div className={styles.sectionTitle}>Pricing (USD)</div>
+      <div className='miniNote' style={{ marginTop: -10 }}>
+        Enter values in dollars (example: 150.00 = $150.00).
+      </div>
 
       <Grid2>
         <Field label='Base fare'>
@@ -145,6 +148,43 @@ export default function NewVehicleCategoryForm() {
             className='inputBorder'
             disabled={isPending}
           />
+        </Field>
+      </Grid2>
+
+      {/* ── Overage Policy ── */}
+      <div className={styles.sectionTitle}>Overage Policy</div>
+      <div className='miniNote' style={{ marginTop: -10 }}>
+        For hourly charter bookings. If the ride runs over the booked time, the
+        customer will be charged this fee per increment. Leave fee at 0.00 to
+        disable overage charging.
+      </div>
+
+      <Grid2>
+        <Field
+          label='Overage fee'
+          hint='Charge per increment (e.g. 70.00 = $70.00)'
+        >
+          <input
+            name='overageFeeCents'
+            defaultValue='0'
+            className='inputBorder'
+            disabled={isPending}
+          />
+        </Field>
+
+        <Field label='Overage increment' hint='How often the fee repeats'>
+          <select
+            name='overageIncrementMinutes'
+            defaultValue='30'
+            className='inputBorder'
+            disabled={isPending}
+          >
+            {OVERAGE_INCREMENT_OPTIONS.map((n) => (
+              <option key={n} value={String(n)}>
+                Every {n} minutes
+              </option>
+            ))}
+          </select>
         </Field>
       </Grid2>
 

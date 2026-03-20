@@ -59,8 +59,6 @@ export async function createVehicleCategory(formData: FormData) {
   const capacity = toInt(formData.get("capacity"), 1);
   const luggageCapacity = toInt(formData.get("luggageCapacity"), 0);
   const sortOrder = toInt(formData.get("sortOrder"), 0);
-
-  // ✅ min hours for HOURLY services
   const minHours = toInt(formData.get("minHours"), 0);
 
   const active = formData.get("active") === "on";
@@ -71,6 +69,13 @@ export async function createVehicleCategory(formData: FormData) {
   const perMileCents = toCents(formData.get("perMileCents"), 0);
   const perMinuteCents = toCents(formData.get("perMinuteCents"), 0);
   const perHourCents = toCents(formData.get("perHourCents"), 0);
+
+  // Overage policy
+  const overageFeeCents = toCents(formData.get("overageFeeCents"), 0);
+  const overageIncrementMinutes = toInt(
+    formData.get("overageIncrementMinutes"),
+    30,
+  );
 
   await db.vehicle.create({
     data: {
@@ -88,6 +93,8 @@ export async function createVehicleCategory(formData: FormData) {
       perMileCents,
       perMinuteCents,
       perHourCents,
+      overageFeeCents,
+      overageIncrementMinutes,
     },
   });
 
@@ -108,7 +115,6 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
   const capacity = toInt(formData.get("capacity"), 1);
   const luggageCapacity = toInt(formData.get("luggageCapacity"), 0);
   const sortOrder = toInt(formData.get("sortOrder"), 0);
-
   const minHours = toInt(formData.get("minHours"), 0);
 
   const active = formData.get("active") === "on";
@@ -119,6 +125,13 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
   const perMileCents = toCents(formData.get("perMileCents"), 0);
   const perMinuteCents = toCents(formData.get("perMinuteCents"), 0);
   const perHourCents = toCents(formData.get("perHourCents"), 0);
+
+  // Overage policy
+  const overageFeeCents = toCents(formData.get("overageFeeCents"), 0);
+  const overageIncrementMinutes = toInt(
+    formData.get("overageIncrementMinutes"),
+    30,
+  );
 
   await db.vehicle.update({
     where: { id },
@@ -137,6 +150,8 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
       perMileCents,
       perMinuteCents,
       perHourCents,
+      overageFeeCents,
+      overageIncrementMinutes,
     },
   });
 

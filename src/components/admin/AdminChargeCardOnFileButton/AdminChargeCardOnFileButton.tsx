@@ -4,14 +4,11 @@ import styles from "./AdminChargeCardOnFileButton.module.css";
 import { useEffect, useState } from "react";
 import Modal from "@/components/shared/Modal/Modal";
 import toast from "react-hot-toast";
-import {
-  adminGetCardOnFile,
-  adminChargeCardOnFile,
-} from "../../../../actions/admin/chargeCardOnFile";
+import { adminChargeCardOnFile } from "../../../../actions/admin/chargeCardOnFile";
+import { getSavedCardForBooking } from "../../../../actions/payments/chargeCardOnFileForCheckout";
 
 interface Props {
   bookingId: string;
-  userId: string;
   amountCents: number;
   currency: string;
   onSuccess?: () => void | Promise<void>;
@@ -33,29 +30,24 @@ const BRAND_LABELS: Record<string, string> = {
 
 export default function AdminChargeCardOnFileButton({
   bookingId,
-  userId,
   amountCents,
   currency,
   onSuccess,
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [cardInfo, setCardInfo] = useState<Awaited<
-    ReturnType<typeof adminGetCardOnFile>
+    ReturnType<typeof getSavedCardForBooking>
   > | null>(null);
   const [charging, setCharging] = useState(false);
   const [charged, setCharged] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-    adminGetCardOnFile(userId)
+    getSavedCardForBooking(bookingId)
       .then(setCardInfo)
       .catch(() => setCardInfo(null))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [bookingId]);
 
   async function handleCharge() {
     setCharging(true);
@@ -80,14 +72,6 @@ export default function AdminChargeCardOnFileButton({
 
   if (loading) {
     return <p className='miniNote'>Checking for card on file…</p>;
-  }
-
-  if (!userId) {
-    return (
-      <p className='miniNote'>
-        No user account linked to this booking. Card on file not available.
-      </p>
-    );
   }
 
   if (!cardInfo || !cardInfo.hasCard) {

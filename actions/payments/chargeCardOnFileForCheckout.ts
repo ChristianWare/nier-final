@@ -19,6 +19,7 @@ export async function chargeCardOnFileForCheckout({
     select: {
       id: true,
       userId: true,
+      guestStripeCustomerId: true,
       totalCents: true,
       currency: true,
       status: true,
@@ -54,16 +55,24 @@ export async function chargeCardOnFileForCheckout({
     return { error: "This booking is already fully paid." };
   }
 
-  if (!booking.userId) {
-    return { error: "No user account linked to this booking." };
+  // ── Resolve Stripe customer ID ─────────────────────────────────────────
+  // Support both registered users (via User.stripeCustomerId) and
+  // guests on charter bookings (via Booking.guestStripeCustomerId).
+  let customerId: string | null = null;
+
+  if (booking.userId) {
+    const user = await db.user.findUnique({
+      where: { id: booking.userId },
+      select: { stripeCustomerId: true },
+    });
+    customerId = user?.stripeCustomerId ?? null;
   }
 
-  const user = await db.user.findUnique({
-    where: { id: booking.userId },
-    select: { stripeCustomerId: true },
-  });
+  // Fall back to guest Stripe customer saved at charter checkout
+  if (!customerId) {
+    customerId = booking.guestStripeCustomerId ?? null;
+  }
 
-  const customerId = user?.stripeCustomerId ?? null;
   if (!customerId) {
     return { error: "No card on file." };
   }
@@ -166,7 +175,7 @@ export async function chargeCardOnFileForCheckout({
   };
 }
 
-// ── Read-only: get the saved card for a booking's user (for display) ──────────
+// ── Read-only: get the saved card for a booking (supports guests) ─────────────
 
 export async function getSavedCardForBooking(bookingId: string): Promise<{
   hasCard: boolean;
@@ -180,18 +189,27 @@ export async function getSavedCardForBooking(bookingId: string): Promise<{
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    select: { userId: true },
+    select: { userId: true, guestStripeCustomerId: true },
   });
 
-  if (!booking?.userId) return null;
+  if (!booking) return null;
 
-  const user = await db.user.findUnique({
-    where: { id: booking.userId },
-    select: { stripeCustomerId: true },
-  });
+  // Resolve customer ID — registered user first, then guest charter customer
+  let customerId: string | null = null;
 
-  const customerId = user?.stripeCustomerId ?? null;
-  if (!customerId)
+  if (booking.userId) {
+    const user = await db.user.findUnique({
+      where: { id: booking.userId },
+      select: { stripeCustomerId: true },
+    });
+    customerId = user?.stripeCustomerId ?? null;
+  }
+
+  if (!customerId) {
+    customerId = booking.guestStripeCustomerId ?? null;
+  }
+
+  if (!customerId) {
     return {
       hasCard: false,
       brand: null,
@@ -200,6 +218,7 @@ export async function getSavedCardForBooking(bookingId: string): Promise<{
       exp_year: null,
       isExpired: false,
     };
+  }
 
   try {
     const stripe = await getStripe();
@@ -220,7 +239,7 @@ export async function getSavedCardForBooking(bookingId: string): Promise<{
       pmList.data[0] ??
       null;
 
-    if (!activePm?.card)
+    if (!activePm?.card) {
       return {
         hasCard: false,
         brand: null,
@@ -229,6 +248,7 @@ export async function getSavedCardForBooking(bookingId: string): Promise<{
         exp_year: null,
         isExpired: false,
       };
+    }
 
     const card = activePm.card;
     const expDate = new Date(card.exp_year, card.exp_month - 1, 1);

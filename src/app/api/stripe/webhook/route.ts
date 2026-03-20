@@ -17,6 +17,58 @@ function str(v: any) {
   return typeof v === "string" && v.trim() ? v : null;
 }
 
+// ── Save card for charter overage charges after payment succeeds ──────────────
+// When a charter booking uses setup_future_usage: "off_session", Stripe saves
+// the payment method to the customer. We store the customer ID so we can
+// charge overage fees later without requiring the customer to re-enter their card.
+async function saveCharterPaymentMethod(
+  bookingId: string,
+  paymentIntentId: string,
+) {
+  try {
+    const stripe = await getStripe();
+    const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    // Only save if setup_future_usage was set (charter bookings only)
+    if (!pi.setup_future_usage) return;
+
+    const customerId =
+      typeof pi.customer === "string"
+        ? pi.customer
+        : ((pi.customer as any)?.id ?? null);
+
+    if (!customerId) return;
+
+    const booking = await db.booking.findUnique({
+      where: { id: bookingId },
+      select: { userId: true, guestStripeCustomerId: true },
+    });
+
+    if (!booking) return;
+
+    if (booking.userId) {
+      // Registered user — save customer ID to their user record if not already set
+      await db.user.updateMany({
+        where: { id: booking.userId, stripeCustomerId: null },
+        data: { stripeCustomerId: customerId },
+      });
+    } else {
+      // Guest — save customer ID to the booking record
+      await db.booking.update({
+        where: { id: bookingId },
+        data: { guestStripeCustomerId: customerId },
+      });
+    }
+
+    console.log(
+      `✅ Charter card saved for booking ${bookingId}: customer ${customerId}`,
+    );
+  } catch (e) {
+    console.error("❌ Failed to save charter payment method:", e);
+    // Non-critical — don't fail the webhook
+  }
+}
+
 async function finalizePaid(args: {
   bookingId: string;
   checkoutSessionId: string | null;
@@ -459,6 +511,11 @@ export async function POST(req: Request) {
         balanceAmount,
       });
 
+      // ── Save card for charter overage charges ──
+      if (paymentIntentId) {
+        await saveCharterPaymentMethod(bookingId, paymentIntentId);
+      }
+
       return NextResponse.json({ received: true });
     }
 
@@ -524,6 +581,11 @@ export async function POST(req: Request) {
         balanceAmount,
         tipCents,
       });
+
+      // ── Save card for charter overage charges ──
+      if (paymentIntentId) {
+        await saveCharterPaymentMethod(bookingId, paymentIntentId);
+      }
 
       return NextResponse.json({ received: true });
     }

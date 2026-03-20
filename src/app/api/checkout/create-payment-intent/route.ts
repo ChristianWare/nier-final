@@ -24,8 +24,11 @@ export async function POST(req: Request) {
     const booking = await db.booking.findUnique({
       where: { id: bookingId },
       include: {
-        user: { select: { email: true, name: true } },
-        serviceType: { select: { name: true } },
+        user: {
+          select: { id: true, email: true, name: true, stripeCustomerId: true },
+        },
+        serviceType: { select: { name: true, pricingStrategy: true } },
+        vehicle: { select: { overageFeeCents: true } },
         payment: { select: { stripePaymentIntentId: true, status: true } },
       },
     });
@@ -56,8 +59,46 @@ export async function POST(req: Request) {
     const customerEmail = booking.user?.email ?? booking.guestEmail ?? null;
     const customerName = booking.user?.name ?? booking.guestName ?? "Guest";
 
+    // Determine if this is a charter/hourly booking with an overage fee set
+    const isHourly = booking.serviceType?.pricingStrategy === "HOURLY";
+    const hasOverageFee = (booking.vehicle?.overageFeeCents ?? 0) > 0;
+    const requiresSavedCard = isHourly && hasOverageFee;
+
     // Calculate amounts
     const baseFareCents = amountCents - (tipCents || 0);
+
+    // ── Resolve or create Stripe customer ──────────────────────────────────
+    // For charter bookings (hourly + overage fee set), we always need a
+    // Stripe customer so we can save the card for potential overage charges.
+    // For registered users, use their existing stripeCustomerId.
+    // For guests on charter bookings, create a new Stripe customer.
+    let stripeCustomerId: string | null =
+      booking.user?.stripeCustomerId ?? booking.guestStripeCustomerId ?? null;
+
+    if (requiresSavedCard && !stripeCustomerId && customerEmail) {
+      const customer = await stripe.customers.create({
+        email: customerEmail,
+        name: customerName,
+        metadata: {
+          bookingId: booking.id,
+          source: "charter_guest_checkout",
+        },
+      });
+      stripeCustomerId = customer.id;
+
+      // Save to booking for guest, or to user record for registered users
+      if (booking.userId) {
+        await db.user.update({
+          where: { id: booking.userId },
+          data: { stripeCustomerId: customer.id },
+        });
+      } else {
+        await db.booking.update({
+          where: { id: bookingId },
+          data: { guestStripeCustomerId: customer.id },
+        });
+      }
+    }
 
     // Check if we should update an existing PaymentIntent or create a new one
     let paymentIntent;
@@ -76,11 +117,11 @@ export async function POST(req: Request) {
               tipCents: String(tipCents || 0),
               baseFareCents: String(baseFareCents),
               isBalancePayment: isBalancePayment ? "true" : "false",
+              requiresSavedCard: requiresSavedCard ? "true" : "false",
             },
           },
         );
       } catch (updateError) {
-        // If update fails (e.g., PaymentIntent was already confirmed), create a new one
         console.log(
           "Could not update existing PaymentIntent, creating new one",
         );
@@ -90,9 +131,7 @@ export async function POST(req: Request) {
 
     // Create new PaymentIntent if we don't have one
     if (!paymentIntent) {
-      const APP_URL = process.env.APP_URL || "http://localhost:3000";
-
-      paymentIntent = await stripe.paymentIntents.create({
+      const piParams: any = {
         amount: amountCents,
         currency: currency || "usd",
         automatic_payment_methods: {
@@ -104,10 +143,19 @@ export async function POST(req: Request) {
           tipCents: String(tipCents || 0),
           baseFareCents: String(baseFareCents),
           isBalancePayment: isBalancePayment ? "true" : "false",
+          requiresSavedCard: requiresSavedCard ? "true" : "false",
         },
         receipt_email: customerEmail || undefined,
         description: `${booking.serviceType?.name ?? "Transportation"} - ${booking.pickupAddress} → ${booking.dropoffAddress}`,
-      });
+      };
+
+      // For charter bookings with overage fees: attach customer and save card
+      if (requiresSavedCard && stripeCustomerId) {
+        piParams.customer = stripeCustomerId;
+        piParams.setup_future_usage = "off_session";
+      }
+
+      paymentIntent = await stripe.paymentIntents.create(piParams);
 
       // Store the PaymentIntent ID in the database
       await db.payment.upsert({

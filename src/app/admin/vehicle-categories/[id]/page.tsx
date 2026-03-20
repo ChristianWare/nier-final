@@ -163,6 +163,10 @@ export default async function EditVehicleCategoryPage({
 
   const activeUnits = category.units.filter((u) => u.active).length;
 
+  const overageFeeCents = category.overageFeeCents ?? 0;
+  const overageIncrementMinutes = category.overageIncrementMinutes ?? 30;
+  const hasOveragePolicy = overageFeeCents > 0;
+
   return (
     <DirtyFormProvider>
       <section className={styles.container}>
@@ -192,6 +196,12 @@ export default async function EditVehicleCategoryPage({
                   {category.luggageCapacity > 0 && (
                     <span className='badge badge_neutral'>
                       {category.luggageCapacity} bags
+                    </span>
+                  )}
+                  {hasOveragePolicy && (
+                    <span className='badge badge_warn'>
+                      Overage: {tz.formatMoney(overageFeeCents)}/
+                      {overageIncrementMinutes}min
                     </span>
                   )}
                 </div>
@@ -293,6 +303,14 @@ export default async function EditVehicleCategoryPage({
                 <span className={styles.infoLabel}>Per Hour</span>
                 <span className={styles.infoValue}>
                   {tz.formatMoney(category.perHourCents)}
+                </span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Overage Fee</span>
+                <span className={styles.infoValue}>
+                  {hasOveragePolicy
+                    ? `${tz.formatMoney(overageFeeCents)} per ${overageIncrementMinutes} min`
+                    : "—"}
                 </span>
               </div>
             </div>
@@ -666,6 +684,9 @@ export default async function EditVehicleCategoryPage({
                   perMileCents: category.perMileCents,
                   perMinuteCents: category.perMinuteCents,
                   perHourCents: category.perHourCents,
+                  overageFeeCents: category.overageFeeCents ?? 0,
+                  overageIncrementMinutes:
+                    category.overageIncrementMinutes ?? 30,
                   active: category.active,
                   callForPricing: category.callForPricing,
                   callForPricingMessage: category.callForPricingMessage,

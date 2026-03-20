@@ -39,6 +39,7 @@ import { BookingEditProvider } from "./BookingEditContext"; // named: { BookingE
 import BoxRightDateDisplay from "./BoxRightDateDisplay";
 import AdminCashPaymentButton from "@/components/admin/AdminCashPaymentButton/AdminCashPaymentButton";
 import PriceBreakdownCard from "@/components/admin/PriceBreakdownCard/PriceBreakdownCard";
+import { getSavedCardForBooking } from "../../../../../actions/payments/chargeCardOnFileForCheckout";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1116,7 +1117,10 @@ export default async function AdminBookingDetailPage({
   const totalFeesCents =
     booking.fees?.reduce((sum, f) => sum + f.amountCents, 0) ?? 0;
 
-  const stripePublishableKey = await getStripePublishableKey();
+  const [stripePublishableKey, savedCard] = await Promise.all([
+    getStripePublishableKey(),
+    getSavedCardForBooking(booking.id),
+  ]);
 
   return (
     <DirtyFormProvider>
@@ -1626,6 +1630,32 @@ export default async function AdminBookingDetailPage({
             PRICE CARD
             ═══════════════════════════════════════════════════════════════════ */}
             <Card title='Price' indicator={priceIndicator} id='price-section'>
+              {(booking.vehicle?.overageFeeCents ?? 0) > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "1rem",
+                    padding: "1.2rem 1.6rem",
+                    marginBottom: "2rem",
+                    background: "#fffbeb",
+                    border: "1px solid #f59e0b",
+                    borderRadius: 8,
+                    fontSize: "1.4rem",
+                  }}
+                >
+                  <span>⚠️</span>
+                  <span>
+                    <strong>Overage policy:</strong>{" "}
+                    {formatMoney(
+                      booking.vehicle?.overageFeeCents ?? 0,
+                      booking.currency,
+                    )}{" "}
+                    per {booking.vehicle?.overageIncrementMinutes ?? 30} minutes
+                    — a card will be saved at checkout to cover any overages.
+                  </span>
+                </div>
+              )}
               {pricingData && (
                 <PriceBreakdownCard
                   pricingStrategy={pricingData.pricingStrategy}
@@ -1944,15 +1974,33 @@ export default async function AdminBookingDetailPage({
                     <div className='cardTitle h5'>Charge card on file</div>
                     <div
                       className='miniNote'
-                      style={{ marginTop: 6, marginBottom: "30px" }}
+                      style={{ marginTop: 6, marginBottom: "1.6rem" }}
                     >
                       Charge the customer&apos;s saved card directly — no
                       payment link required.
                     </div>
+                    {!savedCard?.hasCard && (
+                      <div
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "0.8rem",
+                          padding: "0.6rem 1.2rem",
+                          marginBottom: "1.6rem",
+                          background: "#f9fafb",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: 6,
+                          fontSize: "1.3rem",
+                          color: "#6b7280",
+                        }}
+                      >
+                        <span>💳</span>
+                        <span>No card on file</span>
+                      </div>
+                    )}
                     <div style={{ marginTop: 10 }}>
                       <AdminChargeCardOnFileButton
                         bookingId={booking.id}
-                        userId={booking.userId ?? ""}
                         amountCents={
                           isGroupBooking ? groupTotalCents : booking.totalCents
                         }

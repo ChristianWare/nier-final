@@ -22,6 +22,8 @@ type Category = {
   perMileCents: number;
   perMinuteCents: number;
   perHourCents: number;
+  overageFeeCents: number;
+  overageIncrementMinutes: number;
   active: boolean;
   callForPricing: boolean;
   callForPricingMessage: string | null;
@@ -30,6 +32,7 @@ type Category = {
 const CAPACITY_OPTIONS = Array.from({ length: 60 }, (_, i) => i + 1);
 const LUGGAGE_OPTIONS = Array.from({ length: 60 }, (_, i) => i + 1);
 const MIN_HOURS_OPTIONS = Array.from({ length: 24 }, (_, i) => i + 1);
+const OVERAGE_INCREMENT_OPTIONS = [15, 30, 45, 60];
 
 export default function EditVehicleCategoryForm({
   category,
@@ -63,6 +66,12 @@ export default function EditVehicleCategoryForm({
   const [perHour, setPerHour] = useState(
     (category.perHourCents / 100).toFixed(2),
   );
+  const [overageFee, setOverageFee] = useState(
+    (category.overageFeeCents / 100).toFixed(2),
+  );
+  const [overageIncrement, setOverageIncrement] = useState(
+    String(category.overageIncrementMinutes ?? 30),
+  );
   const [active, setActive] = useState(category.active);
   const [callForPricing, setCallForPricing] = useState(category.callForPricing);
   const [callForPricingMessage, setCallForPricingMessage] = useState(
@@ -86,6 +95,10 @@ export default function EditVehicleCategoryForm({
       fields.push("Per Minute");
     if (perHour !== (category.perHourCents / 100).toFixed(2))
       fields.push("Per Hour");
+    if (overageFee !== (category.overageFeeCents / 100).toFixed(2))
+      fields.push("Overage Fee");
+    if (overageIncrement !== String(category.overageIncrementMinutes ?? 30))
+      fields.push("Overage Increment");
     if (active !== category.active) fields.push("Active Status");
     if (callForPricing !== category.callForPricing)
       fields.push("Call for Pricing");
@@ -102,6 +115,8 @@ export default function EditVehicleCategoryForm({
     perMile,
     perMinute,
     perHour,
+    overageFee,
+    overageIncrement,
     active,
     callForPricing,
     callForPricingMessage,
@@ -135,6 +150,8 @@ export default function EditVehicleCategoryForm({
     setPerMile((category.perMileCents / 100).toFixed(2));
     setPerMinute((category.perMinuteCents / 100).toFixed(2));
     setPerHour((category.perHourCents / 100).toFixed(2));
+    setOverageFee((category.overageFeeCents / 100).toFixed(2));
+    setOverageIncrement(String(category.overageIncrementMinutes ?? 30));
     setActive(category.active);
     setCallForPricing(category.callForPricing);
     setCallForPricingMessage(category.callForPricingMessage ?? "");
@@ -152,6 +169,8 @@ export default function EditVehicleCategoryForm({
     fd.set("perMileCents", perMile);
     fd.set("perMinuteCents", perMinute);
     fd.set("perHourCents", perHour);
+    fd.set("overageFeeCents", overageFee);
+    fd.set("overageIncrementMinutes", overageIncrement);
     if (active) fd.set("active", "on");
     if (callForPricing) fd.set("callForPricing", "on");
     fd.set("callForPricingMessage", callForPricingMessage.trim());
@@ -340,6 +359,46 @@ export default function EditVehicleCategoryForm({
             className='input'
             disabled={fieldsDisabled}
           />
+        </Field>
+      </Grid2>
+
+      {/* ── Overage Policy ── */}
+      <div style={{ display: "grid", gap: 10 }}>
+        <label className='h4 underline'>Overage Policy</label>
+        <div className='miniNote' style={{ marginTop: -2 }}>
+          For hourly charter bookings. If the ride runs over the booked time,
+          the customer will be charged this fee per increment. Leave fee at
+          $0.00 to disable overage charging for this vehicle category.
+        </div>
+      </div>
+
+      <Grid2>
+        <Field
+          label='Overage fee'
+          hint='Charge per increment (e.g. 70.00 = $70.00)'
+        >
+          <input
+            name='overageFeeCents'
+            value={overageFee}
+            onChange={(e) => setOverageFee(e.target.value)}
+            className='input'
+            disabled={fieldsDisabled}
+          />
+        </Field>
+
+        <Field label='Overage increment' hint='How often the fee repeats'>
+          <select
+            value={overageIncrement}
+            onChange={(e) => setOverageIncrement(e.target.value)}
+            className='selectBorder emptySmall'
+            disabled={fieldsDisabled}
+          >
+            {OVERAGE_INCREMENT_OPTIONS.map((n) => (
+              <option key={n} value={String(n)}>
+                Every {n} minutes
+              </option>
+            ))}
+          </select>
         </Field>
       </Grid2>
 
