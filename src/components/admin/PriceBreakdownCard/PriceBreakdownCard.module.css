@@ -1,0 +1,106 @@
+/* src/components/admin/PriceBreakdownCard/PriceBreakdownCard.module.css */
+
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--cream, #fafaf8);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: white;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--black, #000);
+}
+
+.strategy {
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--black, #000);
+  color: white;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.2rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.row_zero {
+  background: transparent;
+  opacity: 0.6;
+}
+
+.row_floor {
+  background: #fffbeb;
+  border-left: 3px solid #f59e0b;
+}
+
+.row_surcharge {
+  background: #fff7f7;
+  border-left: 3px solid #ef4444;
+}
+
+.rowLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rowLabel {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black, #000);
+}
+
+.rowDetail {
+  font-size: 1.2rem;
+  color: #666;
+  font-weight: 400;
+}
+
+.rowAmount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--black, #000);
+}
+
+.total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.6rem 2rem;
+  background: var(--black, #000);
+  color: white;
+}
+
+.totalLabel {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.totalAmount {
+  font-size: 1.8rem;
+  font-weight: 800;
+}

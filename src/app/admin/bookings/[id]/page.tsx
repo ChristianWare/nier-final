@@ -38,6 +38,7 @@ import Image from "next/image";
 import { BookingEditProvider } from "./BookingEditContext"; // named: { BookingEditProvider }
 import BoxRightDateDisplay from "./BoxRightDateDisplay";
 import AdminCashPaymentButton from "@/components/admin/AdminCashPaymentButton/AdminCashPaymentButton";
+import PriceBreakdownCard from "@/components/admin/PriceBreakdownCard/PriceBreakdownCard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1366,7 +1367,7 @@ export default async function AdminBookingDetailPage({
                 k='Distance / duration'
                 v={`${booking.distanceMiles ?? "—"} mi • ${
                   booking.durationMinutes ?? "—"
-                } min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
+                } min - Google maps estimate${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
               />
               <KeyVal
                 k='Amount due'
@@ -1629,6 +1630,29 @@ export default async function AdminBookingDetailPage({
             PRICE CARD
             ═══════════════════════════════════════════════════════════════════ */}
             <Card title='Price' indicator={priceIndicator} id='price-section'>
+              {pricingData && (
+                <PriceBreakdownCard
+                  pricingStrategy={pricingData.pricingStrategy}
+                  servicePerMileCents={pricingData.servicePerMileCents}
+                  servicePerMinuteCents={pricingData.servicePerMinuteCents}
+                  servicePerHourCents={pricingData.servicePerHourCents}
+                  serviceBaseFeeCents={pricingData.serviceBaseFeeCents}
+                  serviceMinFareCents={pricingData.serviceMinFareCents}
+                  serviceMinHours={0}
+                  vehicleBaseFareCents={pricingData.vehicleBaseFareCents}
+                  vehiclePerMileCents={pricingData.vehiclePerMileCents}
+                  vehiclePerMinuteCents={pricingData.vehiclePerMinuteCents}
+                  vehiclePerHourCents={pricingData.vehiclePerHourCents}
+                  vehicleMinHours={pricingData.vehicleMinHours}
+                  distanceMiles={decimalToNumber(booking.distanceMiles)}
+                  durationMinutes={booking.durationMinutes}
+                  hoursRequested={decimalToNumber(booking.hoursRequested)}
+                  stopCount={stopCount}
+                  stopSurchargeCents={stopSurchargeCents}
+                  totalCents={booking.totalCents}
+                  currency={booking.currency}
+                />
+              )}
               <PriceForm
                 bookingId={booking.id}
                 currency={booking.currency}
