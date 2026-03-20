@@ -1541,157 +1541,161 @@ export default function BookingWizard({
                     </div>
 
                     {/* STOPS SECTION */}
-                    {(route?.stops?.length ?? 0) > 0 && (
-                      <div className={styles.stopsListWizard}>
-                        {route?.stops?.map((stop, index) => (
-                          <div key={stop.id} className={styles.stopRowWizard}>
-                            <div className={styles.stopBadgeWizard}>
-                              {index + 1}
-                            </div>
-                            <input
-                              type='text'
-                              placeholder={`Stop ${index + 1} address...`}
-                              defaultValue={stop.address}
-                              className='input emptySmall'
-                              style={{ flex: 1 }}
-                              ref={(el) => {
-                                if (el && window.google?.maps?.places) {
-                                  const existingAC = (el as any).__stopAC;
-                                  if (!existingAC) {
-                                    const ac =
-                                      new window.google.maps.places.Autocomplete(
-                                        el,
-                                        {
-                                          fields: [
-                                            "place_id",
-                                            "formatted_address",
-                                            "geometry",
-                                          ],
-                                          componentRestrictions: {
-                                            country: "us",
-                                          },
-                                        },
-                                      );
-                                    ac.addListener("place_changed", () => {
-                                      const place = ac.getPlace();
-                                      const loc = place?.geometry?.location;
-                                      if (
-                                        !place?.place_id ||
-                                        !place?.formatted_address ||
-                                        !loc
-                                      )
-                                        return;
-
-                                      const currentRoute = getValues("route");
-                                      const currentStops = [
-                                        ...(currentRoute?.stops ?? []),
-                                      ];
-                                      const stopIdx = currentStops.findIndex(
-                                        (s) => s.id === stop.id,
-                                      );
-
-                                      if (stopIdx >= 0) {
-                                        currentStops[stopIdx] = {
-                                          ...currentStops[stopIdx],
-                                          address: String(
-                                            place.formatted_address,
-                                          ),
-                                          placeId: String(place.place_id),
-                                          location: {
-                                            lat: loc.lat(),
-                                            lng: loc.lng(),
-                                          },
-                                        };
-
-                                        setValue(
-                                          "route",
+                    {(route?.stops?.length ?? 0) > 0 &&
+                      selectedService?.pricingStrategy !== "HOURLY" && (
+                        <div className={styles.stopsListWizard}>
+                          {route?.stops?.map((stop, index) => (
+                            <div key={stop.id} className={styles.stopRowWizard}>
+                              <div className={styles.stopBadgeWizard}>
+                                {index + 1}
+                              </div>
+                              <input
+                                type='text'
+                                placeholder={`Stop ${index + 1} address...`}
+                                defaultValue={stop.address}
+                                className='input emptySmall'
+                                style={{ flex: 1 }}
+                                ref={(el) => {
+                                  if (el && window.google?.maps?.places) {
+                                    const existingAC = (el as any).__stopAC;
+                                    if (!existingAC) {
+                                      const ac =
+                                        new window.google.maps.places.Autocomplete(
+                                          el,
                                           {
-                                            pickup:
-                                              currentRoute?.pickup ?? null,
-                                            dropoff:
-                                              currentRoute?.dropoff ?? null,
-                                            stops: currentStops,
-                                            miles: null,
-                                            minutes: null,
-                                            distanceMiles: null,
-                                            durationMinutes: null,
-                                          },
-                                          {
-                                            shouldDirty: true,
-                                            shouldValidate: true,
+                                            fields: [
+                                              "place_id",
+                                              "formatted_address",
+                                              "geometry",
+                                            ],
+                                            componentRestrictions: {
+                                              country: "us",
+                                            },
                                           },
                                         );
-                                      }
-                                    });
-                                    (el as any).__stopAC = ac;
-                                  }
-                                }
-                              }}
-                            />
-                            <button
-                              type='button'
-                              onClick={() => {
-                                const currentRoute = getValues("route");
-                                const newStops = (
-                                  currentRoute?.stops ?? []
-                                ).filter((s) => s.id !== stop.id);
-                                setValue(
-                                  "route",
-                                  {
-                                    pickup: currentRoute?.pickup ?? null,
-                                    dropoff: currentRoute?.dropoff ?? null,
-                                    stops: newStops,
-                                    miles: null,
-                                    minutes: null,
-                                    distanceMiles: null,
-                                    durationMinutes: null,
-                                  },
-                                  { shouldDirty: true, shouldValidate: true },
-                                );
-                              }}
-                              className={styles.removeStopBtnWizard}
-                              title='Remove stop'
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                                      ac.addListener("place_changed", () => {
+                                        const place = ac.getPlace();
+                                        const loc = place?.geometry?.location;
+                                        if (
+                                          !place?.place_id ||
+                                          !place?.formatted_address ||
+                                          !loc
+                                        )
+                                          return;
 
-                    {/* ADD STOP BUTTON */}
-                    <button
-                      type='button'
-                      onClick={() => {
-                        const currentRoute = getValues("route");
-                        const newStop = {
-                          id: `stop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-                          address: "",
-                          placeId: "",
-                          location: { lat: 0, lng: 0 },
-                        };
-                        setValue(
-                          "route",
-                          {
-                            pickup: currentRoute?.pickup ?? null,
-                            dropoff: currentRoute?.dropoff ?? null,
-                            stops: [...(currentRoute?.stops ?? []), newStop],
-                            miles: currentRoute?.miles ?? null,
-                            minutes: currentRoute?.minutes ?? null,
-                            distanceMiles: currentRoute?.distanceMiles ?? null,
-                            durationMinutes:
-                              currentRoute?.durationMinutes ?? null,
-                          },
-                          { shouldDirty: true, shouldValidate: true },
-                        );
-                      }}
-                      className={styles.addStopBtnWizard}
-                    >
-                      <span>➕</span> Add a stop
-                      <span className={styles.addStopFeeWizard}>
-                        (+$15.00 per stop)
-                      </span>
-                    </button>
+                                        const currentRoute = getValues("route");
+                                        const currentStops = [
+                                          ...(currentRoute?.stops ?? []),
+                                        ];
+                                        const stopIdx = currentStops.findIndex(
+                                          (s) => s.id === stop.id,
+                                        );
+
+                                        if (stopIdx >= 0) {
+                                          currentStops[stopIdx] = {
+                                            ...currentStops[stopIdx],
+                                            address: String(
+                                              place.formatted_address,
+                                            ),
+                                            placeId: String(place.place_id),
+                                            location: {
+                                              lat: loc.lat(),
+                                              lng: loc.lng(),
+                                            },
+                                          };
+
+                                          setValue(
+                                            "route",
+                                            {
+                                              pickup:
+                                                currentRoute?.pickup ?? null,
+                                              dropoff:
+                                                currentRoute?.dropoff ?? null,
+                                              stops: currentStops,
+                                              miles: null,
+                                              minutes: null,
+                                              distanceMiles: null,
+                                              durationMinutes: null,
+                                            },
+                                            {
+                                              shouldDirty: true,
+                                              shouldValidate: true,
+                                            },
+                                          );
+                                        }
+                                      });
+                                      (el as any).__stopAC = ac;
+                                    }
+                                  }
+                                }}
+                              />
+                              <button
+                                type='button'
+                                onClick={() => {
+                                  const currentRoute = getValues("route");
+                                  const newStops = (
+                                    currentRoute?.stops ?? []
+                                  ).filter((s) => s.id !== stop.id);
+                                  setValue(
+                                    "route",
+                                    {
+                                      pickup: currentRoute?.pickup ?? null,
+                                      dropoff: currentRoute?.dropoff ?? null,
+                                      stops: newStops,
+                                      miles: null,
+                                      minutes: null,
+                                      distanceMiles: null,
+                                      durationMinutes: null,
+                                    },
+                                    { shouldDirty: true, shouldValidate: true },
+                                  );
+                                }}
+                                className={styles.removeStopBtnWizard}
+                                title='Remove stop'
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                    {/* ADD STOP BUTTON — hidden for hourly/charter services */}
+                    {selectedService?.pricingStrategy !== "HOURLY" && (
+                      <button
+                        type='button'
+                        onClick={() => {
+                          const currentRoute = getValues("route");
+                          const newStop = {
+                            id: `stop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                            address: "",
+                            placeId: "",
+                            location: { lat: 0, lng: 0 },
+                          };
+                          setValue(
+                            "route",
+                            {
+                              pickup: currentRoute?.pickup ?? null,
+                              dropoff: currentRoute?.dropoff ?? null,
+                              stops: [...(currentRoute?.stops ?? []), newStop],
+                              miles: currentRoute?.miles ?? null,
+                              minutes: currentRoute?.minutes ?? null,
+                              distanceMiles:
+                                currentRoute?.distanceMiles ?? null,
+                              durationMinutes:
+                                currentRoute?.durationMinutes ?? null,
+                            },
+                            { shouldDirty: true, shouldValidate: true },
+                          );
+                        }}
+                        className={styles.addStopBtnWizard}
+                      >
+                        <span>➕</span> Add a stop
+                        <span className={styles.addStopFeeWizard}>
+                          (+$15.00 per stop)
+                        </span>
+                      </button>
+                    )}
 
                     <div
                       id='wizard-field-dropoff'
@@ -1736,22 +1740,22 @@ export default function BookingWizard({
                     </div>
                   </div>
 
-                  {/* Stop surcharge info */}
-                  {(route?.stops?.length ?? 0) > 0 && (
-                    <div className={styles.stopSurchargeInfo}>
-                      <span>
-                        🛑 {route?.stops?.length} extra stop
-                        {(route?.stops?.length ?? 0) > 1 ? "s" : ""}
-                      </span>
-                      <span className={styles.stopSurchargeAmount}>
-                        +$
-                        {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
-                          2,
-                        )}{" "}
-                        surcharge
-                      </span>
-                    </div>
-                  )}
+                  {(route?.stops?.length ?? 0) > 0 &&
+                    selectedService?.pricingStrategy !== "HOURLY" && (
+                      <div className={styles.stopSurchargeInfo}>
+                        <span>
+                          🛑 {route?.stops?.length} extra stop
+                          {(route?.stops?.length ?? 0) > 1 ? "s" : ""}
+                        </span>
+                        <span className={styles.stopSurchargeAmount}>
+                          +$
+                          {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
+                            2,
+                          )}{" "}
+                          surcharge
+                        </span>
+                      </div>
+                    )}
 
                   {/* ✅ ROUTE PICKER — now inline under dropoff */}
                   <div className={styles.routePickerInline}>

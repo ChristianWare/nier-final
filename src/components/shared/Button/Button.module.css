@@ -74,7 +74,7 @@
    ================================ */
 .arrowContainer,
 .plusContainer {
-  /* background-color: var(--white); */
+  background-color: var(--white);
   border-radius: 4px 4px 10px;
   display: flex;
   align-items: center;
