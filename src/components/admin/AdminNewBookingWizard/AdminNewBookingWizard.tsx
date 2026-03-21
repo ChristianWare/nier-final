@@ -50,8 +50,7 @@ import {
 
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import Link from "next/link";
-import FlightLookupInput from "@/components/BookingPage/FlightLookupInput/FlightLookupInput";
-import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect";
+import FlightTracker from "@/components/shared/FlightTracker/FlightTracker";
 import BookingWizardChecklist from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
 import { localToUtcIso } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
@@ -2685,7 +2684,10 @@ export default function AdminNewBookingWizard({
 
                 {isAirportService && (
                   <div className={styles.flightInfoSection}>
-                    <div className={styles.flightInfoFields}>
+                    <div
+                      className={styles.flightInfoFields}
+                      style={{ padding: "1.25rem" }}
+                    >
                       <div
                         className='cardTitle h5'
                         style={{
@@ -2694,7 +2696,8 @@ export default function AdminNewBookingWizard({
                           gap: 8,
                         }}
                       >
-                        ✈️ Flight Information{" "}
+                        <span style={{ marginRight: 8 }}>✈️</span>
+                        Flight Information{" "}
                         <span style={{ fontWeight: 400, opacity: 0.7 }}>
                           (optional)
                         </span>
@@ -2704,69 +2707,29 @@ export default function AdminNewBookingWizard({
                         style={{ marginBottom: 16, marginTop: 8 }}
                       >
                         {usesPickupAirport
-                          ? "Provide flight details so we can monitor for delays and adjust pickup time if needed."
-                          : "Provide flight details so the driver knows which terminal to drop off at."}
+                          ? "Provide your flight details so we can monitor for delays and adjust your pickup time if needed."
+                          : "Provide your flight details so your driver knows which terminal to drop you off at."}
                       </p>
-
-                      <Grid2>
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <label className='cardTitle h5'>Airline</label>
-                          <AirlineSelect
-                            value={flightAirline}
-                            onChange={(name) => {
-                              resetCreatedBooking();
-                              setFlightAirline(name);
-                            }}
-                            onAirlineCodeSelected={(iataCode) => {
-                              const current = flightNumber
+                      <FlightTracker
+                        hideCta
+                        airportLeg={usesPickupAirport ? "PICKUP" : "DROPOFF"}
+                        initialDate={pickupAtDate}
+                        onFlightFound={(data) => {
+                          resetCreatedBooking();
+                          if (data.airline) setFlightAirline(data.airline);
+                          if (data.flightNumber)
+                            setFlightNumber(
+                              data.flightNumber
                                 .replace(/\s+/g, "")
-                                .toUpperCase();
-                              if (!current || /^[A-Z]{2}$/.test(current)) {
-                                setFlightNumber(iataCode);
-                              } else if (/^[A-Z]{2}\d/.test(current)) {
-                                const digits = current.replace(/^[A-Z]{2}/, "");
-                                setFlightNumber(iataCode + digits);
-                              } else {
-                                setFlightNumber(iataCode + current);
-                              }
-                            }}
-                          />
-                        </div>
-
-                        <FlightLookupInput
-                          flightNumber={flightNumber}
-                          flightDate={pickupAtDate}
-                          airportLeg={usesPickupAirport ? "PICKUP" : "DROPOFF"}
-                          airportIata={selectedAirportIata}
-                          onFlightNumberChange={(val) => {
-                            resetCreatedBooking();
-                            setFlightNumber(val);
-                          }}
-                          onFlightFound={(data) => {
-                            resetCreatedBooking();
-                            if (data.airline) setFlightAirline(data.airline);
-                            if (data.terminal) setFlightTerminal(data.terminal);
-                            if (data.scheduledDate)
-                              setFlightScheduledAtDate(data.scheduledDate);
-                            if (data.scheduledTime)
-                              setFlightScheduledAtTime(data.scheduledTime);
-                          }}
-                        />
-                      </Grid2>
-
-                      <div style={{ display: "grid", gap: 8 }}>
-                        <label className='cardTitle h5'>Terminal</label>
-                        <input
-                          type='text'
-                          value={flightTerminal}
-                          onChange={(e) => {
-                            resetCreatedBooking();
-                            setFlightTerminal(e.target.value);
-                          }}
-                          placeholder='e.g., Terminal 4'
-                          className='input emptySmall'
-                        />
-                      </div>
+                                .toUpperCase(),
+                            );
+                          if (data.terminal) setFlightTerminal(data.terminal);
+                          if (data.scheduledDate)
+                            setFlightScheduledAtDate(data.scheduledDate);
+                          if (data.scheduledTime)
+                            setFlightScheduledAtTime(data.scheduledTime);
+                        }}
+                      />
                     </div>
                   </div>
                 )}
@@ -2896,7 +2859,7 @@ export default function AdminNewBookingWizard({
                       >
                         <div className={styles.vehicleTop}>
                           <div className='emptyTitle'>{v.name}</div>
-                          <div className='emptyTitleSmall'>
+                          <div className='emptyTitleSmall' style={{ textAlign: "right" }}>
                             {v.callForPricing ? (
                               v.callForPricingMessage || "Call for pricing"
                             ) : rowDiscountCents > 0 ? (

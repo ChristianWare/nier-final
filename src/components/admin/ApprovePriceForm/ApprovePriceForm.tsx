@@ -118,7 +118,22 @@ export default function ApprovePriceForm({
     value: string,
   ) {
     const formatted = formatInputValue(value);
-    setState((prev) => ({ ...prev, [name]: formatted }));
+
+    setState((prev) => {
+      const next = { ...prev, [name]: formatted };
+
+      // Auto-update total when subtotal, fees, or taxes change
+      if (name !== "total") {
+        const subtotalCents = parseDollarsToCents(next.subtotal);
+        const feesCents = parseDollarsToCents(next.fees);
+        const taxesCents = parseDollarsToCents(next.taxes);
+        next.total = formatCentsToDollars(
+          subtotalCents + feesCents + taxesCents,
+        );
+      }
+
+      return next;
+    });
   }
 
   function handleBlur(name: "subtotal" | "fees" | "taxes" | "total") {
