@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import toast from "react-hot-toast";
 import styles from "./CorporateInquiryForm.module.css";
@@ -14,11 +14,13 @@ interface FormInputs {
   phone: string;
   estimatedMonthlyRides: string;
   message: string;
+  _hp: string;
 }
 
 export default function CorporateInquiryForm() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const formLoadTime = useRef(Date.now());
 
   const {
     register,
@@ -28,6 +30,13 @@ export default function CorporateInquiryForm() {
   } = useForm<FormInputs>();
 
   const onSubmit: SubmitHandler<FormInputs> = async (data) => {
+    // ── Honeypot check — bots fill hidden fields, humans don't ──
+    if (data._hp) return;
+
+    // ── Time check — real users take more than 3 seconds ──
+    const elapsed = Date.now() - formLoadTime.current;
+    if (elapsed < 3000) return;
+
     setLoading(true);
     try {
       const result = await submitCorporateInquiry(data);
@@ -69,6 +78,16 @@ export default function CorporateInquiryForm() {
     <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
       <h3 className={styles.formTitle}>Corporate Account Inquiry</h3>
 
+      {/* Honeypot — hidden from humans, bots fill it */}
+      <input
+        type='text'
+        autoComplete='off'
+        tabIndex={-1}
+        aria-hidden='true'
+        style={{ display: "none" }}
+        {...register("_hp")}
+      />
+
       {/* Company Name */}
       <div className={styles.labelInputBox}>
         <label htmlFor='companyName'>
@@ -93,14 +112,44 @@ export default function CorporateInquiryForm() {
               message: "Company name contains invalid characters",
             },
             validate: (val) => {
-              if (!/[aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûü]/i.test(val))
-                return "Please enter a valid company name";
-              if (
-                /[^aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûü\s'\-\.&,0-9]{6,}/i.test(
-                  val,
-                )
-              )
-                return "Please enter a valid company name";
+              const blocked = [
+                "mailinator.com",
+                "guerrillamail.com",
+                "tempmail.com",
+                "throwam.com",
+                "yopmail.com",
+                "sharklasers.com",
+                "guerrillamailblock.com",
+                "grr.la",
+                "spam4.me",
+                "trashmail.com",
+              ];
+              const domain = val.split("@")[1]?.toLowerCase() ?? "";
+
+              // Block known disposable domains
+              if (blocked.includes(domain)) {
+                return "Please use a valid business email address";
+              }
+
+              // Block if TLD is not a real word (must be 2-6 letters only)
+              const tld = domain.split(".").pop() ?? "";
+              if (!/^[a-z]{2,6}$/.test(tld)) {
+                return "Please enter a valid email address";
+              }
+
+              // Block if any part of the domain is pure consonants (gibberish like gdsgh, sfg)
+              const parts = domain.split(".");
+              const hasGibberishPart = parts.some((part) => {
+                if (part.length < 4) return false; // short parts like "co" are fine
+                const vowelRatio =
+                  (part.match(/[aeiou]/gi)?.length ?? 0) / part.length;
+                return vowelRatio === 0; // zero vowels = gibberish
+              });
+
+              if (hasGibberishPart) {
+                return "Please enter a valid business email address";
+              }
+
               return true;
             },
           })}
@@ -163,6 +212,26 @@ export default function CorporateInquiryForm() {
               pattern: {
                 value: /\S+@\S+\.\S+/,
                 message: "Please enter a valid email",
+              },
+              validate: (val) => {
+                // Block known disposable/spam email domains
+                const blocked = [
+                  "mailinator.com",
+                  "guerrillamail.com",
+                  "tempmail.com",
+                  "throwam.com",
+                  "yopmail.com",
+                  "sharklasers.com",
+                  "guerrillamailblock.com",
+                  "grr.la",
+                  "spam4.me",
+                  "trashmail.com",
+                ];
+                const domain = val.split("@")[1]?.toLowerCase();
+                if (domain && blocked.includes(domain)) {
+                  return "Please use a valid business email address";
+                }
+                return true;
               },
             })}
           />
@@ -241,10 +310,32 @@ export default function CorporateInquiryForm() {
           rows={5}
           placeholder='E.g., We need daily airport pickups for executives, event transportation for clients, etc.'
           maxLength={5000}
-          {...register("message", { required: true })}
+          {...register("message", {
+            required: "Please describe your needs",
+            minLength: {
+              value: 20,
+              message: "Please provide at least a sentence or two",
+            },
+            validate: (val) => {
+              // Must contain at least two words with vowels (catches random char strings)
+              const wordMatches = val
+                .split(/\s+/)
+                .filter((w) => /[aeiouAEIOUàáâãäåèéêëìíîïòóôõöùúûü]/i.test(w));
+              if (wordMatches.length < 3) {
+                return "Please describe your needs in full sentences";
+              }
+              // Block messages that are mostly non-alpha (spam URLs, gibberish)
+              const alphaRatio =
+                (val.match(/[a-zA-Z]/g)?.length ?? 0) / val.length;
+              if (alphaRatio < 0.5) {
+                return "Please describe your needs using plain text";
+              }
+              return true;
+            },
+          })}
         />
         {errors.message && (
-          <span className={styles.error}>Please describe your needs</span>
+          <span className={styles.error}>{errors.message.message}</span>
         )}
       </div>
 
