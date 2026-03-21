@@ -1592,12 +1592,7 @@ export default async function AdminBookingDetailPage({
                       <KeyVal k='Airline' v={booking.flightAirline} />
                     )}
                     {booking.flightNumber && (
-                      <KeyVal
-                        k='Flight Number'
-                        v={booking.flightNumber
-                          .replace(/\s+/g, "")
-                          .toUpperCase()}
-                      />
+                      <KeyVal k='Flight Number' v={booking.flightNumber} />
                     )}
                     {booking.flightScheduledAt && (
                       <KeyVal

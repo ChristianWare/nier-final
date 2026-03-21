@@ -1,284 +1,330 @@
-.card {
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  overflow: hidden;
-  background: linear-gradient(135deg, #f0f7ff 0%, #faf5ff 100%);
+/* FlightStatusCard.module.css — matches FlightTracker card style */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
-.header {
+/* ── Card ── */
+.card {
+  background: var(--accent);
+  border-radius: 10px 10px 0 0;
+  padding: 2rem 2.4rem 1.6rem;
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.cardLoading {
+  opacity: 0.7;
+}
+
+/* ── Top row ── */
+.cardTop {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.6rem;
 }
 
-.headerLeft {
+.topRight {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.8rem;
 }
 
-.headerIcon {
-  font-size: 1.6rem;
+.airline {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 
-.headerTitle {
+.airlineCode {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.7rem;
+  border-radius: 4px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.airlineName {
   font-size: 1.4rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  opacity: 0.9;
+  color: var(--white);
 }
 
-.refreshBtn {
-  padding: 6px 14px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 6px;
-  background: white;
-  font-size: 1.4rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  color: #475569;
+.flightNum {
+  font-size: 1.3rem;
+  opacity: 0.7;
+  font-weight: 500;
+  color: var(--cream);
 }
 
-.refreshBtn:hover:not(:disabled) {
-  background: #f1f5f9;
-  border-color: rgba(0, 0, 0, 0.25);
-}
-
-.refreshBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Loading */
-.loadingState {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 24px 18px;
-  font-size: 1.4rem;
-  color: #64748b;
-}
-
-.loadingDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #3b82f6;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Error */
-.errorState {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 18px;
-  font-size: 1.4rem;
-  color: #b45309;
-  background: #fef3c7;
-}
-
-.errorIcon {
-  font-size: 1.4rem;
-}
-
-/* Body */
-.body {
-  padding: 16px 18px;
-  display: grid;
-  gap: 16px;
-}
-
-/* Status row */
-.statusRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
+/* ── Status badge ── */
 .statusBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 0.6rem;
+  padding: 0.4rem 1.2rem;
   border-radius: 20px;
-  color: white;
-  font-size: 1.4rem;
-  font-weight: 600;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
-/* Delay badges */
-.delayBadgeOnTime {
-  display: inline-flex;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 1.4rem;
-  font-weight: 600;
-  background: #dcfce7;
-  color: #166534;
+.statusOnTime {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--darkGreen);
 }
 
-.delayBadgeMinor {
-  display: inline-flex;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 1.4rem;
-  font-weight: 600;
-  background: #fef3c7;
-  color: #92400e;
+.statusDelayed {
+  background: var(--yellow);
+  color: var(--darkYellow);
 }
 
-.delayBadgeModerate {
-  display: inline-flex;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 1.4rem;
-  font-weight: 600;
-  background: #fed7aa;
-  color: #9a3412;
+.statusCancelled {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--white);
 }
 
-.delayBadgeSevere {
-  display: inline-flex;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 1.4rem;
-  font-weight: 600;
-  background: #fecaca;
-  color: #991b1b;
+.statusLanded {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--blue);
 }
 
-/* Route row */
-.routeRow {
+.statusInFlight {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.statusBoarding {
+  background: var(--yellow);
+  color: var(--darkYellow);
+}
+
+.statusLoading {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.statusError {
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.delayText {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* ── Route ── */
+.route {
   display: flex;
   align-items: center;
-  gap: 16px;
-  justify-content: center;
-  padding: 10px 0;
+  gap: 1.6rem;
+  margin-bottom: 2rem;
 }
 
-.routeAirport {
-  text-align: center;
-  min-width: 80px;
+.airport {
+  flex: 0 0 auto;
 }
 
-.airportCode {
-  font-size: 2rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: #1e293b;
+.airportRight {
+  text-align: right;
+}
+
+.iata {
+  font-size: 4.4rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--white);
+}
+
+.iataEmpty {
+  opacity: 0.25;
+  letter-spacing: 0;
 }
 
 .airportName {
-  font-size: 1.4rem;
-  color: #64748b;
-  margin-top: 2px;
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 1.2rem;
+  opacity: 0.7;
+  margin-top: 0.2rem;
+  max-width: 110px;
+  line-height: 1.3;
 }
 
-.routeArrow {
-  font-size: 2rem;
-  color: #94a3b8;
+.airportRight .airportName {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* ── Flight path ── */
+.flightPath {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  height: 24px;
+}
+
+.dashedLine {
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.5) 0px,
+    rgba(255, 255, 255, 0.5) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.dashedLineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.9);
   flex-shrink: 0;
 }
 
-/* Times grid */
-.timesGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+.planeIcon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+}
+
+/* ── Times ── */
+.times {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 1.4rem 1.8rem;
 }
 
 .timeBlock {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 8px;
-  padding: 12px;
-  display: grid;
-  gap: 6px;
+  flex: 1;
+}
+
+.timeBlockRight {
+  text-align: right;
 }
 
 .timeLabel {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: #475569;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.timeRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.4rem;
-}
-
-.timeKey {
-  color: #64748b;
-}
-
-.timeVal {
-  font-weight: 500;
-  color: #1e293b;
-}
-
-.timeActual {
-  color: #22c55e;
+  font-size: 1.1rem;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.65;
+  margin-bottom: 0.3rem;
 }
 
-/* Airline */
-.airlineRow {
-  font-size: 1.4rem;
-  color: #475569;
-  display: flex;
-  gap: 6px;
+.timeValue {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
 }
 
-.airlineLabel {
+.terminal {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  margin-top: 0.3rem;
+  font-weight: 500;
+}
+
+.timeDivider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+/* ── Date strip ── */
+.dateStrip {
+  text-align: center;
+  margin-top: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 600;
+  opacity: 0.6;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
-/* Footer */
+/* ── Error ── */
+.errorMsg {
+  margin-top: 1.2rem;
+  padding: 1rem 1.4rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  font-size: 1.3rem;
+  opacity: 0.85;
+}
+
+/* ── Placeholder dimming ── */
+.dimmed {
+  opacity: 0.3;
+}
+
+/* ── Footer ── */
 .footer {
-  padding: 8px 18px;
-  font-size: 1.4rem;
-  color: #94a3b8;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--black);
+  border-radius: 0 0 10px 10px;
+  padding: 1.2rem 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
-@media screen and (max-width: 768px) {
-  .timesGrid {
-    grid-template-columns: 1fr;
+.refreshBtn {
+  padding: 0.6rem 1.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 1.3rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--white);
+  transition: background 0.15s ease;
+}
+
+.refreshBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.refreshBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.lastChecked {
+  font-size: 1.3rem;
+  color: var(--black300);
+}
+
+@media screen and (max-width: 560px) {
+  .iata {
+    font-size: 3.2rem;
   }
 
-  .routeRow {
-    gap: 10px;
+  .card {
+    padding: 1.6rem 1.6rem 1.2rem;
   }
 
-  .airportCode {
-    font-size: 1.6rem;
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.2rem 1.6rem;
   }
 }

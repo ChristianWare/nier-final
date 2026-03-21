@@ -7,9 +7,7 @@ import styles from "./FlightStatusCard.module.css";
 
 type Props = {
   flightNumber: string;
-  /** Date in YYYY-MM-DD format */
   flightDate: string;
-  /** "PICKUP" or "DROPOFF" — determines if we show arrival or departure info prominently */
   airportLeg: "PICKUP" | "DROPOFF" | "NONE";
 };
 
@@ -17,8 +15,6 @@ function formatTime(iso: string | null | undefined): string {
   if (!iso) return "—";
   try {
     const raw = iso.trim();
-
-    // Handle AeroDataBox format: "2026-02-05 09:34-07:00"
     if (raw.includes(" ") && raw.includes("-") && raw.length > 10) {
       const [, rest] = raw.split(" ");
       const timePart = rest?.substring(0, 5);
@@ -31,8 +27,6 @@ function formatTime(iso: string | null | undefined): string {
         return `${h12}:${min} ${ampm}`;
       }
     }
-
-    // Handle ISO format with T
     if (raw.includes("T") || raw.includes(":")) {
       const timePart = raw.includes("T") ? raw.split("T")[1] : raw;
       const [hStr, mStr] = timePart.split(":");
@@ -42,8 +36,6 @@ function formatTime(iso: string | null | undefined): string {
       const h12 = hour % 12 || 12;
       return `${h12}:${min} ${ampm}`;
     }
-
-    // Fallback: try Date constructor
     const d = new Date(raw);
     if (!isNaN(d.getTime())) {
       return d.toLocaleTimeString("en-US", {
@@ -52,154 +44,71 @@ function formatTime(iso: string | null | undefined): string {
         hour12: true,
       });
     }
-
     return raw;
   } catch {
     return iso ?? "—";
   }
 }
 
-function getStatusColor(status: string): string {
-  switch (status) {
-    case "Landed":
-    case "Arrived":
-      return "#22c55e";
-    case "EnRoute":
-    case "Departed":
-      return "#3b82f6";
-    case "Expected":
-    case "On Time":
-      return "#8b5cf6";
-    case "Delayed":
-      return "#f59e0b";
-    case "Cancelled":
-      return "#ef4444";
-    case "Diverted":
-      return "#f97316";
-    case "Early":
-      return "#10b981";
-    default:
-      return "#94a3b8";
+function formatDateStrip(iso: string | null | undefined): string {
+  if (!iso) return "";
+  try {
+    const raw = iso.trim();
+    let d: Date;
+    if (raw.includes("T")) {
+      d = new Date(raw);
+    } else if (raw.includes(" ")) {
+      d = new Date(raw.split(" ")[0]);
+    } else {
+      d = new Date(raw);
+    }
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    });
+  } catch {
+    return "";
   }
 }
 
-function getStatusEmoji(status: string): string {
-  switch (status) {
-    case "Landed":
-    case "Arrived":
-      return "🛬";
-    case "EnRoute":
-    case "Departed":
-      return "✈️";
-    case "Expected":
-    case "On Time":
-      return "🟢";
-    case "Delayed":
-      return "⚠️";
-    case "Cancelled":
-      return "❌";
-    case "Diverted":
-      return "↪️";
-    case "Early":
-      return "⏩";
-    default:
-      return "❓";
-  }
+function getStatusInfo(status: string): { label: string; className: string } {
+  const s = status.toLowerCase();
+  if (s.includes("cancel"))
+    return { label: "Cancelled", className: styles.statusCancelled };
+  if (s.includes("delay"))
+    return { label: "Delayed", className: styles.statusDelayed };
+  if (s.includes("land") || s.includes("arrived"))
+    return { label: "Landed", className: styles.statusLanded };
+  if (s.includes("enroute") || s.includes("en route") || s.includes("departed"))
+    return { label: "In Flight", className: styles.statusInFlight };
+  if (s.includes("board"))
+    return { label: "Boarding", className: styles.statusBoarding };
+  if (s.includes("early"))
+    return { label: "Early", className: styles.statusOnTime };
+  if (s.includes("expected") || s.includes("on time") || s.includes("sched"))
+    return { label: "On Time", className: styles.statusOnTime };
+  return { label: status, className: styles.statusOnTime };
 }
 
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case "EnRoute":
-      return "En Route";
-    default:
-      return status;
-  }
-}
-
-/**
- * Derive a meaningful status from delay data when API returns "Unknown"
- */
 function deriveStatus(apiStatus: string, delayMinutes: number | null): string {
-  // If the API gave us a real status, use it
   if (apiStatus !== "Unknown") return apiStatus;
-
-  // Derive from delay data
   if (delayMinutes === null) return "Unknown";
   if (delayMinutes < -5) return "Early";
   if (delayMinutes <= 5) return "On Time";
   return "Delayed";
 }
 
-function TimingPill({
-  delayMinutes,
-  apiStatus,
-}: {
-  delayMinutes: number | null;
-  apiStatus: string;
-}) {
-  if (delayMinutes === null && apiStatus === "Unknown") return null;
-
-  // For terminal statuses, don't show a timing pill
-  if (["Cancelled", "Diverted", "Landed", "Arrived"].includes(apiStatus)) {
-    return null;
-  }
-
+function getDelayText(
+  delayMinutes: number | null,
+  apiStatus: string,
+): string | null {
+  if (["Cancelled", "Diverted"].includes(apiStatus)) return null;
   if (delayMinutes === null) return null;
-
-  let label: string;
-  let bgColor: string;
-  let textColor: string;
-
-  if (delayMinutes < -5) {
-    // Early
-    const mins = Math.abs(delayMinutes);
-    const hours = Math.floor(mins / 60);
-    const remainder = mins % 60;
-    label = hours > 0 ? `${hours}h ${remainder}m early` : `${mins} min early`;
-    bgColor = "#dcfce7";
-    textColor = "#15803d";
-  } else if (delayMinutes <= 5) {
-    // On time (within 5 min tolerance)
-    label = "On Time";
-    bgColor = "#dcfce7";
-    textColor = "#15803d";
-  } else if (delayMinutes <= 15) {
-    // Slight delay
-    label = `+${delayMinutes} min`;
-    bgColor = "#fef9c3";
-    textColor = "#a16207";
-  } else if (delayMinutes <= 60) {
-    // Moderate delay
-    label = `+${delayMinutes} min delay`;
-    bgColor = "#ffedd5";
-    textColor = "#c2410c";
-  } else {
-    // Severe delay
-    const hours = Math.floor(delayMinutes / 60);
-    const mins = delayMinutes % 60;
-    label = `+${hours}h ${mins}m delay`;
-    bgColor = "#fee2e2";
-    textColor = "#dc2626";
-  }
-
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: "4px 12px",
-        borderRadius: 20,
-        fontSize: 13,
-        fontWeight: 600,
-        background: bgColor,
-        color: textColor,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {label}
-    </span>
-  );
+  if (delayMinutes < -5) return `${Math.abs(delayMinutes)}min early`;
+  if (delayMinutes > 5) return `${delayMinutes}min delay`;
+  return null;
 }
 
 export default function FlightStatusCard({
@@ -225,14 +134,12 @@ export default function FlightStatusCard({
     }
   }, [flightNumber, flightDate]);
 
-  // Auto-fetch on mount
   useEffect(() => {
     fetchStatus();
   }, [fetchStatus]);
 
   if (!flightNumber || !flightDate) return null;
 
-  // Determine which delay to show based on airport leg
   const relevantDelay = data?.ok
     ? airportLeg === "PICKUP"
       ? data.flight.arrivalDelayMinutes
@@ -243,15 +150,168 @@ export default function FlightStatusCard({
     ? deriveStatus(data.flight.status, relevantDelay)
     : "Unknown";
 
+  const { label: statusLabel, className: statusClass } =
+    getStatusInfo(derivedStatus);
+  const delayText = data?.ok
+    ? getDelayText(relevantDelay, data.flight.status)
+    : null;
+
+  const depIata = data?.ok
+    ? (data.flight.departure.airport.iata ?? "???")
+    : "???";
+  const arrIata = data?.ok
+    ? (data.flight.arrival.airport.iata ?? "???")
+    : "???";
+  const depName = data?.ok ? (data.flight.departure.airport.name ?? "") : "";
+  const arrName = data?.ok ? (data.flight.arrival.airport.name ?? "") : "";
+
+  const actualDepTime = data?.ok
+    ? (data.flight.departure.actualTime ??
+      data.flight.departure.estimatedTime ??
+      data.flight.departure.scheduledTime)
+    : null;
+  const actualArrTime = data?.ok
+    ? (data.flight.arrival.actualTime ??
+      data.flight.arrival.estimatedTime ??
+      data.flight.arrival.scheduledTime)
+    : null;
+
+  const depTerminal = data?.ok ? data.flight.departure.terminal : null;
+  const arrTerminal = data?.ok ? data.flight.arrival.terminal : null;
+  const airlineName = data?.ok ? data.flight.airline.name : null;
+  const airlineIata = data?.ok ? data.flight.airline.iata : null;
+  const dateStrip = data?.ok
+    ? formatDateStrip(data.flight.departure.scheduledTime)
+    : "";
+
   return (
-    <div className={styles.card}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <span className={styles.headerIcon}>✈️</span>
-          <span className={styles.headerTitle}>
-            Live Flight Status — {flightNumber}
-          </span>
+    <div className={styles.wrapper}>
+      {/* Card */}
+      <div
+        className={`${styles.card} ${loading && !data ? styles.cardLoading : ""}`}
+      >
+        {/* Top row: airline + status */}
+        <div className={styles.cardTop}>
+          <div className={styles.airline}>
+            {airlineIata && (
+              <span className={styles.airlineCode}>{airlineIata}</span>
+            )}
+            {airlineName && (
+              <span className={styles.airlineName}>{airlineName}</span>
+            )}
+            <span className={styles.flightNum}>{flightNumber}</span>
+          </div>
+          <div className={styles.topRight}>
+            {data?.ok && (
+              <span className={`${styles.statusBadge} ${statusClass}`}>
+                {statusLabel}
+                {delayText && (
+                  <span className={styles.delayText}>{delayText}</span>
+                )}
+              </span>
+            )}
+            {loading && (
+              <span className={`${styles.statusBadge} ${styles.statusLoading}`}>
+                …
+              </span>
+            )}
+            {!loading && data && !data.ok && (
+              <span className={`${styles.statusBadge} ${styles.statusError}`}>
+                Not found
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Route */}
+        {data?.ok ? (
+          <div className={styles.route}>
+            <div className={styles.airport}>
+              <div className={styles.iata}>{depIata}</div>
+              <div className={styles.airportName}>{depName}</div>
+            </div>
+            <div className={styles.flightPath}>
+              <div className={styles.dashedLine} />
+              <span className={styles.planeIcon}>✈</span>
+              <div className={styles.dashedLineDot} />
+            </div>
+            <div className={`${styles.airport} ${styles.airportRight}`}>
+              <div className={styles.iata}>{arrIata}</div>
+              <div className={styles.airportName}>{arrName}</div>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.route}>
+            <div className={styles.airport}>
+              <div className={`${styles.iata} ${styles.iataEmpty}`}>
+                {loading ? "···" : "???"}
+              </div>
+            </div>
+            <div className={styles.flightPath}>
+              <div className={styles.dashedLine} />
+              <span className={styles.planeIcon}>✈</span>
+              <div className={styles.dashedLineDot} />
+            </div>
+            <div className={`${styles.airport} ${styles.airportRight}`}>
+              <div className={`${styles.iata} ${styles.iataEmpty}`}>
+                {loading ? "···" : "???"}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Times */}
+        <div className={styles.times}>
+          <div className={styles.timeBlock}>
+            <div className={styles.timeLabel}>Departed</div>
+            <div
+              className={`${styles.timeValue} ${!data?.ok ? styles.dimmed : ""}`}
+            >
+              {loading ? "—" : formatTime(actualDepTime)}
+            </div>
+            {depTerminal && (
+              <div className={styles.terminal}>Terminal {depTerminal}</div>
+            )}
+            {!data?.ok && !loading && (
+              <div className={`${styles.terminal} ${styles.dimmed}`}>
+                Terminal —
+              </div>
+            )}
+          </div>
+          <div className={styles.timeDivider} />
+          <div className={`${styles.timeBlock} ${styles.timeBlockRight}`}>
+            <div className={styles.timeLabel}>Arriving</div>
+            <div
+              className={`${styles.timeValue} ${!data?.ok ? styles.dimmed : ""}`}
+            >
+              {loading ? "—" : formatTime(actualArrTime)}
+            </div>
+            {arrTerminal && (
+              <div className={styles.terminal}>Terminal {arrTerminal}</div>
+            )}
+            {!data?.ok && !loading && (
+              <div className={`${styles.terminal} ${styles.dimmed}`}>
+                Terminal —
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Date strip */}
+        <div
+          className={`${styles.dateStrip} ${!data?.ok ? styles.dimmed : ""}`}
+        >
+          {loading ? "Looking up flight…" : dateStrip || flightDate}
+        </div>
+
+        {/* Error message */}
+        {!loading && data && !data.ok && (
+          <div className={styles.errorMsg}>⚠️ {data.error}</div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className={styles.footer}>
         <button
           type='button'
           onClick={fetchStatus}
@@ -260,160 +320,18 @@ export default function FlightStatusCard({
         >
           {loading ? "Checking..." : "↻ Refresh"}
         </button>
+        {lastFetched && (
+          <span className={styles.lastChecked}>
+            Last checked:{" "}
+            {lastFetched.toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: true,
+            })}
+          </span>
+        )}
       </div>
-
-      {/* Loading state */}
-      {loading && !data && (
-        <div className={styles.loadingState}>
-          <div className={styles.loadingDot} />
-          <span>Looking up {flightNumber}...</span>
-        </div>
-      )}
-
-      {/* Error state */}
-      {data && !data.ok && (
-        <div className={styles.errorState}>
-          <span className={styles.errorIcon}>⚠️</span>
-          <span>{data.error}</span>
-        </div>
-      )}
-
-      {/* Success state */}
-      {data?.ok && (
-        <div className={styles.body}>
-          {/* Status row with derived status + timing pill */}
-          <div className={styles.statusRow}>
-            <div
-              className={styles.statusBadge}
-              style={{ background: getStatusColor(derivedStatus), color: "white" }}
-            >
-              <span>
-                {getStatusEmoji(derivedStatus)}
-              </span>
-              <span>{getStatusLabel(derivedStatus)}</span>
-            </div>
-            <TimingPill
-              delayMinutes={relevantDelay}
-              apiStatus={data.flight.status}
-            />
-          </div>
-
-          {/* Flight route */}
-          <div className={styles.routeRow}>
-            <div className={styles.routeAirport}>
-              <div className={styles.airportCode}>
-                {data.flight.departure.airport.iata ?? "???"}
-              </div>
-              <div className={styles.airportName}>
-                {data.flight.departure.airport.name ?? "Departure"}
-              </div>
-            </div>
-            <div className={styles.routeArrow}>→</div>
-            <div className={styles.routeAirport}>
-              <div className={styles.airportCode}>
-                {data.flight.arrival.airport.iata ?? "???"}
-              </div>
-              <div className={styles.airportName}>
-                {data.flight.arrival.airport.name ?? "Arrival"}
-              </div>
-            </div>
-          </div>
-
-          {/* Times grid */}
-          <div className={styles.timesGrid}>
-            {/* Departure times */}
-            <div className={styles.timeBlock}>
-              <div className={styles.timeLabel}>Departure</div>
-              <div className={styles.timeRow}>
-                <span className={styles.timeKey}>Scheduled:</span>
-                <span className={styles.timeVal}>
-                  {formatTime(data.flight.departure.scheduledTime)}
-                </span>
-              </div>
-              {data.flight.departure.estimatedTime && (
-                <div className={styles.timeRow}>
-                  <span className={styles.timeKey}>Estimated:</span>
-                  <span className={styles.timeVal}>
-                    {formatTime(data.flight.departure.estimatedTime)}
-                  </span>
-                </div>
-              )}
-              {data.flight.departure.actualTime && (
-                <div className={styles.timeRow}>
-                  <span className={styles.timeKey}>Actual:</span>
-                  <span className={`${styles.timeVal} ${styles.timeActual}`}>
-                    {formatTime(data.flight.departure.actualTime)}
-                  </span>
-                </div>
-              )}
-              {data.flight.departure.terminal && (
-                <div className={styles.timeRow}>
-                  <span className={styles.timeKey}>Terminal:</span>
-                  <span className={styles.timeVal}>
-                    {data.flight.departure.terminal}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Arrival times */}
-            <div className={styles.timeBlock}>
-              <div className={styles.timeLabel}>Arrival</div>
-              <div className={styles.timeRow}>
-                <span className={styles.timeKey}>Scheduled:</span>
-                <span className={styles.timeVal}>
-                  {formatTime(data.flight.arrival.scheduledTime)}
-                </span>
-              </div>
-              {data.flight.arrival.estimatedTime && (
-                <div className={styles.timeRow}>
-                  <span className={styles.timeKey}>Estimated:</span>
-                  <span className={styles.timeVal}>
-                    {formatTime(data.flight.arrival.estimatedTime)}
-                  </span>
-                </div>
-              )}
-              {data.flight.arrival.actualTime && (
-                <div className={styles.timeRow}>
-                  <span className={styles.timeKey}>Actual:</span>
-                  <span className={`${styles.timeVal} ${styles.timeActual}`}>
-                    {formatTime(data.flight.arrival.actualTime)}
-                  </span>
-                </div>
-              )}
-              {data.flight.arrival.terminal && (
-                <div className={styles.timeRow}>
-                  <span className={styles.timeKey}>Terminal:</span>
-                  <span className={styles.timeVal}>
-                    {data.flight.arrival.terminal}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Airline info */}
-          {data.flight.airline.name && (
-            <div className={styles.airlineRow}>
-              <span className={styles.airlineLabel}>Airline:</span>
-              <span>{data.flight.airline.name}</span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Last fetched timestamp */}
-      {lastFetched && (
-        <div className={styles.footer}>
-          Last checked:{" "}
-          {lastFetched.toLocaleTimeString("en-US", {
-            hour: "numeric",
-            minute: "2-digit",
-            second: "2-digit",
-            hour12: true,
-          })}
-        </div>
-      )}
     </div>
   );
 }
