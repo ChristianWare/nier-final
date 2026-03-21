@@ -292,6 +292,7 @@ function buildWhere(args: {
   driver?: string;
   serviceType?: string;
   rideType?: string;
+  flightInfo?: boolean;
 }) {
   const { now, timezone, status, range, paid, stuck, fromYmd, toYmd, q } = args;
 
@@ -468,6 +469,10 @@ function buildWhere(args: {
     where.tripGroupId = { not: null };
   }
 
+  if (args.flightInfo) {
+    where.flightNumber = { not: null };
+  }
+
   return where;
 }
 
@@ -603,6 +608,7 @@ export default async function AdminBookingsPage({
     driver: driverFilter,
     serviceType: (sp as any).serviceType ?? "all",
     rideType: (sp as any).rideType ?? "all",
+    flightInfo: (sp as any).flightInfo === "1",
   });
   const orderBy = buildOrderBy(sort, order, status, stuck);
 
@@ -665,6 +671,7 @@ export default async function AdminBookingsPage({
     driver?: string;
     serviceType?: string;
     rideType?: string;
+    flightInfo?: boolean;
   }) {
     const w = buildWhere({
       now,
@@ -686,6 +693,8 @@ export default async function AdminBookingsPage({
       driver: next.driver ?? driverFilter,
       serviceType: next.serviceType ?? (sp as any).serviceType ?? "all",
       rideType: next.rideType ?? (sp as any).rideType ?? "all",
+      flightInfo:
+        typeof next.flightInfo === "boolean" ? next.flightInfo : false,
     });
     return db.booking.count({ where: w });
   }
@@ -700,6 +709,7 @@ export default async function AdminBookingsPage({
     unpaidCount,
     assignedCount,
     unassignedCount,
+    flightInfoCount,
   ] = await Promise.all([
     Promise.all(
       STATUSES.map(async (s) => {
@@ -723,6 +733,7 @@ export default async function AdminBookingsPage({
     countFor({ unpaid: true, q }),
     countFor({ assigned: true, q }),
     countFor({ unassigned: true, q }),
+    countFor({ flightInfo: true, q }),
   ]);
 
   const statusCounts = Object.fromEntries(statusCountsArr) as Record<
@@ -734,27 +745,28 @@ export default async function AdminBookingsPage({
     number
   >;
 
-const baseParams: Record<string, string | undefined> = {
-  status: status === "ALL" ? "ALL" : status,
-  range: range === "month" ? undefined : range,
-  unassigned: unassigned ? "1" : undefined,
-  assigned: assigned ? "1" : undefined,
-  paid: paid ? "1" : undefined,
-  unpaid: unpaid ? "1" : undefined,
-  stuck: stuck ? "1" : undefined,
-  completed: completed ? "1" : undefined,
-  future: future ? "1" : undefined,
-  from: range === "range" ? fromYmd : undefined,
-  to: range === "range" ? toYmd : undefined,
-  q: q.length ? q : undefined,
-  sort: sort,
-  order: sort ? order : undefined,
-  customerType: customerType !== "all" ? customerType : undefined,
-  driver: driverFilter !== "all" ? driverFilter : undefined,
-  serviceType:
-    (sp as any).serviceType !== "all" ? (sp as any).serviceType : undefined,
-  rideType: (sp as any).rideType !== "all" ? (sp as any).rideType : undefined,
-};
+  const baseParams: Record<string, string | undefined> = {
+    status: status === "ALL" ? "ALL" : status,
+    range: range === "month" ? undefined : range,
+    unassigned: unassigned ? "1" : undefined,
+    assigned: assigned ? "1" : undefined,
+    paid: paid ? "1" : undefined,
+    unpaid: unpaid ? "1" : undefined,
+    stuck: stuck ? "1" : undefined,
+    completed: completed ? "1" : undefined,
+    future: future ? "1" : undefined,
+    from: range === "range" ? fromYmd : undefined,
+    to: range === "range" ? toYmd : undefined,
+    q: q.length ? q : undefined,
+    sort: sort,
+    order: sort ? order : undefined,
+    customerType: customerType !== "all" ? customerType : undefined,
+    driver: driverFilter !== "all" ? driverFilter : undefined,
+    serviceType:
+      (sp as any).serviceType !== "all" ? (sp as any).serviceType : undefined,
+    rideType: (sp as any).rideType !== "all" ? (sp as any).rideType : undefined,
+    flightInfo: (sp as any).flightInfo === "1" ? "1" : undefined,
+  };
 
   const hasActiveFilters =
     status !== "ALL" ||
@@ -924,6 +936,7 @@ const baseParams: Record<string, string | undefined> = {
               unpaid: unpaidCount,
               assigned: assignedCount,
               unassigned: unassignedCount,
+              flightInfo: flightInfoCount,
             }}
           />
 
@@ -1323,6 +1336,7 @@ function FilterCheckboxSections({
     unpaid: number;
     assigned: number;
     unassigned: number;
+    flightInfo: number;
   };
 }) {
   const futureOn = current.future === "1";
@@ -1389,6 +1403,13 @@ function FilterCheckboxSections({
     page: undefined,
   });
 
+  const flightInfoOn = current.flightInfo === "1";
+  const flightInfoHref = buildHref("/admin/bookings", {
+    ...current,
+    flightInfo: flightInfoOn ? undefined : "1",
+    page: undefined,
+  });
+
   return (
     <div className={styles.filterSections}>
       {/* Trip Filters */}
@@ -1412,6 +1433,12 @@ function FilterCheckboxSections({
             active={stuckOn}
             href={stuckHref}
             count={counts.stuck}
+          />
+          <CheckboxLink
+            label='Has Flight Info'
+            active={flightInfoOn}
+            href={flightInfoHref}
+            count={counts.flightInfo}
           />
         </div>
       </div>
