@@ -12,6 +12,7 @@ import Img2 from "../../../public/images/people/linda.jpg";
 import Marquee from "@/components/shared/Marquee/Marquee";
 import ScrollToSectionButton from "@/components/shared/ScrollToSectionButton/ScrollToSectionButton";
 import ClearHash from "@/components/shared/ClearHash/ClearHash";
+import FlightTrackerSection from "@/components/HomePage/FlightTrackerSection/FlightTrackerSection";
 
 export default function WekoPaPage() {
   return (
@@ -44,6 +45,7 @@ export default function WekoPaPage() {
       />
 
       <WekoPaPricing />
+      <FlightTrackerSection />
 
       {/* ─── INLINE BOOKING ─── */}
       <section id='booking' className={styles.bookingInline}>

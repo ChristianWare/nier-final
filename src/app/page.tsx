@@ -2,6 +2,7 @@ import AboutUsIntro from "@/components/HomePage/AboutUsIntro/AboutUsIntro";
 import CorporateIntro from "@/components/HomePage/CorporateIntro/CorporateIntro";
 import Events from "@/components/HomePage/Events/Events";
 import Fleet from "@/components/HomePage/Fleet/Fleet";
+import FlightTrackerSection from "@/components/HomePage/FlightTrackerSection/FlightTrackerSection";
 import Hero from "@/components/HomePage/Hero/Hero";
 import ServiceAreas from "@/components/HomePage/ServiceAreas/ServiceAreas";
 import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
@@ -100,6 +101,7 @@ export default function HomePage() {
       <ServicesPreview />
       <HowItWorks />
       <ServiceAreas />
+      <FlightTrackerSection />
       <CorporateIntro />
       <WekopaIntro />
       <Fleet />

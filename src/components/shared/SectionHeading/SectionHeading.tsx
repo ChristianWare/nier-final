@@ -3,7 +3,7 @@ import styles from "./SectionHeading.module.css";
 export default function SectionHeading({
   text,
   color,
-  dot
+  dot,
 }: {
   text: string;
   color?: string;

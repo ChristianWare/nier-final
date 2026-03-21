@@ -1,0 +1,561 @@
+/* FlightTracker.module.css */
+
+.wrapper {
+  /* max-width: 600px; */
+  /* margin: 0 auto; */
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  font-family: inherit;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.headerIcon {
+  font-size: 3.2rem;
+  line-height: 1;
+  margin-top: 0.2rem;
+}
+
+.title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--black);
+  margin: 0 0 0.4rem;
+  line-height: 1;
+}
+
+.subtitle {
+  font-size: 1.5rem;
+  color: var(--paragraph);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ── Search form ── */
+.form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1.2rem;
+  align-items: flex-end;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.label {
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--black400);
+}
+
+.input {
+  padding: 1.2rem 1.6rem;
+  border: 2px solid var(--stroke);
+  border-radius: 8px;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--black);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.15s ease;
+  width: 100%;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.trackBtn {
+  padding: 1.2rem 2.4rem;
+  background: var(--accent);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 130px;
+  min-height: 52px;
+}
+
+.trackBtn:hover:not(:disabled) {
+  background: var(--accent600);
+  transform: translateY(-1px);
+}
+
+.trackBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Flight Card ── */
+.resultWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: fadeUp 0.3s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  background: var(--accent);
+  border-radius: 10px 10px 0 0;
+  padding: 2.4rem 2.8rem 2rem;
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle noise texture overlay */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  background-size: 200px;
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+/* ── Card top ── */
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.4rem;
+}
+
+.airline {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.airlineCode {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.7rem;
+  border-radius: 4px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.airlineName {
+  font-size: 1.4rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.flightNum {
+  font-size: 1.3rem;
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+/* ── Status badge ── */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 1.2rem;
+  border-radius: 20px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.statusOnTime {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--darkGreen);
+}
+
+.statusDelayed {
+  background: var(--yellow);
+  color: var(--darkYellow);
+}
+
+.statusCancelled {
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--white);
+}
+
+.statusLanded {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--blue);
+}
+
+.statusInFlight {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--white);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.statusBoarding {
+  background: var(--yellow);
+  color: var(--darkYellow);
+}
+
+.delayText {
+  font-size: 1.2rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+/* ── Route display ── */
+.route {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  margin-bottom: 2.4rem;
+}
+
+.airport {
+  flex: 0 0 auto;
+}
+
+.airportRight {
+  text-align: right;
+}
+
+.iata {
+  font-size: 4.8rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--white);
+}
+
+.airportName {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  margin-top: 0.2rem;
+  max-width: 110px;
+  line-height: 1.3;
+}
+
+.airportRight .airportName {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* ── Flight path ── */
+.flightPath {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 24px;
+}
+
+.dashedLine {
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.5) 0px,
+    rgba(255, 255, 255, 0.5) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.dashedLineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+
+.planeIcon {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+  animation: glide 3s ease-in-out infinite;
+}
+
+@keyframes glide {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ── Times ── */
+.times {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 1.4rem 1.8rem;
+}
+
+.timeBlock {
+  flex: 1;
+}
+
+.timeBlockRight {
+  text-align: right;
+}
+
+.timeLabel {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.65;
+  margin-bottom: 0.3rem;
+}
+
+.timeValue {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.terminal {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  margin-top: 0.3rem;
+  font-weight: 500;
+}
+
+.timeDivider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+/* ── Date strip ── */
+.dateStrip {
+  text-align: center;
+  margin-top: 1.6rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  opacity: 0.6;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ── CTA Box ── */
+.ctaBox {
+  background: var(--black);
+  border-radius: 0 0 10px 10px;
+  padding: 2rem 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.ctaContent {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ctaIcon {
+  font-size: 2.4rem;
+  flex-shrink: 0;
+  display: none;
+}
+
+.ctaHeadline {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  color: var(--white);
+  margin-bottom: 0.3rem;
+}
+
+.ctaBody {
+  font-size: 1.4rem;
+  color: var(--black300);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ctaBtn {
+  display: inline-block;
+  padding: 1rem 1.8rem;
+  background: var(--accent);
+  color: var(--white);
+  border-radius: 5px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.ctaBtn:hover {
+  background: var(--accent600);
+  transform: translateY(-1px);
+}
+
+/* ── Error state ── */
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.4rem;
+  padding: 1.8rem 2rem;
+  background: #fff0ef;
+  border: 1px solid var(--accent100);
+  border-radius: 10px;
+  animation: fadeUp 0.25s ease both;
+}
+
+.errorIcon {
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.errorTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent600);
+  margin-bottom: 0.3rem;
+}
+
+.errorBody {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+}
+
+/* ── Skeleton ── */
+.skeleton {
+  animation: fadeUp 0.2s ease both;
+}
+
+.skeletonCard {
+  background: var(--accent);
+  border-radius: 16px;
+  padding: 2.4rem 2.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  opacity: 0.6;
+}
+
+.skeletonLine {
+  height: 14px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+.skeletonShort { width: 40%; }
+.skeletonFull { width: 100%; }
+
+.skeletonRoute {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.skeletonIata {
+  width: 80px;
+  height: 52px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+.skeletonPath {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ── Footer note ── */
+.footerNote {
+  font-size: 1.3rem;
+  color: var(--black300);
+  margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 560px) {
+  .form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .trackBtn {
+    grid-column: 1 / -1;
+  }
+
+  .iata {
+    font-size: 3.6rem;
+  }
+
+  .card {
+    padding: 2rem 1.8rem 1.6rem;
+  }
+
+  .ctaBox {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.6rem 1.8rem;
+  }
+
+  .ctaBtn {
+    width: 100%;
+    text-align: center;
+  }
+}
