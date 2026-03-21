@@ -87,7 +87,9 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -116,7 +118,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Flight Card ── */
@@ -128,8 +132,14 @@
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .card {
@@ -311,8 +321,13 @@
 }
 
 @keyframes glide {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 /* ── Times ── */
@@ -425,7 +440,9 @@
   text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
 }
 
 .ctaBtn:hover {
@@ -493,8 +510,12 @@
   animation: shimmer 1.2s ease-in-out infinite;
 }
 
-.skeletonShort { width: 40%; }
-.skeletonFull { width: 100%; }
+.skeletonShort {
+  width: 40%;
+}
+.skeletonFull {
+  width: 100%;
+}
 
 .skeletonRoute {
   display: flex;
@@ -519,8 +540,13 @@
 }
 
 @keyframes shimmer {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* ── Footer note ── */
@@ -558,4 +584,15 @@
     width: 100%;
     text-align: center;
   }
+}
+
+.appliedNote {
+  margin-top: 1.2rem;
+  padding: 0.8rem 1.2rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--white);
+  text-align: center;
 }

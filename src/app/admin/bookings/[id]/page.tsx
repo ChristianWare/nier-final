@@ -1592,7 +1592,12 @@ export default async function AdminBookingDetailPage({
                       <KeyVal k='Airline' v={booking.flightAirline} />
                     )}
                     {booking.flightNumber && (
-                      <KeyVal k='Flight Number' v={booking.flightNumber} />
+                      <KeyVal
+                        k='Flight Number'
+                        v={booking.flightNumber
+                          .replace(/\s+/g, "")
+                          .toUpperCase()}
+                      />
                     )}
                     {booking.flightScheduledAt && (
                       <KeyVal
@@ -1611,7 +1616,9 @@ export default async function AdminBookingDetailPage({
                     {booking.flightNumber && (
                       <div style={{ marginTop: 16 }}>
                         <FlightStatusCard
-                          flightNumber={booking.flightNumber}
+                          flightNumber={booking.flightNumber
+                            .replace(/\s+/g, "")
+                            .toUpperCase()}
                           flightDate={flightDateForLookup}
                           airportLeg={airportLeg}
                         />

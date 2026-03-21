@@ -402,3 +402,148 @@
     width: 100%;
   }
 }
+
+/* ── Flight summary card (Step 3) ── */
+.flightSummaryCard {
+  background: var(--accent);
+  border-radius: 10px;
+  padding: 2rem 2.4rem 1.6rem;
+  color: var(--white);
+  position: relative;
+  overflow: hidden;
+}
+
+.flightSummaryTop {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.6rem;
+}
+
+.flightSummaryAirlineCode {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.7rem;
+  border-radius: 4px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.flightSummaryAirlineName {
+  font-size: 1.4rem;
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.flightSummaryFlightNum {
+  font-size: 1.3rem;
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+.flightSummaryTimes {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+  padding: 1.4rem 1.8rem;
+}
+
+.flightSummaryTimeBlock {
+  flex: 1;
+}
+
+.flightSummaryTimeBlockRight {
+  text-align: right;
+}
+
+.flightSummaryTimeLabel {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.65;
+  margin-bottom: 0.3rem;
+}
+
+.flightSummaryTimeValue {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+
+.flightSummaryTerminal {
+  font-size: 1.2rem;
+  opacity: 0.7;
+  margin-top: 0.3rem;
+  font-weight: 500;
+}
+
+.flightSummaryDivider {
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.flightSummaryDate {
+  text-align: center;
+  margin-top: 1.4rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  opacity: 0.6;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.flightSummaryRoute {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  margin-bottom: 1.6rem;
+}
+
+.flightSummaryIata {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.flightSummaryPath {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 24px;
+}
+
+.flightSummaryDashedLine {
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.5) 0px,
+    rgba(255, 255, 255, 0.5) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.flightSummaryPlane {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.flightSummaryDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}

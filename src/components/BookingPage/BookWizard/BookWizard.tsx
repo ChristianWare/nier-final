@@ -37,6 +37,7 @@ import Modal from "@/components/shared/Modal/Modal";
 import { localToUtcIso, isPickupTooSoon } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Button from "@/components/shared/Button/Button";
+import FlightTracker from "@/components/shared/FlightTracker/FlightTracker";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -273,6 +274,8 @@ export default function BookingWizard({
   const [submitted, setSubmitted] = useState(false);
   const [savedLegs, setSavedLegs] = useState<SavedLeg[]>([]);
   const [removeLegId, setRemoveLegId] = useState<string | null>(null);
+  const [flightDepIata, setFlightDepIata] = useState<string | null>(null);
+  const [flightArrIata, setFlightArrIata] = useState<string | null>(null);
 
   const services = useMemo<ServiceTypeDTO[]>(
     () => serviceTypes ?? [],
@@ -1897,70 +1900,43 @@ export default function BookingWizard({
                             ? "Provide your flight details so we can monitor for delays and adjust your pickup time if needed."
                             : "Provide your flight details so your driver knows which terminal to drop you off at."}
                         </p>
-                        <div style={{ display: "grid", gap: 8 }}>
-                          <label className='cardTitle h5'>Airline</label>
-                          <AirlineSelect
-                            value={flightAirline}
-                            onChange={(name) =>
-                              setValue("flightAirline", name, {
-                                shouldDirty: true,
-                              })
-                            }
-                            onAirlineCodeSelected={(iataCode) => {
-                              const current = flightNumber
-                                .replace(/\s+/g, "")
-                                .toUpperCase();
-                              if (!current || /^[A-Z]{2}$/.test(current)) {
-                                setValue("flightNumber", iataCode, {
-                                  shouldDirty: true,
-                                });
-                              } else if (/^[A-Z]{2}\d/.test(current)) {
-                                const digits = current.replace(/^[A-Z]{2}/, "");
-                                setValue("flightNumber", iataCode + digits, {
-                                  shouldDirty: true,
-                                });
-                              } else {
-                                setValue("flightNumber", iataCode + current, {
-                                  shouldDirty: true,
-                                });
-                              }
-                            }}
-                          />
-                        </div>
-                        <FlightLookupInput
-                          flightNumber={flightNumber}
-                          flightDate={pickupAtDate}
+                        <FlightTracker
+                          hideCta
                           airportLeg={usesPickupAirport ? "PICKUP" : "DROPOFF"}
-                          onFlightNumberChange={(val) =>
-                            setValue("flightNumber", val, {
-                              shouldDirty: true,
-                            })
-                          }
+                          initialDate={pickupAtDate}
                           onFlightFound={(data) => {
-                            if (data.airline) {
+                            if (data.airline)
                               setValue("flightAirline", data.airline, {
                                 shouldDirty: true,
                               });
-                            }
-                            if (data.terminal) {
+                            if (data.flightNumber)
+                              setValue(
+                                "flightNumber",
+                                data.flightNumber
+                                  .replace(/\s+/g, "")
+                                  .toUpperCase(),
+                                { shouldDirty: true },
+                              );
+                            if (data.terminal)
                               setValue("flightTerminal", data.terminal, {
                                 shouldDirty: true,
                               });
-                            }
-                            if (data.scheduledDate) {
+                            if (data.scheduledDate)
                               setValue(
                                 "flightScheduledAtDate",
                                 data.scheduledDate,
                                 { shouldDirty: true },
                               );
-                            }
-                            if (data.scheduledTime) {
+                            if (data.scheduledTime)
                               setValue(
                                 "flightScheduledAtTime",
                                 data.scheduledTime,
                                 { shouldDirty: true },
                               );
-                            }
+                            if (data.departureAirport)
+                              setFlightDepIata(data.departureAirport);
+                            if (data.arrivalAirport)
+                              setFlightArrIata(data.arrivalAirport);
                           }}
                         />
                       </div>
@@ -2210,6 +2186,7 @@ export default function BookingWizard({
                     <SummaryRow
                       label='Dropoff'
                       value={route?.dropoff?.address ?? "—"}
+                      noBorder
                     />
                     {(route?.stops?.length ?? 0) > 0 && (
                       <>
@@ -2287,61 +2264,118 @@ export default function BookingWizard({
                         )}
                       </>
                     ) : null}
+                    <br />
                     {hasFlightInfo && (
-                      <>
-                        <div
-                          style={{
-                            borderTop: "1px solid rgba(0,0,0,0.1)",
-                            marginTop: 12,
-                            paddingTop: 12,
-                          }}
-                        >
+                      <div className={styles.flightSummaryCard}>
+                        <div className={styles.flightSummaryTop}>
+                          {flightAirline && (
+                            <span className={styles.flightSummaryAirlineCode}>
+                              {flightAirline.slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
+                          {flightAirline && (
+                            <span className={styles.flightSummaryAirlineName}>
+                              {flightAirline}
+                            </span>
+                          )}
+                          {flightNumber && (
+                            <span className={styles.flightSummaryFlightNum}>
+                              {flightNumber}
+                            </span>
+                          )}
+                        </div>
+
+                        {flightDepIata && flightArrIata && (
+                          <div className={styles.flightSummaryRoute}>
+                            <div className={styles.flightSummaryIata}>
+                              {flightDepIata}
+                            </div>
+                            <div className={styles.flightSummaryPath}>
+                              <div className={styles.flightSummaryDashedLine} />
+                              <span className={styles.flightSummaryPlane}>
+                                ✈
+                              </span>
+                              <div className={styles.flightSummaryDot} />
+                            </div>
+                            <div className={styles.flightSummaryIata}>
+                              {flightArrIata}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className={styles.flightSummaryTimes}>
+                          <div className={styles.flightSummaryTimeBlock}>
+                            <div className={styles.flightSummaryTimeLabel}>
+                              {usesPickupAirport ? "Arriving" : "Departing"}
+                            </div>
+                            <div className={styles.flightSummaryTimeValue}>
+                              {flightScheduledAtDate && flightScheduledAtTime
+                                ? (() => {
+                                    try {
+                                      const [hStr, mStr] =
+                                        flightScheduledAtTime.split(":");
+                                      let h = parseInt(hStr, 10);
+                                      const ampm = h >= 12 ? "PM" : "AM";
+                                      if (h === 0) h = 12;
+                                      else if (h > 12) h -= 12;
+                                      return `${h}:${mStr} ${ampm}`;
+                                    } catch {
+                                      return "—";
+                                    }
+                                  })()
+                                : "—"}
+                            </div>
+                            {flightTerminal && (
+                              <div className={styles.flightSummaryTerminal}>
+                                Terminal {flightTerminal}
+                                {flightGate ? ` · Gate ${flightGate}` : ""}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className={styles.flightSummaryDivider} />
+
                           <div
-                            className='cardTitle h6'
-                            style={{ marginBottom: 8, opacity: 0.7 }}
+                            className={`${styles.flightSummaryTimeBlock} ${styles.flightSummaryTimeBlockRight}`}
                           >
-                            ✈️ Flight Information
+                            <div className={styles.flightSummaryTimeLabel}>
+                              Date
+                            </div>
+                            <div className={styles.flightSummaryTimeValue}>
+                              {flightScheduledAtDate
+                                ? (() => {
+                                    try {
+                                      const [, m, d] =
+                                        flightScheduledAtDate.split("-");
+                                      return `${m}/${d}`;
+                                    } catch {
+                                      return "—";
+                                    }
+                                  })()
+                                : "—"}
+                            </div>
                           </div>
                         </div>
-                        {flightAirline && (
-                          <SummaryRow label='Airline' value={flightAirline} />
-                        )}
-                        {flightNumber && (
-                          <SummaryRow
-                            label='Flight Number'
-                            value={flightNumber}
-                          />
-                        )}
+
                         {flightScheduledAtDate && (
-                          <SummaryRow
-                            label={
-                              usesPickupAirport
-                                ? "Arrival Time"
-                                : "Departure Time"
-                            }
-                            value={(() => {
+                          <div className={styles.flightSummaryDate}>
+                            {(() => {
                               try {
-                                const [y, m, d] =
-                                  flightScheduledAtDate.split("-");
-                                const datePart = `${m}/${d}/${y.slice(2)}`;
-                                if (!flightScheduledAtTime) return datePart;
-                                const [hStr, mStr] =
-                                  flightScheduledAtTime.split(":");
-                                let h = parseInt(hStr, 10);
-                                const ampm = h >= 12 ? "PM" : "AM";
-                                if (h === 0) h = 12;
-                                else if (h > 12) h -= 12;
-                                return `${datePart} @ ${h}:${mStr}${ampm}`;
+                                const d = new Date(
+                                  flightScheduledAtDate + "T00:00:00",
+                                );
+                                return d.toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                });
                               } catch {
                                 return flightScheduledAtDate;
                               }
                             })()}
-                          />
+                          </div>
                         )}
-                        {flightTerminal && (
-                          <SummaryRow label='Terminal' value={flightTerminal} />
-                        )}
-                      </>
+                      </div>
                     )}
                     <div
                       style={{

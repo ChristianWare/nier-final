@@ -68,19 +68,43 @@ type FlightResult =
   | Extract<FlightStatusResponse, { ok: true }>["flight"]
   | null;
 
+type Props = {
+  // ── Booking wizard integration ──
+  // When provided, the CTA box is hidden and flight data is passed
+  // back to the parent form instead of linking to /book
+  onFlightFound?: (data: {
+    airline?: string;
+    terminal?: string;
+    scheduledDate?: string;
+    scheduledTime?: string;
+    status?: string;
+    flightNumber?: string;
+    departureAirport?: string;
+    arrivalAirport?: string;
+  }) => void;
+  airportLeg?: "PICKUP" | "DROPOFF";
+  // When used inside the wizard, hide the CTA box
+  hideCta?: boolean;
+  // Pre-fill the date from the booking form
+  initialDate?: string;
+};
+
 function FlightCard({
   flight,
   loading,
   error,
+  hideCta,
+  airportLeg,
 }: {
   flight: FlightResult;
   loading: boolean;
   error: string | null;
+  hideCta?: boolean;
+  airportLeg?: "PICKUP" | "DROPOFF";
 }) {
   const isEmpty = !flight && !loading && !error;
   const isLoading = loading;
 
-  // Placeholder or real values
   const depIata = flight?.departure.airport.iata ?? "---";
   const arrIata = flight?.arrival.airport.iata ?? "---";
   const depName = flight?.departure.airport.name ?? "Enter flight number";
@@ -135,6 +159,11 @@ function FlightCard({
       ctaLabel = "Book Airport Dropoff →";
     }
   }
+
+  // When used in the booking wizard, show which leg's data was applied
+  const appliedLeg =
+    airportLeg === "DROPOFF" ? flight?.departure : flight?.arrival;
+  const appliedTerminal = appliedLeg?.terminal;
 
   return (
     <div className={styles.resultWrap}>
@@ -257,27 +286,42 @@ function FlightCard({
             ? "Loading…"
             : formatDate(depDate) || "Enter a flight number to track"}
         </div>
+
+        {/* Wizard success note — shows when used inside booking form */}
+        {flight && !hideCta && !isEmpty && (
+          <div className={styles.appliedNote}>
+            ✓ Flight details applied to your booking
+            {appliedTerminal ? ` · Terminal ${appliedTerminal}` : ""}
+          </div>
+        )}
       </div>
 
-      {/* CTA */}
-      <div className={styles.ctaBox}>
-        <div className={styles.ctaContent}>
-          <div>
-            <div className={styles.ctaHeadline}>{ctaHeadline}</div>
-            <p className={styles.ctaBody}>{ctaBody}</p>
+      {/* CTA — hidden when used inside booking wizard */}
+      {!hideCta && (
+        <div className={styles.ctaBox}>
+          <div className={styles.ctaContent}>
+            <div>
+              <div className={styles.ctaHeadline}>{ctaHeadline}</div>
+              <p className={styles.ctaBody}>{ctaBody}</p>
+            </div>
           </div>
+          <Link href={ctaHref} className={styles.ctaBtn}>
+            {ctaLabel}
+          </Link>
         </div>
-        <Link href={ctaHref} className={styles.ctaBtn}>
-          {ctaLabel}
-        </Link>
-      </div>
+      )}
     </div>
   );
 }
 
-export default function FlightTracker() {
+export default function FlightTracker({
+  onFlightFound,
+  airportLeg = "PICKUP",
+  hideCta,
+  initialDate,
+}: Props = {}) {
   const [flightNumber, setFlightNumber] = useState("");
-  const [date, setDate] = useState(getTodayIso());
+  const [date, setDate] = useState(initialDate ?? getTodayIso());
   const [loading, setLoading] = useState(false);
   const [flight, setFlight] = useState<FlightResult>(null);
   const [error, setError] = useState<string | null>(null);
@@ -294,6 +338,47 @@ export default function FlightTracker() {
       );
       if (res.ok) {
         setFlight(res.flight);
+
+        // ── Pass data back to booking wizard if callback provided ──
+        if (onFlightFound) {
+          const leg =
+            airportLeg === "DROPOFF"
+              ? res.flight.departure
+              : res.flight.arrival;
+
+          const scheduledRaw = leg.scheduledTime ?? leg.estimatedTime ?? null;
+
+          let scheduledDate: string | undefined;
+          let scheduledTime: string | undefined;
+
+          if (scheduledRaw) {
+            const raw = scheduledRaw.trim();
+            if (raw.includes("T")) {
+              scheduledDate = raw.split("T")[0];
+              const timePart = raw.split("T")[1];
+              scheduledTime = timePart?.substring(0, 5);
+            } else if (raw.includes(" ") && raw.includes("-")) {
+              const [datePart, rest] = raw.split(" ");
+              scheduledDate = datePart;
+              scheduledTime = rest?.substring(0, 5);
+            } else if (raw.includes(":") && raw.length <= 5) {
+              scheduledTime = raw;
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+              scheduledDate = raw;
+            }
+          }
+
+          onFlightFound({
+            airline: res.flight.airline.name ?? undefined,
+            terminal: leg.terminal ?? undefined,
+            scheduledDate,
+            scheduledTime,
+            status: res.flight.status,
+            flightNumber: res.flight.flightNumber ?? undefined,
+            departureAirport: res.flight.departure.airport.iata ?? undefined,
+            arrivalAirport: res.flight.arrival.airport.iata ?? undefined,
+          });
+        }
       } else {
         setError(res.error);
       }
@@ -306,16 +391,18 @@ export default function FlightTracker() {
 
   return (
     <div className={styles.wrapper}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerIcon}>✈</div>
-        <div>
-          <p className={styles.subtitle}>
-            Track any flight in real time — arrivals, departures, delays &
-            terminals
-          </p>
+      {/* Header — hidden when used inside booking wizard */}
+      {!hideCta && (
+        <div className={styles.header}>
+          <div className={styles.headerIcon}>✈</div>
+          <div>
+            <p className={styles.subtitle}>
+              Track any flight in real time — arrivals, departures, delays &
+              terminals
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Search form */}
       <div className={styles.form}>
@@ -375,7 +462,13 @@ export default function FlightTracker() {
       )}
 
       {/* Card — always visible */}
-      <FlightCard flight={flight} loading={loading} error={error} />
+      <FlightCard
+        flight={flight}
+        loading={loading}
+        error={error}
+        hideCta={hideCta}
+        airportLeg={airportLeg}
+      />
     </div>
   );
 }
