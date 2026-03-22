@@ -55,15 +55,23 @@ export default function Nav({
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
-  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const servicesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
 
+  // Track whether we're at the mobile breakpoint
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 1368);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
   useEffect(() => {
     const body = document.body;
     body.style.overflow =
-      window.innerWidth <= 1068 && isOpen ? "hidden" : "auto";
+      window.innerWidth <= 1368 && isOpen ? "hidden" : "auto";
     const handleResize = () => setIsOpen(false);
     window.addEventListener("resize", handleResize);
     return () => {
@@ -73,23 +81,22 @@ export default function Nav({
   }, [isOpen]);
 
   const toggleMenu = () => setIsOpen((s) => !s);
-  const closeMenu = () => {
-    setIsOpen(false);
-    setMobileServicesOpen(false);
-  };
+  const closeMenu = () => setIsOpen(false);
 
   const handleHamburgerClick = (e: MouseEvent<HTMLSpanElement>) => {
     e.stopPropagation();
     toggleMenu();
   };
 
-  // Services dropdown hover handlers with delay
+  // Desktop only — dropdown hover handlers
   const handleServicesMouseEnter = () => {
+    if (isMobile) return;
     if (servicesTimeoutRef.current) clearTimeout(servicesTimeoutRef.current);
     setServicesOpen(true);
   };
 
   const handleServicesMouseLeave = () => {
+    if (isMobile) return;
     servicesTimeoutRef.current = setTimeout(() => {
       setServicesOpen(false);
     }, 150);
@@ -146,12 +153,12 @@ export default function Nav({
 
   const items = [
     { text: "Home", href: "/" },
-    { text: "Services", href: "/services", hasDropdown: true },
+    { text: "Services *", href: "/services", hasDropdown: true },
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
     { text: "Corporate", href: "/corporate-accounts" },
     { text: "Wekopa", href: "/wekopa" },
-    { text: "Blog", href: "/blog" },
+    { text: "Charter", href: "/charter-bus-rental-phoenix" },
     { text: "Contact", href: "/contact" },
   ];
 
@@ -210,6 +217,7 @@ export default function Nav({
           {items.map((item) => {
             const active = isActive(item.href);
 
+            // Services item — dropdown on desktop, plain link on mobile
             if (item.hasDropdown) {
               return (
                 <div
@@ -218,64 +226,19 @@ export default function Nav({
                   onMouseEnter={handleServicesMouseEnter}
                   onMouseLeave={handleServicesMouseLeave}
                 >
-                  {/* Desktop: link that also opens dropdown */}
                   <Link
                     href={item.href}
                     className={`${styles.navItem} ${styles[color]} ${
                       active ? styles.navItemActive : ""
-                    } ${shouldBlend ? styles.blend : ""} ${styles.desktopOnly}`}
+                    } ${shouldBlend ? styles.blend : ""}`}
                     onClick={closeMenu}
                     aria-current={active ? "page" : undefined}
                   >
                     {item.text}
-                    <span className={styles.dropdownChevron}>
-                      {servicesOpen ? "▴" : "▾"}
-                    </span>
                   </Link>
 
-                  {/* Mobile: button that toggles accordion */}
-                  <button
-                    type='button'
-                    className={`${styles.navItem} ${styles.navItemBtn} ${styles.mobileOnly} ${
-                      active ? styles.navItemActive : ""
-                    }`}
-                    onClick={() => setMobileServicesOpen((v) => !v)}
-                    aria-expanded={mobileServicesOpen}
-                  >
-                    {item.text}
-                    <span className={styles.mobileChevron}>
-                      {mobileServicesOpen ? "▴" : "▾"}
-                    </span>
-                  </button>
-
-                  {/* Mobile accordion */}
-                  {mobileServicesOpen && (
-                    <div className={styles.mobileServicesAccordion}>
-                      {services.map((svc) => (
-                        <Link
-                          key={svc.slug}
-                          href={`/services/${svc.slug}`}
-                          className={styles.mobileServiceItem}
-                          onClick={closeMenu}
-                        >
-                          <span className={styles.mobileServiceTitle}>
-                            {svc.title}
-                          </span>
-                          <span className={styles.mobileServiceArrow}>→</span>
-                        </Link>
-                      ))}
-                      <Link
-                        href='/services'
-                        className={styles.mobileServicesAll}
-                        onClick={closeMenu}
-                      >
-                        See all services →
-                      </Link>
-                    </div>
-                  )}
-
-                  {/* Desktop dropdown */}
-                  {servicesOpen && (
+                  {/* Desktop dropdown — hidden on mobile via CSS */}
+                  {servicesOpen && !isMobile && (
                     <div
                       className={styles.servicesDropdown}
                       onMouseEnter={handleServicesMouseEnter}

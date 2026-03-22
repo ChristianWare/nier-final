@@ -40,8 +40,6 @@ import MercedesSedan from "../../public/images/vehicles/mercedesSedan.png";
 import PartyBus from "../../public/images/vehicles/partyBusii.png";
 import Bus from "../../public/images/vehicles/bus.png";
 import Limo from "../../public/images/vehicles/limo.png";
-import Charter from "../../public/images/vehicles/charter.jpg";
-import Charter2 from "../../public/images/vehicles/charter.jpg";
 import { VehicleData } from "./types/fleet";
 
 export const reviews = [
@@ -402,42 +400,7 @@ export const services = [
       },
     ],
   },
-  {
-    id: 10,
-    title: "Charter Bus Rental",
-    slug: "charter-bus-rental-phoenix",
-    copy: "56-passenger charter buses for corporate outings, weddings, airport transfers, and events across Phoenix. Professional driver, onboard restroom, and flat-rate pricing.",
-    src: Charter,
-    src2: Charter2,
-    description:
-      "When your group needs to move through the Valley together, Nier Transportation's charter bus rental is the answer. Our 56-passenger full-size charter bus comes fully equipped with reclining seats, onboard restroom, climate control, luggage storage, and entertainment systems. From Barrett-Jackson shuttles to wedding guest transport and corporate event logistics, we handle every detail so your group arrives on time — together.",
-    features: [
-      {
-        id: 10.1,
-        title: "56-Passenger Capacity",
-        details:
-          "Our full-size charter bus seats up to 56 passengers with reclining seats, overhead storage, and generous legroom for comfortable travel.",
-      },
-      {
-        id: 10.2,
-        title: "Onboard Restroom & Amenities",
-        details:
-          "No stops, no delays. The bus includes an onboard restroom, climate control, and entertainment systems for every passenger.",
-      },
-      {
-        id: 10.3,
-        title: "Professional Bus Driver",
-        details:
-          "Every driver is background-checked, uniformed, and experienced navigating Phoenix's venues, highways, and event corridors.",
-      },
-      {
-        id: 10.4,
-        title: "Flat-Rate Pricing",
-        details:
-          "Your charter bus quote is locked in at booking — no surge pricing, no surprise fees. We price by the hour or by the trip.",
-      },
-    ],
-  },
+ 
 ] as const;
 
 export const ServiceAreas = [
