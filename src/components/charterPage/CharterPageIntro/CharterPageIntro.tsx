@@ -27,7 +27,7 @@ export default function CharterPageIntro() {
             </p>
             <div className={styles.btnContainer}>
               <Button
-                href='#quote'
+                href='/contact'
                 text='Get a Free Quote'
                 btnType='underlinedBlack'
                 arrow

@@ -12,6 +12,7 @@ import Img1 from "../../../../public/images/other/road.jpg";
 import { usePathname } from "next/navigation";
 import Logo from "../Logo/Logo";
 import { useSession } from "next-auth/react";
+import { services } from "@/lib/data";
 
 export interface NavProps {
   navItemColor?: string;
@@ -53,6 +54,9 @@ export default function Nav({
 
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
+  const servicesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
 
@@ -69,12 +73,33 @@ export default function Nav({
   }, [isOpen]);
 
   const toggleMenu = () => setIsOpen((s) => !s);
-  const closeMenu = () => setIsOpen(false);
+  const closeMenu = () => {
+    setIsOpen(false);
+    setMobileServicesOpen(false);
+  };
 
   const handleHamburgerClick = (e: MouseEvent<HTMLSpanElement>) => {
     e.stopPropagation();
     toggleMenu();
   };
+
+  // Services dropdown hover handlers with delay
+  const handleServicesMouseEnter = () => {
+    if (servicesTimeoutRef.current) clearTimeout(servicesTimeoutRef.current);
+    setServicesOpen(true);
+  };
+
+  const handleServicesMouseLeave = () => {
+    servicesTimeoutRef.current = setTimeout(() => {
+      setServicesOpen(false);
+    }, 150);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (servicesTimeoutRef.current) clearTimeout(servicesTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -121,7 +146,7 @@ export default function Nav({
 
   const items = [
     { text: "Home", href: "/" },
-    { text: "Services", href: "/services" },
+    { text: "Services", href: "/services", hasDropdown: true },
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
     { text: "Corporate", href: "/corporate-accounts" },
@@ -130,7 +155,6 @@ export default function Nav({
     { text: "Contact", href: "/contact" },
   ];
 
-  // Only blend (white text) when truly transparent — at top, not open, no forced bg
   const shouldBlend = !scrolled && !isOpen && !background;
 
   const bgClass =
@@ -185,6 +209,123 @@ export default function Nav({
         >
           {items.map((item) => {
             const active = isActive(item.href);
+
+            if (item.hasDropdown) {
+              return (
+                <div
+                  key={item.href}
+                  className={styles.servicesWrapper}
+                  onMouseEnter={handleServicesMouseEnter}
+                  onMouseLeave={handleServicesMouseLeave}
+                >
+                  {/* Desktop: link that also opens dropdown */}
+                  <Link
+                    href={item.href}
+                    className={`${styles.navItem} ${styles[color]} ${
+                      active ? styles.navItemActive : ""
+                    } ${shouldBlend ? styles.blend : ""} ${styles.desktopOnly}`}
+                    onClick={closeMenu}
+                    aria-current={active ? "page" : undefined}
+                  >
+                    {item.text}
+                    <span className={styles.dropdownChevron}>
+                      {servicesOpen ? "▴" : "▾"}
+                    </span>
+                  </Link>
+
+                  {/* Mobile: button that toggles accordion */}
+                  <button
+                    type='button'
+                    className={`${styles.navItem} ${styles.navItemBtn} ${styles.mobileOnly} ${
+                      active ? styles.navItemActive : ""
+                    }`}
+                    onClick={() => setMobileServicesOpen((v) => !v)}
+                    aria-expanded={mobileServicesOpen}
+                  >
+                    {item.text}
+                    <span className={styles.mobileChevron}>
+                      {mobileServicesOpen ? "▴" : "▾"}
+                    </span>
+                  </button>
+
+                  {/* Mobile accordion */}
+                  {mobileServicesOpen && (
+                    <div className={styles.mobileServicesAccordion}>
+                      {services.map((svc) => (
+                        <Link
+                          key={svc.slug}
+                          href={`/services/${svc.slug}`}
+                          className={styles.mobileServiceItem}
+                          onClick={closeMenu}
+                        >
+                          <span className={styles.mobileServiceTitle}>
+                            {svc.title}
+                          </span>
+                          <span className={styles.mobileServiceArrow}>→</span>
+                        </Link>
+                      ))}
+                      <Link
+                        href='/services'
+                        className={styles.mobileServicesAll}
+                        onClick={closeMenu}
+                      >
+                        See all services →
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Desktop dropdown */}
+                  {servicesOpen && (
+                    <div
+                      className={styles.servicesDropdown}
+                      onMouseEnter={handleServicesMouseEnter}
+                      onMouseLeave={handleServicesMouseLeave}
+                    >
+                      <div className={styles.servicesDropdownInner}>
+                        {services.map((svc) => (
+                          <Link
+                            key={svc.slug}
+                            href={`/services/${svc.slug}`}
+                            className={styles.serviceDropdownItem}
+                            onClick={() => setServicesOpen(false)}
+                          >
+                            <div className={styles.serviceDropdownImg}>
+                              <Image
+                                src={svc.src}
+                                alt={svc.title}
+                                fill
+                                className={styles.serviceDropdownImgEl}
+                              />
+                              <div
+                                className={styles.serviceDropdownImgOverlay}
+                              />
+                            </div>
+                            <div className={styles.serviceDropdownText}>
+                              <span className={styles.serviceDropdownTitle}>
+                                {svc.title}
+                              </span>
+                              <span className={styles.serviceDropdownCopy}>
+                                {svc.copy.split(" ").slice(0, 8).join(" ")}…
+                              </span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                      <div className={styles.servicesDropdownFooter}>
+                        <Link
+                          href='/services'
+                          className={styles.servicesDropdownAll}
+                          onClick={() => setServicesOpen(false)}
+                        >
+                          View all services →
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.href}
@@ -201,7 +342,13 @@ export default function Nav({
           })}
 
           <div className={styles.menuImage}>
-            <Image src={Img1} alt='Menu image' title='Menu image' fill className={styles.img} />
+            <Image
+              src={Img1}
+              alt='Menu image'
+              title='Menu image'
+              fill
+              className={styles.img}
+            />
             <div className={styles.menuImageOverlay}>
               <Logo className={styles.logoii} />
             </div>

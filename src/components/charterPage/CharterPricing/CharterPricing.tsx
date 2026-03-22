@@ -1,6 +1,8 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./CharterPricing.module.css";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
+import Image from "next/image";
+import Img1 from "../../../../public/images/vehicles/charter.jpg";
 
 export default function CharterPricing() {
   return (
@@ -93,6 +95,15 @@ export default function CharterPricing() {
               us for a custom bus rental quote tailored to your group and
               itinerary. Gratuity optional.
             </p>
+            <div className={styles.imgContainer}>
+              <Image
+                src={Img1}
+                alt='Charter bus rental Phoenix — Nier Transportation'
+                title='Charter bus rental Phoenix — Nier Transportation'
+                fill
+                className={styles.img}
+              />
+            </div>
           </div>
         </div>
       </LayoutWrapper>
@@ -105,14 +116,14 @@ const vehicles = [
     slug: "56-passenger-charter-bus",
     title: "56-Passenger Charter Bus",
     seats: "Up to 56 passengers",
-    hourlyFromUSD: 150,
+    hourlyFromUSD: 250,
     airportTransferFromUSD: 295,
   },
   {
     slug: "minibus",
     title: "Minibus Rental",
     seats: "18–35 passengers",
-    hourlyFromUSD: 95,
-    airportTransferFromUSD: 175,
+    hourlyFromUSD: 210,
+    airportTransferFromUSD: 275,
   },
 ];

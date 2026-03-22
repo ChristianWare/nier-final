@@ -40,6 +40,8 @@ import MercedesSedan from "../../public/images/vehicles/mercedesSedan.png";
 import PartyBus from "../../public/images/vehicles/partyBusii.png";
 import Bus from "../../public/images/vehicles/bus.png";
 import Limo from "../../public/images/vehicles/limo.png";
+import Charter from "../../public/images/vehicles/charter.jpg";
+import Charter2 from "../../public/images/vehicles/charter.jpg";
 import { VehicleData } from "./types/fleet";
 
 export const reviews = [
@@ -400,6 +402,42 @@ export const services = [
       },
     ],
   },
+  {
+    id: 10,
+    title: "Charter Bus Rental",
+    slug: "charter-bus-rental-phoenix",
+    copy: "56-passenger charter buses for corporate outings, weddings, airport transfers, and events across Phoenix. Professional driver, onboard restroom, and flat-rate pricing.",
+    src: Charter,
+    src2: Charter2,
+    description:
+      "When your group needs to move through the Valley together, Nier Transportation's charter bus rental is the answer. Our 56-passenger full-size charter bus comes fully equipped with reclining seats, onboard restroom, climate control, luggage storage, and entertainment systems. From Barrett-Jackson shuttles to wedding guest transport and corporate event logistics, we handle every detail so your group arrives on time — together.",
+    features: [
+      {
+        id: 10.1,
+        title: "56-Passenger Capacity",
+        details:
+          "Our full-size charter bus seats up to 56 passengers with reclining seats, overhead storage, and generous legroom for comfortable travel.",
+      },
+      {
+        id: 10.2,
+        title: "Onboard Restroom & Amenities",
+        details:
+          "No stops, no delays. The bus includes an onboard restroom, climate control, and entertainment systems for every passenger.",
+      },
+      {
+        id: 10.3,
+        title: "Professional Bus Driver",
+        details:
+          "Every driver is background-checked, uniformed, and experienced navigating Phoenix's venues, highways, and event corridors.",
+      },
+      {
+        id: 10.4,
+        title: "Flat-Rate Pricing",
+        details:
+          "Your charter bus quote is locked in at booking — no surge pricing, no surprise fees. We price by the hour or by the trip.",
+      },
+    ],
+  },
 ] as const;
 
 export const ServiceAreas = [
@@ -489,6 +527,51 @@ export const homeQuestions = [
     question: "Do you offer group or corporate discounts?",
     answer:
       "Yes—teams of five or more traveling together, or accounts with recurring ride volume, qualify for custom corporate pricing and priority booking. Contact our sales team for a tailored rate sheet and service agreement.",
+  },
+] as const;
+
+export const charterQuestions = [
+  {
+    id: 1,
+    question: "How far in advance should I book a charter bus in Phoenix?",
+    answer:
+      "We recommend booking at least 2–4 weeks in advance for standard group trips, and 4–8 weeks for large events, weddings, or peak seasons like Barrett-Jackson, the Phoenix Open, or MLB Spring Training. That said, we can often accommodate last-minute requests — contact us and we'll do our best.",
+  },
+  {
+    id: 2,
+    question: "What is included in the charter bus rental price?",
+    answer:
+      "Your quoted rate includes the bus, a professional driver, fuel, and all standard onboard amenities — reclining seats, climate control, onboard restroom, luggage storage, and entertainment system. Gratuity is optional and not included in the base fare.",
+  },
+  {
+    id: 3,
+    question: "Can I customize the itinerary or add multiple stops?",
+    answer:
+      "Absolutely. We build custom itineraries for event shuttles, multi-venue trips, and full-day excursions. Share your pickup location, destinations, and timeline when requesting a quote and we'll structure the pricing around your specific route.",
+  },
+  {
+    id: 4,
+    question: "What is your cancellation policy for charter bus rentals?",
+    answer:
+      "Cancellations made more than 72 hours before the scheduled departure are eligible for a full refund. Cancellations within 72 hours may be subject to a cancellation fee. For large events or multi-bus bookings, different terms may apply — these will be clearly outlined in your service agreement.",
+  },
+  {
+    id: 5,
+    question: "Do you service routes outside of Phoenix?",
+    answer:
+      "Yes. While our home base is Phoenix, we regularly run charter bus service to Scottsdale, Tempe, Mesa, Chandler, Tucson, Sedona, Flagstaff, and beyond. Long-distance and out-of-state trips are available — just let us know your destination when requesting a quote.",
+  },
+  {
+    id: 6,
+    question: "Is alcohol allowed on the charter bus?",
+    answer:
+      "Alcohol is permitted for groups with passengers who are 21 and older, provided it is consumed responsibly. We ask that all passengers follow Arizona open container laws and treat the vehicle with respect. Any damage to the vehicle may result in additional charges.",
+  },
+  {
+    id: 7,
+    question: "How many passengers can your charter bus hold?",
+    answer:
+      "Our full-size charter bus seats up to 56 passengers. For smaller groups, our minibus rental options accommodate between 18 and 35 passengers. Not sure which fits your group? We'll help you match the right vehicle based on your headcount and luggage needs.",
   },
 ] as const;
 
@@ -1212,6 +1295,207 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     desc: "The classic stretch limo with fiber-optic lighting, privacy partition, and a premium sound system. The iconic choice for weddings, proms, and any occasion that deserves a grand entrance.",
     src: Limo, // replace with your limo image import
   },
+  {
+    id: 6,
+    title: "Mini Bus",
+    slug: "mini-party-bus-20-40",
+    class: "Party/Limo Bus",
+    heroLine: "Group celebrations with room to move.",
+    shortDesc:
+      "Open-plan seating, standing room, and lighting for a celebratory atmosphere—perfect for nights out and weddings.",
+    longDesc:
+      "Designed for celebrations and group fun with safety at the forefront. Great for bachelor/ette parties, concert nights, and wedding guest moves.",
+    seats: "20–40 seater",
+    luggage: "Ample cabin storage",
+    cargo: "Ample cabin storage",
+    cargoCuFt: "Config-dependent",
+    bestFor: ["Weddings", "Concerts", "Bachelor/ette", "Birthdays"],
+    specs: {
+      drivetrain: "RWD",
+      rideFeel: "Comfortable and social",
+      cabin: "Open plan with standing room",
+    },
+    amenities: [
+      "Bottled water",
+      "Phone chargers",
+      "Privacy tint",
+      "Ambient lighting",
+      "Bluetooth audio",
+    ],
+    safetyTech: [
+      "ABS & stability control",
+      "Forward collision warning",
+      "Parking sensors",
+      "Airbags where equipped",
+    ],
+    features: [
+      "Open-plan seating and lighting",
+      "Ideal for venue hops and celebration loops",
+      "Coordinated drop-offs and pickup windows",
+    ],
+    availabilityNotes:
+      "Alcohol policy varies by event—confirm at booking. No glass containers permitted.",
+    images: [
+      { src: PartyBus, alt: "Party bus exterior" },
+      { src: "/images/fleet/partybus-2.jpg", alt: "Party bus interior" },
+    ],
+    rateRules: {
+      minimumHours: 4,
+      hourlyFromUSD: 195,
+      meetAndGreetUSD: 0,
+      afterHoursSurchargePct: 25,
+      waitTimeGraceMin: 10,
+      extraStopUSD: 45,
+    },
+    policy: {
+      summary: "Free cancellation up to 72 hours before pickup.",
+      details: [
+        "Within 72 hours, cancellation fees may apply up to the full fare.",
+        "Security deposit may be required.",
+        "Spill/cleaning fees may apply if needed.",
+      ],
+    },
+    faqs: [
+      {
+        q: "Can we bring drinks onboard?",
+        a: "Policies vary by event—please confirm during booking. No glass containers are permitted.",
+      },
+      {
+        q: "Do you allow venue loops?",
+        a: "Yes—share your schedule and we'll build a safe loop with planned stops.",
+      },
+      {
+        q: "Is there a restroom onboard?",
+        a: "No—our party buses do not include restrooms. We can schedule brief stops as needed.",
+      },
+      {
+        q: "Can we play our own music and lights?",
+        a: "Yes—Bluetooth audio is available and ambient lighting is included. Share any special requests in advance.",
+      },
+      {
+        q: "Are decorations allowed?",
+        a: "Light, removable décor is fine with prior approval. No adhesives that leave residue, glitter, or confetti.",
+      },
+      {
+        q: "Is gratuity included?",
+        a: "Gratuity is optional unless specified for certain events. You can add it during checkout or after the ride.",
+      },
+    ],
+    seo: {
+      metaTitle: "Party Bus | Nier Transportation Fleet",
+      metaDescription:
+        "Celebrate safely with a party bus—perfect for weddings, concerts, and group nights out in Phoenix.",
+    },
+    desc: "Color-changing LED lights, Bluetooth sound system, and wrap-around seating turn every ride into an event. Perfect for birthdays, bachelor/bachelorette parties, and nights out on the town.",
+    src: PartyBus,
+  },
+  {
+    id: 7,
+    title: "Full-Size Motorcoach",
+    slug: "motorcoach",
+    class: "Full-Size Coach",
+    heroLine: "Full-size group transport for large parties and events.",
+    shortDesc:
+      "Reclining seats, overhead storage, and a smooth highway ride—built for corporate shuttles, wedding guests, and large group outings.",
+    longDesc:
+      "When your group outgrows a sprinter van, the motorcoach delivers. Full-size coach seating with reclining chairs, overhead compartments, and undercarriage luggage bays handle everything from corporate conference shuttles to multi-stop wedding guest transport.",
+    seats: "56 seater",
+    luggage: "Undercarriage luggage bays for full-size suitcases",
+    cargo: "Undercarriage luggage bays",
+    cargoCuFt: "Large undercarriage bays (config-dependent)",
+    bestFor: [
+      "Corporate shuttles",
+      "Wedding guest transport",
+      "Large group outings",
+      "Multi-stop itineraries",
+    ],
+    specs: {
+      drivetrain: "RWD",
+      rideFeel: "Smooth, stable highway ride with air suspension",
+      cabin: "Reclining seats, center aisle, overhead storage",
+    },
+    amenities: [
+      "Bottled water",
+      "Phone chargers (USB at each row)",
+      "Climate control",
+      "Overhead storage",
+      "PA system / microphone",
+      "Privacy tint",
+      "Luggage assistance",
+    ],
+    safetyTech: [
+      "ABS & stability control",
+      "Forward collision warning",
+      "Parking sensors / backup camera",
+      "Emergency exits throughout",
+      "Fire suppression system",
+    ],
+    features: [
+      "Reclining seats with armrests and headrests",
+      "Undercarriage luggage bays for suitcases and equipment",
+      "PA system for announcements and guided tours",
+      "Ideal for 30–50+ passenger groups",
+    ],
+    availabilityNotes:
+      "Black or white exterior available. Confirm color preference at booking.",
+    images: [
+      { src: Bus, alt: "Motorcoach exterior" },
+      { src: "/images/fleet/motorcoach-2.jpg", alt: "Motorcoach interior" },
+    ],
+    rateRules: {
+      minimumHours: 4,
+      hourlyFromUSD: 275,
+      meetAndGreetUSD: 0,
+      afterHoursSurchargePct: 25,
+      waitTimeGraceMin: 15,
+      extraStopUSD: 65,
+    },
+    policy: {
+      summary: "Free cancellation up to 7 days before pickup.",
+      details: [
+        "Within 7 days, cancellation fees may apply up to 50% of the fare.",
+        "Within 48 hours, full fare may be charged.",
+        "Non-refundable deposit required at booking for peak dates.",
+      ],
+    },
+    faqs: [
+      {
+        q: "How many passengers can the motorcoach hold?",
+        a: "Our motorcoach seats 40+ passengers comfortably with reclining seats and a center aisle.",
+      },
+      {
+        q: "Is there storage for luggage?",
+        a: "Yes—large undercarriage luggage bays hold full-size suitcases, equipment, and supplies. Overhead compartments are available for personal items.",
+      },
+      {
+        q: "Is there a restroom onboard?",
+        a: "Select units include an onboard restroom. Please request this at booking and we'll confirm availability.",
+      },
+      {
+        q: "Can we use the PA system for announcements?",
+        a: "Yes—a PA system with microphone is included, ideal for tour guides, corporate hosts, or wedding coordinators.",
+      },
+      {
+        q: "Is the motorcoach suitable for long-distance trips?",
+        a: "Absolutely. The air-ride suspension and reclining seats make it comfortable for highway travel to destinations like Sedona, Tucson, or Flagstaff.",
+      },
+      {
+        q: "Can we bring food and drinks onboard?",
+        a: "Light refreshments are permitted. No glass containers. Cleaning fees may apply for excessive spills.",
+      },
+    ],
+    seo: {
+      metaTitle: "Full-Size Motorcoach | Nier Transportation Fleet",
+      metaDescription:
+        "Full-size motorcoach for 40+ passengers. Reclining seats, luggage bays, and a smooth ride—ideal for corporate shuttles and large group events in Phoenix.",
+    },
+    desc: "Full-size coach with reclining seats, overhead storage, and a smooth highway ride. Ideal for corporate shuttles, wedding guest transport, large group outings, and multi-stop itineraries.",
+    src: Bus,
+  },
+] as const;
+
+export const fleetDataii: ReadonlyArray<VehicleData> = [
+ 
   {
     id: 6,
     title: "Mini Bus",

@@ -7,7 +7,7 @@
   display: grid;
   grid-template-columns: 1fr 2fr;
   grid-gap: 10rem;
-  align-items: start;
+  align-items: stretch; /* was start */
 }
 
 .left {
@@ -63,9 +63,10 @@
 }
 
 .right {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: auto auto auto 1fr;
+  grid-gap: 2rem;
 }
 
 .ratesGrid {
@@ -136,6 +137,18 @@
   font-size: 1.4rem;
   color: var(--paragraph);
   font-style: italic;
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  min-height: 300px;
+  height: 100%;
+}
+
+.img {
+  object-fit: cover;
+  border-radius: 10px;
 }
 
 @media screen and (max-width: 1268px) {

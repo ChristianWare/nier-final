@@ -56,7 +56,6 @@
   opacity: 1;
 }
 
-/* When scrolled, flip all nav text/icons to black */
 .scrolled {
   --nav-fg: var(--black);
   --nav-border: rgba(0, 0, 0, 0.12);
@@ -159,6 +158,18 @@
   transition: color 0.35s ease-in-out;
 }
 
+/* Reset button styles for the mobile services toggle */
+.navItemBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .navItemActive::after,
 .navItem:hover::after {
   content: "";
@@ -172,6 +183,11 @@
   border: 1px solid var(--black);
   background-color: var(--accent);
   margin: 0 auto;
+}
+
+/* Don't show dot on the button wrapper for the dropdown item */
+.navItemBtn::after {
+  display: none !important;
 }
 
 .black {
@@ -307,6 +323,222 @@
   color: var(--black);
 }
 
+/* ── Services dropdown ─────────────────────────────── */
+
+.servicesWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dropdownChevron {
+  font-size: 1rem;
+  margin-left: 0.4rem;
+  opacity: 0.6;
+  vertical-align: middle;
+  transition: transform 0.2s ease;
+}
+
+.servicesDropdown {
+  position: absolute;
+  top: calc(100% + 1.8rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 780px;
+  background: var(--white);
+  border-radius: 14px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--stroke);
+  overflow: hidden;
+  animation: dropdownFadeIn 0.18s ease both;
+  z-index: 9998;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.servicesDropdownInner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+.serviceDropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.4rem 1.6rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--lightGray);
+  border-right: 1px solid var(--lightGray);
+  transition: background 0.15s ease;
+  min-width: 0;
+}
+
+.serviceDropdownItem:hover {
+  background: var(--cream);
+}
+
+/* Remove right border on last column */
+.serviceDropdownItem:nth-child(3n) {
+  border-right: none;
+}
+
+/* Remove bottom border on last row items */
+.serviceDropdownItem:nth-last-child(-n+3) {
+  border-bottom: none;
+}
+
+.serviceDropdownImg {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.serviceDropdownImgEl {
+  object-fit: cover;
+}
+
+.serviceDropdownImgOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.1);
+  transition: background 0.15s ease;
+}
+
+.serviceDropdownItem:hover .serviceDropdownImgOverlay {
+  background: rgba(208, 49, 30, 0.15);
+}
+
+.serviceDropdownText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.serviceDropdownTitle {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.serviceDropdownCopy {
+  font-size: 1.2rem;
+  color: var(--paragraph);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.servicesDropdownFooter {
+  padding: 1.2rem 1.6rem;
+  background: var(--cream);
+  border-top: 1px solid var(--stroke);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.servicesDropdownAll {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.2px;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.servicesDropdownAll:hover {
+  opacity: 0.75;
+}
+
+/* ── Mobile helpers ─────────────────────────────────── */
+
+.desktopOnly {
+  display: flex;
+  align-items: center;
+}
+
+.mobileOnly {
+  display: none;
+}
+
+.mobileChevron {
+  font-size: 1rem;
+  opacity: 0.6;
+}
+
+.mobileServicesAccordion {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  overflow: hidden;
+}
+
+.mobileServiceItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 1.6rem;
+  border-bottom: 1px solid var(--stroke);
+  text-decoration: none;
+}
+
+.mobileServiceItem:last-child {
+  border-bottom: none;
+}
+
+.mobileServiceTitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--black);
+  letter-spacing: -0.2px;
+}
+
+.mobileServiceArrow {
+  font-size: 1.4rem;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.mobileServicesAll {
+  display: block;
+  padding: 1.2rem 1.6rem;
+  background: var(--accent);
+  color: var(--white);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  letter-spacing: -0.2px;
+}
+
+/* ────────────────────────────────────────────────────── */
+
 @media screen and (max-width: 1368px) {
   .navbar {
     display: flex;
@@ -364,6 +596,25 @@
     left: auto;
     right: auto;
     border: 1px solid var(--black);
+  }
+
+  /* Hide desktop dropdown on mobile */
+  .servicesDropdown {
+    display: none;
+  }
+
+  .desktopOnly {
+    display: none;
+  }
+
+  .mobileOnly {
+    display: flex;
+  }
+
+  .servicesWrapper {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
   }
 
   .menuImage {
