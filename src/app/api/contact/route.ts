@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/contact/route.ts
 import { NextRequest, NextResponse } from "next/server";
@@ -203,9 +204,10 @@ export async function POST(req: NextRequest) {
     });
 
     const toEmail =
-      supportEmail?.trim() ||
-      process.env.CONTACT_TO ||
-      "chris.ware.dev@gmail.com";
+      // supportEmail?.trim() ||
+      // process.env.CONTACT_TO ||
+      // "chris.ware.dev@gmail.com";
+      "balanier54@msn.com";
 
     const subject = `New inquiry — ${payload.firstName} ${payload.lastName}${
       payload.serviceNeeded ? ` — ${payload.serviceNeeded}` : ""
