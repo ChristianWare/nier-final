@@ -133,6 +133,7 @@ const SOCIAL_ICON_MAP: Record<
 
 export default async function Footer() {
   const settings = await getCompanySettings();
+  const currentYear = new Date().getFullYear();
 
   const socialLinks = [
     { key: "instagram", url: settings.instagramUrl, label: "Instagram" },
@@ -252,7 +253,9 @@ export default async function Footer() {
           </div>
           <div className={styles.bottom}>
             <div className={styles.bottomLeft}>
-              <small className={styles.small}>© 2026 {companyName}</small>
+              <small className={styles.small}>
+                © {currentYear} {companyName}
+              </small>
             </div>
             <div className={styles.bottomRight}>
               <small className={styles.small}>
