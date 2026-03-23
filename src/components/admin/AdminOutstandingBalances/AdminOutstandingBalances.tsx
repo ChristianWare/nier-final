@@ -444,7 +444,7 @@ export default function AdminOutstandingBalances({
                       data-label='Action'
                     >
                       <Link className='primaryBtn' href={href}>
-                        Collect
+                        Review
                       </Link>
                     </td>
                   </tr>

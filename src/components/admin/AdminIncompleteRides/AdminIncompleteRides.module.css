@@ -11,9 +11,9 @@
 .container {
   display: grid;
   gap: 2rem;
-  border: 1px solid var(--accent);
+  /* border: 1px solid var(--accent);
   border-radius: 10px;
-  padding: 2rem;
+  padding: 2rem; */
   background: rgba(208, 49, 30, 0.025);
 }
 

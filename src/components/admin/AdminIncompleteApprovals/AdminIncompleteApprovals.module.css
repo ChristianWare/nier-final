@@ -1,16 +1,16 @@
 .container {
   display: grid;
   gap: 2rem;
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 2rem;
-  margin-top: -3rem;
+  /* border: 1px solid var(--stroke); */
+  /* border-radius: 10px; */
+  /* padding: 2rem; */
+  /* margin-top: -3rem; */
 }
 
-.containerAlert {
-  background: #f9731624;
-  border: 1px solid #f9731673;
-}
+/* .containerAlert { */
+  /* background: #f9731624; */
+  /* border: 1px solid #f9731673; */
+/* } */
 
 .header {
   display: grid;
@@ -54,8 +54,9 @@
 
 .tabs {
   display: flex;
-  gap: 8px;
+  gap: 1rem;
   flex-wrap: wrap;
+  margin-bottom: 2rem;
 }
 
 .tabActive span {

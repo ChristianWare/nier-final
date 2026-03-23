@@ -1,0 +1,135 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* ── Tab bar ── */
+
+.tabBar {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--cream);
+  border-bottom: 1px solid var(--stroke);
+  gap: 0;
+}
+
+.tabBar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--black400);
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  border-left: 3px solid var(--stroke);
+}
+
+.tab:first-child {
+  border-left: none;
+}
+
+.tab:hover {
+  color: var(--black);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tabActive {
+  color: var(--black);
+  border-bottom-color: var(--black);
+  background: var(--white);
+}
+
+.tabLabel {
+  letter-spacing: -0.01em;
+}
+
+/* ── Count badges ── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: normal;
+  line-height: 1;
+}
+
+.badge_neutral {
+  background: rgba(0, 0, 0, 0.08);
+  color: var(--black);
+}
+
+.badge_warning {
+  background: rgba(245, 158, 11, 0.18);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.badge_danger {
+  background: rgba(208, 49, 30, 0.12);
+  color: var(--accent);
+  border: 1px solid rgba(208, 49, 30, 0.3);
+}
+
+/* ── Panels ── */
+
+.panels {
+  background: var(--white);
+}
+
+.panels > div {
+  /* Each panel gets padding so the inner components
+     don't need to worry about the outer container */
+  padding: 2rem;
+}
+
+/* ── Mobile ── */
+
+@media screen and (max-width: 768px) {
+  .tab {
+    padding: 12px 14px;
+    font-size: 1.4rem;
+  }
+
+  .panels > div {
+    padding: 1.6rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .tab {
+    padding: 10px 12px;
+    font-size: 1.4rem;
+  }
+
+  .badge {
+    min-width: 18px;
+    height: 18px;
+    font-size: 10px;
+  }
+
+  .panels > div {
+    padding: 1.2rem;
+  }
+}

@@ -1,9 +1,9 @@
 .container {
   display: grid;
   gap: 2rem;
-  border: 1px solid var(--stroke);
+  /* border: 1px solid var(--stroke);
   border-radius: 10px;
-  padding: 2rem;
+  padding: 2rem; */
 }
 
 .header {

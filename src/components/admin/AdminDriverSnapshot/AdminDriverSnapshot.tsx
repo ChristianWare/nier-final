@@ -435,7 +435,7 @@ export default async function AdminDriverSnapshot() {
                       data-label='Action'
                     >
                       <Link className='primaryBtn' href={href}>
-                        View
+                        Review
                       </Link>
                     </td>
                   </tr>

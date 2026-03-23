@@ -371,7 +371,7 @@ export default function AdminIncompleteApprovals({
                         data-label='Action'
                       >
                         <Link className='primaryBtn' href={href}>
-                          Fix
+                          Review
                         </Link>
                       </td>
                     </tr>

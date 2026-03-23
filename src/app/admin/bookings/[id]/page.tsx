@@ -41,6 +41,7 @@ import AdminCashPaymentButton from "@/components/admin/AdminCashPaymentButton/Ad
 import PriceBreakdownCard from "@/components/admin/PriceBreakdownCard/PriceBreakdownCard";
 import { getSavedCardForBooking } from "../../../../../actions/payments/chargeCardOnFileForCheckout";
 import SendEstimateButton from "./SendEstimateButton";
+import SendBalanceReminderButton from "./SendBalanceReminderButton";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1130,6 +1131,15 @@ export default async function AdminBookingDetailPage({
       recipientEmail: (e as any).metadata?.recipientEmail ?? null,
     }));
 
+  const reminderSentEvents = booking.statusEvents
+    .filter((e) => (e as any).eventType === "BALANCE_REMINDER_SENT")
+    .map((e) => ({
+      sentAt: e.createdAt.toISOString(),
+      recipientEmail: (e as any).metadata?.recipientEmail ?? null,
+    }));
+
+  const outstandingCents = Math.max(0, booking.totalCents - amountPaidCents);
+
   return (
     <DirtyFormProvider>
       <BookingEditProvider>
@@ -1362,6 +1372,39 @@ export default async function AdminBookingDetailPage({
                   estimateSentEvents={estimateSentEvents}
                 />
               </div>
+              <br />
+              <br />
+              {(paymentStatusDisplay.hasBalanceDue ||
+                booking.status === "PENDING_PAYMENT") && (
+                <>
+                  <div
+                    className={styles.sectionDivider}
+                    style={{ marginTop: 24 }}
+                  />
+                  <div className='cardTitle h5' style={{ marginBottom: 12 }}>
+                    Send balance reminder
+                  </div>
+                  <div
+                    className='miniNote'
+                    style={{ marginTop: 0, marginBottom: "1.6rem" }}
+                  >
+                    Send the customer an email reminding them of their
+                    outstanding balance with a direct link to complete payment.
+                  </div>
+                  <SendBalanceReminderButton
+                    bookingId={booking.id}
+                    customerEmail={
+                      booking.user?.email ?? booking.guestEmail ?? null
+                    }
+                    outstandingCents={outstandingCents}
+                    totalCents={booking.totalCents}
+                    currency={booking.currency}
+                    pickupAtIso={booking.pickupAt.toISOString()}
+                    timeZone={companyTz}
+                    reminderSentEvents={reminderSentEvents}
+                  />
+                </>
+              )}
             </header>
 
             {/* ═══════════════════════════════════════════════════════════════════
@@ -2145,6 +2188,9 @@ export default async function AdminBookingDetailPage({
                     } else if (eventType === "ESTIMATE_SENT") {
                       tone = "accent";
                       label = "Estimate sent";
+                    } else if (eventType === "BALANCE_REMINDER_SENT") {
+                      tone = "accent";
+                      label = "Balance reminder sent";
                     }
 
                     const actorLabel = getEventActorLabel(

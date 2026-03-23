@@ -42,6 +42,8 @@ import AdminOutstandingBalances, {
 import AdminIncompleteRides, {
   IncompleteRideItem,
 } from "@/components/admin/AdminIncompleteRides/AdminIncompleteRides";
+import AdminDashboardTabs from "@/components/admin/AdminDashboardTabs/AdminDashboardTabs";
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -2081,7 +2083,7 @@ export default async function AdminHome() {
         confirmed={confirmed}
       />
       <AdminFinanceSnapshot {...snap} currency='USD' />
-      <AdminRecentBookingRequests
+      {/* <AdminRecentBookingRequests
         items={recentBookingRequests}
         timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
@@ -2109,10 +2111,70 @@ export default async function AdminHome() {
         items={outstandingBalanceItems}
         timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
-      />
+      /> */}
       {/* <div className={styles.graphCalendarContainer}>
         <AdminQuickActions />
       </div> */}
+
+      <AdminDashboardTabs
+        // ── Counts for tab badges ──
+        // Booking requests: only pending review items are truly actionable
+        countBookingRequests={
+          recentBookingRequests.filter((x) => x.status === "PENDING_REVIEW")
+            .length
+        }
+        // Incomplete rides: whatever survived the JS filter in the transform
+        countIncompleteRides={incompleteRides.length}
+        // Alerts: total number of alert items
+        countAlerts={alerts.length}
+        // Incomplete approvals: all items needing attention
+        countIncompleteApprovals={incompleteApprovals.length}
+        // Payments: today's received payments (activity indicator)
+        countPaymentsReceived={paymentsToday.length}
+        // Outstanding balances: total unpaid/partial items
+        countOutstandingBalances={outstandingBalanceItems.length}
+        // ── Panel content — server components passed as ReactNode slots ──
+        bookingRequests={
+          <AdminRecentBookingRequests
+            items={recentBookingRequests}
+            timeZone={companyTz}
+            bookingHrefBase='/admin/bookings'
+          />
+        }
+        incompleteRides={
+          <AdminIncompleteRides
+            items={incompleteRides}
+            timeZone={companyTz}
+            bookingHrefBase='/admin/bookings'
+          />
+        }
+        alerts={<AdminAlerts alerts={alerts} />}
+        incompleteApprovals={
+          <AdminIncompleteApprovals
+            items={incompleteApprovals}
+            timeZone={companyTz}
+            bookingHrefBase='/admin/bookings'
+          />
+        }
+        paymentsReceived={
+          <AdminPaymentsSnapshot
+            paymentsToday={paymentsToday}
+            paymentsThisWeek={paymentsThisWeek}
+            paymentLinksToday={paymentLinksToday}
+            paymentLinksThisWeek={paymentLinksThisWeek}
+            timeZone={companyTz}
+            bookingHrefBase='/admin/bookings'
+          />
+        }
+        outstandingBalances={
+          <AdminOutstandingBalances
+            items={outstandingBalanceItems}
+            timeZone={companyTz}
+            bookingHrefBase='/admin/bookings'
+          />
+        }
+      />
+
       <AdminTodaysRides
         items={todaysRides}
         timeZone={companyTz}
