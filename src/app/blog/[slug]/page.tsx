@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./BlogPostPage.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
@@ -11,6 +10,8 @@ import { notFound } from "next/navigation";
 import MoreInsights from "@/components/BlogPage/MoreInsights/MoreInsights";
 import type { Metadata } from "next";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
+import Button from "@/components/shared/Button/Button";
+import TableOfContents from "./TableOfContents";
 
 type Tag = { _id: string; name: string; slug?: { current?: string } };
 
@@ -55,7 +56,7 @@ async function getPost(slug: string): Promise<Post | null> {
   const post = await client.fetch<Post | null>(
     query,
     { slug },
-    { next: { revalidate } }
+    { next: { revalidate } },
   );
   return post;
 }
@@ -98,9 +99,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: {
-      canonical,
-    },
+    alternates: { canonical },
     openGraph: {
       title,
       description,
@@ -128,13 +127,30 @@ export async function generateMetadata({
   };
 }
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+function extractHeadings(body: any[]): { text: string; id: string }[] {
+  return body
+    .filter((b) => b._type === "block" && b.style === "h2")
+    .map((b) => {
+      const text = b.children?.map((c: any) => c.text).join("") || "";
+      return { text, id: slugify(text) };
+    })
+    .filter((h) => h.text.length > 0);
+}
+
 const ptComponents: PortableTextComponents = {
   types: {
     image: ({ value }) => {
       if (!value?.asset?._ref && !value?.asset?._id) return null;
       const alt = value?.alt || "Blog image";
       const src = urlFor(value).width(1600).fit("max").url();
-
       return (
         <figure className={styles.ptImage}>
           <Image
@@ -174,7 +190,15 @@ const ptComponents: PortableTextComponents = {
     code: ({ children }) => <code className={styles.ptCode}>{children}</code>,
   },
   block: {
-    h2: ({ children }) => <h2 className={`${styles.ptH2} cardTitle h4`}>{children}</h2>,
+    h2: ({ children, value }) => {
+      const text = value?.children?.map((c: any) => c.text).join("") || "";
+      const id = slugify(text);
+      return (
+        <h2 id={id} className={`${styles.ptH2} cardTitle h4`}>
+          {children}
+        </h2>
+      );
+    },
     h3: ({ children }) => <h3 className={styles.ptH3}>{children}</h3>,
     normal: ({ children }) => <p className={styles.ptP}>{children}</p>,
     blockquote: ({ children }) => (
@@ -197,12 +221,9 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const [post] = await Promise.all([getPost(slug), getAllTags()]);
 
-  const [post, tags] = await Promise.all([getPost(slug), getAllTags()]);
-
-  if (!post?._id) {
-    notFound();
-  }
+  if (!post?._id) notFound();
 
   const prettyDate = new Date(post.publishedAt).toLocaleDateString("en-US", {
     month: "long",
@@ -214,22 +235,22 @@ export default async function BlogPostPage({
     ? urlFor(post.coverImage).width(2000).height(1200).fit("crop").url()
     : undefined;
 
+  const headings = post.body ? extractHeadings(post.body) : [];
+  const postUrl = `${SITE_URL}/blog/${post.slug.current}`;
+
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.excerpt || "",
-    url: `${SITE_URL}/blog/${post.slug.current}`,
+    url: postUrl,
     datePublished: post.publishedAt,
     dateModified: post.publishedAt,
     author: {
       "@type": "Person",
       name: "Barry LaNier",
       jobTitle: "Owner, CEO",
-      worksFor: {
-        "@type": "Organization",
-        name: CLIENT_NAME,
-      },
+      worksFor: { "@type": "Organization", name: CLIENT_NAME },
     },
     publisher: {
       "@type": "Organization",
@@ -247,77 +268,155 @@ export default async function BlogPostPage({
         height: 1200,
       },
     }),
-    ...(post.tags &&
-      post.tags.length > 0 && {
-        keywords: post.tags.map((t) => t.name).join(", "),
-      }),
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `${SITE_URL}/blog/${post.slug.current}`,
-    },
+    ...(post.tags?.length && {
+      keywords: post.tags.map((t) => t.name).join(", "),
+    }),
+    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
   };
 
   return (
     <main className={styles.container}>
       <script
-        type="application/ld+json"
+        type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
       />
-      <Nav background="cream" />
+      <Nav background='white' />
+
       <LayoutWrapper>
-        <div className={styles.top}>
-          <div className={styles.left}>
-            <div className={styles.leftTop}>
-              {post?.tags?.length ? (
-                <ul className={styles.tags}>
-                  {post.tags.map((t) => (
-                    <li key={t._id}>
-                      {t.slug?.current ? (
-                        <SectionHeading text={t.name} dot />
-                      ) : (
-                        <SectionHeading text={CLIENT_NAME} dot />
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              <h1 className={`${styles.heading} h2`}>{post.title}</h1>
-              <div className={styles.date}>
-                Barry LaNier - Owner, CEO • {prettyDate}
-              </div>
-            </div>
+        {/* ── Post header: tags + title + excerpt ── */}
+        <header className={styles.header}>
+          {post?.tags?.length ? (
+            <ul className={styles.tags}>
+              {post.tags.map((t) => (
+                <li key={t._id}>
+                  <SectionHeading
+                    text={t.slug?.current ? t.name : CLIENT_NAME}
+                    dot
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          <h1 className={`${styles.heading} h2`}>{post.title}</h1>
+          {post.excerpt && <p className={styles.excerpt}>{post.excerpt}</p>}
+        </header>
 
-            <div className={styles.leftBottom}>
-              <article className={styles.article}>
-                {coverSrc && (
-                  <div className={styles.imgContainer}>
-                    <Image
-                      src={coverSrc}
-                      alt={post?.coverImage?.alt || post.title}
-                      title={post?.coverImage?.alt || post.title}
-                      fill
-                      priority
-                      className={styles.img}
-                    />
-                  </div>
-                )}
+        {/* ── Cover image: full width ── */}
+        {coverSrc && (
+          <div className={styles.coverWrap}>
+            <Image
+              src={coverSrc}
+              alt={post?.coverImage?.alt || post.title}
+              title={post?.coverImage?.alt || post.title}
+              fill
+              priority
+              className={styles.coverImg}
+            />
+          </div>
+        )}
 
-                {post?.excerpt ? (
-                  <p className={styles.introText}>{post.excerpt}</p>
-                ) : null}
-
-                {post?.body?.length ? (
-                  <div className={styles.body}>
-                    <PortableText value={post.body} components={ptComponents} />
-                  </div>
-                ) : null}
-              </article>
+        {/* ── Author + share bar ── */}
+        <div className={styles.authorBar}>
+          <div className={styles.authorLeft}>
+            <div className={styles.authorAvatar}>BL</div>
+            <div className={styles.authorInfo}>
+              <span className={styles.authorName}>Barry LaNier</span>
+              <span className={styles.authorRole}>
+                Owner, CEO • {prettyDate}
+              </span>
             </div>
           </div>
+          <div className={styles.shareRow}>
+            <span className={styles.shareLabel}>Share</span>
+            <a
+              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={styles.shareBtn}
+              aria-label='Share on Facebook'
+            >
+              <svg
+                width='16'
+                height='16'
+                viewBox='0 0 24 24'
+                fill='currentColor'
+              >
+                <path d='M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z' />
+              </svg>
+            </a>
+            <a
+              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(postUrl)}`}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={styles.shareBtn}
+              aria-label='Share on LinkedIn'
+            >
+              <svg
+                width='16'
+                height='16'
+                viewBox='0 0 24 24'
+                fill='currentColor'
+              >
+                <path d='M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z' />
+                <rect x='2' y='9' width='4' height='12' />
+                <circle cx='4' cy='4' r='2' />
+              </svg>
+            </a>
+            <a
+              href={`https://x.com/intent/tweet?url=${encodeURIComponent(postUrl)}&text=${encodeURIComponent(post.title)}`}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={styles.shareBtn}
+              aria-label='Share on X'
+            >
+              <svg
+                width='16'
+                height='16'
+                viewBox='0 0 24 24'
+                fill='currentColor'
+              >
+                <path d='M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' />
+              </svg>
+            </a>
+          </div>
         </div>
-        <div className={styles.categoriesContainer}>
-          <span className={`${styles.searchHeading} h3`}>Recent Posts</span>
-          <MoreInsights currentSlug={post.slug.current} />
+
+        {/* ── Three-column body ── */}
+        <div className={styles.threeCol}>
+          {/* Col 1: Sticky sidebar — CTA + TOC */}
+          <aside className={styles.sidebar}>
+            <div className={styles.sidebarSticky}>
+              <div className={styles.sideCta}>
+                <p className={styles.sideCtaText}>
+                  Ready to book your ride with Nier Transportation?
+                </p>
+                <Button
+                  href='/book'
+                  text='Book your Ride'
+                  btnType='red'
+                  arrow
+                />
+              </div>
+              <TableOfContents headings={headings} />
+            </div>
+          </aside>
+
+          {/* Col 2: Article body */}
+          <article className={styles.articleBody}>
+            {post?.body?.length ? (
+              <PortableText value={post.body} components={ptComponents} />
+            ) : null}
+          </article>
+
+          {/* Col 3: More insights */}
+          <aside className={styles.insightsSidebar}>
+            <div className={styles.sidebarSticky}>
+              <span className={`${styles.insightsHeading} h4`}>
+                More Articles
+              </span>
+              <MoreInsights currentSlug={post.slug.current}  />
+            </div>
+          </aside>
         </div>
       </LayoutWrapper>
     </main>

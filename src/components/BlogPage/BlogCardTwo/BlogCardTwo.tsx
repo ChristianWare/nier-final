@@ -45,7 +45,7 @@ export default function BlogCardTwo({ post }: Props) {
         </div>
         <div className={styles.bottom}>
           <SectionHeading text={prettyDate} color='red' />
-          <h5 className={`${styles.title} h4`}>{post.title}</h5>
+          <h5 className={`${styles.title} h6`}>{post.title}</h5>
           {/* <p className={styles.desc}>{post.excerpt}</p> */}
 
           {/* <div className={styles.btnContainer}>
