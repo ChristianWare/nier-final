@@ -123,7 +123,10 @@
   border: 1px solid var(--stroke);
   color: var(--black);
   background: transparent;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .shareBtn:hover {
@@ -136,7 +139,7 @@
 
 .threeCol {
   display: grid;
-  grid-template-columns: 300px 1fr 300px;
+  grid-template-columns: 400px 1fr 300px;
   gap: 5rem;
   align-items: start;
 }
@@ -181,16 +184,21 @@
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
-  border-left: 2px solid var(--stroke);
-  padding-left: 2rem;
+  padding: 2rem;
+  background: var(--lightBlue);
+  border: 1px solid var(--blue);
+  border-radius: 10px;
+  /* border-left: 2px solid var(--stroke); */
+  /* padding-left: 2rem; */
 }
 
 .tocTitle {
-  font-size: 1.2rem;
+  font-size: 1.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--darkGray);
+  color: var(--blue);
+  text-decoration: underline;
 }
 
 .tocList {
@@ -203,13 +211,14 @@
 }
 
 .tocLink {
-  font-size: 1.2rem;
+  font-size: 1.6rem;
   color: var(--darkGray);
   text-decoration: none;
   line-height: 1.4;
   display: block;
   transition: color 0.2s ease;
   width: 90%;
+  opacity: 0.7;
 }
 
 .tocLink:hover {
@@ -217,10 +226,11 @@
 }
 
 .tocLinkActive {
+  opacity: 1;
   color: var(--blue) !important;
-  font-weight: 700;
+  /* font-weight: 700; */
   /* font-size: 1.4rem; */
-  letter-spacing: normal;
+  /* letter-spacing: normal; */
 }
 
 /* ─── Article Body ──────────────────────────────────────── */
@@ -248,14 +258,17 @@
 
 .ptP {
   color: var(--paragraph);
-  font-size: 1.65rem;
-  line-height: 1.8;
-  margin: 0;
+  /* font-size: 1.6rem; */
+  line-height: 1.5em;
+  /* margin: 0; */
+  /* max-width: 700px; */
 }
 
 .ptH2 {
   margin-top: 1rem;
   scroll-margin-top: 110px;
+  /* margin-bottom: -1.5rem; */
+  /* border-bottom: 1px solid var(--stroke); */
 }
 
 .ptH3 {
@@ -387,7 +400,7 @@
 /* Tablet: drop to two columns, insights moves below article */
 @media screen and (max-width: 1468px) {
   .threeCol {
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 1fr 2fr;
     grid-template-rows: auto auto;
   }
 
@@ -402,7 +415,7 @@
 }
 
 /* Small tablet: single column, sidebar drops below */
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1068px) {
   .threeCol {
     grid-template-columns: 1fr;
   }
@@ -449,11 +462,11 @@
     gap: 1.6rem;
   }
 
-  .ptP,
+  /* .ptP,
   .ptUl li,
   .ptOl li {
     font-size: 1.6rem;
-  }
+  } */
 }
 
 @media screen and (max-width: 568px) {
