@@ -1137,28 +1137,38 @@ export default async function AdminBookingDetailPage({
           <div className={styles.container}>
             <header className='header'>
               <h1 className={`heading h2`}>
-                Booking Details{" "}
-                {isCorporateBooking && (
+                Booking Details
+                {isCorporateBooking ? (
                   <span
                     style={{
                       color: "rgb(124, 58, 237)",
-                      textTransform: "lowercase",
+                      textTransform: "capitalize",
                     }}
                   >
+                    {" "}
                     (corporate)
                   </span>
-                )}
-                {!isCorporateBooking &&
-                  booking.eventType === "Golf Transfer — We-Ko-Pa" && (
-                    <span
-                      style={{
-                        color: "var(--green)",
-                        textTransform: "lowercase",
-                      }}
-                    >
-                      (we-ko-pa)
-                    </span>
-                  )}
+                ) : booking.eventType === "Golf Transfer — We-Ko-Pa" ? (
+                  <span
+                    style={{
+                      color: "var(--green)",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {" "}
+                    (we-ko-pa)
+                  </span>
+                ) : customerName !== "—" ? (
+                  <span
+                    style={{
+                      color: "var(--black400)",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {" "}
+                    — {customerName}
+                  </span>
+                ) : null}
               </h1>
 
               <div className={styles.boxRight}>
