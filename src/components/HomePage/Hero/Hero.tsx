@@ -17,7 +17,14 @@ export default function Hero() {
           className={styles.video}
           poster='/videos/phx-poster.png'
         >
-          <source src='/videos/phx.mp4' type='video/mp4' />
+          <source
+            src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto,f_webm/phx_y9t0y5'
+            type='video/webm'
+          />
+          <source
+            src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto/phx_y9t0y5'
+            type='video/mp4'
+          />
         </video>
         <div className={styles.imgOverlay} />
         <div className={styles.marqueeWrap}>

@@ -116,13 +116,8 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <head>
-        {/* ── Video preload — loads hero video before React mounts ── */}
-        <link
-          rel='preload'
-          href='/videos/phx.mp4'
-          as='video'
-          type='video/mp4'
-        />
+        {/* ── Cloudinary preconnect ── */}
+        <link rel='preconnect' href='https://res.cloudinary.com' />
 
         {/* ── PWA ── */}
         <link rel='manifest' href='/manifest.json' />
