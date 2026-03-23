@@ -421,7 +421,7 @@
   }
 
   .sidebar {
-    order: 3;
+    /* order: 3; */
     align-self: auto;
   }
 
@@ -435,10 +435,9 @@
   }
 
   .sidebarSticky {
-    position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 2rem;
   }
 
   .sideCta {
