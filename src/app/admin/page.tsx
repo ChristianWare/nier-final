@@ -39,6 +39,9 @@ import AdminIncompleteApprovals, {
 import AdminOutstandingBalances, {
   OutstandingBalanceItem,
 } from "@/components/admin/AdminOutstandingBalances/AdminOutstandingBalances";
+import AdminIncompleteRides, {
+  IncompleteRideItem,
+} from "@/components/admin/AdminIncompleteRides/AdminIncompleteRides";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -226,6 +229,7 @@ export default async function AdminHome() {
   const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
   const verifiedCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
   const corporate48hCutoff = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+  const incompleteRidesCutoff = new Date(now.getTime() - 3 * 60 * 60 * 1000);
 
   // Month boundaries (used for calendar and finance)
   const baseMonth = new Date(
@@ -303,6 +307,7 @@ export default async function AdminHome() {
     pendingCorporateInquiries,
     incompleteApprovalsRaw,
     pendingPaymentBookingsRaw,
+    incompleteRidesRaw,
   ] = await Promise.all([
     db.booking.count({ where: { status: "PENDING_REVIEW" } }),
     db.booking.count({ where: { status: "PENDING_PAYMENT" } }),
@@ -1045,6 +1050,34 @@ export default async function AdminHome() {
         vehicle: { select: { name: true } },
         assignment: {
           select: { driver: { select: { name: true, email: true } } },
+        },
+      },
+    }),
+    db.booking.findMany({
+      where: {
+        pickupAt: { lt: incompleteRidesCutoff },
+        status: {
+          in: ["CONFIRMED", "ASSIGNED", "EN_ROUTE", "ARRIVED", "IN_PROGRESS"],
+        },
+      },
+      orderBy: [{ pickupAt: "asc" }],
+      take: 50,
+      select: {
+        id: true,
+        status: true,
+        pickupAt: true,
+        durationMinutes: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        totalCents: true,
+        currency: true,
+        user: { select: { name: true, email: true } },
+        guestName: true,
+        guestEmail: true,
+        serviceType: { select: { name: true } },
+        vehicle: { select: { name: true } },
+        assignment: {
+          select: { driver: { select: { name: true } } },
         },
       },
     }),
@@ -2011,6 +2044,35 @@ export default async function AdminHome() {
     });
   }
 
+  const incompleteRides: IncompleteRideItem[] = (incompleteRidesRaw as any[])
+    .filter((b) => {
+      const pickupAt = new Date(b.pickupAt).getTime();
+      const duration = (b.durationMinutes ?? 60) * 60 * 1000;
+      const expectedEnd = pickupAt + duration;
+      const cutoff = expectedEnd + 3 * 60 * 60 * 1000;
+      return now.getTime() > cutoff;
+    })
+    .map((b) => ({
+      id: b.id,
+      status: b.status,
+      pickupAtIso: new Date(b.pickupAt).toISOString(),
+      durationMinutes: b.durationMinutes ?? null,
+      pickupAddress: b.pickupAddress,
+      dropoffAddress: b.dropoffAddress,
+      serviceName: b.serviceType?.name ?? "—",
+      vehicleName: b.vehicle?.name ?? null,
+      driverName: b.assignment?.driver?.name?.trim() ?? null,
+      totalCents: b.totalCents ?? 0,
+      currency: b.currency ?? "usd",
+      customer: {
+        name:
+          (b.user?.name ?? "").trim() ||
+          (b.guestName ?? "").trim() ||
+          "Customer",
+        email: b.user?.email || b.guestEmail || null,
+      },
+    }));
+
   return (
     <section className={styles.content}>
       <AdminPageIntro
@@ -2021,6 +2083,11 @@ export default async function AdminHome() {
       <AdminFinanceSnapshot {...snap} currency='USD' />
       <AdminRecentBookingRequests
         items={recentBookingRequests}
+        timeZone={companyTz}
+        bookingHrefBase='/admin/bookings'
+      />
+      <AdminIncompleteRides
+        items={incompleteRides}
         timeZone={companyTz}
         bookingHrefBase='/admin/bookings'
       />

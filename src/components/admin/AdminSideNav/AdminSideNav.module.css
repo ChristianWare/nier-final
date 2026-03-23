@@ -243,7 +243,6 @@
   width: 100%;
 }
 
-
 /* ── Hover only on devices that support true hover (mouse, not touch) ── */
 @media (hover: hover) {
   .navLink:hover {
@@ -272,38 +271,7 @@
   }
 }
 
-@media screen and (max-width: 968px) {
-  .linksWrapper {
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-  }
-
-  .navLink {
-    width: 100%;
-    text-overflow: ellipsis;
-    word-break: break-all;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-  }
-
-  .title {
-    display: none;
-  }
-
-  /* Hide full sign out, show compact trigger instead */
-  .actionBtns {
-    display: none;
-    grid-column: span 3;
-  }
-
-  .compactMenuBtn {
-    display: block;
-  }
-}
-
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1068px) {
   .linksWrapper {
     display: flex;
     flex-direction: row;
@@ -331,5 +299,35 @@
   .moreBtn {
     flex: 1;
     width: 100%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .linksWrapper {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .navLink {
+    width: 100%;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .title {
+    display: none;
+  }
+
+  .actionBtns {
+    display: none;
+    grid-column: span 3;
+  }
+
+  .compactMenuBtn {
+    display: block;
   }
 }

@@ -1,0 +1,443 @@
+@keyframes urgentPulse {
+  0%,
+  100% {
+    border-left-color: var(--accent);
+  }
+  50% {
+    border-left-color: transparent;
+  }
+}
+
+.container {
+  display: grid;
+  gap: 2rem;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  padding: 2rem;
+  background: rgba(208, 49, 30, 0.025);
+}
+
+.header {
+  display: grid;
+  gap: 12px;
+}
+
+.titleRow {
+  display: grid;
+  gap: 12px;
+}
+
+.urgentHeading {
+  border-left: 4px solid var(--accent);
+  padding-left: 12px;
+  animation: urgentPulse 1.8s ease-in-out infinite;
+  color: var(--accent);
+}
+
+.earningsNote {
+  font-size: 1.4rem;
+  line-height: 1.5;
+  color: var(--paragraph);
+  background: rgba(208, 49, 30, 0.06);
+  border: 1px solid rgba(208, 49, 30, 0.2);
+  border-radius: 8px;
+  padding: 12px 14px;
+  max-width: 72ch;
+}
+
+/* ── Table ── */
+
+.tableCard {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.thead {
+  position: sticky;
+  top: 0;
+  background: var(--white);
+  z-index: 2;
+}
+
+.trHead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tr {
+  border-bottom: 1px solid var(--stroke);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.tr:last-child {
+  border-bottom: 0;
+}
+
+.tr:hover {
+  background: var(--lightGray);
+}
+
+.tr:focus-within {
+  background: var(--lightGray);
+}
+
+.td {
+  padding: 12px 14px;
+  vertical-align: top;
+  position: relative;
+}
+
+.tdRight {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.actionGroup {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.rowStretchedLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.cellInner {
+  position: relative;
+  z-index: 2;
+}
+
+.cellStack {
+  display: grid;
+  gap: 6px;
+}
+
+.rowLink {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+.rowLink:hover {
+  text-decoration: underline;
+}
+
+.cellSub {
+  font-size: 1.4rem;
+  opacity: 0.65;
+  line-height: 1.25;
+}
+
+.unassigned {
+  opacity: 0.45;
+  font-style: italic;
+}
+
+/* ── Badges ── */
+
+.badge {
+  font-size: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: normal;
+  width: fit-content;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.badge_neutral {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.badge_warning {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.badge_danger {
+  background: rgba(208, 49, 30, 0.1);
+  border-color: rgba(208, 49, 30, 0.3);
+}
+
+/* ── Overdue pill ── */
+
+.overduePill {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: rgba(208, 49, 30, 0.1);
+  border: 1px solid rgba(208, 49, 30, 0.3);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* ── Mark complete button ── */
+
+.completeBtn {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--white);
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+  white-space: nowrap;
+}
+
+.completeBtn:hover {
+  background: var(--accent600);
+  border-color: var(--accent600);
+}
+
+.completeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Modal content ── */
+
+.modalContent {
+  display: grid;
+  gap: 2rem;
+  padding: 0.5rem 0;
+}
+
+.modalTitle {
+  font-weight: 900;
+}
+
+.modalDetails {
+  display: grid;
+  gap: 0;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.modalDetailRow {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.modalDetailRow:last-child {
+  border-bottom: 0;
+}
+
+.modalDetailLabel {
+  font-size: 1.4rem;
+  font-weight: 800;
+  opacity: 0.6;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.modalDetailValue {
+  font-size: 1.4rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.overdueValue {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.modalNote {
+  font-size: 1.4rem;
+  line-height: 1.5;
+  color: var(--paragraph);
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.modalCancelBtn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid var(--stroke);
+  background: transparent;
+  color: var(--black);
+  transition: background 0.2s;
+}
+
+.modalCancelBtn:hover {
+  background: var(--lightGray);
+}
+
+.modalConfirmBtn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 1.4rem;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--white);
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+}
+
+.modalConfirmBtn:hover {
+  background: var(--accent600);
+  border-color: var(--accent600);
+}
+
+.modalConfirmBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Mobile ── */
+
+@media screen and (max-width: 768px) {
+  .tableCard {
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .table {
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .thead {
+    display: none;
+  }
+
+  .table,
+  .table tbody,
+  .tr,
+  .td {
+    display: block;
+    width: 100%;
+  }
+
+  .tr {
+    border: 1px solid rgba(208, 49, 30, 0.25);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    background: var(--white);
+  }
+
+  .tr:hover {
+    background: var(--white);
+  }
+
+  .td {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--stroke);
+  }
+
+  .td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .td:first-child {
+    padding-top: 0;
+  }
+
+  .td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 900;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .tdRight {
+    text-align: left;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .modalCancelBtn,
+  .modalConfirmBtn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .earningsNote {
+    font-size: 1.4rem;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 5px 9px;
+  }
+
+  .overduePill {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+
+  .completeBtn {
+    font-size: 1.4rem;
+    padding: 8px 12px;
+  }
+
+  .actionGroup {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+}
