@@ -233,45 +233,88 @@ export default function EstimatePDF({
             ) : null}
           </View>
 
-          {/* Route */}
-          <View style={s.route}>
-            <View style={s.routePoint}>
-              <View style={[s.routeMarker, s.routeMarkerPickup]}>
-                <Text style={s.routeMarkerText}>A</Text>
-              </View>
-              <View style={s.routeContent}>
-                <Text style={s.routePointLabel}>PICKUP</Text>
-                <Text style={s.routePointAddress}>
-                  {invoice.trip.pickupAddress}
+          {/* Route — per-leg for multi-trip, single route otherwise */}
+          {invoice.legs && invoice.legs.length > 1 ? (
+            invoice.legs.map((leg, legIdx) => (
+              <View key={legIdx} style={{ marginBottom: 10 }}>
+                <Text
+                  style={{
+                    fontSize: 9,
+                    fontFamily: "Helvetica-Bold",
+                    color: "#1e40af",
+                    marginBottom: 4,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Trip {leg.legNumber} — {leg.date}
                 </Text>
-              </View>
-            </View>
-
-            {hasStops &&
-              invoice.trip.stops.map((stop, i) => (
-                <View key={i} style={s.routePoint}>
-                  <View style={[s.routeMarker, s.routeMarkerStop]}>
-                    <Text style={s.routeMarkerText}>{i + 1}</Text>
+                <View style={s.route}>
+                  <View style={s.routePoint}>
+                    <View style={[s.routeMarker, s.routeMarkerPickup]}>
+                      <Text style={s.routeMarkerText}>A</Text>
+                    </View>
+                    <View style={s.routeContent}>
+                      <Text style={s.routePointLabel}>PICKUP</Text>
+                      <Text style={s.routePointAddress}>
+                        {leg.pickupAddress}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={s.routeContent}>
-                    <Text style={s.routePointLabel}>STOP {i + 1}</Text>
-                    <Text style={s.routePointAddress}>{stop.address}</Text>
+                  <View style={s.routePoint}>
+                    <View style={[s.routeMarker, s.routeMarkerDropoff]}>
+                      <Text style={s.routeMarkerText}>B</Text>
+                    </View>
+                    <View style={s.routeContent}>
+                      <Text style={s.routePointLabel}>DROPOFF</Text>
+                      <Text style={s.routePointAddress}>
+                        {leg.dropoffAddress}
+                      </Text>
+                    </View>
                   </View>
                 </View>
-              ))}
-
-            <View style={s.routePoint}>
-              <View style={[s.routeMarker, s.routeMarkerDropoff]}>
-                <Text style={s.routeMarkerText}>B</Text>
               </View>
-              <View style={s.routeContent}>
-                <Text style={s.routePointLabel}>DROPOFF</Text>
-                <Text style={s.routePointAddress}>
-                  {invoice.trip.dropoffAddress}
-                </Text>
+            ))
+          ) : (
+            <View style={s.route}>
+              <View style={s.routePoint}>
+                <View style={[s.routeMarker, s.routeMarkerPickup]}>
+                  <Text style={s.routeMarkerText}>A</Text>
+                </View>
+                <View style={s.routeContent}>
+                  <Text style={s.routePointLabel}>PICKUP</Text>
+                  <Text style={s.routePointAddress}>
+                    {invoice.trip.pickupAddress}
+                  </Text>
+                </View>
+              </View>
+
+              {hasStops &&
+                invoice.trip.stops.map((stop, i) => (
+                  <View key={i} style={s.routePoint}>
+                    <View style={[s.routeMarker, s.routeMarkerStop]}>
+                      <Text style={s.routeMarkerText}>{i + 1}</Text>
+                    </View>
+                    <View style={s.routeContent}>
+                      <Text style={s.routePointLabel}>STOP {i + 1}</Text>
+                      <Text style={s.routePointAddress}>{stop.address}</Text>
+                    </View>
+                  </View>
+                ))}
+
+              <View style={s.routePoint}>
+                <View style={[s.routeMarker, s.routeMarkerDropoff]}>
+                  <Text style={s.routeMarkerText}>B</Text>
+                </View>
+                <View style={s.routeContent}>
+                  <Text style={s.routePointLabel}>DROPOFF</Text>
+                  <Text style={s.routePointAddress}>
+                    {invoice.trip.dropoffAddress}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
         </View>
 
         {/* ── Line items ── */}
