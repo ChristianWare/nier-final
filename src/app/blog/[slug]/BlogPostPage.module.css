@@ -337,15 +337,19 @@
 .ptLink {
   color: var(--blue);
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: 4px;
   text-decoration-thickness: 1px;
-  transition: opacity 0.15s ease;
+  text-decoration-color: color-mix(in srgb, var(--blue) 40%, transparent);
+  font-weight: 500;
+  transition:
+    text-decoration-color 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .ptLink:hover {
-  opacity: 0.7;
+  text-decoration-color: var(--blue);
+  opacity: 0.8;
 }
-
 .ptStrong {
   color: var(--black);
   font-weight: 700;
