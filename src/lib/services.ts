@@ -1,11 +1,15 @@
-import Airport from "../../public/images/other/airport.jpg";
+import Airport from "../../public/images/other/airport4.jpg";
 import Airport2 from "../../public/images/other/airport2.jpg";
 import Golf from "../../public/images/other/golf.jpg";
 import Golf2 from "../../public/images/other/golf2.jpg";
 import Corporate from "../../public/images/other/corporateii.jpg";
-import Hourly from "../../public/images/other/hourly4.jpg";
-import Hourly2 from "../../public/images/other/hourly2.jpg";
-import Wedding from "../../public/images/other/wedding.jpg";
+import Hourly from "../../public/images/other/driver.jpg";
+import Hourly2 from "../../public/images/other/chauffeur2.jpg";
+import Wedding from "../../public/images/other/wedding3.jpg";
+import Party from "../../public/images/other/partyBusiv.jpg";
+import Reocurring from "../../public/images/other/reocurring3.jpg";
+import Point from "../../public/images/other/point.jpg";
+import Distance from "../../public/images/other/longdistanceii.jpg";
 
 import type { StaticImageData } from "next/image";
 
@@ -397,8 +401,8 @@ export const servicesData = [
     copy: "Direct, door-to-door transfers across the Phoenix metro—no pooling, no detours, no surge pricing.",
     marketingCopy:
       "From A to B—precisely. Flat, predictable pricing, professional chauffeurs, and clean late-model vehicles for seamless city rides.",
-    src: Wedding,
-    src2: Wedding,
+    src: Point,
+    src2: Point,
     description:
       "Flat-rate, door-to-door city transfers with no surge pricing across Phoenix and Scottsdale. Private, non-stop rides staged on time every time.",
     whoThisIsFor: [
@@ -1019,7 +1023,7 @@ export const servicesData = [
     copy: "Group nights out with room to move—music-ready cabins, coordinated venue stops, and safe returns.",
     marketingCopy:
       "Bring the whole crew. Sprinter-style and mini-coach options with coordinated pickup windows, venue staging, and end-of-night returns.",
-    src: Wedding,
+    src: Party,
     src2: Wedding,
     description:
       "Ideal for birthdays, bachelor/ette parties, and concert groups. We plan multi-stop routes, keep timing tight, and ensure everyone gets home safely.",
@@ -1170,8 +1174,8 @@ export const servicesData = [
     copy: "Set-and-forget scheduled rides: daily, weekly, or monthly. Consistent chauffeurs and reliable timing.",
     marketingCopy:
       "Subscription-style convenience. Lock in regular pickups for work commutes, school runs, or caregiver visits—one setup, ongoing reliability.",
-    src: Wedding,
-    src2: Wedding,
+    src: Reocurring,
+    src2: Reocurring,
     description:
       "We automate your schedule. Choose days/times, set pickup notes, and we handle the rest with consistent chauffeurs whenever possible.",
     whoThisIsFor: [
@@ -1321,8 +1325,8 @@ export const servicesData = [
     copy: "Intercity black car travel with comfort and privacy—avoid TSA lines and arrive door-to-door.",
     marketingCopy:
       "Skip the airport. Work, rest, or take calls in a quiet cabin while we handle the highway. Door-to-door, on your schedule.",
-    src: Wedding,
-    src2: Wedding,
+    src: Distance,
+    src2: Distance,
     description:
       "Ideal for regional trips where flying is inefficient. We plan comfort breaks, offer door-to-door service, and keep you productive or relaxed the entire way.",
     whoThisIsFor: [
