@@ -200,42 +200,75 @@ export default function InvoicePreview({
               </div>
             )}
           </div>
-
-          {/* Route */}
-          <div className={styles.route}>
-            <div className={styles.routePoint}>
-              <div className={styles.routeMarker} data-type='pickup'>
-                A
-              </div>
-              <div className={styles.routeAddress}>
-                <span className={styles.routeLabel}>Pickup</span>
-                <span>{invoice.trip.pickupAddress}</span>
-              </div>
-            </div>
-
-            {hasStops &&
-              invoice.trip.stops.map((stop, index) => (
-                <div key={index} className={styles.routePoint}>
-                  <div className={styles.routeMarker} data-type='stop'>
-                    {index + 1}
+          <br />
+          <br />
+          {/* Route — per-leg for multi-trip, single route otherwise */}
+          {invoice.legs && invoice.legs.length > 1 ? (
+            invoice.legs.map((leg, legIdx) => (
+              <div key={legIdx} className={styles.legBlock}>
+                <p className={styles.legLabel}>
+                  Trip {leg.legNumber} — {leg.date}
+                </p>
+                <div className={styles.route}>
+                  <div className={styles.routePoint}>
+                    <div className={styles.routeMarker} data-type='pickup'>
+                      A
+                    </div>
+                    <div className={styles.routeAddress}>
+                      <span className={styles.routeLabel}>Pickup</span>
+                      <span>{leg.pickupAddress}</span>
+                    </div>
                   </div>
-                  <div className={styles.routeAddress}>
-                    <span className={styles.routeLabel}>Stop {index + 1}</span>
-                    <span>{stop.address}</span>
+                  <div className={styles.routePoint}>
+                    <div className={styles.routeMarker} data-type='dropoff'>
+                      B
+                    </div>
+                    <div className={styles.routeAddress}>
+                      <span className={styles.routeLabel}>Dropoff</span>
+                      <span>{leg.dropoffAddress}</span>
+                    </div>
                   </div>
                 </div>
-              ))}
-
-            <div className={styles.routePoint}>
-              <div className={styles.routeMarker} data-type='dropoff'>
-                B
               </div>
-              <div className={styles.routeAddress}>
-                <span className={styles.routeLabel}>Dropoff</span>
-                <span>{invoice.trip.dropoffAddress}</span>
+            ))
+          ) : (
+            <div className={styles.route}>
+              <div className={styles.routePoint}>
+                <div className={styles.routeMarker} data-type='pickup'>
+                  A
+                </div>
+                <div className={styles.routeAddress}>
+                  <span className={styles.routeLabel}>Pickup</span>
+                  <span>{invoice.trip.pickupAddress}</span>
+                </div>
+              </div>
+
+              {hasStops &&
+                invoice.trip.stops.map((stop, index) => (
+                  <div key={index} className={styles.routePoint}>
+                    <div className={styles.routeMarker} data-type='stop'>
+                      {index + 1}
+                    </div>
+                    <div className={styles.routeAddress}>
+                      <span className={styles.routeLabel}>
+                        Stop {index + 1}
+                      </span>
+                      <span>{stop.address}</span>
+                    </div>
+                  </div>
+                ))}
+
+              <div className={styles.routePoint}>
+                <div className={styles.routeMarker} data-type='dropoff'>
+                  B
+                </div>
+                <div className={styles.routeAddress}>
+                  <span className={styles.routeLabel}>Dropoff</span>
+                  <span>{invoice.trip.dropoffAddress}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* ── Line Items ── */}

@@ -17,12 +17,22 @@ function isValidEmail(v: string) {
 type Props = {
   bookingId: string;
   customerEmail: string | null;
+  bookingStatus?: string;
   estimateSentEvents?: { sentAt: string; recipientEmail: string | null }[];
-  };
+};
+
+const COMPLETED_STATUSES = [
+  "COMPLETED",
+  "CANCELLED",
+  "NO_SHOW",
+  "REFUNDED",
+  "PARTIALLY_REFUNDED",
+];
 
 export default function SendEstimateButton({
   bookingId,
   customerEmail,
+  bookingStatus,
   estimateSentEvents = [],
 }: Props) {
   const router = useRouter();
@@ -32,6 +42,14 @@ export default function SendEstimateButton({
   const [overrideError, setOverrideError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [sendAnyway, setSendAnyway] = useState(false);
+
+  const isCompleted = bookingStatus
+    ? COMPLETED_STATUSES.includes(bookingStatus)
+    : false;
+
+  // When completed and not overridden, ghost the section
+  const isGhosted = isCompleted && !sendAnyway;
 
   function sendWith(email?: string) {
     const formData = new FormData();
@@ -112,40 +130,102 @@ export default function SendEstimateButton({
         </div>
       )}
 
-      <div className={styles.btnGroup}>
-        <Button
-          btnType='blackReg'
-          text={
-            isPending
-              ? "Sending..."
-              : sent
-                ? "✓ Estimate sent"
-                : "Email estimate to client"
-          }
-          disabled={isPending}
-          onClick={handleSendToClient}
-          type='button'
-        />
+      {/* Ghosted overlay when completed */}
+      {isGhosted ? (
+        <div className={styles.ghostedWrapper}>
+          <div className={styles.ghostedButtons}>
+            <div className={styles.ghostedBtnGroup}>
+              <div className={styles.ghostedBtn} />
+              <div className={styles.ghostedBtn} />
+              <div className={styles.ghostedBtn} />
+            </div>
+          </div>
+          <div className={styles.ghostedOverlay}>
+            <p className={styles.ghostedMessage}>
+              This ride has been{" "}
+              <strong>
+                {bookingStatus === "COMPLETED"
+                  ? "completed"
+                  : bookingStatus === "CANCELLED"
+                    ? "cancelled"
+                    : bookingStatus === "NO_SHOW"
+                      ? "marked as no-show"
+                      : "closed"}
+              </strong>
+              . Estimates are typically sent before a trip.
+            </p>
+            <button
+              type='button'
+              className='primaryBtn'
+              onClick={() => setSendAnyway(true)}
+            >
+              Send anyway
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Normal buttons — or reduced set after "send anyway" */}
+          <div className={styles.btnGroup}>
+            {/* Hide "Email to client" when in send-anyway mode */}
+            {!sendAnyway && (
+              <Button
+                btnType='blackReg'
+                text={
+                  isPending
+                    ? "Sending..."
+                    : sent
+                      ? "✓ Estimate sent"
+                      : "Email estimate to client"
+                }
+                disabled={isPending}
+                onClick={handleSendToClient}
+                type='button'
+              />
+            )}
 
-        <Button
-          btnType='greenReg'
-          text='Send to a different email'
-          onClick={() => {
-            setOverrideEmail("");
-            setOverrideError(null);
-            setShowModal(true);
-          }}
-          type='button'
-        />
+            <Button
+              btnType='greenReg'
+              text='Send to a different email'
+              onClick={() => {
+                setOverrideEmail("");
+                setOverrideError(null);
+                setShowModal(true);
+              }}
+              type='button'
+            />
 
-        <Button
-          btnType='blueReg'
-          text={isDownloading ? "Generating PDF..." : "Download estimate PDF"}
-          disabled={isDownloading}
-          onClick={handleDownload}
-          type='button'
-        />
-      </div>
+            <Button
+              btnType='blueReg'
+              text={
+                isDownloading ? "Generating PDF..." : "Download estimate PDF"
+              }
+              disabled={isDownloading}
+              onClick={handleDownload}
+              type='button'
+            />
+          </div>
+
+          {/* Note when in send-anyway mode */}
+          {sendAnyway && (
+            <p className={styles.sendAnywayNote}>
+              Sending to a different email or downloading only — the ride is
+              already{" "}
+              {bookingStatus === "COMPLETED"
+                ? "completed"
+                : (bookingStatus?.toLowerCase().replace(/_/g, " ") ?? "closed")}
+              .{" "}
+              <button
+                type='button'
+                className={styles.cancelSendAnyway}
+                onClick={() => setSendAnyway(false)}
+              >
+                Cancel
+              </button>
+            </p>
+          )}
+        </>
+      )}
 
       {estimateSentEvents.length > 0 && (
         <div className={styles.sentHistory}>

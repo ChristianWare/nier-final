@@ -36,6 +36,85 @@
   grid-gap: 1rem;
 }
 
+/* ── Ghosted state ── */
+
+.ghostedWrapper {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  min-height: 110px;
+}
+
+.ghostedButtons {
+  /* Faded placeholder that mimics the button row */
+  pointer-events: none;
+  user-select: none;
+}
+
+.ghostedBtnGroup {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.ghostedBtn {
+  height: 42px;
+  border-radius: 6px;
+  background: var(--lightGray);
+  opacity: 0.5;
+}
+
+.ghostedOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(2px);
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.ghostedMessage {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  line-height: 1.5;
+  max-width: 40ch;
+  margin: 0;
+}
+
+/* ── Send anyway note ── */
+
+.sendAnywayNote {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  line-height: 1.5;
+  padding: 0.8rem 1.2rem;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--stroke);
+  border-radius: 6px;
+}
+
+.cancelSendAnyway {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+  color: var(--blue);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: 600;
+}
+
+.cancelSendAnyway:hover {
+  color: var(--black);
+}
+
+/* ── Sent history ── */
+
 .sentHistory {
   display: flex;
   flex-direction: column;
@@ -74,4 +153,14 @@
   color: #888;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+@media screen and (max-width: 568px) {
+  .ghostedBtnGroup {
+    grid-template-columns: 1fr;
+  }
+
+  .ghostedBtn {
+    height: 38px;
+  }
 }

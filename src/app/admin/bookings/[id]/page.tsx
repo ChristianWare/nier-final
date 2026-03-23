@@ -1369,6 +1369,7 @@ export default async function AdminBookingDetailPage({
                   customerEmail={
                     booking.user?.email ?? booking.guestEmail ?? null
                   }
+                  bookingStatus={booking.status} // ← add this
                   estimateSentEvents={estimateSentEvents}
                 />
               </div>
