@@ -118,6 +118,12 @@ export default function RootLayout({
       <head>
         {/* ── Cloudinary preconnect ── */}
         <link rel='preconnect' href='https://res.cloudinary.com' />
+        <link
+          rel='preload'
+          href='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto/phx_y9t0y5.mp4'
+          as='video'
+          type='video/mp4'
+        />
 
         {/* ── PWA ── */}
         <link rel='manifest' href='/manifest.json' />

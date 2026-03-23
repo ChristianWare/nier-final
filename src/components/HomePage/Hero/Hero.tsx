@@ -15,7 +15,7 @@ export default function Hero() {
           loop
           playsInline
           className={styles.video}
-          poster='/videos/phx-poster.png'
+          poster='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
         >
           <source
             src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto,f_webm/phx_y9t0y5'
