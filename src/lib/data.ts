@@ -233,7 +233,7 @@ export const services = [
   {
     id: 5,
     title: "Corporate & Event Logistics",
-    slug: "corporate-events",
+    slug: "corporate-and-event-logistics",
     copy: "End-to-end ground transportation for conferences, roadshows, and VIP events. Onsite greeters, manifest tracking, consolidated billing, and a dedicated logistics coordinator.",
     src: Corporate,
     src2: Corporate3,
@@ -336,7 +336,7 @@ export const services = [
   {
     id: 8,
     title: "Recurring Rides",
-    slug: "recurring-rides",
+    slug: "reoccurring-rides",
     copy: "Scheduled transportation for executives and teams — same driver, same vehicle, same time. Set it up once and never deal with ride-share uncertainty again.",
     src: Reocurring,
     src2: Reocurring2,
@@ -371,7 +371,7 @@ export const services = [
   {
     id: 9,
     title: "Long Distance Drives",
-    slug: "long-distance",
+    slug: "long-distance-drives",
     copy: "Comfortable intercity travel to Tucson, Sedona, Flagstaff, and anywhere in Arizona. Pricing quoted upfront with no hidden fees.",
     src: Distance,
     src2: Distance2,
@@ -400,7 +400,6 @@ export const services = [
       },
     ],
   },
- 
 ] as const;
 
 export const ServiceAreas = [
@@ -1458,7 +1457,6 @@ export const fleetData: ReadonlyArray<VehicleData> = [
 ] as const;
 
 export const fleetDataii: ReadonlyArray<VehicleData> = [
- 
   {
     id: 6,
     title: "Mini Bus",

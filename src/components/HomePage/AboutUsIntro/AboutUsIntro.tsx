@@ -49,7 +49,7 @@ export default function AboutUsIntro() {
             </div>
             <div className={styles.l2}>
               <h2 className={styles.heading}>
-                Phoenix&apos;s trusted name in private transportation.
+                Phoenix&apos;s trusted black car service for over 20 years.
               </h2>
               <p className={styles.copy}>
                 For over 20 years, Nier Transportation has been the go-to black
@@ -59,12 +59,7 @@ export default function AboutUsIntro() {
                 it&apos;s our reputation on the line — because it is.
               </p>
               <div className={styles.btnContanier}>
-                <Button
-                  btnType='black'
-                  text='About us'
-                  href='/about'
-                  arrow
-                />
+                <Button btnType='black' text='About us' href='/about' arrow />
               </div>
             </div>
           </div>

@@ -17,9 +17,31 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Nier Transportation | Black Car Service Phoenix & Scottsdale",
   description:
-    "Professional black car and limousine service in Phoenix, Scottsdale, and Metro Phoenix. Airport transfers, hourly chauffeur, and special events. Available 24/7.",
+    "Phoenix and Scottsdale's trusted black car service since 2004. Flat-rate airport transfers, hourly chauffeur, corporate rides, and weddings. No surge pricing, available 24/7.",
+  openGraph: {
+    title: "Nier Transportation | Black Car Service Phoenix & Scottsdale",
+    description:
+      "Phoenix and Scottsdale's trusted black car service since 2004. Flat-rate airport transfers, hourly chauffeur, corporate rides, and weddings. No surge pricing, available 24/7.",
+    url: "https://www.niertransportation.com",
+    siteName: "Nier Transportation",
+    type: "website",
+    images: [
+      {
+        url: "https://www.niertransportation.com/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Nier Transportation — Black Car Service Phoenix & Scottsdale",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nier Transportation | Black Car Service Phoenix & Scottsdale",
+    description:
+      "Phoenix and Scottsdale's trusted black car service since 2004. No surge pricing, available 24/7.",
+    images: ["https://www.niertransportation.com/og-image.png"],
+  },
 };
-
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",

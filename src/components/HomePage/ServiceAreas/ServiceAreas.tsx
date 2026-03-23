@@ -3,13 +3,26 @@ import Image from "next/image";
 import Img1 from "../../../../public/images/areas/phoenix.jpg";
 import Button from "@/components/shared/Button/Button";
 import Logo from "@/components/shared/Logo/Logo";
+import Link from "next/link";
+
+const cities = [
+  { name: "Phoenix", slug: "phoenix" },
+  { name: "Scottsdale", slug: "scottsdale" },
+  { name: "Tempe", slug: "tempe" },
+  { name: "Chandler", slug: "chandler" },
+  { name: "Gilbert", slug: "gilbert" },
+  { name: "Peoria", slug: "peoria" },
+  { name: "Glendale", slug: "glendale" },
+  { name: "Surprise", slug: "surprise" },
+  { name: "Avondale", slug: "avondale" },
+  { name: "Goodyear", slug: "goodyear" },
+];
 
 export default function ServiceAreas() {
   return (
     <div className={styles.container}>
       <div className={styles.content}>
         <div className={styles.left}>
-          {/* <LayoutWrapper> */}
           <div className={styles.leftContent}>
             <h2 className={`${styles.heading} h3`}>
               No matter where you are in the Phoenix area, Nier Transportation
@@ -21,40 +34,20 @@ export default function ServiceAreas() {
               but not limited to:
             </p>
             <ul className={styles.list}>
-              <li>
-                <span className={styles.dot}>•</span> Phoenix
-              </li>
-              <li>
-                <span className={styles.dot}>•</span> Scottsdale
-              </li>
-              <li>
-                <span className={styles.dot}>•</span> Tempe
-              </li>
-              <li>
-                <span className={styles.dot}>•</span> Chandler
-              </li>
-              <li>
-                <span className={styles.dot}>•</span> Gilbert
-              </li>
-              <li>
-                <span className={styles.dot}>•</span> Peoria
-              </li>
-              <li>
-                <span className={styles.dot}>•</span> Glendale
-              </li>
-              <li>
-                <span className={styles.dot}>•</span> Surprise
-              </li>
-              <li>
-                <span className={styles.dot}>•</span> Avondale
-              </li>
-
-              <li>
-                <span className={styles.dot}>•</span> Goodyear
-              </li>
-              <li>
+              {cities.map((city) => (
+                <li key={city.slug}>
+                  <span className={styles.dot}>•</span>
+                  <Link
+                    href={`/locations/${city.slug}`}
+                    className={styles.cityLink}
+                  >
+                    {city.name}
+                  </Link>
+                </li>
+              ))}
+              {/* <li>
                 <span className={styles.dot}>•</span> And More!
-              </li>
+              </li> */}
             </ul>
             <div className={styles.btnContainer}>
               <Button
@@ -65,7 +58,6 @@ export default function ServiceAreas() {
               />
             </div>
           </div>
-          {/* </LayoutWrapper> */}
         </div>
         <div className={styles.right}>
           <div className={styles.imgContainer}>
@@ -73,7 +65,6 @@ export default function ServiceAreas() {
             <div className={styles.logoContainer}>
               <Logo className={styles.logo} />
             </div>
-
             <Image
               src={Img1}
               alt='Phoenix Nier Transportation'

@@ -15,6 +15,16 @@ import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import Nav from "@/components/shared/Nav/Nav";
 import Testimonials from "@/components/shared/Testimonials/Testimonials";
 import { homeQuestions } from "@/lib/data";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Black Car Service Phoenix & Scottsdale | Nier Transportation",
+  description:
+    "Phoenix and Scottsdale's trusted black car service since 2004. Flat-rate airport transfers, hourly chauffeur, corporate rides, and weddings. No surge pricing, available 24/7.",
+  alternates: {
+    canonical: "https://www.niertransportation.com",
+  },
+};
 
 const localBusinessSchema = {
   "@context": "https://schema.org",
