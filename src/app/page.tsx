@@ -1,21 +1,43 @@
-import AboutUsIntro from "@/components/HomePage/AboutUsIntro/AboutUsIntro";
-import CorporateIntro from "@/components/HomePage/CorporateIntro/CorporateIntro";
-import Events from "@/components/HomePage/Events/Events";
-import Fleet from "@/components/HomePage/Fleet/Fleet";
-import FlightTrackerSection from "@/components/HomePage/FlightTrackerSection/FlightTrackerSection";
+import dynamic from "next/dynamic";
 import Hero from "@/components/HomePage/Hero/Hero";
-import ServiceAreas from "@/components/HomePage/ServiceAreas/ServiceAreas";
-import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
-import Stats from "@/components/HomePage/Stats/Stats";
-import WekopaIntro from "@/components/HomePage/WekopaIntro/WekopaIntro";
-import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
-import BlogSection from "@/components/shared/BlogSection/BlogSection";
-import Faq from "@/components/shared/Faq/Faq";
-import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import Nav from "@/components/shared/Nav/Nav";
-import Testimonials from "@/components/shared/Testimonials/Testimonials";
+import AboutUsIntro from "@/components/HomePage/AboutUsIntro/AboutUsIntro";
+import Stats from "@/components/HomePage/Stats/Stats";
 import { homeQuestions } from "@/lib/data";
 import { Metadata } from "next";
+
+// Below the fold — dynamically imported for code splitting
+const ServicesPreview = dynamic(
+  () => import("@/components/HomePage/ServicesPreview/ServicesPreview"),
+);
+const HowItWorks = dynamic(
+  () => import("@/components/shared/HowItWorks/HowItWorks"),
+);
+const ServiceAreas = dynamic(
+  () => import("@/components/HomePage/ServiceAreas/ServiceAreas"),
+);
+const FlightTrackerSection = dynamic(
+  () =>
+    import("@/components/HomePage/FlightTrackerSection/FlightTrackerSection"),
+);
+const CorporateIntro = dynamic(
+  () => import("@/components/HomePage/CorporateIntro/CorporateIntro"),
+);
+const WekopaIntro = dynamic(
+  () => import("@/components/HomePage/WekopaIntro/WekopaIntro"),
+);
+const Fleet = dynamic(() => import("@/components/HomePage/Fleet/Fleet"));
+const Testimonials = dynamic(
+  () => import("@/components/shared/Testimonials/Testimonials"),
+);
+const Events = dynamic(() => import("@/components/HomePage/Events/Events"));
+const Faq = dynamic(() => import("@/components/shared/Faq/Faq"));
+const BlogSection = dynamic(
+  () => import("@/components/shared/BlogSection/BlogSection"),
+);
+const AboutNumbers = dynamic(
+  () => import("@/components/shared/AboutNumbers/AboutNumbers"),
+);
 
 export const metadata: Metadata = {
   title: "Black Car Service Phoenix & Scottsdale | Nier Transportation",
