@@ -124,6 +124,7 @@ export default function RootLayout({
           as='video'
           type='video/mp4'
         /> */}
+        <link rel='preconnect' href='https://plausible.io' />
 
         <link
           rel='preconnect'
@@ -133,7 +134,7 @@ export default function RootLayout({
         <link
           rel='preload'
           as='image'
-          href='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+          href='https://res.cloudinary.com/dkxlrhwjd/image/upload/w_750,q_60,f_auto/phx-poster_bps55j'
           media='(max-width: 768px)'
         />
 

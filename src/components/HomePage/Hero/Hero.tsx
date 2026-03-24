@@ -12,7 +12,7 @@ export default function Hero() {
         {/* Mobile: static poster image, no video download */}
         <div className={styles.mobileMedia}>
           <Image
-            src='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+            src='https://res.cloudinary.com/dkxlrhwjd/image/upload/w_750,q_60,f_auto/phx-poster_bps55j'
             alt='Black car service in Phoenix'
             fill
             priority
@@ -28,7 +28,7 @@ export default function Hero() {
           loop
           playsInline
           className={styles.video}
-          poster='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+          poster='https://res.cloudinary.com/dkxlrhwjd/image/upload/w_1200,q_70,f_auto/phx-poster_bps55j'
         >
           <source
             src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto,f_webm/phx_y9t0y5'
@@ -75,8 +75,8 @@ export default function Hero() {
             <div className={styles.cc1}>
               <div className={styles.left}>
                 <p className={styles.copy}>
-                  At Nier Transportation, we&apos;re more than a car service; we&apos;re
-                  your trusted partner in high end transportation.
+                  At Nier Transportation, we&apos;re more than a car service;
+                  we&apos;re your trusted partner in high end transportation.
                 </p>
                 <div className={styles.btnContainerii}>
                   <Button

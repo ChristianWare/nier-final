@@ -23,7 +23,7 @@ export default function AboutNumbers() {
       {/* Mobile: static poster image, no video download */}
       <div className={styles.mobileMedia}>
         <Image
-          src='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+          src='https://res.cloudinary.com/dkxlrhwjd/image/upload/w_750,q_60,f_auto/phx-poster_bps55j'
           alt='Phoenix cityscape'
           fill
           sizes='100vw'
