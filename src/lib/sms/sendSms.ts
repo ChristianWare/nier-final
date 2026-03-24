@@ -1,3 +1,4 @@
+import "server-only";
 import twilio from "twilio";
 
 export async function sendSms(args: {

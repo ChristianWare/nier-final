@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/api/contact/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
@@ -16,7 +14,7 @@ type ContactPayload = {
   serviceNeeded?: string;
   groupSize?: string;
   message: string;
-  captchaToken: string;
+  website?: string; // honeypot
 };
 
 const BRAND = process.env.CLIENT_NAME || "Nier Transportation";
@@ -29,28 +27,6 @@ function escapeHtml(s = "") {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-// ─── reCAPTCHA Verification ───
-async function verifyCaptcha(token: string): Promise<boolean> {
-  const secret = process.env.RECAPTCHA_SECRET_KEY;
-  if (!secret) {
-    console.warn("RECAPTCHA_SECRET_KEY not set — skipping verification");
-    return true;
-  }
-
-  try {
-    const res = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `secret=${encodeURIComponent(secret)}&response=${encodeURIComponent(token)}`,
-    });
-    const data = await res.json();
-    return data.success === true;
-  } catch (err) {
-    console.error("reCAPTCHA verification failed:", err);
-    return false;
-  }
 }
 
 // ─── Email HTML ───
@@ -100,16 +76,8 @@ function emailHtml(payload: ContactPayload, submittedAt: string) {
                 <a href="tel:${escapeHtml(phone.replace(/\D/g, ""))}" style="color:#4e94ec; text-decoration:none">${escapeHtml(phone)}</a>
               </td>
             </tr>
-            ${
-              serviceNeeded
-                ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Service Needed</td><td style="padding:6px 0; font-weight:600">${escapeHtml(serviceNeeded)}</td></tr>`
-                : ""
-            }
-            ${
-              groupSize
-                ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Group Size</td><td style="padding:6px 0;">${escapeHtml(groupSize)} passengers</td></tr>`
-                : ""
-            }
+            ${serviceNeeded ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Service Needed</td><td style="padding:6px 0; font-weight:600">${escapeHtml(serviceNeeded)}</td></tr>` : ""}
+            ${groupSize ? `<tr><td style="width:180px; padding:6px 0; opacity:.8">Group Size</td><td style="padding:6px 0;">${escapeHtml(groupSize)} passengers</td></tr>` : ""}
           </table>
 
           <hr style="border:none; border-top:1px solid #eee; margin:20px 0" />
@@ -146,23 +114,11 @@ export async function POST(req: NextRequest) {
     }
 
     const resend = new Resend(process.env.RESEND_API_KEY);
-
     const body = (await req.json()) as Partial<ContactPayload>;
 
-    // ─── Validate reCAPTCHA ───
-    if (!body.captchaToken) {
-      return NextResponse.json(
-        { error: "reCAPTCHA verification required" },
-        { status: 422 },
-      );
-    }
-
-    const captchaValid = await verifyCaptcha(body.captchaToken);
-    if (!captchaValid) {
-      return NextResponse.json(
-        { error: "reCAPTCHA verification failed" },
-        { status: 422 },
-      );
+    // ─── Honeypot check ───
+    if (body.website) {
+      return NextResponse.json({ ok: true });
     }
 
     // ─── Validate required fields ───
@@ -188,10 +144,9 @@ export async function POST(req: NextRequest) {
       serviceNeeded: body.serviceNeeded?.trim() || "",
       groupSize: body.groupSize?.trim() || "",
       message: body.message!.trim(),
-      captchaToken: body.captchaToken,
     };
 
-    const { timezone: companyTz, supportEmail } = await getCompanySettings();
+    const { timezone: companyTz } = await getCompanySettings();
 
     const submittedAt = new Date().toLocaleString("en-US", {
       timeZone: companyTz,
@@ -203,11 +158,7 @@ export async function POST(req: NextRequest) {
       minute: "2-digit",
     });
 
-    const toEmail =
-      // supportEmail?.trim() ||
-      // process.env.CONTACT_TO ||
-      // "chris.ware.dev@gmail.com";
-      "balanier54@msn.com";
+    const toEmail = "balanier54@msn.com";
 
     const subject = `New inquiry — ${payload.firstName} ${payload.lastName}${
       payload.serviceNeeded ? ` — ${payload.serviceNeeded}` : ""

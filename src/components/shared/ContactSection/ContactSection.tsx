@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import ReCAPTCHA from "react-google-recaptcha";
 import toast from "react-hot-toast";
 import styles from "./ContactSection.module.css";
 import Button from "../Button/Button";
@@ -15,6 +14,7 @@ interface FormInputs {
   serviceNeeded: string;
   groupSize: string;
   message: string;
+  website: string; // honeypot
 }
 
 const SERVICE_OPTIONS = [
@@ -44,7 +44,6 @@ const GROUP_SIZE_OPTIONS = [
 
 export default function ContactSection() {
   const [loading, setLoading] = useState(false);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
 
   const {
     register,
@@ -54,23 +53,13 @@ export default function ContactSection() {
   } = useForm<FormInputs>();
 
   const onSubmit: SubmitHandler<FormInputs> = async (data) => {
-    // Get reCAPTCHA token
-    const captchaToken = recaptchaRef.current?.getValue();
-    if (!captchaToken) {
-      toast.error("Please complete the reCAPTCHA.");
-      return;
-    }
-
     setLoading(true);
 
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          captchaToken,
-        }),
+        body: JSON.stringify(data),
       });
 
       const result = await response.json();
@@ -78,7 +67,6 @@ export default function ContactSection() {
       if (result.ok) {
         toast.success("Message sent! We'll be in touch shortly.");
         reset();
-        recaptchaRef.current?.reset();
       } else if (result.fields) {
         toast.error(`Missing required fields: ${result.fields.join(", ")}`);
       } else {
@@ -96,6 +84,15 @@ export default function ContactSection() {
       <div className={styles.content}>
         <div className={styles.right}>
           <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
+            {/* Honeypot — hidden from humans, bots fill it in */}
+            <input
+              type='text'
+              autoComplete='off'
+              style={{ display: "none" }}
+              tabIndex={-1}
+              {...register("website")}
+            />
+
             {/* Row 1: Names */}
             <div className={styles.namesContainer}>
               <div className={styles.labelInputBox}>
@@ -215,14 +212,6 @@ export default function ContactSection() {
                   <span className={styles.error}>Message is required</span>
                 )}
               </div>
-            </div>
-
-            {/* reCAPTCHA */}
-            <div className={styles.recaptchaContainer}>
-              <ReCAPTCHA
-                ref={recaptchaRef}
-                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-              />
             </div>
 
             {/* Submit */}
