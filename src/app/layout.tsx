@@ -117,13 +117,25 @@ export default function RootLayout({
     <html lang='en'>
       <head>
         {/* ── Cloudinary preconnect ── */}
-        <link rel='preconnect' href='https://res.cloudinary.com' />
+        {/* <link rel='preconnect' href='https://res.cloudinary.com' /> */}
         {/* <link
           rel='preload'
           href='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto/phx_y9t0y5.mp4'
           as='video'
           type='video/mp4'
         /> */}
+
+        <link
+          rel='preconnect'
+          href='https://res.cloudinary.com'
+          crossOrigin='anonymous'
+        />
+        <link
+          rel='preload'
+          as='image'
+          href='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+          media='(max-width: 768px)'
+        />
 
         {/* ── PWA ── */}
         <link rel='manifest' href='/manifest.json' />
