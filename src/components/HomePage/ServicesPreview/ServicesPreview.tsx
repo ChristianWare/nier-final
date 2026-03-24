@@ -85,6 +85,7 @@ export default function ServicesPreview() {
                     title={x.title}
                     fill
                     className={styles.img}
+                    sizes='(max-width: 768px) 100vw, (max-width: 1268px) 50vw, 33vw'
                   />
                 </div>
               </div>
