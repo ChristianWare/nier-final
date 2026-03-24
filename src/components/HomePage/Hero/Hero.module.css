@@ -158,7 +158,32 @@
     padding: 5rem 1.7rem;
   }
 
-  .copy { 
+  .copy {
     display: none;
+  }
+}
+
+/* Mobile image: shown below breakpoint, hidden above */
+.mobileMedia {
+  position: absolute;
+  inset: 0;
+  display: block; /* visible on mobile by default */
+}
+
+/* Desktop video: hidden on mobile, shown above breakpoint */
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none; /* hidden on mobile */
+}
+
+@media screen and (min-width: 769px) {
+  .mobileMedia {
+    display: none;
+  }
+
+  .video {
+    display: block;
   }
 }

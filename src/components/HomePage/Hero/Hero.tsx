@@ -3,13 +3,27 @@ import styles from "./Hero.module.css";
 import Button from "@/components/shared/Button/Button";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Marquee from "@/components/shared/Marquee/Marquee";
+import Image from "next/image";
 
 export default function Hero() {
   return (
     <section className={styles.container}>
       <div className={styles.media}>
+        {/* Mobile: static poster image, no video download */}
+        <div className={styles.mobileMedia}>
+          <Image
+            src='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+            alt='Black car service in Phoenix'
+            fill
+            priority
+            sizes='100vw'
+            style={{ objectFit: "cover" }}
+          />
+        </div>
+
+        {/* Desktop: video */}
         <video
-          preload='auto'
+          preload='none'
           autoPlay
           muted
           loop
@@ -26,6 +40,7 @@ export default function Hero() {
             type='video/mp4'
           />
         </video>
+
         <div className={styles.imgOverlay} />
         <div className={styles.marqueeWrap}>
           <div className={styles.cc2}>
@@ -61,7 +76,7 @@ export default function Hero() {
             <div className={styles.cc1}>
               <div className={styles.left}>
                 <p className={styles.copy}>
-                  At Nier Transportation, we’re more than a car service; we’re
+                  At Nier Transportation, we&apos;re more than a car service; we&apos;re
                   your trusted partner in high end transportation.
                 </p>
                 <div className={styles.btnContainerii}>
@@ -75,8 +90,6 @@ export default function Hero() {
               </div>
               <div className={styles.right}>
                 <h1 className={styles.heading}>
-                  {/* Nier Transportation is a black car company serving the Phoenix
-                  - metro area. */}
                   Black Car Service in Phoenix & Scottsdale, Trusted Since 2004
                 </h1>
               </div>
