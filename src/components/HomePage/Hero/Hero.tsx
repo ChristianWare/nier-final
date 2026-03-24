@@ -20,7 +20,6 @@ export default function Hero() {
             style={{ objectFit: "cover" }}
           />
         </div>
-
         {/* Desktop: video */}
         <video
           preload='none'
