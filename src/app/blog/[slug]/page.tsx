@@ -194,7 +194,7 @@ const ptComponents: PortableTextComponents = {
       const text = value?.children?.map((c: any) => c.text).join("") || "";
       const id = slugify(text);
       return (
-        <h2 id={id} className={`${styles.ptH2} cardTitle h4`}>
+        <h2 id={id} className={`${styles.ptH2} cardTitleii h2`}>
           {children}
         </h2>
       );
