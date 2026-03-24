@@ -2,6 +2,7 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./Stats.module.css";
 import Button from "@/components/shared/Button/Button";
 import ImageMarquee from "@/components/shared/ImageMarquee/ImageMarquee";
+import Image from "next/image";
 
 type StatsProps = {
   flipped?: boolean;
@@ -14,6 +15,18 @@ export default function Stats({ flipped = false }: StatsProps) {
         <div className={`${styles.content} ${flipped ? styles.flipped : ""}`}>
           <div className={styles.left}>
             <div className={styles.media}>
+              {/* Mobile: static image, no video download */}
+              <div className={styles.mobileMedia}>
+                <Image
+                  src='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+                  alt='Black car service in Phoenix'
+                  fill
+                  sizes='100vw'
+                  style={{ objectFit: "cover" }}
+                />
+              </div>
+
+              {/* Desktop: video */}
               <video
                 preload='none'
                 autoPlay
@@ -22,8 +35,16 @@ export default function Stats({ flipped = false }: StatsProps) {
                 playsInline
                 className={styles.video}
               >
-                <source src='/videos/ladies.mp4' type='video/mp4' />
+                <source
+                  src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto,f_webm/ladies_gae2c8'
+                  type='video/webm'
+                />
+                <source
+                  src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto/ladies_gae2c8'
+                  type='video/mp4'
+                />
               </video>
+
               <div className={styles.imgOverlay} />
             </div>
             <div className={styles.statBoxContainer}>

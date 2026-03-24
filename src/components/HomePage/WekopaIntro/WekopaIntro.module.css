@@ -67,11 +67,29 @@
   z-index: 1;
 }
 
+/* Mobile image: visible on mobile, hidden on desktop */
+.mobileMedia {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* Desktop video: hidden on mobile, shown on desktop */
 .video {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
+  display: none;
+}
+
+@media screen and (min-width: 769px) {
+  .mobileMedia {
+    display: none;
+  }
+
+  .video {
+    display: block;
+  }
 }
 
 .imgOverlay {
@@ -110,8 +128,6 @@
   line-height: 1.4;
   opacity: 0.5;
   font-weight: 700;
-  
-  
 }
 
 @media screen and (max-width: 1268px) {
@@ -135,6 +151,3 @@
     border-right: none;
   }
 }
-/* 
-@media screen and (max-width: 568px) {
-} */

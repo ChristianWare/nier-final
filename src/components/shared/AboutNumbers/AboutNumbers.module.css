@@ -3,11 +3,18 @@
   display: grid;
   place-items: center;
   background-color: var(--white);
-  /* padding-block: 4rem; */
   overflow: hidden;
   padding: 10rem 0rem;
 }
 
+/* Mobile image: shown on mobile, hidden on desktop */
+.mobileMedia {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* Desktop video: hidden on mobile, shown on desktop */
 .video {
   position: absolute;
   inset: 0;
@@ -15,6 +22,17 @@
   height: 100%;
   object-fit: cover;
   z-index: 1;
+  display: none;
+}
+
+@media screen and (min-width: 769px) {
+  .mobileMedia {
+    display: none;
+  }
+
+  .video {
+    display: block;
+  }
 }
 
 .imgOverlay {
@@ -33,7 +51,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 10rem;
-  /* background-color: red; */
 }
 
 .left {
@@ -125,9 +142,3 @@
     justify-content: center;
   }
 }
-
-/* @media screen and (max-width: 568px) {
-  .br {
-    display: none;
-  }
-} */

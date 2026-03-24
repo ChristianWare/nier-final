@@ -32,7 +32,7 @@ export default function ImageMarquee() {
               title={title}
               fill
               className={styles.img}
-              sizes='(max-width: 768px) 100vw, 300px'
+              sizes='(max-width: 768px) 100vw, 350px'
               priority={index < 4}
             />
             {/* <div className={styles.overlay} aria-hidden='true' /> */}

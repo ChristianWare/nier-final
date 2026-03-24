@@ -2,6 +2,7 @@ import styles from "./CorporateIntro.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
+import Image from "next/image";
 
 export default function CorporateIntro() {
   return (
@@ -11,7 +12,8 @@ export default function CorporateIntro() {
           <div className={styles.top}>
             <SectionHeading text='Corporate Accounts' dot />
             <h2 className={styles.heading}>
-              Seamless ground transportation solutions for businesses of all sizes.
+              Seamless ground transportation solutions for businesses of all
+              sizes.
             </h2>
             <p className={styles.copy}>
               Simplify how your company moves. With a Nier Transportation
@@ -30,6 +32,18 @@ export default function CorporateIntro() {
           </div>
           <div className={styles.bottom}>
             <div className={styles.media}>
+              {/* Mobile: static image */}
+              <div className={styles.mobileMedia}>
+                <Image
+                  src='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+                  alt='Corporate transportation service'
+                  fill
+                  sizes='100vw'
+                  style={{ objectFit: "cover", objectPosition: "top" }}
+                />
+              </div>
+
+              {/* Desktop: video */}
               <video
                 preload='none'
                 autoPlay
@@ -38,19 +52,19 @@ export default function CorporateIntro() {
                 playsInline
                 className={styles.video}
               >
-                <source src='/videos/corporate.mp4' type='video/mp4' />
+                <source
+                  src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto,f_webm/corporate_odm4lr'
+                  type='video/webm'
+                />
+                <source
+                  src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto/corporate_odm4lr'
+                  type='video/mp4'
+                />
               </video>
+
               <div className={styles.imgOverlay} />
             </div>
           </div>
-          {/* <div className={styles.statsRow}>
-            {stats.map((stat) => (
-              <div key={stat.id} className={styles.statCard}>
-                <span className={styles.statValue}>{stat.value}</span>
-                <span className={styles.statLabel}>{stat.label}</span>
-              </div>
-            ))}
-          </div> */}
         </div>
       </LayoutWrapper>
     </section>

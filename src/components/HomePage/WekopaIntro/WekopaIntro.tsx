@@ -4,6 +4,7 @@ import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Donut from "@/components/shared/icons/Donut/Donut";
 import Sparkle from "@/components/shared/icons/Sparkle/Sparkle";
 import Button from "@/components/shared/Button/Button";
+import Image from "next/image";
 
 const data = [
   {
@@ -67,6 +68,18 @@ export default function WekopaIntro() {
             </div>
             <div className={styles.right}>
               <div className={styles.media}>
+                {/* Mobile: static image */}
+                <div className={styles.mobileMedia}>
+                  <Image
+                    src='https://res.cloudinary.com/dkxlrhwjd/image/upload/q_auto,f_auto/phx-poster_bps55j'
+                    alt='Golf transportation service at We-Ko-Pa'
+                    fill
+                    sizes='100vw'
+                    style={{ objectFit: "cover" }}
+                  />
+                </div>
+
+                {/* Desktop: video */}
                 <video
                   preload='none'
                   autoPlay
@@ -75,8 +88,16 @@ export default function WekopaIntro() {
                   playsInline
                   className={styles.video}
                 >
-                  <source src='/videos/golf.mp4' type='video/mp4' />
+                  <source
+                    src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto,f_webm/golf_hcs6ml'
+                    type='video/webm'
+                  />
+                  <source
+                    src='https://res.cloudinary.com/dkxlrhwjd/video/upload/q_auto/golf_hcs6ml'
+                    type='video/mp4'
+                  />
                 </video>
+
                 <div className={styles.imgOverlay} />
               </div>
 
