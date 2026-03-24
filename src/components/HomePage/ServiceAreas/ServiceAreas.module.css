@@ -102,6 +102,11 @@
   color: inherit;
   text-decoration: none;
   transition: opacity 0.15s ease;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
 }
 
 .cityLink:hover {

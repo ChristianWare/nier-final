@@ -31,7 +31,7 @@ export default function CorporateIntro() {
           <div className={styles.bottom}>
             <div className={styles.media}>
               <video
-                preload='auto'
+                preload='none'
                 autoPlay
                 muted
                 loop

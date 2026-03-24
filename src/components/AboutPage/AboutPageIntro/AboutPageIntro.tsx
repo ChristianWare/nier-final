@@ -18,8 +18,9 @@ export default function AboutPageIntro() {
               </h1>
               <p className={styles.copy}>
                 For over two decades, Nier Transportation has set the standard
-                for luxury ground transportation across the Valley. We don&apos;t
-                just get you there — we make the journey worth remembering.
+                for luxury ground transportation across the Valley. We
+                don&apos;t just get you there — we make the journey worth
+                remembering.
               </p>
               {/* <div className={styles.btnContainer}>
                 <Button
@@ -47,7 +48,7 @@ export default function AboutPageIntro() {
 
         <div className={styles.right}>
           <video
-            preload='auto'
+            preload='none'
             autoPlay
             muted
             loop

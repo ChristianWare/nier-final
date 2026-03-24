@@ -69,9 +69,6 @@ type FlightResult =
   | null;
 
 type Props = {
-  // ── Booking wizard integration ──
-  // When provided, the CTA box is hidden and flight data is passed
-  // back to the parent form instead of linking to /book
   onFlightFound?: (data: {
     airline?: string;
     terminal?: string;
@@ -83,9 +80,7 @@ type Props = {
     arrivalAirport?: string;
   }) => void;
   airportLeg?: "PICKUP" | "DROPOFF";
-  // When used inside the wizard, hide the CTA box
   hideCta?: boolean;
-  // Pre-fill the date from the booking form
   initialDate?: string;
 };
 
@@ -160,7 +155,6 @@ function FlightCard({
     }
   }
 
-  // When used in the booking wizard, show which leg's data was applied
   const appliedLeg =
     airportLeg === "DROPOFF" ? flight?.departure : flight?.arrival;
   const appliedTerminal = appliedLeg?.terminal;
@@ -215,7 +209,9 @@ function FlightCard({
 
           <div className={styles.flightPath}>
             <div className={styles.dashedLine} />
-            <span className={styles.planeIcon}>✈</span>
+            <span className={styles.planeIcon} aria-hidden='true'>
+              ✈
+            </span>
             <div className={styles.dashedLineDot} />
           </div>
 
@@ -287,7 +283,7 @@ function FlightCard({
             : formatDate(depDate) || "Enter a flight number to track"}
         </div>
 
-        {/* Wizard success note — shows when used inside booking form */}
+        {/* Wizard success note */}
         {flight && !hideCta && !isEmpty && (
           <div className={styles.appliedNote}>
             ✓ Flight details applied to your booking
@@ -296,7 +292,7 @@ function FlightCard({
         )}
       </div>
 
-      {/* CTA — hidden when used inside booking wizard */}
+      {/* CTA */}
       {!hideCta && (
         <div className={styles.ctaBox}>
           <div className={styles.ctaContent}>
@@ -339,7 +335,6 @@ export default function FlightTracker({
       if (res.ok) {
         setFlight(res.flight);
 
-        // ── Pass data back to booking wizard if callback provided ──
         if (onFlightFound) {
           const leg =
             airportLeg === "DROPOFF"
@@ -391,10 +386,12 @@ export default function FlightTracker({
 
   return (
     <div className={styles.wrapper}>
-      {/* Header — hidden when used inside booking wizard */}
+      {/* Header */}
       {!hideCta && (
         <div className={styles.header}>
-          <div className={styles.headerIcon}>✈</div>
+          <div className={styles.headerIcon} aria-hidden='true'>
+            ✈
+          </div>
           <div>
             <p className={styles.subtitle}>
               Track any flight in real time — arrivals, departures, delays &
@@ -405,10 +402,14 @@ export default function FlightTracker({
       )}
 
       {/* Search form */}
-      <div className={styles.form}>
+      {/* ✅ FIX: all inputs now have htmlFor/id pairs so labels are properly associated */}
+      <div className={styles.form} role='search' aria-label='Flight tracker'>
         <div className={styles.inputGroup}>
-          <label className={styles.label}>Flight Number</label>
+          <label htmlFor='flightNumber' className={styles.label}>
+            Flight Number
+          </label>
           <input
+            id='flightNumber'
             type='text'
             value={flightNumber}
             onChange={(e) => {
@@ -425,11 +426,15 @@ export default function FlightTracker({
             placeholder='e.g. AA1234'
             className={styles.input}
             maxLength={10}
+            autoComplete='off'
           />
         </div>
         <div className={styles.inputGroup}>
-          <label className={styles.label}>Date</label>
+          <label htmlFor='flightDate' className={styles.label}>
+            Date
+          </label>
           <input
+            id='flightDate'
             type='date'
             value={date}
             onChange={(e) => {
@@ -445,15 +450,22 @@ export default function FlightTracker({
           onClick={handleTrack}
           disabled={loading || !flightNumber.trim() || !date}
           className={styles.trackBtn}
+          aria-label='Track flight'
         >
-          {loading ? <span className={styles.spinner} /> : "Track Flight"}
+          {loading ? (
+            <span className={styles.spinner} aria-hidden='true' />
+          ) : (
+            "Track Flight"
+          )}
         </button>
       </div>
 
       {/* Error */}
       {error && !loading && (
-        <div className={styles.error}>
-          <span className={styles.errorIcon}>✕</span>
+        <div className={styles.error} role='alert'>
+          <span className={styles.errorIcon} aria-hidden='true'>
+            ✕
+          </span>
           <div>
             <div className={styles.errorTitle}>Flight not found</div>
             <div className={styles.errorBody}>{error}</div>
@@ -461,7 +473,7 @@ export default function FlightTracker({
         </div>
       )}
 
-      {/* Card — always visible */}
+      {/* Card */}
       <FlightCard
         flight={flight}
         loading={loading}

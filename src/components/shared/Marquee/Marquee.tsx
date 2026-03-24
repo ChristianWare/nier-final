@@ -41,10 +41,11 @@ export default function Marquee({
     <div
       className={`${styles.slider} ${pauseOnHover ? styles.pauseOnHover : ""} ${className}`}
       aria-label={ariaLabel}
+      role='img'
       style={styleVars}
     >
       <div className={styles.track}>
-        <div className={styles.group}>
+        <div className={styles.group} aria-hidden='true'>
           {items.map((word, index) => (
             <span key={`${word}-${index}`} className={styles.item}>
               <span className={styles.word}>{word}</span>

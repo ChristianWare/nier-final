@@ -358,20 +358,29 @@ export default function Nav({
             isOpen ? `${styles.hamburger} ${styles.active}` : styles.hamburger
           }
           onClick={handleHamburgerClick}
+          onKeyDown={(e) =>
+            (e.key === "Enter" || e.key === " ") &&
+            handleHamburgerClick(e as any)
+          }
           aria-expanded={isOpen}
+          aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
           role='button'
+          tabIndex={0}
         >
           <span
+            aria-hidden='true'
             className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
               shouldBlend ? styles.blend : ""
             }`}
           ></span>
           <span
+            aria-hidden='true'
             className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
               shouldBlend ? styles.blend : ""
             }`}
           ></span>
           <span
+            aria-hidden='true'
             className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
               shouldBlend ? styles.blend : ""
             }`}

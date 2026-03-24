@@ -66,7 +66,7 @@ export default function MissionValues() {
             <div className={styles.right}>
               <div className={styles.media}>
                 <video
-                  preload='auto'
+                  preload='none'
                   autoPlay
                   muted
                   loop

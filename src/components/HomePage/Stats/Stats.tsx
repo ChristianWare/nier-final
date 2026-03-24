@@ -15,7 +15,7 @@ export default function Stats({ flipped = false }: StatsProps) {
           <div className={styles.left}>
             <div className={styles.media}>
               <video
-                preload='auto'
+                preload='none'
                 autoPlay
                 muted
                 loop

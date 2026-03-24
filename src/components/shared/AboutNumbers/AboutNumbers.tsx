@@ -23,7 +23,7 @@ export default function AboutNumbers() {
   return (
     <section className={styles.container}>
       <video
-        preload='auto'
+        preload='none'
         autoPlay
         muted
         loop

@@ -29,7 +29,7 @@ export default function WhoWeWorkWith() {
           <div className={styles.left}>
             <div className={styles.media}>
               <video
-                preload='auto'
+                preload='none'
                 autoPlay
                 muted
                 loop

@@ -20,7 +20,7 @@ export default function WekopaFinalCTA() {
   return (
     <section className={styles.container}>
       <video
-        preload='auto'
+        preload='none'
         autoPlay
         muted
         loop
