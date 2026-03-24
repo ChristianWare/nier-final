@@ -17,19 +17,19 @@
 
 .right {
   width: 100%;
+  min-width: 0; /* prevents grid blowout */
 }
-
 
 @media screen and (max-width: 1068px) {
   .container {
     padding-top: 5rem;
   }
-  
+
   .content {
     grid-template-columns: repeat(1, 1fr);
     gap: 7rem;
   }
-  
+
   .heading {
     display: block;
     text-align: center;
@@ -41,6 +41,42 @@
     position: sticky;
     top: 80px;
     align-self: start;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  /* Switch to sidebar layout — sidebar drives its own width, right fills rest */
+  .container {
+    padding: 0;
+    padding-top: 2rem;
+  }
+
+  .content {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0;
+    /* min-height: 100vh; */
+    align-items: start;
+  }
+
+  .left {
+    left: 0;
+    position: sticky;
+    top: 60px;
+    overflow: hidden;
+  }
+
+  .AdminSideNavContainer {
+    z-index: 10;
+  }
+
+  .right {
+    padding: 2rem 1.6rem;
+    min-width: 0;
+  }
+
+  .heading {
+    display: none;
   }
 }
 

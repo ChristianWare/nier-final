@@ -58,6 +58,10 @@ export default function AdminSideNav(
 ) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== "undefined") return window.innerWidth <= 568;
+    return false;
+  });
   const pathname = usePathname();
 
   useEffect(() => {
@@ -71,7 +75,32 @@ export default function AdminSideNav(
 
   return (
     <>
-      <aside className={styles.container}>
+      <aside
+        className={`${styles.container} ${collapsed ? styles.containerCollapsed : ""}`}
+      >
+        {/* Collapse toggle button — only visible at ≤568px */}
+        <div className={styles.collapseBar}>
+          <button
+            className={styles.collapseBtn}
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label='Toggle sidebar'
+          >
+            <svg
+              width='14'
+              height='14'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className={`${styles.collapseIcon} ${collapsed ? styles.collapseIconFlipped : ""}`}
+            >
+              <polyline points='15 18 9 12 15 6' />
+            </svg>
+          </button>
+        </div>
+
         <nav className={styles.nav}>
           <ul
             className={
@@ -94,7 +123,7 @@ export default function AdminSideNav(
                   : pathname === href || pathname.startsWith(href + "/");
 
                 return (
-                  <li key={href}>
+                  <li key={href} className={styles.navItem}>
                     <Link
                       href={href}
                       className={`${styles.navLink} ${
@@ -103,8 +132,10 @@ export default function AdminSideNav(
                       onClick={() => setIsOpen(false)}
                       aria-current={active ? "page" : undefined}
                     >
-                      {icon}
+                      <span className={styles.navIcon}>{icon}</span>
                       <span className={styles.title}>{title}</span>
+                      {/* Tooltip shown when collapsed */}
+                      <span className={styles.tooltip}>{title}</span>
                     </Link>
                   </li>
                 );
@@ -123,7 +154,7 @@ export default function AdminSideNav(
                 </button>
               </div>
 
-              {/* Compact menu button — shown only at ≤968px via CSS */}
+              {/* Compact menu button — shown only at ≤968px, hidden when collapsed */}
               <div className={styles.compactMenuBtn}>
                 <button
                   type='button'
