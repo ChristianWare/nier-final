@@ -5,6 +5,19 @@
   background-color: var(--cream);
 }
 
+@media screen and (max-width: 568px) {
+  .container {
+    width: 100%;
+    overflow: visible;
+    transition: none;
+    border-radius: 7px;
+  }
+
+  .containerCollapsed {
+    width: 100%;
+  }
+}
+
 .nav {
   display: flex;
   flex-direction: column;
@@ -45,6 +58,11 @@
   display: none;
 }
 
+.navItem {
+  position: relative;
+  list-style: none;
+}
+
 .navLink,
 .signOutBtn,
 .homeBtn {
@@ -64,12 +82,26 @@
   transition: all 0.2s ease-in;
 }
 
+.navIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  transition: all 0.2s ease-in;
+}
+
 .title {
   color: inherit;
 }
 
-.navLinkActive {
+.navLink.navLinkActive {
   background-color: var(--accent);
+  color: var(--white);
+}
+
+.navLinkActive .navIcon {
   color: var(--white);
 }
 
@@ -106,7 +138,6 @@
   width: 100%;
 }
 
-/* Compact "more" button — hidden by default, shown at ≤968px */
 .compactMenuBtn {
   display: none;
 }
@@ -178,10 +209,47 @@
   flex-wrap: wrap;
 }
 
+/* ── Collapse bar — hidden above 568px ── */
+.collapseBar {
+  display: none;
+}
+
+.collapseBtn {
+  width: 100%;
+  height: 3.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--black);
+  border: 1px solid var(--stroke);
+  background: var(--cream);
+  transition: opacity 0.2s ease;
+  margin: 1rem;
+  font-size: 5rem;
+}
+
+.collapseBtn:hover {
+  opacity: 0.6;
+}
+
+.collapseIcon {
+  transition: transform 0.25s ease;
+  font-size: 5rem;
+}
+
+.collapseIconFlipped {
+  transform: rotate(180deg);
+}
+
 /* ── Hover only on devices that support true hover (mouse, not touch) ── */
 @media (hover: hover) {
   .navLink:hover {
     background-color: var(--accent);
+    color: var(--white);
+  }
+
+  .navLink:hover .navIcon {
     color: var(--white);
   }
 
@@ -206,6 +274,7 @@
   }
 }
 
+/* ── 968px: icon-only collapsed row (above mobile breakpoint) ── */
 @media screen and (max-width: 968px) {
   .linksWrapper {
     display: grid;
@@ -216,54 +285,109 @@
     width: 100%;
     text-overflow: ellipsis;
     word-break: break-all;
-    flex-direction: column;
+    /* flex-direction: column; */
     align-items: center;
     justify-content: center;
     padding: 1rem;
   }
-
+/* 
   .title {
     display: none;
-  }
+  } */
 
-  /* Hide full sign out, show compact trigger instead */
-  .actionBtns {
+  /* .actionBtns {
     display: none;
     grid-column: span 3;
-  }
+  } */
 
-  .compactMenuBtn {
+  /* .compactMenuBtn {
     display: block;
-  }
+  } */
 }
 
-@media screen and (max-width: 568px) {
-  .linksWrapper {
+/* ─────────────────────────────────────────────
+   568px — stacked layout, full-width nav panel
+───────────────────────────────────────────── */
+@media screen and (max-width: 1068px) {
+  /* Show the collapse toggle bar */
+  .collapseBar {
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: stretch;
-    width: 100%;
-    overflow: hidden;
+    flex-shrink: 0;
   }
 
-  .linksWrapper > li {
-    flex: 1;
+  .collapseBtn {
     display: flex;
+    border-radius: 5px;
   }
 
-  .navLink {
-    flex: 1;
-    width: 100%;
+  .collapseBtn svg {
+    width: 3rem;
+    height: 3rem;
   }
 
+  /* Never need tooltip or compact menu at this breakpoint */
   .compactMenuBtn {
-    flex: 1;
+    display: none !important;
+  }
+
+  /* ── Default (collapsed=true): hide nav links entirely ── */
+  .containerCollapsed .nav {
+    gap: 0;
+  }
+
+  .containerCollapsed .navLinks {
+    display: none;
+  }
+
+  /* ── Expanded (collapsed=false): 3-column icon + label grid ── */
+  .container:not(.containerCollapsed) .linksWrapper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+
+  .container:not(.containerCollapsed) .navItem {
     display: flex;
   }
 
-  .moreBtn {
-    flex: 1;
+  /* Icon stacked above label */
+  .container:not(.containerCollapsed) .navLink {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0.5rem;
+    gap: 1rem;
+    text-align: center;
+    white-space: normal;
     width: 100%;
+    flex: 1;
+  }
+
+  /* Title always visible in grid mode */
+  .container:not(.containerCollapsed) .title {
+    display: block;
+    font-size: 1.7rem;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  /* Icon size */
+  .container:not(.containerCollapsed) .navIcon {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex-shrink: 0;
+  }
+
+  /* Active: accent bg, white text + icon */
+  .container:not(.containerCollapsed) .navLink.navLinkActive {
+    background-color: var(--accent);
+    color: var(--white);
+  }
+
+  /* Action buttons span all 3 columns */
+  .container:not(.containerCollapsed) .actionBtns {
+    grid-column: 1 / -1;
+    display: flex;
   }
 }

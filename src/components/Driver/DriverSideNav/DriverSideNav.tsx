@@ -9,7 +9,6 @@ import FalseButton from "@/components/shared/FalseButton/FalseButton";
 import House from "@/components/shared/icons/House/House";
 import Calendar from "@/components/shared/icons/Calendar/Calendar";
 import Bell from "@/components/shared/icons/Bell/Bell";
-// import Listing from "@/components/shared/icons/Listing/Listing";
 import Users from "@/components/shared/icons/Users/Users";
 import Cog from "@/components/shared/icons/Cog/Cog";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
@@ -76,6 +75,10 @@ export default function DriverSideNav({
 }: DriverSideNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== "undefined") return window.innerWidth <= 568;
+    return false;
+  });
   const pathname = usePathname();
 
   useEffect(() => {
@@ -89,7 +92,32 @@ export default function DriverSideNav({
 
   return (
     <>
-      <aside className={styles.container}>
+      <aside
+        className={`${styles.container} ${collapsed ? styles.containerCollapsed : ""}`}
+      >
+        {/* Collapse toggle button — only visible at ≤568px */}
+        <div className={styles.collapseBar}>
+          <button
+            className={styles.collapseBtn}
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label='Toggle sidebar'
+          >
+            <svg
+              width='14'
+              height='14'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className={`${styles.collapseIcon} ${collapsed ? styles.collapseIconFlipped : ""}`}
+            >
+              <polyline points='15 18 9 12 15 6' />
+            </svg>
+          </button>
+        </div>
+
         <nav className={styles.nav}>
           <ul
             className={
@@ -134,14 +162,14 @@ export default function DriverSideNav({
                 const showBadge = badgeValue > 0;
 
                 return (
-                  <li key={href}>
+                  <li key={href} className={styles.navItem}>
                     <Link
                       href={href}
                       className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
                       onClick={() => setIsOpen(false)}
                       aria-current={active ? "page" : undefined}
                     >
-                      {icon}
+                      <span className={styles.navIcon}>{icon}</span>
                       <span className={styles.title}>{title}</span>
                       {showBadge ? (
                         <BadgeCount value={badgeValue} max={99} />

@@ -35,21 +35,35 @@
   }
 }
 
-@media screen and (max-width: 568px) {
+@media screen and (max-width: 1068px) {
   .container {
-    padding-top: 5rem;
+    padding: 2rem 0;
   }
 
   .content {
+    display: grid;
     grid-template-columns: 1fr;
-        gap: 7rem;
+    gap: 5rem;
+    align-items: start;
+  }
 
+  /* left panel flows normally — no sticky */
+  .left {
+    position: static;
   }
 
   .AdminSideNavContainer {
-    position: sticky;
-    top: 80px;
-    align-self: start;
+    position: static;
+    z-index: auto;
+  }
+
+  .right {
+    padding: 0 1.6rem 2rem;
+    min-width: 0;
+  }
+
+  .heading {
+    display: none;
   }
 }
 
