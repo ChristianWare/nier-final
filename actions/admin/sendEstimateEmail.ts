@@ -251,7 +251,7 @@ export async function sendEstimateEmail(formData: FormData): Promise<{
   const resend = new Resend(requireEnv("RESEND_API_KEY"));
   const from = requireEnv("RESEND_FROM");
 
-  await resend.emails.send({
+  const { error: resendError } = await resend.emails.send({
     from,
     to: recipientEmail,
     subject: `Trip Estimate — ${companyName} (Ref #${confirmationCode})`,
@@ -264,6 +264,11 @@ export async function sendEstimateEmail(formData: FormData): Promise<{
       },
     ],
   });
+
+  if (resendError) {
+    console.error("Resend error:", resendError);
+    return { error: resendError.message ?? "Failed to send email." };
+  }
 
   // Log in activity timeline
   await db.bookingStatusEvent.create({
