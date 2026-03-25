@@ -343,13 +343,18 @@ export async function sendPaymentLinkEmail(args: {
     `© ${new Date().getFullYear()} Nier Transportation`,
   ].join("\n");
 
-  await resend.emails.send({
+  const { error: resendError } = await resend.emails.send({
     from,
     to: args.to,
     subject,
     html,
     text,
   });
+
+  if (resendError) {
+    console.error("Resend error (payment link):", resendError);
+    throw new Error(resendError.message ?? "Failed to send payment email.");
+  }
 
   // ✅ Send admin notification for PAYMENT_LINK_SENT
   try {

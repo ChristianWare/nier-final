@@ -856,10 +856,10 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const parsed = SendPaymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid request." };
 
-const { bookingId, isBalancePayment } = parsed.data;
-const overrideEmail =
-  (formData.get("overrideEmail") as string | null)?.trim().toLowerCase() ||
-  null;
+  const { bookingId, isBalancePayment } = parsed.data;
+  const overrideEmail =
+    (formData.get("overrideEmail") as string | null)?.trim().toLowerCase() ||
+    null;
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
     include: { user: true, serviceType: true, vehicle: true, payment: true },
@@ -900,9 +900,10 @@ const overrideEmail =
     return { error: "No balance due. The booking is fully paid." };
   }
 
-  const APP_URL = process.env.APP_URL || "http://localhost:3000";
-
-  // ✅ Custom checkout page URL (with tip selection + Stripe Elements)
+  const APP_URL = (process.env.APP_URL || "http://localhost:3000").replace(
+    /\/$/,
+    "",
+  );
   const customCheckoutUrl = `${APP_URL}/pay/${b.id}`;
 
   // ✅ Send email with custom checkout page URL
