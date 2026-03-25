@@ -160,8 +160,10 @@ async function buildNotificationJobs(args: {
   if (!booking) return [];
 
   const { timezone: companyTz } = await getCompanySettings();
-  const appUrl = process.env.APP_URL || "http://localhost:3000";
-
+  const appUrl = (process.env.APP_URL || "http://localhost:3000").replace(
+    /\/$/,
+    "",
+  );
   const customerName =
     booking.user?.name?.trim() || booking.guestName?.trim() || "—";
 

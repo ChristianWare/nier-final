@@ -101,7 +101,10 @@ export async function sendPaymentConfirmationEmail(
       ? formatMoney(args.tipCents, args.currency)
       : null;
 
-  const APP_URL = process.env.APP_URL || "http://localhost:3000";
+  const APP_URL = (process.env.APP_URL || "http://localhost:3000").replace(
+    /\/$/,
+    "",
+  );
   const dashboardUrl = `${APP_URL}/dashboard`;
 
   const subject = `🎉 Payment Confirmed – Your Ride is Booked | Nier Transportation`;
