@@ -83,7 +83,7 @@ export async function sendEstimateEmail(formData: FormData): Promise<{
   );
 
   const pdfRes = await fetch(
-    `${requireEnv("APP_URL")}/api/estimate/${bookingId}/download`,
+    `${requireEnv("APP_URL").replace(/\/$/, "")}/api/estimate/${bookingId}/download`,
   );
   if (!pdfRes.ok) return { error: "Failed to generate estimate PDF." };
   const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
