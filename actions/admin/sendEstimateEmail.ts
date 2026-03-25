@@ -1,16 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 // src/actions/admin/sendEstimateEmail.ts
 
 import { Resend } from "resend";
-import { renderToBuffer } from "@react-pdf/renderer";
-import { createElement } from "react";
+// import { renderToBuffer } from "@react-pdf/renderer";
+// import { createElement } from "react";
 import { auth } from "../../auth";
 import { db } from "@/lib/db";
 import { getCompanySettings } from "./companySettings";
 import { getBookingEstimateData } from "../bookings/getBookingEstimateData";
-import EstimatePDF from "@/lib/invoice/EstimatePDF";
+// import EstimatePDF from "@/lib/invoice/EstimatePDF";
 import { revalidatePath } from "next/cache";
 
 function requireEnv(name: string) {
@@ -83,9 +82,11 @@ export async function sendEstimateEmail(formData: FormData): Promise<{
     result.data.currency ?? "usd",
   );
 
-  const pdfBuffer = await renderToBuffer(
-    createElement(EstimatePDF, { invoice: result.data }) as any,
+  const pdfRes = await fetch(
+    `${requireEnv("APP_URL")}/api/estimate/${bookingId}/download`,
   );
+  if (!pdfRes.ok) return { error: "Failed to generate estimate PDF." };
+  const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
 
   const colors = {
     black: "#000000",

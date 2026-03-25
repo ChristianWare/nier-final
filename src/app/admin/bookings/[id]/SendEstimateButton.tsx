@@ -59,7 +59,14 @@ export default function SendEstimateButton({
     }
 
     startTransition(async () => {
-      const result = await sendEstimateEmail(formData);
+      let result: { success?: true; error?: string };
+      try {
+        result = await sendEstimateEmail(formData);
+      } catch (err) {
+        console.error("sendEstimateEmail threw:", err);
+        toast.error("Something went wrong sending the estimate.");
+        return;
+      }
 
       if (result.error) {
         toast.error(result.error);
