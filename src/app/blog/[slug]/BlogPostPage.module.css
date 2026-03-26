@@ -294,7 +294,7 @@
   gap: 1.2rem;
   font-size: 1.65rem;
   line-height: 1.7;
-  align-items: flex-start;
+  align-items: center;
 }
 
 .ptUl li::before {
@@ -350,9 +350,11 @@
   text-decoration-color: var(--blue);
   opacity: 0.8;
 }
+
 .ptStrong {
   color: var(--black);
   font-weight: 700;
+  /* white-space: nowrap; */
 }
 
 .ptEm {
