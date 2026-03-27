@@ -5,6 +5,7 @@ import AboutUsIntro from "@/components/HomePage/AboutUsIntro/AboutUsIntro";
 import Stats from "@/components/HomePage/Stats/Stats";
 import { homeQuestions } from "@/lib/data";
 import { Metadata } from "next";
+import ServicesMarquee from "@/components/shared/ServicesMarquee/ServicesMarquee";
 
 // Below the fold — dynamically imported for code splitting
 const ServicesPreview = dynamic(
@@ -130,7 +131,8 @@ export default function HomePage() {
       <Hero />
       <AboutUsIntro />
       <Stats />
-      <ServicesPreview />
+      {/* <ServicesPreview /> */}
+      <ServicesMarquee />
       <HowItWorks />
       <ServiceAreas />
       <FlightTrackerSection />

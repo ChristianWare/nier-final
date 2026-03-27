@@ -1,0 +1,233 @@
+/* ─── Wrapper ─────────────────────────────────────── */
+.slider {
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--tan);
+  cursor: pointer;
+  padding: 10rem 0rem;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 2rem;
+  margin-bottom: -3rem;
+}
+
+/* ─── Scrolling track ──────────────────────────────── */
+.track {
+  display: flex;
+  gap: 1.5rem;
+  animation: scroll 50s linear infinite;
+  width: max-content;
+}
+
+.track:hover {
+  animation-play-state: paused;
+}
+
+/* ─── Card shell ───────────────────────────────────── */
+.card {
+  position: relative;
+  width: 320px;
+  height: 500px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.img {
+  object-fit: cover;
+  object-position: center top;
+  transition: transform 0.6s ease;
+}
+
+.card:hover .img {
+  transform: scale(1.04);
+}
+
+/* ─── Gradient overlay ─────────────────────────────── */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.72) 0%,
+    rgba(0, 0, 0, 0.08) 38%,
+    rgba(0, 0, 0, 0.08) 58%,
+    rgba(0, 0, 0, 0.78) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ─── Top data bar ─────────────────────────────────── */
+.cardTop {
+  position: relative;
+  z-index: 2;
+  padding: 1.1rem 1.2rem 0;
+}
+
+.cardTopRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.numberBlock {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.serviceNum {
+  font-size: 4rem;
+  color: var(--white);
+  border-right: 1px solid rgba(255, 255, 255, 0.45);
+  padding-right: 1rem;
+}
+
+.serviceUnit {
+  display: none;
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  padding-top: 0.2rem;
+}
+
+.cardTitle {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: var(--inter);
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.cardSubtitle {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: var(--inter);
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.dots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  flex-shrink: 0;
+  margin-top: 0.3rem;
+}
+
+.dots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: rgba(255, 255, 255, 0.45);
+  display: block;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.18);
+  margin-top: 1rem;
+}
+
+/* ─── Bottom copy ──────────────────────────────────── */
+.cardBottom {
+  position: relative;
+  z-index: 2;
+  padding: 0 1.2rem 1.3rem;
+}
+
+.cardCopy {
+  font-size: 1.4rem;
+  color: var(--cream);
+}
+
+/* ─── Button cluster ───────────────────────────────── */
+.btnClusterContainer {
+  margin-top: 5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Scroll animation ─────────────────────────────── */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ─── Mobile stack — hidden by default ────────────── */
+.mobileStack {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobileStack .card {
+    transition: none !important;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .slider {
+    overflow: visible;
+  }
+
+  .track {
+    display: none;
+  }
+
+  .card {
+    width: 100%;
+    height: 300px;
+  }
+
+  .mobileStack {
+    display: flex;
+    flex-direction: column;
+    padding: 4rem 1.25rem 0;
+  }
+
+  .mobileStack .card {
+    width: 100%;
+    flex-shrink: unset;
+  }
+
+  .serviceNum {
+    font-size: 40px;
+  }
+
+  .cardTitle {
+    font-size: 14px;
+  }
+
+  .cardSubtitle {
+    font-size: 7px;
+  }
+
+  .cardCopy {
+    font-size: 14px;
+    letter-spacing: normal;
+  }
+}

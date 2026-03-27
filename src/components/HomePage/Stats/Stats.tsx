@@ -1,7 +1,6 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./Stats.module.css";
 import Button from "@/components/shared/Button/Button";
-import ImageMarquee from "@/components/shared/ImageMarquee/ImageMarquee";
 import Image from "next/image";
 
 type StatsProps = {
@@ -77,8 +76,16 @@ export default function Stats({ flipped = false }: StatsProps) {
                 />
               </div>
             </div>
+            <p className={styles.copyii}>
+              With over 20 years of experience, we’ve redefined what a
+              transportation service can be. We’ve driven over 40,000 hours and
+              served more than 25,000 happy clients. At Nier, we don’t just get
+              you from point A to B – we create an experience that’s safe,
+              reliable, and tailored to your needs. Join us on the road to a new
+              kind of transportation.
+            </p>
 
-            <ImageMarquee />
+            {/* <ImageMarquee /> */}
           </div>
         </div>
       </LayoutWrapper>

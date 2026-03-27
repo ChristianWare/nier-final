@@ -1,5 +1,7 @@
 .container {
+  padding: 10rem 0rem;
   padding-top: 0rem;
+
   background-color: var(--cream);
   position: relative;
 }
@@ -48,6 +50,13 @@
   height: 100%;
   object-fit: cover;
   display: none;
+}
+
+.copyii {
+  color: var(--cream);
+  padding: 1rem 2rem;
+
+  /* line-height: 1.6; */
 }
 
 @media screen and (min-width: 769px) {
@@ -147,6 +156,11 @@
 }
 
 @media screen and (max-width: 768px) {
+  .container {
+    padding: 7rem 0rem;
+    padding-top: 0rem;
+  }
+
   .content {
     grid-template-columns: 1fr;
   }
