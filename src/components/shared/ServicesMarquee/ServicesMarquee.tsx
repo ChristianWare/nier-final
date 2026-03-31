@@ -112,9 +112,9 @@ export default function ServicesMarquee() {
               </div>
               <div className={styles.divider} />
             </div>
-            <div className={styles.cardBottom}>
+            {/* <div className={styles.cardBottom}>
               <p className={styles.cardCopy}>{service.copy}</p>
-            </div>
+            </div> */}
           </Link>
         ))}
       </div>
@@ -187,9 +187,9 @@ export default function ServicesMarquee() {
                 </div>
                 <div className={styles.divider} />
               </div>
-              <div className={styles.cardBottom}>
+              {/* <div className={styles.cardBottom}>
                 <p className={styles.cardCopy}>{service.copy}</p>
-              </div>
+              </div> */}
             </Link>
           );
         })}

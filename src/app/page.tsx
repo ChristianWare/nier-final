@@ -8,9 +8,9 @@ import { Metadata } from "next";
 import ServicesMarquee from "@/components/shared/ServicesMarquee/ServicesMarquee";
 
 // Below the fold — dynamically imported for code splitting
-const ServicesPreview = dynamic(
-  () => import("@/components/HomePage/ServicesPreview/ServicesPreview"),
-);
+// const ServicesPreview = dynamic(
+//   () => import("@/components/HomePage/ServicesPreview/ServicesPreview"),
+// );
 const HowItWorks = dynamic(
   () => import("@/components/shared/HowItWorks/HowItWorks"),
 );

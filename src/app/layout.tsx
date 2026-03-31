@@ -116,6 +116,7 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <head>
+      
         {/* ── Cloudinary preconnect ── */}
         {/* <link rel='preconnect' href='https://res.cloudinary.com' /> */}
         {/* <link
