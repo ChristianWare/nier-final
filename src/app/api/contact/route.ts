@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
       minute: "2-digit",
     });
 
-    const toEmail = "balanier54@msn.com";
+    const toEmail = "reservations@niertransportation.com";
 
     const subject = `New inquiry — ${payload.firstName} ${payload.lastName}${
       payload.serviceNeeded ? ` — ${payload.serviceNeeded}` : ""
