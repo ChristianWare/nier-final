@@ -72,6 +72,40 @@ const es = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     color: "#0369a1",
   },
+  depositBox: {
+    backgroundColor: "#ecfdf5",
+    borderWidth: 1,
+    borderColor: "#6ee7b7",
+    borderRadius: 4,
+    padding: 10,
+    marginTop: 10,
+  },
+  depositTitle: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: "#065f46",
+    marginBottom: 6,
+  },
+  depositRow: {
+    flexDirection: "row" as const,
+    justifyContent: "space-between" as const,
+    marginBottom: 3,
+  },
+  depositLabel: {
+    fontSize: 9,
+    color: "#047857",
+  },
+  depositValue: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: "#047857",
+  },
+  depositNote: {
+    fontSize: 8,
+    color: "#6b7280",
+    marginTop: 4,
+    lineHeight: 1.4,
+  },
 });
 
 type EstimateInvoiceData = InvoiceData & {
@@ -365,6 +399,39 @@ export default function EstimatePDF({
               </Text>
             </View>
           </View>
+
+          {invoice.depositMode &&
+            invoice.depositCents &&
+            (invoice.depositCents ?? 0) > 0 && (
+              <View style={es.depositBox}>
+                <Text style={es.depositTitle}>DEPOSIT OPTION AVAILABLE</Text>
+                <View style={es.depositRow}>
+                  <Text style={es.depositLabel}>
+                    Deposit ({invoice.depositPercent ?? ""}%)
+                  </Text>
+                  <Text style={es.depositValue}>
+                    {formatMoney(invoice.depositCents, invoice.currency)}
+                  </Text>
+                </View>
+                {(invoice.balanceCents ?? 0) > 0 && (
+                  <View style={es.depositRow}>
+                    <Text style={es.depositLabel}>
+                      Balance due
+                      {invoice.balanceDueDate
+                        ? ` by ${invoice.balanceDueDate}`
+                        : ""}
+                    </Text>
+                    <Text style={es.depositValue}>
+                      {formatMoney(invoice.balanceCents, invoice.currency)}
+                    </Text>
+                  </View>
+                )}
+                <Text style={es.depositNote}>
+                  You may pay this deposit now or pay the full amount upfront
+                  when you receive the payment link.
+                </Text>
+              </View>
+            )}
         </View>
 
         {/* ── Footer ── */}

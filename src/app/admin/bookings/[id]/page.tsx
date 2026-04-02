@@ -20,7 +20,6 @@ import DuplicateBookingClient from "./DuplicateBookingClient";
 import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay";
 import RefundButton from "@/components/admin/RefundButton/RefundButton";
 import ApprovalToggleClient from "./ApprovalToggleClient";
-import BookingCompletionChecklist from "@/components/admin/BookingCompletionChecklist/BookingCompletionChecklist";
 import FlightStatusCard from "@/components/admin/FlightStatusCard/FlightStatusCard";
 import ApproveRouteClient from "./ApproveRouteClient";
 import ApprovePriceClient from "./ApprovePriceClient";
@@ -35,7 +34,7 @@ import { getTripGroupForBooking } from "@/lib/tripGroup/getTripGroupForBooking";
 import TripGroupCard from "@/components/admin/TripGroupCard/TripGroupCard";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Image from "next/image";
-import { BookingEditProvider } from "./BookingEditContext"; // named: { BookingEditProvider }
+import { BookingEditProvider } from "./BookingEditContext";
 import BoxRightDateDisplay from "./BoxRightDateDisplay";
 import AdminCashPaymentButton from "@/components/admin/AdminCashPaymentButton/AdminCashPaymentButton";
 import PriceBreakdownCard from "@/components/admin/PriceBreakdownCard/PriceBreakdownCard";
@@ -43,43 +42,14 @@ import { getSavedCardForBooking } from "../../../../../actions/payments/chargeCa
 import SendEstimateButton from "./SendEstimateButton";
 import SendBalanceReminderButton from "./SendBalanceReminderButton";
 import DepositSetupClient from "@/components/admin/DepositSetupClient/DepositSetupClient";
+import BookingDetailTabs, {
+  type BookingTab,
+} from "@/components/admin/BookingDetailTabs/BookingDetailTabs";
+import { BookingTabsProvider } from "@/components/admin/BookingDetailTabs/BookingDetailTabsContext";
+import BookingCompletionChecklist from "@/components/admin/BookingCompletionChecklist/BookingCompletionChecklist";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-type IndicatorStatus = "complete" | "warning" | "neutral";
-
-function CardIndicator({ status }: { status: IndicatorStatus }) {
-  const colors = {
-    complete: { bg: "#22c55e", icon: "✓" },
-    warning: { bg: "#f59e0b", icon: "!" },
-    neutral: { bg: "#94a3b8", icon: "○" },
-  };
-  const { bg, icon } = colors[status];
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: -8,
-        left: -8,
-        width: 24,
-        height: 24,
-        borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: 12,
-        fontWeight: 700,
-        zIndex: 10,
-        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.15)",
-        background: bg,
-        color: "white",
-      }}
-    >
-      {icon}
-    </div>
-  );
-}
 
 // --- shared-ish label helpers ---
 function statusLabel(status: BookingStatus) {
@@ -167,7 +137,7 @@ function fmtPersonLine(p: { name: string | null; email: string }) {
 }
 
 function formatMoney(cents: number | null | undefined, currency = "USD") {
-  if (cents == null) return "—";
+  if (cents == null) return "\u2014";
   const n = cents / 100;
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -188,85 +158,60 @@ function getEventActorLabel(
   actor: { name: string | null; email: string; roles: Role[] } | null,
   status: string,
 ): string {
-  if (status === "CONFIRMED" && !actor) {
-    return "System (payment received)";
-  }
-
-  if (!actor) {
-    return "System";
-  }
-
+  if (status === "CONFIRMED" && !actor) return "System (payment received)";
+  if (!actor) return "System";
   const isAdmin = actor.roles?.includes(Role.ADMIN);
   const isDriver = actor.roles?.includes(Role.DRIVER);
   const name = actor.name?.trim() || actor.email;
-
-  if (isAdmin) {
-    return `Admin: ${name}`;
-  }
-
-  if (isDriver) {
-    return `Driver: ${name}`;
-  }
-
+  if (isAdmin) return `Admin: ${name}`;
+  if (isDriver) return `Driver: ${name}`;
   return `User: ${name}`;
 }
 
-// Helper to format event details from metadata
 function getEventDetails(
   eventType: string,
   metadata: Record<string, any> | null,
   currency: string,
 ): string | null {
   if (!metadata) return null;
-
   switch (eventType) {
     case "PAYMENT_RECEIVED": {
       const amount = formatMoney(metadata.amountCents, currency);
       const tip = metadata.tipCents
         ? formatMoney(metadata.tipCents, currency)
         : null;
-      if (tip && metadata.tipCents > 0) {
+      if (tip && metadata.tipCents > 0)
         return `Amount: ${amount} (includes ${tip} tip)`;
-      }
       return `Amount: ${amount}`;
     }
-
-    case "PAYMENT_LINK_SENT": {
-      const amount = formatMoney(metadata.amountCents, currency);
-      const email = metadata.recipientEmail;
-      return `${amount} → ${email}`;
-    }
-
+    case "PAYMENT_LINK_SENT":
+      return `${formatMoney(metadata.amountCents, currency)} \u2192 ${metadata.recipientEmail}`;
     case "DRIVER_ASSIGNED": {
       const driverName = metadata.driverName ?? "Driver";
       const driverPayment = metadata.driverPaymentCents
-        ? ` • Pay: ${formatMoney(metadata.driverPaymentCents, currency)}`
+        ? ` \u2022 Pay: ${formatMoney(metadata.driverPaymentCents, currency)}`
         : "";
       const vehicle = metadata.vehicleUnitName
-        ? ` • Vehicle: ${metadata.vehicleUnitName}${metadata.vehicleUnitPlate ? ` (${metadata.vehicleUnitPlate})` : ""}`
+        ? ` \u2022 Vehicle: ${metadata.vehicleUnitName}${metadata.vehicleUnitPlate ? ` (${metadata.vehicleUnitPlate})` : ""}`
         : "";
       return `${driverName}${driverPayment}${vehicle}`;
     }
-
     case "DRIVER_UNASSIGNED": {
       const driverName = metadata.previousDriverName ?? "Driver";
       const driverPayment = metadata.previousDriverPaymentCents
-        ? ` • Pay was: ${formatMoney(metadata.previousDriverPaymentCents, currency)}`
+        ? ` \u2022 Pay was: ${formatMoney(metadata.previousDriverPaymentCents, currency)}`
         : "";
       const vehicle = metadata.previousVehicleUnitName
-        ? ` • Vehicle: ${metadata.previousVehicleUnitName}${metadata.previousVehicleUnitPlate ? ` (${metadata.previousVehicleUnitPlate})` : ""}`
+        ? ` \u2022 Vehicle: ${metadata.previousVehicleUnitName}${metadata.previousVehicleUnitPlate ? ` (${metadata.previousVehicleUnitPlate})` : ""}`
         : "";
       return `Removed: ${driverName}${driverPayment}${vehicle}`;
     }
-
     case "TRIP_EDITED": {
       const fields = metadata.fieldsEdited;
-      if (Array.isArray(fields) && fields.length > 0) {
+      if (Array.isArray(fields) && fields.length > 0)
         return `Changed: ${fields.join(", ")}`;
-      }
       return null;
     }
-
     case "PRICE_ADJUSTED": {
       const oldTotal = formatMoney(metadata.oldTotalCents, currency);
       const newTotal = formatMoney(metadata.newTotalCents, currency);
@@ -275,51 +220,35 @@ function getEventDetails(
         diff > 0
           ? `+${formatMoney(diff, currency)}`
           : formatMoney(diff, currency);
-      return `${oldTotal} → ${newTotal} (${diffStr})`;
+      return `${oldTotal} \u2192 ${newTotal} (${diffStr})`;
     }
-
-    case "REFUND_ISSUED": {
-      const amount = formatMoney(metadata.amountCents, currency);
-      const remaining = formatMoney(metadata.remainingPaidCents, currency);
-      return `Refunded: ${amount} • Remaining: ${remaining}`;
-    }
-
-    case "APPROVAL_CHANGED": {
+    case "REFUND_ISSUED":
+      return `Refunded: ${formatMoney(metadata.amountCents, currency)} \u2022 Remaining: ${formatMoney(metadata.remainingPaidCents, currency)}`;
+    case "APPROVAL_CHANGED":
       return metadata.approved
-        ? `Status: ${metadata.previousStatus} → ${metadata.newStatus}`
+        ? `Status: ${metadata.previousStatus} \u2192 ${metadata.newStatus}`
         : `Reverted to: ${metadata.newStatus}`;
-    }
-
-    case "BOOKING_DECLINED": {
+    case "BOOKING_DECLINED":
       return metadata.reason ? `Reason: ${metadata.reason}` : null;
-    }
-
-    case "STATUS_CHANGE": {
-      if (metadata.action) {
-        return metadata.action;
-      }
-      if (metadata.previousStatus && metadata.newStatus) {
-        return `${metadata.previousStatus} → ${metadata.newStatus}`;
-      }
+    case "STATUS_CHANGE":
+      if (metadata.action) return metadata.action;
+      if (metadata.previousStatus && metadata.newStatus)
+        return `${metadata.previousStatus} \u2192 ${metadata.newStatus}`;
       return null;
-    }
-
     case "DEPOSIT_CONFIGURED": {
       if (!metadata?.depositPercent) return "Deposit mode disabled";
       const deposit = formatMoney(metadata.depositCents, currency);
       const balance =
         metadata.balanceCents > 0
-          ? ` · Balance: ${formatMoney(metadata.balanceCents, currency)}`
+          ? ` \u00b7 Balance: ${formatMoney(metadata.balanceCents, currency)}`
           : "";
       return `${metadata.depositPercent}% deposit (${deposit})${balance}`;
     }
-
     default:
       return null;
   }
 }
 
-// Updated payment status display with balance and refund handling
 function getPaymentStatusDisplay(
   paymentStatus: string | null | undefined,
   totalCents: number,
@@ -338,8 +267,7 @@ function getPaymentStatusDisplay(
   const hasBalanceDue = netPaidCents > 0 && balanceDueCents > 0;
   const hasRefundDue = netPaidCents > totalCents;
   const refundDueCents = hasRefundDue ? netPaidCents - totalCents : 0;
-
-  if (paymentStatus === "REFUNDED") {
+  if (paymentStatus === "REFUNDED")
     return {
       label: "Refunded",
       tone: "neutral",
@@ -348,9 +276,7 @@ function getPaymentStatusDisplay(
       hasRefundDue: false,
       refundDueCents: 0,
     };
-  }
-
-  if (paymentStatus === "PARTIALLY_REFUNDED") {
+  if (paymentStatus === "PARTIALLY_REFUNDED")
     return {
       label: "Partially Refunded",
       tone: "neutral",
@@ -359,10 +285,8 @@ function getPaymentStatusDisplay(
       hasRefundDue,
       refundDueCents,
     };
-  }
-
   if (paymentStatus === "PAID") {
-    if (hasRefundDue) {
+    if (hasRefundDue)
       return {
         label: "Overpaid",
         tone: "warn",
@@ -371,8 +295,7 @@ function getPaymentStatusDisplay(
         hasRefundDue: true,
         refundDueCents,
       };
-    }
-    if (hasBalanceDue) {
+    if (hasBalanceDue)
       return {
         label: "Partial Payment",
         tone: "warn",
@@ -381,7 +304,6 @@ function getPaymentStatusDisplay(
         hasRefundDue: false,
         refundDueCents: 0,
       };
-    }
     return {
       label: "Paid",
       tone: "good",
@@ -391,7 +313,6 @@ function getPaymentStatusDisplay(
       refundDueCents: 0,
     };
   }
-
   switch (paymentStatus) {
     case "PENDING":
       return {
@@ -411,7 +332,6 @@ function getPaymentStatusDisplay(
         hasRefundDue: false,
         refundDueCents: 0,
       };
-    case "NONE":
     default:
       return {
         label: "Not Paid",
@@ -424,7 +344,6 @@ function getPaymentStatusDisplay(
   }
 }
 
-// Helper to safely convert Decimal to number
 function decimalToNumber(val: any): number | null {
   if (val == null) return null;
   if (typeof val === "number") return val;
@@ -437,7 +356,6 @@ function getConfirmationCode(bookingId: string): string {
   return bookingId.slice(0, 8).toUpperCase();
 }
 
-// ─── Build a human-readable payment method string for the invoice ───────────
 function buildPaymentMethodDisplay(
   payment: {
     stripePaymentIntentId?: string | null;
@@ -445,12 +363,9 @@ function buildPaymentMethodDisplay(
   } | null,
 ): string | null {
   if (!payment) return null;
-  if (payment.stripePaymentIntentId) {
-    return "Credit Card (online)";
-  }
-  if (payment.method) {
+  if (payment.stripePaymentIntentId) return "Credit Card (online)";
+  if (payment.method)
     return payment.method.charAt(0).toUpperCase() + payment.method.slice(1);
-  }
   return "Manual Payment (Cash)";
 }
 
@@ -468,9 +383,7 @@ export default async function AdminBookingDetailPage({
       serviceType: true,
       vehicle: true,
       payment: true,
-      stops: {
-        orderBy: { stopOrder: "asc" },
-      },
+      stops: { orderBy: { stopOrder: "asc" } },
       assignment: {
         include: {
           driver: {
@@ -490,9 +403,7 @@ export default async function AdminBookingDetailPage({
       },
       notes: {
         orderBy: { createdAt: "desc" },
-        include: {
-          createdBy: { select: { name: true, email: true } },
-        },
+        include: { createdBy: { select: { name: true, email: true } } },
       },
       corporateAccount: {
         select: {
@@ -514,11 +425,7 @@ export default async function AdminBookingDetailPage({
       },
       fees: {
         orderBy: { createdAt: "asc" },
-        select: {
-          id: true,
-          label: true,
-          amountCents: true,
-        },
+        select: { id: true, label: true, amountCents: true },
       },
     },
   });
@@ -527,25 +434,18 @@ export default async function AdminBookingDetailPage({
 
   const companySettings = await getCompanySettings();
   const companyTz = companySettings.timezone;
-
   const tripGroupData = await getTripGroupForBooking(id);
-
   const isCorporateBooking = Boolean(booking.corporateAccountId);
-
   const isGroupBooking = Boolean(tripGroupData);
   const groupPaymentStatus = tripGroupData?.tripGroup.paymentStatus ?? null;
   const groupTotalCents = tripGroupData
     ? tripGroupData.siblings.reduce((sum, s) => sum + s.totalCents, 0)
     : 0;
-  // If the group is marked PAID, use the live total as the paid amount.
-  // The cached amountPaidCents on TripGroup can be stale if leg prices were
-  // edited after payment was recorded.
   const isGroupPaid = groupPaymentStatus === "PAID";
   const groupAmountPaidCents = isGroupPaid
     ? groupTotalCents
     : (tripGroupData?.tripGroup.amountPaidCents ?? 0);
 
-  // ─── Corporate invoice lookup (via line item bookingId) ───
   let corporateInvoice: {
     id: string;
     invoiceNumber: string;
@@ -555,7 +455,6 @@ export default async function AdminBookingDetailPage({
     dueDate: Date | null;
     paidAt: Date | null;
   } | null = null;
-
   if (isCorporateBooking) {
     const invoiceLineItem = await db.corporateInvoiceLineItem.findFirst({
       where: { bookingId: booking.id },
@@ -577,26 +476,19 @@ export default async function AdminBookingDetailPage({
     }
   }
 
-  // Earliest status event for "created by"
-  // Earliest status event for "created by"
   const createdEvent = await db.bookingStatusEvent.findFirst({
     where: { bookingId: booking.id },
     orderBy: { createdAt: "asc" },
     include: {
-      createdBy: {
-        select: { id: true, name: true, email: true, roles: true },
-      },
+      createdBy: { select: { id: true, name: true, email: true, roles: true } },
     },
   });
 
-  // Get the month/year from the booking's pickup date
   const pickupMonth = booking.pickupAt.getMonth();
   const pickupYear = booking.pickupAt.getFullYear();
-
   const monthStart = new Date(pickupYear, pickupMonth, 1);
   const monthEnd = new Date(pickupYear, pickupMonth + 1, 0, 23, 59, 59, 999);
 
-  // Fetch drivers with their ride count for the booking's month
   const driversRaw = await db.user.findMany({
     where: { roles: { has: "DRIVER" } },
     select: {
@@ -606,13 +498,8 @@ export default async function AdminBookingDetailPage({
       driverAssignments: {
         where: {
           booking: {
-            pickupAt: {
-              gte: monthStart,
-              lte: monthEnd,
-            },
-            status: {
-              notIn: ["CANCELLED", "NO_SHOW", "DECLINED", "DRAFT"],
-            },
+            pickupAt: { gte: monthStart, lte: monthEnd },
+            status: { notIn: ["CANCELLED", "NO_SHOW", "DECLINED", "DRAFT"] },
           },
         },
         select: { id: true },
@@ -623,7 +510,6 @@ export default async function AdminBookingDetailPage({
   });
 
   const monthLabel = `${String(pickupMonth + 1).padStart(2, "0")}/${String(pickupYear).slice(-2)}`;
-
   const drivers = driversRaw.map((d) => ({
     id: d.id,
     name: d.name,
@@ -632,7 +518,6 @@ export default async function AdminBookingDetailPage({
     monthLabel,
   }));
 
-  // Fetch ALL active vehicle units, with category info
   const vehicleUnitsRaw = await db.vehicleUnit.findMany({
     where: { active: true },
     select: {
@@ -645,7 +530,6 @@ export default async function AdminBookingDetailPage({
     orderBy: { name: "asc" },
     take: 300,
   });
-
   const vehicleUnits = vehicleUnitsRaw
     .map((u) => ({
       id: u.id,
@@ -677,48 +561,40 @@ export default async function AdminBookingDetailPage({
     booking.user?.name?.trim() ||
     booking.guestName?.trim() ||
     booking.corporatePassenger?.name?.trim() ||
-    "—";
+    "\u2014";
   const customerEmailDisplay =
     booking.user?.email ||
     booking.guestEmail ||
     booking.corporatePassenger?.email ||
-    "—";
+    "\u2014";
   const customerPhone =
     booking.user?.phone?.trim() ||
     booking.guestPhone?.trim() ||
     booking.corporatePassenger?.phone?.trim() ||
     null;
-
   const customerLine = isCorporateBooking
-    ? `${customerName} (${customerEmailDisplay})${customerPhone ? ` • 📞 ${formatPhone(customerPhone)}` : ""}${booking.corporatePassenger?.department ? ` • ${booking.corporatePassenger.department}` : ""} — 🏢 ${booking.corporateAccount?.name ?? "Corporate"}`
+    ? `${customerName} (${customerEmailDisplay})${customerPhone ? ` \u2022 \ud83d\udcde ${formatPhone(customerPhone)}` : ""}${booking.corporatePassenger?.department ? ` \u2022 ${booking.corporatePassenger.department}` : ""} \u2014 \ud83c\udfe2 ${booking.corporateAccount?.name ?? "Corporate"}`
     : `${customerName} (${customerEmailDisplay})`;
 
   const createdAtLabel = formatDateTime(booking.createdAt, companyTz);
   const actor = createdEvent?.createdBy ?? null;
-
   let createdByDisplay = "Guest checkout";
-
   if (actor?.roles?.includes(Role.ADMIN)) {
-    createdByDisplay = `Admin • ${fmtPersonLine(actor)}`;
+    createdByDisplay = `Admin \u2022 ${fmtPersonLine(actor)}`;
   } else if (actor) {
-    createdByDisplay = `User account • ${fmtPersonLine(actor)}`;
+    createdByDisplay = `User account \u2022 ${fmtPersonLine(actor)}`;
   } else if (booking.user) {
-    createdByDisplay = `User account • ${fmtPersonLine({
-      name: booking.user.name ?? null,
-      email: booking.user.email,
-    })}`;
+    createdByDisplay = `User account \u2022 ${fmtPersonLine({ name: booking.user.name ?? null, email: booking.user.email })}`;
   } else {
     const gName = (booking.guestName ?? "").trim() || "Guest";
     const gEmail = (booking.guestEmail ?? "").trim();
     const gPhone = (booking.guestPhone ?? "").trim();
-
     const parts = [
       "Guest checkout",
       gEmail ? `${gName} (${gEmail})` : gName,
       gPhone ? gPhone : null,
     ].filter(Boolean);
-
-    createdByDisplay = parts.join(" • ");
+    createdByDisplay = parts.join(" \u2022 ");
   }
 
   const isPaid = isGroupBooking
@@ -727,69 +603,23 @@ export default async function AdminBookingDetailPage({
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
   const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
   const tipCents = booking.payment?.tipCents ?? 0;
-
   const isApproved =
     booking.status !== "PENDING_REVIEW" &&
     booking.status !== "DRAFT" &&
     booking.status !== "DECLINED";
-
   const isDeclined = booking.status === "DECLINED";
-
   const hasPaymentLinkSent = booking.statusEvents.some(
     (e) => (e as any).eventType === "PAYMENT_LINK_SENT",
   );
-
-  // ✅ Card indicator statuses
-
-  // Trip card — green if route approved, warning otherwise
-  const tripIndicator: IndicatorStatus = booking.routeApproved
-    ? "complete"
-    : "warning";
-
-  // Price card — green if price approved
-  const priceIndicator: IndicatorStatus = booking.priceApproved
-    ? "complete"
-    : "warning";
-
-  // Payment card
-  const isPaidOrRefunded = isGroupBooking
-    ? groupPaymentStatus === "PAID" ||
-      groupPaymentStatus === "REFUNDED" ||
-      groupPaymentStatus === "PARTIALLY_REFUNDED"
-    : booking.payment?.status === "PAID" ||
-      booking.payment?.status === "REFUNDED" ||
-      booking.payment?.status === "PARTIALLY_REFUNDED";
-
-  const paymentIndicator: IndicatorStatus = isCorporateBooking
-    ? "complete"
-    : isPaidOrRefunded
-      ? "complete"
-      : hasPaymentLinkSent
-        ? "complete"
-        : isApproved
-          ? "warning"
-          : "warning";
-
-  // Assign card — green if driver AND vehicle assigned
   const hasDriver = !!booking.assignment?.driverId;
   const hasVehicleUnit = !!booking.assignment?.vehicleUnitId;
-  const assignIndicator: IndicatorStatus =
-    hasDriver && hasVehicleUnit ? "complete" : "warning";
-
-  // Driver pay card — green if driver pay is set
   const hasDriverPay = Boolean(
     booking.assignment?.driverPaymentCents &&
     booking.assignment.driverPaymentCents > 0,
   );
-  const driverPayIndicator: IndicatorStatus = hasDriverPay
-    ? "complete"
-    : "warning";
-
   const mostRecentConfirmedEventId = isPaid
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
     : null;
-
-  // Current status display
   const currentStatus = booking.status as BookingStatus;
   const currentStatusIsPaidConfirmed =
     isPaid &&
@@ -823,7 +653,7 @@ export default async function AdminBookingDetailPage({
           amountPaidCents,
           amountRefundedCents,
         );
-  // Prepare data for EditTripDetailsClient
+
   const tripEditData = {
     pickupAt: formatDateTimeLocal(booking.pickupAt, companyTz),
     pickupAddress: booking.pickupAddress,
@@ -848,7 +678,6 @@ export default async function AdminBookingDetailPage({
     flightGate: booking.flightGate,
   };
 
-  // Prepare pricing data for EditTripDetailsClient
   const pricingData: PricingData | undefined =
     booking.serviceType && booking.vehicle
       ? {
@@ -870,49 +699,36 @@ export default async function AdminBookingDetailPage({
         }
       : undefined;
 
-  // Prepare notes for client
   const notesForClient = booking.notes.map((n) => ({
     id: n.id,
     content: n.content,
     createdAt: n.createdAt.toISOString(),
     createdBy: n.createdBy,
   }));
-
-  // Check if booking has flight info
   const hasFlightInfo =
     booking.flightAirline ||
     booking.flightNumber ||
     booking.flightScheduledAt ||
     booking.flightTerminal ||
     booking.flightGate;
-
-  // Extract flight date for API lookup
   const flightDateForLookup = tz.formatIsoDate(
     booking.flightScheduledAt ?? booking.pickupAt,
     companyTz,
   );
-
-  // Determine airport leg from service type
   const airportLeg = (booking.serviceType.airportLeg ?? "NONE") as
     | "PICKUP"
     | "DROPOFF"
     | "NONE";
-
-  // Check if we have route coordinates for map display
   const hasRouteCoordinates =
     booking.pickupLat &&
     booking.pickupLng &&
     booking.dropoffLat &&
     booking.dropoffLng;
-
-  // Check if booking has stops
   const hasStops = booking.stops && booking.stops.length > 0;
   const stopCount = booking.stops?.length ?? 0;
   const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
   const totalWaitTimeMinutes =
     booking.stops?.reduce((sum, s) => sum + (s.waitTimeMinutes ?? 5), 0) ?? 0;
-
-  // Prepare stops for map display
   const stopsForMap =
     booking.stops
       ?.map((s) => ({
@@ -922,30 +738,25 @@ export default async function AdminBookingDetailPage({
         stopOrder: s.stopOrder,
       }))
       .filter((s) => s.lat && s.lng) ?? [];
+  const hasFees = booking.fees && booking.fees.length > 0;
+  const totalFeesCents =
+    booking.fees?.reduce((sum, f) => sum + f.amountCents, 0) ?? 0;
 
-  // Check if booking has fees
-  // ─── Build invoiceData for preview + PDF download ───
   let invoiceData: InvoiceData | null = null;
-
   if (isCorporateBooking && corporateInvoice) {
     const result = await getCorporateInvoiceData(corporateInvoice.id);
-    if (result.ok) {
-      invoiceData = result.data;
-    }
+    if (result.ok) invoiceData = result.data;
   } else if (isGroupBooking && isGroupPaid && tripGroupData) {
-    // Multi-leg group: build a combined invoice from all sibling legs
     const groupSiblings = tripGroupData.siblings;
     const groupInvoiceNumber = tripGroupData.tripGroup.id
       .slice(0, 8)
       .toUpperCase();
-
     const invoiceCustomerName =
       booking.user?.name?.trim() ||
       booking.guestName?.trim() ||
       booking.user?.email ||
       booking.guestEmail ||
       "Guest";
-
     invoiceData = {
       invoiceNumber: groupInvoiceNumber,
       invoiceDate: formatInvoiceDate(booking.createdAt),
@@ -984,7 +795,7 @@ export default async function AdminBookingDetailPage({
         durationMinutes: null,
       },
       lineItems: groupSiblings.map((sibling, idx) => ({
-        description: `Ride ${idx + 1}: ${sibling.serviceName} — ${formatTripDateTime(sibling.pickupAt, companyTz)}`,
+        description: `Ride ${idx + 1}: ${sibling.serviceName} \u2014 ${formatTripDateTime(sibling.pickupAt, companyTz)}`,
         amount: sibling.totalCents,
       })),
       legs: groupSiblings.map((sibling, idx) => ({
@@ -1007,40 +818,26 @@ export default async function AdminBookingDetailPage({
       bookingConfirmation: groupInvoiceNumber,
     };
   } else if (isPaid) {
-    // Regular (guest / account): build inline when paid
     const baseFareCents =
       booking.subtotalCents - (booking.stopSurchargeCents ?? stopCount * 1500);
-
-    const invoiceLineItems: InvoiceLineItem[] = [];
-
-    invoiceLineItems.push({
-      description: `${booking.serviceType?.name ?? "Transportation"} - ${booking.vehicle?.name ?? "Vehicle"}`,
-      amount: baseFareCents,
-    });
-
-    if (stopCount > 0 && stopSurchargeCents > 0) {
+    const invoiceLineItems: InvoiceLineItem[] = [
+      {
+        description: `${booking.serviceType?.name ?? "Transportation"} - ${booking.vehicle?.name ?? "Vehicle"}`,
+        amount: baseFareCents,
+      },
+    ];
+    if (stopCount > 0 && stopSurchargeCents > 0)
       invoiceLineItems.push({
-        description: `Extra Stop${stopCount > 1 ? "s" : ""} (${stopCount} × $15.00)`,
+        description: `Extra Stop${stopCount > 1 ? "s" : ""} (${stopCount} \u00d7 $15.00)`,
         amount: stopSurchargeCents,
       });
-    }
-
-    if (booking.feesCents > 0) {
+    if (booking.feesCents > 0)
       invoiceLineItems.push({
         description: "Service Fee",
         amount: booking.feesCents,
       });
-    }
-
-    if (booking.taxesCents > 0) {
-      invoiceLineItems.push({
-        description: "Tax",
-        amount: booking.taxesCents,
-      });
-    }
-
-    // ── Customer name: use the most specific name available, never fall
-    //    back to a generic placeholder like "Customer".
+    if (booking.taxesCents > 0)
+      invoiceLineItems.push({ description: "Tax", amount: booking.taxesCents });
     const invoiceCustomerName =
       booking.user?.name?.trim() ||
       booking.guestName?.trim() ||
@@ -1048,33 +845,24 @@ export default async function AdminBookingDetailPage({
       booking.user?.email ||
       booking.guestEmail ||
       "Guest";
-
     const invoiceCustomerEmail =
       booking.user?.email || booking.guestEmail || "";
-
     const invoiceCustomerPhone =
       booking.user?.phone?.trim() ||
       booking.guestPhone?.trim() ||
       booking.corporatePassenger?.phone?.trim() ||
       null;
-
-    // ── Amount paid: amountPaidCents in the DB stores only the fare.
-    //    The tip is tracked separately. Add it here so the invoice shows
-    //    what the customer's card was actually charged (fare + tip).
     const invoiceAmountPaidCents =
       Math.abs(amountPaidCents - booking.totalCents) <= 100
         ? amountPaidCents + tipCents
         : amountPaidCents;
-
     invoiceData = {
       invoiceNumber: booking.id.slice(0, 8).toUpperCase(),
       invoiceDate: formatInvoiceDate(booking.createdAt),
       paidDate: booking.payment?.paidAt
         ? formatInvoiceDate(booking.payment.paidAt)
         : null,
-
       logoUrl: (companySettings as any).logoUrl ?? undefined,
-
       company: {
         name: companySettings.officeName || "Nier Transportation",
         address: companySettings.officeAddress || "",
@@ -1082,13 +870,11 @@ export default async function AdminBookingDetailPage({
         phone: companySettings.dispatchPhone || "",
         email: companySettings.supportEmail || "",
       },
-
       customer: {
         name: invoiceCustomerName,
         email: invoiceCustomerEmail,
         phone: invoiceCustomerPhone,
       },
-
       trip: {
         date: formatTripDateTime(booking.pickupAt, companyTz),
         pickupAddress: booking.pickupAddress,
@@ -1104,9 +890,7 @@ export default async function AdminBookingDetailPage({
         distanceMiles: decimalToNumber(booking.distanceMiles),
         durationMinutes: booking.durationMinutes,
       },
-
       lineItems: invoiceLineItems,
-
       subtotalCents: booking.subtotalCents,
       feesCents: booking.feesCents,
       taxesCents: booking.taxesCents,
@@ -1114,41 +898,60 @@ export default async function AdminBookingDetailPage({
       tipCents,
       amountPaidCents: invoiceAmountPaidCents,
       amountRefundedCents,
-
       currency: booking.currency,
-
       paymentMethodDisplay: buildPaymentMethodDisplay(booking.payment),
-
       driverName: booking.assignment?.driver?.name ?? undefined,
-
       bookingConfirmation: booking.id.slice(0, 8).toUpperCase(),
+      depositMode: booking.depositMode ?? false,
+      depositPercent: booking.depositPercent
+        ? Number(booking.depositPercent)
+        : null,
+      depositCents:
+        booking.depositMode && booking.depositPercent
+          ? Math.round(
+              (booking.totalCents * Number(booking.depositPercent)) / 100,
+            )
+          : (booking.depositCents ?? null),
+      balanceCents:
+        booking.depositMode && booking.depositPercent
+          ? booking.totalCents -
+            Math.round(
+              (booking.totalCents * Number(booking.depositPercent)) / 100,
+            )
+          : (booking.balanceCents ?? null),
+      depositDueDate: booking.depositDueDate
+        ? new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }).format(booking.depositDueDate)
+        : null,
+      balanceDueDate: booking.balanceDueDate
+        ? new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }).format(booking.balanceDueDate)
+        : null,
     };
   }
-
-  // Check if booking has fees
-  const hasFees = booking.fees && booking.fees.length > 0;
-  const totalFeesCents =
-    booking.fees?.reduce((sum, f) => sum + f.amountCents, 0) ?? 0;
 
   const [stripePublishableKey, savedCard] = await Promise.all([
     getStripePublishableKey(),
     getSavedCardForBooking(booking.id),
   ]);
-
   const estimateSentEvents = booking.statusEvents
     .filter((e) => (e as any).eventType === "ESTIMATE_SENT")
     .map((e) => ({
       sentAt: e.createdAt.toISOString(),
       recipientEmail: (e as any).metadata?.recipientEmail ?? null,
     }));
-
   const reminderSentEvents = booking.statusEvents
     .filter((e) => (e as any).eventType === "BALANCE_REMINDER_SENT")
     .map((e) => ({
       sentAt: e.createdAt.toISOString(),
       recipientEmail: (e as any).metadata?.recipientEmail ?? null,
     }));
-
   const paymentLinkSentEvents = booking.statusEvents
     .filter((e) => (e as any).eventType === "PAYMENT_LINK_SENT")
     .map((e) => ({
@@ -1158,641 +961,540 @@ export default async function AdminBookingDetailPage({
       isDeposit: (e as any).metadata?.isDepositPayment === true,
       isBalance: (e as any).metadata?.isBalancePayment === true,
     }));
-
   const outstandingCents = Math.max(0, booking.totalCents - amountPaidCents);
-  return (
-    <DirtyFormProvider>
-      <BookingEditProvider>
-        <section className={styles.parent}>
-          <div className={styles.container}>
-            <header className='header'>
-              <h1 className={`heading h2`}>
-                Booking Details
-                {isCorporateBooking ? (
-                  <span
-                    style={{
-                      color: "rgb(124, 58, 237)",
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {" "}
-                    (corporate)
-                  </span>
-                ) : booking.eventType === "Golf Transfer — We-Ko-Pa" ? (
-                  <span
-                    style={{
-                      color: "var(--green)",
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {" "}
-                    (we-ko-pa)
-                  </span>
-                ) : customerName !== "—" ? (
-                  <span
-                    style={{
-                      color: "var(--black400)",
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {" "}
-                    — {customerName}
-                  </span>
-                ) : null}
-              </h1>
 
-              <div className={styles.boxRight}>
-                <div className='emptyTitle'>Date:</div>
-                <BoxRightDateDisplay
-                  initialFormatted={formatDateTime(booking.pickupAt, companyTz)}
-                  timeZone={companyTz}
-                />
+  // ── Tab completion ────────────────────────────────────────────────────────
+  const tripIsComplete = booking.routeApproved;
+  const priceIsComplete = booking.priceApproved;
+  const assignIsComplete = hasDriver && hasVehicleUnit && hasDriverPay;
+  const paymentIsComplete = isCorporateBooking || isPaid;
+  const approvalIsComplete = isApproved;
 
-                <div style={{ marginTop: 30 }}>
-                  <div className='emptyTitle'>Booking ID:</div>
-                  <p className={`emptySmall ${styles.badge}`}>{booking.id}</p>
-                </div>
-                {/* Current status badge */}
-                <div style={{ marginTop: 30 }}>
-                  <div className='emptyTitle'>Current Status:</div>
-                  <div style={{ marginTop: 6 }}>
-                    <span
-                      className={`badge badge_${currentStatusTone} ${styles.badge}`}
-                    >
-                      {currentStatusLabel}
-                    </span>
-                  </div>
-                </div>
+  // Default to first incomplete tab
+  const defaultTabId = !tripIsComplete
+    ? "trip"
+    : !priceIsComplete
+      ? "price"
+      : !assignIsComplete
+        ? "assignment"
+        : !paymentIsComplete
+          ? "payment"
+          : !approvalIsComplete
+            ? "approval"
+            : "trip";
 
-                {/* Show decline reason if applicable */}
-                {isDeclined && booking.declineReason && (
-                  <div className={styles.declineReasonBox}>
-                    <strong>Decline Reason:</strong> {booking.declineReason}
-                  </div>
-                )}
-
-                {/* Client Type */}
-                <div style={{ marginTop: 30 }}>
-                  <div className='emptyTitle'>Client Type:</div>
-                  <div style={{ marginTop: 6 }}>
-                    {isCorporateBooking ? (
-                      <span className={`emptySmall ${styles.badge}`}>
-                        🏢 Corporate —{" "}
-                        {booking.corporateAccount?.name ?? "Account"}
-                      </span>
-                    ) : booking.userId ? (
-                      <span className={`emptySmall ${styles.badge}`}>
-                        👤 Registered User
-                      </span>
-                    ) : (
-                      <span className={`emptySmall ${styles.badge}`}>
-                        🧾 Guest Checkout
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Updated Payment status with balance display */}
-                {/* Ride Type badge */}
-                <div style={{ marginTop: 30 }}>
-                  <div className='emptyTitle'>Ride Type:</div>
-                  <div style={{ marginTop: 6 }}>
-                    <span className={`emptySmall ${styles.badge}`}>
-                      {isGroupBooking
-                        ? `Multi Trip (${tripGroupData!.siblings.length} rides)`
-                        : "Single Ride"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Updated Payment status with balance display */}
-                <div style={{ marginTop: 30 }}>
-                  <div className='emptyTitle'>Total Payment Due:</div>
-                  <div className={styles.paymentInfo}>
-                    <span className={`emptySmall ${styles.badge}`}>
-                      {paymentStatusDisplay.label}
-                    </span>
-                    {(isGroupBooking ? groupTotalCents : booking.totalCents) >
-                      0 && (
-                      <span className={styles.paymentAmount}>
-                        {formatMoney(
-                          isGroupBooking ? groupTotalCents : booking.totalCents,
-                          isGroupBooking
-                            ? tripGroupData!.tripGroup.currency
-                            : booking.currency,
-                        )}
-                      </span>
-                    )}
-                    {booking.payment?.paidAt && (
-                      <span className='miniNote'>
-                        on {formatDateTime(booking.payment.paidAt, companyTz)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Show tip amount if present */}
-                  {tipCents > 0 && (
-                    <a href='#driver-pay-section' className={styles.tipDisplay}>
-                      <span className={styles.tipIcon}>💰</span>
-                      <span className={styles.tipLabel}>Driver Tip:</span>
-                      <span className={styles.tipAmount}>
-                        {formatMoney(tipCents, booking.currency)}
-                      </span>
-                      <div className='backBtn'>More details</div>
-                    </a>
-                  )}
-
-                  {/* Show balance due if applicable */}
-                  {paymentStatusDisplay.hasBalanceDue && (
-                    <div className={styles.balanceDueAlert}>
-                      <strong>Balance Due:</strong>{" "}
-                      {formatMoney(
-                        paymentStatusDisplay.balanceDueCents,
-                        booking.currency,
-                      )}
-                      <span className={styles.balanceDetail}>
-                        (Paid: {formatMoney(amountPaidCents, booking.currency)}{" "}
-                        of {formatMoney(booking.totalCents, booking.currency)})
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Show refund due if applicable */}
-                  {paymentStatusDisplay.hasRefundDue && (
-                    <div className={styles.refundDueAlert}>
-                      <strong>Refund Due:</strong>{" "}
-                      {formatMoney(
-                        paymentStatusDisplay.refundDueCents,
-                        booking.currency,
-                      )}
-                      <span className={styles.refundDetail}>
-                        (Paid: {formatMoney(amountPaidCents, booking.currency)}
-                        {amountRefundedCents > 0 && (
-                          <>
-                            , Refunded:{" "}
-                            {formatMoney(amountRefundedCents, booking.currency)}
-                          </>
-                        )}
-                        , New Total:{" "}
-                        {formatMoney(booking.totalCents, booking.currency)})
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {/* Driver */}
-                <div
-                  style={{ marginTop: 20 }}
-                  className={styles.driverSectionArea}
+  // ── Build tabs ────────────────────────────────────────────────────────────
+  const bookingTabs: BookingTab[] = [
+    // ── 1. Trip Details ──────────────────────────────────────────────────────
+    {
+      id: "trip",
+      label: "Trip Details",
+      isComplete: tripIsComplete,
+      sectionId: "trip-section",
+      content: (
+        <>
+          <div className={styles.confirmationRow}>
+            <div className='emptyTitle'>Confirmation #</div>
+            <div className={styles.confirmationValue}>
+              {getConfirmationCode(booking.id)}
+            </div>
+          </div>
+          <KeyVal k='Date' v={formatDateTime(booking.pickupAt, companyTz)} />
+          <KeyVal
+            k='Distance / duration'
+            v={`${booking.distanceMiles ?? "\u2014"} mi \u2022 ${booking.durationMinutes ?? "\u2014"} min - Google maps estimate${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
+          />
+          <KeyVal
+            k='Amount due'
+            v={formatMoney(booking.totalCents, booking.currency)}
+          />
+          {booking.discountCents && booking.discountCents > 0 ? (
+            <div className={styles.keyVal}>
+              <div className='emptyTitle'>Corporate discount</div>
+              <p className='subheading' style={{ color: "#15803d" }}>
+                {`\u2212`}
+                {formatMoney(booking.discountCents, booking.currency)} off
+                {booking.corporateAccount?.discountPercent
+                  ? ` (${Number(booking.corporateAccount.discountPercent)}%)`
+                  : ""}
+                <span
+                  style={{
+                    marginLeft: 8,
+                    color: "var(--paragraph)",
+                    fontWeight: 400,
+                  }}
                 >
-                  <div className='emptyTitle'>Driver:</div>
-                  {booking.assignment?.driver ? (
-                    <div className={styles.driverNameplate}>
-                      {booking.assignment.driver.image ? (
-                        <Image
-                          src={booking.assignment.driver.image}
-                          alt={booking.assignment.driver.name ?? "Driver"}
-                          title={booking.assignment.driver.name ?? "Driver"}
-                          width={36}
-                          height={36}
-                          className={styles.driverNameplateAvatar}
-                        />
-                      ) : (
-                        <div className={styles.driverNameplateAvatarFallback}>
-                          {(
-                            booking.assignment.driver.name ??
-                            booking.assignment.driver.email
-                          )
-                            .split(" ")
-                            .map((w) => w[0]?.toUpperCase() ?? "")
-                            .slice(0, 2)
-                            .join("")}
-                        </div>
-                      )}
-                      <span className={styles.driverNameplateName}>
-                        {booking.assignment.driver.name?.trim() ||
-                          booking.assignment.driver.email}
-                      </span>
-                    </div>
-                  ) : (
-                    <span
-                      className='badge badge_neutral'
-                      style={{ marginTop: 6, display: "inline-block" }}
-                    >
-                      Unassigned
-                    </span>
+                  was{" "}
+                  {formatMoney(
+                    booking.totalCents + booking.discountCents,
+                    booking.currency,
                   )}
-                </div>
-                <br />
-                <br />
-                <SendEstimateButton
-                  bookingId={booking.id}
-                  customerEmail={
-                    booking.user?.email ?? booking.guestEmail ?? null
-                  }
-                  bookingStatus={booking.status} // ← add this
-                  estimateSentEvents={estimateSentEvents}
-                />
-              </div>
-              <br />
-              <br />
-              {(paymentStatusDisplay.hasBalanceDue ||
-                booking.status === "PENDING_PAYMENT") && (
-                <>
-                  <div
-                    className={styles.sectionDivider}
-                    style={{ marginTop: 24 }}
-                  />
-                  <div className='cardTitle h5' style={{ marginBottom: 12 }}>
-                    Send balance reminder
-                  </div>
-                  <div
-                    className='miniNote'
-                    style={{ marginTop: 0, marginBottom: "1.6rem" }}
-                  >
-                    Send the customer an email reminding them of their
-                    outstanding balance with a direct link to complete payment.
-                  </div>
-                  <SendBalanceReminderButton
-                    bookingId={booking.id}
-                    customerEmail={
-                      booking.user?.email ?? booking.guestEmail ?? null
-                    }
-                    outstandingCents={outstandingCents}
-                    totalCents={booking.totalCents}
-                    currency={booking.currency}
-                    pickupAtIso={booking.pickupAt.toISOString()}
-                    timeZone={companyTz}
-                    reminderSentEvents={reminderSentEvents}
-                  />
-                </>
+                </span>
+              </p>
+            </div>
+          ) : null}
+          {booking.specialRequests ? (
+            <KeyVal k='Special requests' v={booking.specialRequests} />
+          ) : null}
+          <KeyVal k='Created' v={createdAtLabel} />
+          <KeyVal k='Created by' v={createdByDisplay} />
+          <div className={styles.keyVal}>
+            <div className='emptyTitle'>Customer</div>
+            <div>
+              <p className='subheading'>{customerLine}</p>
+              {customerBookingCount > 0 && customerEmail && (
+                <Link
+                  href={`/admin/bookings?q=${encodeURIComponent(customerEmail)}`}
+                  className='backBtn'
+                  style={{ marginTop: "0.5rem", display: "inline-block" }}
+                >
+                  View {customerBookingCount} other booking
+                  {customerBookingCount !== 1 ? "s" : ""} from this customer{" "}
+                  {`\u2192`}
+                </Link>
               )}
-            </header>
-
-            {/* ═══════════════════════════════════════════════════════════════════
-            TRIP GROUP CARD (only shows for multi-leg bookings)
-            ═══════════════════════════════════════════════════════════════════ */}
-            {tripGroupData && (
-              <TripGroupCard
-                tripGroup={tripGroupData.tripGroup}
-                siblings={tripGroupData.siblings}
-                currentBookingId={id}
-                timeZone={companyTz}
-              />
-            )}
-
-            {/* ═══════════════════════════════════════════════════════════════════
-            TRIP CARD
-            ═══════════════════════════════════════════════════════════════════ */}
-            <Card title='Trip' indicator={tripIndicator} id='trip-section'>
-              <div className={styles.confirmationRow}>
-                <div className='emptyTitle'>Confirmation #</div>
-                <div className={styles.confirmationValue}>
-                  {getConfirmationCode(booking.id)}
+            </div>
+          </div>
+          <KeyVal
+            k='Phone'
+            v={
+              customerPhone
+                ? `\ud83d\udcde ${formatPhone(customerPhone)}`
+                : "No phone on file"
+            }
+          />
+          <KeyVal k='Service' v={booking.serviceType.name} />
+          <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "\u2014"} />
+          {hasStops ? (
+            <>
+              <div className={styles.sectionDivider} />
+              <div className={styles.stopsSection}>
+                <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                  <span style={{ marginRight: "2rem" }}>\ud83d\uded1</span>Route
+                  with {stopCount} Extra Stop{stopCount > 1 ? "s" : ""}
                 </div>
-              </div>
-              <KeyVal
-                k='Date'
-                v={formatDateTime(booking.pickupAt, companyTz)}
-              />{" "}
-              <KeyVal
-                k='Distance / duration'
-                v={`${booking.distanceMiles ?? "—"} mi • ${
-                  booking.durationMinutes ?? "—"
-                } min - Google maps estimate${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
-              />
-              <KeyVal
-                k='Amount due'
-                v={formatMoney(booking.totalCents, booking.currency)}
-              />
-              {booking.discountCents && booking.discountCents > 0 ? (
-                <div className={styles.keyVal}>
-                  <div className='emptyTitle'>Corporate discount</div>
-                  <p className='subheading' style={{ color: "#15803d" }}>
-                    −{formatMoney(booking.discountCents, booking.currency)} off
-                    {booking.corporateAccount?.discountPercent
-                      ? ` (${Number(booking.corporateAccount.discountPercent)}%)`
-                      : ""}
-                    <span
-                      style={{
-                        marginLeft: 8,
-                        color: "var(--paragraph)",
-                        fontWeight: 400,
-                      }}
+                <div className={styles.routeTimeline}>
+                  <div className={styles.routePoint}>
+                    <div
+                      className={styles.routeMarker}
+                      style={{ background: "#22c55e" }}
                     >
-                      was{" "}
-                      {formatMoney(
-                        booking.totalCents + booking.discountCents,
-                        booking.currency,
-                      )}
-                    </span>
-                  </p>
-                </div>
-              ) : null}
-              {booking.specialRequests ? (
-                <KeyVal k='Special requests' v={booking.specialRequests} />
-              ) : null}
-              <KeyVal k='Created' v={createdAtLabel} />
-              <KeyVal k='Created by' v={createdByDisplay} />
-              {/* Customer with history link */}
-              <div className={styles.keyVal}>
-                <div className='emptyTitle'>Customer</div>
-                <div>
-                  <p className='subheading'>{customerLine}</p>
-                  {customerBookingCount > 0 && customerEmail && (
-                    <Link
-                      href={`/admin/bookings?q=${encodeURIComponent(customerEmail)}`}
-                      className='backBtn'
-                      style={{ marginTop: "0.5rem", display: "inline-block" }}
-                    >
-                      View {customerBookingCount} other booking
-                      {customerBookingCount !== 1 ? "s" : ""} from this customer
-                      →
-                    </Link>
-                  )}
-                </div>
-              </div>
-              <KeyVal
-                k='Phone'
-                v={
-                  customerPhone
-                    ? `📞 ${formatPhone(customerPhone)}`
-                    : "No phone on file"
-                }
-              />
-              <KeyVal k='Service' v={booking.serviceType.name} />
-              <KeyVal k='Vehicle category' v={booking.vehicle?.name ?? "—"} />
-              {/* Route Timeline with Stops */}
-              {hasStops ? (
-                <>
-                  <div className={styles.sectionDivider} />
-                  <div className={styles.stopsSection}>
-                    <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                      <span style={{ marginRight: "2rem" }}>🛑</span>Route with{" "}
-                      {stopCount} Extra Stop
-                      {stopCount > 1 ? "s" : ""}
+                      A
                     </div>
-                    <div className={styles.routeTimeline}>
-                      {/* Pickup */}
-                      <div className={styles.routePoint}>
-                        <div
-                          className={styles.routeMarker}
-                          style={{ background: "#22c55e" }}
-                        >
-                          A
-                        </div>
-                        <div className={styles.routeAddress}>
-                          <div className='emptyTitle'>Pickup</div>
-                          <p className='subheading'>{booking.pickupAddress}</p>
-                        </div>
-                      </div>
-
-                      {/* Stops */}
-                      {booking.stops.map((stop, index) => (
-                        <div key={stop.id} className={styles.routePoint}>
-                          <div
-                            className={styles.routeMarker}
-                            style={{ background: "#3b82f6" }}
-                          >
-                            {index + 1}
-                          </div>
-                          <div className={styles.routeAddress}>
-                            <div className='emptyTitle'>Stop {index + 1}</div>
-                            <p className='subheading'>{stop.address}</p>
-                            <span className='miniNote'>
-                              ~{stop.waitTimeMinutes ?? 5} min wait
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* Dropoff */}
-                      <div className={styles.routePoint}>
-                        <div
-                          className={styles.routeMarker}
-                          style={{ background: "#ef4444" }}
-                        >
-                          B
-                        </div>
-                        <div className={styles.routeAddress}>
-                          <div className='emptyTitle'>Dropoff</div>
-                          <p className='subheading'>{booking.dropoffAddress}</p>
-                        </div>
-                      </div>
+                    <div className={styles.routeAddress}>
+                      <div className='emptyTitle'>Pickup</div>
+                      <p className='subheading'>{booking.pickupAddress}</p>
                     </div>
-
-                    {/* Stop charges */}
-                    <div className={styles.stopCharges}>
-                      <div className={styles.stopChargeRow}>
-                        <span>Stop surcharge ({stopCount} × $15)</span>
-                        <span className={styles.stopChargeAmount}>
-                          {formatMoney(stopSurchargeCents, booking.currency)}
+                  </div>
+                  {booking.stops.map((stop, index) => (
+                    <div key={stop.id} className={styles.routePoint}>
+                      <div
+                        className={styles.routeMarker}
+                        style={{ background: "#3b82f6" }}
+                      >
+                        {index + 1}
+                      </div>
+                      <div className={styles.routeAddress}>
+                        <div className='emptyTitle'>Stop {index + 1}</div>
+                        <p className='subheading'>{stop.address}</p>
+                        <span className='miniNote'>
+                          ~{stop.waitTimeMinutes ?? 5} min wait
                         </span>
                       </div>
-                      <div className={styles.stopChargeRow}>
-                        <span>Total wait time</span>
-                        <span>~{totalWaitTimeMinutes} min</span>
-                      </div>
+                    </div>
+                  ))}
+                  <div className={styles.routePoint}>
+                    <div
+                      className={styles.routeMarker}
+                      style={{ background: "#ef4444" }}
+                    >
+                      B
+                    </div>
+                    <div className={styles.routeAddress}>
+                      <div className='emptyTitle'>Dropoff</div>
+                      <p className='subheading'>{booking.dropoffAddress}</p>
                     </div>
                   </div>
-                </>
-              ) : (
-                <>
-                  <KeyVal k='Pickup' v={booking.pickupAddress} />
-                  <KeyVal k='Dropoff' v={booking.dropoffAddress} />
-                </>
-              )}
-              {/* Service Fees Section */}
-              {hasFees && (
-                <>
-                  <div className={styles.sectionDivider} />
-                  <div className={styles.feesSection}>
-                    <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                      Service Fees
-                    </div>
-                    <div className={styles.feesList}>
-                      {booking.fees.map((fee) => (
-                        <div key={fee.id} className={styles.feeRow}>
-                          <span className={styles.feeLabel}>{fee.label}</span>
-                          <span className={styles.feeAmount}>
-                            {formatMoney(fee.amountCents, booking.currency)}
-                          </span>
-                        </div>
-                      ))}
-                      {booking.fees.length > 1 && (
-                        <div className={styles.feeTotalRow}>
-                          <span>Total fees</span>
-                          <span className={styles.feeAmount}>
-                            {formatMoney(totalFeesCents, booking.currency)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                </div>
+                <div className={styles.stopCharges}>
+                  <div className={styles.stopChargeRow}>
+                    <span>
+                      Stop surcharge ({stopCount} {`\u00d7`} $15)
+                    </span>
+                    <span className={styles.stopChargeAmount}>
+                      {formatMoney(stopSurchargeCents, booking.currency)}
+                    </span>
                   </div>
-                </>
-              )}
-              <KeyVal
-                k='Passengers / luggage'
-                v={`${booking.passengers} / ${booking.luggage}`}
-              />
-              {/* Route Map Display */}
-              {hasRouteCoordinates && (
-                <>
-                  <div className={styles.sectionDivider} />
-                  <div className={styles.routeMapSection}>
-                    <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                      Route Map
+                  <div className={styles.stopChargeRow}>
+                    <span>Total wait time</span>
+                    <span>~{totalWaitTimeMinutes} min</span>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <KeyVal k='Pickup' v={booking.pickupAddress} />
+              <KeyVal k='Dropoff' v={booking.dropoffAddress} />
+            </>
+          )}
+          {hasFees && (
+            <>
+              <div className={styles.sectionDivider} />
+              <div className={styles.feesSection}>
+                <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                  Service Fees
+                </div>
+                <div className={styles.feesList}>
+                  {booking.fees.map((fee) => (
+                    <div key={fee.id} className={styles.feeRow}>
+                      <span className={styles.feeLabel}>{fee.label}</span>
+                      <span className={styles.feeAmount}>
+                        {formatMoney(fee.amountCents, booking.currency)}
+                      </span>
                     </div>
-                    <RouteMapDisplay
-                      pickupLat={decimalToNumber(booking.pickupLat)!}
-                      pickupLng={decimalToNumber(booking.pickupLng)!}
-                      dropoffLat={decimalToNumber(booking.dropoffLat)!}
-                      dropoffLng={decimalToNumber(booking.dropoffLng)!}
-                      pickupAddress={booking.pickupAddress}
-                      dropoffAddress={booking.dropoffAddress}
-                      stops={stopsForMap}
+                  ))}
+                  {booking.fees.length > 1 && (
+                    <div className={styles.feeTotalRow}>
+                      <span>Total fees</span>
+                      <span className={styles.feeAmount}>
+                        {formatMoney(totalFeesCents, booking.currency)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+          <KeyVal
+            k='Passengers / luggage'
+            v={`${booking.passengers} / ${booking.luggage}`}
+          />
+          {hasRouteCoordinates && (
+            <>
+              <div className={styles.sectionDivider} />
+              <div className={styles.routeMapSection}>
+                <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                  Route Map
+                </div>
+                <RouteMapDisplay
+                  pickupLat={decimalToNumber(booking.pickupLat)!}
+                  pickupLng={decimalToNumber(booking.pickupLng)!}
+                  dropoffLat={decimalToNumber(booking.dropoffLat)!}
+                  dropoffLng={decimalToNumber(booking.dropoffLng)!}
+                  pickupAddress={booking.pickupAddress}
+                  dropoffAddress={booking.dropoffAddress}
+                  stops={stopsForMap}
+                />
+              </div>
+            </>
+          )}
+          {hasFlightInfo && (
+            <>
+              <div className={styles.sectionDivider} />
+              <div className={styles.flightSection}>
+                <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                  Flight Information
+                </div>
+                {booking.flightAirline && (
+                  <KeyVal k='Airline' v={booking.flightAirline} />
+                )}
+                {booking.flightNumber && (
+                  <KeyVal k='Flight Number' v={booking.flightNumber} />
+                )}
+                {booking.flightScheduledAt && (
+                  <KeyVal
+                    k='Scheduled Time'
+                    v={formatDateTime(booking.flightScheduledAt, companyTz)}
+                  />
+                )}
+                {booking.flightTerminal && (
+                  <KeyVal k='Terminal' v={booking.flightTerminal} />
+                )}
+                {booking.flightGate && (
+                  <KeyVal k='Gate' v={booking.flightGate} />
+                )}
+                {booking.flightNumber && (
+                  <div style={{ marginTop: 16 }}>
+                    <FlightStatusCard
+                      flightNumber={booking.flightNumber
+                        .replace(/\s+/g, "")
+                        .toUpperCase()}
+                      flightDate={flightDateForLookup}
+                      airportLeg={airportLeg}
                     />
                   </div>
-                </>
-              )}
-              {/* Flight Information */}
-              {hasFlightInfo && (
-                <>
-                  <div className={styles.sectionDivider} />
-                  <div className={styles.flightSection}>
-                    <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                      Flight Information
-                    </div>
-                    {booking.flightAirline && (
-                      <KeyVal k='Airline' v={booking.flightAirline} />
-                    )}
-                    {booking.flightNumber && (
-                      <KeyVal k='Flight Number' v={booking.flightNumber} />
-                    )}
-                    {booking.flightScheduledAt && (
-                      <KeyVal
-                        k='Scheduled Time'
-                        v={formatDateTime(booking.flightScheduledAt, companyTz)}
-                      />
-                    )}
-                    {booking.flightTerminal && (
-                      <KeyVal k='Terminal' v={booking.flightTerminal} />
-                    )}
-                    {booking.flightGate && (
-                      <KeyVal k='Gate' v={booking.flightGate} />
-                    )}
+                )}
+              </div>
+            </>
+          )}
+          <div className={styles.sectionDivider} />
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              alignItems: "flex-start",
+              flexWrap: "wrap",
+            }}
+          >
+            <ApproveRouteClient
+              bookingId={booking.id}
+              isApproved={booking.routeApproved}
+            />
+            <EditTripDetailsClient
+              bookingId={booking.id}
+              initialData={tripEditData}
+              pricingData={pricingData}
+              companyTimezone={companyTz}
+            />
+          </div>
+        </>
+      ),
+    },
 
-                    {/* Live Flight Tracking */}
-                    {booking.flightNumber && (
-                      <div style={{ marginTop: 16 }}>
-                        <FlightStatusCard
-                          flightNumber={booking.flightNumber
-                            .replace(/\s+/g, "")
-                            .toUpperCase()}
-                          flightDate={flightDateForLookup}
-                          airportLeg={airportLeg}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-              {/* ✅ Approve Route + Edit Trip Details — side by side */}
-              <div className={styles.sectionDivider} />
+    // ── 2. Pricing ───────────────────────────────────────────────────────────
+    {
+      id: "price",
+      label: "Pricing",
+      isComplete: priceIsComplete,
+      sectionId: "price-section",
+      content: (
+        <>
+          {booking.serviceType?.pricingStrategy === "HOURLY" &&
+            (booking.vehicle?.overageFeeCents ?? 0) > 0 && (
               <div
                 style={{
                   display: "flex",
-                  gap: "1rem",
                   alignItems: "flex-start",
-                  flexWrap: "wrap",
+                  gap: "1rem",
+                  padding: "1.2rem 1.6rem",
+                  marginBottom: "2rem",
+                  background: "#fffbeb",
+                  border: "1px solid #f59e0b",
+                  borderRadius: 8,
+                  fontSize: "1.4rem",
                 }}
               >
-                <ApproveRouteClient
-                  bookingId={booking.id}
-                  isApproved={booking.routeApproved}
-                />
-                <EditTripDetailsClient
-                  bookingId={booking.id}
-                  initialData={tripEditData}
-                  pricingData={pricingData}
-                  companyTimezone={companyTz}
-                />
+                <span>\u26a0\ufe0f</span>
+                <span>
+                  <strong>Overage policy:</strong>{" "}
+                  {formatMoney(
+                    booking.vehicle?.overageFeeCents ?? 0,
+                    booking.currency,
+                  )}{" "}
+                  per {booking.vehicle?.overageIncrementMinutes ?? 30} minutes
+                  \u2014 a card will be saved at checkout to cover any overages.
+                </span>
               </div>
-            </Card>
+            )}
+          {pricingData && (
+            <PriceBreakdownCard
+              pricingStrategy={pricingData.pricingStrategy}
+              servicePerMileCents={pricingData.servicePerMileCents}
+              servicePerMinuteCents={pricingData.servicePerMinuteCents}
+              servicePerHourCents={pricingData.servicePerHourCents}
+              serviceBaseFeeCents={pricingData.serviceBaseFeeCents}
+              serviceMinFareCents={pricingData.serviceMinFareCents}
+              serviceMinHours={0}
+              vehicleBaseFareCents={pricingData.vehicleBaseFareCents}
+              vehiclePerMileCents={pricingData.vehiclePerMileCents}
+              vehiclePerMinuteCents={pricingData.vehiclePerMinuteCents}
+              vehiclePerHourCents={pricingData.vehiclePerHourCents}
+              vehicleMinHours={pricingData.vehicleMinHours}
+              distanceMiles={decimalToNumber(booking.distanceMiles)}
+              durationMinutes={booking.durationMinutes}
+              hoursRequested={decimalToNumber(booking.hoursRequested)}
+              stopCount={stopCount}
+              stopSurchargeCents={stopSurchargeCents}
+              totalCents={booking.totalCents}
+              currency={booking.currency}
+              vehicleCategoryName={booking.vehicle?.name ?? null}
+              feesCents={booking.feesCents ?? 0}
+            />
+          )}
+          <br />
+          <PriceForm
+            bookingId={booking.id}
+            currency={booking.currency}
+            subtotalCents={booking.subtotalCents}
+            feesCents={booking.feesCents}
+            taxesCents={booking.taxesCents}
+            totalCents={booking.totalCents}
+            extraAction={
+              <ApprovePriceClient
+                bookingId={booking.id}
+                isApproved={booking.priceApproved}
+              />
+            }
+          />
+        </>
+      ),
+    },
 
-            {/* ═══════════════════════════════════════════════════════════════════
-            PRICE CARD
-            ═══════════════════════════════════════════════════════════════════ */}
-            <Card title='Price' indicator={priceIndicator} id='price-section'>
-              {booking.serviceType?.pricingStrategy === "HOURLY" &&
-                (booking.vehicle?.overageFeeCents ?? 0) > 0 && (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: "1rem",
-                      padding: "1.2rem 1.6rem",
-                      marginBottom: "2rem",
-                      background: "#fffbeb",
-                      border: "1px solid #f59e0b",
-                      borderRadius: 8,
-                      fontSize: "1.4rem",
-                    }}
-                  >
-                    <span>⚠️</span>
-                    <span>
-                      <strong>Overage policy:</strong>{" "}
-                      {formatMoney(
-                        booking.vehicle?.overageFeeCents ?? 0,
-                        booking.currency,
-                      )}{" "}
-                      per {booking.vehicle?.overageIncrementMinutes ?? 30}{" "}
-                      minutes — a card will be saved at checkout to cover any
-                      overages.
-                    </span>
+    // ── 3. Driver + Vehicle (includes Driver Pay) ─────────────────────────────
+    {
+      id: "assignment",
+      label: "Driver + Vehicle",
+      isComplete: assignIsComplete,
+      sectionId: "assign-section",
+      content: (
+        <>
+          {drivers.length === 0 ? (
+            <div className={styles.muted}>
+              No drivers yet. Create users and assign DRIVER role in{" "}
+              <Link className={styles.inlineLink} href='/admin/users'>
+                Users
+              </Link>
+              .
+            </div>
+          ) : (
+            <>
+              <AssignBookingForm
+                bookingId={booking.id}
+                drivers={drivers}
+                vehicleUnits={vehicleUnits}
+                currentDriverId={booking.assignment?.driverId ?? null}
+                currentVehicleUnitId={booking.assignment?.vehicleUnitId ?? null}
+                currentDriverPaymentCents={
+                  booking.assignment?.driverPaymentCents ?? null
+                }
+                currentDriverTipCents={
+                  booking.assignment?.driverTipCents ?? null
+                }
+                bookingTotalCents={booking.totalCents}
+                currency={booking.currency}
+                tipCents={tipCents}
+                pickupAt={booking.pickupAt.toISOString()}
+                bookedVehicleCategoryName={booking.vehicle?.name ?? null}
+              />
+              {booking.assignment && (
+                <div
+                  className={styles.assignmentInfo}
+                  style={{
+                    marginTop: 20,
+                    paddingTop: 20,
+                    borderTop: "1px solid rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <div className='cardTitle h5' style={{ marginBottom: 10 }}>
+                    Current assignment
+                  </div>
+                  <KeyVal
+                    k='Driver'
+                    v={`${booking.assignment.driver.name ?? "Driver"} (${booking.assignment.driver.email})`}
+                  />
+                  {booking.assignment.vehicleUnit && (
+                    <KeyVal
+                      k='Vehicle'
+                      v={`${booking.assignment.vehicleUnit.name}${booking.assignment.vehicleUnit.plate ? ` (${booking.assignment.vehicleUnit.plate})` : ""}`}
+                    />
+                  )}
+                </div>
+              )}
+            </>
+          )}
+          <div className={styles.sectionDivider} style={{ marginTop: 24 }} />
+          <div className='cardTitle h5' style={{ marginBottom: 14 }}>
+            Driver Pay
+          </div>
+          <DriverPayForm
+            bookingId={booking.id}
+            currentDriverPaymentCents={
+              booking.assignment?.driverPaymentCents ?? null
+            }
+            currentDriverTipCents={booking.assignment?.driverTipCents ?? null}
+            bookingTotalCents={booking.totalCents}
+            currency={booking.currency}
+            tipCents={tipCents}
+            hasDriver={hasDriver}
+          />
+        </>
+      ),
+    },
+
+    // ── 4. Payment (includes deposit, payments, invoice, refund) ─────────────
+    {
+      id: "payment",
+      label: "Payment",
+      isComplete: paymentIsComplete,
+      sectionId: "payment-section",
+      content: (
+        <>
+          {isCorporateBooking ? (
+            <div
+              style={{
+                display: "grid",
+                gap: 12,
+                textAlign: "center",
+                padding: "20px 0",
+              }}
+            >
+              <div style={{ fontSize: 32 }}>\ud83c\udfe2</div>
+              <div className='emptyTitle'>
+                Billed to{" "}
+                {booking.corporateAccount?.name ?? "corporate account"}
+              </div>
+              <div className='miniNote'>
+                This ride will appear on the next{" "}
+                <strong>
+                  {(booking.corporateAccount?.billingCycle ?? "MONTHLY")
+                    .replaceAll("_", " ")
+                    .toLowerCase()}
+                </strong>{" "}
+                invoice.
+              </div>
+              {booking.corporateAccount?.discountPercent &&
+                Number(booking.corporateAccount.discountPercent) > 0 && (
+                  <div className='miniNote'>
+                    Corporate discount of{" "}
+                    <strong>
+                      {Number(booking.corporateAccount.discountPercent)}%
+                    </strong>{" "}
+                    has been applied.
                   </div>
                 )}
-              {pricingData && (
-                <>
-                  <PriceBreakdownCard
-                    pricingStrategy={pricingData.pricingStrategy}
-                    servicePerMileCents={pricingData.servicePerMileCents}
-                    servicePerMinuteCents={pricingData.servicePerMinuteCents}
-                    servicePerHourCents={pricingData.servicePerHourCents}
-                    serviceBaseFeeCents={pricingData.serviceBaseFeeCents}
-                    serviceMinFareCents={pricingData.serviceMinFareCents}
-                    serviceMinHours={0}
-                    vehicleBaseFareCents={pricingData.vehicleBaseFareCents}
-                    vehiclePerMileCents={pricingData.vehiclePerMileCents}
-                    vehiclePerMinuteCents={pricingData.vehiclePerMinuteCents}
-                    vehiclePerHourCents={pricingData.vehiclePerHourCents}
-                    vehicleMinHours={pricingData.vehicleMinHours}
-                    distanceMiles={decimalToNumber(booking.distanceMiles)}
-                    durationMinutes={booking.durationMinutes}
-                    hoursRequested={decimalToNumber(booking.hoursRequested)}
-                    stopCount={stopCount}
-                    stopSurchargeCents={stopSurchargeCents}
-                    totalCents={booking.totalCents}
-                    currency={booking.currency}
-                    vehicleCategoryName={booking.vehicle?.name ?? null}
-                    feesCents={booking.feesCents ?? 0}
-                  />
-                </>
+              {booking.costCenter && (
+                <div className='miniNote'>
+                  Cost center: <strong>{booking.costCenter}</strong>
+                </div>
               )}
-              <br />
-              <PriceForm
-                bookingId={booking.id}
-                currency={booking.currency}
-                subtotalCents={booking.subtotalCents}
-                feesCents={booking.feesCents}
-                taxesCents={booking.taxesCents}
-                totalCents={booking.totalCents}
-                extraAction={
-                  <ApprovePriceClient
-                    bookingId={booking.id}
-                    isApproved={booking.priceApproved}
-                  />
-                }
-              />
+              {booking.projectCode && (
+                <div className='miniNote'>
+                  Project code: <strong>{booking.projectCode}</strong>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className={styles.paymentBlock}>
+              <div className={styles.paymentStatus}>
+                Payment status:{" "}
+                <strong>
+                  {isGroupBooking
+                    ? (groupPaymentStatus ?? "NONE")
+                    : (booking.payment?.status ?? "NONE")}
+                </strong>
+                {(isGroupBooking ? groupAmountPaidCents : amountPaidCents) >
+                  0 && (
+                  <span style={{ marginLeft: 10 }}>
+                    (Paid:{" "}
+                    {formatMoney(
+                      isGroupBooking ? groupAmountPaidCents : amountPaidCents,
+                      booking.currency,
+                    )}
+                    {!isGroupBooking && amountRefundedCents > 0 && (
+                      <>
+                        , Refunded:{" "}
+                        {formatMoney(amountRefundedCents, booking.currency)}
+                      </>
+                    )}
+                    {!isGroupBooking && tipCents > 0 && (
+                      <>, Tip: {formatMoney(tipCents, booking.currency)}</>
+                    )}
+                    )
+                  </span>
+                )}
+              </div>
+
               {!isCorporateBooking && !isGroupBooking && (
                 <>
                   <div className={styles.sectionDivider} />
@@ -1816,561 +1518,677 @@ export default async function AdminBookingDetailPage({
                   />
                 </>
               )}
-            </Card>
 
-            {/* ═══════════════════════════════════════════════════════════════════
-            DRIVER + VEHICLE ASSIGNMENT CARD (no driver pay)
-            ═══════════════════════════════════════════════════════════════════ */}
-            <Card
-              title='Driver + Vehicle Assignment'
-              indicator={assignIndicator}
-              id='assign-section'
-            >
-              {drivers.length === 0 ? (
-                <div className={styles.muted}>
-                  No drivers yet. Create users and assign DRIVER role in{" "}
-                  <Link className={styles.inlineLink} href='/admin/users'>
-                    Users
-                  </Link>
-                  .
+              {tipCents > 0 && (
+                <div className={styles.tipBreakdownCard}>
+                  <div className={styles.tipBreakdownHeader}>
+                    <span className={styles.tipBreakdownIcon}>
+                      \ud83d\udcb0
+                    </span>
+                    <span className={styles.tipBreakdownTitle}>
+                      Driver Tip Received
+                    </span>
+                  </div>
+                  <div className={styles.tipBreakdownAmount}>
+                    {formatMoney(tipCents, booking.currency)}
+                  </div>
+                  <div className={styles.tipBreakdownNote}>
+                    This tip was added by the customer during checkout and
+                    should be passed to the assigned driver.
+                  </div>
                 </div>
-              ) : (
-                <>
-                  <AssignBookingForm
-                    bookingId={booking.id}
-                    drivers={drivers}
-                    vehicleUnits={vehicleUnits}
-                    currentDriverId={booking.assignment?.driverId ?? null}
-                    currentVehicleUnitId={
-                      booking.assignment?.vehicleUnitId ?? null
-                    }
-                    currentDriverPaymentCents={
-                      booking.assignment?.driverPaymentCents ?? null
-                    }
-                    currentDriverTipCents={
-                      booking.assignment?.driverTipCents ?? null
-                    }
-                    bookingTotalCents={booking.totalCents}
-                    currency={booking.currency}
-                    tipCents={tipCents}
-                    pickupAt={booking.pickupAt.toISOString()}
-                    bookedVehicleCategoryName={booking.vehicle?.name ?? null}
-                  />
+              )}
 
-                  {booking.assignment ? (
-                    <div
-                      className={styles.assignmentInfo}
-                      style={{
-                        marginTop: 20,
-                        paddingTop: 20,
-                        borderTop: "1px solid rgba(0,0,0,0.1)",
-                      }}
-                    >
-                      <div
-                        className='cardTitle h5'
-                        style={{ marginBottom: 10 }}
-                      >
-                        Current assignment
-                      </div>
-                      <KeyVal
-                        k='Driver'
-                        v={`${booking.assignment.driver.name ?? "Driver"} (${
-                          booking.assignment.driver.email
-                        })`}
-                      />
-                      {booking.assignment.vehicleUnit ? (
-                        <KeyVal
-                          k='Vehicle'
-                          v={`${booking.assignment.vehicleUnit.name}${
-                            booking.assignment.vehicleUnit.plate
-                              ? ` (${booking.assignment.vehicleUnit.plate})`
-                              : ""
-                          }`}
-                        />
-                      ) : null}
-                    </div>
-                  ) : null}
+              <SendPaymentLinkButton
+                bookingId={booking.id}
+                totalCents={
+                  isGroupBooking ? groupTotalCents : booking.totalCents
+                }
+                amountPaidCents={
+                  isGroupBooking ? groupAmountPaidCents : amountPaidCents
+                }
+                currency={booking.currency}
+                isApproved={isApproved}
+                customerEmail={
+                  booking.user?.email ?? booking.guestEmail ?? null
+                }
+                depositMode={booking.depositMode}
+                depositCents={
+                  booking.depositMode && booking.depositPercent
+                    ? Math.round(
+                        (booking.totalCents * booking.depositPercent) / 100,
+                      )
+                    : (booking.depositCents ?? null)
+                }
+                balanceCents={
+                  booking.depositMode && booking.depositPercent
+                    ? booking.totalCents -
+                      Math.round(
+                        (booking.totalCents * booking.depositPercent) / 100,
+                      )
+                    : (booking.balanceCents ?? null)
+                }
+                depositDueDate={booking.depositDueDate?.toISOString() ?? null}
+                balanceDueDate={booking.balanceDueDate?.toISOString() ?? null}
+                paymentLinkSentEvents={paymentLinkSentEvents}
+              />
+
+              {booking.payment?.checkoutUrl && (
+                <div className={styles.checkoutUrl}>
+                  Latest checkout URL: <br />
+                  <Link
+                    href={booking.payment.checkoutUrl}
+                    className='backBtn emptyTitleSmall'
+                    style={{ marginTop: "1rem", display: "inline-block" }}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                  >
+                    Payment Link
+                  </Link>
+                </div>
+              )}
+
+              <div style={{ marginTop: 18 }}>
+                <div className='cardTitle h5'>Take card payment (manual)</div>
+                <div
+                  className='miniNote'
+                  style={{ marginTop: 6, marginBottom: "30px" }}
+                >
+                  Card-only checkout. After success, the button turns green and
+                  says &ldquo;Payment successful&rdquo;.
+                </div>
+                <AdminManualCardPaymentClient
+                  bookingId={booking.id}
+                  amountCents={
+                    isGroupBooking ? groupTotalCents : booking.totalCents
+                  }
+                  currency={booking.currency}
+                  isPaid={isPaid}
+                  isApproved={isApproved}
+                  amountPaidCents={amountPaidCents}
+                  stripePublishableKey={stripePublishableKey}
+                />
+              </div>
+
+              <div style={{ marginTop: 18 }}>
+                <div className='cardTitle h5'>Charge card on file</div>
+                <div
+                  className='miniNote'
+                  style={{ marginTop: 6, marginBottom: "1.6rem" }}
+                >
+                  Charge the customer&apos;s saved card directly \u2014 no
+                  payment link required.
+                </div>
+                {!savedCard?.hasCard && (
+                  <div
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.8rem",
+                      padding: "0.6rem 1.2rem",
+                      marginBottom: "1.6rem",
+                      background: "#f9fafb",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: 6,
+                      fontSize: "1.3rem",
+                      color: "#6b7280",
+                    }}
+                  >
+                    <span>\ud83d\udcb3</span>
+                    <span>No card on file</span>
+                  </div>
+                )}
+                <AdminChargeCardOnFileButton
+                  bookingId={booking.id}
+                  amountCents={
+                    isGroupBooking ? groupTotalCents : booking.totalCents
+                  }
+                  currency={booking.currency}
+                />
+              </div>
+
+              <div style={{ marginTop: 18 }}>
+                <div className='cardTitle h5'>Record cash payment</div>
+                <div
+                  className='miniNote'
+                  style={{ marginTop: 6, marginBottom: "30px" }}
+                >
+                  Customer paid in person with cash. Marks booking as confirmed
+                  and paid.
+                </div>
+                <AdminCashPaymentButton
+                  bookingId={booking.id}
+                  amountCents={
+                    isGroupBooking ? groupTotalCents : booking.totalCents
+                  }
+                  currency={booking.currency}
+                  isPaid={isPaid}
+                />
+              </div>
+
+              {/* Invoice — shown inside payment tab when available */}
+              {invoiceData && (
+                <>
+                  <div
+                    className={styles.sectionDivider}
+                    style={{ marginTop: 24 }}
+                  />
+                  <div className='cardTitle h5' style={{ marginBottom: 14 }}>
+                    Invoice
+                  </div>
+                  <InvoiceSection
+                    invoice={invoiceData}
+                    bookingId={booking.id}
+                  />
                 </>
               )}
-            </Card>
 
-            {/* ═══════════════════════════════════════════════════════════════════
-            DRIVER PAY CARD (separated)
-            ═══════════════════════════════════════════════════════════════════ */}
-            <Card
-              title='Driver Pay'
-              indicator={driverPayIndicator}
-              id='driver-pay-section'
-            >
-              <DriverPayForm
-                bookingId={booking.id}
-                currentDriverPaymentCents={
-                  booking.assignment?.driverPaymentCents ?? null
-                }
-                currentDriverTipCents={
-                  booking.assignment?.driverTipCents ?? null
-                }
-                bookingTotalCents={booking.totalCents}
-                currency={booking.currency}
-                tipCents={tipCents}
-                hasDriver={hasDriver}
+              {/* Refund — inside payment tab */}
+              <div
+                className={styles.sectionDivider}
+                style={{ marginTop: 24 }}
               />
-            </Card>
-
-            {/* ═══════════════════════════════════════════════════════════════════
-            APPROVAL TOGGLE
-            ═══════════════════════════════════════════════════════════════════ */}
-            <div className={styles.box} id='approval-section'>
-              <ApprovalToggleClient
+              <div
+                className='cardTitle h5'
+                style={{ marginBottom: 8, color: "var(--accent)" }}
+              >
+                Issue Refund
+              </div>
+              <div className='miniNote' style={{ marginBottom: "1.6rem" }}>
+                You can refund clients manually here after they pay you.
+              </div>
+              <RefundButton
                 bookingId={booking.id}
-                isApproved={isApproved}
-                isDeclined={isDeclined}
-                isPaid={isPaid}
-                bookingStatus={booking.status}
-                declineReason={booking.declineReason}
+                totalCents={booking.totalCents}
+                amountPaidCents={amountPaidCents}
+                amountRefundedCents={amountRefundedCents}
+                currency={booking.currency}
+                stripePaymentIntentId={
+                  booking.payment?.stripePaymentIntentId ?? null
+                }
               />
             </div>
+          )}
+        </>
+      ),
+    },
 
-            {/* ═══════════════════════════════════════════════════════════════════
-            PAYMENT CARD
-            ═══════════════════════════════════════════════════════════════════ */}
-            <Card
-              title='Payment'
-              indicator={paymentIndicator}
-              id='payment-section'
-            >
-              {isCorporateBooking ? (
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 12,
-                    textAlign: "center",
-                    padding: "20px 0",
-                  }}
-                >
-                  <div style={{ fontSize: 32 }}>🏢</div>
-                  <div className='emptyTitle'>
-                    Billed to{" "}
-                    {booking.corporateAccount?.name ?? "corporate account"}
-                  </div>
-                  <div className='miniNote'>
-                    This ride will appear on the next{" "}
-                    <strong>
-                      {(booking.corporateAccount?.billingCycle ?? "MONTHLY")
-                        .replaceAll("_", " ")
-                        .toLowerCase()}
-                    </strong>{" "}
-                    invoice.
-                  </div>
-                  {booking.corporateAccount?.discountPercent &&
-                  Number(booking.corporateAccount.discountPercent) > 0 ? (
-                    <div className='miniNote'>
-                      Corporate discount of{" "}
-                      <strong>
-                        {Number(booking.corporateAccount.discountPercent)}%
-                      </strong>{" "}
-                      has been applied.
-                    </div>
+    // ── 5. Approval (last) ───────────────────────────────────────────────────
+    {
+      id: "approval",
+      label: "Approval",
+      isComplete: approvalIsComplete,
+      sectionId: "approval-section",
+      content: (
+        <ApprovalToggleClient
+          bookingId={booking.id}
+          isApproved={isApproved}
+          isDeclined={isDeclined}
+          isPaid={isPaid}
+          bookingStatus={booking.status}
+          declineReason={booking.declineReason}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <DirtyFormProvider>
+      <BookingEditProvider>
+        <BookingTabsProvider defaultTabId={defaultTabId}>
+          <section className={styles.parent}>
+            <div className={styles.container}>
+              <header className='header'>
+                <h1 className={`heading h2`}>
+                  Booking Details
+                  {isCorporateBooking ? (
+                    <span
+                      style={{
+                        color: "rgb(124, 58, 237)",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {" "}
+                      (corporate)
+                    </span>
+                  ) : booking.eventType === "Golf Transfer \u2014 We-Ko-Pa" ? (
+                    <span
+                      style={{
+                        color: "var(--green)",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {" "}
+                      (we-ko-pa)
+                    </span>
+                  ) : customerName !== "\u2014" ? (
+                    <span
+                      style={{
+                        color: "var(--black400)",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {" "}
+                      \u2014 {customerName}
+                    </span>
                   ) : null}
-                  {booking.costCenter && (
-                    <div className='miniNote'>
-                      Cost center: <strong>{booking.costCenter}</strong>
+                </h1>
+
+                <div className={styles.boxRight}>
+                  <div className='emptyTitle'>Date:</div>
+                  <BoxRightDateDisplay
+                    initialFormatted={formatDateTime(
+                      booking.pickupAt,
+                      companyTz,
+                    )}
+                    timeZone={companyTz}
+                  />
+
+                  <div style={{ marginTop: 30 }}>
+                    <div className='emptyTitle'>Booking ID:</div>
+                    <p className={`emptySmall ${styles.badge}`}>{booking.id}</p>
+                  </div>
+
+                  <div style={{ marginTop: 30 }}>
+                    <div className='emptyTitle'>Current Status:</div>
+                    <div style={{ marginTop: 6 }}>
+                      <span
+                        className={`badge badge_${currentStatusTone} ${styles.badge}`}
+                      >
+                        {currentStatusLabel}
+                      </span>
+                    </div>
+                  </div>
+
+                  {isDeclined && booking.declineReason && (
+                    <div className={styles.declineReasonBox}>
+                      <strong>Decline Reason:</strong> {booking.declineReason}
                     </div>
                   )}
-                  {booking.projectCode && (
-                    <div className='miniNote'>
-                      Project code: <strong>{booking.projectCode}</strong>
+
+                  <div style={{ marginTop: 30 }}>
+                    <div className='emptyTitle'>Client Type:</div>
+                    <div style={{ marginTop: 6 }}>
+                      {isCorporateBooking ? (
+                        <span className={`emptySmall ${styles.badge}`}>
+                          \ud83c\udfe2 Corporate \u2014{" "}
+                          {booking.corporateAccount?.name ?? "Account"}
+                        </span>
+                      ) : booking.userId ? (
+                        <span className={`emptySmall ${styles.badge}`}>
+                          \ud83d\udc64 Registered User
+                        </span>
+                      ) : (
+                        <span className={`emptySmall ${styles.badge}`}>
+                          \ud83e\uddfe Guest Checkout
+                        </span>
+                      )}
                     </div>
-                  )}
-                </div>
-              ) : (
-                <div className={styles.paymentBlock}>
-                  <div className={styles.paymentStatus}>
-                    Payment status:{" "}
-                    <strong>
-                      {isGroupBooking
-                        ? (groupPaymentStatus ?? "NONE")
-                        : (booking.payment?.status ?? "NONE")}
-                    </strong>
-                    {(isGroupBooking ? groupAmountPaidCents : amountPaidCents) >
-                      0 && (
-                      <span style={{ marginLeft: 10 }}>
-                        (Paid:{" "}
+                  </div>
+
+                  <div style={{ marginTop: 30 }}>
+                    <div className='emptyTitle'>Ride Type:</div>
+                    <div style={{ marginTop: 6 }}>
+                      <span className={`emptySmall ${styles.badge}`}>
+                        {isGroupBooking
+                          ? `Multi Trip (${tripGroupData!.siblings.length} rides)`
+                          : "Single Ride"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: 30 }}>
+                    <div className='emptyTitle'>Total Payment Due:</div>
+                    <div className={styles.paymentInfo}>
+                      <span className={`emptySmall ${styles.badge}`}>
+                        {paymentStatusDisplay.label}
+                      </span>
+                      {(isGroupBooking ? groupTotalCents : booking.totalCents) >
+                        0 && (
+                        <span className={styles.paymentAmount}>
+                          {formatMoney(
+                            isGroupBooking
+                              ? groupTotalCents
+                              : booking.totalCents,
+                            isGroupBooking
+                              ? tripGroupData!.tripGroup.currency
+                              : booking.currency,
+                          )}
+                        </span>
+                      )}
+                      {booking.payment?.paidAt && (
+                        <span className='miniNote'>
+                          on {formatDateTime(booking.payment.paidAt, companyTz)}
+                        </span>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: 30 }}>
+                      <div className='emptyTitle'>Deposit Required:</div>
+                      <div style={{ marginTop: 6 }}>
+                        <span
+                          className={`badge ${booking.depositMode ? "badge_accent" : "badge_neutral"}`}
+                        >
+                          {booking.depositMode ? "Yes" : "No"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {tipCents > 0 && (
+                      <div className={styles.tipDisplay}>
+                        <span className={styles.tipIcon}>\ud83d\udcb0</span>
+                        <span className={styles.tipLabel}>Driver Tip:</span>
+                        <span className={styles.tipAmount}>
+                          {formatMoney(tipCents, booking.currency)}
+                        </span>
+                      </div>
+                    )}
+
+                    {paymentStatusDisplay.hasBalanceDue && (
+                      <div className={styles.balanceDueAlert}>
+                        <strong>Balance Due:</strong>{" "}
                         {formatMoney(
-                          isGroupBooking
-                            ? groupAmountPaidCents
-                            : amountPaidCents,
+                          paymentStatusDisplay.balanceDueCents,
                           booking.currency,
                         )}
-                        {!isGroupBooking && amountRefundedCents > 0 && (
-                          <>
-                            , Refunded:{" "}
-                            {formatMoney(amountRefundedCents, booking.currency)}
-                          </>
+                        <span className={styles.balanceDetail}>
+                          (Paid:{" "}
+                          {formatMoney(amountPaidCents, booking.currency)} of{" "}
+                          {formatMoney(booking.totalCents, booking.currency)})
+                        </span>
+                      </div>
+                    )}
+
+                    {paymentStatusDisplay.hasRefundDue && (
+                      <div className={styles.refundDueAlert}>
+                        <strong>Refund Due:</strong>{" "}
+                        {formatMoney(
+                          paymentStatusDisplay.refundDueCents,
+                          booking.currency,
                         )}
-                        {!isGroupBooking && tipCents > 0 && (
-                          <>, Tip: {formatMoney(tipCents, booking.currency)}</>
+                        <span className={styles.refundDetail}>
+                          (Paid:{" "}
+                          {formatMoney(amountPaidCents, booking.currency)}
+                          {amountRefundedCents > 0 && (
+                            <>
+                              , Refunded:{" "}
+                              {formatMoney(
+                                amountRefundedCents,
+                                booking.currency,
+                              )}
+                            </>
+                          )}
+                          , New Total:{" "}
+                          {formatMoney(booking.totalCents, booking.currency)})
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    style={{ marginTop: 20 }}
+                    className={styles.driverSectionArea}
+                  >
+                    <div className='emptyTitle'>Driver:</div>
+                    {booking.assignment?.driver ? (
+                      <div className={styles.driverNameplate}>
+                        {booking.assignment.driver.image ? (
+                          <Image
+                            src={booking.assignment.driver.image}
+                            alt={booking.assignment.driver.name ?? "Driver"}
+                            title={booking.assignment.driver.name ?? "Driver"}
+                            width={36}
+                            height={36}
+                            className={styles.driverNameplateAvatar}
+                          />
+                        ) : (
+                          <div className={styles.driverNameplateAvatarFallback}>
+                            {(
+                              booking.assignment.driver.name ??
+                              booking.assignment.driver.email
+                            )
+                              .split(" ")
+                              .map((w) => w[0]?.toUpperCase() ?? "")
+                              .slice(0, 2)
+                              .join("")}
+                          </div>
                         )}
-                        )
+                        <span className={styles.driverNameplateName}>
+                          {booking.assignment.driver.name?.trim() ||
+                            booking.assignment.driver.email}
+                        </span>
+                      </div>
+                    ) : (
+                      <span
+                        className='badge badge_neutral'
+                        style={{ marginTop: 6, display: "inline-block" }}
+                      >
+                        Unassigned
                       </span>
                     )}
                   </div>
-
-                  {/* Tip breakdown in Payment card */}
-                  {tipCents > 0 && (
-                    <div className={styles.tipBreakdownCard}>
-                      <div className={styles.tipBreakdownHeader}>
-                        <span className={styles.tipBreakdownIcon}>💰</span>
-                        <span className={styles.tipBreakdownTitle}>
-                          Driver Tip Received
-                        </span>
-                      </div>
-                      <div className={styles.tipBreakdownAmount}>
-                        {formatMoney(tipCents, booking.currency)}
-                      </div>
-                      <div className={styles.tipBreakdownNote}>
-                        This tip was added by the customer during checkout and
-                        should be passed to the assigned driver.
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Send Payment Link Button */}
-                  <SendPaymentLinkButton
+                  <br />
+                  <br />
+                  <SendEstimateButton
                     bookingId={booking.id}
-                    totalCents={
-                      isGroupBooking ? groupTotalCents : booking.totalCents
-                    }
-                    amountPaidCents={
-                      isGroupBooking ? groupAmountPaidCents : amountPaidCents
-                    }
-                    currency={booking.currency}
-                    isApproved={isApproved}
                     customerEmail={
                       booking.user?.email ?? booking.guestEmail ?? null
                     }
-                    depositMode={booking.depositMode}
-                    depositCents={booking.depositCents ?? null}
-                    depositDueDate={
-                      booking.depositDueDate?.toISOString() ?? null
-                    }
-                    balanceDueDate={
-                      booking.balanceDueDate?.toISOString() ?? null
-                    }
-                    paymentLinkSentEvents={paymentLinkSentEvents}
+                    bookingStatus={booking.status}
+                    estimateSentEvents={estimateSentEvents}
                   />
-
-                  {booking.payment?.checkoutUrl ? (
-                    <div className={styles.checkoutUrl}>
-                      Latest checkout URL: <br />
-                      <Link
-                        href={booking.payment.checkoutUrl}
-                        className='backBtn emptyTitleSmall'
-                        style={{ marginTop: "1rem", display: "inline-block" }}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                      >
-                        Payment Link
-                      </Link>
-                    </div>
-                  ) : null}
-
-                  <div style={{ marginTop: 18 }}>
-                    <div className='cardTitle h5'>
-                      Take card payment (manual)
-                    </div>
-                    <div
-                      className='miniNote'
-                      style={{ marginTop: 6, marginBottom: "30px" }}
-                    >
-                      Card-only checkout. After success, the button turns green
-                      and says &ldquo;Payment successful&rdquo;.
-                    </div>
-
-                    <div style={{ marginTop: 10 }}>
-                      <AdminManualCardPaymentClient
-                        bookingId={booking.id}
-                        amountCents={
-                          isGroupBooking ? groupTotalCents : booking.totalCents
-                        }
-                        currency={booking.currency}
-                        isPaid={isPaid}
-                        isApproved={isApproved}
-                        amountPaidCents={amountPaidCents}
-                        stripePublishableKey={stripePublishableKey}
-                      />
-                    </div>
-                  </div>
-
-                  <div style={{ marginTop: 18 }}>
-                    <div className='cardTitle h5'>Charge card on file</div>
-                    <div
-                      className='miniNote'
-                      style={{ marginTop: 6, marginBottom: "1.6rem" }}
-                    >
-                      Charge the customer&apos;s saved card directly — no
-                      payment link required.
-                    </div>
-                    {!savedCard?.hasCard && (
-                      <div
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "0.8rem",
-                          padding: "0.6rem 1.2rem",
-                          marginBottom: "1.6rem",
-                          background: "#f9fafb",
-                          border: "1px solid #e5e7eb",
-                          borderRadius: 6,
-                          fontSize: "1.3rem",
-                          color: "#6b7280",
-                        }}
-                      >
-                        <span>💳</span>
-                        <span>No card on file</span>
-                      </div>
-                    )}
-                    <div style={{ marginTop: 10 }}>
-                      <AdminChargeCardOnFileButton
-                        bookingId={booking.id}
-                        amountCents={
-                          isGroupBooking ? groupTotalCents : booking.totalCents
-                        }
-                        currency={booking.currency}
-                      />
-                    </div>
-                    <div style={{ marginTop: 18 }}>
-                      <div className='cardTitle h5'>Record cash payment</div>
-                      <div
-                        className='miniNote'
-                        style={{ marginTop: 6, marginBottom: "30px" }}
-                      >
-                        Customer paid in person with cash. Marks booking as
-                        confirmed and paid.
-                      </div>
-                      <div style={{ marginTop: 10 }}>
-                        <AdminCashPaymentButton
-                          bookingId={booking.id}
-                          amountCents={
-                            isGroupBooking
-                              ? groupTotalCents
-                              : booking.totalCents
-                          }
-                          currency={booking.currency}
-                          isPaid={isPaid}
-                        />
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              )}
-            </Card>
-
-            {/* ═══════════════════════════════════════════════════════════════════
-            INVOICE PREVIEW
-            ═══════════════════════════════════════════════════════════════════ */}
-            {invoiceData && (
-              <Card title='Invoice'>
-                <InvoiceSection invoice={invoiceData} bookingId={booking.id} />
-              </Card>
-            )}
-
-            {/* ═══════════════════════════════════════════════════════════════════
-            ACTIVITY TIMELINE
-            ═══════════════════════════════════════════════════════════════════ */}
-            <Card title='Activity Timeline'>
-              {booking.statusEvents.length === 0 ? (
-                <div className={styles.muted}>No activity yet.</div>
-              ) : (
-                <ul className={styles.eventsList}>
-                  {booking.statusEvents.map((e) => {
-                    const eventType = (e as any).eventType ?? "STATUS_CHANGE";
-                    const metadata = (e as any).metadata as Record<
-                      string,
-                      any
-                    > | null;
-
-                    const isPaidConfirmed =
-                      Boolean(mostRecentConfirmedEventId) &&
-                      e.id === mostRecentConfirmedEventId;
-
-                    let tone: BadgeTone = isPaidConfirmed
-                      ? "good"
-                      : badgeTone(e.status as BookingStatus);
-                    let label = isPaidConfirmed
-                      ? "Payment received"
-                      : statusLabel(e.status as BookingStatus);
-
-                    if (eventType === "PAYMENT_RECEIVED") {
-                      tone = "good";
-                      const method = metadata?.method;
-                      if (method === "manual") {
-                        label = "Payment received (manual)";
-                      } else if (method === "online") {
-                        label = "Payment received (online)";
-                      } else if (method === "balance") {
-                        label = "Balance payment received";
-                      } else {
-                        label = "Payment received";
+                <br />
+                <br />
+                {(paymentStatusDisplay.hasBalanceDue ||
+                  booking.status === "PENDING_PAYMENT") && (
+                  <>
+                    <div
+                      className={styles.sectionDivider}
+                      style={{ marginTop: 24 }}
+                    />
+                    <div className='cardTitle h5' style={{ marginBottom: 12 }}>
+                      Send balance reminder
+                    </div>
+                    <div
+                      className='miniNote'
+                      style={{ marginTop: 0, marginBottom: "1.6rem" }}
+                    >
+                      Send the customer an email reminding them of their
+                      outstanding balance with a direct link to complete
+                      payment.
+                    </div>
+                    <SendBalanceReminderButton
+                      bookingId={booking.id}
+                      customerEmail={
+                        booking.user?.email ?? booking.guestEmail ?? null
                       }
-                    } else if (eventType === "PAYMENT_LINK_SENT") {
-                      tone = "accent";
-                      label = metadata?.isBalancePayment
-                        ? "Balance payment link sent"
-                        : "Payment link sent";
-                    } else if (eventType === "DRIVER_ASSIGNED") {
-                      tone = "good";
-                      label = "Driver assigned";
-                    } else if (eventType === "DRIVER_UNASSIGNED") {
-                      tone = "warn";
-                      label = "Driver unassigned";
-                    } else if (eventType === "TRIP_EDITED") {
-                      tone = "neutral";
-                      label = "Trip details edited";
-                    } else if (eventType === "PRICE_ADJUSTED") {
-                      tone = "warn";
-                      label = "Price adjusted";
-                    } else if (eventType === "REFUND_ISSUED") {
-                      tone = "warn";
-                      label = "Refund issued";
-                    } else if (eventType === "APPROVAL_CHANGED") {
-                      tone = metadata?.approved ? "good" : "neutral";
-                      label = metadata?.approved
-                        ? "Booking approved"
-                        : "Approval reversed";
-                    } else if (eventType === "BOOKING_DECLINED") {
-                      tone = "bad";
-                      label = "Booking declined";
-                    } else if (eventType === "ESTIMATE_SENT") {
-                      tone = "accent";
-                      label = "Estimate sent";
-                    } else if (eventType === "BALANCE_REMINDER_SENT") {
-                      tone = "accent";
-                      label = "Balance reminder sent";
-                    } else if (eventType === "DEPOSIT_CONFIGURED") {
-                      tone = metadata?.depositPercent ? "accent" : "neutral";
-                      label = metadata?.depositPercent
-                        ? `Deposit configured (${metadata.depositPercent}%)`
-                        : "Deposit disabled";
-                    } else if (
-                      eventType === "PAYMENT_LINK_SENT" &&
-                      metadata?.isDepositPayment
-                    ) {
-                      tone = "accent";
-                      label = "Deposit link sent";
-                    }
+                      outstandingCents={outstandingCents}
+                      totalCents={booking.totalCents}
+                      currency={booking.currency}
+                      pickupAtIso={booking.pickupAt.toISOString()}
+                      timeZone={companyTz}
+                      reminderSentEvents={reminderSentEvents}
+                    />
+                  </>
+                )}
+              </header>
 
-                    const actorLabel = getEventActorLabel(
-                      e.createdBy,
-                      e.status,
-                    );
-                    const eventDetails = getEventDetails(
-                      eventType,
-                      metadata,
-                      booking.currency,
-                    );
-
-                    return (
-                      <li key={e.id} className={styles.eventItem}>
-                        <div className={styles.eventLeft}>
-                          <span className={`badge badge_${tone}`}>{label}</span>
-                          <span className={styles.eventActor}>
-                            {actorLabel}
-                          </span>
-                          {eventDetails && (
-                            <div className={`${styles.eventDetails} miniNote`}>
-                              {eventDetails}
-                            </div>
-                          )}
-                        </div>
-                        <p className='val'>
-                          {formatDateTime(new Date(e.createdAt), companyTz)}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ul>
+              {tripGroupData && (
+                <TripGroupCard
+                  tripGroup={tripGroupData.tripGroup}
+                  siblings={tripGroupData.siblings}
+                  currentBookingId={id}
+                  timeZone={companyTz}
+                />
               )}
-            </Card>
 
-            <Card title='Internal Notes' id='notes-section'>
-              <BookingNotesClient
+              {/* ── Tabs (Trip / Price / Assignment+Pay / Payment / Approval) ── */}
+              <BookingDetailTabs tabs={bookingTabs} />
+
+              {/* ── Always-visible cards below tabs ── */}
+              <Card title='Activity Timeline'>
+                {booking.statusEvents.length === 0 ? (
+                  <div className={styles.muted}>No activity yet.</div>
+                ) : (
+                  <ul className={styles.eventsList}>
+                    {booking.statusEvents.map((e) => {
+                      const eventType = (e as any).eventType ?? "STATUS_CHANGE";
+                      const metadata = (e as any).metadata as Record<
+                        string,
+                        any
+                      > | null;
+                      const isPaidConfirmed =
+                        Boolean(mostRecentConfirmedEventId) &&
+                        e.id === mostRecentConfirmedEventId;
+                      let tone: BadgeTone = isPaidConfirmed
+                        ? "good"
+                        : badgeTone(e.status as BookingStatus);
+                      let label = isPaidConfirmed
+                        ? "Payment received"
+                        : statusLabel(e.status as BookingStatus);
+                      if (eventType === "PAYMENT_RECEIVED") {
+                        tone = "good";
+                        const method = metadata?.method;
+                        if (method === "manual")
+                          label = "Payment received (manual)";
+                        else if (method === "online")
+                          label = "Payment received (online)";
+                        else if (method === "balance")
+                          label = "Balance payment received";
+                        else label = "Payment received";
+                      } else if (eventType === "PAYMENT_LINK_SENT") {
+                        tone = "accent";
+                        label = metadata?.isDepositPayment
+                          ? "Deposit link sent"
+                          : metadata?.isBalancePayment
+                            ? "Balance payment link sent"
+                            : "Payment link sent";
+                      } else if (eventType === "DRIVER_ASSIGNED") {
+                        tone = "good";
+                        label = "Driver assigned";
+                      } else if (eventType === "DRIVER_UNASSIGNED") {
+                        tone = "warn";
+                        label = "Driver unassigned";
+                      } else if (eventType === "TRIP_EDITED") {
+                        tone = "neutral";
+                        label = "Trip details edited";
+                      } else if (eventType === "PRICE_ADJUSTED") {
+                        tone = "warn";
+                        label = "Price adjusted";
+                      } else if (eventType === "REFUND_ISSUED") {
+                        tone = "warn";
+                        label = "Refund issued";
+                      } else if (eventType === "APPROVAL_CHANGED") {
+                        tone = metadata?.approved ? "good" : "neutral";
+                        label = metadata?.approved
+                          ? "Booking approved"
+                          : "Approval reversed";
+                      } else if (eventType === "BOOKING_DECLINED") {
+                        tone = "bad";
+                        label = "Booking declined";
+                      } else if (eventType === "ESTIMATE_SENT") {
+                        tone = "accent";
+                        label = "Estimate sent";
+                      } else if (eventType === "BALANCE_REMINDER_SENT") {
+                        tone = "accent";
+                        label = "Balance reminder sent";
+                      } else if (eventType === "DEPOSIT_CONFIGURED") {
+                        tone = metadata?.depositPercent ? "accent" : "neutral";
+                        label = metadata?.depositPercent
+                          ? `Deposit configured (${metadata.depositPercent}%)`
+                          : "Deposit disabled";
+                      }
+                      const actorLabel = getEventActorLabel(
+                        e.createdBy,
+                        e.status,
+                      );
+                      const eventDetails = getEventDetails(
+                        eventType,
+                        metadata,
+                        booking.currency,
+                      );
+                      return (
+                        <li key={e.id} className={styles.eventItem}>
+                          <div className={styles.eventLeft}>
+                            <span className={`badge badge_${tone}`}>
+                              {label}
+                            </span>
+                            <span className={styles.eventActor}>
+                              {actorLabel}
+                            </span>
+                            {eventDetails && (
+                              <div
+                                className={`${styles.eventDetails} miniNote`}
+                              >
+                                {eventDetails}
+                              </div>
+                            )}
+                          </div>
+                          <p className='val'>
+                            {formatDateTime(new Date(e.createdAt), companyTz)}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </Card>
+
+              <Card title='Internal Notes' id='notes-section'>
+                <BookingNotesClient
+                  bookingId={booking.id}
+                  notes={notesForClient}
+                />
+              </Card>
+
+              <DeleteBookingDangerZoneClient bookingId={booking.id} />
+            </div>
+
+            {/* ── Right sidebar ── */}
+            <div className={styles.BookingCompletionChecklist}>
+              <BookingCompletionChecklist
                 bookingId={booking.id}
-                notes={notesForClient}
+                bookingStatus={booking.status}
+                isRouteApproved={booking.routeApproved}
+                serviceName={booking.serviceType?.name ?? null}
+                distanceMiles={decimalToNumber(booking.distanceMiles)}
+                isPriceApproved={booking.priceApproved}
+                hasDriver={hasDriver}
+                driverName={booking.assignment?.driver?.name ?? null}
+                hasVehicleUnit={hasVehicleUnit}
+                vehicleUnitName={booking.assignment?.vehicleUnit?.name ?? null}
+                hasVehicleCategory={!!booking.vehicleId}
+                vehicleCategoryName={booking.vehicle?.name ?? null}
+                hasDriverPay={hasDriverPay}
+                driverPayDisplay={
+                  booking.assignment?.driverPaymentCents
+                    ? formatMoney(
+                        booking.assignment.driverPaymentCents,
+                        booking.currency,
+                      )
+                    : null
+                }
+                isPaid={isCorporateBooking ? true : isPaid}
+                isApproved={isApproved}
+                hasPaymentLinkSent={
+                  isCorporateBooking ? true : hasPaymentLinkSent
+                }
+                isCorporateBooking={isCorporateBooking}
+                corporateAccountName={booking.corporateAccount?.name ?? null}
               />
-            </Card>
-
-            <Card title='Issue Refund' borderWarn stylesWarn>
-              <div style={{ marginTop: 18 }}>
-                <div className='miniNote' style={{ marginTop: 6 }}>
-                  You can refund clients manually here after they pay you.
-                </div>
-
-                <div style={{ marginTop: 10 }}>
-                  <RefundButton
-                    bookingId={booking.id}
-                    totalCents={booking.totalCents}
-                    amountPaidCents={amountPaidCents}
-                    amountRefundedCents={amountRefundedCents}
-                    currency={booking.currency}
-                    stripePaymentIntentId={
-                      booking.payment?.stripePaymentIntentId ?? null
-                    }
-                  />
-                </div>
-              </div>
-            </Card>
-
-            {/* Danger Zone */}
-            <DeleteBookingDangerZoneClient bookingId={booking.id} />
-          </div>
-
-          {/* ═══════════════════════════════════════════════════════════════════
-          RIGHT SIDEBAR — CHECKLIST + QUICK ACTIONS
-          ═══════════════════════════════════════════════════════════════════ */}
-          <div className={styles.BookingCompletionChecklist}>
-            <BookingCompletionChecklist
-              bookingId={booking.id}
-              bookingStatus={booking.status}
-              isRouteApproved={booking.routeApproved}
-              serviceName={booking.serviceType?.name ?? null}
-              distanceMiles={decimalToNumber(booking.distanceMiles)}
-              isPriceApproved={booking.priceApproved}
-              hasDriver={hasDriver}
-              driverName={booking.assignment?.driver?.name ?? null}
-              hasVehicleUnit={hasVehicleUnit}
-              vehicleUnitName={booking.assignment?.vehicleUnit?.name ?? null}
-              hasVehicleCategory={!!booking.vehicleId}
-              vehicleCategoryName={booking.vehicle?.name ?? null}
-              hasDriverPay={hasDriverPay}
-              driverPayDisplay={
-                booking.assignment?.driverPaymentCents
-                  ? formatMoney(
-                      booking.assignment.driverPaymentCents,
-                      booking.currency,
-                    )
-                  : null
-              }
-              isPaid={isCorporateBooking ? true : isPaid}
-              isApproved={isApproved}
-              hasPaymentLinkSent={
-                isCorporateBooking ? true : hasPaymentLinkSent
-              }
-              isCorporateBooking={isCorporateBooking}
-              corporateAccountName={booking.corporateAccount?.name ?? null}
-            />
-            <Card title='Quick Actions'>
-              <QuickActionsClient
-                bookingId={booking.id}
-                currentStatus={currentStatus}
-                pickupAt={booking.pickupAt.toISOString()}
-              />
-              <div className={styles.quickActionsDivider} />
-              <DuplicateBookingClient bookingId={booking.id} />
-              {/* <div className={styles.quickActionsDivider} /> */}
-            </Card>
-          </div>
-        </section>
+              <Card title='Quick Actions'>
+                <QuickActionsClient
+                  bookingId={booking.id}
+                  currentStatus={currentStatus}
+                  pickupAt={booking.pickupAt.toISOString()}
+                />
+                <div className={styles.quickActionsDivider} />
+                <DuplicateBookingClient bookingId={booking.id} />
+              </Card>
+            </div>
+          </section>
+        </BookingTabsProvider>
       </BookingEditProvider>
     </DirtyFormProvider>
   );
@@ -2381,14 +2199,12 @@ function Card({
   children,
   borderWarn,
   stylesWarn,
-  indicator,
   id,
 }: {
   title: string;
   children: ReactNode;
   borderWarn?: boolean;
   stylesWarn?: boolean;
-  indicator?: IndicatorStatus;
   id?: string;
 }) {
   return (
@@ -2396,7 +2212,6 @@ function Card({
       id={id}
       className={`${styles.card} ${borderWarn ? styles.borderWarn : ""}`}
     >
-      {indicator && <CardIndicator status={indicator} />}
       <div className={styles.cardTop}>
         <div
           className='cardTitle h4'

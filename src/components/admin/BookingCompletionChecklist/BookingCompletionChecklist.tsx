@@ -1,6 +1,11 @@
 "use client";
 
 import styles from "./BookingCompletionChecklist.module.css";
+import {
+  useBookingTabs,
+  SECTION_TO_TAB,
+  SECTION_STACKED_REDIRECT,
+} from "@/components/admin/BookingDetailTabs/BookingDetailTabsContext";
 
 type Props = {
   bookingId: string;
@@ -41,29 +46,6 @@ type ChecklistItem = {
   sectionId: string;
 };
 
-// Function to scroll to section and highlight it
-function scrollToSection(sectionId: string) {
-  const element = document.getElementById(sectionId);
-  if (!element) return;
-
-  // Scroll to the element with some offset
-  const yOffset = -100;
-  const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-  window.scrollTo({ top: y, behavior: "smooth" });
-
-  // Add highlight class
-  element.classList.add("card-highlight");
-
-  // Remove highlight class after 5 seconds with fade
-  setTimeout(() => {
-    element.classList.add("card-highlight-fade");
-  }, 4000);
-
-  setTimeout(() => {
-    element.classList.remove("card-highlight", "card-highlight-fade");
-  }, 5000);
-}
-
 export default function BookingCompletionChecklist({
   bookingStatus,
   isRouteApproved,
@@ -82,10 +64,46 @@ export default function BookingCompletionChecklist({
   isCorporateBooking = false,
   corporateAccountName = null,
 }: Props) {
-  // Check if booking is actually completed (terminal status)
-  const isBookingCompleted = bookingStatus === "COMPLETED";
+  // ── Context: knows whether tabs are enabled and can switch active tab ──────
+  const { setActiveTabId, tabsEnabled } = useBookingTabs();
 
-  // Don't show for other terminal statuses (but DO show for COMPLETED)
+  function handleSectionClick(sectionId: string) {
+    if (tabsEnabled) {
+      // Switch to the matching tab
+      const tabId = SECTION_TO_TAB[sectionId];
+      if (tabId) {
+        setActiveTabId(tabId);
+        // Scroll to the tabs wrapper with a slight delay for state to update
+        setTimeout(() => {
+          const el = document.getElementById("booking-detail-tabs");
+          if (el) {
+            const y = el.getBoundingClientRect().top + window.pageYOffset - 100;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
+        }, 50);
+        return;
+      }
+    }
+
+    // Stacked / non-tab mode: scroll to the actual section element
+    // Some merged sectionIds redirect to their combined wrapper
+    const targetId = SECTION_STACKED_REDIRECT[sectionId] ?? sectionId;
+    const element = document.getElementById(targetId);
+    if (!element) return;
+
+    const y = element.getBoundingClientRect().top + window.pageYOffset - 100;
+    window.scrollTo({ top: y, behavior: "smooth" });
+
+    element.classList.add("card-highlight");
+    setTimeout(() => element.classList.add("card-highlight-fade"), 4000);
+    setTimeout(
+      () => element.classList.remove("card-highlight", "card-highlight-fade"),
+      5000,
+    );
+  }
+
+  // ── Status guards ──────────────────────────────────────────────────────────
+  const isBookingCompleted = bookingStatus === "COMPLETED";
   const hideStatuses = [
     "CANCELLED",
     "REFUNDED",
@@ -93,11 +111,8 @@ export default function BookingCompletionChecklist({
     "NO_SHOW",
     "DECLINED",
   ];
-  if (hideStatuses.includes(bookingStatus)) {
-    return null;
-  }
+  if (hideStatuses.includes(bookingStatus)) return null;
 
-  // If booking is completed, show simplified view
   if (isBookingCompleted) {
     return (
       <div className={`${styles.container} ${styles.alert_complete}`}>
@@ -114,16 +129,13 @@ export default function BookingCompletionChecklist({
     );
   }
 
-  // Format distance display
+  // ── Checklist computation ──────────────────────────────────────────────────
   const distanceDisplay =
     distanceMiles != null ? `${Number(distanceMiles).toFixed(1)} mi` : "—";
-
-  // Build trip details value string
   const tripValue = isRouteApproved
     ? `${serviceName ?? "—"} • ${distanceDisplay}`
     : null;
 
-  // Check if everything is complete (checklist-wise)
   const paymentComplete = isCorporateBooking || isPaid || hasPaymentLinkSent;
   const driverVehicleComplete = hasDriver && hasVehicleUnit;
 
@@ -136,7 +148,6 @@ export default function BookingCompletionChecklist({
     paymentComplete;
 
   const checklist: ChecklistItem[] = [
-    // 1. Trip Details — manual approval via "Approve Route"
     {
       key: "trip_details",
       label: "Trip Details",
@@ -147,8 +158,6 @@ export default function BookingCompletionChecklist({
       priority: "critical",
       sectionId: "trip-section",
     },
-
-    // 2. Pricing — manual approval via "Approve Price"
     {
       key: "pricing",
       label: "Pricing",
@@ -158,8 +167,6 @@ export default function BookingCompletionChecklist({
       priority: "critical",
       sectionId: "price-section",
     },
-
-    // 3. Driver + Vehicle (combined)
     {
       key: "driver_vehicle",
       label: "Driver + Vehicle Assignment",
@@ -175,8 +182,6 @@ export default function BookingCompletionChecklist({
       priority: "critical",
       sectionId: "assign-section",
     },
-
-    // 4. Driver Pay
     {
       key: "driver_pay",
       label: "Driver Pay",
@@ -186,8 +191,6 @@ export default function BookingCompletionChecklist({
       priority: "important",
       sectionId: "driver-pay-section",
     },
-
-    // 5. Booking Approved
     {
       key: "approved",
       label: "Booking Approved",
@@ -197,8 +200,6 @@ export default function BookingCompletionChecklist({
       priority: "critical",
       sectionId: "approval-section",
     },
-
-    // 6. Payment — corporate or standard
     ...(isCorporateBooking
       ? [
           {
@@ -212,7 +213,6 @@ export default function BookingCompletionChecklist({
           },
         ]
       : [
-          // Payment link - only show if approved and not yet paid
           ...(isApproved && !isPaid
             ? [
                 {
@@ -227,7 +227,6 @@ export default function BookingCompletionChecklist({
                 },
               ]
             : []),
-          // Show "Payment Received" instead when paid
           ...(isPaid
             ? [
                 {
@@ -252,7 +251,6 @@ export default function BookingCompletionChecklist({
     (item) => item.priority === "important",
   );
 
-  // Determine alert level
   const alertLevel = allComplete
     ? "complete"
     : criticalMissing.length > 0
@@ -288,13 +286,13 @@ export default function BookingCompletionChecklist({
           <div
             key={item.key}
             className={`${styles.checkItem} ${item.isComplete ? styles.complete : styles.incomplete} ${!item.isComplete && item.priority === "critical" ? styles.critical : ""} ${styles.clickable}`}
-            onClick={() => scrollToSection(item.sectionId)}
+            onClick={() => handleSectionClick(item.sectionId)}
             role='button'
             tabIndex={0}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                scrollToSection(item.sectionId);
+                handleSectionClick(item.sectionId);
               }
             }}
           >
@@ -321,7 +319,6 @@ export default function BookingCompletionChecklist({
         ))}
       </div>
 
-      {/* Impact warnings - only show when incomplete */}
       {!allComplete && (
         <>
           {!hasDriver && (

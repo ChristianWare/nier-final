@@ -654,6 +654,26 @@ export async function updateBookingPrice(formData: FormData) {
     );
   }
 
+  // ── Keep deposit amounts in sync when price changes ──
+  if (priceChanged) {
+    const depositInfo = await db.booking.findUnique({
+      where: { id: booking.id },
+      select: { depositMode: true, depositPercent: true },
+    });
+    if (depositInfo?.depositMode && depositInfo.depositPercent) {
+      const newDepositCents = Math.round(
+        (d.totalCents * depositInfo.depositPercent) / 100,
+      );
+      await db.booking.update({
+        where: { id: booking.id },
+        data: {
+          depositCents: newDepositCents,
+          balanceCents: d.totalCents - newDepositCents,
+        },
+      });
+    }
+  }
+
   await db.$transaction(tx);
 
   // ── Auto-adjust driver pay if price changed ──
@@ -667,7 +687,6 @@ export async function updateBookingPrice(formData: FormData) {
       bookingStatus: booking.status,
     });
   }
-
   revalidatePath(`/admin/bookings/${booking.id}`);
 
   return {

@@ -48,7 +48,8 @@ type Props = {
   // Deposit
   depositMode?: boolean;
   depositCents?: number | null;
-  depositDueDate?: string | null; // ISO string
+  balanceCents?: number | null;
+  depositDueDate?: string | null;
   balanceDueDate?: string | null;
   // History
   paymentLinkSentEvents?: SentEvent[];
@@ -165,16 +166,16 @@ export default function SendPaymentLinkButton({
       <div className={styles.fullyPaidWrapper}>
         <Button
           disabled
-          type="button"
-          text="✓ Fully paid"
-          btnType="greenReg"
+          type='button'
+          text='✓ Fully paid'
+          btnType='greenReg'
           onClick={() => {}}
         />
         <a
           href={`/pay/${bookingId}/success?already_paid=1`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="backBtn"
+          target='_blank'
+          rel='noopener noreferrer'
+          className='backBtn'
           style={{ display: "inline-block", fontSize: "1.4rem" }}
         >
           View payment success page →
@@ -185,7 +186,8 @@ export default function SendPaymentLinkButton({
 
   // Derived display flags
   const showDepositSection = depositMode && !isDepositPaid;
-  const showBalanceSection = depositMode && isDepositPaid && balanceDueCents > 0;
+  const showBalanceSection =
+    depositMode && isDepositPaid && balanceDueCents > 0;
   const showFullSection = !depositMode;
 
   // For non-deposit bookings that have a partial payment
@@ -218,7 +220,7 @@ export default function SendPaymentLinkButton({
           <div className={styles.linkSectionHeader}>
             <span className={styles.linkSectionTitle}>Deposit required</span>
             {depositDueDate && (
-              <span className="badge badge_warn" style={{ fontSize: "1.2rem" }}>
+              <span className='badge badge_warn' style={{ fontSize: "1.2rem" }}>
                 Due {formatDate(depositDueDate)}
               </span>
             )}
@@ -239,18 +241,18 @@ export default function SendPaymentLinkButton({
 
           <div className={styles.btnGroup}>
             <Button
-              btnType="greenReg"
+              btnType='greenReg'
               text={isPending ? "Sending..." : "Email deposit link to client"}
               disabled={isPending}
               onClick={() => sendLink("deposit")}
-              type="button"
+              type='button'
             />
             <Button
-              btnType="blackReg"
-              text="Send to different email"
+              btnType='blackReg'
+              text='Send to different email'
               disabled={isPending}
               onClick={() => openModal("deposit")}
-              type="button"
+              type='button'
             />
           </div>
 
@@ -261,11 +263,11 @@ export default function SendPaymentLinkButton({
           </div>
 
           <Button
-            btnType="blueReg"
+            btnType='blueReg'
             text={`Email full link (${formatMoney(totalCents, currency)})`}
             disabled={isPending}
             onClick={() => sendLink("full")}
-            type="button"
+            type='button'
           />
         </div>
       )}
@@ -283,7 +285,7 @@ export default function SendPaymentLinkButton({
           <div className={styles.linkSectionHeader}>
             <span className={styles.linkSectionTitle}>Balance due</span>
             {balanceDueDate && (
-              <span className="badge badge_warn" style={{ fontSize: "1.2rem" }}>
+              <span className='badge badge_warn' style={{ fontSize: "1.2rem" }}>
                 Due {formatDate(balanceDueDate)}
               </span>
             )}
@@ -297,18 +299,18 @@ export default function SendPaymentLinkButton({
 
           <div className={styles.btnGroup}>
             <Button
-              btnType="greenReg"
+              btnType='greenReg'
               text={isPending ? "Sending..." : "Email balance link to client"}
               disabled={isPending}
               onClick={() => sendLink("balance")}
-              type="button"
+              type='button'
             />
             <Button
-              btnType="blackReg"
-              text="Send to different email"
+              btnType='blackReg'
+              text='Send to different email'
               disabled={isPending}
               onClick={() => openModal("balance")}
-              type="button"
+              type='button'
             />
           </div>
         </div>
@@ -329,7 +331,7 @@ export default function SendPaymentLinkButton({
           )}
           <div className={styles.btnGroup}>
             <Button
-              btnType="greenReg"
+              btnType='greenReg'
               text={
                 isPending
                   ? "Sending..."
@@ -341,16 +343,16 @@ export default function SendPaymentLinkButton({
               onClick={() =>
                 sendLink(showNonDepositBalanceBanner ? "balance" : "full")
               }
-              type="button"
+              type='button'
             />
             <Button
-              btnType="blackReg"
-              text="Send to different email"
+              btnType='blackReg'
+              text='Send to different email'
               disabled={isPending}
               onClick={() =>
                 openModal(showNonDepositBalanceBanner ? "balance" : "full")
               }
-              type="button"
+              type='button'
             />
           </div>
         </div>
@@ -410,8 +412,8 @@ export default function SendPaymentLinkButton({
       {/* ── Alternate email modal ──────────────────────────────────────────── */}
       <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
         <div style={{ display: "grid", gap: 16, padding: 8 }}>
-          <div className="cardTitle h5">{modalTitle}</div>
-          <p className="miniNote">
+          <div className='cardTitle h5'>{modalTitle}</div>
+          <p className='miniNote'>
             The link will be sent to this address instead of{" "}
             {customerEmail
               ? customerEmail.toLowerCase()
@@ -420,7 +422,7 @@ export default function SendPaymentLinkButton({
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <input
-              type="email"
+              type='email'
               value={overrideEmail}
               onChange={(e) => {
                 setOverrideEmail(e.target.value);
@@ -429,8 +431,8 @@ export default function SendPaymentLinkButton({
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleModalSend();
               }}
-              placeholder="Enter email address..."
-              className="input emptySmall"
+              placeholder='Enter email address...'
+              className='input emptySmall'
               autoFocus
               style={{
                 borderColor: overrideError ? "rgba(180,0,0,0.6)" : undefined,
@@ -444,16 +446,16 @@ export default function SendPaymentLinkButton({
           </div>
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button
-              type="button"
-              className="secondaryBtn"
+              type='button'
+              className='secondaryBtn'
               onClick={() => setShowModal(false)}
               disabled={isPending}
             >
               Cancel
             </button>
             <button
-              type="button"
-              className="goodBtnii"
+              type='button'
+              className='goodBtnii'
               onClick={handleModalSend}
               disabled={isPending}
             >

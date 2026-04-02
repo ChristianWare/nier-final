@@ -16,6 +16,20 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(cents / 100);
 }
 
+function formatDate(ymd: string) {
+  try {
+    // Parse YYYY-MM-DD as local date to avoid timezone shifts
+    const [y, m, d] = ymd.split("-").map(Number);
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date(y, m - 1, d));
+  } catch {
+    return ymd;
+  }
+}
+
 function daysFromNow(n: number): string {
   const d = new Date();
   d.setDate(d.getDate() + n);
@@ -55,9 +69,80 @@ export default function DepositSetupClient({
     initialBalanceDueDate ?? daysFromNow(14),
   );
 
-  // Don't render once the booking is paid
-  if (isPaid) return null;
+  // ── Read-only view when the booking is already paid ──────────────────────
+  if (isPaid) {
+    // If no deposit was configured, nothing to show
+    if (!initialDepositMode || !initialDepositPercent) return null;
 
+    const paidDepositCents = Math.round(
+      (totalCents * initialDepositPercent) / 100,
+    );
+    const paidBalanceCents = totalCents - paidDepositCents;
+    const is100 = initialDepositPercent === 100;
+
+    return (
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <div className='cardTitle h5' style={{ margin: 0 }}>
+            Deposit
+          </div>
+          <span className='badge badge_good' style={{ fontSize: "1.2rem" }}>
+            {initialDepositPercent}% deposit
+          </span>
+        </div>
+
+        <div className={styles.amountPreview}>
+          <div className={styles.amountRow}>
+            <span className='emptyTitle'>
+              {is100 ? "Full payment" : "Deposit charged"}
+            </span>
+            <span className={styles.amountValue}>
+              {formatMoney(paidDepositCents, currency)}
+            </span>
+          </div>
+          {!is100 && (
+            <div className={styles.amountRow}>
+              <span className='emptyTitle'>Balance</span>
+              <span className={styles.amountValue}>
+                {formatMoney(paidBalanceCents, currency)}
+              </span>
+            </div>
+          )}
+          <div className={`${styles.amountRow} ${styles.amountRowTotal}`}>
+            <span className='emptyTitle'>Total</span>
+            <span className={styles.amountValueMuted}>
+              {formatMoney(totalCents, currency)}
+            </span>
+          </div>
+        </div>
+
+        {(initialDepositDueDate || initialBalanceDueDate) && (
+          <div className={styles.dateFields} style={{ marginTop: "1rem" }}>
+            {initialDepositDueDate && (
+              <div className={styles.field}>
+                <span className='emptyTitle'>
+                  {is100 ? "Payment due by" : "Deposit due by"}
+                </span>
+                <p className='subheading' style={{ margin: 0 }}>
+                  {formatDate(initialDepositDueDate)}
+                </p>
+              </div>
+            )}
+            {!is100 && initialBalanceDueDate && (
+              <div className={styles.field}>
+                <span className='emptyTitle'>Balance due by</span>
+                <p className='subheading' style={{ margin: 0 }}>
+                  {formatDate(initialBalanceDueDate)}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Editable view when not yet paid ──────────────────────────────────────
   const depositCents = Math.round((totalCents * percent) / 100);
   const balanceCents = totalCents - depositCents;
   const is100 = percent === 100;

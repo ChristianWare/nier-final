@@ -1,0 +1,231 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+/* ── View toggle row ── */
+
+.viewToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 8px 16px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--stroke);
+}
+
+.viewToggleLabel {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--black400);
+}
+
+/* Toggle switch — matches DepositSetupClient */
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle input {
+  display: none;
+}
+
+.slider {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.slider::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle input:checked ~ .slider {
+  background: #22c55e;
+}
+
+.toggle input:checked ~ .slider::after {
+  transform: translateX(18px);
+}
+
+.toggleLabel {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--black400);
+  min-width: 22px;
+}
+
+/* ── Tab bar ── */
+
+.tabBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--cream);
+  border-bottom: 1px solid var(--stroke);
+  gap: 0;
+  width: 100%;
+  flex: 1;
+}
+
+.tabBar::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* ← add */
+  gap: 8px;
+  padding: 14px 18px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  /* background: transparent; */
+  background: #ef44440f;
+  color: var(--black400);
+  border-bottom: 3px solid transparent;
+  border-left: 1px solid var(--black300);
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
+  flex: 1; /* ← add (replaces flex-shrink: 0) */
+}
+
+.tab:first-child {
+  border-left: none;
+}
+
+.tab:hover {
+  color: var(--black);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* Active (incomplete) */
+.tabActive {
+  color: var(--black);
+  border-bottom-color: var(--black);
+  /* background: var(--white); */
+}
+
+/* Complete — green tint (no checkmarks, just background) */
+.tabComplete {
+  background: #22c55e59;
+  color: #15803d;
+}
+
+.tabComplete:hover {
+  background: #22c55e59;
+  color: #15803d;
+  opacity: 0.85;
+}
+
+/* Active AND complete */
+.tabCompleteActive {
+  background: #22c55e59 !important;
+  color: #15803d !important;
+  border-bottom-color: #15803d !important;
+}
+
+.tabLabel {
+  letter-spacing: -0.01em;
+}
+
+/* ── Panels ── */
+
+.panels {
+  background: var(--white);
+}
+
+.panels > div {
+  padding: 2rem;
+}
+
+/* ── Stacked (non-tab) view ── */
+
+.stackedWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.stackedSection {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.stackedSection:last-child {
+  border-bottom: none;
+}
+
+.stackedHeader {
+  padding: 14px 20px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: var(--cream);
+  border-bottom: 1px solid var(--stroke);
+  color: var(--black);
+}
+
+.stackedContent {
+  padding: 2rem;
+  background: var(--white);
+}
+
+/* ── Mobile ── */
+
+@media screen and (max-width: 768px) {
+  .tab {
+    padding: 12px 14px;
+    font-size: 1.4rem;
+  }
+
+  .panels > div,
+  .stackedContent {
+    padding: 1.6rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .tab {
+    padding: 10px 12px;
+    font-size: 1.3rem;
+  }
+
+  .panels > div,
+  .stackedContent {
+    padding: 1.2rem;
+  }
+}
