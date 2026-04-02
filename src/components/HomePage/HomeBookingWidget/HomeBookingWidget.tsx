@@ -770,34 +770,35 @@ export default function HomeBookingWidget({
             </select>
           </div>
         </div>
+        {/* <div className={styles.twoCol}> */}
+          {/* ── Pickup address (hidden when pickup is handled by airport inline above) ── */}
+          {!usesPickupAirport && (
+            <div className={styles.field}>
+              <label className='cardTitle h6'>Pickup</label>
+              <input
+                ref={pickupInputRef}
+                placeholder='Enter pickup address'
+                autoComplete='off'
+                className='input emptySmall'
+                onChange={() => setPickupPlace(null)}
+              />
+            </div>
+          )}
 
-        {/* ── Pickup address (hidden when pickup is handled by airport inline above) ── */}
-        {!usesPickupAirport && (
-          <div className={styles.field}>
-            <label className='cardTitle h6'>Pickup</label>
-            <input
-              ref={pickupInputRef}
-              placeholder='Enter pickup address'
-              autoComplete='off'
-              className='input emptySmall'
-              onChange={() => setPickupPlace(null)}
-            />
-          </div>
-        )}
-
-        {/* ── Dropoff address (hidden when dropoff is handled by airport inline above) ── */}
-        {!usesDropoffAirport && (
-          <div className={styles.field}>
-            <label className='cardTitle h6'>Dropoff</label>
-            <input
-              ref={dropoffInputRef}
-              placeholder='Enter dropoff address'
-              autoComplete='off'
-              className='input emptySmall'
-              onChange={() => setDropoffPlace(null)}
-            />
-          </div>
-        )}
+          {/* ── Dropoff address (hidden when dropoff is handled by airport inline above) ── */}
+          {!usesDropoffAirport && (
+            <div className={styles.field}>
+              <label className='cardTitle h6'>Dropoff</label>
+              <input
+                ref={dropoffInputRef}
+                placeholder='Enter dropoff address'
+                autoComplete='off'
+                className='input emptySmall'
+                onChange={() => setDropoffPlace(null)}
+              />
+            </div>
+          )}
+        {/* </div> */}
 
         {/* ── Flight info — spans full width, airport services only ── */}
         {isAirportService && (
@@ -806,7 +807,7 @@ export default function HomeBookingWidget({
               Flight Number / Date{" "}
               <span className={styles.optionalTag}>(optional)</span>
             </label>
-            <div className={styles.twoCol}>
+            {/* <div className={styles.twoCol}> */}
               <div className={styles.field}>
                 <input
                   value={flightNumber}
@@ -870,7 +871,7 @@ export default function HomeBookingWidget({
                   </select>
                 </div>
               </div>
-            </div>
+            {/* </div> */}
           </div>
         )}
 

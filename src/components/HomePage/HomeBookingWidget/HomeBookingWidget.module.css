@@ -9,7 +9,8 @@
   background: var(--white);
   border: 1px solid var(--stroke);
   border-radius: 14px;
-  width: 100%;
+  min-width: 450px;
+  width: 450px;
   /* No overflow:hidden — keeps Google Places pac-container unclipped */
 }
 
@@ -50,7 +51,7 @@
 /* ── Body — 4-column grid on desktop ──────────────────────────────── */
 .cardBody {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 2rem;
   padding: 2rem;
   border-radius: 0 0 14px 14px;
@@ -103,6 +104,13 @@
   width: 100%;
 }
 
+@media screen and (max-width: 568px) {
+  .card {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
 /* ── 3-column at 1268px ────────────────────────────────────────────── */
 /* @media screen and (max-width: 1268px) {
   .cardBody {
@@ -111,7 +119,7 @@
 } */
 
 /* ── 2-column at 1000px ────────────────────────────────────────────── */
-@media screen and (max-width: 1268px) {
+/* @media screen and (max-width: 1268px) {
   .cardHeader,
   .cardBody {
     padding: 2rem;
@@ -139,10 +147,9 @@
   .buttonWrap {
     align-items: stretch;
   }
-}
+} */
 
-/* ── 1-column at 668px ─────────────────────────────────────────────── */
-@media screen and (max-width: 668px) {
+/* @media screen and (max-width: 668px) {
   .cardBody {
     grid-template-columns: 1fr;
   }
@@ -152,13 +159,11 @@
     gap: 1rem;
   }
 
-  /* Year spans full width on mobile; Month + Day share the second row */
   .threeCol > select:first-child {
     grid-column: 1 / -1;
   }
 
-  /* Flight section: stack flight number and date vertically */
   .flightSection .twoCol {
     grid-template-columns: 1fr;
   }
-}
+} */
