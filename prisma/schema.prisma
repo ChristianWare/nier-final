@@ -46,6 +46,7 @@ enum PaymentStatus {
   NONE
   PENDING
   PAID
+  PARTIALLY_PAID
   FAILED
   REFUNDED
   PARTIALLY_REFUNDED
@@ -497,6 +498,14 @@ model Booking {
   eventType String?
 
   discountCents Int?
+
+  // Deposit settings
+  depositMode    Boolean   @default(false)
+  depositPercent Int?
+  depositCents   Int?
+  balanceCents   Int?
+  depositDueDate DateTime?
+  balanceDueDate DateTime?
 
   guestStripeCustomerId      String?
   guestStripePaymentMethodId String?

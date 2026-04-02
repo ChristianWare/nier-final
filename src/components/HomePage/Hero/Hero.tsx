@@ -1,11 +1,25 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./Hero.module.css";
 import Button from "@/components/shared/Button/Button";
-import Arrow from "@/components/shared/icons/Arrow/Arrow";
+// import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Marquee from "@/components/shared/Marquee/Marquee";
 import Image from "next/image";
+import HomeBookingWidget, {
+  type WidgetServiceTypeDTO,
+  type WidgetVehicleDTO,
+} from "../HomeBookingWidget/HomeBookingWidget";
 
-export default function Hero() {
+export default function Hero({
+  serviceTypes = [],
+  vehicles = [],
+  companyTimezone = "America/Phoenix",
+  companyTimezoneLabel = "Phoenix, AZ (MST)",
+}: {
+  serviceTypes?: WidgetServiceTypeDTO[];
+  vehicles?: WidgetVehicleDTO[];
+  companyTimezone?: string;
+  companyTimezoneLabel?: string;
+}) {
   return (
     <section className={styles.container}>
       <div className={styles.media}>
@@ -43,7 +57,7 @@ export default function Hero() {
         <div className={styles.imgOverlay} />
         <div className={styles.marqueeWrap}>
           <div className={styles.cc2}>
-            <div className={styles.left2}>
+            {/* <div className={styles.left2}>
               <p className={styles.copyii}>
                 Executive sedans, luxury SUVs, Sprinter vans, and 56 passenger
                 Motor Coach Buses — available 24/7 across the Phoenix metro.
@@ -53,7 +67,7 @@ export default function Hero() {
             <div className={styles.right2}>
               <p className={styles.copyii}>Discover more</p>
               <Arrow className={styles.arrow} />
-            </div>
+            </div> */}
           </div>
           <Marquee
             words={[
@@ -72,8 +86,13 @@ export default function Hero() {
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.contentChildren}>
+            {/* ── Existing headline block (unchanged) ── */}
             <div className={styles.cc1}>
               <div className={styles.left}>
+                <h1 className={styles.heading}>
+                  Black Car Service in Phoenix &amp; Scottsdale — <br className={styles.break} /> Trusted Since
+                  2004
+                </h1>
                 <p className={styles.copy}>
                   At Nier Transportation, we&apos;re more than a car service;
                   we&apos;re your trusted partner in high end transportation.
@@ -82,17 +101,26 @@ export default function Hero() {
                   <Button
                     href='/book'
                     text='Book your Ride'
-                    btnType='underlinedWhite'
+                    btnType='red'
                     arrow
                   />
                 </div>
               </div>
               <div className={styles.right}>
-                <h1 className={styles.heading}>
-                  Black Car Service in Phoenix & Scottsdale, Trusted Since 2004
-                </h1>
+                <div className={styles.widgetRow}>
+                  <HomeBookingWidget
+                    serviceTypes={serviceTypes}
+                    vehicles={vehicles}
+                    companyTimezone={companyTimezone}
+                    companyTimezoneLabel={companyTimezoneLabel}
+                  />
+                </div>
               </div>
             </div>
+
+            {/* ── Quick-book widget ── */}
+            {/* Sits below the headline, left-aligned.
+                On mobile it stacks naturally since the hero is single-column. */}
           </div>
         </div>
       </LayoutWrapper>

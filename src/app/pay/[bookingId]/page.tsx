@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -34,7 +35,6 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
           amountTotalCents: true,
         },
       },
-      // ✅ Include stops
       stops: {
         orderBy: { stopOrder: "asc" },
         select: {
@@ -51,6 +51,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
   }
 
   // ── Group booking: use group total instead of individual leg total ──
+  // Must be declared BEFORE deposit fields since isDepositAlreadyPaid depends on it
   let effectiveTotalCents = booking.totalCents;
   let effectiveAmountPaidCents = booking.payment?.amountPaidCents ?? 0;
 
@@ -62,7 +63,6 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
       },
     });
     if (tripGroup) {
-      // Recalculate live from siblings (same pattern as the admin page)
       effectiveTotalCents = tripGroup.bookings.reduce(
         (sum, b) => sum + b.totalCents,
         0,
@@ -71,7 +71,27 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     }
   }
 
-  // Check if already fully paid
+  // ── Deposit fields ── (declared after effectiveAmountPaidCents)
+  const depositMode = (booking as any).depositMode ?? false;
+  const depositCents = (booking as any).depositCents ?? null;
+  const depositPercent = (booking as any).depositPercent ?? null;
+  const balanceCents = (booking as any).balanceCents ?? null;
+  const depositDueDate =
+    (booking as any).depositDueDate instanceof Date
+      ? (booking as any).depositDueDate.toISOString()
+      : ((booking as any).depositDueDate ?? null);
+  const balanceDueDate =
+    (booking as any).balanceDueDate instanceof Date
+      ? (booking as any).balanceDueDate.toISOString()
+      : ((booking as any).balanceDueDate ?? null);
+
+  // Deposit is considered paid if the customer has already paid at least the deposit amount
+  const isDepositAlreadyPaid =
+    depositMode &&
+    depositCents != null &&
+    effectiveAmountPaidCents >= depositCents;
+
+  // ── Payment state ──
   const amountPaidCents = effectiveAmountPaidCents;
   const isFullyPaid =
     amountPaidCents >= effectiveTotalCents && effectiveTotalCents > 0;
@@ -95,12 +115,18 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
 
   // Calculate balance if partial payment exists
   const balanceDueCents = effectiveTotalCents - amountPaidCents;
-  const isBalancePayment = amountPaidCents > 0 && balanceDueCents > 0;
 
-  const customerName = booking.user?.name ?? booking.guestName ?? "Guest";
-  const customerEmail = booking.user?.email ?? booking.guestEmail ?? "";
+  // isBalancePayment is true when there's a partial payment that isn't
+  // just a deposit waiting to be completed — i.e. the deposit is already
+  // paid and now there's a remaining balance to collect.
+  const isBalancePayment =
+    amountPaidCents > 0 && balanceDueCents > 0 && isDepositAlreadyPaid;
 
-  // ✅ Prepare stops for client
+  const customerName =
+    booking.user?.name ?? (booking as any).guestName ?? "Guest";
+  const customerEmail =
+    booking.user?.email ?? (booking as any).guestEmail ?? "";
+
   const stops = booking.stops.map((s) => ({
     id: s.id,
     stopOrder: s.stopOrder,
@@ -148,6 +174,14 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     }));
   }
 
+  // The base fare shown to the customer depends on payment mode:
+  // - If deposit is already paid → show the balance due
+  // - Otherwise → show the full booking total (the deposit choice screen
+  //   in CheckoutClient handles showing the deposit vs full split)
+  const baseFareCents = isBalancePayment
+    ? balanceDueCents
+    : effectiveTotalCents;
+
   return (
     <main>
       <Nav background='white' />
@@ -162,15 +196,22 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
         pickupAddress={booking.pickupAddress}
         dropoffAddress={booking.dropoffAddress}
         stops={stops}
-        stopSurchargeCents={booking.stopSurchargeCents ?? 0}
-        baseFareCents={isBalancePayment ? balanceDueCents : effectiveTotalCents}
-        currency={booking.currency ?? "usd"}
+        stopSurchargeCents={(booking as any).stopSurchargeCents ?? 0}
+        baseFareCents={baseFareCents}
+        currency={(booking as any).currency ?? "usd"}
         customerName={customerName}
         customerEmail={customerEmail}
         isBalancePayment={isBalancePayment}
         amountPaidCents={amountPaidCents}
         totalBookingCents={effectiveTotalCents}
         savedCard={savedCard}
+        depositMode={depositMode}
+        depositCents={depositCents}
+        depositPercent={depositPercent}
+        balanceCents={balanceCents}
+        depositDueDate={depositDueDate}
+        balanceDueDate={balanceDueDate}
+        isDepositAlreadyPaid={isDepositAlreadyPaid}
       />
     </main>
   );

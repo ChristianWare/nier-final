@@ -2859,7 +2859,10 @@ export default function AdminNewBookingWizard({
                       >
                         <div className={styles.vehicleTop}>
                           <div className='emptyTitle'>{v.name}</div>
-                          <div className='emptyTitleSmall' style={{ textAlign: "right" }}>
+                          <div
+                            className='emptyTitleSmall'
+                            style={{ textAlign: "right" }}
+                          >
                             {v.callForPricing ? (
                               v.callForPricingMessage || "Call for pricing"
                             ) : rowDiscountCents > 0 ? (
@@ -3641,6 +3644,13 @@ export default function AdminNewBookingWizard({
                         totalCents={bookingData?.totalCents ?? estimateCents}
                         amountPaidCents={0}
                         currency={bookingData?.currency ?? "USD"}
+                        customerEmail={
+                          customerKind === "account"
+                            ? (selectedUser?.email ?? null)
+                            : customerKind === "guest"
+                              ? customerEmail.trim() || null
+                              : null
+                        }
                       />
                       <br />
                       {bookingData?.checkoutUrl ? (

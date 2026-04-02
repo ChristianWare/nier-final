@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import Script from "next/script";
 import dynamic from "next/dynamic";
 import Hero from "@/components/HomePage/Hero/Hero";
 import Nav from "@/components/shared/Nav/Nav";
@@ -6,11 +8,9 @@ import Stats from "@/components/HomePage/Stats/Stats";
 import { homeQuestions } from "@/lib/data";
 import { Metadata } from "next";
 import ServicesMarquee from "@/components/shared/ServicesMarquee/ServicesMarquee";
+import { db } from "@/lib/db";
+import { getCompanySettings } from "../../actions/admin/companySettings";
 
-// Below the fold — dynamically imported for code splitting
-// const ServicesPreview = dynamic(
-//   () => import("@/components/HomePage/ServicesPreview/ServicesPreview"),
-// );
 const HowItWorks = dynamic(
   () => import("@/components/shared/HowItWorks/HowItWorks"),
 );
@@ -114,9 +114,85 @@ const faqSchema = {
   })),
 };
 
-export default function HomePage() {
+// Module-level constant is fine here — no await needed
+const TIMEZONE_SHORT_LABELS: Record<string, string> = {
+  "America/Phoenix": "Phoenix, AZ (MST)",
+  "America/New_York": "Eastern (ET)",
+  "America/Chicago": "Central (CT)",
+  "America/Denver": "Mountain (MT)",
+  "America/Los_Angeles": "Pacific (PT)",
+  "America/Anchorage": "Alaska (AKT)",
+  "Pacific/Honolulu": "Hawaii (HST)",
+};
+
+// ── async so DB queries work inside the component ─────────────────────────────
+export default async function HomePage() {
+  // ── Company settings ──────────────────────────────────────────────────────
+  const companySettings = await getCompanySettings();
+  const companyTimezoneLabel =
+    TIMEZONE_SHORT_LABELS[companySettings.timezone] ?? companySettings.timezone;
+
+  // ── Service types ─────────────────────────────────────────────────────────
+  const serviceTypesRaw = await db.serviceType.findMany({
+    where: { active: true },
+    orderBy: { sortOrder: "asc" },
+    select: {
+      id: true,
+      name: true,
+      pricingStrategy: true,
+      minFareCents: true,
+      baseFeeCents: true,
+      perMileCents: true,
+      perMinuteCents: true,
+      perHourCents: true,
+      minHours: true,
+      active: true,
+      airportLeg: true,
+
+      // ── NEW: airports for airport service dropdowns in the widget ──
+      airports: {
+        where: { active: true },
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        select: {
+          id: true,
+          name: true,
+          iata: true,
+        },
+      },
+
+      fees: {
+        where: { active: true },
+        orderBy: { sortOrder: "asc" },
+        select: {
+          id: true,
+          label: true,
+          amountCents: true,
+        },
+      },
+    },
+  });
+
+  // ── Vehicles ──────────────────────────────────────────────────────────────
+  const vehicles = await db.vehicle.findMany({
+    where: { active: true },
+    orderBy: { sortOrder: "asc" },
+    select: {
+      id: true,
+      name: true,
+      capacity: true,
+      minHours: true,
+      baseFareCents: true,
+      perMileCents: true,
+      perMinuteCents: true,
+      perHourCents: true,
+      active: true,
+      callForPricing: true,
+    },
+  });
+
   return (
     <main>
+      {/* ── Structured data ── */}
       <script
         type='application/ld+json'
         dangerouslySetInnerHTML={{
@@ -127,11 +203,22 @@ export default function HomePage() {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
+
+      {/* ── Google Maps script for Places autocomplete in the booking widget ── */}
+      <Script
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY}&libraries=places`}
+        strategy='lazyOnload'
+      />
+
       <Nav />
-      <Hero />
+      <Hero
+        serviceTypes={serviceTypesRaw as any}
+        vehicles={vehicles as any}
+        companyTimezone={companySettings.timezone}
+        companyTimezoneLabel={companyTimezoneLabel}
+      />
       <AboutUsIntro />
       <Stats />
-      {/* <ServicesPreview /> */}
       <ServicesMarquee />
       <HowItWorks />
       <ServiceAreas />

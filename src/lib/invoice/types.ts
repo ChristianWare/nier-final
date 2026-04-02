@@ -12,6 +12,14 @@ export type InvoiceData = {
   invoiceNumber: string;
   invoiceDate: string;
   paidDate: string | null;
+  // Deposit fields — set when booking has deposit mode
+  depositMode?: boolean;
+  depositPercent?: number | null;
+  depositCents?: number | null;
+  balanceCents?: number | null;
+  depositDueDate?: string | null; // formatted display string e.g. "March 15, 2026"
+  balanceDueDate?: string | null;
+  balancePaidInFull?: boolean; // true when deposit was paid and now full invoice
 
   // Company info (from company settings)
   company: {

@@ -327,10 +327,24 @@ export default function InvoicePreview({
             <div className={styles.divider} />
             <div className={`${styles.totalsRow} ${styles.amountPaid}`}>
               <span>Amount Paid</span>
-              <span>
-                {formatMoney(invoice.amountPaidCents, invoice.currency)}
-              </span>
+              <span>{formatMoney(invoice.amountPaidCents, invoice.currency)}</span>
             </div>
+            {invoice.depositMode && invoice.depositCents && (invoice.balanceCents ?? 0) > 0 && (
+              <>
+                <div className={styles.divider} />
+                <div className={styles.totalsRow} style={{ color: "#b45309", fontWeight: 700 }}>
+                  <span>Deposit Paid ({invoice.depositPercent}%)</span>
+                  <span>{formatMoney(invoice.depositCents, invoice.currency)}</span>
+                </div>
+                <div className={styles.totalsRow} style={{ color: "#92400e" }}>
+                  <span>
+                    Balance Due
+                    {invoice.balanceDueDate ? ` · by ${invoice.balanceDueDate}` : ""}
+                  </span>
+                  <span>{formatMoney(invoice.balanceCents, invoice.currency)}</span>
+                </div>
+              </>
+            )}
             {hasRefund && (
               <div className={`${styles.totalsRow} ${styles.refund}`}>
                 <span>Refunded</span>

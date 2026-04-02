@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getFlightStatus } from "../../../../actions/flight/getFlightStatus";
 import type { FlightStatusResponse } from "../../../../actions/flight/getFlightStatus";
 import styles from "./FlightTracker.module.css";
@@ -82,6 +82,9 @@ type Props = {
   airportLeg?: "PICKUP" | "DROPOFF";
   hideCta?: boolean;
   initialDate?: string;
+  /** Pre-fills the flight number input — used when the booking widget
+   *  has already captured a flight number and hands it off to the wizard. */
+  initialFlightNumber?: string;
 };
 
 function FlightCard({
@@ -315,12 +318,23 @@ export default function FlightTracker({
   airportLeg = "PICKUP",
   hideCta,
   initialDate,
+  initialFlightNumber, // ← NEW prop: pre-fills from the booking widget
 }: Props = {}) {
-  const [flightNumber, setFlightNumber] = useState("");
+  // Initialise from prop so the widget's flight number shows immediately.
+  // When the component is keyed on prefillKey in the wizard, it remounts
+  // with the latest initialFlightNumber value.
+  const [flightNumber, setFlightNumber] = useState(initialFlightNumber ?? "");
   const [date, setDate] = useState(initialDate ?? getTodayIso());
   const [loading, setLoading] = useState(false);
   const [flight, setFlight] = useState<FlightResult>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-track when pre-filled from the booking widget
+  useEffect(() => {
+    if (!initialFlightNumber?.trim() || !date) return;
+    handleTrack();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps — intentionally fires once on mount only
 
   async function handleTrack() {
     if (!flightNumber.trim() || !date) return;
@@ -402,7 +416,6 @@ export default function FlightTracker({
       )}
 
       {/* Search form */}
-      {/* ✅ FIX: all inputs now have htmlFor/id pairs so labels are properly associated */}
       <div className={styles.form} role='search' aria-label='Flight tracker'>
         <div className={styles.inputGroup}>
           <label htmlFor='flightNumber' className={styles.label}>

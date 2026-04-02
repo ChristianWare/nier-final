@@ -72,6 +72,8 @@ async function finalizePaid(args: {
   isBalancePayment?: boolean;
   balanceAmount?: number | null;
   tipCents?: number | null;
+  isDepositPayment?: boolean;
+  depositAmountCents?: number | null;
 }) {
   const {
     bookingId,
@@ -83,9 +85,13 @@ async function finalizePaid(args: {
     isBalancePayment = false,
     balanceAmount,
     tipCents = 0,
+    isDepositPayment = false,
+    depositAmountCents,
   } = args;
 
   let shouldSendNotification = false;
+  let finalTotalPaidCents = 0;
+  let finalIsFullyPaid = false;
 
   await db.$transaction(async (tx) => {
     const booking = await tx.booking.findUnique({
@@ -116,7 +122,9 @@ async function finalizePaid(args: {
     const previousTipCents = existingPayment?.tipCents ?? 0;
 
     let newPaymentAmount: number;
-    if (isBalancePayment && balanceAmount) {
+    if (isDepositPayment && depositAmountCents) {
+      newPaymentAmount = depositAmountCents;
+    } else if (isBalancePayment && balanceAmount) {
       newPaymentAmount = balanceAmount;
     } else if (typeof amountTotalCents === "number" && amountTotalCents > 0) {
       newPaymentAmount = amountTotalCents;
@@ -126,12 +134,21 @@ async function finalizePaid(args: {
 
     const totalTipCents = previousTipCents + (tipCents ?? 0);
     const baseFarePayment = newPaymentAmount - (tipCents ?? 0);
-    const totalPaidCents = isBalancePayment
-      ? previouslyPaidCents + baseFarePayment
-      : baseFarePayment;
+    const totalPaidCents =
+      isBalancePayment || isDepositPayment
+        ? previouslyPaidCents + baseFarePayment
+        : baseFarePayment;
 
     const safeCurrency = (currency ?? booking.currency ?? "usd").toLowerCase();
     const isFullyPaid = totalPaidCents >= (booking.totalCents ?? 0);
+
+    // For deposit payments that don't cover the full amount, use PARTIALLY_PAID
+    const paymentStatusToSet =
+      isDepositPayment && !isFullyPaid ? "PARTIALLY_PAID" : "PAID";
+
+    // Capture for use outside the transaction
+    finalTotalPaidCents = totalPaidCents;
+    finalIsFullyPaid = isFullyPaid;
 
     console.log(
       `✅ Payment recorded for booking ${bookingId}:`,
@@ -142,12 +159,14 @@ async function finalizePaid(args: {
       `Total tips: $${(totalTipCents / 100).toFixed(2)}`,
       `Fully paid: ${isFullyPaid}`,
       `Is balance payment: ${isBalancePayment}`,
+      `Is deposit payment: ${isDepositPayment}`,
+      `Payment status: ${paymentStatusToSet}`,
     );
 
     await tx.payment.upsert({
       where: { bookingId },
       update: {
-        status: "PAID",
+        status: paymentStatusToSet,
         stripeCheckoutSessionId: checkoutSessionId ?? undefined,
         stripePaymentIntentId: paymentIntentId ?? undefined,
         receiptUrl: receiptUrl ?? undefined,
@@ -159,7 +178,7 @@ async function finalizePaid(args: {
       },
       create: {
         bookingId,
-        status: "PAID",
+        status: paymentStatusToSet,
         stripeCheckoutSessionId: checkoutSessionId ?? undefined,
         stripePaymentIntentId: paymentIntentId ?? undefined,
         receiptUrl: receiptUrl ?? undefined,
@@ -178,6 +197,7 @@ async function finalizePaid(args: {
       (previouslyPaidCents === 0 || booking.status === "PENDING_PAYMENT");
 
     if (shouldUpdateStatus) {
+      // Deposit payments still confirm the booking — a deposit is enough to hold the ride
       const nextStatus: BookingStatus = "CONFIRMED";
 
       await tx.booking.update({
@@ -199,10 +219,12 @@ async function finalizePaid(args: {
             method: "online",
             currency: safeCurrency,
             stripePaymentIntentId: paymentIntentId,
-            isBalancePayment: isBalancePayment,
-            previouslyPaidCents: previouslyPaidCents,
-            totalPaidCents: totalPaidCents,
-            totalTipCents: totalTipCents,
+            isBalancePayment,
+            isDepositPayment,
+            depositAmountCents: isDepositPayment ? depositAmountCents : null,
+            previouslyPaidCents,
+            totalPaidCents,
+            totalTipCents,
           },
         },
       });
@@ -219,10 +241,12 @@ async function finalizePaid(args: {
             method: "online",
             currency: safeCurrency,
             stripePaymentIntentId: paymentIntentId,
-            isBalancePayment: isBalancePayment,
-            previouslyPaidCents: previouslyPaidCents,
-            totalPaidCents: totalPaidCents,
-            totalTipCents: totalTipCents,
+            isBalancePayment,
+            isDepositPayment,
+            depositAmountCents: isDepositPayment ? depositAmountCents : null,
+            previouslyPaidCents,
+            totalPaidCents,
+            totalTipCents,
           },
         },
       });
@@ -263,7 +287,6 @@ async function finalizePaid(args: {
           0,
         );
 
-        // Sum what has actually been paid across all sibling payment records
         const totalActuallyPaid = group.bookings.reduce(
           (sum, b) => sum + (b.payment?.amountPaidCents ?? 0),
           0,
@@ -273,12 +296,11 @@ async function finalizePaid(args: {
           0,
         );
 
-        // Only mark group as PAID if ALL siblings have a PAID payment record
+        // Only mark group as PAID if ALL siblings have a PAID (or PARTIALLY_PAID) payment record
         const allSiblingsPaid = group.bookings.every(
-          (b) => b.payment?.status === "PAID",
-        );
-        const anySiblingPaid = group.bookings.some(
-          (b) => b.payment?.status === "PAID",
+          (b) =>
+            b.payment?.status === "PAID" ||
+            b.payment?.status === "PARTIALLY_PAID",
         );
 
         const newGroupPaymentStatus = allSiblingsPaid ? "PAID" : "NONE";
@@ -297,7 +319,6 @@ async function finalizePaid(args: {
           `(${(totalActuallyPaid / 100).toFixed(2)} of ${(groupTotal / 100).toFixed(2)} paid)`,
         );
 
-        // Confirm unpaid siblings only when the full group is paid
         if (allSiblingsPaid) {
           const upgradableStatuses: BookingStatus[] = [
             "PENDING_PAYMENT",
@@ -343,6 +364,13 @@ async function finalizePaid(args: {
         user: { select: { email: true, name: true } },
         guestEmail: true,
         guestName: true,
+        totalCents: true,
+        currency: true,
+        depositMode: true,
+        depositPercent: true,
+        depositCents: true,
+        balanceCents: true,
+        balanceDueDate: true,
       },
     });
 
@@ -361,6 +389,20 @@ async function finalizePaid(args: {
       const { invoiceData, emailArgs } =
         await buildInvoiceDataForBooking(bookingId);
 
+      // Format balance due date for the email if applicable
+      const balanceDueDateFormatted = bookingForEmail?.balanceDueDate
+        ? new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          }).format(
+            new Date(
+              (bookingForEmail.balanceDueDate as any).toISOString?.() ??
+                bookingForEmail.balanceDueDate,
+            ),
+          )
+        : null;
+
       await sendPaymentConfirmationEmail({
         to: customerEmail,
         name: customerName,
@@ -373,6 +415,16 @@ async function finalizePaid(args: {
         amountPaidCents: emailArgs.amountPaidCents ?? 0,
         currency: emailArgs.currency ?? "usd",
         ...emailArgs,
+        // Deposit-specific args — only include if this was a deposit payment
+        ...(isDepositPayment && bookingForEmail?.depositMode
+          ? {
+              isDepositPayment: true,
+              depositCents: bookingForEmail.depositCents ?? null,
+              depositPercent: bookingForEmail.depositPercent ?? null,
+              balanceCents: bookingForEmail.balanceCents ?? null,
+              balanceDueDate: balanceDueDateFormatted,
+            }
+          : {}),
       });
     }
   } catch (e) {
@@ -402,6 +454,11 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
   const isBalancePayment = incoming?.metadata?.isBalancePayment === "true";
   const balanceAmount = incoming?.metadata?.balanceAmount
     ? parseInt(incoming.metadata.balanceAmount, 10)
+    : null;
+
+  const isDepositPayment = incoming?.metadata?.isDepositPayment === "true";
+  const depositAmountCents = incoming?.metadata?.depositAmountCents
+    ? parseInt(incoming.metadata.depositAmountCents, 10)
     : null;
 
   if (!bookingId && sessionId) {
@@ -436,7 +493,15 @@ async function resolveBookingIdFromCheckoutSession(incoming: any) {
     }
   }
 
-  return { bookingId, sessionId, fullSession, isBalancePayment, balanceAmount };
+  return {
+    bookingId,
+    sessionId,
+    fullSession,
+    isBalancePayment,
+    balanceAmount,
+    isDepositPayment,
+    depositAmountCents,
+  };
 }
 
 async function getReceiptUrlFromPaymentIntent(paymentIntentId: string | null) {
@@ -490,6 +555,8 @@ export async function POST(req: Request) {
         fullSession,
         isBalancePayment,
         balanceAmount,
+        isDepositPayment,
+        depositAmountCents,
       } = await resolveBookingIdFromCheckoutSession(incoming);
 
       console.log(
@@ -501,6 +568,10 @@ export async function POST(req: Request) {
         isBalancePayment,
         "balanceAmount:",
         balanceAmount,
+        "isDepositPayment:",
+        isDepositPayment,
+        "depositAmountCents:",
+        depositAmountCents,
       );
 
       if (!bookingId) return NextResponse.json({ received: true });
@@ -533,6 +604,8 @@ export async function POST(req: Request) {
         currency,
         isBalancePayment,
         balanceAmount,
+        isDepositPayment,
+        depositAmountCents,
       });
 
       if (paymentIntentId) {
@@ -550,6 +623,10 @@ export async function POST(req: Request) {
       const isBalancePayment = pi?.metadata?.isBalancePayment === "true";
       const balanceAmount = pi?.metadata?.balanceAmount
         ? parseInt(pi.metadata.balanceAmount, 10)
+        : null;
+      const isDepositPayment = pi?.metadata?.isDepositPayment === "true";
+      const depositAmountCents = pi?.metadata?.depositAmountCents
+        ? parseInt(pi.metadata.depositAmountCents, 10)
         : null;
 
       const tipCents = pi?.metadata?.tipCents
@@ -573,6 +650,10 @@ export async function POST(req: Request) {
         isBalancePayment,
         "balanceAmount:",
         balanceAmount,
+        "isDepositPayment:",
+        isDepositPayment,
+        "depositAmountCents:",
+        depositAmountCents,
         "tipCents:",
         tipCents,
       );
@@ -603,6 +684,8 @@ export async function POST(req: Request) {
         isBalancePayment,
         balanceAmount,
         tipCents,
+        isDepositPayment,
+        depositAmountCents,
       });
 
       if (paymentIntentId) {

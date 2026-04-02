@@ -1,0 +1,164 @@
+/* HomeBookingWidget.module.css
+   Visual contract: match BookingWizard exactly.
+   - All gap/padding values: whole-number rem only
+   - No font-size below 14px
+   - No new font-weight values
+*/
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  width: 100%;
+  /* No overflow:hidden — keeps Google Places pac-container unclipped */
+}
+
+/* ── Header ────────────────────────────────────────────────────────── */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* title left, links right */
+  gap: 1rem;
+  padding: 2rem;
+  border-bottom: 1px solid var(--stroke);
+  background: var(--cream);
+  border-radius: 14px 14px 0 0;
+}
+
+/* "Book your Ride" — left side of header */
+.headerTitle {
+  font-family: var(--interTight);
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--black);
+  white-space: nowrap;
+}
+
+/* Auth links — grouped on the right */
+.headerLinks {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Airport type suffix appended to the Service label */
+.airportLabel {
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+/* ── Body — 4-column grid on desktop ──────────────────────────────── */
+.cardBody {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  padding: 2rem;
+  border-radius: 0 0 14px 14px;
+  align-items: start; /* prevents tall cells from stretching neighbours */
+}
+
+/* ── Individual field wrapper ──────────────────────────────────────── */
+.field {
+  display: grid;
+  gap: 1rem;
+}
+
+/* ── Two-column grid (service+airport, hour/minute, passengers/luggage) ── */
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ── Three-column grid (Year / Month / Day) ────────────────────────── */
+.threeCol {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 1rem;
+}
+
+/* ── Flight info section — always spans full width ─────────────────── */
+.flightSection {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2rem;
+  grid-column: 1 / -1;
+}
+
+.optionalTag {
+  font-weight: 400;
+  opacity: 0.5;
+}
+
+/* ── Button wrapper — sits at natural height, aligned to bottom ─────── */
+.buttonWrap {
+  display: flex;
+  align-items: flex-end;
+  align-self: end;
+}
+
+.buttonWrap > * {
+  width: 100%;
+}
+
+/* ── 3-column at 1268px ────────────────────────────────────────────── */
+/* @media screen and (max-width: 1268px) {
+  .cardBody {
+    grid-template-columns: repeat(3, 1fr);
+  }
+} */
+
+/* ── 2-column at 1000px ────────────────────────────────────────────── */
+@media screen and (max-width: 1268px) {
+  .cardHeader,
+  .cardBody {
+    padding: 2rem;
+  }
+
+  .cardBody {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .flightSection {
+    grid-column: 1 / -1;
+    padding: 2rem;
+  }
+
+  .threeCol {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .twoCol {
+    gap: 1rem;
+  }
+
+  .buttonWrap {
+    align-items: stretch;
+  }
+}
+
+/* ── 1-column at 668px ─────────────────────────────────────────────── */
+@media screen and (max-width: 668px) {
+  .cardBody {
+    grid-template-columns: 1fr;
+  }
+
+  .threeCol {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  /* Year spans full width on mobile; Month + Day share the second row */
+  .threeCol > select:first-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Flight section: stack flight number and date vertically */
+  .flightSection .twoCol {
+    grid-template-columns: 1fr;
+  }
+}

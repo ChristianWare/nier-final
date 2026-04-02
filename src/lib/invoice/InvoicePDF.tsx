@@ -365,6 +365,53 @@ export default function InvoicePDF({ invoice }: { invoice: InvoiceData }) {
                 {formatMoney(invoice.amountPaidCents, invoice.currency)}
               </Text>
             </View>
+            {/* Deposit breakdown */}
+            {invoice.depositMode &&
+              invoice.depositCents &&
+              (invoice.balanceCents ?? 0) > 0 && (
+                <>
+                  <View style={s.divider} />
+                  <View style={s.totalsRow}>
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        color: "#f59e0b",
+                        fontFamily: "Helvetica-Bold",
+                      }}
+                    >
+                      DEPOSIT PAID ({invoice.depositPercent ?? ""}%)
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        color: "#f59e0b",
+                        fontFamily: "Helvetica-Bold",
+                        textAlign: "right",
+                      }}
+                    >
+                      {formatMoney(invoice.depositCents, invoice.currency)}
+                      {invoice.depositDueDate ? `` : ""}
+                    </Text>
+                  </View>
+                  <View style={s.totalsRow}>
+                    <Text style={{ fontSize: 9, color: "#92400e" }}>
+                      Balance Due
+                      {invoice.balanceDueDate
+                        ? ` (by ${invoice.balanceDueDate})`
+                        : ""}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 9,
+                        color: "#92400e",
+                        textAlign: "right",
+                      }}
+                    >
+                      {formatMoney(invoice.balanceCents, invoice.currency)}
+                    </Text>
+                  </View>
+                </>
+              )}
             {hasRefund ? (
               <View style={s.totalsRow}>
                 <Text style={s.refundLabel}>Refunded</Text>

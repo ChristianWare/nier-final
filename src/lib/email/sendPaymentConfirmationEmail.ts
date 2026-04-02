@@ -65,6 +65,12 @@ export type PaymentConfirmationArgs = {
   currency: string;
   paymentMethod?: string | null;
 
+  isDepositPayment?: boolean;
+  depositCents?: number | null;
+  depositPercent?: number | null;
+  balanceCents?: number | null;
+  balanceDueDate?: string | null;
+
   isGroupBooking?: boolean;
   groupLegs?: Array<{
     legNumber: number;
@@ -107,7 +113,12 @@ export async function sendPaymentConfirmationEmail(
   );
   const dashboardUrl = `${APP_URL}/dashboard`;
 
-  const subject = `🎉 Payment Confirmed – Your Ride is Booked | Nier Transportation`;
+  const isDepositReceipt =
+    args.isDepositPayment === true && (args.balanceCents ?? 0) > 0;
+
+  const subject = isDepositReceipt
+    ? `✅ Deposit Received – Balance of ${formatMoney(args.balanceCents ?? 0, args.currency)} Due${args.balanceDueDate ? ` by ${args.balanceDueDate}` : ""} | Nier Transportation`
+    : `🎉 Payment Confirmed – Your Ride is Booked | Nier Transportation`;
 
   const colors = {
     black: "#000000",
@@ -235,7 +246,11 @@ export async function sendPaymentConfirmationEmail(
             <td style="padding: 24px 32px 28px 32px; text-align: center;">
               <h2 style="margin: 0 0 12px 0; color: ${colors.black}; font-size: 26px; font-weight: 600; letter-spacing: -1px; line-height: 1.2;">Thank you, ${firstName}!</h2>
               <p style="margin: 0; color: ${colors.paragraph}; font-size: 16px; line-height: 1.5;">
-                Your payment has been received and your ride is confirmed. Your invoice is attached to this email.
+                ${
+                  isDepositReceipt
+                    ? `Your deposit of <strong>${formatMoney(args.depositCents ?? 0, args.currency)}</strong> has been received and your ride is confirmed. A balance of <strong>${formatMoney(args.balanceCents ?? 0, args.currency)}</strong> is due${args.balanceDueDate ? ` by <strong>${args.balanceDueDate}</strong>` : " later"}. Your invoice is attached.`
+                    : "Your payment has been received and your ride is confirmed. Your invoice is attached to this email."
+                }
               </p>
             </td>
           </tr>
@@ -349,9 +364,23 @@ export async function sendPaymentConfirmationEmail(
                         <td style="padding: 12px 0 6px 0;">
                           <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                             <tr>
-                              <td><span style="color: ${colors.black}; font-size: 16px; font-weight: 700;">Amount Paid</span></td>
+                              <td><span style="color: ${colors.black}; font-size: 16px; font-weight: 700;">${isDepositReceipt ? "Deposit Paid" : "Amount Paid"}</span></td>
                               <td align="right"><span style="color: ${colors.darkGreen}; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">${amountPaidFormatted}</span></td>
                             </tr>
+                            ${
+                              isDepositReceipt && args.balanceCents
+                                ? `<tr>
+                                    <td colspan="2" style="padding-top: 10px;">
+                                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                                        <tr>
+                                          <td><span style="color: #92400e; font-size: 14px; font-weight: 700;">Balance Due${args.balanceDueDate ? ` (by ${args.balanceDueDate})` : ""}</span></td>
+                                          <td align="right"><span style="color: #92400e; font-size: 18px; font-weight: 700;">${formatMoney(args.balanceCents, args.currency)}</span></td>
+                                        </tr>
+                                      </table>
+                                    </td>
+                                  </tr>`
+                                : ""
+                            }
                           </table>
                         </td>
                       </tr>
@@ -415,9 +444,9 @@ export async function sendPaymentConfirmationEmail(
   const text = [
     "NIER TRANSPORTATION",
     "",
-    "🎉 PAYMENT CONFIRMED",
+    isDepositReceipt ? "✅ DEPOSIT RECEIVED" : "🎉 PAYMENT CONFIRMED",
     "",
-    `Thank you, ${firstName}! Your payment has been received.`,
+    `Thank you, ${firstName}! ${isDepositReceipt ? `Your deposit of ${formatMoney(args.depositCents ?? 0, args.currency)} has been received.` : "Your payment has been received."}`,
     "Your invoice is attached to this email.",
     "",
     `Confirmation: ${confirmationCode}`,
@@ -436,7 +465,12 @@ export async function sendPaymentConfirmationEmail(
     `Trip Total: ${totalFormatted}`,
     ...(tipFormatted ? [`Driver Tip: ${tipFormatted}`] : []),
     ...(args.paymentMethod ? [`Payment Method: ${args.paymentMethod}`] : []),
-    `Amount Paid: ${amountPaidFormatted}`,
+    `${isDepositReceipt ? "Deposit Paid" : "Amount Paid"}: ${amountPaidFormatted}`,
+    ...(isDepositReceipt && args.balanceCents
+      ? [
+          `Balance Due${args.balanceDueDate ? ` (by ${args.balanceDueDate})` : ""}: ${formatMoney(args.balanceCents, args.currency)}`,
+        ]
+      : []),
     "",
     `Track your ride: ${dashboardUrl}`,
     "",
@@ -464,7 +498,6 @@ export async function sendPaymentConfirmationEmail(
         }
       }
 
-      // Cast to any to satisfy @react-pdf/renderer's strict ReactElement<DocumentProps> typing
       const pdfBuffer = await renderToBuffer(
         createElement(InvoicePDF, { invoice: resolvedInvoice }) as any,
       );
@@ -583,6 +616,21 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
     email: companySettings.supportEmail || "",
   };
 
+  // Helper to format a date field from booking as a readable string
+  function fmtBookingDate(raw: any): string | null {
+    if (!raw) return null;
+    try {
+      const d = typeof raw.toISOString === "function" ? raw : new Date(raw);
+      return new Intl.DateTimeFormat("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }).format(d);
+    } catch {
+      return null;
+    }
+  }
+
   let invoiceData: InvoiceData | null = null;
   let isGroupBooking = false;
   let groupLegs: PaymentConfirmationArgs["groupLegs"] = [];
@@ -647,7 +695,7 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
       currency: booking.currency ?? "usd",
       paymentMethodDisplay,
       bookingConfirmation: groupInvoiceNumber,
-    };
+    } as any;
   } else {
     const stopCount = booking.stops?.length ?? 0;
     const stopSurchargeCents =
@@ -668,10 +716,7 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
       });
     }
     if (booking.feesCents > 0) {
-      lineItems.push({
-        description: "Service Fee",
-        amount: booking.feesCents,
-      });
+      lineItems.push({ description: "Service Fee", amount: booking.feesCents });
     }
     if (booking.taxesCents > 0) {
       lineItems.push({ description: "Tax", amount: booking.taxesCents });
@@ -724,7 +769,16 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
       paymentMethodDisplay,
       driverName: booking.assignment?.driver?.name ?? undefined,
       bookingConfirmation: booking.id.slice(0, 8).toUpperCase(),
-    };
+      // Deposit fields — cast since InvoiceData type needs these added
+      ...({
+        depositMode: (booking as any).depositMode ?? false,
+        depositPercent: (booking as any).depositPercent ?? null,
+        depositCents: (booking as any).depositCents ?? null,
+        balanceCents: (booking as any).balanceCents ?? null,
+        depositDueDate: fmtBookingDate((booking as any).depositDueDate),
+        balanceDueDate: fmtBookingDate((booking as any).balanceDueDate),
+      } as any),
+    } as any;
   }
 
   const emailArgs: Partial<PaymentConfirmationArgs> = {

@@ -10,8 +10,15 @@ export async function POST(req: Request) {
   try {
     const stripe = await getStripe();
     const body = await req.json();
-    const { bookingId, amountCents, tipCents, currency, isBalancePayment } =
-      body;
+    const {
+      bookingId,
+      amountCents,
+      tipCents,
+      currency,
+      isBalancePayment,
+      isDepositPayment,
+      depositAmountCents,
+    } = body;
 
     if (!bookingId || !amountCents || amountCents <= 0) {
       return NextResponse.json(
@@ -117,6 +124,8 @@ export async function POST(req: Request) {
               tipCents: String(tipCents || 0),
               baseFareCents: String(baseFareCents),
               isBalancePayment: isBalancePayment ? "true" : "false",
+              isDepositPayment: isDepositPayment ? "true" : "false",
+              depositAmountCents: depositAmountCents ? String(depositAmountCents) : "",
               requiresSavedCard: requiresSavedCard ? "true" : "false",
             },
           },
@@ -143,6 +152,8 @@ export async function POST(req: Request) {
           tipCents: String(tipCents || 0),
           baseFareCents: String(baseFareCents),
           isBalancePayment: isBalancePayment ? "true" : "false",
+          isDepositPayment: isDepositPayment ? "true" : "false",
+          depositAmountCents: depositAmountCents ? String(depositAmountCents) : "",
           requiresSavedCard: requiresSavedCard ? "true" : "false",
         },
         receipt_email: customerEmail || undefined,

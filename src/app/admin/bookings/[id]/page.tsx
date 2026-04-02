@@ -42,6 +42,7 @@ import PriceBreakdownCard from "@/components/admin/PriceBreakdownCard/PriceBreak
 import { getSavedCardForBooking } from "../../../../../actions/payments/chargeCardOnFileForCheckout";
 import SendEstimateButton from "./SendEstimateButton";
 import SendBalanceReminderButton from "./SendBalanceReminderButton";
+import DepositSetupClient from "@/components/admin/DepositSetupClient/DepositSetupClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -301,6 +302,16 @@ function getEventDetails(
         return `${metadata.previousStatus} → ${metadata.newStatus}`;
       }
       return null;
+    }
+
+    case "DEPOSIT_CONFIGURED": {
+      if (!metadata?.depositPercent) return "Deposit mode disabled";
+      const deposit = formatMoney(metadata.depositCents, currency);
+      const balance =
+        metadata.balanceCents > 0
+          ? ` · Balance: ${formatMoney(metadata.balanceCents, currency)}`
+          : "";
+      return `${metadata.depositPercent}% deposit (${deposit})${balance}`;
     }
 
     default:
@@ -1138,8 +1149,17 @@ export default async function AdminBookingDetailPage({
       recipientEmail: (e as any).metadata?.recipientEmail ?? null,
     }));
 
-  const outstandingCents = Math.max(0, booking.totalCents - amountPaidCents);
+  const paymentLinkSentEvents = booking.statusEvents
+    .filter((e) => (e as any).eventType === "PAYMENT_LINK_SENT")
+    .map((e) => ({
+      sentAt: e.createdAt.toISOString(),
+      recipientEmail: (e as any).metadata?.recipientEmail ?? null,
+      amountCents: (e as any).metadata?.amountCents ?? null,
+      isDeposit: (e as any).metadata?.isDepositPayment === true,
+      isBalance: (e as any).metadata?.isBalancePayment === true,
+    }));
 
+  const outstandingCents = Math.max(0, booking.totalCents - amountPaidCents);
   return (
     <DirtyFormProvider>
       <BookingEditProvider>
@@ -1773,6 +1793,29 @@ export default async function AdminBookingDetailPage({
                   />
                 }
               />
+              {!isCorporateBooking && !isGroupBooking && (
+                <>
+                  <div className={styles.sectionDivider} />
+                  <DepositSetupClient
+                    bookingId={booking.id}
+                    totalCents={booking.totalCents}
+                    currency={booking.currency}
+                    isPaid={isPaid}
+                    initialDepositMode={booking.depositMode}
+                    initialDepositPercent={booking.depositPercent ?? null}
+                    initialDepositDueDate={
+                      booking.depositDueDate
+                        ? booking.depositDueDate.toISOString().slice(0, 10)
+                        : null
+                    }
+                    initialBalanceDueDate={
+                      booking.balanceDueDate
+                        ? booking.balanceDueDate.toISOString().slice(0, 10)
+                        : null
+                    }
+                  />
+                </>
+              )}
             </Card>
 
             {/* ═══════════════════════════════════════════════════════════════════
@@ -2003,6 +2046,18 @@ export default async function AdminBookingDetailPage({
                     }
                     currency={booking.currency}
                     isApproved={isApproved}
+                    customerEmail={
+                      booking.user?.email ?? booking.guestEmail ?? null
+                    }
+                    depositMode={booking.depositMode}
+                    depositCents={booking.depositCents ?? null}
+                    depositDueDate={
+                      booking.depositDueDate?.toISOString() ?? null
+                    }
+                    balanceDueDate={
+                      booking.balanceDueDate?.toISOString() ?? null
+                    }
+                    paymentLinkSentEvents={paymentLinkSentEvents}
                   />
 
                   {booking.payment?.checkoutUrl ? (
@@ -2192,6 +2247,17 @@ export default async function AdminBookingDetailPage({
                     } else if (eventType === "BALANCE_REMINDER_SENT") {
                       tone = "accent";
                       label = "Balance reminder sent";
+                    } else if (eventType === "DEPOSIT_CONFIGURED") {
+                      tone = metadata?.depositPercent ? "accent" : "neutral";
+                      label = metadata?.depositPercent
+                        ? `Deposit configured (${metadata.depositPercent}%)`
+                        : "Deposit disabled";
+                    } else if (
+                      eventType === "PAYMENT_LINK_SENT" &&
+                      metadata?.isDepositPayment
+                    ) {
+                      tone = "accent";
+                      label = "Deposit link sent";
                     }
 
                     const actorLabel = getEventActorLabel(

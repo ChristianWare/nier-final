@@ -848,6 +848,8 @@ export async function assignBooking(formData: FormData) {
 const SendPaymentSchema = z.object({
   bookingId: z.string().min(1),
   isBalancePayment: z.coerce.boolean().optional().default(false),
+  isDepositPayment: z.coerce.boolean().optional().default(false),
+  depositAmountCents: z.coerce.number().int().optional().nullable(),
 });
 
 export async function createPaymentLinkAndEmail(formData: FormData) {
@@ -856,13 +858,33 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const parsed = SendPaymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid request." };
 
-  const { bookingId, isBalancePayment } = parsed.data;
+  const { bookingId, isBalancePayment, isDepositPayment, depositAmountCents } =
+    parsed.data;
   const overrideEmail =
     (formData.get("overrideEmail") as string | null)?.trim().toLowerCase() ||
     null;
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { user: true, serviceType: true, vehicle: true, payment: true },
+    include: {
+      user: true,
+      serviceType: true,
+      vehicle: true,
+      payment: true,
+    },
+    // Pull deposit fields
+  });
+
+  // Re-fetch with deposit fields (Prisma select doesn't support extra fields on include)
+  const bookingWithDeposit = await db.booking.findUnique({
+    where: { id: bookingId },
+    select: {
+      depositMode: true,
+      depositPercent: true,
+      depositCents: true,
+      balanceCents: true,
+      depositDueDate: true,
+      balanceDueDate: true,
+    },
   });
   if (!booking) return { error: "Booking not found." };
 
@@ -906,19 +928,48 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   );
   const customCheckoutUrl = `${APP_URL}/pay/${b.id}`;
 
-  // ✅ Send email with custom checkout page URL
+  // ✅ Send email — deposit variant or standard
   try {
-    await sendPaymentLinkEmail({
-      to: recipientEmail,
-      name: recipientName,
-      pickupAtISO: b.pickupAt.toISOString(),
-      pickupAddress: b.pickupAddress,
-      dropoffAddress: b.dropoffAddress,
-      totalCents: isBalancePayment ? amountToCharge : b.totalCents,
-      currency: b.currency,
-      payUrl: customCheckoutUrl,
-      bookingId: b.id,
-    });
+    if (
+      isDepositPayment &&
+      bookingWithDeposit?.depositMode &&
+      bookingWithDeposit.depositCents
+    ) {
+      const { sendDepositLinkEmail } =
+        await import("@/lib/email/sendDepositLinkEmail");
+      await sendDepositLinkEmail({
+        to: recipientEmail,
+        name: recipientName,
+        pickupAtISO: b.pickupAt.toISOString(),
+        pickupAddress: b.pickupAddress,
+        dropoffAddress: b.dropoffAddress,
+        totalCents: b.totalCents,
+        depositCents: bookingWithDeposit.depositCents,
+        depositPercent: bookingWithDeposit.depositPercent ?? 50,
+        balanceCents:
+          bookingWithDeposit.balanceCents ??
+          b.totalCents - bookingWithDeposit.depositCents,
+        depositDueDate:
+          bookingWithDeposit.depositDueDate?.toISOString() ?? null,
+        balanceDueDate:
+          bookingWithDeposit.balanceDueDate?.toISOString() ?? null,
+        currency: b.currency,
+        payUrl: customCheckoutUrl,
+        bookingId: b.id,
+      });
+    } else {
+      await sendPaymentLinkEmail({
+        to: recipientEmail,
+        name: recipientName,
+        pickupAtISO: b.pickupAt.toISOString(),
+        pickupAddress: b.pickupAddress,
+        dropoffAddress: b.dropoffAddress,
+        totalCents: isBalancePayment ? amountToCharge : b.totalCents,
+        currency: b.currency,
+        payUrl: customCheckoutUrl,
+        bookingId: b.id,
+      });
+    }
   } catch (e) {
     console.error("sendPaymentLinkEmail failed", e);
     return {
@@ -979,7 +1030,11 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
           currency: b.currency,
           recipientEmail: recipientEmail,
           isBalancePayment: isBalancePayment,
-          checkoutType: "custom", // ✅ Indicates custom checkout with tips
+          isDepositPayment: isDepositPayment,
+          depositAmountCents: isDepositPayment
+            ? (depositAmountCents ?? bookingWithDeposit?.depositCents ?? null)
+            : null,
+          checkoutType: "custom",
         },
         createdById: actorId,
       },

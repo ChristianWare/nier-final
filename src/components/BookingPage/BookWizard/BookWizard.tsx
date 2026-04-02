@@ -161,7 +161,10 @@ type StopInput = {
 };
 
 function centsToUsd(cents: number) {
-  return (cents / 100).toFixed(2);
+  return (cents / 100).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 /** Format a phone string as (XXX) XXX-XXXX if 10 digits */
@@ -276,6 +279,14 @@ export default function BookingWizard({
   const [removeLegId, setRemoveLegId] = useState<string | null>(null);
   const [flightDepIata, setFlightDepIata] = useState<string | null>(null);
   const [flightArrIata, setFlightArrIata] = useState<string | null>(null);
+  const [prefillKey, setPrefillKey] = useState(0);
+
+  const prefillDataRef = useRef<{
+    pickup?: string;
+    dropoff?: string;
+    flightNumber?: string;
+    airportRoute?: RoutePickerValue;
+  }>({});
 
   const services = useMemo<ServiceTypeDTO[]>(
     () => serviceTypes ?? [],
@@ -386,6 +397,162 @@ export default function BookingWizard({
     if (passengers <= 0) return vehicleOptions;
     return vehicleOptions.filter((v) => v.capacity >= passengers);
   }, [vehicleOptions, passengers]);
+
+  const BOOKING_PREFILL_KEY = "booking_prefill";
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(BOOKING_PREFILL_KEY);
+      if (!raw) return;
+      sessionStorage.removeItem(BOOKING_PREFILL_KEY);
+
+      const prefill = JSON.parse(raw) as {
+        serviceTypeId?: string;
+        pickupAtDate?: string;
+        pickupAtTime?: string;
+        passengers?: number;
+        luggage?: number;
+        route?:
+          | import("@/components/BookingPage/RoutePicker/RoutePicker").RoutePickerValue
+          | null;
+        pickupAirportId?: string;
+        dropoffAirportId?: string;
+        flightNumber?: string;
+        flightScheduledAtDate?: string;
+        startStep?: 1 | 2;
+      };
+
+      if (prefill.serviceTypeId) {
+        setValue("serviceTypeId", prefill.serviceTypeId, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+      if (prefill.pickupAtDate) {
+        setValue("pickupAtDate", prefill.pickupAtDate, { shouldDirty: true });
+      }
+      if (prefill.pickupAtTime) {
+        setValue("pickupAtTime", prefill.pickupAtTime, { shouldDirty: true });
+      }
+      if (prefill.passengers != null && prefill.passengers > 0) {
+        setValue("passengers", prefill.passengers, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+      if (prefill.luggage != null && prefill.luggage >= 0) {
+        setValue("luggage", prefill.luggage, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+      // Only set route if it has at least one place with valid coordinates.
+      // Airport services pass null location → RoutePicker crashes on location.lat.
+      // Those are handled separately below via applyAirportToRoute.
+      if (prefill.route?.pickup?.location || prefill.route?.dropoff?.location) {
+        setValue("route", prefill.route, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+      if (prefill.pickupAirportId) {
+        setValue("pickupAirportId", prefill.pickupAirportId, {
+          shouldDirty: true,
+        });
+      }
+      if (prefill.dropoffAirportId) {
+        setValue("dropoffAirportId", prefill.dropoffAirportId, {
+          shouldDirty: true,
+        });
+      }
+      if (prefill.flightNumber) {
+        setValue("flightNumber", prefill.flightNumber, { shouldDirty: true });
+      }
+      if (prefill.flightScheduledAtDate) {
+        setValue("flightScheduledAtDate", prefill.flightScheduledAtDate, {
+          shouldDirty: true,
+        });
+      }
+
+      prefillDataRef.current = {
+        pickup: prefill.route?.pickup?.address || undefined,
+        dropoff: prefill.route?.dropoff?.address || undefined,
+        flightNumber: prefill.flightNumber || undefined,
+      };
+
+      setTimeout(() => setPrefillKey((k) => k + 1), 0);
+
+      if (prefill.pickupAirportId || prefill.dropoffAirportId) {
+        const svc = services.find((s) => s.id === prefill.serviceTypeId);
+        const prefillAirports = svc?.airports ?? [];
+
+        const makeAirportPlace = (
+          airportId: string,
+        ): RoutePickerPlace | null => {
+          const airport = prefillAirports.find((a) => a.id === airportId);
+          if (!airport) return null;
+          const lat = toNumber(airport.lat);
+          const lng = toNumber(airport.lng);
+          if (lat == null || lng == null) return null;
+          return {
+            address: airport.address,
+            placeId: airport.placeId ?? airport.id,
+            location: { lat, lng },
+          };
+        };
+
+        const prev = getValues("route");
+        const newPickup = prefill.pickupAirportId
+          ? makeAirportPlace(prefill.pickupAirportId)
+          : (prev?.pickup ?? null);
+        const newDropoff = prefill.dropoffAirportId
+          ? makeAirportPlace(prefill.dropoffAirportId)
+          : (prev?.dropoff ?? null);
+
+        if (newPickup || newDropoff) {
+          const airportRoute: RoutePickerValue = {
+            pickup: newPickup,
+            dropoff: newDropoff,
+            stops: [],
+            miles: null,
+            minutes: null,
+            distanceMiles: null,
+            durationMinutes: null,
+          };
+          // Store so the post-prefillKey effect can re-apply it after RoutePicker remounts
+          prefillDataRef.current.airportRoute = airportRoute;
+          setValue("route", airportRoute, {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+        }
+      }
+
+      setStep(prefill.startStep === 2 ? 2 : 1);
+    } catch {}
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (prefillKey === 0) return;
+    const { pickup, dropoff, airportRoute } = prefillDataRef.current;
+    if (pickup && pickupInputRef.current) {
+      pickupInputRef.current.value = pickup;
+    }
+    if (dropoff && dropoffInputRef.current) {
+      dropoffInputRef.current.value = dropoff;
+    }
+    // Re-apply airport route AFTER RoutePicker remounts.
+    // The new inputsKey (which includes prefillKey) causes RoutePicker to remount
+    // and fire onChange with pickup:null (no pickup input ref for airport services),
+    // overwriting the airport place set in the prefill useEffect above.
+    // Setting it again here ensures it sticks.
+    if (airportRoute) {
+      setValue("route", airportRoute, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [prefillKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!vehicleId) return;
@@ -1071,7 +1238,7 @@ export default function BookingWizard({
     }
   }
 
-  const inputsKey = `${step}-${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}`;
+  const inputsKey = `${step}-${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}-${prefillKey}`;
   const hasFlightInfo =
     flightAirline ||
     flightNumber ||
@@ -1408,6 +1575,7 @@ export default function BookingWizard({
                       Pickup date & time
                     </label>
                     <BookingDateTimeWithBlackouts
+                      key={`dt-${prefillKey}`}
                       date={pickupAtDate}
                       time={pickupAtTime}
                       onChangeDate={(d) => {
@@ -1533,7 +1701,7 @@ export default function BookingWizard({
                         </select>
                       ) : (
                         <input
-                          key={`pickup-input-${step}`}
+                          key={`pickup-input-${step}-${prefillKey}`}
                           ref={pickupInputRef}
                           placeholder='Enter pickup address'
                           autoComplete='off'
@@ -1732,7 +1900,7 @@ export default function BookingWizard({
                         </select>
                       ) : (
                         <input
-                          key={`dropoff-input-${step}`}
+                          key={`dropoff-input-${step}-${prefillKey}`}
                           ref={dropoffInputRef}
                           placeholder='Enter dropoff address'
                           autoComplete='off'
@@ -1901,9 +2069,15 @@ export default function BookingWizard({
                             : "Provide your flight details so your driver knows which terminal to drop you off at."}
                         </p>
                         <FlightTracker
+                          key={`ft-${prefillKey}`}
                           hideCta
                           airportLeg={usesPickupAirport ? "PICKUP" : "DROPOFF"}
                           initialDate={pickupAtDate}
+                          initialFlightNumber={
+                            prefillKey > 0
+                              ? prefillDataRef.current.flightNumber
+                              : undefined
+                          }
                           onFlightFound={(data) => {
                             if (data.airline)
                               setValue("flightAirline", data.airline, {
