@@ -78,10 +78,18 @@ export default function QuickActionsClient({
   bookingId,
   currentStatus,
   pickupAt,
+  hasDriver,
+  hasVehicleUnit,
+  hasDriverPay,
+  isApproved,
 }: {
   bookingId: string;
   currentStatus: BookingStatus;
   pickupAt: string;
+  hasDriver: boolean;
+  hasVehicleUnit: boolean;
+  hasDriverPay: boolean;
+  isApproved: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -217,22 +225,51 @@ export default function QuickActionsClient({
     <div className={styles.quickActions}>
       <div className={styles.quickActionsColumn}>
         {availableTripActions.map((action) => {
-          const isDisabled = isPending || !isTodayOrAfter;
+          const isCompletionBlock =
+            action.status === "COMPLETED" &&
+            (!hasDriver || !hasVehicleUnit || !hasDriverPay || !isApproved);
+
+          const isDisabled = isPending || !isTodayOrAfter || isCompletionBlock;
+
+          const missingItems =
+            action.status === "COMPLETED"
+              ? [
+                  !hasDriver && "driver",
+                  !hasVehicleUnit && "vehicle",
+                  !hasDriverPay && "driver pay",
+                  !isApproved && "approval",
+                ].filter(Boolean)
+              : [];
 
           return (
-            <button
+            <div
               key={action.status}
-              className={`neutralBtn ${isDisabled ? styles.btnDisabled : ""}`}
-              onClick={() => handleAction(action)}
-              disabled={isDisabled}
-              title={
-                !isTodayOrAfter
-                  ? "Available on the day of the booking"
-                  : undefined
-              }
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+              }}
             >
-              {action.label}
-            </button>
+              <button
+                className={`neutralBtn ${isDisabled ? styles.btnDisabled : ""}`}
+                onClick={() => handleAction(action)}
+                disabled={isDisabled}
+                title={
+                  isCompletionBlock
+                    ? `Cannot complete — missing: ${missingItems.join(", ")}`
+                    : !isTodayOrAfter
+                      ? "Available on the day of the booking"
+                      : undefined
+                }
+              >
+                {action.label}
+              </button>
+              {isCompletionBlock && (
+                <p className={styles.disabledNote}>
+                  Missing: {missingItems.join(", ")}
+                </p>
+              )}
+            </div>
           );
         })}
       </div>

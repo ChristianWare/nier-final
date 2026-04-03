@@ -2215,6 +2215,10 @@ export default async function AdminBookingDetailPage({
                   bookingId={booking.id}
                   currentStatus={currentStatus}
                   pickupAt={booking.pickupAt.toISOString()}
+                  hasDriver={hasDriver}
+                  hasVehicleUnit={hasVehicleUnit}
+                  hasDriverPay={hasDriverPay}
+                  isApproved={isApproved}
                 />
                 <div className={styles.quickActionsDivider} />
                 <DuplicateBookingClient bookingId={booking.id} />
