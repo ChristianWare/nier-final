@@ -249,6 +249,7 @@ export default function HomeBookingWidget({
   const [flightDateYear, setFlightDateYear] = useState("");
   const [flightDateMonth, setFlightDateMonth] = useState("");
   const [flightDateDay, setFlightDateDay] = useState("");
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const services = useMemo(
     () => (serviceTypes ?? []).filter((s) => s.active),
@@ -406,6 +407,27 @@ export default function HomeBookingWidget({
       return;
     }
 
+    // ── Airport validation ──────────────────────────────────────────────
+    setSubmitAttempted(true);
+    if (usesPickupAirport && !selectedPickupAirportId) {
+      toast.error("Please select a pickup airport.");
+      return;
+    }
+    if (usesDropoffAirport && !selectedDropoffAirportId) {
+      toast.error("Please select a dropoff airport.");
+      return;
+    }
+    // ───────────────────────────────────────────────────────────────────
+
+    if (usesPickupAirport && !selectedPickupAirportId) {
+      toast.error("Please select a pickup airport.");
+      return;
+    }
+    if (usesDropoffAirport && !selectedDropoffAirportId) {
+      toast.error("Please select a dropoff airport.");
+      return;
+    }
+
     const v = getValues();
     const pickupAtDate = buildDateString(
       v.pickupMonth,
@@ -511,13 +533,19 @@ export default function HomeBookingWidget({
       </div>
 
       <div className={styles.cardBody}>
-        {/* ── Service — merges airport dropdown inline when an airport service is selected ──
-             • Non-airport service → single full-width select
-             • Airport service     → twoCol: service select + airport select side-by-side
-             • Label appends "/ Pickup Airport" or "/ Dropoff Airport" accordingly
-             • No extra grid item is added either way                                       */}
+        {/* ── Service ── */}
         <div className={styles.field}>
-          <label className={labelCx(Boolean(errors.serviceTypeId))}>
+          <label
+            className={labelCx(
+              Boolean(errors.serviceTypeId) ||
+                (submitAttempted &&
+                  usesPickupAirport &&
+                  !selectedPickupAirportId) ||
+                (submitAttempted &&
+                  usesDropoffAirport &&
+                  !selectedDropoffAirportId),
+            )}
+          >
             Service
             {usesPickupAirport && (
               <span className={styles.airportLabel}> / Pickup Airport</span>
@@ -568,7 +596,7 @@ export default function HomeBookingWidget({
                 <select
                   value={selectedDropoffAirportId}
                   onChange={(e) => setSelectedDropoffAirportId(e.target.value)}
-                  className='selectBorder emptySmall'
+                  className={`selectBorder emptySmall${!selectedDropoffAirportId ? " redBorder" : ""}`}
                 >
                   <option value=''>Select an airport...</option>
                   {serviceAirports.map((a) => (
@@ -580,7 +608,6 @@ export default function HomeBookingWidget({
               )}
             </div>
           ) : (
-            /* Non-airport: full-width single select — no extra grid item */
             <select
               value={serviceTypeId}
               onChange={(e) => {
@@ -722,7 +749,7 @@ export default function HomeBookingWidget({
           </div>
         </div>
 
-        {/* ── Passengers / Luggage combined (single grid item, two selects inside) ── */}
+        {/* ── Passengers / Luggage ── */}
         <div className={styles.field}>
           <label
             className={labelCx(
@@ -770,108 +797,105 @@ export default function HomeBookingWidget({
             </select>
           </div>
         </div>
-        {/* <div className={styles.twoCol}> */}
-          {/* ── Pickup address (hidden when pickup is handled by airport inline above) ── */}
-          {!usesPickupAirport && (
-            <div className={styles.field}>
-              <label className='cardTitle h6'>Pickup</label>
-              <input
-                ref={pickupInputRef}
-                placeholder='Enter pickup address'
-                autoComplete='off'
-                className='input emptySmall'
-                onChange={() => setPickupPlace(null)}
-              />
-            </div>
-          )}
 
-          {/* ── Dropoff address (hidden when dropoff is handled by airport inline above) ── */}
-          {!usesDropoffAirport && (
-            <div className={styles.field}>
-              <label className='cardTitle h6'>Dropoff</label>
-              <input
-                ref={dropoffInputRef}
-                placeholder='Enter dropoff address'
-                autoComplete='off'
-                className='input emptySmall'
-                onChange={() => setDropoffPlace(null)}
-              />
-            </div>
-          )}
-        {/* </div> */}
+        {/* ── Pickup address ── */}
+        {!usesPickupAirport && (
+          <div className={styles.field}>
+            <label className='cardTitle h6'>Pickup</label>
+            <input
+              ref={pickupInputRef}
+              placeholder='Enter pickup address'
+              autoComplete='off'
+              className='input emptySmall'
+              onChange={() => setPickupPlace(null)}
+            />
+          </div>
+        )}
 
-        {/* ── Flight info — spans full width, airport services only ── */}
+        {/* ── Dropoff address ── */}
+        {!usesDropoffAirport && (
+          <div className={styles.field}>
+            <label className='cardTitle h6'>Dropoff</label>
+            <input
+              ref={dropoffInputRef}
+              placeholder='Enter dropoff address'
+              autoComplete='off'
+              className='input emptySmall'
+              onChange={() => setDropoffPlace(null)}
+            />
+          </div>
+        )}
+
+        {/* ── Flight info ── */}
         {isAirportService && (
           <div className={styles.flightSection}>
             <label className='cardTitle h6'>
               Flight Number / Date{" "}
               <span className={styles.optionalTag}>(optional)</span>
             </label>
-            {/* <div className={styles.twoCol}> */}
-              <div className={styles.field}>
-                <input
-                  value={flightNumber}
-                  onChange={(e) =>
-                    setFlightNumber(
-                      e.target.value
-                        .toUpperCase()
-                        .replace(/[^A-Z0-9]/g, "")
-                        .slice(0, 10),
-                    )
-                  }
-                  placeholder='Flight Number — e.g. AA1234'
-                  autoComplete='off'
-                  className='input emptySmall'
-                />
+            <div className={styles.field}>
+              <input
+                value={flightNumber}
+                onChange={(e) =>
+                  setFlightNumber(
+                    e.target.value
+                      .toUpperCase()
+                      .replace(/[^A-Z0-9]/g, "")
+                      .slice(0, 10),
+                  )
+                }
+                placeholder='Flight Number — e.g. AA1234'
+                autoComplete='off'
+                className='input emptySmall'
+              />
+            </div>
+            <div className={styles.field}>
+              <div className={styles.threeCol}>
+                <select
+                  value={flightDateYear}
+                  onChange={(e) => {
+                    setFlightDateYear(e.target.value);
+                    setFlightDateMonth("");
+                    setFlightDateDay("");
+                  }}
+                  className='selectBorder emptySmall'
+                >
+                  <option value=''>Year</option>
+                  {getYearOptions().map((y) => (
+                    <option key={y.value} value={y.value}>
+                      {y.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={flightDateMonth}
+                  onChange={(e) => {
+                    setFlightDateMonth(e.target.value);
+                    setFlightDateDay("");
+                  }}
+                  className='selectBorder emptySmall'
+                >
+                  <option value=''>Month</option>
+                  {flightAvailableMonths.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={flightDateDay}
+                  onChange={(e) => setFlightDateDay(e.target.value)}
+                  className='selectBorder emptySmall'
+                >
+                  <option value=''>Day</option>
+                  {flightAvailableDays.map((d) => (
+                    <option key={d.value} value={d.value}>
+                      {d.label}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className={styles.field}>
-                <div className={styles.threeCol}>
-                  <select
-                    value={flightDateYear}
-                    onChange={(e) => {
-                      setFlightDateYear(e.target.value);
-                      setFlightDateMonth("");
-                      setFlightDateDay("");
-                    }}
-                    className='selectBorder emptySmall'
-                  >
-                    <option value=''>Year</option>
-                    {getYearOptions().map((y) => (
-                      <option key={y.value} value={y.value}>
-                        {y.label}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={flightDateMonth}
-                    onChange={(e) => {
-                      setFlightDateMonth(e.target.value);
-                      setFlightDateDay("");
-                    }}
-                    className='selectBorder emptySmall'
-                  >
-                    <option value=''>Month</option>
-                    {flightAvailableMonths.map((m) => (
-                      <option key={m.value} value={m.value}>
-                        {m.label}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    value={flightDateDay}
-                    onChange={(e) => setFlightDateDay(e.target.value)}
-                    className='selectBorder emptySmall'
-                  >
-                    <option value=''>Day</option>
-                    {flightAvailableDays.map((d) => (
-                      <option key={d.value} value={d.value}>
-                        {d.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            {/* </div> */}
+            </div>
           </div>
         )}
 
