@@ -871,3 +871,16 @@ th {
   margin: 1rem 0;
   width: 100%;
 }
+
+/* ── Prevent iOS auto-zoom on input focus ── */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  .input,
+  .inputBorder,
+  .select,
+  .selectBorder {
+    font-size: 16px !important;
+  }
+}
