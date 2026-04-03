@@ -44,7 +44,6 @@ import AdminIncompleteRides, {
 } from "@/components/admin/AdminIncompleteRides/AdminIncompleteRides";
 import AdminDashboardTabs from "@/components/admin/AdminDashboardTabs/AdminDashboardTabs";
 
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -99,14 +98,14 @@ async function safeCapturedAgg({
   try {
     const agg = await (db.payment as any).aggregate({
       where: { paidAt: { gte: from, lt: to } },
-      _sum: { amountCents: true },
-      _avg: { amountCents: true },
+      _sum: { amountPaidCents: true },
+      _avg: { amountPaidCents: true },
       _count: { _all: true },
     });
 
-    const sumCents = Number(agg?._sum?.amountCents ?? 0);
+    const sumCents = Number(agg?._sum?.amountPaidCents ?? 0);
+    const avgCents = Number(agg?._avg?.amountPaidCents ?? 0);
     const count = Number(agg?._count?._all ?? 0);
-    const avgCents = Number(agg?._avg?.amountCents ?? 0);
 
     return { sumCents, count, avgCents };
   } catch {
@@ -115,12 +114,8 @@ async function safeCapturedAgg({
     });
 
     const sumCents = (rows as any[]).reduce((sum, p) => {
-      const v =
-        p.amountCents ??
-        p.totalCents ??
-        p.totalAmountCents ??
-        p.amountDueCents ??
-        0;
+      const v = p.amountPaidCents ?? 0;
+
       return sum + Number(v || 0);
     }, 0);
 
@@ -166,10 +161,10 @@ async function safePendingPaymentEstimate(): Promise<{
         checkoutUrl: { not: null },
         booking: { status: "PENDING_PAYMENT" },
       },
-      _sum: { amountCents: true },
+      _sum: { amountTotalCents: true },
     });
 
-    return { sumCents: Number(agg?._sum?.amountCents ?? 0) };
+    return { sumCents: Number(agg?._sum?.amountTotalCents ?? 0) };
   } catch {
     const rows = await (db.payment as any).findMany({
       where: {
@@ -180,12 +175,8 @@ async function safePendingPaymentEstimate(): Promise<{
     });
 
     const sumCents = (rows as any[]).reduce((sum, p) => {
-      const v =
-        p.amountCents ??
-        p.totalCents ??
-        p.totalAmountCents ??
-        p.amountDueCents ??
-        0;
+      const v = p.amountTotalCents ?? 0;
+
       return sum + Number(v || 0);
     }, 0);
 
