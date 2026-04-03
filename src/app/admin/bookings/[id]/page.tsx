@@ -621,15 +621,23 @@ export default async function AdminBookingDetailPage({
     ? (booking.statusEvents.find((e) => e.status === "CONFIRMED")?.id ?? null)
     : null;
   const currentStatus = booking.status as BookingStatus;
+  const isPartiallyPaid = booking.payment?.status === "PARTIALLY_PAID";
+
   const currentStatusIsPaidConfirmed =
     isPaid &&
     (currentStatus === "CONFIRMED" || currentStatus === "PENDING_PAYMENT");
-  const currentStatusLabel = currentStatusIsPaidConfirmed
-    ? "Payment received"
-    : statusLabel(currentStatus);
-  const currentStatusTone: BadgeTone = currentStatusIsPaidConfirmed
-    ? "good"
-    : badgeTone(currentStatus);
+
+  const currentStatusLabel = isPartiallyPaid
+    ? "Partially paid"
+    : currentStatusIsPaidConfirmed
+      ? "Paid"
+      : statusLabel(currentStatus);
+
+  const currentStatusTone: BadgeTone = isPartiallyPaid
+    ? "warn"
+    : currentStatusIsPaidConfirmed
+      ? "good"
+      : badgeTone(currentStatus);
 
   const paymentStatusDisplay = isCorporateBooking
     ? {
@@ -1795,12 +1803,29 @@ export default async function AdminBookingDetailPage({
 
                   <div style={{ marginTop: 30 }}>
                     <div className='emptyTitle'>Current Status:</div>
-                    <div style={{ marginTop: 6 }}>
+                    <div
+                      style={{
+                        marginTop: 6,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "6px",
+                      }}
+                    >
                       <span
                         className={`badge badge_${currentStatusTone} ${styles.badge}`}
                       >
                         {currentStatusLabel}
                       </span>
+                      {currentStatus === "COMPLETED" && isPaid && (
+                        <span className={`badge badge_good ${styles.badge}`}>
+                          Paid
+                        </span>
+                      )}
+                      {currentStatus === "COMPLETED" && isPartiallyPaid && (
+                        <span className={`badge badge_warn ${styles.badge}`}>
+                          Partially paid
+                        </span>
+                      )}
                     </div>
                   </div>
 

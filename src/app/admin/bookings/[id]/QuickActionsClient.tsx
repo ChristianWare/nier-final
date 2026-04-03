@@ -265,7 +265,10 @@ export default function QuickActionsClient({
                 {action.label}
               </button>
               {isCompletionBlock && (
-                <p className={styles.disabledNote}>
+                <p
+                  className={styles.disabledNote}
+                  style={{ fontWeight: "bold", color: "var(--red)" }}
+                >
                   Missing: {missingItems.join(", ")}
                 </p>
               )}

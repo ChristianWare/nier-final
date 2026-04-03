@@ -1,5 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/incompatible-library */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
@@ -286,6 +286,7 @@ export default function BookingWizard({
     dropoff?: string;
     flightNumber?: string;
     airportRoute?: RoutePickerValue;
+    regularRoute?: RoutePickerValue;
   }>({});
 
   const services = useMemo<ServiceTypeDTO[]>(
@@ -419,6 +420,7 @@ export default function BookingWizard({
         dropoffAirportId?: string;
         flightNumber?: string;
         flightScheduledAtDate?: string;
+        hoursRequested?: number;
         startStep?: 1 | 2;
       };
 
@@ -446,9 +448,13 @@ export default function BookingWizard({
           shouldValidate: true,
         });
       }
-      // Only set route if it has at least one place with valid coordinates.
-      // Airport services pass null location → RoutePicker crashes on location.lat.
-      // Those are handled separately below via applyAirportToRoute.
+
+      if (prefill.hoursRequested != null && prefill.hoursRequested >= 2) {
+        setValue("hoursRequested", prefill.hoursRequested, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
       if (prefill.route?.pickup?.location || prefill.route?.dropoff?.location) {
         setValue("route", prefill.route, {
           shouldDirty: true,
@@ -478,6 +484,13 @@ export default function BookingWizard({
         pickup: prefill.route?.pickup?.address || undefined,
         dropoff: prefill.route?.dropoff?.address || undefined,
         flightNumber: prefill.flightNumber || undefined,
+        regularRoute:
+          (prefill.route?.pickup?.location ||
+            prefill.route?.dropoff?.location) &&
+          !prefill.pickupAirportId &&
+          !prefill.dropoffAirportId
+            ? (prefill.route as RoutePickerValue)
+            : undefined,
       };
 
       setTimeout(() => setPrefillKey((k) => k + 1), 0);
@@ -530,29 +543,34 @@ export default function BookingWizard({
 
       setStep(prefill.startStep === 2 ? 2 : 1);
     } catch {}
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (prefillKey === 0) return;
-    const { pickup, dropoff, airportRoute } = prefillDataRef.current;
+    const { pickup, dropoff, airportRoute, regularRoute } =
+      prefillDataRef.current;
     if (pickup && pickupInputRef.current) {
       pickupInputRef.current.value = pickup;
     }
     if (dropoff && dropoffInputRef.current) {
       dropoffInputRef.current.value = dropoff;
     }
-    // Re-apply airport route AFTER RoutePicker remounts.
-    // The new inputsKey (which includes prefillKey) causes RoutePicker to remount
-    // and fire onChange with pickup:null (no pickup input ref for airport services),
-    // overwriting the airport place set in the prefill useEffect above.
-    // Setting it again here ensures it sticks.
     if (airportRoute) {
       setValue("route", airportRoute, {
         shouldDirty: true,
         shouldValidate: true,
       });
+    } else if (regularRoute) {
+      // Delay needed — RoutePicker fires onChange(null) on remount after this
+      // effect runs, overwriting the value. The timeout lets that fire first.
+      setTimeout(() => {
+        setValue("route", regularRoute, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }, 100);
     }
-  }, [prefillKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [prefillKey]);
 
   useEffect(() => {
     if (!vehicleId) return;

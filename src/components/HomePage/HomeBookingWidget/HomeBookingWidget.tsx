@@ -249,6 +249,7 @@ export default function HomeBookingWidget({
   const [flightDateYear, setFlightDateYear] = useState("");
   const [flightDateMonth, setFlightDateMonth] = useState("");
   const [flightDateDay, setFlightDateDay] = useState("");
+  const [hoursRequested, setHoursRequested] = useState<number>(0);
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const services = useMemo(
@@ -428,6 +429,11 @@ export default function HomeBookingWidget({
       return;
     }
 
+    if (selectedService?.pricingStrategy === "HOURLY" && hoursRequested < 2) {
+      toast.error("Please select the number of hours.");
+      return;
+    }
+
     const v = getValues();
     const pickupAtDate = buildDateString(
       v.pickupMonth,
@@ -502,6 +508,10 @@ export default function HomeBookingWidget({
             : undefined,
           flightNumber: flightNumber.trim() || undefined,
           flightScheduledAtDate: flightScheduledAtDate || undefined,
+          hoursRequested:
+            selectedService?.pricingStrategy === "HOURLY"
+              ? hoursRequested
+              : undefined, // ← add
           startStep: 1,
         }),
       );
@@ -823,6 +833,27 @@ export default function HomeBookingWidget({
               className='input emptySmall'
               onChange={() => setDropoffPlace(null)}
             />
+          </div>
+        )}
+
+        {/* ── Hours (hourly/charter services only) ── */}
+        {selectedService?.pricingStrategy === "HOURLY" && (
+          <div className={styles.field}>
+            <label className={labelCx(submitAttempted && !hoursRequested)}>
+              Hours needed (2 hour minimum)
+            </label>
+            <select
+              value={hoursRequested}
+              onChange={(e) => setHoursRequested(Number(e.target.value))}
+              className='selectBorder emptySmall'
+            >
+              <option value={0}>Choose hours...</option>
+              {Array.from({ length: 23 }, (_, i) => i + 2).map((n) => (
+                <option key={n} value={n}>
+                  {n} hours
+                </option>
+              ))}
+            </select>
           </div>
         )}
 

@@ -1081,16 +1081,26 @@ export default async function AdminBookingsPage({
                   const payStatus = b.payment?.status ?? null;
 
                   const statusDisplay =
-                    payStatus === "PAID" &&
-                    (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
-                      ? "Payment received"
-                      : statusLabel(b.status);
+                    payStatus === "PARTIALLY_PAID"
+                      ? "Partially paid"
+                      : payStatus === "PAID" &&
+                          (b.status === "CONFIRMED" ||
+                            b.status === "PENDING_PAYMENT")
+                        ? "Paid"
+                        : payStatus === "PAID" && b.status === "COMPLETED"
+                          ? "Completed · Paid"
+                          : statusLabel(b.status);
 
-                  const statusTone =
-                    payStatus === "PAID" &&
-                    (b.status === "CONFIRMED" || b.status === "PENDING_PAYMENT")
-                      ? "good"
-                      : badgeTone(b.status);
+                  const statusTone: BadgeTone =
+                    payStatus === "PARTIALLY_PAID"
+                      ? "warn"
+                      : payStatus === "PAID" &&
+                          (b.status === "CONFIRMED" ||
+                            b.status === "PENDING_PAYMENT")
+                        ? "good"
+                        : payStatus === "PAID" && b.status === "COMPLETED"
+                          ? "good"
+                          : badgeTone(b.status);
 
                   const createdEvent = b.statusEvents?.[0] ?? null;
                   const actor = createdEvent?.createdBy ?? null;
