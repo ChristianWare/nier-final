@@ -817,7 +817,7 @@ export default async function AdminBookingDetailPage({
       paymentMethodDisplay: null,
       bookingConfirmation: groupInvoiceNumber,
     };
-  } else if (isPaid) {
+  } else if (isPaid || amountPaidCents > 0) {
     const baseFareCents =
       booking.subtotalCents - (booking.stopSurchargeCents ?? stopCount * 1500);
     const invoiceLineItems: InvoiceLineItem[] = [
@@ -968,8 +968,11 @@ export default async function AdminBookingDetailPage({
   const priceIsComplete = booking.priceApproved;
   const assignIsComplete = hasDriver && hasVehicleUnit && hasDriverPay;
   const paymentIsComplete = isCorporateBooking || isPaid;
-  const approvalIsComplete = isApproved;
+  const paymentIsPartial =
+    !paymentIsComplete &&
+    (isGroupBooking ? groupAmountPaidCents > 0 : amountPaidCents > 0);
 
+  const approvalIsComplete = isApproved;
   // Default to first incomplete tab
   const defaultTabId = !tripIsComplete
     ? "trip"
@@ -1417,6 +1420,7 @@ export default async function AdminBookingDetailPage({
       id: "payment",
       label: "Payment",
       isComplete: paymentIsComplete,
+      isPartial: paymentIsPartial,
       sectionId: "payment-section",
       content: (
         <>
@@ -1751,7 +1755,7 @@ export default async function AdminBookingDetailPage({
                       {" "}
                       (corporate)
                     </span>
-                  ) : booking.eventType === "Golf Transfer \u2014 We-Ko-Pa" ? (
+                  ) : booking.eventType === `Golf Transfer \u2014 We-Ko-Pa` ? (
                     <span
                       style={{
                         color: "var(--green)",
@@ -1769,7 +1773,7 @@ export default async function AdminBookingDetailPage({
                       }}
                     >
                       {" "}
-                      \u2014 {customerName}
+                      {"\u2014"} {customerName}
                     </span>
                   ) : null}
                 </h1>
@@ -1811,16 +1815,16 @@ export default async function AdminBookingDetailPage({
                     <div style={{ marginTop: 6 }}>
                       {isCorporateBooking ? (
                         <span className={`emptySmall ${styles.badge}`}>
-                          \ud83c\udfe2 Corporate \u2014{" "}
+                          🏢 Corporate {"\u2014"}{" "}
                           {booking.corporateAccount?.name ?? "Account"}
                         </span>
                       ) : booking.userId ? (
                         <span className={`emptySmall ${styles.badge}`}>
-                          \ud83d\udc64 Registered User
+                          👤 Registered User
                         </span>
                       ) : (
                         <span className={`emptySmall ${styles.badge}`}>
-                          \ud83e\uddfe Guest Checkout
+                          🧾 Guest Checkout
                         </span>
                       )}
                     </div>
@@ -1873,10 +1877,39 @@ export default async function AdminBookingDetailPage({
                         </span>
                       </div>
                     </div>
+                    <br />
+                    {booking.depositMode && booking.depositPercent && (
+                      <div style={{ marginTop: 12 }}>
+                        <div className='emptyTitle'>Deposit Details:</div>
+                        <div style={{ marginTop: 6 }}>
+                          <p className='miniNote'>
+                            {Number(booking.depositPercent)}% deposit —{" "}
+                            {formatMoney(
+                              booking.depositCents ??
+                                Math.round(
+                                  (booking.totalCents *
+                                    Number(booking.depositPercent)) /
+                                    100,
+                                ),
+                              booking.currency,
+                            )}
+                          </p>
+                          <p className='miniNote' style={{ marginTop: 4 }}>
+                            {amountPaidCents > 0
+                              ? booking.payment?.paidAt
+                                ? `Paid on ${formatDateTime(booking.payment.paidAt, companyTz)}`
+                                : "Paid"
+                              : booking.depositDueDate
+                                ? `Due by ${formatDateTime(booking.depositDueDate, companyTz)}`
+                                : "Not yet paid"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     {tipCents > 0 && (
                       <div className={styles.tipDisplay}>
-                        <span className={styles.tipIcon}>\ud83d\udcb0</span>
+                        <span className={styles.tipIcon}>💰</span>
                         <span className={styles.tipLabel}>Driver Tip:</span>
                         <span className={styles.tipAmount}>
                           {formatMoney(tipCents, booking.currency)}

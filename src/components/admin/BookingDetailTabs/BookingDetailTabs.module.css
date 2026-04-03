@@ -204,7 +204,23 @@
   background: var(--white);
 }
 
-/* ── Mobile ── */
+/* Partial payment — yellow tint */
+.tabPartial {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.tabPartial:hover {
+  background: #fef9c3;
+  color: #854d0e;
+  opacity: 0.85;
+}
+
+.tabPartialActive {
+  background: #fef9c3 !important;
+  color: #854d0e !important;
+  border-bottom-color: #ca8a04 !important;
+}
 
 @media screen and (max-width: 768px) {
   .tab {

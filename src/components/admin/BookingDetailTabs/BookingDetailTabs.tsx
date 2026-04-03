@@ -6,9 +6,8 @@ import styles from "./BookingDetailTabs.module.css";
 export type BookingTab = {
   id: string;
   label: string;
-  /** When true the tab gets a green completion background */
   isComplete: boolean;
-  /** DOM id applied to each section wrapper in stacked (non-tab) view */
+  isPartial?: boolean;
   sectionId: string;
   content: React.ReactNode;
 };
@@ -81,7 +80,11 @@ export default function BookingDetailTabs({ tabs }: Props) {
                 styles.tab,
                 isActive ? styles.tabActive : "",
                 tab.isComplete ? styles.tabComplete : "",
+                tab.isPartial && !tab.isComplete ? styles.tabPartial : "",
                 isActive && tab.isComplete ? styles.tabCompleteActive : "",
+                isActive && tab.isPartial && !tab.isComplete
+                  ? styles.tabPartialActive
+                  : "",
               ]
                 .filter(Boolean)
                 .join(" ")}

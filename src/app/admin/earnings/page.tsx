@@ -231,10 +231,11 @@ async function chartAggDaily(
   toUtc: Date,
   timeZone: string,
 ): Promise<ChartPoint[]> {
+  // ✅ Use amountPaidCents — actual money received, not booking total
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('day', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COALESCE(SUM("amountPaidCents"), 0) as sum,
       COALESCE(SUM("tipCents"), 0) as tips,
       COUNT(*) as count
     FROM "Payment"
@@ -243,10 +244,11 @@ async function chartAggDaily(
     ORDER BY 1 ASC
   `) as any[];
 
+  // ✅ Use amountRefundedCents for refunds — actual amount refunded
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('day', "updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COALESCE(SUM("amountRefundedCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
     WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
@@ -306,10 +308,11 @@ async function chartAggMonthly(
   toUtc: Date,
   timeZone: string,
 ): Promise<ChartPoint[]> {
+  // ✅ Use amountPaidCents — actual money received, not booking total
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('month', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COALESCE(SUM("amountPaidCents"), 0) as sum,
       COALESCE(SUM("tipCents"), 0) as tips,
       COUNT(*) as count
     FROM "Payment"
@@ -318,10 +321,11 @@ async function chartAggMonthly(
     ORDER BY 1 ASC
   `) as any[];
 
+  // ✅ Use amountRefundedCents for refunds — actual amount refunded
   const refundRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('month', "updatedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
+      COALESCE(SUM("amountRefundedCents"), 0) as sum,
       COUNT(*) as count
     FROM "Payment"
     WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
@@ -815,7 +819,7 @@ export default async function EarningsPage({
         select: {
           id: true,
           paidAt: true,
-          amountTotalCents: true,
+          amountPaidCents: true, // ✅ was amountTotalCents
           tipCents: true,
           currency: true,
           bookingId: true,
@@ -879,9 +883,10 @@ export default async function EarningsPage({
     monthMenuStarts[monthMenuStarts.length - 1] ?? currentMonthStartForMenu;
   const nextAfterCurrent = tz.addMonths(currentMonthStartForMenu, 1, companyTz);
 
+  // ✅ Use amountPaidCents for monthly breakdown — actual money received
   const last12CapturedRows = await db.payment.findMany({
     where: { paidAt: { gte: oldestMonthStart, lt: nextAfterCurrent } },
-    select: { paidAt: true, amountTotalCents: true },
+    select: { paidAt: true, amountPaidCents: true },
   });
 
   const bucket = new Map<string, { sumCents: number; count: number }>();
@@ -890,7 +895,7 @@ export default async function EarningsPage({
     const key = tz.monthKey(r.paidAt, companyTz);
     const prev = bucket.get(key) ?? { sumCents: 0, count: 0 };
     bucket.set(key, {
-      sumCents: prev.sumCents + (r.amountTotalCents ?? 0),
+      sumCents: prev.sumCents + (r.amountPaidCents ?? 0), // ✅ was amountTotalCents
       count: prev.count + 1,
     });
   }
@@ -1194,8 +1199,9 @@ export default async function EarningsPage({
                                 : "—"}
                             </td>
                             <td className={styles.right}>
+                              {/* ✅ was p.amountTotalCents — now shows actual amount collected */}
                               {tz.formatMoneyShort(
-                                p.amountTotalCents ?? 0,
+                                p.amountPaidCents ?? 0,
                                 currency,
                               )}
                             </td>
