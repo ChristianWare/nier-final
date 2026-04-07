@@ -2,6 +2,7 @@ import styles from "./ServiceCityPage.module.css";
 import { notFound } from "next/navigation";
 import { servicesData as services } from "@/lib/services";
 import { serviceAreaCities } from "@/lib/cities";
+import type { CityData } from "@/lib/cities";
 import type { Metadata } from "next";
 import Nav from "@/components/shared/Nav/Nav";
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
@@ -36,7 +37,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug, city: citySlug } = await params;
   const service = services.find((s) => s.slug === slug);
-  const city = serviceAreaCities.find((c) => c.slug === citySlug);
+  const city = serviceAreaCities.find((c) => c.slug === citySlug) as
+    | CityData
+    | undefined;
   if (!service || !city) return {};
 
   return {
@@ -55,7 +58,9 @@ export default async function ServiceCityPage({
 }) {
   const { slug, city: citySlug } = await params;
   const service = services.find((s) => s.slug === slug);
-  const city = serviceAreaCities.find((c) => c.slug === citySlug);
+  const city = serviceAreaCities.find((c) => c.slug === citySlug) as
+    | CityData
+    | undefined;
   if (!service || !city) notFound();
 
   const bookHref = `/book?service=${encodeURIComponent(service.slug)}`;
@@ -141,7 +146,6 @@ export default async function ServiceCityPage({
                 Professional {service.title.toLowerCase()} serving {city.name},{" "}
                 {city.note}. Available 24/7 with no surge pricing.
               </p>
-
               <div className={styles.btnContainer}>
                 <Button
                   href={bookHref}
@@ -180,13 +184,33 @@ export default async function ServiceCityPage({
                 {service.title} for {city.name} Residents & Visitors
               </h2>
               <p className={styles.desc}>{service.description}</p>
-              <p className={styles.cityNote}>
-                Whether you&apos;re heading to Sky Harbor, hosting a corporate
-                event, or need a reliable ride across {city.name}, our
-                professional chauffeurs are available around the clock. All
-                vehicles are fully licensed, insured, and maintained to the
-                highest standards.
-              </p>
+
+              {city.airportNote && (
+                <p className={styles.cityNote}>{city.airportNote}</p>
+              )}
+
+              {city.localContext && (
+                <p className={styles.cityNote}>{city.localContext}</p>
+              )}
+
+              {city.corporateNote && (
+                <p className={styles.cityNote}>{city.corporateNote}</p>
+              )}
+
+              {city.localLandmarks && city.localLandmarks.length > 0 && (
+                <div className={styles.landmarksBlock}>
+                  <h3 className={styles.landmarksHeading}>
+                    Areas & landmarks we serve in {city.name}
+                  </h3>
+                  <ul className={styles.landmarksList}>
+                    {city.localLandmarks.map((landmark) => (
+                      <li key={landmark} className={styles.landmarkItem}>
+                        {landmark}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             <div className={styles.overviewRight}>
               {service.features && service.features.length > 0 && (
@@ -220,15 +244,10 @@ export default async function ServiceCityPage({
         </LayoutWrapper>
       </section>
 
-      {/* Pricing */}
       <ServiceCityPricing service={service} city={city} />
-
-      {/* Fleet */}
       <ServiceCityFleet city={city} />
-
       <HowItWorks />
 
-      {/* FAQ */}
       {service.faqs && service.faqs.length > 0 && (
         <Faq
           items={service.faqs.map((f, i) => ({
@@ -239,18 +258,13 @@ export default async function ServiceCityPage({
         />
       )}
 
-      {/* CTA */}
       <ServiceCityCTA service={service} city={city} />
-
       <AboutTestimonials />
-
-      {/* Nearby Cities */}
       <ServiceCityNearby
         service={service}
         city={city}
         nearbyCities={nearbyCities}
       />
-
       <AboutNumbers />
     </main>
   );

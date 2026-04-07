@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { serviceAreaCities } from "@/lib/cities";
+import type { CityData } from "@/lib/cities";
 import { servicesData as services } from "@/lib/services";
 import type { Metadata } from "next";
 import Nav from "@/components/shared/Nav/Nav";
@@ -8,6 +9,8 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import LocationCityIntro from "@/components/LocationCityPage/LocationCityIntro/LocationCityIntro";
 import LocationCityMission from "@/components/LocationCityPage/LocationCityMission/LocationCityMission";
 import LocationCityServicesGrid from "@/components/LocationCityPage/LocationCityServicesGrid/LocationCityServicesGrid";
+import LayoutWrapper from "@/components/shared/LayoutWrapper";
+import styles from "./LocationCityPage.module.css";
 
 type Params = { city: string };
 
@@ -56,23 +59,21 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { city: citySlug } = await params;
-  const city = serviceAreaCities.find((c) => c.slug === citySlug);
+  const city = serviceAreaCities.find((c) => c.slug === citySlug) as
+    | CityData
+    | undefined;
   if (!city) return {};
 
   const title = `Black Car Service ${city.name}, AZ | Nier Transportation`;
-
   const description =
     descriptionOverrides[city.slug] ??
     `Black car service in ${city.name}, AZ — ${city.note.toLowerCase()}. Airport transfers, hourly chauffeur, and corporate rides with flat rates and no surge pricing. Available 24/7.`;
-
   const canonical = `${SITE_URL}/locations/${city.slug}`;
 
   return {
     title,
     description,
-    alternates: {
-      canonical,
-    },
+    alternates: { canonical },
     openGraph: {
       title,
       description,
@@ -104,13 +105,14 @@ export default async function LocationCityPage({
 }) {
   const resolvedParams = await params;
   const citySlug = resolvedParams.city;
-  const city = serviceAreaCities.find((c) => c.slug === citySlug);
+  const city = serviceAreaCities.find((c) => c.slug === citySlug) as
+    | CityData
+    | undefined;
 
   if (!city) notFound();
 
   const pageUrl = `${SITE_URL}/locations/${city.slug}`;
 
-  // Schema 1: ItemList of all services available in this city
   const itemListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -130,16 +132,12 @@ export default async function LocationCityPage({
           name: "Nier Transportation",
           url: SITE_URL,
         },
-        areaServed: {
-          "@type": "City",
-          name: city.name,
-        },
+        areaServed: { "@type": "City", name: city.name },
         serviceType: "Ground Transportation",
       },
     })),
   };
 
-  // Schema 2: LocalBusiness targeting this specific city
   const localBusinessSchema = {
     "@context": "https://schema.org",
     "@type": "LimousineBusService",
@@ -160,10 +158,7 @@ export default async function LocationCityPage({
     areaServed: {
       "@type": "City",
       name: city.name,
-      containedInPlace: {
-        "@type": "State",
-        name: "Arizona",
-      },
+      containedInPlace: { "@type": "State", name: "Arizona" },
     },
     priceRange: "$$",
     openingHoursSpecification: {
@@ -198,6 +193,45 @@ export default async function LocationCityPage({
       <Nav background='cream' />
       <LocationCityIntro city={city} />
       <LocationCityMission city={city} />
+
+      {/* City-specific unique content — critical for Google indexing */}
+      {(city.localContext || city.airportNote || city.corporateNote) && (
+        <section className={styles.cityContext}>
+          <LayoutWrapper>
+            <div className={styles.cityContextGrid}>
+              <div className={styles.cityContextLeft}>
+                <h2 className={styles.cityContextHeading}>
+                  Black Car Service in {city.name}
+                </h2>
+                {city.localContext && (
+                  <p className={styles.cityContextCopy}>{city.localContext}</p>
+                )}
+                {city.airportNote && (
+                  <p className={styles.cityContextCopy}>{city.airportNote}</p>
+                )}
+                {city.corporateNote && (
+                  <p className={styles.cityContextCopy}>{city.corporateNote}</p>
+                )}
+              </div>
+              {city.localLandmarks && city.localLandmarks.length > 0 && (
+                <div className={styles.cityContextRight}>
+                  <h3 className={styles.landmarksHeading}>
+                    Areas & landmarks we serve
+                  </h3>
+                  <ul className={styles.landmarksList}>
+                    {city.localLandmarks.map((landmark) => (
+                      <li key={landmark} className={styles.landmarkItem}>
+                        {landmark}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </LayoutWrapper>
+        </section>
+      )}
+
       <LocationCityServicesGrid city={city} />
       <HowItWorks />
       <AboutNumbers />
