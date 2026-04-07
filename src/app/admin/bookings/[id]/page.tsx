@@ -1286,7 +1286,7 @@ export default async function AdminBookingDetailPage({
                   fontSize: "1.4rem",
                 }}
               >
-                <span>\u26a0\ufe0f</span>
+                <span>⚠️</span>{" "}
                 <span>
                   <strong>Overage policy:</strong>{" "}
                   {formatMoney(
@@ -1294,7 +1294,7 @@ export default async function AdminBookingDetailPage({
                     booking.currency,
                   )}{" "}
                   per {booking.vehicle?.overageIncrementMinutes ?? 30} minutes
-                  \u2014 a card will be saved at checkout to cover any overages.
+                  — a card will be saved at checkout to cover any overages.
                 </span>
               </div>
             )}
