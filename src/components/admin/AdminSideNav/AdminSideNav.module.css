@@ -26,6 +26,27 @@
   gap: 3rem;
   height: 100%;
   flex: 1;
+  position: relative;
+}
+
+.navNavigating {
+  pointer-events: none;
+}
+
+.navLoadingOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.navLoadingOverlay > * {
+  width: auto !important;
+  height: auto !important;
 }
 
 .hamburgerContainer {
@@ -49,6 +70,12 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  transition: opacity 0.2s ease;
+}
+
+.linksHidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .closeWrapper {
@@ -301,16 +328,20 @@
   background: var(--cream);
   transition: opacity 0.2s ease;
   margin: 1rem;
-  font-size: 5rem;
 }
 
 .collapseBtn:hover {
   opacity: 0.6;
 }
 
+.collapseBtn:disabled {
+  cursor: default;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
 .collapseIcon {
   transition: transform 0.25s ease;
-  font-size: 5rem;
 }
 
 .collapseIconFlipped {
@@ -349,35 +380,6 @@
 }
 
 @media screen and (max-width: 1068px) {
-  .linksWrapper {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: stretch;
-    width: 100%;
-    overflow: hidden;
-  }
-
-  .linksWrapper > li {
-    flex: 1;
-    display: flex;
-  }
-
-  .navLink {
-    flex: 1;
-    width: 100%;
-  }
-
-  .compactMenuBtn {
-    flex: 1;
-    display: flex;
-  }
-
-  .moreBtn {
-    flex: 1;
-    width: 100%;
-  }
-
   .collapseBar {
     display: flex;
     flex-shrink: 0;

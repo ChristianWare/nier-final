@@ -16,6 +16,7 @@ import BadgeCount from "@/app/admin/BadgeCount/BadgeCount";
 import Appointments from "@/components/shared/icons/Appointments/Appointments";
 import Modal from "@/components/shared/Modal/Modal";
 import Money from "@/components/shared/icons/Money/Money";
+import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
 
 const NAV_ITEMS = [
   {
@@ -75,11 +76,22 @@ export default function DriverSideNav({
 }: DriverSideNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== "undefined") return window.innerWidth <= 568;
     return false;
   });
   const pathname = usePathname();
+
+  const navigating = navigatingTo !== null && pathname !== navigatingTo;
+
+  // Once navigation completes, collapse the menu
+  useEffect(() => {
+    if (navigatingTo !== null && pathname === navigatingTo) {
+      const t = setTimeout(() => setCollapsed(true), 0);
+      return () => clearTimeout(t);
+    }
+  }, [pathname, navigatingTo]);
 
   useEffect(() => {
     if (menuModalOpen) {
@@ -100,6 +112,7 @@ export default function DriverSideNav({
           <button
             className={styles.collapseBtn}
             onClick={() => setCollapsed(!collapsed)}
+            disabled={navigating}
             aria-label='Toggle sidebar'
           >
             <svg
@@ -118,7 +131,15 @@ export default function DriverSideNav({
           </button>
         </div>
 
-        <nav className={styles.nav}>
+        <nav
+          className={`${styles.nav} ${navigating ? styles.navNavigating : ""}`}
+        >
+          {navigating && (
+            <div className={styles.navLoadingOverlay}>
+              <LoadingPulse />
+            </div>
+          )}
+
           <ul
             className={
               isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
@@ -132,7 +153,9 @@ export default function DriverSideNav({
               />
             </div>
 
-            <div className={styles.linksWrapper}>
+            <div
+              className={`${styles.linksWrapper} ${navigating ? styles.linksHidden : ""}`}
+            >
               {NAV_ITEMS.map(({ title, href, icon }) => {
                 const isRoot = href === "/driver-dashboard";
                 const active = isRoot
@@ -168,7 +191,7 @@ export default function DriverSideNav({
                       className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
                       onClick={() => {
                         setIsOpen(false);
-                        setCollapsed(true);
+                        setNavigatingTo(href);
                       }}
                       aria-current={active ? "page" : undefined}
                     >

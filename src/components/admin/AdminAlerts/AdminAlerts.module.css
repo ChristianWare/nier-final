@@ -406,6 +406,10 @@
 }
 
 @media screen and (max-width: 568px) {
+.container {
+  padding: 0rem;
+}
+
   .detailsTd::before {
     font-size: 1rem;
   }

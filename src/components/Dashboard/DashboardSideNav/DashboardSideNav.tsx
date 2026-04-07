@@ -17,6 +17,7 @@ import Email from "@/components/shared/icons/Email/Email";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
 import Modal from "@/components/shared/Modal/Modal";
+import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/dashboard", icon: <House /> },
@@ -36,11 +37,21 @@ const NAV_ITEMS = [
 export default function DashboardSideNav() {
   const [isOpen, setIsOpen] = useState(false);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== "undefined") return window.innerWidth <= 1068;
     return false;
   });
   const pathname = usePathname();
+
+  const navigating = navigatingTo !== null && pathname !== navigatingTo;
+
+  useEffect(() => {
+    if (navigatingTo !== null && pathname === navigatingTo) {
+      const t = setTimeout(() => setCollapsed(true), 0);
+      return () => clearTimeout(t);
+    }
+  }, [pathname, navigatingTo]);
 
   useEffect(() => {
     if (menuModalOpen) {
@@ -61,6 +72,7 @@ export default function DashboardSideNav() {
           <button
             className={styles.collapseBtn}
             onClick={() => setCollapsed(!collapsed)}
+            disabled={navigating}
             aria-label='Toggle sidebar'
           >
             <svg
@@ -79,7 +91,15 @@ export default function DashboardSideNav() {
           </button>
         </div>
 
-        <nav className={styles.nav}>
+        <nav
+          className={`${styles.nav} ${navigating ? styles.navNavigating : ""}`}
+        >
+          {navigating && (
+            <div className={styles.navLoadingOverlay}>
+              <LoadingPulse />
+            </div>
+          )}
+
           <ul
             className={
               isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
@@ -93,7 +113,9 @@ export default function DashboardSideNav() {
               />
             </div>
 
-            <div className={styles.linksWrapper}>
+            <div
+              className={`${styles.linksWrapper} ${navigating ? styles.linksHidden : ""}`}
+            >
               {NAV_ITEMS.map(({ title, href, icon }) => {
                 const isDashboard = href === "/dashboard";
                 const active = isDashboard
@@ -107,7 +129,7 @@ export default function DashboardSideNav() {
                       className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
                       onClick={() => {
                         setIsOpen(false);
-                        setCollapsed(true);
+                        setNavigatingTo(href);
                       }}
                       aria-current={active ? "page" : undefined}
                     >
