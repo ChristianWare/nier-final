@@ -2,7 +2,7 @@
 
 import styles from "./DashboardSideNav.module.css";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
@@ -36,20 +36,50 @@ const NAV_ITEMS = [
 export default function DashboardSideNav() {
   const [isOpen, setIsOpen] = useState(false);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== "undefined") return window.innerWidth <= 1068;
+    return false;
+  });
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (menuModalOpen) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [menuModalOpen]);
 
   return (
     <>
-      <aside className={styles.container}>
-        <nav className={styles.nav}>
-          <div className={styles.hamburgerContainer}>
-            <FalseButton
-              text={isOpen ? "Close" : "Menu"}
-              btnType='blue'
-              onClick={() => setIsOpen((v) => !v)}
-            />
-          </div>
+      <aside
+        className={`${styles.container} ${collapsed ? styles.containerCollapsed : ""}`}
+      >
+        {/* Collapse toggle button — only visible at ≤1068px */}
+        <div className={styles.collapseBar}>
+          <button
+            className={styles.collapseBtn}
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label='Toggle sidebar'
+          >
+            <svg
+              width='14'
+              height='14'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className={`${styles.collapseIcon} ${collapsed ? styles.collapseIconFlipped : ""}`}
+            >
+              <polyline points='15 18 9 12 15 6' />
+            </svg>
+          </button>
+        </div>
 
+        <nav className={styles.nav}>
           <ul
             className={
               isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
@@ -71,28 +101,32 @@ export default function DashboardSideNav() {
                   : pathname === href || pathname.startsWith(href + "/");
 
                 return (
-                  <li key={href}>
+                  <li key={href} className={styles.navItem}>
                     <Link
                       href={href}
                       className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false);
+                        setCollapsed(true);
+                      }}
                       aria-current={active ? "page" : undefined}
                     >
-                      {icon}
+                      <span className={styles.navIcon}>{icon}</span>
                       <span className={styles.title}>{title}</span>
+                      <span className={styles.tooltip}>{title}</span>
                     </Link>
                   </li>
                 );
               })}
 
-              {/* Full sign out button — hidden at ≤968px via CSS */}
+              {/* Full sign out button — hidden at ≤1068px via CSS */}
               <div className={styles.actionBtns}>
                 <button className={styles.signOutBtn} onClick={() => signOut()}>
                   Sign Out <Arrow className={styles.arrow} />
                 </button>
               </div>
 
-              {/* Compact menu button — shown only at ≤968px via CSS */}
+              {/* Compact menu button — shown only at ≤1068px, hidden when collapsed */}
               <div className={styles.compactMenuBtn}>
                 <button
                   type='button'

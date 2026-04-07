@@ -95,7 +95,7 @@ export default function DriverSideNav({
       <aside
         className={`${styles.container} ${collapsed ? styles.containerCollapsed : ""}`}
       >
-        {/* Collapse toggle button — only visible at ≤568px */}
+        {/* Collapse toggle button — only visible at ≤1068px */}
         <div className={styles.collapseBar}>
           <button
             className={styles.collapseBtn}
@@ -166,7 +166,10 @@ export default function DriverSideNav({
                     <Link
                       href={href}
                       className={`${styles.navLink} ${active ? styles.navLinkActive : ""}`}
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false);
+                        setCollapsed(true);
+                      }}
                       aria-current={active ? "page" : undefined}
                     >
                       <span className={styles.navIcon}>{icon}</span>
@@ -179,14 +182,14 @@ export default function DriverSideNav({
                 );
               })}
 
-              {/* Full sign out button — hidden at ≤968px via CSS */}
+              {/* Full sign out button — hidden at ≤1068px via CSS */}
               <div className={styles.actionBtns}>
                 <button className={styles.signOutBtn} onClick={() => signOut()}>
                   Sign Out <Arrow className={styles.arrow} />
                 </button>
               </div>
 
-              {/* Compact menu button — shown only at ≤968px via CSS */}
+              {/* Compact menu button — shown only at ≤1068px via CSS */}
               <div className={styles.compactMenuBtn}>
                 <button
                   type='button'

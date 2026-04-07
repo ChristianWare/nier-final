@@ -2,7 +2,7 @@
 
 import styles from "./CorporateSideNav.module.css";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import House from "@/components/shared/icons/House/House";
@@ -14,6 +14,7 @@ import Cog from "@/components/shared/icons/Cog/Cog";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
+import Modal from "@/components/shared/Modal/Modal";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/corporate", icon: <House /> },
@@ -34,77 +35,172 @@ export default function CorporateSideNav({
   accountStatus,
 }: CorporateSideNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [menuModalOpen, setMenuModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window !== "undefined") return window.innerWidth <= 1068;
+    return false;
+  });
   const pathname = usePathname();
 
+  useEffect(() => {
+    if (menuModalOpen) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+    return () => document.body.classList.remove("modal-open");
+  }, [menuModalOpen]);
+
   return (
-    <aside className={styles.container}>
-      {/* Account status badge */}
-      {accountStatus && accountStatus !== "ACTIVE" && (
-        <div className={styles.statusBadge} data-status={accountStatus}>
-          {accountStatus === "SUSPENDED"
-            ? "⚠️ Account Suspended"
-            : "Account Inactive"}
+    <>
+      <aside
+        className={`${styles.container} ${collapsed ? styles.containerCollapsed : ""}`}
+      >
+        {/* Account status badge */}
+        {accountStatus && accountStatus !== "ACTIVE" && (
+          <div className={styles.statusBadge} data-status={accountStatus}>
+            {accountStatus === "SUSPENDED"
+              ? "⚠️ Account Suspended"
+              : "Account Inactive"}
+          </div>
+        )}
+
+        {/* Collapse toggle button — only visible at ≤1068px */}
+        <div className={styles.collapseBar}>
+          <button
+            className={styles.collapseBtn}
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label='Toggle sidebar'
+          >
+            <svg
+              width='14'
+              height='14'
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='currentColor'
+              strokeWidth='2'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              className={`${styles.collapseIcon} ${collapsed ? styles.collapseIconFlipped : ""}`}
+            >
+              <polyline points='15 18 9 12 15 6' />
+            </svg>
+          </button>
         </div>
-      )}
 
-      <nav className={styles.nav}>
-        <ul
-          className={
-            isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
-          }
-        >
-          <div className={styles.closeWrapper}>
-            <FalseButton
-              text='Close'
-              btnType='blue'
-              onClick={() => setIsOpen(false)}
-            />
-          </div>
+        <nav className={styles.nav}>
+          <ul
+            className={
+              isOpen ? `${styles.navLinks} ${styles.open}` : styles.navLinks
+            }
+          >
+            <div className={styles.closeWrapper}>
+              <FalseButton
+                text='Close'
+                btnType='blue'
+                onClick={() => setIsOpen(false)}
+              />
+            </div>
 
-          <div className={styles.linksWrapper}>
-            {NAV_ITEMS.map(({ title, href, icon }) => {
-              const isDashboard = href === "/corporate";
-              const active = isDashboard
-                ? pathname === "/corporate"
-                : pathname === href || pathname.startsWith(href + "/");
+            <div className={styles.linksWrapper}>
+              {NAV_ITEMS.map(({ title, href, icon }) => {
+                const isDashboard = href === "/corporate";
+                const active = isDashboard
+                  ? pathname === "/corporate"
+                  : pathname === href || pathname.startsWith(href + "/");
 
-              const showBookingsBadge =
-                href === "/corporate/bookings" && upcomingRidesCount > 0;
+                const showBookingsBadge =
+                  href === "/corporate/bookings" && upcomingRidesCount > 0;
 
-              return (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className={`${styles.navLink} ${
-                      active ? styles.navLinkActive : ""
-                    }`}
-                    onClick={() => setIsOpen(false)}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    {icon}
-                    {title}
+                return (
+                  <li key={href} className={styles.navItem}>
+                    <Link
+                      href={href}
+                      className={`${styles.navLink} ${
+                        active ? styles.navLinkActive : ""
+                      }`}
+                      onClick={() => {
+                        setIsOpen(false);
+                        setCollapsed(true);
+                      }}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      <span className={styles.navIcon}>{icon}</span>
+                      <span className={styles.title}>{title}</span>
+                      <span className={styles.tooltip}>{title}</span>
+                      {showBookingsBadge && (
+                        <span className={styles.badge}>
+                          {upcomingRidesCount > 99 ? "99+" : upcomingRidesCount}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
 
-                    {showBookingsBadge && (
-                      <span className={styles.badge}>
-                        {upcomingRidesCount > 99 ? "99+" : upcomingRidesCount}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </div>
+              {/* Full action buttons — hidden at ≤1068px via CSS */}
+              <div className={styles.actionBtns}>
+                <Link href='/dashboard' className={styles.dshbrdBtn}>
+                  Personal Dashboard <Arrow className={styles.arrow} />
+                </Link>
+                <button className={styles.signOutBtn} onClick={() => signOut()}>
+                  Sign Out <SignOutLogo className={styles.signOutLogo} />
+                </button>
+              </div>
 
-          <div className={styles.btnContainer}>
-            <Link href='/dashboard' className={styles.dshbrdBtn}>
-              Personal Dashboard <Arrow className={styles.arrow} />
+              {/* Compact menu button — shown only at ≤1068px, hidden when collapsed */}
+              <div className={styles.compactMenuBtn}>
+                <button
+                  type='button'
+                  className={styles.moreBtn}
+                  onClick={() => setMenuModalOpen(true)}
+                  aria-label='Open navigation menu'
+                >
+                  <span className={styles.moreBtnDot} />
+                  <span className={styles.moreBtnDot} />
+                  <span className={styles.moreBtnDot} />
+                </button>
+              </div>
+            </div>
+          </ul>
+        </nav>
+      </aside>
+
+      <Modal isOpen={menuModalOpen} onClose={() => setMenuModalOpen(false)}>
+        <div className={styles.modalContent}>
+          <p className={`cardTitle h5 ${styles.modalTitle}`}>Navigate</p>
+
+          <div className={styles.modalNav}>
+            <Link
+              href='/dashboard'
+              className={styles.modalNavLink}
+              onClick={() => setMenuModalOpen(false)}
+            >
+              Personal Dashboard <Arrow className={styles.modalArrow} />
             </Link>
-            <button className={styles.signOutBtn} onClick={() => signOut()}>
-              Sign Out <SignOutLogo className={styles.signOutLogo} />
+          </div>
+
+          <div className={styles.modalActions}>
+            <button
+              type='button'
+              className='primaryBtn'
+              onClick={() => setMenuModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type='button'
+              className='dangerBtn'
+              onClick={() => {
+                setMenuModalOpen(false);
+                signOut();
+              }}
+            >
+              Log Out
             </button>
           </div>
-        </ul>
-      </nav>
-    </aside>
+        </div>
+      </Modal>
+    </>
   );
 }

@@ -60,6 +60,11 @@
   gap: 1rem;
 }
 
+.navItem {
+  position: relative;
+  list-style: none;
+}
+
 .navLink {
   display: flex;
   align-items: center;
@@ -78,9 +83,56 @@
   position: relative;
 }
 
+.navIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  transition: all 0.2s ease-in;
+}
+
+.title {
+  color: inherit;
+}
+
 .navLinkActive {
   background-color: var(--accent);
   color: var(--white);
+}
+
+.navLinkActive .navIcon {
+  color: var(--white);
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--black);
+  color: var(--white);
+  font-size: 1.3rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 100;
+}
+
+.tooltip::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--black);
 }
 
 .badge {
@@ -102,11 +154,37 @@
   color: var(--accent);
 }
 
-.btnContainer {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
+.actionBtns {
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
   width: 100%;
+}
+
+.compactMenuBtn {
+  display: none;
+}
+
+.moreBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 1rem;
+  background-color: var(--stroke);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in;
+}
+
+.moreBtnDot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--black);
 }
 
 .dshbrdBtn {
@@ -157,10 +235,87 @@
   color: var(--cream);
 }
 
-/* ── Hover only on devices that support true hover (mouse, not touch) ── */
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.modalTitle {
+  margin: 0;
+}
+
+.modalNav {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalNavLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 1.2rem 2rem;
+  border-radius: 5px;
+  background-color: var(--lightGray);
+  border: 1px solid var(--strokeii);
+  color: var(--black);
+  transition: background-color 0.2s ease-in;
+}
+
+.modalArrow {
+  transform: rotate(90deg);
+  flex-shrink: 0;
+}
+
+.modalActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.collapseBar {
+  display: none;
+}
+
+.collapseBtn {
+  width: 100%;
+  height: 3.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--black);
+  border: 1px solid var(--stroke);
+  background: var(--cream);
+  transition: opacity 0.2s ease;
+  margin: 1rem;
+}
+
+.collapseBtn:hover {
+  opacity: 0.6;
+}
+
+.collapseIcon {
+  transition: transform 0.25s ease;
+}
+
+.collapseIconFlipped {
+  transform: rotate(180deg);
+}
+
 @media (hover: hover) {
   .navLink:hover {
     background-color: var(--accent);
+    color: var(--white);
+  }
+
+  .navLink:hover .navIcon {
     color: var(--white);
   }
 
@@ -171,40 +326,102 @@
   .signOutBtn:hover {
     background-color: var(--black400);
   }
-}
 
-@media screen and (max-width: 968px) {
-  .linksWrapper {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+  .moreBtn:hover {
+    background-color: var(--accent);
   }
 
-  .navLink {
-    width: 100%;
-    text-overflow: ellipsis;
-    word-break: break-all;
+  .moreBtn:hover .moreBtnDot {
+    background-color: var(--white);
+  }
+
+  .modalNavLink:hover {
+    background-color: var(--black300);
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .collapseBar {
+    display: flex;
+    flex-shrink: 0;
+  }
+
+  .collapseBtn {
+    display: flex;
+    border-radius: 5px;
+  }
+
+  .collapseBtn svg {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .tooltip {
+    display: none !important;
+  }
+
+  .compactMenuBtn {
+    display: none !important;
+  }
+
+  .containerCollapsed .nav {
+    gap: 0;
+  }
+
+  .containerCollapsed .navLinks {
+    display: none;
+  }
+
+  .container:not(.containerCollapsed) .linksWrapper {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 0.5rem;
+  }
+
+  .container:not(.containerCollapsed) .navItem {
+    display: flex;
+  }
+
+  .container:not(.containerCollapsed) .navLink {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
+    padding: 1rem 0.5rem;
+    gap: 1rem;
+    text-align: center;
+    white-space: normal;
+    width: 100%;
+    flex: 1;
   }
 
-  .badge {
+  .container:not(.containerCollapsed) .title {
+    display: block;
+    font-size: 1.7rem;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .container:not(.containerCollapsed) .navIcon {
+    width: 2.2rem;
+    height: 2.2rem;
+    flex-shrink: 0;
+  }
+
+  .container:not(.containerCollapsed) .navLink.navLinkActive {
+    background-color: var(--accent);
+    color: var(--white);
+  }
+
+  .container:not(.containerCollapsed) .actionBtns {
+    grid-column: 1 / -1;
+    display: flex;
+  }
+
+  .container:not(.containerCollapsed) .badge {
     position: absolute;
     top: 6px;
     right: 6px;
     margin-left: 0;
-  }
-}
-
-@media screen and (max-width: 568px) {
-  .linksWrapper {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .signOutBtn,
-  .dshbrdBtn {
-    grid-column: span 2;
-    padding: 3rem 2rem;
   }
 }

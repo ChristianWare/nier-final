@@ -78,7 +78,7 @@ export default function AdminSideNav(
       <aside
         className={`${styles.container} ${collapsed ? styles.containerCollapsed : ""}`}
       >
-        {/* Collapse toggle button — only visible at ≤568px */}
+        {/* Collapse toggle button — only visible at ≤1068px */}
         <div className={styles.collapseBar}>
           <button
             className={styles.collapseBtn}
@@ -129,19 +129,21 @@ export default function AdminSideNav(
                       className={`${styles.navLink} ${
                         active ? styles.navLinkActive : ""
                       }`}
-                      onClick={() => setIsOpen(false)}
+                      onClick={() => {
+                        setIsOpen(false);
+                        setCollapsed(true);
+                      }}
                       aria-current={active ? "page" : undefined}
                     >
                       <span className={styles.navIcon}>{icon}</span>
                       <span className={styles.title}>{title}</span>
-                      {/* Tooltip shown when collapsed */}
                       <span className={styles.tooltip}>{title}</span>
                     </Link>
                   </li>
                 );
               })}
 
-              {/* Full action buttons — hidden at ≤968px via CSS */}
+              {/* Full action buttons — hidden at ≤1068px via CSS */}
               <div className={styles.actionBtns}>
                 <Link href='/dashboard' className={styles.dshbrdBtn}>
                   User Dashboard <Arrow className={styles.arrow} />
@@ -154,7 +156,7 @@ export default function AdminSideNav(
                 </button>
               </div>
 
-              {/* Compact menu button — shown only at ≤968px, hidden when collapsed */}
+              {/* Compact menu button — shown only at ≤1068px, hidden when collapsed */}
               <div className={styles.compactMenuBtn}>
                 <button
                   type='button'

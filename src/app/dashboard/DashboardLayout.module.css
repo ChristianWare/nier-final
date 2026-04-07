@@ -26,16 +26,7 @@
   width: 100%;
 }
 
-@media screen and (max-width: 968px) {
-  .heading {
-    display: block;
-    text-align: center;
-    width: 100%;
-    margin-bottom: 1rem;
-  }
-}
-
-@media screen and (max-width: 568px) {
+@media screen and (max-width: 1068px) {
   .container {
     padding-top: 5rem;
   }
@@ -45,6 +36,12 @@
     grid-gap: 7rem;
   }
 
+  .heading {
+    display: block;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
   .AdminSideNavContainer {
     position: sticky;
     top: 80px;
