@@ -100,6 +100,7 @@ export async function updateHoursRequested(formData: FormData): Promise<{
       where: { id: bookingId },
       data: {
         hoursRequested,
+        hoursBilled: billed,
         subtotalCents,
         totalCents: newTotalCents,
       },
