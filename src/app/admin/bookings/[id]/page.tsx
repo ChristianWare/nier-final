@@ -47,6 +47,7 @@ import BookingDetailTabs, {
 } from "@/components/admin/BookingDetailTabs/BookingDetailTabs";
 import { BookingTabsProvider } from "@/components/admin/BookingDetailTabs/BookingDetailTabsContext";
 import BookingCompletionChecklist from "@/components/admin/BookingCompletionChecklist/BookingCompletionChecklist";
+import EditHoursClient from "./EditHoursClient";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -1293,8 +1294,8 @@ export default async function AdminBookingDetailPage({
                     booking.vehicle?.overageFeeCents ?? 0,
                     booking.currency,
                   )}{" "}
-                  per {booking.vehicle?.overageIncrementMinutes ?? 30} minutes
-                  — a card will be saved at checkout to cover any overages.
+                  per {booking.vehicle?.overageIncrementMinutes ?? 30} minutes —
+                  a card will be saved at checkout to cover any overages.
                 </span>
               </div>
             )}
@@ -1324,6 +1325,14 @@ export default async function AdminBookingDetailPage({
             />
           )}
           <br />
+          {booking.serviceType?.pricingStrategy === "HOURLY" && (
+            <div style={{ marginTop: 12, marginBottom: 4 }}>
+              <EditHoursClient
+                bookingId={booking.id}
+                currentHours={decimalToNumber(booking.hoursRequested)}
+              />
+            </div>
+          )}
           <PriceForm
             bookingId={booking.id}
             currency={booking.currency}

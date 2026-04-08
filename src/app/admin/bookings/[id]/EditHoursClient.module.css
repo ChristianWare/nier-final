@@ -1,0 +1,111 @@
+.editBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.4rem;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--black400, #555);
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.editBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+/* ── Editing state ── */
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1.4rem 1.6rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.label {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--black400, #555);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.input {
+  width: 9rem;
+  padding: 0.7rem 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  border: 1.5px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--black, #111);
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--red, #e53e3e);
+}
+
+.unit {
+  font-size: 1.4rem;
+  color: var(--black400, #555);
+}
+
+.saveBtn {
+  padding: 0.7rem 1.6rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--red, #e53e3e);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.saveBtn:not(:disabled):hover {
+  opacity: 0.88;
+}
+
+.cancelBtn {
+  padding: 0.7rem 1.2rem;
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--black400, #555);
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cancelBtn:not(:disabled):hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.hint {
+  font-size: 1.2rem;
+  color: #9ca3af;
+  margin: 0;
+}
