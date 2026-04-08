@@ -17,7 +17,7 @@ function formatTime(iso: string | null | undefined): string {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
-      timeZone: "UTC",
+      // No timeZone override — uses the offset embedded in the ISO string
     });
   } catch {
     return "—";
