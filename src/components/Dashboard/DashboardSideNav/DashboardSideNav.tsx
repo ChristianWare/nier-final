@@ -47,11 +47,12 @@ export default function DashboardSideNav() {
   const navigating = navigatingTo !== null && pathname !== navigatingTo;
 
   useEffect(() => {
-    if (navigatingTo !== null && pathname === navigatingTo) {
-      const t = setTimeout(() => setCollapsed(true), 0);
-      return () => clearTimeout(t);
-    }
-  }, [pathname, navigatingTo]);
+    const t = setTimeout(() => {
+      setNavigatingTo(null);
+      setCollapsed(true);
+    }, 0);
+    return () => clearTimeout(t);
+  }, [pathname]);
 
   useEffect(() => {
     if (menuModalOpen) {

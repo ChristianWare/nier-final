@@ -86,12 +86,13 @@ export default function DriverSideNav({
   const navigating = navigatingTo !== null && pathname !== navigatingTo;
 
   // Once navigation completes, collapse the menu
-  useEffect(() => {
-    if (navigatingTo !== null && pathname === navigatingTo) {
-      const t = setTimeout(() => setCollapsed(true), 0);
-      return () => clearTimeout(t);
-    }
-  }, [pathname, navigatingTo]);
+ useEffect(() => {
+   const t = setTimeout(() => {
+     setNavigatingTo(null);
+     setCollapsed(true);
+   }, 0);
+   return () => clearTimeout(t);
+ }, [pathname]);
 
   useEffect(() => {
     if (menuModalOpen) {
