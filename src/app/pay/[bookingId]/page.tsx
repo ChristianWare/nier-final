@@ -119,8 +119,8 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
   // isBalancePayment is true when there's a partial payment that isn't
   // just a deposit waiting to be completed — i.e. the deposit is already
   // paid and now there's a remaining balance to collect.
-  const isBalancePayment =
-    amountPaidCents > 0 && balanceDueCents > 0 && isDepositAlreadyPaid;
+ const isBalancePayment = amountPaidCents > 0 && balanceDueCents > 0;
+
 
   const customerName =
     booking.user?.name ?? (booking as any).guestName ?? "Guest";

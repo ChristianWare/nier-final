@@ -1082,8 +1082,8 @@ export default async function AdminBookingDetailPage({
               <div className={styles.sectionDivider} />
               <div className={styles.stopsSection}>
                 <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                  <span style={{ marginRight: "2rem" }}>\ud83d\uded1</span>Route
-                  with {stopCount} Extra Stop{stopCount > 1 ? "s" : ""}
+                  <span style={{ marginRight: "2rem" }}>🛑</span>Route with{" "}
+                  {stopCount} Extra Stop{stopCount > 1 ? "s" : ""}
                 </div>
                 <div className={styles.routeTimeline}>
                   <div className={styles.routePoint}>
@@ -1450,7 +1450,7 @@ export default async function AdminBookingDetailPage({
                 padding: "20px 0",
               }}
             >
-              <div style={{ fontSize: 32 }}>\ud83c\udfe2</div>
+              <div style={{ fontSize: 32 }}>🏢</div>{" "}
               <div className='emptyTitle'>
                 Billed to{" "}
                 {booking.corporateAccount?.name ?? "corporate account"}
@@ -1626,7 +1626,9 @@ export default async function AdminBookingDetailPage({
                   currency={booking.currency}
                   isPaid={isPaid}
                   isApproved={isApproved}
-                  amountPaidCents={amountPaidCents}
+                  amountPaidCents={
+                    isGroupBooking ? groupAmountPaidCents : amountPaidCents
+                  } // ← group-aware
                   stripePublishableKey={stripePublishableKey}
                 />
               </div>
@@ -1655,8 +1657,7 @@ export default async function AdminBookingDetailPage({
                       color: "#6b7280",
                     }}
                   >
-                    <span>\ud83d\udcb3</span>
-                    <span>No card on file</span>
+                    <span>💳</span> <span>No card on file</span>
                   </div>
                 )}
                 <AdminChargeCardOnFileButton
@@ -1680,7 +1681,9 @@ export default async function AdminBookingDetailPage({
                 <AdminCashPaymentButton
                   bookingId={booking.id}
                   amountCents={
-                    isGroupBooking ? groupTotalCents : booking.totalCents
+                    isGroupBooking
+                      ? Math.max(0, groupTotalCents - groupAmountPaidCents)
+                      : booking.totalCents
                   }
                   currency={booking.currency}
                   isPaid={isPaid}
