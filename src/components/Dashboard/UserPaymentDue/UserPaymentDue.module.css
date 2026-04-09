@@ -166,7 +166,7 @@
 }
 
 .routeIcon {
-  font-size: 1rem;
+  font-size: 1.4rem;
   opacity: 0.7;
 }
 
@@ -200,7 +200,7 @@
 
 /* Badges */
 .badge {
-  font-size: 11px;
+  font-size: 14px;
   border-radius: 999px;
   padding: 5px 10px;
   border: 1px solid rgba(0, 0, 0, 0.12);
@@ -210,6 +210,8 @@
   letter-spacing: 0.02em;
   width: fit-content;
   white-space: nowrap;
+  margin-top: 1rem;
+    display: block;
 }
 
 .badge_neutral {
@@ -235,7 +237,7 @@
 }
 
 .pill {
-  font-size: 11px;
+  font-size: 14px;
   border-radius: 999px;
   padding: 4px 8px;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -254,7 +256,7 @@
   border-radius: 999px;
   background: var(--black);
   color: var(--white);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -315,7 +317,7 @@
 /* Warning Box */
 .warningBox {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   padding: 14px 16px;
   background: rgba(245, 158, 11, 0.1);
@@ -326,12 +328,22 @@
 .warningIcon {
   font-size: 1.4rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: block;
+  background-color: #92400e;
+  padding: 1rem;
+  border-radius: 50%;
 }
 
 .warningText {
-  font-size: 1.4rem;
+  font-size: 14px;
   color: #92400e;
   line-height: 1.5;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: normal;
   margin: 0;
 }
 
@@ -359,7 +371,7 @@
 }
 
 /* Responsive */
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1068px) {
   .container {
     padding: 1.5rem;
   }
@@ -433,6 +445,24 @@
   .tdRight::before {
     display: none;
   }
+
+  .rowStretchedLink {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 5rem;
+    display: block;
+  }
+
+  .rowLink {
+    /* font-size: 1.4rem; */
+    margin-bottom: 1rem;
+  }
+
+  .cellInner {
+    gap: 2rem;
+  }
 }
 
 @media screen and (max-width: 568px) {
@@ -440,8 +470,15 @@
     padding: 1.25rem;
   }
 
+  .warningBox {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* text-align: center; */
+  }
+
   .td::before {
-    font-size: 1rem;
+    font-size: 1.4rem;
   }
 
   .rowLink {
@@ -462,7 +499,7 @@
   }
 
   .badge {
-    font-size: 10px;
+    font-size: 14px;
     padding: 4px 8px;
   }
 }

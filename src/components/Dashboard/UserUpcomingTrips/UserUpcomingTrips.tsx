@@ -110,7 +110,9 @@ export default function UserUpcomingTrips({
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>
-            <span className={styles.titleIcon}>🚗</span>
+            <span className={styles.titleIcon} style={{ marginRight: "2rem" }}>
+              🚗
+            </span>
             Upcoming Trips
           </h2>
           <Link href='/dashboard/trips' className='backBtn'>

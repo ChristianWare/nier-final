@@ -91,7 +91,7 @@ export default function UserPaymentDue({
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>
-            <span className={styles.titleIcon}>💳</span>
+            <span className={styles.titleIcon} style={{marginRight: "2rem"}}>💳</span>
             Payment Required
           </h2>
           <span className={`${styles.countBadge} ${styles.countBadgeDanger}`}>
