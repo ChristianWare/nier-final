@@ -232,9 +232,6 @@ export default function Nav({
             isOpen ? `${styles.navItems} ${styles.active}` : styles.navItems
           }
         >
-           <div className={styles.btnContainerii}>
-            <Button href='/book' text='Book your Ride' btnType='red' arrow />
-          </div>
           <div className={styles.menuImage}>
             <Image
               src={Img1}
@@ -335,8 +332,6 @@ export default function Nav({
             );
           })}
 
-         
-
           {/* Mobile only — dashboard links appear right after nav items */}
           {isAuthed && mobileDashboardLinks.length > 0 && (
             <div className={styles.mobileDashboardLinks}>
@@ -360,6 +355,10 @@ export default function Nav({
               ))}
             </div>
           )}
+
+          <div className={styles.btnContainerii}>
+            <Button href='/book' text='Book your Ride' btnType='red' arrow />
+          </div>
 
           {/* Mobile bottom actions */}
           {/* Mobile bottom actions */}
