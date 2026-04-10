@@ -17,9 +17,12 @@ const TIMEZONE_SHORT_LABELS: Record<string, string> = {
 };
 
 const SERVICE_SLUG = "airport-pickups";
-const VEHICLE_NAMES = ["WeKoPa SUV", "WeKoPa Van"];
-// WeKoPa SUV capacity = 7, Van capacity = 14
-const SUV_MAX_CAPACITY = 7;
+const VEHICLE_NAMES = [
+  "WeKoPa SUV",
+  "WeKoPa Van",
+  "WeKoPa Mesa SUV",
+  "WeKoPa Mesa Van",
+];
 
 export default async function WekoPaBookingSection() {
   // ─── Auth ────────────────────────────────────────────────────────────────
@@ -101,11 +104,13 @@ export default async function WekoPaBookingSection() {
     },
   });
 
-  const suvVehicle = vehiclesRaw.find((v) => v.capacity <= SUV_MAX_CAPACITY);
-  const vanVehicle = vehiclesRaw.find((v) => v.capacity > SUV_MAX_CAPACITY);
+  const suvVehicle = vehiclesRaw.find((v) => v.name === "WeKoPa SUV");
+  const vanVehicle = vehiclesRaw.find((v) => v.name === "WeKoPa Van");
+  const mesaSuvVehicle = vehiclesRaw.find((v) => v.name === "WeKoPa Mesa SUV");
+  const mesaVanVehicle = vehiclesRaw.find((v) => v.name === "WeKoPa Mesa Van");
 
   // ─── Fallback if misconfigured ────────────────────────────────────────────
-  if (!serviceTypeRaw || !suvVehicle || !vanVehicle) {
+  if (!serviceTypeRaw || !suvVehicle || !vanVehicle || !mesaSuvVehicle || !mesaVanVehicle) {
     return (
       <section
         id='wekopa-booking'
@@ -147,6 +152,8 @@ export default async function WekoPaBookingSection() {
         serviceType={serviceType as any}
         suvVehicle={suvVehicle as any}
         vanVehicle={vanVehicle as any}
+        mesaSuvVehicle={mesaSuvVehicle as any}
+        mesaVanVehicle={mesaVanVehicle as any}
         userPhone={userPhone}
         companyTimezone={companySettings.timezone}
         companyTimezoneLabel={companyTimezoneLabel}

@@ -35,6 +35,13 @@ const SKY_HARBOR = {
   lng: -112.0078,
 };
 
+const MESA_GATEWAY = {
+  address: "Phoenix-Mesa Gateway Airport, 6033 S Sossaman Rd, Mesa, AZ 85212",
+  placeId: "ChIJI3oBz9YFK4cRZBBCzBLqFBQ" as string | null,
+  lat: 33.3078,
+  lng: -111.6548,
+};
+
 const WEKOPA = {
   address:
     "We-Ko-Pa Golf Club, 18200 E Toh Vee Circle, Fort McDowell, AZ 85264",
@@ -43,12 +50,18 @@ const WEKOPA = {
   lng: -111.7187,
 };
 
-const ROUTE_DISTANCE_MILES = 38;
-const ROUTE_DURATION_MINUTES = 50;
+// ─── Route constants ──────────────────────────────────────────────────────────
+const SKY_HARBOR_ROUTE = { distanceMiles: 38, durationMinutes: 50 };
+const MESA_GATEWAY_ROUTE = { distanceMiles: 22, durationMinutes: 35 };
+
 const MAX_PASSENGERS_ONLINE = 14;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Direction = "to_wekopa" | "from_wekopa";
+type Direction =
+  | "to_wekopa_sky"
+  | "from_wekopa_sky"
+  | "to_wekopa_mesa"
+  | "from_wekopa_mesa";
 
 export type WekoPaVehicleDTO = {
   id: string;
@@ -103,7 +116,6 @@ type FormValues = {
   specialRequests: string;
 };
 
-/** A completed leg stored before group submission */
 type SavedLeg = {
   id: string;
   direction: Direction;
@@ -122,7 +134,6 @@ type SavedLeg = {
   flightTerminal: string | null;
 };
 
-// ─── Vehicle config calculator ────────────────────────────────────────────────
 type VehicleConfig = {
   suvs: number;
   vans: number;
@@ -134,6 +145,7 @@ type VehicleConfig = {
   isMultiVehicle: boolean;
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function calcVehicleConfig(
   passengers: number,
   suvVehicle: WekoPaVehicleDTO,
@@ -189,7 +201,35 @@ function calcVehicleConfig(
   };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+function isMesaDirection(d: Direction | "") {
+  return d === "to_wekopa_mesa" || d === "from_wekopa_mesa";
+}
+
+function isAirportPickupDirection(d: Direction | "") {
+  return d === "to_wekopa_sky" || d === "to_wekopa_mesa";
+}
+
+function getAirportLocation(d: Direction | "") {
+  return isMesaDirection(d) ? MESA_GATEWAY : SKY_HARBOR;
+}
+
+function getRoute(d: Direction | "") {
+  return isMesaDirection(d) ? MESA_GATEWAY_ROUTE : SKY_HARBOR_ROUTE;
+}
+
+function directionLabel(d: Direction) {
+  switch (d) {
+    case "to_wekopa_sky":
+      return "Sky Harbor → We-Ko-Pa";
+    case "from_wekopa_sky":
+      return "We-Ko-Pa → Sky Harbor";
+    case "to_wekopa_mesa":
+      return "Mesa Gateway → We-Ko-Pa";
+    case "from_wekopa_mesa":
+      return "We-Ko-Pa → Mesa Gateway";
+  }
+}
+
 function isValidEmail(v: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 }
@@ -212,15 +252,13 @@ function formatPhone(raw: string | null | undefined): string {
   return raw;
 }
 
-function directionLabel(d: Direction) {
-  return d === "to_wekopa" ? "Sky Harbor → We-Ko-Pa" : "We-Ko-Pa → Sky Harbor";
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function WekoPaBookingWizard({
   serviceType,
   suvVehicle,
   vanVehicle,
+  mesaSuvVehicle,
+  mesaVanVehicle,
   userPhone,
   companyTimezone,
   companyTimezoneLabel,
@@ -228,6 +266,8 @@ export default function WekoPaBookingWizard({
   serviceType: WekoPaServiceTypeDTO;
   suvVehicle: WekoPaVehicleDTO;
   vanVehicle: WekoPaVehicleDTO;
+  mesaSuvVehicle: WekoPaVehicleDTO;
+  mesaVanVehicle: WekoPaVehicleDTO;
   userPhone?: string | null;
   companyTimezone: string;
   companyTimezoneLabel: string;
@@ -247,8 +287,15 @@ export default function WekoPaBookingWizard({
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
   const phoneWasPrefilled = useRef(Boolean(userPhone?.trim()));
 
-  const suvPriceCents = suvVehicle.baseFareCents;
-  const vanPriceCents = vanVehicle.baseFareCents;
+  // ─── Dynamic vehicles and pricing based on direction ──────────────────────
+  const activeSuvVehicle = isMesaDirection(direction)
+    ? mesaSuvVehicle
+    : suvVehicle;
+  const activeVanVehicle = isMesaDirection(direction)
+    ? mesaVanVehicle
+    : vanVehicle;
+  const suvPriceCents = activeSuvVehicle.baseFareCents;
+  const vanPriceCents = activeVanVehicle.baseFareCents;
 
   const {
     register,
@@ -292,7 +339,6 @@ export default function WekoPaBookingWizard({
   const flightScheduledAtTime = watch("flightScheduledAtTime");
   const flightTerminal = watch("flightTerminal");
 
-  // ─── Mobile detection ─────────────────────────────────────────────────────
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 1068);
     check();
@@ -300,32 +346,35 @@ export default function WekoPaBookingWizard({
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  // ─── Dirty form guard ─────────────────────────────────────────────────────
   const wizardHasInput = Boolean(
     direction ||
-    pickupAtDate ||
-    pickupAtTime ||
-    passengers > 0 ||
-    savedLegs.length > 0,
+      pickupAtDate ||
+      pickupAtTime ||
+      passengers > 0 ||
+      savedLegs.length > 0,
   );
   useDirtyForm("wekopa-booking-wizard", wizardHasInput && !submitted);
 
-  // ─── Vehicle config ───────────────────────────────────────────────────────
   const vehicleConfig = useMemo(
     () =>
       passengers > 0
         ? calcVehicleConfig(
             passengers,
-            suvVehicle,
-            vanVehicle,
+            activeSuvVehicle,
+            activeVanVehicle,
             suvPriceCents,
             vanPriceCents,
           )
         : null,
-    [passengers, suvVehicle, vanVehicle, suvPriceCents, vanPriceCents],
+    [
+      passengers,
+      activeSuvVehicle,
+      activeVanVehicle,
+      suvPriceCents,
+      vanPriceCents,
+    ],
   );
 
-  // ─── Min time for today (2-hour buffer) ───────────────────────────────────
   const minTime = useMemo(() => {
     if (!pickupAtDate) return null;
     const now = new Date();
@@ -344,11 +393,10 @@ export default function WekoPaBookingWizard({
     const h = parseInt(parts.find((p) => p.type === "hour")?.value ?? "0");
     const m = parseInt(parts.find((p) => p.type === "minute")?.value ?? "0");
 
-    let totalMinutes = h * 60 + m + 360; // +6 hours
+    let totalMinutes = h * 60 + m + 360;
     const remainder = totalMinutes % 15;
-    if (remainder !== 0) totalMinutes += 15 - remainder; // round up to nearest 15
-
-    if (totalMinutes >= 24 * 60) return null; // buffer pushes past midnight
+    if (remainder !== 0) totalMinutes += 15 - remainder;
+    if (totalMinutes >= 24 * 60) return null;
 
     const finalH = Math.floor(totalMinutes / 60);
     const finalM = totalMinutes % 60;
@@ -360,18 +408,18 @@ export default function WekoPaBookingWizard({
     return pickupAtTime < minTime;
   }, [pickupAtTime, minTime]);
 
-  const isAirportPickup = direction === "to_wekopa";
-  const pickupLocation = isAirportPickup ? SKY_HARBOR : WEKOPA;
-  const dropoffLocation = isAirportPickup ? WEKOPA : SKY_HARBOR;
+  const isAirportPickup = isAirportPickupDirection(direction);
+  const airportLocation = getAirportLocation(direction);
+  const pickupLocation = isAirportPickup ? airportLocation : WEKOPA;
+  const dropoffLocation = isAirportPickup ? WEKOPA : airportLocation;
+  const route = getRoute(direction);
   const hasFlightInfo =
     flightAirline || flightNumber || flightScheduledAtDate || flightTerminal;
 
-  // ─── Multi-leg helpers ────────────────────────────────────────────────────
   const isMultiLeg = savedLegs.length > 0;
   const savedLegsTotal = savedLegs.reduce((sum, l) => sum + l.estimateCents, 0);
   const groupEstimateTotal = savedLegsTotal + (vehicleConfig?.totalCents ?? 0);
 
-  // ─── Register fields ──────────────────────────────────────────────────────
   useEffect(() => {
     register("pickupAtDate", { required: "Please choose a pickup date." });
     register("pickupAtTime", { required: "Please choose a pickup time." });
@@ -405,7 +453,6 @@ export default function WekoPaBookingWizard({
     });
   }, [register, isAuthed]);
 
-  // ─── Scroll to top on step change ─────────────────────────────────────────
   const prevStepRef = useRef<1 | 2 | 3 | null>(null);
 
   useEffect(() => {
@@ -422,7 +469,6 @@ export default function WekoPaBookingWizard({
     }
   }, [step]);
 
-  // ─── Navigation ───────────────────────────────────────────────────────────
   async function goStep2() {
     if (!direction) {
       toast.error("Please select a direction.");
@@ -446,18 +492,12 @@ export default function WekoPaBookingWizard({
     setStep(2);
   }
 
-  function goStep3() {
-    setStep(3);
-  }
-
-  // ─── Build flight ISO ─────────────────────────────────────────────────────
   function buildFlightIso(date: string, time: string): string | null {
     if (date && time) return localToUtcIso(date, time, companyTimezone);
     if (date) return localToUtcIso(date, "00:00", companyTimezone);
     return null;
   }
 
-  // ─── Add another ride ─────────────────────────────────────────────────────
   async function addAnotherRide() {
     if (!direction) {
       toast.error("Please select a direction.");
@@ -533,7 +573,6 @@ export default function WekoPaBookingWizard({
     setStep(1);
   }
 
-  // ─── Remove leg ───────────────────────────────────────────────────────────
   function confirmRemoveLeg() {
     if (!removeLegId) return;
     setSavedLegs((prev) => prev.filter((l) => l.id !== removeLegId));
@@ -541,7 +580,6 @@ export default function WekoPaBookingWizard({
     toast.success("Ride removed from trip.");
   }
 
-  // ─── Submit ───────────────────────────────────────────────────────────────
   async function handleSubmit() {
     if (submitting || submitted) return;
 
@@ -577,13 +615,9 @@ export default function WekoPaBookingWizard({
       .filter(Boolean)
       .join("\n\n");
 
-    const currentLegPickup = isAirportPickup ? SKY_HARBOR : WEKOPA;
-    const currentLegDropoff = isAirportPickup ? WEKOPA : SKY_HARBOR;
-
     setSubmitting(true);
 
     try {
-      // ── Multi-leg: submit as trip group ────────────────────────────────
       if (savedLegs.length > 0) {
         const currentLeg = {
           serviceTypeId: serviceType.id,
@@ -591,17 +625,17 @@ export default function WekoPaBookingWizard({
           pickupAt: pickupAtIso,
           passengers: v.passengers,
           luggage: v.luggage || 0,
-          pickupAddress: currentLegPickup.address,
-          pickupPlaceId: currentLegPickup.placeId,
-          pickupLat: currentLegPickup.lat,
-          pickupLng: currentLegPickup.lng,
-          dropoffAddress: currentLegDropoff.address,
-          dropoffPlaceId: currentLegDropoff.placeId,
-          dropoffLat: currentLegDropoff.lat,
-          dropoffLng: currentLegDropoff.lng,
+          pickupAddress: pickupLocation.address,
+          pickupPlaceId: pickupLocation.placeId,
+          pickupLat: pickupLocation.lat,
+          pickupLng: pickupLocation.lng,
+          dropoffAddress: dropoffLocation.address,
+          dropoffPlaceId: dropoffLocation.placeId,
+          dropoffLat: dropoffLocation.lat,
+          dropoffLng: dropoffLocation.lng,
           stops: [],
-          distanceMiles: ROUTE_DISTANCE_MILES,
-          durationMinutes: ROUTE_DURATION_MINUTES,
+          distanceMiles: route.distanceMiles,
+          durationMinutes: route.durationMinutes,
           hoursRequested: null,
           specialRequests: combinedRequests || null,
           flightAirline: v.flightAirline || null,
@@ -614,9 +648,11 @@ export default function WekoPaBookingWizard({
 
         const allLegs = [
           ...savedLegs.map((sl) => {
-            const slIsAirportPickup = sl.direction === "to_wekopa";
-            const slPickup = slIsAirportPickup ? SKY_HARBOR : WEKOPA;
-            const slDropoff = slIsAirportPickup ? WEKOPA : SKY_HARBOR;
+            const slIsAirportPickup = isAirportPickupDirection(sl.direction);
+            const slAirport = getAirportLocation(sl.direction);
+            const slPickup = slIsAirportPickup ? slAirport : WEKOPA;
+            const slDropoff = slIsAirportPickup ? WEKOPA : slAirport;
+            const slRoute = getRoute(sl.direction);
             return {
               serviceTypeId: serviceType.id,
               vehicleId: sl.vehicleId,
@@ -632,8 +668,8 @@ export default function WekoPaBookingWizard({
               dropoffLat: slDropoff.lat,
               dropoffLng: slDropoff.lng,
               stops: [],
-              distanceMiles: ROUTE_DISTANCE_MILES,
-              durationMinutes: ROUTE_DURATION_MINUTES,
+              distanceMiles: slRoute.distanceMiles,
+              durationMinutes: slRoute.durationMinutes,
               hoursRequested: null,
               specialRequests: sl.specialRequests,
               flightAirline: sl.flightAirline,
@@ -675,25 +711,24 @@ export default function WekoPaBookingWizard({
         return;
       }
 
-      // ── Single ride ────────────────────────────────────────────────────
       const res = (await createBookingRequest({
         serviceTypeId: serviceType.id,
         vehicleId: vehicleConfig.primaryVehicleId,
         pickupAt: pickupAtIso,
         passengers: v.passengers,
         luggage: v.luggage || 0,
-        pickupAddress: currentLegPickup.address,
-        pickupPlaceId: currentLegPickup.placeId,
-        pickupLat: currentLegPickup.lat,
-        pickupLng: currentLegPickup.lng,
-        dropoffAddress: currentLegDropoff.address,
-        dropoffPlaceId: currentLegDropoff.placeId,
-        dropoffLat: currentLegDropoff.lat,
-        dropoffLng: currentLegDropoff.lng,
+        pickupAddress: pickupLocation.address,
+        pickupPlaceId: pickupLocation.placeId,
+        pickupLat: pickupLocation.lat,
+        pickupLng: pickupLocation.lng,
+        dropoffAddress: dropoffLocation.address,
+        dropoffPlaceId: dropoffLocation.placeId,
+        dropoffLat: dropoffLocation.lat,
+        dropoffLng: dropoffLocation.lng,
         contactPhone: isAuthed ? v.contactPhone?.trim() || null : null,
         stops: [],
-        distanceMiles: ROUTE_DISTANCE_MILES,
-        durationMinutes: ROUTE_DURATION_MINUTES,
+        distanceMiles: route.distanceMiles,
+        durationMinutes: route.durationMinutes,
         hoursRequested: null,
         specialRequests: combinedRequests || null,
         flightAirline: v.flightAirline || null,
@@ -730,18 +765,13 @@ export default function WekoPaBookingWizard({
     }
   }
 
-  // ─── Label helper ─────────────────────────────────────────────────────────
   function labelCx(hasError: boolean) {
     return `cardTitle h5${hasError ? " redBorder" : ""}`;
   }
 
-  // ─── Checklist derived values ─────────────────────────────────────────────
-  const currentDirectionLabel =
-    direction === "to_wekopa"
-      ? "Sky Harbor → We-Ko-Pa"
-      : direction === "from_wekopa"
-        ? "We-Ko-Pa → Sky Harbor"
-        : null;
+  const currentDirectionLabel = direction
+    ? directionLabel(direction as Direction)
+    : null;
 
   const checklistDateTimeLabel = useMemo(() => {
     if (!pickupAtDate || !pickupAtTime) return null;
@@ -770,7 +800,6 @@ export default function WekoPaBookingWizard({
     return guestName.trim() || null;
   }, [isAuthed, contactPhone, guestName]);
 
-  // ─── Checklist items ──────────────────────────────────────────────────────
   const checklistItems = useMemo<ChecklistItem[]>(
     () => [
       {
@@ -875,19 +904,16 @@ export default function WekoPaBookingWizard({
     />
   );
 
-  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <section id='wekopa-booking' className={styles.container}>
       <LayoutWrapper>
         <div ref={wizardTopRef} className={styles.wizardTop} />
 
         <div className={styles.content}>
-          {/* ── LEFT: sticky checklist (desktop only) ─────────────────── */}
           {!isMobile && (
             <div className={styles.checklistContainer}>{checklistNode}</div>
           )}
 
-          {/* ── RIGHT: wizard steps ───────────────────────────────────── */}
           <div className={styles.right}>
             {isMobile && (
               <div className={styles.checklistMobile}>
@@ -896,9 +922,7 @@ export default function WekoPaBookingWizard({
             )}
 
             <div className={styles.wizard}>
-              {/* ───────────────────────────────────────────────────────
-                  STEP 1 — Trip Details
-              ─────────────────────────────────────────────────────── */}
+              {/* ── STEP 1 ─────────────────────────────────────────── */}
               {step === 1 && (
                 <div className={`${styles.contentBox} ${styles.stepPane}`}>
                   <h2 className='underline'>1. Trip details</h2>
@@ -908,7 +932,6 @@ export default function WekoPaBookingWizard({
                       : "Date, time, and party size"}
                   </p>
 
-                  {/* Saved legs banner */}
                   {isMultiLeg && (
                     <div className={styles.savedLegsBanner}>
                       <strong>
@@ -935,24 +958,37 @@ export default function WekoPaBookingWizard({
                       className='selectBorder emptySmall'
                     >
                       <option value=''>Select a direction...</option>
-                      <option value='to_wekopa'>
-                        Sky Harbor Airport → We-Ko-Pa Golf Club
-                      </option>
-                      <option value='from_wekopa'>
-                        We-Ko-Pa Golf Club → Sky Harbor Airport
-                      </option>
+                      <optgroup label='Phoenix Sky Harbor Airport'>
+                        <option value='to_wekopa_sky'>
+                          Sky Harbor → We-Ko-Pa Golf Club
+                        </option>
+                        <option value='from_wekopa_sky'>
+                          We-Ko-Pa Golf Club → Sky Harbor
+                        </option>
+                      </optgroup>
+                      <optgroup label='Mesa Gateway Airport'>
+                        <option value='to_wekopa_mesa'>
+                          Mesa Gateway → We-Ko-Pa Golf Club
+                        </option>
+                        <option value='from_wekopa_mesa'>
+                          We-Ko-Pa Golf Club → Mesa Gateway
+                        </option>
+                      </optgroup>
                     </select>
                     {direction && (
                       <p className='miniNote'>
-                        {direction === "to_wekopa"
-                          ? "Pickup at Sky Harbor — drop-off at the club."
-                          : "Pickup at the club — drop-off at Sky Harbor."}
+                        {isAirportPickup
+                          ? `Pickup at ${isMesaDirection(direction) ? "Mesa Gateway" : "Sky Harbor"} — drop-off at the club.`
+                          : `Pickup at the club — drop-off at ${isMesaDirection(direction) ? "Mesa Gateway" : "Sky Harbor"}.`}
                       </p>
                     )}
                   </div>
 
                   {/* Date & time */}
-                  <div id='wekopa-field-datetime' className={styles.sectionBox}>
+                  <div
+                    id='wekopa-field-datetime'
+                    className={styles.sectionBox}
+                  >
                     <label
                       className={labelCx(
                         Boolean(errors.pickupAtDate || errors.pickupAtTime),
@@ -1112,9 +1148,7 @@ export default function WekoPaBookingWizard({
                 </div>
               )}
 
-              {/* ───────────────────────────────────────────────────────
-                  STEP 2 — Vehicle & Flight
-              ─────────────────────────────────────────────────────── */}
+              {/* ── STEP 2 ─────────────────────────────────────────── */}
               {step === 2 && vehicleConfig && (
                 <div className={`${styles.contentBox} ${styles.stepPane}`}>
                   <h2 className='underline'>2. Vehicle &amp; Flight</h2>
@@ -1122,12 +1156,15 @@ export default function WekoPaBookingWizard({
                     Confirm your vehicle and add optional flight details
                   </p>
 
-                  {/* Vehicle confirmation card */}
-                  <div id='wekopa-field-vehicle' className={styles.vehicleCard}>
+                  <div
+                    id='wekopa-field-vehicle'
+                    className={styles.vehicleCard}
+                  >
                     <div className={styles.vehicleCardTop}>
                       <div>
                         <span className={styles.vehicleCardEyebrow}>
-                          Your vehicle{vehicleConfig.isMultiVehicle ? "s" : ""}
+                          Your vehicle
+                          {vehicleConfig.isMultiVehicle ? "s" : ""}
                         </span>
                         <h4 className={styles.vehicleCardName}>
                           {vehicleConfig.label}
@@ -1159,7 +1196,8 @@ export default function WekoPaBookingWizard({
                           {vehicleConfig.vans > 0 && (
                             <div className={styles.breakdownRow}>
                               <span>
-                                {vehicleConfig.vans} × {vanVehicle.name}
+                                {vehicleConfig.vans} ×{" "}
+                                {activeVanVehicle.name}
                               </span>
                               <span>
                                 $
@@ -1173,7 +1211,8 @@ export default function WekoPaBookingWizard({
                           {vehicleConfig.suvs > 0 && (
                             <div className={styles.breakdownRow}>
                               <span>
-                                {vehicleConfig.suvs} × {suvVehicle.name}
+                                {vehicleConfig.suvs} ×{" "}
+                                {activeSuvVehicle.name}
                               </span>
                               <span>
                                 $
@@ -1209,7 +1248,6 @@ export default function WekoPaBookingWizard({
                     </button>
                   </div>
 
-                  {/* Flight information */}
                   <div className={styles.flightInfoSection}>
                     <div
                       className={styles.flightInfoFields}
@@ -1341,9 +1379,7 @@ export default function WekoPaBookingWizard({
                 </div>
               )}
 
-              {/* ───────────────────────────────────────────────────────
-                  STEP 3 — Contact & Confirm
-              ─────────────────────────────────────────────────────── */}
+              {/* ── STEP 3 ─────────────────────────────────────────── */}
               {step === 3 && (
                 <div
                   className={styles.stepPane}
@@ -1352,14 +1388,13 @@ export default function WekoPaBookingWizard({
                   <h2 className='underline'>3. Confirm</h2>
                   <p className='subheading'>Review your trip and submit</p>
 
-                  {/* Booking summary */}
                   <div className='box'>
                     <div className={styles.summaryRow}>
                       <span className={styles.summaryKey}>Route</span>
                       <span className={styles.summaryVal}>
-                        {direction === "to_wekopa"
-                          ? "Sky Harbor → We-Ko-Pa"
-                          : "We-Ko-Pa → Sky Harbor"}
+                        {direction
+                          ? directionLabel(direction as Direction)
+                          : "—"}
                       </span>
                     </div>
                     <div className={styles.summaryRow}>
@@ -1482,7 +1517,6 @@ export default function WekoPaBookingWizard({
                     </p>
                   </div>
 
-                  {/* Multi-leg trip summary */}
                   {savedLegs.length > 0 && (
                     <div
                       className='box'
@@ -1501,7 +1535,8 @@ export default function WekoPaBookingWizard({
                             <div
                               style={{ fontWeight: 600, fontSize: "1.4rem" }}
                             >
-                              Ride {idx + 1}: {directionLabel(leg.direction)}
+                              Ride {idx + 1}:{" "}
+                              {directionLabel(leg.direction)}
                             </div>
                             <div
                               style={{
@@ -1531,10 +1566,11 @@ export default function WekoPaBookingWizard({
                           </div>
                         </div>
                       ))}
-                      {/* Current ride row */}
                       <div className={styles.savedLegRow}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 600, fontSize: "1.4rem" }}>
+                          <div
+                            style={{ fontWeight: 600, fontSize: "1.4rem" }}
+                          >
                             Ride {savedLegs.length + 1}:{" "}
                             {direction
                               ? directionLabel(direction as Direction)
@@ -1557,22 +1593,24 @@ export default function WekoPaBookingWizard({
                             : "—"}
                         </span>
                       </div>
-                      {/* Trip total */}
                       <div className={styles.tripTotal}>
                         <span>Trip total estimate</span>
-                        <span>${(groupEstimateTotal / 100).toFixed(0)}</span>
+                        <span>
+                          ${(groupEstimateTotal / 100).toFixed(0)}
+                        </span>
                       </div>
                     </div>
                   )}
 
-                  {/* Contact fields */}
                   {!isAuthed ? (
                     <div
                       id='wekopa-field-contact'
                       className={styles.sectionBox}
                     >
                       <div style={{ display: "grid", gap: 10 }}>
-                        <label className={labelCx(Boolean(errors.guestName))}>
+                        <label
+                          className={labelCx(Boolean(errors.guestName))}
+                        >
                           Full name
                         </label>
                         <input
@@ -1665,7 +1703,9 @@ export default function WekoPaBookingWizard({
                           Your driver will use this number to contact you.
                           {phoneWasPrefilled.current &&
                             contactPhone?.trim() && (
-                              <span style={{ marginLeft: 6, fontWeight: 600 }}>
+                              <span
+                                style={{ marginLeft: 6, fontWeight: 600 }}
+                              >
                                 (already on file)
                               </span>
                             )}
@@ -1674,7 +1714,6 @@ export default function WekoPaBookingWizard({
                     </div>
                   )}
 
-                  {/* Special requests */}
                   <div style={{ display: "grid", gap: 8 }}>
                     <div className='cardTitle h5'>
                       Special requests{" "}
@@ -1695,7 +1734,6 @@ export default function WekoPaBookingWizard({
                     />
                   </div>
 
-                  {/* Add another ride */}
                   <Button
                     type='button'
                     text='Add another ride to this trip'
@@ -1708,8 +1746,8 @@ export default function WekoPaBookingWizard({
                       className='miniNote'
                       style={{ textAlign: "center", marginTop: -4 }}
                     >
-                      Need rides on multiple days? Add them all here and submit
-                      as one trip.
+                      Need rides on multiple days? Add them all here and
+                      submit as one trip.
                     </div>
                   )}
 
@@ -1742,8 +1780,10 @@ export default function WekoPaBookingWizard({
         </div>
       </LayoutWrapper>
 
-      {/* Remove ride confirmation modal */}
-      <Modal isOpen={removeLegId !== null} onClose={() => setRemoveLegId(null)}>
+      <Modal
+        isOpen={removeLegId !== null}
+        onClose={() => setRemoveLegId(null)}
+      >
         <div className={styles.modalContent}>
           <div className='cardTitle h5'>Remove this ride?</div>
           <p className='paragraph'>

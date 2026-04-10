@@ -4,19 +4,17 @@ import styles from "./WekoPaPricing.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
-import { useState } from "react";
-
-type Direction = "to" | "from";
 
 const plans = [
   {
-    id: "suv",
+    id: "skyharbor-suv",
+    airport: "Phoenix Sky Harbor",
     name: "Executive SUV",
     tagline: "Perfect for small groups and solo travelers.",
     price: 90,
     priceDetails: "$75 base fare + $15 gratuity",
-    popular: false,
-    passengers: "Up to 7 passengers",
+    theme: "dark1",
+    popular: true,
     features: [
       "Up to 7 passengers",
       "Club & luggage storage included",
@@ -26,16 +24,16 @@ const plans = [
       "Flat rate — fare and gratuity included",
       "Max 4 golfers with clubs",
     ],
-    notIncluded: [],
   },
   {
-    id: "van",
+    id: "skyharbor-van",
+    airport: "Phoenix Sky Harbor",
     name: "14-Passenger Van",
     tagline: "Ideal for golf groups, corporate outings, and full parties.",
     price: 162,
     priceDetails: "$135 base fare + $27 gratuity",
+    theme: "dark2",
     popular: true,
-    passengers: "Up to 14 passengers",
     features: [
       "Up to 14 passengers",
       "Club & luggage storage included",
@@ -45,24 +43,48 @@ const plans = [
       "Flat rate — fare and gratuity included",
       "Max 10 golfers with clubs",
     ],
-    notIncluded: [],
+  },
+  {
+    id: "mesa-suv",
+    airport: "Mesa Gateway",
+    name: "Executive SUV",
+    tagline: "Perfect for small groups and solo travelers.",
+    price: 120,
+    priceDetails: "$100 base fare + $20 gratuity",
+    theme: "light1",
+    popular: true,
+    features: [
+      "Up to 7 passengers",
+      "Club & luggage storage included",
+      "Real-time flight tracking",
+      "Complimentary bottled water",
+      "Climate controlled cabin",
+      "Flat rate — fare and gratuity included",
+      "Max 4 golfers with clubs",
+    ],
+  },
+  {
+    id: "mesa-van",
+    airport: "Mesa Gateway",
+    name: "14-Passenger Van",
+    tagline: "Ideal for golf groups, corporate outings, and full parties.",
+    price: 195,
+    priceDetails: "$165 base fare + $30 gratuity",
+    theme: "light2",
+    popular: true,
+    features: [
+      "Up to 14 passengers",
+      "Club & luggage storage included",
+      "Real-time flight tracking",
+      "Complimentary bottled water",
+      "Climate controlled cabin",
+      "Flat rate — fare and gratuity included",
+      "Max 10 golfers with clubs",
+    ],
   },
 ];
 
-const directionLabels: Record<Direction, { label: string; sub: string }> = {
-  to: {
-    label: "Sky Harbor → We-Ko-Pa",
-    sub: "Airport pickup to the club",
-  },
-  from: {
-    label: "We-Ko-Pa → Sky Harbor",
-    sub: "Post-round drop to the airport",
-  },
-};
-
 export default function WekoPaPricing() {
-  const [direction, setDirection] = useState<Direction>("to");
-
   function scrollToBooking(e: React.MouseEvent) {
     e.preventDefault();
     const el = document.getElementById("booking");
@@ -83,40 +105,30 @@ export default function WekoPaPricing() {
           </h2>
           <p className={styles.subCopy}>
             One fixed price per vehicle. No surge fees, no hidden charges — just
-            the rate you see.
-          </p>
-
-          {/* Direction Toggle */}
-          <div className={styles.toggleWrap}>
-            <button
-              className={`${styles.toggleBtn} ${direction === "to" ? styles.toggleActive : ""}`}
-              onClick={() => setDirection("to")}
-            >
-              Sky Harbor → We-Ko-Pa
-            </button>
-            <button
-              className={`${styles.toggleBtn} ${direction === "from" ? styles.toggleActive : ""}`}
-              onClick={() => setDirection("from")}
-            >
-              We-Ko-Pa → Sky Harbor
-            </button>
-          </div>
-
-          <p className={styles.directionSub}>
-            {directionLabels[direction].sub}
+            the rate you see. Available from both Phoenix Sky Harbor and Mesa
+            Gateway airports.
           </p>
         </div>
-
         <div className={styles.cards}>
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className={`${styles.card} ${plan.popular ? styles.cardPopular : styles.cardBase}`}
+              className={`${styles.card} ${styles[plan.theme]}`}
             >
               {plan.popular && (
-                <span className={styles.popularBadge}>Most Popular</span>
+                <span className={styles.popularBadge}>{plan.airport}</span>
               )}
-
+              <div className={styles.airportTag}>
+                <SectionHeading
+                  text={plan.airport}
+                  dot
+                  color={
+                    plan.theme === "dark1" || plan.theme === "dark2"
+                      ? "cream"
+                      : "black"
+                  }
+                />
+              </div>
               <div className={styles.cardTop}>
                 <h3 className={styles.planName}>{plan.name}</h3>
                 <p className={styles.planTagline}>{plan.tagline}</p>
@@ -125,26 +137,27 @@ export default function WekoPaPricing() {
                   <span className={styles.priceValue}>{plan.price}</span>
                   <span className={styles.priceUnit}>/ one way</span>
                 </div>
-                <hr />
+                <hr className={styles.dividerLine} />
                 <p className={`${styles.priceDetails} badge badge_neutral`}>
                   ({plan.priceDetails})
                 </p>
               </div>
-
               <div className={styles.cardCta}>
                 <Button
                   href='#booking'
                   text='Book This Vehicle'
-                  btnType={plan.popular ? "underlinedWhite" : "black"}
+                  btnType={
+                    plan.theme === "dark1" || plan.theme === "dark2"
+                      ? "underlinedWhite"
+                      : "black"
+                  }
                   arrow
                   onClick={
                     scrollToBooking as React.MouseEventHandler<HTMLButtonElement>
                   }
                 />
               </div>
-
               <div className={styles.divider} />
-
               <ul className={styles.featureList}>
                 {plan.features.map((f) => (
                   <li key={f} className={styles.featureItem}>
@@ -156,14 +169,6 @@ export default function WekoPaPricing() {
             </div>
           ))}
         </div>
-
-        {/* <p className={styles.footnote}>
-          Prices are per vehicle, one way. Both directions available at the same
-          rate. Need a round trip?{" "}
-          <a href='/book' className={styles.footnoteLink}>
-            Book both legs together ↗
-          </a>
-        </p> */}
       </LayoutWrapper>
     </section>
   );

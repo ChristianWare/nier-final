@@ -1,8 +1,14 @@
 .container {
   background-color: var(--cream);
   padding: 10rem 0;
-      background-image: repeating-linear-gradient(to right, var(--stroke), var(--stroke) 1px, transparent 1px, transparent);
-    background-size: 500px 500px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--stroke),
+    var(--stroke) 1px,
+    transparent 1px,
+    transparent
+  );
+  background-size: 500px 500px;
 }
 
 /* ── TOP ── */
@@ -12,7 +18,7 @@
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
-  margin-bottom: 5rem;
+  margin-bottom: 6rem;
   text-align: center;
 }
 
@@ -22,73 +28,198 @@
 
 .subCopy {
   color: var(--paragraph);
-  max-width: 480px;
+  max-width: 520px;
   line-height: 1.6;
 }
 
-/* ── DIRECTION TOGGLE ── */
-.toggleWrap {
+/* ── AIRPORT GROUP ── */
+.airportGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.airportGroup:last-child {
+  margin-bottom: 0;
+}
+
+.airportLabel {
   display: flex;
   align-items: center;
-  background-color: var(--white);
-  border: 1px solid var(--stroke);
-  border-radius: 100px;
-  padding: 5px;
-  gap: 4px;
-  margin-top: 1rem;
-}
-
-.toggleBtn {
-  font-size: 1.5rem;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-  padding: 1rem 2.2rem;
-  border-radius: 100px;
-  border: none;
-  cursor: pointer;
-  background: transparent;
-  color: var(--paragraph);
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.toggleActive {
-  background-color: var(--black);
-  color: var(--cream);
-}
-
-.directionSub {
+  gap: 1rem;
   font-size: 1.4rem;
-  color: var(--paragraph);
-  letter-spacing: -0.2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--black);
+}
+
+.airportDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  flex-shrink: 0;
 }
 
 /* ── CARDS ── */
 .cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 2.5rem;
-  max-width: 960px;
-  margin: 0 auto;
+}
+
+@media screen and (max-width: 1268px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .card {
   border-radius: 10px;
   padding: 4rem;
+  padding-top: 6rem;
   display: flex;
   flex-direction: column;
   gap: 2.5rem;
   position: relative;
 }
 
-.cardBase {
+/* Theme: --black */
+.dark1 {
+  background-color: var(--black);
+  border: 1px solid var(--black);
+}
+
+.dark1 .planName,
+.dark1 .priceDollar,
+.dark1 .priceValue {
+  color: var(--white);
+}
+
+.dark1 .planTagline,
+.dark1 .priceUnit {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dark1 .featureStar {
+  color: var(--accent);
+}
+
+.dark1 .featureText {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.dark1 .divider {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark1 .dividerLine {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.light1 .planTagline {
+  color: var(--black) !important;
+}
+
+/* Theme: --black400 */
+.dark2 {
+  background-color: var(--black400);
+  border: 1px solid var(--black400);
+}
+
+.dark2 .planName,
+.dark2 .priceDollar,
+.dark2 .priceValue {
+  color: var(--white);
+}
+
+.dark2 .planTagline,
+.dark2 .priceUnit {
+  color: rgba(255, 255, 255, 1);
+}
+
+.dark2 .featureStar {
+  color: var(--accent);
+}
+
+.dark2 .featureText {
+  color: rgba(255, 255, 255, 1);
+}
+
+.dark2 .divider {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark2 .dividerLine {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Theme: --black300 */
+.light1 {
+  background-color: var(--black300);
+  border: 1px solid var(--black300);
+}
+
+.light1 .planName,
+.light1 .priceDollar,
+.light1 .priceValue {
+  color: var(--black);
+}
+
+.light1 .planTagline,
+.light1 .priceUnit {
+  color: var(--black400);
+}
+
+.light1 .featureStar {
+  color: var(--black);
+}
+
+.light1 .featureText {
+  color: var(--black);
+}
+
+.light1 .divider {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.light1 .dividerLine {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Theme: --white */
+.light2 {
   background-color: var(--white);
   border: 1px solid var(--stroke);
 }
 
-.cardPopular {
-  background-color: var(--black);
-  border: 1px solid var(--black);
+.light2 .planName,
+.light2 .priceDollar,
+.light2 .priceValue {
+  color: var(--black);
+}
+
+.light2 .planTagline,
+.light2 .priceUnit {
+  color: var(--text);
+}
+
+.light2 .featureStar {
+  color: var(--black);
+}
+
+.light2 .featureText {
+  color: var(--paragraph);
+}
+
+.light2 .divider {
+  background-color: var(--stroke);
+}
+
+.light2 .dividerLine {
+  border-color: var(--stroke);
 }
 
 /* ── POPULAR BADGE ── */
@@ -98,11 +229,11 @@
   right: 3rem;
   background-color: var(--accent);
   color: var(--cream);
-  font-size: 1.2rem;
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  padding: 0.5rem 1.4rem;
+  padding: 1rem 1.4rem;
   border-radius: 0 0 8px 8px;
 }
 
@@ -115,31 +246,15 @@
 
 .planName {
   font-size: 2.8rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -1px;
   line-height: 1.1;
   text-transform: uppercase;
 }
 
-.cardBase .planName {
-  color: var(--black);
-}
-
-.cardPopular .planName {
-  color: var(--cream);
-}
-
 .planTagline {
   font-size: 1.5rem;
   line-height: 1.5;
-}
-
-.cardBase .planTagline {
-  color: var(--paragraph);
-}
-
-.cardPopular .planTagline {
-  color: rgba(255, 255, 255, 0.6);
 }
 
 .priceRow {
@@ -156,27 +271,10 @@
   line-height: 1;
 }
 
-.cardBase .priceDollar {
-  color: var(--black);
-}
-
-.cardPopular .priceDollar {
-  color: var(--cream);
-}
-
 .priceValue {
   font-size: 7rem;
-  /* font-weight: 900; */
   letter-spacing: -3px;
   line-height: 1;
-}
-
-.cardBase .priceValue {
-  color: var(--black);
-}
-
-.cardPopular .priceValue {
-  color: var(--cream);
 }
 
 .priceUnit {
@@ -185,12 +283,8 @@
   margin-left: 0.5rem;
 }
 
-.cardBase .priceUnit {
-  color: var(--paragraph);
-}
-
-.cardPopular .priceUnit {
-  color: rgba(255, 255, 255, 0.5);
+.priceDetails {
+  font-size: 1.3rem !important;
 }
 
 /* ── CTA ── */
@@ -203,14 +297,6 @@
 .divider {
   width: 100%;
   height: 1px;
-}
-
-.cardBase .divider {
-  background-color: var(--stroke);
-}
-
-.cardPopular .divider {
-  background-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ── FEATURE LIST ── */
@@ -235,78 +321,28 @@
   margin-top: 0.4rem;
 }
 
-.cardBase .featureStar {
-  color: var(--black);
-}
-
-.cardPopular .featureStar {
-  color: var(--accent);
-}
-
 .featureText {
   font-size: 1.5rem;
   line-height: 1.4;
 }
 
-.cardBase .featureText {
-  color: var(--black);
-}
-
-.cardPopular .featureText {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-/* ── FOOTNOTE ── */
-.footnote {
-  text-align: center;
-  font-size: 1.4rem;
-  color: var(--paragraph);
-  margin-top: 3rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.6;
-}
-
-.footnoteLink {
-  color: var(--black);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
 /* ── RESPONSIVE ── */
-@media screen and (max-width: 968px) {
+@media screen and (max-width: 768px) {
   .cards {
     grid-template-columns: 1fr;
     max-width: 560px;
-  }
-
-  .toggleBtn {
-    font-size: 1.3rem;
-    padding: 0.9rem 1.6rem;
+    margin: 0 auto;
   }
 }
 
-@media screen and (max-width: 568px) {
+@media screen and (max-width: 768px) {
   .card {
     padding: 3rem 2.5rem;
+    padding-top: 7rem;
   }
 
   .priceValue {
     font-size: 5.5rem;
-  }
-
-  .toggleWrap {
-    flex-direction: column;
-    border-radius: 12px;
-    width: 100%;
-  }
-
-  .toggleBtn {
-    width: 100%;
-    text-align: center;
-    border-radius: 8px;
   }
 }
 
@@ -322,8 +358,28 @@
   }
 }
 
-@media screen and (max-width: 568px) {
+@media screen and (max-width: 768px) {
   .container {
     background-size: 75px 75px;
   }
+}
+
+.airportTag {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.dark1 .airportTag,
+.dark2 .airportTag {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.light1 .airportTag,
+.light2 .airportTag {
+  color: var(--paragraph);
 }
