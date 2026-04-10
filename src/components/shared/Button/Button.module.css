@@ -168,9 +168,10 @@
   background-color: transparent;
   color: var(--black);
   font-size: 2rem;
-  border-bottom: 3px solid var(--black);
+  border-bottom: 1px solid var(--black);
   border-radius: 0px;
   padding: 5px 0px;
+  padding-bottom: 10px;
   justify-content: space-between;
 }
 

@@ -21,13 +21,20 @@ export interface NavProps {
   background?: "white" | "cream" | "accent";
 }
 
-type AppRole = "USER" | "ADMIN" | "DRIVER";
+type AppRole = "USER" | "ADMIN" | "DRIVER" | "CORPORATE";
 
 function getRoles(session: any): AppRole[] {
   const roles = (session?.user as any)?.roles;
   if (Array.isArray(roles) && roles.length > 0) return roles as AppRole[];
   return session?.user ? (["USER"] as AppRole[]) : [];
 }
+
+const ROLE_DASHBOARD: Record<AppRole, { label: string; href: string }> = {
+  ADMIN: { label: "Admin Dashboard", href: "/admin" },
+  DRIVER: { label: "Driver Dashboard", href: "/driver-dashboard" },
+  CORPORATE: { label: "Corporate Dashboard", href: "/corporate" },
+  USER: { label: "My Dashboard", href: "/dashboard" },
+};
 
 export default function Nav({
   color = "",
@@ -42,15 +49,25 @@ export default function Nav({
   const fullName = (session?.user?.name ?? "").trim();
   const firstName = fullName.split(/\s+/)[0] || "there";
 
-  const accountHref = !isAuthed
+  // For desktop — primary account link goes to highest-role dashboard
+  const primaryHref = !isAuthed
     ? "/login"
     : roles.includes("ADMIN")
       ? "/admin"
       : roles.includes("DRIVER")
         ? "/driver-dashboard"
-        : "/dashboard";
+        : roles.includes("CORPORATE")
+          ? "/corporate"
+          : "/dashboard";
 
   const accountText = !isAuthed ? "Login" : `Hello, ${firstName} (Account)`;
+
+  // For mobile — build a button for each role the user has
+  const mobileDashboardLinks: { label: string; href: string }[] = isAuthed
+    ? (["USER", "ADMIN", "DRIVER", "CORPORATE"] as AppRole[])
+        .filter((role) => roles.includes(role))
+        .map((role) => ROLE_DASHBOARD[role])
+    : [];
 
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -60,7 +77,6 @@ export default function Nav({
   const navRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
 
-  // Track whether we're at the mobile breakpoint
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 1368);
     check();
@@ -88,7 +104,6 @@ export default function Nav({
     toggleMenu();
   };
 
-  // Desktop only — dropdown hover handlers
   const handleServicesMouseEnter = () => {
     if (isMobile) return;
     if (servicesTimeoutRef.current) clearTimeout(servicesTimeoutRef.current);
@@ -159,7 +174,7 @@ export default function Nav({
     { text: "Corporate", href: "/corporate-accounts" },
     { text: "Wekopa", href: "/wekopa" },
     { text: "Charter", href: "/charter-bus-rental-phoenix" },
-    { text: "Contact", href: "/contact" },
+    { text: "Contact", href: "/contact", isLast: true },
   ];
 
   const shouldBlend = !scrolled && !isOpen && !background;
@@ -185,9 +200,12 @@ export default function Nav({
     }
   }, [pathname, status, update]);
 
-  const accountActive = ["/dashboard", "/admin", "/driver-dashboard"].some(
-    (base) => pathname === base || pathname.startsWith(`${base}/`),
-  );
+  const accountActive = [
+    "/dashboard",
+    "/admin",
+    "/driver-dashboard",
+    "/corporate",
+  ].some((base) => pathname === base || pathname.startsWith(`${base}/`));
 
   return (
     <header
@@ -214,10 +232,24 @@ export default function Nav({
             isOpen ? `${styles.navItems} ${styles.active}` : styles.navItems
           }
         >
+           <div className={styles.btnContainerii}>
+            <Button href='/book' text='Book your Ride' btnType='red' arrow />
+          </div>
+          <div className={styles.menuImage}>
+            <Image
+              src={Img1}
+              alt='Menu image'
+              title='Menu image'
+              fill
+              className={styles.img}
+            />
+            <div className={styles.menuImageOverlay}>
+              <Logo className={styles.logoii} />
+            </div>
+          </div>
           {items.map((item) => {
             const active = isActive(item.href);
 
-            // Services item — dropdown on desktop, plain link on mobile
             if (item.hasDropdown) {
               return (
                 <div
@@ -237,7 +269,6 @@ export default function Nav({
                     {item.text}
                   </Link>
 
-                  {/* Desktop dropdown — hidden on mobile via CSS */}
                   {servicesOpen && !isMobile && (
                     <div
                       className={styles.servicesDropdown}
@@ -295,7 +326,7 @@ export default function Nav({
                 href={item.href}
                 className={`${styles.navItem} ${styles[color]} ${
                   active ? styles.navItemActive : ""
-                } ${shouldBlend ? styles.blend : ""}`}
+                } ${shouldBlend ? styles.blend : ""} ${item.isLast ? styles.navItemLast : ""}`}
                 onClick={closeMenu}
                 aria-current={active ? "page" : undefined}
               >
@@ -304,32 +335,34 @@ export default function Nav({
             );
           })}
 
-          <div className={styles.menuImage}>
-            <Image
-              src={Img1}
-              alt='Menu image'
-              title='Menu image'
-              fill
-              className={styles.img}
-            />
-            <div className={styles.menuImageOverlay}>
-              <Logo className={styles.logoii} />
-            </div>
-          </div>
+         
 
-          <div className={styles.btnContainerii}>
-            <Link
-              href={accountHref}
-              className={`${styles.navItem} ${styles[color]} ${
-                accountActive ? styles.navItemActive : ""
-              }`}
-              onClick={closeMenu}
-              aria-current={accountActive ? "page" : undefined}
-            >
-              {accountText}
-            </Link>
-            <Button href='/book' text='Book your Ride' btnType='red' arrow />
-          </div>
+          {/* Mobile only — dashboard links appear right after nav items */}
+          {isAuthed && mobileDashboardLinks.length > 0 && (
+            <div className={styles.mobileDashboardLinks}>
+              {mobileDashboardLinks.map((link) => (
+                <Button
+                  key={link.href}
+                  href={link.href}
+                  text={link.label}
+                  onClick={closeMenu}
+                  btnType={
+                    link.href === "/admin"
+                      ? "black"
+                      : link.href === "/driver-dashboard"
+                        ? "gray"
+                        : link.href === "/dashboard"
+                          ? "underlinedBlackii"
+                          : "black"
+                  }
+                  arrow
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Mobile bottom actions */}
+          {/* Mobile bottom actions */}
         </div>
 
         {isOpen &&
@@ -338,9 +371,10 @@ export default function Nav({
             document.body,
           )}
 
+        {/* Desktop right side */}
         <div className={styles.btnContainer}>
           <Link
-            href={accountHref}
+            href={primaryHref}
             className={`${styles.navItem} ${styles[color]} ${
               accountActive ? styles.navItemActive : ""
             }`}
