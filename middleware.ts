@@ -69,9 +69,9 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
   console.log("MIDDLEWARE AUTH:", JSON.stringify((req as any).auth, null, 2));
 
   // Logged-in users on "/" get sent to their role home
-  if (isLoggedIn && pathname === "/") {
-    return NextResponse.redirect(new URL(roleHome(req), nextUrl));
-  }
+  // if (isLoggedIn && pathname === "/") {
+  //   return NextResponse.redirect(new URL(roleHome(req), nextUrl));
+  // }
 
   // Logged-in users should not see auth pages
   if (isLoggedIn && authPages.has(pathname)) {
