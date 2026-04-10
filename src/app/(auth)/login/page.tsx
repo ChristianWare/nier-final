@@ -16,22 +16,47 @@ function roleHomeFromRoles(roles: AppRole[]) {
   if (roles.includes("CORPORATE")) return "/corporate";
   return "/dashboard";
 }
+
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: { next?: string };
+  searchParams?: Promise<{ next?: string }>;
 }) {
   const session = await auth();
 
   if (session) {
-    const next = searchParams?.next;
-    if (next && next.startsWith("/")) redirect(next);
+    console.log("SESSION DUMP:", JSON.stringify(session, null, 2));
 
-    const roles: AppRole[] = Array.isArray((session.user as any)?.roles)
-      ? (((session.user as any).roles as AppRole[]) ?? ["USER"])
-      : (["USER"] as AppRole[]);
+    const user = session.user as any;
+    const rawRoles =
+      user?.roles ??
+      (session as any)?.roles ??
+      (session as any)?.token?.roles ??
+      null;
 
-    redirect(roleHomeFromRoles(roles));
+    const roles: AppRole[] = Array.isArray(rawRoles)
+      ? (rawRoles as AppRole[])
+      : ["USER"];
+
+    const roleBasedHome = roleHomeFromRoles(roles);
+
+    // Role-specific areas that should never be overridden by `next`
+    const roleOwnedPrefixes = [
+      "/admin",
+      "/driver-dashboard",
+      "/corporate",
+      "/dashboard",
+    ];
+
+    const resolvedParams = await searchParams;
+    const next = resolvedParams?.next;
+
+    const useNext =
+      next &&
+      next.startsWith("/") &&
+      !roleOwnedPrefixes.some((prefix) => next.startsWith(prefix));
+
+    redirect(useNext ? next : roleBasedHome);
   }
 
   return (

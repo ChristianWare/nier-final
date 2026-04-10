@@ -436,7 +436,9 @@ export default async function DriverDashboardHome() {
       {/* Page Header */}
       <header className={styles.pageHeader}>
         <div className='header'>
-          <h1 className='heading h2'>Welcome back, {driverName} (Driver)</h1>
+          <h1 className='heading h2'>
+            Welcome {driverName}! (Driver dashboard)
+          </h1>
         </div>
 
         <div className={styles.headerKpiRows}>

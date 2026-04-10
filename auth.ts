@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // auth.ts
 import NextAuth, { type DefaultSession } from "next-auth";
@@ -16,9 +17,8 @@ export type AppRole = "USER" | "ADMIN" | "DRIVER" | "CORPORATE";
 declare module "next-auth" {
   interface Session {
     user: {
-      id?: string; // ✅ add canonical id
+      id?: string;
       roles?: AppRole[];
-      // keep temporarily for existing code paths
       userId?: string;
       emailVerified?: Date | null;
     } & DefaultSession["user"];
@@ -56,7 +56,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const isCorrectPassword = await bcryptjs.compare(
           password,
-          user.password
+          user.password,
         );
         return isCorrectPassword ? user : null;
       },
@@ -73,11 +73,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 
   callbacks: {
-    async jwt({ token }) {
-      // Prefer token.sub (user id) when available
+    async jwt({ token, user }) {
+      // On initial sign-in, user object is available — use it directly
+      // This ensures roles are in the JWT immediately after login
+      if (user) {
+        token.sub = (user as any).id;
+        token.userId = (user as any).id;
+        token.roles =
+          Array.isArray((user as any).roles) && (user as any).roles.length > 0
+            ? ((user as any).roles as AppRole[])
+            : (["USER"] as AppRole[]);
+        token.emailVerified = (user as any).emailVerified ?? null;
+        return token;
+      }
+
+      // On subsequent requests, refresh from DB to pick up any role changes
       const userId = token.sub;
 
-      const user = userId
+      const dbUser = userId
         ? await db.user.findUnique({
             where: { id: userId },
             select: { id: true, roles: true, emailVerified: true },
@@ -89,25 +102,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             })
           : null;
 
-      if (!user) return token;
+      if (!dbUser) return token;
 
       const roles =
-        Array.isArray(user.roles) && user.roles.length > 0
-          ? (user.roles as unknown as AppRole[])
+        Array.isArray(dbUser.roles) && dbUser.roles.length > 0
+          ? (dbUser.roles as unknown as AppRole[])
           : (["USER"] as AppRole[]);
 
-      token.userId = user.id;
+      token.userId = dbUser.id;
       token.roles = roles;
-      token.emailVerified = user.emailVerified ?? null;
+      token.emailVerified = dbUser.emailVerified ?? null;
 
       return token;
     },
 
     async session({ session, token }) {
-      // ✅ Canonical id
       if (token.userId) {
         session.user.id = token.userId;
-        // keep temporarily for backwards-compat
         session.user.userId = token.userId;
       }
 

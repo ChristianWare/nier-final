@@ -301,7 +301,7 @@ select:focus {
   border-bottom: 2px solid var(--stroke);
   width: 100%;
   padding-bottom: 1rem;
-  text-transform: capitalize;
+  /* text-transform: capitalize; */
 }
 
 .tabs {

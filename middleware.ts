@@ -8,10 +8,6 @@ export const { auth: withAuth } = NextAuth(authConfig);
 
 type AppRole = "USER" | "ADMIN" | "DRIVER" | "CORPORATE";
 
-/**
- * NextAuth middleware (Edge) exposes auth in slightly different shapes.
- * We'll normalize it to roles[] only.
- */
 function getRoles(req: any): AppRole[] {
   const roles =
     req?.auth?.user?.roles ??
@@ -70,11 +66,13 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
     isCorporateArea;
 
   const isLoggedIn = Boolean((req as any).auth?.user);
+  console.log("MIDDLEWARE AUTH:", JSON.stringify((req as any).auth, null, 2));
 
-  // TEMP DEBUG
-  // console.log("roles:", getRoles(req), "pathname:", pathname);
+  // Logged-in users on "/" get sent to their role home
+  if (isLoggedIn && pathname === "/") {
+    return NextResponse.redirect(new URL(roleHome(req), nextUrl));
+  }
 
-  // Logged-in users should not see auth pages
   // Logged-in users should not see auth pages
   if (isLoggedIn && authPages.has(pathname)) {
     return NextResponse.redirect(new URL(roleHome(req), nextUrl));
@@ -99,6 +97,15 @@ export default withAuth((req: NextRequest & { auth?: any }) => {
   // Admin users landing on /dashboard should go to /admin
   if (isUserDashboard && hasAnyRole(req, ["ADMIN"])) {
     return NextResponse.redirect(new URL("/admin", nextUrl));
+  }
+
+  // Driver users landing on /dashboard should go to /driver-dashboard
+  if (
+    isUserDashboard &&
+    hasAnyRole(req, ["DRIVER"]) &&
+    !hasAnyRole(req, ["ADMIN"])
+  ) {
+    return NextResponse.redirect(new URL("/driver-dashboard", nextUrl));
   }
 
   // Admin area requires ADMIN

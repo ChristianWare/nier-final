@@ -5,18 +5,12 @@ import type { NextAuthConfig } from "next-auth";
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
 const authConfig = {
-  providers: [], // required by the type (real providers are in auth.ts)
+  providers: [],
   session: { strategy: "jwt" },
   trustHost: true,
   pages: { signIn: "/login" },
 
   callbacks: {
-    /**
-     * Middleware-safe JWT callback:
-     * - Runs in Edge runtime (no DB)
-     * - Only copies info from `user` when it exists (sign-in / sign-up)
-     * - Keeps token fields consistent across the app
-     */
     async jwt({ token, user }) {
       if (user) {
         const id = (user as any).id as string | undefined;
@@ -24,7 +18,6 @@ const authConfig = {
 
         const rolesFromUser = (user as any).roles as AppRole[] | undefined;
 
-        // roles-only
         token.roles =
           Array.isArray(rolesFromUser) && rolesFromUser.length > 0
             ? rolesFromUser
@@ -34,6 +27,22 @@ const authConfig = {
       }
 
       return token;
+    },
+
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+      const roleOwnedPrefixes = [
+        "/admin",
+        "/driver-dashboard",
+        "/corporate",
+        "/dashboard",
+      ];
+      try {
+        const { pathname } = new URL(url);
+        if (roleOwnedPrefixes.some((p) => pathname.startsWith(p))) {
+          return baseUrl;
+        }
+      } catch {}
+      return url.startsWith(baseUrl) ? url : baseUrl;
     },
 
     /**
@@ -46,16 +55,9 @@ const authConfig = {
 
       (session.user as any) = {
         ...session.user,
-
-        // ✅ canonical
         id: userId,
-
-        // ✅ keep temporarily for existing code that reads userId
         userId,
-
-        // ✅ roles-only
         roles,
-
         emailVerified: (token as any).emailVerified ?? null,
       };
 
