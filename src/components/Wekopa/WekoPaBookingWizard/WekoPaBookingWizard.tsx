@@ -44,7 +44,7 @@ const MESA_GATEWAY = {
 
 const WEKOPA = {
   address:
-    "We-Ko-Pa Golf Club, 18200 E Toh Vee Circle, Fort McDowell, AZ 85264",
+    "We-Ko-Pa, 18200 E Toh Vee Circle, Fort McDowell, AZ 85264",
   placeId: null as string | null,
   lat: 33.6219,
   lng: -111.7187,
@@ -348,10 +348,10 @@ export default function WekoPaBookingWizard({
 
   const wizardHasInput = Boolean(
     direction ||
-      pickupAtDate ||
-      pickupAtTime ||
-      passengers > 0 ||
-      savedLegs.length > 0,
+    pickupAtDate ||
+    pickupAtTime ||
+    passengers > 0 ||
+    savedLegs.length > 0,
   );
   useDirtyForm("wekopa-booking-wizard", wizardHasInput && !submitted);
 
@@ -960,35 +960,32 @@ export default function WekoPaBookingWizard({
                       <option value=''>Select a direction...</option>
                       <optgroup label='Phoenix Sky Harbor Airport'>
                         <option value='to_wekopa_sky'>
-                          Sky Harbor → We-Ko-Pa Golf Club
+                          Sky Harbor → We-Ko-Pa
                         </option>
                         <option value='from_wekopa_sky'>
-                          We-Ko-Pa Golf Club → Sky Harbor
+                          We-Ko-Pa → Sky Harbor
                         </option>
                       </optgroup>
                       <optgroup label='Mesa Gateway Airport'>
                         <option value='to_wekopa_mesa'>
-                          Mesa Gateway → We-Ko-Pa Golf Club
+                          Mesa Gateway → We-Ko-Pa
                         </option>
                         <option value='from_wekopa_mesa'>
-                          We-Ko-Pa Golf Club → Mesa Gateway
+                          We-Ko-Pa → Mesa Gateway
                         </option>
                       </optgroup>
                     </select>
                     {direction && (
                       <p className='miniNote'>
                         {isAirportPickup
-                          ? `Pickup at ${isMesaDirection(direction) ? "Mesa Gateway" : "Sky Harbor"} — drop-off at the club.`
-                          : `Pickup at the club — drop-off at ${isMesaDirection(direction) ? "Mesa Gateway" : "Sky Harbor"}.`}
+                          ? `Pickup at ${isMesaDirection(direction) ? "Mesa Gateway" : "Sky Harbor"} — drop-off at We-Ko-Pa.`
+                          : `Pickup at We-Ko-Pa — drop-off at ${isMesaDirection(direction) ? "Mesa Gateway" : "Sky Harbor"}.`}
                       </p>
                     )}
                   </div>
 
                   {/* Date & time */}
-                  <div
-                    id='wekopa-field-datetime'
-                    className={styles.sectionBox}
-                  >
+                  <div id='wekopa-field-datetime' className={styles.sectionBox}>
                     <label
                       className={labelCx(
                         Boolean(errors.pickupAtDate || errors.pickupAtTime),
@@ -1156,10 +1153,7 @@ export default function WekoPaBookingWizard({
                     Confirm your vehicle and add optional flight details
                   </p>
 
-                  <div
-                    id='wekopa-field-vehicle'
-                    className={styles.vehicleCard}
-                  >
+                  <div id='wekopa-field-vehicle' className={styles.vehicleCard}>
                     <div className={styles.vehicleCardTop}>
                       <div>
                         <span className={styles.vehicleCardEyebrow}>
@@ -1196,8 +1190,7 @@ export default function WekoPaBookingWizard({
                           {vehicleConfig.vans > 0 && (
                             <div className={styles.breakdownRow}>
                               <span>
-                                {vehicleConfig.vans} ×{" "}
-                                {activeVanVehicle.name}
+                                {vehicleConfig.vans} × {activeVanVehicle.name}
                               </span>
                               <span>
                                 $
@@ -1211,8 +1204,7 @@ export default function WekoPaBookingWizard({
                           {vehicleConfig.suvs > 0 && (
                             <div className={styles.breakdownRow}>
                               <span>
-                                {vehicleConfig.suvs} ×{" "}
-                                {activeSuvVehicle.name}
+                                {vehicleConfig.suvs} × {activeSuvVehicle.name}
                               </span>
                               <span>
                                 $
@@ -1535,8 +1527,7 @@ export default function WekoPaBookingWizard({
                             <div
                               style={{ fontWeight: 600, fontSize: "1.4rem" }}
                             >
-                              Ride {idx + 1}:{" "}
-                              {directionLabel(leg.direction)}
+                              Ride {idx + 1}: {directionLabel(leg.direction)}
                             </div>
                             <div
                               style={{
@@ -1568,9 +1559,7 @@ export default function WekoPaBookingWizard({
                       ))}
                       <div className={styles.savedLegRow}>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div
-                            style={{ fontWeight: 600, fontSize: "1.4rem" }}
-                          >
+                          <div style={{ fontWeight: 600, fontSize: "1.4rem" }}>
                             Ride {savedLegs.length + 1}:{" "}
                             {direction
                               ? directionLabel(direction as Direction)
@@ -1595,9 +1584,7 @@ export default function WekoPaBookingWizard({
                       </div>
                       <div className={styles.tripTotal}>
                         <span>Trip total estimate</span>
-                        <span>
-                          ${(groupEstimateTotal / 100).toFixed(0)}
-                        </span>
+                        <span>${(groupEstimateTotal / 100).toFixed(0)}</span>
                       </div>
                     </div>
                   )}
@@ -1608,9 +1595,7 @@ export default function WekoPaBookingWizard({
                       className={styles.sectionBox}
                     >
                       <div style={{ display: "grid", gap: 10 }}>
-                        <label
-                          className={labelCx(Boolean(errors.guestName))}
-                        >
+                        <label className={labelCx(Boolean(errors.guestName))}>
                           Full name
                         </label>
                         <input
@@ -1703,9 +1688,7 @@ export default function WekoPaBookingWizard({
                           Your driver will use this number to contact you.
                           {phoneWasPrefilled.current &&
                             contactPhone?.trim() && (
-                              <span
-                                style={{ marginLeft: 6, fontWeight: 600 }}
-                              >
+                              <span style={{ marginLeft: 6, fontWeight: 600 }}>
                                 (already on file)
                               </span>
                             )}
@@ -1746,8 +1729,8 @@ export default function WekoPaBookingWizard({
                       className='miniNote'
                       style={{ textAlign: "center", marginTop: -4 }}
                     >
-                      Need rides on multiple days? Add them all here and
-                      submit as one trip.
+                      Need rides on multiple days? Add them all here and submit
+                      as one trip.
                     </div>
                   )}
 
@@ -1780,10 +1763,7 @@ export default function WekoPaBookingWizard({
         </div>
       </LayoutWrapper>
 
-      <Modal
-        isOpen={removeLegId !== null}
-        onClose={() => setRemoveLegId(null)}
-      >
+      <Modal isOpen={removeLegId !== null} onClose={() => setRemoveLegId(null)}>
         <div className={styles.modalContent}>
           <div className='cardTitle h5'>Remove this ride?</div>
           <p className='paragraph'>
