@@ -50,6 +50,14 @@ export async function sendPaymentLinkEmail(args: {
   currency: string;
   payUrl: string;
   bookingId: string;
+  groupLegs?: Array<{
+    legNumber: number;
+    pickupAt: string;
+    pickupAddress: string;
+    dropoffAddress: string;
+    serviceName: string;
+    totalCents: number;
+  }>;
 }) {
   const resend = new Resend(requireEnv("RESEND_API_KEY"));
   const from = requireEnv("RESEND_FROM");
@@ -61,6 +69,7 @@ export async function sendPaymentLinkEmail(args: {
   const pickupTime = formatPickupTime(args.pickupAtISO, companyTz);
   const total = formatMoney(args.totalCents, args.currency);
   const confirmationCode = args.bookingId.slice(0, 8).toUpperCase();
+  const isMultiTrip = args.groupLegs && args.groupLegs.length > 1;
 
   // ✅ Updated subject line indicating approval
   const subject = `✅ Booking Approved – Complete Your Payment | Nier Transportation`;
@@ -134,93 +143,121 @@ export async function sendPaymentLinkEmail(args: {
           </tr>
 
           <!-- Trip Details Card -->
+<tr>
+  <td style="padding: 28px 32px;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: ${colors.cream}; border-radius: 12px; overflow: hidden;">
+      
+      <!-- Card Header -->
+      <tr>
+        <td style="padding: 16px 20px; border-bottom: 1px solid ${colors.stroke};">
+          <span style="color: ${colors.black}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+            ${isMultiTrip ? `Multi-Trip Details (${args.groupLegs!.length} Rides)` : "Trip Details"}
+          </span>
+          ${isMultiTrip ? `<span style="margin-left: 8px; color: ${colors.paragraph}; font-size: 12px;">Confirmation: <strong>${confirmationCode}</strong></span>` : ""}
+        </td>
+      </tr>
+
+      ${
+        isMultiTrip
+          ? args
+              .groupLegs!.map((leg) => {
+                const legDate = formatPickupDate(leg.pickupAt, companyTz);
+                const legTime = formatPickupTime(leg.pickupAt, companyTz);
+                return `
+              <tr>
+                <td style="padding: 10px 20px 0 20px;">
+                  <span style="color: ${colors.accent}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Ride ${leg.legNumber}${leg.serviceName ? ` – ${leg.serviceName}` : ""}
+                    <span style="color: ${colors.paragraph}; font-weight: 400;">&nbsp;·&nbsp;${formatMoney(leg.totalCents, args.currency)}</span>
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 20px 12px 20px; border-bottom: 1px solid ${colors.stroke};">
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 16px;">📅</span></td>
+                      <td>
+                        <span style="color: ${colors.black}; font-size: 14px; font-weight: 600;">${legDate}</span><br>
+                        <span style="color: ${colors.black}; font-size: 14px; font-weight: 600;">${legTime}</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top: 8px;">
+                    <tr>
+                      <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 16px;">📍</span></td>
+                      <td>
+                        <span style="color: ${colors.paragraph}; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Pickup</span><br>
+                        <span style="color: ${colors.black}; font-size: 14px; font-weight: 500;">${leg.pickupAddress}</span>
+                      </td>
+                    </tr>
+                  </table>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top: 8px;">
+                    <tr>
+                      <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 16px;">🏁</span></td>
+                      <td>
+                        <span style="color: ${colors.paragraph}; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Dropoff</span><br>
+                        <span style="color: ${colors.black}; font-size: 14px; font-weight: 500;">${leg.dropoffAddress}</span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>`;
+              })
+              .join("")
+          : `
+          <!-- Confirmation Code -->
           <tr>
-            <td style="padding: 28px 32px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: ${colors.cream}; border-radius: 12px; overflow: hidden;">
-                
-                <!-- Card Header -->
+            <td style="padding: 16px 20px 12px 20px;">
+              <span style="color: ${colors.paragraph}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">Confirmation</span><br>
+              <span style="color: ${colors.black}; font-size: 18px; font-weight: 700; font-family: monospace; letter-spacing: 1px;">${confirmationCode}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 20px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
-                  <td style="padding: 16px 20px; border-bottom: 1px solid ${colors.stroke};">
-                    <span style="color: ${colors.black}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                      Trip Details
-                    </span>
+                  <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 18px;">📅</span></td>
+                  <td>
+                    <span style="color: ${colors.paragraph}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">Pickup Date & Time</span><br>
+                    <span style="color: ${colors.black}; font-size: 15px; font-weight: 600;">${pickupDate}</span><br>
+                    <span style="color: ${colors.black}; font-size: 15px; font-weight: 600;">${pickupTime}</span>
                   </td>
                 </tr>
-
-                <!-- Confirmation Code -->
-                <tr>
-                  <td style="padding: 16px 20px 12px 20px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td>
-                          <span style="color: ${colors.paragraph}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">Confirmation</span>
-                          <br>
-                          <span style="color: ${colors.black}; font-size: 18px; font-weight: 700; font-family: monospace; letter-spacing: 1px;">${confirmationCode}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-
-                <!-- Date & Time -->
-                <tr>
-                  <td style="padding: 12px 20px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td width="28" valign="top" style="padding-right: 12px;">
-                          <span style="font-size: 18px;">📅</span>
-                        </td>
-                        <td>
-                          <span style="color: ${colors.paragraph}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">Pickup Date & Time</span>
-                          <br>
-                          <span style="color: ${colors.black}; font-size: 15px; font-weight: 600;">${pickupDate}</span>
-                          <br>
-                          <span style="color: ${colors.black}; font-size: 15px; font-weight: 600;">${pickupTime}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-
-                <!-- Pickup Location -->
-                <tr>
-                  <td style="padding: 12px 20px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td width="28" valign="top" style="padding-right: 12px;">
-                          <span style="font-size: 18px;">📍</span>
-                        </td>
-                        <td>
-                          <span style="color: ${colors.paragraph}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">Pickup</span>
-                          <br>
-                          <span style="color: ${colors.black}; font-size: 15px; font-weight: 500; line-height: 1.4;">${args.pickupAddress}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-
-                <!-- Dropoff Location -->
-                <tr>
-                  <td style="padding: 12px 20px 16px 20px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td width="28" valign="top" style="padding-right: 12px;">
-                          <span style="font-size: 18px;">🏁</span>
-                        </td>
-                        <td>
-                          <span style="color: ${colors.paragraph}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">Dropoff</span>
-                          <br>
-                          <span style="color: ${colors.black}; font-size: 15px; font-weight: 500; line-height: 1.4;">${args.dropoffAddress}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-
               </table>
             </td>
           </tr>
+          <tr>
+            <td style="padding: 12px 20px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 18px;">📍</span></td>
+                  <td>
+                    <span style="color: ${colors.paragraph}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">Pickup</span><br>
+                    <span style="color: ${colors.black}; font-size: 15px; font-weight: 500; line-height: 1.4;">${args.pickupAddress}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 20px 16px 20px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 18px;">🏁</span></td>
+                  <td>
+                    <span style="color: ${colors.paragraph}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;">Dropoff</span><br>
+                    <span style="color: ${colors.black}; font-size: 15px; font-weight: 500; line-height: 1.4;">${args.dropoffAddress}</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>`
+      }
+
+    </table>
+  </td>
+</tr>
 
           <!-- Total Amount -->
           <tr>

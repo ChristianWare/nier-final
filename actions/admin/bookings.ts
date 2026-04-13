@@ -750,6 +750,36 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   );
   const customCheckoutUrl = `${APP_URL}/pay/${b.id}`;
 
+  let depositGroupLegs: Array<{
+    legNumber: number;
+    pickupAt: string;
+    pickupAddress: string;
+    dropoffAddress: string;
+    serviceName: string;
+    totalCents: number;
+  }> = [];
+  if (bookingWithDeposit?.tripGroupId) {
+    const siblings = await db.booking.findMany({
+      where: { tripGroupId: bookingWithDeposit.tripGroupId },
+      select: {
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        totalCents: true,
+        serviceType: { select: { name: true } },
+      },
+      orderBy: { pickupAt: "asc" },
+    });
+    depositGroupLegs = siblings.map((s, idx) => ({
+      legNumber: idx + 1,
+      pickupAt: s.pickupAt.toISOString(),
+      pickupAddress: s.pickupAddress,
+      dropoffAddress: s.dropoffAddress,
+      serviceName: s.serviceType?.name ?? "Transportation",
+      totalCents: s.totalCents,
+    }));
+  }
+
   try {
     if (
       isDepositPayment &&
@@ -793,6 +823,7 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
         currency: b.currency,
         payUrl: customCheckoutUrl,
         bookingId: b.id,
+        groupLegs: depositGroupLegs.length > 1 ? depositGroupLegs : undefined,
       });
     }
   } catch (e) {

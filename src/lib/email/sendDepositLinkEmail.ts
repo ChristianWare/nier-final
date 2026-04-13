@@ -48,6 +48,15 @@ function formatDateShort(iso: string) {
   }).format(d);
 }
 
+type GroupLeg = {
+  legNumber: number;
+  pickupAt: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  serviceName: string;
+  totalCents: number;
+};
+
 export async function sendDepositLinkEmail(args: {
   to: string;
   name?: string | null;
@@ -63,6 +72,7 @@ export async function sendDepositLinkEmail(args: {
   currency: string;
   payUrl: string;
   bookingId: string;
+  groupLegs?: GroupLeg[];
 }) {
   const resend = new Resend(requireEnv("RESEND_API_KEY"));
   const from = requireEnv("RESEND_FROM");
@@ -85,8 +95,9 @@ export async function sendDepositLinkEmail(args: {
     ? formatDateShort(args.balanceDueDate)
     : null;
   const is100 = args.depositPercent === 100;
+  const isMultiTrip = args.groupLegs && args.groupLegs.length > 1;
 
-  const subject = `✅ Booking Approved – ${is100 ? "Complete Your Payment" : `Deposit of ${depositFormatted} Due`} | ${companyName}`;
+  const subject = `\u2705 Booking Approved \u2013 ${is100 ? "Complete Your Payment" : `Deposit of ${depositFormatted} Due`} | ${companyName}`;
 
   const colors = {
     black: "#000000",
@@ -105,46 +116,131 @@ export async function sendDepositLinkEmail(args: {
     amberDark: "#92400e",
   };
 
-  const balanceSectionHtml = !is100
-    ? `
+  // \u2500\u2500 Trip details section: multi-leg or single \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  const tripDetailsHtml = isMultiTrip
+    ? args
+        .groupLegs!.map((leg) => {
+          const legDate = formatPickupDate(leg.pickupAt, companyTz);
+          const legTime = formatPickupTime(leg.pickupAt, companyTz);
+          return `
+        <tr>
+          <td style="padding: 10px 20px 0 20px;">
+            <span style="color: ${colors.blue}; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+              Ride ${leg.legNumber}${leg.serviceName ? ` \u2013 ${leg.serviceName}` : ""}
+              <span style="color: ${colors.paragraph}; font-weight: 400;">\u00a0\u00b7\u00a0${formatMoney(leg.totalCents, args.currency)}</span>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 6px 20px 12px 20px; border-bottom: 1px solid ${colors.stroke};">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+              <tr>
+                <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 16px;">\ud83d\udcc5</span></td>
+                <td>
+                  <span style="color: ${colors.black}; font-size: 14px; font-weight: 600;">${legDate}</span><br>
+                  <span style="color: ${colors.black}; font-size: 14px; font-weight: 600;">${legTime}</span>
+                </td>
+              </tr>
+            </table>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top: 8px;">
+              <tr>
+                <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 16px;">\ud83d\udccd</span></td>
+                <td>
+                  <span style="color: ${colors.paragraph}; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Pickup</span><br>
+                  <span style="color: ${colors.black}; font-size: 14px; font-weight: 500;">${leg.pickupAddress}</span>
+                </td>
+              </tr>
+            </table>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top: 8px;">
+              <tr>
+                <td width="28" valign="top" style="padding-right: 12px;"><span style="font-size: 16px;">\ud83c\udfc1</span></td>
+                <td>
+                  <span style="color: ${colors.paragraph}; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;">Dropoff</span><br>
+                  <span style="color: ${colors.black}; font-size: 14px; font-weight: 500;">${leg.dropoffAddress}</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>`;
+        })
+        .join("")
+    : `
       <tr>
-        <td style="padding: 0 32px 28px 32px;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-            style="background-color: ${colors.amberLight}; border: 1px solid ${colors.amber}; border-radius: 12px; overflow: hidden;">
+        <td style="padding:16px 20px 12px 20px;">
+          <span style="color:${colors.paragraph};font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Confirmation</span><br>
+          <span style="color:${colors.black};font-size:18px;font-weight:700;font-family:monospace;letter-spacing:1px;">${confirmationCode}</span>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 20px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
             <tr>
-              <td style="padding: 16px 20px; border-bottom: 1px solid ${colors.amber};">
-                <span style="color: ${colors.amberDark}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                  Remaining Balance
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 16px 20px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                  <tr>
-                    <td><span style="color: ${colors.amberDark}; font-size: 14px;">Balance after deposit</span></td>
-                    <td align="right"><span style="color: ${colors.amberDark}; font-size: 20px; font-weight: 700;">${balanceFormatted}</span></td>
-                  </tr>
-                  ${
-                    balanceDueDateFormatted
-                      ? `<tr><td colspan="2" style="padding-top: 8px;">
-                           <span style="color: ${colors.amberDark}; font-size: 13px;">
-                             Due by <strong>${balanceDueDateFormatted}</strong>. You'll receive a separate payment link closer to your trip.
-                           </span>
-                         </td></tr>`
-                      : `<tr><td colspan="2" style="padding-top: 8px;">
-                           <span style="color: ${colors.amberDark}; font-size: 13px;">
-                             A balance payment link will be sent closer to your trip date.
-                           </span>
-                         </td></tr>`
-                  }
-                </table>
+              <td width="28" valign="top" style="padding-right:12px;"><span style="font-size:18px;">\ud83d\udcc5</span></td>
+              <td>
+                <span style="color:${colors.paragraph};font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Pickup Date & Time</span><br>
+                <span style="color:${colors.black};font-size:15px;font-weight:600;">${pickupDate}</span><br>
+                <span style="color:${colors.black};font-size:15px;font-weight:600;">${pickupTime}</span>
               </td>
             </tr>
           </table>
         </td>
       </tr>
-    `
+      <tr>
+        <td style="padding:12px 20px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+            <tr>
+              <td width="28" valign="top" style="padding-right:12px;"><span style="font-size:18px;">\ud83d\udccd</span></td>
+              <td>
+                <span style="color:${colors.paragraph};font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Pickup</span><br>
+                <span style="color:${colors.black};font-size:15px;font-weight:500;line-height:1.4;">${args.pickupAddress}</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 20px 16px 20px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+            <tr>
+              <td width="28" valign="top" style="padding-right:12px;"><span style="font-size:18px;">\ud83c\udfc1</span></td>
+              <td>
+                <span style="color:${colors.paragraph};font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Dropoff</span><br>
+                <span style="color:${colors.black};font-size:15px;font-weight:500;line-height:1.4;">${args.dropoffAddress}</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>`;
+
+  const balanceSectionHtml = !is100
+    ? `
+    <tr>
+      <td style="padding: 0 32px 28px 32px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+          style="background-color: ${colors.amberLight}; border: 1px solid ${colors.amber}; border-radius: 12px; overflow: hidden;">
+          <tr>
+            <td style="padding: 16px 20px; border-bottom: 1px solid ${colors.amber};">
+              <span style="color: ${colors.amberDark}; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Remaining Balance</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 16px 20px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td><span style="color: ${colors.amberDark}; font-size: 14px;">Balance after deposit</span></td>
+                  <td align="right"><span style="color: ${colors.amberDark}; font-size: 20px; font-weight: 700;">${balanceFormatted}</span></td>
+                </tr>
+                ${
+                  balanceDueDateFormatted
+                    ? `<tr><td colspan="2" style="padding-top: 8px;"><span style="color: ${colors.amberDark}; font-size: 13px;">Due by <strong>${balanceDueDateFormatted}</strong>. You'll receive a separate payment link closer to your trip.</span></td></tr>`
+                    : `<tr><td colspan="2" style="padding-top: 8px;"><span style="color: ${colors.amberDark}; font-size: 13px;">A balance payment link will be sent closer to your trip date.</span></td></tr>`
+                }
+              </table>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`
     : "";
 
   const paymentSummaryHtml = `
@@ -156,7 +252,7 @@ export async function sendDepositLinkEmail(args: {
         <td style="padding: 6px 0; border-bottom: 1px solid ${colors.stroke};">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
             <tr>
-              <td><span style="color: ${colors.paragraph}; font-size: 14px;">Trip Total</span></td>
+              <td><span style="color: ${colors.paragraph}; font-size: 14px;">${isMultiTrip ? "Total for all rides" : "Trip Total"}</span></td>
               <td align="right"><span style="color: ${colors.black}; font-size: 14px; font-weight: 600;">${totalFormatted}</span></td>
             </tr>
           </table>
@@ -185,8 +281,11 @@ export async function sendDepositLinkEmail(args: {
           </table>
         </td>
       </tr>
-    </table>
-  `;
+    </table>`;
+
+  const tripSectionTitle = isMultiTrip
+    ? `Multi-Trip Details (${args.groupLegs!.length} Rides)`
+    : "Trip Details";
 
   const html = `
 <!DOCTYPE html>
@@ -214,9 +313,7 @@ export async function sendDepositLinkEmail(args: {
               <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
                 <tr>
                   <td style="background-color:${colors.lightGreen};border:1px solid ${colors.green};border-radius:50px;padding:12px 24px;">
-                    <span style="color:${colors.darkGreen};font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">
-                      ✓ Booking Approved
-                    </span>
+                    <span style="color:${colors.darkGreen};font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">\u2713 Booking Approved</span>
                   </td>
                 </tr>
               </table>
@@ -225,14 +322,12 @@ export async function sendDepositLinkEmail(args: {
 
           <tr>
             <td style="padding:24px 32px 28px 32px;text-align:center;">
-              <h2 style="margin:0 0 12px 0;color:${colors.black};font-size:26px;font-weight:600;letter-spacing:-1px;line-height:1.2;">
-                Hi ${firstName}!
-              </h2>
+              <h2 style="margin:0 0 12px 0;color:${colors.black};font-size:26px;font-weight:600;letter-spacing:-1px;line-height:1.2;">Hi ${firstName}!</h2>
               <p style="margin:0;color:${colors.paragraph};font-size:16px;line-height:1.5;">
                 ${
                   is100
                     ? "Your reservation has been approved. Complete your payment below to confirm your ride."
-                    : `Your reservation has been approved. A <strong>${args.depositPercent}% deposit of ${depositFormatted}</strong> is required to secure your ride. The remaining ${balanceFormatted} will be due later.`
+                    : `Your reservation has been approved. A <strong>${args.depositPercent}% deposit of ${depositFormatted}</strong> is required to secure your ride${isMultiTrip ? "s" : ""}. The remaining ${balanceFormatted} will be due later.`
                 }
               </p>
             </td>
@@ -244,55 +339,11 @@ export async function sendDepositLinkEmail(args: {
                 style="background-color:${colors.cream};border-radius:12px;overflow:hidden;">
                 <tr>
                   <td style="padding:16px 20px;border-bottom:1px solid ${colors.stroke};">
-                    <span style="color:${colors.black};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Trip Details</span>
+                    <span style="color:${colors.black};font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">${tripSectionTitle}</span>
+                    ${isMultiTrip ? `<span style="margin-left:8px;color:${colors.paragraph};font-size:12px;">Confirmation: <strong>${confirmationCode}</strong></span>` : ""}
                   </td>
                 </tr>
-                <tr>
-                  <td style="padding:16px 20px 12px 20px;">
-                    <span style="color:${colors.paragraph};font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Confirmation</span><br>
-                    <span style="color:${colors.black};font-size:18px;font-weight:700;font-family:monospace;letter-spacing:1px;">${confirmationCode}</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:12px 20px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td width="28" valign="top" style="padding-right:12px;"><span style="font-size:18px;">📅</span></td>
-                        <td>
-                          <span style="color:${colors.paragraph};font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Pickup Date & Time</span><br>
-                          <span style="color:${colors.black};font-size:15px;font-weight:600;">${pickupDate}</span><br>
-                          <span style="color:${colors.black};font-size:15px;font-weight:600;">${pickupTime}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:12px 20px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td width="28" valign="top" style="padding-right:12px;"><span style="font-size:18px;">📍</span></td>
-                        <td>
-                          <span style="color:${colors.paragraph};font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Pickup</span><br>
-                          <span style="color:${colors.black};font-size:15px;font-weight:500;line-height:1.4;">${args.pickupAddress}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="padding:12px 20px 16px 20px;">
-                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                      <tr>
-                        <td width="28" valign="top" style="padding-right:12px;"><span style="font-size:18px;">🏁</span></td>
-                        <td>
-                          <span style="color:${colors.paragraph};font-size:12px;text-transform:uppercase;letter-spacing:0.3px;">Dropoff</span><br>
-                          <span style="color:${colors.black};font-size:15px;font-weight:500;line-height:1.4;">${args.dropoffAddress}</span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
+                ${tripDetailsHtml}
               </table>
             </td>
           </tr>
@@ -307,9 +358,7 @@ export async function sendDepositLinkEmail(args: {
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:16px 20px;">
-                    ${paymentSummaryHtml}
-                  </td>
+                  <td style="padding:16px 20px;">${paymentSummaryHtml}</td>
                 </tr>
               </table>
             </td>
@@ -324,7 +373,7 @@ export async function sendDepositLinkEmail(args: {
                   <td style="background-color:${colors.black};border-radius:8px;">
                     <a href="${args.payUrl}" target="_blank"
                       style="display:inline-block;padding:18px 48px;color:${colors.white};font-size:16px;font-weight:600;text-decoration:none;letter-spacing:-0.3px;">
-                      ${is100 ? "Complete Payment →" : `Pay Deposit (${depositFormatted}) →`}
+                      ${is100 ? "Complete Payment \u2192" : `Pay Deposit (${depositFormatted}) \u2192`}
                     </a>
                   </td>
                 </tr>
@@ -334,20 +383,8 @@ export async function sendDepositLinkEmail(args: {
 
           ${
             !is100
-              ? `<tr>
-                  <td style="padding:0 32px 24px 32px;text-align:center;">
-                    <p style="margin:0;color:${colors.paragraph};font-size:13px;line-height:1.5;">
-                      You'll also have the option to <strong>pay the full amount (${totalFormatted})</strong> at checkout if you prefer.
-                    </p>
-                  </td>
-                </tr>`
-              : `<tr>
-                  <td style="padding:0 32px 24px 32px;text-align:center;">
-                    <p style="margin:0;color:${colors.paragraph};font-size:13px;line-height:1.5;">
-                      You'll have the option to add a tip for your driver during checkout.
-                    </p>
-                  </td>
-                </tr>`
+              ? `<tr><td style="padding:0 32px 24px 32px;text-align:center;"><p style="margin:0;color:${colors.paragraph};font-size:13px;line-height:1.5;">You'll also have the option to <strong>pay the full amount (${totalFormatted})</strong> at checkout if you prefer.</p></td></tr>`
+              : `<tr><td style="padding:0 32px 24px 32px;text-align:center;"><p style="margin:0;color:${colors.paragraph};font-size:13px;line-height:1.5;">You'll have the option to add a tip for your driver during checkout.</p></td></tr>`
           }
 
           <tr>
@@ -361,14 +398,12 @@ export async function sendDepositLinkEmail(args: {
 
           <tr>
             <td style="background-color:${colors.cream};padding:24px 32px;text-align:center;border-top:1px solid ${colors.stroke};">
-              <p style="margin:0 0 8px 0;color:${colors.paragraph};font-size:13px;line-height:1.5;">
-                Questions? Reply to this email or contact us anytime.
-              </p>
+              <p style="margin:0 0 8px 0;color:${colors.paragraph};font-size:13px;line-height:1.5;">Questions? Reply to this email or contact us anytime.</p>
               <p style="margin:0;color:${colors.paragraph};font-size:12px;opacity:0.7;">
-                ${companyName} &nbsp;·&nbsp; ${companySettings.supportEmail ?? ""} &nbsp;·&nbsp; ${companySettings.dispatchPhone ?? ""}
+                ${companyName} &nbsp;\u00b7&nbsp; ${companySettings.supportEmail ?? ""} &nbsp;\u00b7&nbsp; ${companySettings.dispatchPhone ?? ""}
               </p>
               <p style="margin:8px 0 0 0;color:${colors.paragraph};font-size:12px;opacity:0.7;">
-                © ${new Date().getFullYear()} ${companyName}. All rights reserved.
+                \u00a9 ${new Date().getFullYear()} ${companyName}. All rights reserved.
               </p>
             </td>
           </tr>
@@ -380,12 +415,22 @@ export async function sendDepositLinkEmail(args: {
 </body>
 </html>`.trim();
 
+  const legsText = isMultiTrip
+    ? args
+        .groupLegs!.map((leg) => {
+          const legDate = formatPickupDate(leg.pickupAt, companyTz);
+          const legTime = formatPickupTime(leg.pickupAt, companyTz);
+          return `  Ride ${leg.legNumber}${leg.serviceName ? ` \u2013 ${leg.serviceName}` : ""} (${formatMoney(leg.totalCents, args.currency)})\n  ${legDate} at ${legTime}\n  From: ${leg.pickupAddress}\n  To: ${leg.dropoffAddress}`;
+        })
+        .join("\n\n")
+    : `Pickup: ${pickupDate} at ${pickupTime}\nFrom: ${args.pickupAddress}\nTo: ${args.dropoffAddress}`;
+
   const text = [
     companyName.toUpperCase(),
     "",
     is100
       ? "COMPLETE YOUR PAYMENT"
-      : `DEPOSIT DUE — ${args.depositPercent}% (${depositFormatted})`,
+      : `DEPOSIT DUE \u2014 ${args.depositPercent}% (${depositFormatted})`,
     "",
     `Hi ${firstName}!`,
     "",
@@ -394,11 +439,11 @@ export async function sendDepositLinkEmail(args: {
       : `Your reservation has been approved. A ${args.depositPercent}% deposit of ${depositFormatted} is required to secure your booking.`,
     "",
     `Confirmation: ${confirmationCode}`,
-    `Pickup: ${pickupDate} at ${pickupTime}`,
-    `From: ${args.pickupAddress}`,
-    `To: ${args.dropoffAddress}`,
+    ...(isMultiTrip
+      ? [`\nTrip Details (${args.groupLegs!.length} rides):`, legsText]
+      : [legsText]),
     "",
-    `Trip Total: ${totalFormatted}`,
+    `Total: ${totalFormatted}`,
     ...(is100
       ? []
       : [
@@ -408,7 +453,7 @@ export async function sendDepositLinkEmail(args: {
     "",
     `${is100 ? "Pay here" : "Pay deposit (or full amount) here"}: ${args.payUrl}`,
     "",
-    `© ${new Date().getFullYear()} ${companyName}`,
+    `\u00a9 ${new Date().getFullYear()} ${companyName}`,
   ].join("\n");
 
   const { error } = await resend.emails.send({

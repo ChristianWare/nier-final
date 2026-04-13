@@ -970,8 +970,10 @@ export default async function AdminBookingDetailPage({
       isDeposit: (e as any).metadata?.isDepositPayment === true,
       isBalance: (e as any).metadata?.isBalancePayment === true,
     }));
-  const outstandingCents = Math.max(0, booking.totalCents - amountPaidCents);
-
+  const outstandingCents = Math.max(
+    0,
+    (isGroupBooking ? groupTotalCents : booking.totalCents) - amountPaidCents,
+  );
   // ── Tab completion ────────────────────────────────────────────────────────
   const tripIsComplete = booking.routeApproved;
   const priceIsComplete = booking.priceApproved;
@@ -2084,7 +2086,9 @@ export default async function AdminBookingDetailPage({
                         booking.user?.email ?? booking.guestEmail ?? null
                       }
                       outstandingCents={outstandingCents}
-                      totalCents={booking.totalCents}
+                      totalCents={
+                        isGroupBooking ? groupTotalCents : booking.totalCents
+                      }
                       currency={booking.currency}
                       pickupAtIso={booking.pickupAt.toISOString()}
                       timeZone={companyTz}
