@@ -1516,7 +1516,7 @@ export default async function AdminBookingDetailPage({
                 )}
               </div>
 
-              {!isCorporateBooking && !isGroupBooking && (
+              {!isCorporateBooking && (
                 <>
                   <div className={styles.sectionDivider} />
                   <DepositSetupClient
