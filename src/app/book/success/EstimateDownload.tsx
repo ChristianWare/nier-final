@@ -11,6 +11,8 @@ type Props = {
   balanceCents?: number | null;
   totalCents?: number | null;
   currency?: string;
+  depositDueDate?: string | null;
+  balanceDueDate?: string | null;
 };
 
 function fmt(cents: number, currency = "USD") {
@@ -21,6 +23,19 @@ function fmt(cents: number, currency = "USD") {
   }).format(cents / 100);
 }
 
+function fmtDate(ymd: string) {
+  try {
+    const [y, m, d] = ymd.split("-").map(Number);
+    return new Intl.DateTimeFormat("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date(y, m - 1, d));
+  } catch {
+    return ymd;
+  }
+}
+
 export default function EstimateDownload({
   bookingId,
   depositMode,
@@ -29,13 +44,14 @@ export default function EstimateDownload({
   balanceCents,
   totalCents,
   currency = "USD",
+  depositDueDate,
+  balanceDueDate,
 }: Props) {
   const [isDownloading, setIsDownloading] = useState(false);
 
   async function handleDownload() {
     setIsDownloading(true);
     try {
-      // Pass deposit info to the PDF route so it can render deposit rows
       const params = new URLSearchParams();
       if (depositMode && depositPercent) {
         params.set("depositPercent", String(depositPercent));
@@ -43,6 +59,8 @@ export default function EstimateDownload({
           params.set("depositCents", String(depositCents));
         if (balanceCents != null)
           params.set("balanceCents", String(balanceCents));
+        if (depositDueDate) params.set("depositDueDate", depositDueDate);
+        if (balanceDueDate) params.set("balanceDueDate", balanceDueDate);
       }
       const query = params.toString() ? `?${params.toString()}` : "";
       const res = await fetch(`/api/estimate/${bookingId}/download${query}`);
@@ -64,6 +82,7 @@ export default function EstimateDownload({
 
   const hasDeposit =
     depositMode && depositPercent && depositCents != null && depositCents > 0;
+  const hasBalance = balanceCents != null && balanceCents > 0;
 
   return (
     <div
@@ -106,17 +125,49 @@ export default function EstimateDownload({
           }}
         >
           <span>💳</span>
-          <div style={{ lineHeight: 1.6 }}>
-            <strong>Deposit option included:</strong> customer can pay a{" "}
-            {depositPercent}% deposit of{" "}
-            <strong>{fmt(depositCents!, currency)}</strong> now
-            {balanceCents != null && balanceCents > 0 ? (
-              <>
-                , then the <strong>{fmt(balanceCents, currency)}</strong>{" "}
-                balance later
-              </>
-            ) : null}
-            , or pay the full amount upfront. This is reflected in the PDF.
+          <div style={{ display: "grid", gap: "0.5rem", lineHeight: 1.6 }}>
+            {/* Summary line */}
+            <div>
+              <strong>Deposit option included:</strong> customer can pay a{" "}
+              {depositPercent}% deposit of{" "}
+              <strong>{fmt(depositCents!, currency)}</strong> now
+              {hasBalance ? (
+                <>
+                  , then the <strong>{fmt(balanceCents!, currency)}</strong>{" "}
+                  balance later
+                </>
+              ) : null}
+              , or pay the full amount upfront.
+            </div>
+
+            {/* Due dates */}
+            {(depositDueDate || (hasBalance && balanceDueDate)) && (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "0.3rem",
+                  padding: "0.6rem 0.8rem",
+                  background: "rgba(255,255,255,0.6)",
+                  borderRadius: 6,
+                  fontSize: "1.2rem",
+                }}
+              >
+                {depositDueDate && (
+                  <div style={{ color: "#065f46" }}>
+                    <strong>Deposit due:</strong> {fmtDate(depositDueDate)}
+                  </div>
+                )}
+                {hasBalance && balanceDueDate && (
+                  <div style={{ color: "#065f46" }}>
+                    <strong>Balance due:</strong> {fmtDate(balanceDueDate)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ fontSize: "1.2rem", color: "#6b7280" }}>
+              Both payment options are reflected in the downloaded PDF.
+            </div>
           </div>
         </div>
       )}

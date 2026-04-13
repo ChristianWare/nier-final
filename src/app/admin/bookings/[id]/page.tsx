@@ -1521,7 +1521,9 @@ export default async function AdminBookingDetailPage({
                   <div className={styles.sectionDivider} />
                   <DepositSetupClient
                     bookingId={booking.id}
-                    totalCents={booking.totalCents}
+                    totalCents={
+                      isGroupBooking ? groupTotalCents : booking.totalCents
+                    }
                     currency={booking.currency}
                     isPaid={isPaid}
                     initialDepositMode={booking.depositMode}
