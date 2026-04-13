@@ -1579,15 +1579,23 @@ export default async function AdminBookingDetailPage({
                 depositCents={
                   booking.depositMode && booking.depositPercent
                     ? Math.round(
-                        (booking.totalCents * booking.depositPercent) / 100,
+                        ((isGroupBooking
+                          ? groupTotalCents
+                          : booking.totalCents) *
+                          booking.depositPercent) /
+                          100,
                       )
                     : (booking.depositCents ?? null)
                 }
                 balanceCents={
                   booking.depositMode && booking.depositPercent
-                    ? booking.totalCents -
+                    ? (isGroupBooking ? groupTotalCents : booking.totalCents) -
                       Math.round(
-                        (booking.totalCents * booking.depositPercent) / 100,
+                        ((isGroupBooking
+                          ? groupTotalCents
+                          : booking.totalCents) *
+                          booking.depositPercent) /
+                          100,
                       )
                     : (booking.balanceCents ?? null)
                 }
