@@ -71,11 +71,22 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     }
   }
 
-  // ── Deposit fields ── (declared after effectiveAmountPaidCents)
+  // ── Deposit fields ── (declared after effectiveTotalCents is computed)
   const depositMode = (booking as any).depositMode ?? false;
-  const depositCents = (booking as any).depositCents ?? null;
   const depositPercent = (booking as any).depositPercent ?? null;
-  const balanceCents = (booking as any).balanceCents ?? null;
+
+  // Always calculate deposit/balance from the effective (group) total,
+  // not from the stale cached values on the single-leg booking row
+  const depositCents =
+    depositMode && depositPercent != null
+      ? Math.round((effectiveTotalCents * depositPercent) / 100)
+      : ((booking as any).depositCents ?? null);
+
+  const balanceCents =
+    depositMode && depositPercent != null && depositCents != null
+      ? effectiveTotalCents - depositCents
+      : ((booking as any).balanceCents ?? null);
+
   const depositDueDate =
     (booking as any).depositDueDate instanceof Date
       ? (booking as any).depositDueDate.toISOString()
@@ -119,8 +130,7 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
   // isBalancePayment is true when there's a partial payment that isn't
   // just a deposit waiting to be completed — i.e. the deposit is already
   // paid and now there's a remaining balance to collect.
- const isBalancePayment = amountPaidCents > 0 && balanceDueCents > 0;
-
+  const isBalancePayment = amountPaidCents > 0 && balanceDueCents > 0;
 
   const customerName =
     booking.user?.name ?? (booking as any).guestName ?? "Guest";
