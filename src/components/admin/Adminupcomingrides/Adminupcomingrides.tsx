@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import styles from "./Adminupcomingrides.module.css";
@@ -19,6 +18,7 @@ export type UpcomingRideItem = {
   customer: {
     name: string;
     email: string | null;
+    phone?: string | null;
   };
 };
 
@@ -38,50 +38,60 @@ function formatCurrency(cents: number, currency: string = "USD") {
   }).format(cents / 100);
 }
 
-function formatPickup(iso: string, timeZone: string) {
-  const d = new Date(iso);
-  const now = new Date();
-
-  const dateLabel = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-  }).format(d);
-
-  const timeLabel = new Intl.DateTimeFormat("en-US", {
+function formatTimeOnly(iso: string, timeZone: string) {
+  return new Intl.DateTimeFormat("en-US", {
     timeZone,
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+  }).format(new Date(iso));
+}
+
+function formatDayHeading(iso: string, timeZone: string) {
+  const d = new Date(iso);
+  const now = new Date();
+
+  // Get today/tomorrow in the target timezone
+  const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone }).format(now);
+  const tomorrowStr = new Intl.DateTimeFormat("en-CA", { timeZone }).format(
+    new Date(now.getTime() + 86400000),
+  );
+  const dateStr = new Intl.DateTimeFormat("en-CA", { timeZone }).format(d);
+
+  const longLabel = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   }).format(d);
 
+  if (dateStr === todayStr) return `Today — ${longLabel}`;
+  if (dateStr === tomorrowStr) return `Tomorrow — ${longLabel}`;
+  return longLabel;
+}
+
+function getDayKey(iso: string, timeZone: string) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date(iso));
+}
+
+function formatRelative(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
   const diffMs = d.getTime() - now.getTime();
   const absMs = Math.abs(diffMs);
-
-  const mins = Math.round(absMs / (60 * 1000));
-  const hours = Math.round(absMs / (60 * 60 * 1000));
-  const days = Math.round(absMs / (24 * 60 * 60 * 1000));
-
-  let rel: string;
-  if (mins < 60) {
-    rel = `in ${mins}m`;
-  } else if (hours < 24) {
-    rel = `in ${hours}h`;
-  } else {
-    rel = `in ${days}d`;
-  }
+  const mins = Math.round(absMs / 60000);
+  const hours = Math.round(absMs / 3600000);
+  const days = Math.round(absMs / 86400000);
 
   if (diffMs < 0) {
-    rel =
-      mins < 60
-        ? `${mins}m ago`
-        : hours < 24
-          ? `${hours}h ago`
-          : `${days}d ago`;
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
   }
-
-  return { dateLabel, timeLabel, rel };
+  if (mins < 60) return `in ${mins}m`;
+  if (hours < 24) return `in ${hours}h`;
+  return `in ${days}d`;
 }
 
 function prettyStatus(s: string) {
@@ -89,77 +99,56 @@ function prettyStatus(s: string) {
   if (s === "PENDING_PAYMENT") return "Payment due";
   if (s === "PENDING_REVIEW") return "Pending review";
   if (s === "IN_PROGRESS") return "In Progress";
-  const parts = String(s).split("_").filter(Boolean);
-  if (!parts.length) return String(s);
-  return parts
-    .map((p) => p.slice(0, 1).toUpperCase() + p.slice(1).toLowerCase())
+  if (s === "ASSIGNED") return "Assigned";
+  if (s === "EN_ROUTE") return "En Route";
+  if (s === "ARRIVED") return "Arrived";
+  return s
+    .split("_")
+    .filter(Boolean)
+    .map((p) => p[0].toUpperCase() + p.slice(1).toLowerCase())
     .join(" ");
 }
 
 function statusTone(
   s: string,
 ): "neutral" | "warning" | "danger" | "good" | "active" {
-  if (s === "CONFIRMED") return "good";
-  if (s === "IN_PROGRESS") return "active";
+  if (s === "CONFIRMED" || s === "ASSIGNED") return "good";
+  if (s === "IN_PROGRESS" || s === "EN_ROUTE" || s === "ARRIVED")
+    return "active";
   if (s === "PENDING_REVIEW") return "warning";
   if (s === "PENDING_PAYMENT") return "danger";
   return "neutral";
 }
 
-function getTimePeriodBounds(period: TimePeriod, timeZone: string) {
+function getTimePeriodEnd(period: TimePeriod, timeZone: string): Date | null {
   const now = new Date();
-
-  // Get current date in timezone
-  const formatter = new Intl.DateTimeFormat("en-CA", {
+  const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
   });
-
-  const todayStr = formatter.format(now);
-  const [year, month, day] = todayStr.split("-").map(Number);
-
-  // Calculate end dates based on period
+  const [year, month] = fmt.format(now).split("-").map(Number);
   switch (period) {
     case "week": {
-      // End of current week (Saturday)
-      const dayOfWeek = now.getDay();
-      const daysUntilSaturday = 6 - dayOfWeek;
-      const endDate = new Date(now);
-      endDate.setDate(endDate.getDate() + daysUntilSaturday + 1);
-      endDate.setHours(23, 59, 59, 999);
-      return endDate;
+      const end = new Date(now);
+      end.setDate(end.getDate() + (6 - now.getDay()) + 1);
+      end.setHours(23, 59, 59, 999);
+      return end;
     }
-    case "month": {
-      // End of current month
-      const endDate = new Date(year, month, 0, 23, 59, 59, 999);
-      return endDate;
-    }
-    case "year": {
-      // End of current year
-      const endDate = new Date(year, 11, 31, 23, 59, 59, 999);
-      return endDate;
-    }
-    case "all":
+    case "month":
+      return new Date(year, month, 0, 23, 59, 59, 999);
+    case "year":
+      return new Date(year, 11, 31, 23, 59, 59, 999);
     default:
-      return null; // No upper bound
+      return null;
   }
 }
 
-function isWithinPeriod(
-  isoDate: string,
-  period: TimePeriod,
-  timeZone: string,
-): boolean {
+function isWithinPeriod(iso: string, period: TimePeriod, timeZone: string) {
   if (period === "all") return true;
-
-  const date = new Date(isoDate);
-  const endBound = getTimePeriodBounds(period, timeZone);
-
-  if (!endBound) return true;
-
-  return date <= endBound;
+  const end = getTimePeriodEnd(period, timeZone);
+  return end ? new Date(iso) <= end : true;
 }
 
 export default function AdminUpcomingRides({
@@ -171,12 +160,10 @@ export default function AdminUpcomingRides({
   const [assignmentFilter, setAssignmentFilter] =
     useState<AssignmentFilter>("all");
 
-  // Calculate counts for each time period
   const counts = useMemo(() => {
     const total = items.length;
     const assigned = items.filter((x) => x.driverName !== null).length;
     const unassigned = total - assigned;
-
     const weekItems = items.filter((x) =>
       isWithinPeriod(x.pickupAtIso, "week", timeZone),
     );
@@ -186,13 +173,6 @@ export default function AdminUpcomingRides({
     const yearItems = items.filter((x) =>
       isWithinPeriod(x.pickupAtIso, "year", timeZone),
     );
-
-    // Calculate revenue
-    const weekRevenue = weekItems.reduce((sum, x) => sum + x.totalCents, 0);
-    const monthRevenue = monthItems.reduce((sum, x) => sum + x.totalCents, 0);
-    const yearRevenue = yearItems.reduce((sum, x) => sum + x.totalCents, 0);
-    const totalRevenue = items.reduce((sum, x) => sum + x.totalCents, 0);
-
     return {
       total,
       assigned,
@@ -200,61 +180,73 @@ export default function AdminUpcomingRides({
       week: weekItems.length,
       month: monthItems.length,
       year: yearItems.length,
-      weekRevenue,
-      monthRevenue,
-      yearRevenue,
-      totalRevenue,
+      weekRevenue: weekItems.reduce((s, x) => s + x.totalCents, 0),
+      monthRevenue: monthItems.reduce((s, x) => s + x.totalCents, 0),
+      yearRevenue: yearItems.reduce((s, x) => s + x.totalCents, 0),
+      totalRevenue: items.reduce((s, x) => s + x.totalCents, 0),
     };
   }, [items, timeZone]);
 
-  // Filter items based on selections
   const filtered = useMemo(() => {
-    let list = items.slice();
-
-    // Filter by time period
-    list = list.filter((x) =>
+    let list = items.filter((x) =>
       isWithinPeriod(x.pickupAtIso, timePeriod, timeZone),
     );
-
-    // Filter by assignment status
-    if (assignmentFilter === "assigned") {
+    if (assignmentFilter === "assigned")
       list = list.filter((x) => x.driverName !== null);
-    }
-    if (assignmentFilter === "unassigned") {
+    if (assignmentFilter === "unassigned")
       list = list.filter((x) => x.driverName === null);
-    }
-
-    // Sort by pickup time (earliest first)
-    list.sort((a, b) => {
-      return (
-        new Date(a.pickupAtIso).getTime() - new Date(b.pickupAtIso).getTime()
-      );
-    });
-
-    return list;
+    return [...list].sort(
+      (a, b) =>
+        new Date(a.pickupAtIso).getTime() - new Date(b.pickupAtIso).getTime(),
+    );
   }, [items, timePeriod, assignmentFilter, timeZone]);
 
-  // Get current period revenue for display
-  const currentPeriodRevenue = useMemo(() => {
-    switch (timePeriod) {
-      case "week":
-        return counts.weekRevenue;
-      case "month":
-        return counts.monthRevenue;
-      case "year":
-        return counts.yearRevenue;
-      case "all":
-      default:
-        return counts.totalRevenue;
+  // Group by day
+  const groupedByDay = useMemo(() => {
+    const groups: {
+      dayKey: string;
+      label: string;
+      items: UpcomingRideItem[];
+    }[] = [];
+    const seen = new Map<string, number>();
+    for (const item of filtered) {
+      const key = getDayKey(item.pickupAtIso, timeZone);
+      if (!seen.has(key)) {
+        seen.set(key, groups.length);
+        groups.push({
+          dayKey: key,
+          label: formatDayHeading(item.pickupAtIso, timeZone),
+          items: [],
+        });
+      }
+      groups[seen.get(key)!].items.push(item);
     }
+    return groups;
+  }, [filtered, timeZone]);
+
+  const currentRevenue = useMemo(() => {
+    const map: Record<TimePeriod, number> = {
+      week: counts.weekRevenue,
+      month: counts.monthRevenue,
+      year: counts.yearRevenue,
+      all: counts.totalRevenue,
+    };
+    return map[timePeriod];
   }, [timePeriod, counts]);
+
+  function formatPhone(raw: string): string {
+    const digits = raw.replace(/\D/g, "");
+    const d =
+      digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+    if (d.length !== 10) return raw;
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  }
 
   return (
     <section className={styles.container} aria-label='Upcoming rides'>
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>Upcoming Rides</h2>
-
           <div className={styles.kpis}>
             <span className={styles.kpi}>Total: {counts.total}</span>
             <span className={styles.kpi}>This Week: {counts.week}</span>
@@ -270,66 +262,43 @@ export default function AdminUpcomingRides({
 
         <div className={styles.controls}>
           <div className={styles.tabs} role='tablist' aria-label='Time period'>
-            <button
-              type='button'
-              className={`tab ${timePeriod === "week" ? "tabActive" : ""}`}
-              onClick={() => setTimePeriod("week")}
-            >
-              This Week ({counts.week})
-            </button>
-            <button
-              type='button'
-              className={`tab ${timePeriod === "month" ? "tabActive" : ""}`}
-              onClick={() => setTimePeriod("month")}
-            >
-              This Month ({counts.month})
-            </button>
-            <button
-              type='button'
-              className={`tab ${timePeriod === "year" ? "tabActive" : ""}`}
-              onClick={() => setTimePeriod("year")}
-            >
-              This Year ({counts.year})
-            </button>
-            <button
-              type='button'
-              className={`tab ${timePeriod === "all" ? "tabActive" : ""}`}
-              onClick={() => setTimePeriod("all")}
-            >
-              All ({counts.total})
-            </button>
+            {(["week", "month", "year", "all"] as TimePeriod[]).map((p) => (
+              <button
+                key={p}
+                type='button'
+                className={`tab ${timePeriod === p ? "tabActive" : ""}`}
+                onClick={() => setTimePeriod(p)}
+              >
+                {p === "week"
+                  ? `This Week (${counts.week})`
+                  : p === "month"
+                    ? `This Month (${counts.month})`
+                    : p === "year"
+                      ? `This Year (${counts.year})`
+                      : `All (${counts.total})`}
+              </button>
+            ))}
           </div>
-
           <div
             className={styles.tabs}
             role='tablist'
             aria-label='Assignment filter'
           >
-            <button
-              type='button'
-              className={`tab ${assignmentFilter === "all" ? "tabActive" : ""}`}
-              onClick={() => setAssignmentFilter("all")}
-            >
-              All
-            </button>
-            <button
-              type='button'
-              className={`tab ${assignmentFilter === "assigned" ? "tabActive" : ""}`}
-              onClick={() => setAssignmentFilter("assigned")}
-            >
-              Assigned
-            </button>
-            <button
-              type='button'
-              className={`tab ${assignmentFilter === "unassigned" ? "tabActive" : ""}`}
-              onClick={() => setAssignmentFilter("unassigned")}
-            >
-              Unassigned
-            </button>
+            {(["all", "assigned", "unassigned"] as AssignmentFilter[]).map(
+              (f) => (
+                <button
+                  key={f}
+                  type='button'
+                  className={`tab ${assignmentFilter === f ? "tabActive" : ""}`}
+                  onClick={() => setAssignmentFilter(f)}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ),
+            )}
           </div>
         </div>
 
-        {/* Stats row */}
         <div className={styles.statsRow}>
           <div className={styles.stat}>
             <span className={styles.statNumber}>{filtered.length}</span>
@@ -338,7 +307,7 @@ export default function AdminUpcomingRides({
           <div className={styles.statDivider} />
           <div className={styles.stat}>
             <span className={`${styles.statNumber} ${styles.statRevenue}`}>
-              {formatCurrency(currentPeriodRevenue, "USD")}
+              {formatCurrency(currentRevenue, "USD")}
             </span>
             <span className={styles.statLabel}>Expected Revenue</span>
           </div>
@@ -370,10 +339,10 @@ export default function AdminUpcomingRides({
             <thead className={styles.thead}>
               <tr className={styles.trHead}>
                 <th className={styles.th}>Status</th>
-                <th className={styles.th}>Pickup</th>
+                <th className={styles.th}>Time</th>
                 <th className={styles.th}>Client</th>
-                <th className={styles.th}>Service</th>
-                <th className={styles.th}>Vehicle</th>
+                <th className={styles.th}>Route</th>
+                <th className={styles.th}>Service / Vehicle</th>
                 <th className={styles.th}>Driver</th>
                 <th className={styles.th}>Amount</th>
                 <th className={`${styles.th} ${styles.thRight}`}></th>
@@ -381,143 +350,197 @@ export default function AdminUpcomingRides({
             </thead>
 
             <tbody>
-              {filtered.map((b) => {
-                const pickup = formatPickup(b.pickupAtIso, timeZone);
-                const tone = statusTone(b.status);
-                const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}`;
-
-                return (
-                  <tr key={b.id} className={styles.tr}>
-                    <td className={styles.td} data-label='Status'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <span
-                          className={`${styles.badge} ${styles[`badge_${tone}`]}`}
-                        >
-                          {prettyStatus(b.status)}
+              {groupedByDay.map((group) => (
+                <>
+                  {/* Day heading row */}
+                  <tr
+                    key={`day-${group.dayKey}`}
+                    className={styles.dayHeaderRow}
+                  >
+                    <td colSpan={8} className={styles.dayHeaderCell}>
+                      <div className={styles.dayHeaderInner}>
+                        <span className={styles.dayHeaderText}>
+                          {group.label}
+                        </span>
+                        <span className={styles.dayHeaderCount}>
+                          {group.items.length} ride
+                          {group.items.length !== 1 ? "s" : ""}
                         </span>
                       </div>
                     </td>
-
-                    <td className={styles.td} data-label='Pickup'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div
-                        className={`${styles.cellStack} ${styles.cellInner}`}
-                      >
-                        <Link href={href} className={styles.rowLink}>
-                          {pickup.dateLabel} @ {pickup.timeLabel}
-                        </Link>
-                        <div className={styles.cellMeta}>
-                          <span className={styles.pill}>{pickup.rel}</span>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Client'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div
-                        className={`${styles.cellStack} ${styles.cellInner}`}
-                      >
-                        <Link href={href} className={styles.rowLink}>
-                          {b.customer.name}
-                        </Link>
-                        {b.customer.email && (
-                          <div className={styles.cellSub}>
-                            {b.customer.email}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Service'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <div className={styles.rowLink}>{b.serviceName}</div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Vehicle'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <div className={styles.rowLink}>
-                          {b.vehicleName ?? "—"}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td
-                      className={`${styles.td} ${!b.driverName ? styles.unassignedCell : ""}`}
-                      data-label='Driver'
-                    >
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <div className={styles.rowLink}>
-                          {b.driverName ?? "Unassigned"}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className={styles.td} data-label='Amount'>
-                      <Link
-                        href={href}
-                        className={styles.rowStretchedLink}
-                        aria-hidden='true'
-                        tabIndex={-1}
-                      />
-                      <div className={styles.cellInner}>
-                        <div className={styles.amount}>
-                          {formatCurrency(b.totalCents, b.currency)}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td
-                      className={`${styles.td} ${styles.tdRight}`}
-                      data-label='Action'
-                    >
-                      <Link className='primaryBtn' href={href}>
-                        View
-                      </Link>
-                    </td>
                   </tr>
-                );
-              })}
+
+                  {/* Rides for this day */}
+                  {group.items.map((b) => {
+                    const time = formatTimeOnly(b.pickupAtIso, timeZone);
+                    const rel = formatRelative(b.pickupAtIso);
+                    const tone = statusTone(b.status);
+                    const href = `${bookingHrefBase}/${encodeURIComponent(b.id)}`;
+
+                    return (
+                      <tr key={b.id} className={styles.tr}>
+                        <td className={styles.td} data-label='Status'>
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                          />
+                          <div className={styles.cellInner}>
+                            <span
+                              className={`${styles.badge} ${styles[`badge_${tone}`]}`}
+                            >
+                              {prettyStatus(b.status)}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className={styles.td} data-label='Time'>
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                          />
+                          <div
+                            className={`${styles.cellStack} ${styles.cellInner}`}
+                          >
+                            <span className={styles.timeValue}>{time}</span>
+                            <span className={styles.pill}>{rel}</span>
+                          </div>
+                        </td>
+
+                        <td className={styles.td} data-label='Client'>
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                          />
+                          <div
+                            className={`${styles.cellStack} ${styles.cellInner}`}
+                          >
+                            <span className={styles.rowLink}>
+                              {b.customer.name}
+                            </span>
+                            {b.customer.email && (
+                              <span className={styles.cellSub}>
+                                {b.customer.email}
+                              </span>
+                            )}
+                            {b.customer.phone && (
+                              <span className={styles.cellSub}>
+                                {formatPhone(b.customer.phone)}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td className={styles.td} data-label='Route'>
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                          />
+                          <div
+                            className={`${styles.routeCell} ${styles.cellInner}`}
+                          >
+                            <div className={styles.routeRow}>
+                              <span
+                                className={styles.routeDot}
+                                style={{ background: "#22c55e" }}
+                              />
+                              <span className={styles.routeAddr}>
+                                {b.pickupAddress}
+                              </span>
+                            </div>
+                            <div className={styles.routeLine} />
+                            <div className={styles.routeRow}>
+                              <span
+                                className={styles.routeDot}
+                                style={{ background: "#ef4444" }}
+                              />
+                              <span className={styles.routeAddr}>
+                                {b.dropoffAddress}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td
+                          className={styles.td}
+                          data-label='Service / Vehicle'
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                          />
+                          <div
+                            className={`${styles.cellStack} ${styles.cellInner}`}
+                          >
+                            <span className={styles.rowLink}>
+                              {b.serviceName}
+                            </span>
+                            {b.vehicleName && (
+                              <span className={styles.cellSub}>
+                                {b.vehicleName}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        <td
+                          className={`${styles.td} ${!b.driverName ? styles.unassignedCell : ""}`}
+                          data-label='Driver'
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                          />
+                          <div className={styles.cellInner}>
+                            <span className={styles.rowLink}>
+                              {b.driverName ?? "Unassigned"}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className={styles.td} data-label='Amount'>
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                          />
+                          <div className={styles.cellInner}>
+                            <span className={styles.amount}>
+                              {formatCurrency(b.totalCents, b.currency)}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td
+                          className={`${styles.td} ${styles.tdRight}`}
+                          data-label='Action'
+                        >
+                          <Link className='primaryBtn' href={href}>
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </>
+              ))}
             </tbody>
           </table>
         </div>
       )}
 
-      {/* Footer with View All link */}
       {filtered.length > 0 && (
         <div className={styles.footer}>
           <Link href='/admin/bookings?status=CONFIRMED' className='backBtn'>

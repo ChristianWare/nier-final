@@ -576,6 +576,7 @@ export default async function AdminHome() {
         user: { select: { name: true, email: true } },
         guestName: true,
         guestEmail: true,
+        guestPhone: true,
         serviceType: { select: { name: true } },
         vehicle: { select: { name: true } },
         assignment: {
@@ -1434,6 +1435,7 @@ export default async function AdminHome() {
       customer: {
         name: customerName,
         email: customerEmail,
+        phone: b.user?.phone ?? b.guestPhone ?? null,
       },
     };
   });
