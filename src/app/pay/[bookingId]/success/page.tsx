@@ -265,8 +265,12 @@ export default async function PaymentSuccessPage({
       feesCents: 0,
       taxesCents: 0,
       totalCents: groupTotal,
-      tipCents,
-      amountPaidCents: groupTotal,
+      tipCents: booking.payment?.tipCents ?? 0,
+      amountPaidCents:
+        (booking.tripGroup?.bookings.reduce(
+          (sum, b) => sum + b.totalCents,
+          0,
+        ) ?? 0) + (booking.payment?.tipCents ?? 0),
       amountRefundedCents: 0,
       currency: booking.currency ?? "usd",
       paymentMethodDisplay: buildPaymentMethodDisplay(booking.payment),

@@ -819,8 +819,12 @@ export default async function AdminBookingDetailPage({
       feesCents: 0,
       taxesCents: 0,
       totalCents: groupTotalCents,
-      tipCents: 0,
-      amountPaidCents: groupAmountPaidCents,
+      tipCents: Math.max(
+        0,
+        (tripGroupData.tripGroup.amountPaidCents ?? 0) - groupTotalCents,
+      ),
+      amountPaidCents:
+        tripGroupData.tripGroup.amountPaidCents ?? groupTotalCents,
       amountRefundedCents: 0,
       currency: tripGroupData.tripGroup.currency,
       paymentMethodDisplay: null,
@@ -1547,9 +1551,7 @@ export default async function AdminBookingDetailPage({
               {tipCents > 0 && (
                 <div className={styles.tipBreakdownCard}>
                   <div className={styles.tipBreakdownHeader}>
-                    <span className={styles.tipBreakdownIcon}>
-                      \ud83d\udcb0
-                    </span>
+                    <span className={styles.tipBreakdownIcon}>💰</span>
                     <span className={styles.tipBreakdownTitle}>
                       Driver Tip Received
                     </span>

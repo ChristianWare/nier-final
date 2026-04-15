@@ -16,32 +16,43 @@ export async function adminCreateManualPaymentIntent({
       id: true,
       totalCents: true,
       currency: true,
-      payment: {
-        select: {
-          amountPaidCents: true,
-          status: true,
-        },
-      },
+      tripGroupId: true, // ← NEW
+      payment: { select: { amountPaidCents: true, status: true } },
     },
   });
 
   if (!b) return { error: "Booking not found" };
 
-  const totalCents = Number(b.totalCents ?? 0);
-  if (!Number.isFinite(totalCents) || totalCents <= 0) {
+  // ── For group bookings, charge the group total minus what's already paid ──
+  let effectiveTotalCents = Number(b.totalCents ?? 0);
+  let groupAmountPaidCents = 0;
+
+  if (b.tripGroupId) {
+    const siblings = await db.booking.findMany({
+      where: { tripGroupId: b.tripGroupId },
+      select: {
+        totalCents: true,
+        payment: { select: { amountPaidCents: true } },
+      },
+    });
+    effectiveTotalCents = siblings.reduce((sum, s) => sum + s.totalCents, 0);
+    groupAmountPaidCents = siblings.reduce(
+      (sum, s) => sum + (s.payment?.amountPaidCents ?? 0),
+      0,
+    );
+  }
+
+  if (!Number.isFinite(effectiveTotalCents) || effectiveTotalCents <= 0) {
     return { error: "Booking total must be > 0. Approve price first." };
   }
 
-  // Calculate amount to charge (balance if partially paid, full amount otherwise)
-  const amountPaidCents = Number(b.payment?.amountPaidCents ?? 0);
-  const amountToCharge = totalCents - amountPaidCents;
-
+  const amountToCharge = effectiveTotalCents - groupAmountPaidCents;
   if (amountToCharge <= 0) {
     return { error: "No balance due. The booking is fully paid." };
   }
 
   const currency = (b.currency ?? "USD").toLowerCase();
-  const isBalancePayment = amountPaidCents > 0;
+  const isBalancePayment = groupAmountPaidCents > 0;
 
   const stripe = await getStripe();
   const pi = await stripe.paymentIntents.create({
@@ -49,11 +60,12 @@ export async function adminCreateManualPaymentIntent({
     currency,
     metadata: {
       bookingId: b.id,
+      tripGroupId: b.tripGroupId ?? "", // ← NEW
       kind: "ADMIN_MANUAL",
       isBalancePayment: isBalancePayment ? "true" : "false",
       balanceAmount: amountToCharge.toString(),
-      originalTotal: totalCents.toString(),
-      previouslyPaid: amountPaidCents.toString(),
+      originalTotal: effectiveTotalCents.toString(),
+      previouslyPaid: groupAmountPaidCents.toString(),
     },
     automatic_payment_methods: { enabled: true },
   });
@@ -61,9 +73,5 @@ export async function adminCreateManualPaymentIntent({
   if (!pi.client_secret)
     return { error: "No client secret returned by Stripe" };
 
-  return {
-    clientSecret: pi.client_secret,
-    amountToCharge,
-    isBalancePayment,
-  };
+  return { clientSecret: pi.client_secret, amountToCharge, isBalancePayment };
 }

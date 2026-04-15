@@ -268,9 +268,12 @@ async function finalizePaid(args: {
             select: {
               id: true,
               totalCents: true,
+              subtotalCents: true,
+              currency: true,
               status: true,
               payment: {
                 select: {
+                  id: true,
                   status: true,
                   amountPaidCents: true,
                   tipCents: true,
@@ -286,7 +289,6 @@ async function finalizePaid(args: {
           (sum, b) => sum + b.totalCents,
           0,
         );
-
         const totalActuallyPaid = group.bookings.reduce(
           (sum, b) => sum + (b.payment?.amountPaidCents ?? 0),
           0,
@@ -296,58 +298,88 @@ async function finalizePaid(args: {
           0,
         );
 
-        // Only mark group as PAID if ALL siblings have a PAID (or PARTIALLY_PAID) payment record
-        const allSiblingsPaid = group.bookings.every(
-          (b) =>
-            b.payment?.status === "PAID" ||
-            b.payment?.status === "PARTIALLY_PAID",
-        );
-
-        const newGroupPaymentStatus = allSiblingsPaid ? "PAID" : "NONE";
+        // ✅ FIX: Use total coverage, not per-booking payment records.
+        // A single payment on one booking can cover the entire group total.
+        const isGroupFullyCovered = totalActuallyPaid >= groupTotal;
 
         await db.tripGroup.update({
           where: { id: paidBooking.tripGroupId },
           data: {
-            paymentStatus: newGroupPaymentStatus,
+            paymentStatus: isGroupFullyCovered ? "PAID" : "NONE",
             amountPaidCents: totalActuallyPaid + totalTips,
-            paidAt: allSiblingsPaid ? new Date() : undefined,
+            totalCents: groupTotal,
+            paidAt: isGroupFullyCovered ? new Date() : undefined,
           },
         });
 
-        console.log(
-          `✅ Trip group ${paidBooking.tripGroupId} payment status: ${newGroupPaymentStatus}`,
-          `(${(totalActuallyPaid / 100).toFixed(2)} of ${(groupTotal / 100).toFixed(2)} paid)`,
-        );
-
-        if (allSiblingsPaid) {
+        if (isGroupFullyCovered) {
           const upgradableStatuses: BookingStatus[] = [
             "PENDING_PAYMENT",
             "PENDING_REVIEW",
             "ASSIGNED",
+            "DRAFT",
           ];
 
           for (const sibling of group.bookings) {
-            if (
-              sibling.id !== bookingId &&
-              upgradableStatuses.includes(sibling.status as BookingStatus)
-            ) {
+            if (sibling.id === bookingId) continue; // Already handled in main tx
+
+            // Confirm booking status if eligible
+            if (upgradableStatuses.includes(sibling.status as BookingStatus)) {
               await db.booking.update({
                 where: { id: sibling.id },
                 data: { status: "CONFIRMED" },
               });
-              await db.bookingStatusEvent.create({
+            }
+
+            // ✅ FIX: Create payment records for siblings that have none,
+            // so they show as paid on their own detail pages.
+            if (!sibling.payment) {
+              await db.payment.create({
                 data: {
                   bookingId: sibling.id,
-                  status: "CONFIRMED",
-                  eventType: "PAYMENT_RECEIVED",
-                  metadata: {
-                    method: "online",
-                    note: "Confirmed via group payment",
-                    groupId: paidBooking.tripGroupId,
-                  },
+                  status: "PAID",
+                  stripePaymentIntentId: paymentIntentId ?? undefined,
+                  paidAt: new Date(),
+                  amountSubtotalCents:
+                    sibling.subtotalCents ?? sibling.totalCents,
+                  amountTotalCents: sibling.totalCents,
+                  amountPaidCents: sibling.totalCents,
+                  amountRefundedCents: 0,
+                  currency: (
+                    sibling.currency ??
+                    group.currency ??
+                    "usd"
+                  ).toLowerCase(),
+                },
+              });
+            } else if (
+              sibling.payment.status !== "PAID" &&
+              sibling.payment.status !== "PARTIALLY_PAID"
+            ) {
+              await db.payment.update({
+                where: { id: sibling.payment.id },
+                data: {
+                  status: "PAID",
+                  paidAt: new Date(),
+                  stripePaymentIntentId:
+                    paymentIntentId ?? sibling.payment.id ?? undefined,
                 },
               });
             }
+
+            await db.bookingStatusEvent.create({
+              data: {
+                bookingId: sibling.id,
+                status: "CONFIRMED",
+                eventType: "PAYMENT_RECEIVED",
+                metadata: {
+                  method: "online",
+                  note: "Confirmed via group payment",
+                  groupId: paidBooking.tripGroupId,
+                  paymentIntentId: paymentIntentId ?? null,
+                },
+              },
+            });
           }
         }
       }
