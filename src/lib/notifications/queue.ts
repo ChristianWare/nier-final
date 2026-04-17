@@ -44,6 +44,7 @@ async function fireAdminPush(
   const pushEvent = NOTIFICATION_TO_PUSH_EVENT[event];
   if (!pushEvent) return; // no push payload defined for this event
 
+  // AFTER
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
     select: {
@@ -53,6 +54,7 @@ async function fireAdminPush(
       pickupAt: true,
       totalCents: true,
       currency: true,
+      tripGroupId: true,
       user: { select: { name: true } },
       guestName: true,
     },
@@ -60,12 +62,22 @@ async function fireAdminPush(
 
   if (!booking) return;
 
+  // For group bookings, use the group total instead of individual booking total
+  let effectiveTotalCents = booking.totalCents;
+  if (booking.tripGroupId) {
+    const siblings = await db.booking.findMany({
+      where: { tripGroupId: booking.tripGroupId },
+      select: { totalCents: true },
+    });
+    effectiveTotalCents = siblings.reduce((sum, s) => sum + s.totalCents, 0);
+  }
+
   await notifyAdminsPush(pushEvent, {
     id: booking.id,
     pickupAddress: booking.pickupAddress,
     dropoffAddress: booking.dropoffAddress,
     pickupAt: booking.pickupAt,
-    totalCents: booking.totalCents,
+    totalCents: effectiveTotalCents,
     currency: booking.currency,
     customerName: booking.user?.name ?? null,
     guestName: booking.guestName ?? null,
