@@ -959,6 +959,14 @@ export default async function AdminBookingDetailPage({
       sentAt: e.createdAt.toISOString(),
       recipientEmail: (e as any).metadata?.recipientEmail ?? null,
     }));
+
+  const invoiceSentEvents = booking.statusEvents
+    .filter((e) => (e as any).eventType === "INVOICE_SENT")
+    .map((e) => ({
+      sentAt: e.createdAt.toISOString(),
+      recipientEmail: (e as any).metadata?.recipientEmail ?? null,
+    }));
+
   const reminderSentEvents = booking.statusEvents
     .filter((e) => (e as any).eventType === "BALANCE_REMINDER_SENT")
     .map((e) => ({
@@ -1717,6 +1725,11 @@ export default async function AdminBookingDetailPage({
                   <InvoiceSection
                     invoice={invoiceData}
                     bookingId={booking.id}
+                    customerEmail={
+                      booking.user?.email ?? booking.guestEmail ?? null
+                    }
+                    isAdmin={true}
+                    invoiceSentEvents={invoiceSentEvents}
                   />
                 </>
               )}
