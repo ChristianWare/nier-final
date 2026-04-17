@@ -429,7 +429,7 @@ export default function AdminUpcomingRides({
                               </span>
                             )}
                             {b.customer.phone && (
-                              <span className={styles.cellSub}>
+                              <span className={styles.phoneLink}>
                                 {formatPhone(b.customer.phone)}
                               </span>
                             )}

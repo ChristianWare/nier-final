@@ -299,6 +299,7 @@
 .rowLink {
   letter-spacing: -0.01em;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .rowLink:hover {
@@ -320,6 +321,7 @@
 .timeLabel {
   font-size: 1.5rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .timePill {
@@ -329,6 +331,7 @@
   font-weight: 700;
   text-transform: uppercase;
   width: fit-content;
+  white-space: nowrap;
 }
 
 .timePill_now {
@@ -369,10 +372,6 @@
   text-decoration: none;
   position: relative;
   z-index: 3;
-}
-
-.phoneLink:hover {
-  text-decoration: underline;
 }
 
 /* Route */

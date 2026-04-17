@@ -144,6 +144,14 @@ export default function AdminTodaysRides({
     );
   }).length;
 
+  function formatPhone(raw: string): string {
+    const digits = raw.replace(/\D/g, "");
+    const d =
+      digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+    if (d.length !== 10) return raw;
+    return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+  }
+
   return (
     <section className={styles.container} aria-label="Today's rides">
       <header className={styles.header}>
@@ -338,13 +346,13 @@ export default function AdminTodaysRides({
                           {b.customer.name}
                         </span>
                         {b.customer.phone && (
-                          <a
-                            href={`tel:${b.customer.phone.replace(/[^0-9+]/g, "")}`}
+                          <div
+                            // href={`tel:${b.customer.phone.replace(/[^0-9+]/g, "")}`}
                             className={styles.phoneLink}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {b.customer.phone}
-                          </a>
+                            {formatPhone(b.customer.phone)}{" "}
+                          </div>
                         )}
                       </div>
                     </td>
