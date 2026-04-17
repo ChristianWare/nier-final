@@ -27,6 +27,9 @@ const CorporateIntro = dynamic(
 const WekopaIntro = dynamic(
   () => import("@/components/HomePage/WekopaIntro/WekopaIntro"),
 );
+const CharterIntro = dynamic(
+  () => import("@/components/HomePage/CharterIntro/CharterIntro"),
+);
 const Fleet = dynamic(() => import("@/components/HomePage/Fleet/Fleet"));
 const Testimonials = dynamic(
   () => import("@/components/shared/Testimonials/Testimonials"),
@@ -225,6 +228,7 @@ export default async function HomePage() {
       <FlightTrackerSection />
       <CorporateIntro />
       <WekopaIntro />
+      <CharterIntro />
       <Fleet />
       <Testimonials />
       <Events />
