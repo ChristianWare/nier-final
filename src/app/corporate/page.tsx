@@ -287,7 +287,7 @@ export default async function CorporateDashboardPage() {
         <h2 className={`${styles.sectionTitle} cardTitle h4`}>Quick Actions</h2>
         <div className={styles.quickActions}>
           <Button
-            href='/corporate/bookings'
+            href='/corporate/bookings/new'
             text='Book a Ride'
             btnType='blackReg'
           />
