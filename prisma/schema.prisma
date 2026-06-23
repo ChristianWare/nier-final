@@ -124,6 +124,16 @@ enum CorporateInvoiceStatus {
   VOID
 }
 
+// Ad-hoc invoices (admin charges any amount to an account holder or guest).
+// Distinct from CorporateInvoice, which is recurring corporate-account billing.
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  VOID
+}
+
 model PushSubscription {
   id     String @id @default(cuid())
   userId String
@@ -198,6 +208,11 @@ model User {
   inquiriesReviewed       CorporateInquiry[]      @relation("InquiryReviewer")
   invoiceEventsCreated    CorporateInvoiceEvent[] @relation("InvoiceEventCreator")
   invoicePaymentsRecorded CorporateInvoice[]      @relation("InvoicePaymentRecorder")
+
+  // Ad-hoc invoice relations
+  customerInvoices           Invoice[]      @relation("InvoiceCustomer")
+  invoicesCreated            Invoice[]      @relation("InvoiceCreatedBy")
+  customInvoiceEventsCreated InvoiceEvent[] @relation("InvoiceEventCreatedBy")
 
   pushSubscriptions PushSubscription[]
   pushPreferences   UserPushPreferences?
@@ -1063,6 +1078,132 @@ model CorporateInvoiceEvent {
 
 /**
  * =========================
+ * AD-HOC INVOICE MODELS
+ * Admin-created invoices for an arbitrary amount, payable by an
+ * account holder OR a guest via the same Stripe checkout + receipt
+ * flow used for bookings. Separate from CorporateInvoice (recurring
+ * corporate-account billing).
+ * =========================
+ */
+
+model Invoice {
+  id String @id @default(cuid())
+
+  // Human-readable, e.g. "INV-2026-0001"
+  invoiceNumber String @unique
+
+  // Customer: either an existing account holder OR a guest (mirrors Booking).
+  // Exactly one of (userId) or (guestEmail) is expected; enforced in app code.
+  userId String?
+  user   User?   @relation("InvoiceCustomer", fields: [userId], references: [id], onDelete: SetNull)
+
+  guestName  String?
+  guestEmail String?
+  guestPhone String?
+
+  status InvoiceStatus @default(DRAFT)
+
+  // Customer-facing memo (shown on the invoice) + admin-only notes.
+  memo          String? @db.Text
+  internalNotes String? @db.Text
+
+  // Totals (in cents). subtotalCents = sum of line items.
+  // totalCents = subtotalCents (+ tipCents once paid).
+  subtotalCents Int @default(0)
+  totalCents    Int @default(0)
+
+  // Tips: allowed by default, captured at checkout like bookings.
+  allowTip Boolean @default(true)
+  tipCents Int     @default(0)
+
+  // Payment tracking (Invoice carries its own, like CorporateInvoice —
+  // it does NOT use the booking-bound Payment model).
+  amountPaidCents Int    @default(0)
+  currency        String @default("usd")
+
+  stripePaymentIntentId   String? @unique
+  stripeCheckoutSessionId String? @unique
+  receiptUrl              String?
+
+  dueDate  DateTime?
+  sentAt   DateTime?
+  paidAt   DateTime?
+  voidedAt DateTime?
+
+  lineItems InvoiceLineItem[]
+  events    InvoiceEvent[]
+
+  // Admin who created the invoice.
+  createdById String?
+  createdBy   User?   @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([guestEmail])
+  @@index([dueDate])
+  @@index([createdAt])
+}
+
+model InvoiceLineItem {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  description     String
+  quantity        Int @default(1)
+  unitAmountCents Int // price per unit; line total = quantity * unitAmountCents
+
+  // Display ordering within the invoice.
+  position Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+}
+
+model InvoiceEvent {
+  id String @id @default(cuid())
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  eventType String // "CREATED", "SENT", "VIEWED", "PARTIALLY_PAID", "PAID", "VOIDED", "REMINDER_SENT"
+
+  metadata Json? // { amount: 50000, tip: 1000, note: "..." }
+
+  createdById String?
+  createdBy   User?   @relation("InvoiceEventCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+model DriverNotificationSettings {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emailEnabled Boolean @default(true)
+  emailTo      String? // Override address (defaults to user's account email)
+
+  emailRideAssigned  Boolean @default(true)
+  emailRideReminder  Boolean @default(true)
+  emailTripUpdated   Boolean @default(true)
+  emailTripCancelled Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/**
+ * =========================
  * TRIP GROUP MODEL
  * =========================
  */
@@ -1104,21 +1245,4 @@ model TripGroup {
   @@index([userId])
   @@index([corporateAccountId])
   @@index([paymentStatus])
-}
-
-model DriverNotificationSettings {
-  id     String @id @default(cuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  emailEnabled Boolean @default(true)
-  emailTo      String? // Override address (defaults to user's account email)
-
-  emailRideAssigned  Boolean @default(true)
-  emailRideReminder  Boolean @default(true)
-  emailTripUpdated   Boolean @default(true)
-  emailTripCancelled Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
