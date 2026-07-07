@@ -1,0 +1,356 @@
+.form {
+  display: grid;
+  gap: 2rem;
+  max-width: 820px;
+}
+
+.card {
+  display: grid;
+  gap: 1.6rem;
+  padding: 2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  background: var(--white);
+}
+
+.cardTitle {
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* ── Customer toggle ── */
+.toggle {
+  display: inline-flex;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  background: var(--cream);
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.toggleBtn {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 0.7rem 1.6rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--black400);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.toggleActive {
+  background: var(--white);
+  color: var(--black);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Fields ── */
+.field {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  font-size: 1.5rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--black);
+  font-family: inherit;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.guestGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4rem;
+}
+
+.guestGrid .field:nth-child(2) {
+  grid-column: 1 / -1;
+}
+
+/* ── Account search ── */
+.searchWrap {
+  position: relative;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.searchHint {
+  font-size: 1.3rem;
+  opacity: 0.6;
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.resultBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+  text-align: left;
+  padding: 1rem 1.2rem;
+  border: none;
+  border-bottom: 1px solid var(--stroke);
+  background: var(--white);
+  cursor: pointer;
+}
+
+.results li:last-child .resultBtn {
+  border-bottom: none;
+}
+
+.resultBtn:hover {
+  background: var(--cream);
+}
+
+.resultName {
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.resultEmail {
+  font-size: 1.3rem;
+  opacity: 0.65;
+}
+
+.selectedUser {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  background: var(--cream);
+}
+
+.selectedName {
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.selectedEmail {
+  font-size: 1.3rem;
+  opacity: 0.7;
+}
+
+.linkBtn {
+  border: none;
+  background: none;
+  color: var(--blue);
+  font-weight: 600;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.linkBtn:hover {
+  text-decoration: underline;
+}
+
+/* ── Line items ── */
+.lineHead,
+.lineRow {
+  display: grid;
+  grid-template-columns: 1fr 70px 130px 90px 32px;
+  gap: 1rem;
+  align-items: center;
+}
+
+.lineHead {
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  padding: 0 0.2rem;
+}
+
+.qtyCol {
+  text-align: center;
+}
+
+.priceCol {
+  text-align: left;
+}
+
+.totalCol {
+  text-align: right;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.removeCol {
+  text-align: center;
+}
+
+.priceInputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dollar {
+  position: absolute;
+  left: 1rem;
+  opacity: 0.6;
+  font-size: 1.5rem;
+}
+
+.priceInput {
+  padding-left: 2.2rem;
+}
+
+.removeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  color: var(--black400);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.removeBtn:hover:not(:disabled) {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.removeBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.addBtn {
+  justify-self: start;
+  border: 1px dashed var(--strokeii);
+  background: none;
+  color: var(--black);
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 0.8rem 1.4rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.addBtn:hover {
+  border-color: var(--black);
+}
+
+.subtotalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.4rem;
+  border-top: 2px solid var(--stroke);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.subtotalAmount {
+  font-size: 2rem;
+}
+
+.tipNote {
+  font-size: 1.3rem;
+  opacity: 0.65;
+}
+
+/* ── Details ── */
+.optionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.6rem;
+  align-items: end;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.checkRow input {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Footer ── */
+.error {
+  padding: 1.2rem 1.6rem;
+  border-radius: 8px;
+  background: var(--accent100);
+  color: var(--accent600);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* ── Mobile ── */
+@media (max-width: 720px) {
+  .guestGrid,
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .lineHead {
+    display: none;
+  }
+
+  .lineRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    padding: 1.2rem;
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+  }
+
+  .lineRow .input:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .totalCol {
+    text-align: left;
+  }
+}

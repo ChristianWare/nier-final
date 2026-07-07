@@ -1,0 +1,248 @@
+.wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 4rem 0 6rem;
+  align-items: start;
+}
+
+/* ── Summary ── */
+.summary {
+  display: grid;
+  gap: 2rem;
+  padding: 2.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.summaryHead {
+  display: grid;
+  gap: 0.4rem;
+  padding-bottom: 1.6rem;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.eyebrow {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.invNo {
+  font-size: 2.4rem;
+  font-weight: 900;
+}
+
+.greeting {
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.6rem;
+}
+
+.itemMain {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.itemDesc {
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.itemQty {
+  font-size: 1.3rem;
+  opacity: 0.6;
+}
+
+.itemAmt {
+  font-size: 1.5rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.totals {
+  display: grid;
+  gap: 0.8rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.5rem;
+  opacity: 0.85;
+}
+
+.grandTotal {
+  padding-top: 1rem;
+  margin-top: 0.4rem;
+  border-top: 2px solid var(--black);
+  font-size: 1.9rem;
+  font-weight: 900;
+  opacity: 1;
+}
+
+.memo {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  padding: 1.2rem;
+  background: var(--cream);
+  border-radius: 8px;
+}
+
+/* ── Payment panel ── */
+.payPanel {
+  display: grid;
+  gap: 2rem;
+  padding: 2.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: var(--white);
+  position: sticky;
+  top: 2rem;
+}
+
+.tipBlock {
+  display: grid;
+  gap: 1rem;
+}
+
+.tipLabel {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.tipOptions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.tipBtn {
+  flex: 1;
+  min-width: 60px;
+  padding: 0.9rem 0.6rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  background: var(--white);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tipBtn:hover {
+  border-color: var(--strokeii);
+}
+
+.tipBtnActive {
+  background: var(--black);
+  border-color: var(--black);
+  color: var(--white);
+}
+
+.customTipWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dollar {
+  position: absolute;
+  left: 1.2rem;
+  opacity: 0.6;
+  font-size: 1.5rem;
+}
+
+.customTipInput {
+  width: 100%;
+  padding: 1rem 1.2rem 1rem 2.6rem;
+  font-size: 1.5rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+}
+
+.customTipInput:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+/* ── Payment form ── */
+.paymentForm {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.paymentElementWrapper {
+  min-height: 40px;
+}
+
+.loading {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.4rem;
+  opacity: 0.6;
+}
+
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1rem 1.4rem;
+  border-radius: 8px;
+  background: var(--accent100);
+  color: var(--accent600);
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.errorIcon {
+  font-size: 1.6rem;
+}
+
+.secureNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-size: 1.3rem;
+  opacity: 0.6;
+}
+
+.lockIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Mobile ── */
+@media (max-width: 820px) {
+  .wrap {
+    grid-template-columns: 1fr;
+    padding: 2rem 0 4rem;
+  }
+
+  .payPanel {
+    position: static;
+  }
+}

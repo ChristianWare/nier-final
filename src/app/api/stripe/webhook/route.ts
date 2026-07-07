@@ -9,6 +9,7 @@ import {
   buildInvoiceDataForBooking,
   sendPaymentConfirmationEmail,
 } from "@/lib/email/sendPaymentConfirmationEmail";
+import { finalizeInvoicePaid } from "@/lib/invoice/finalizeInvoicePaid";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -650,6 +651,40 @@ export async function POST(req: Request) {
     if (event.type === "payment_intent.succeeded") {
       const pi = event.data.object as any;
       const paymentIntentId = str(pi?.id);
+
+      // ── Ad-hoc invoice payment (kind=invoice) ──
+      const invoiceId = str(pi?.metadata?.invoiceId);
+      if (pi?.metadata?.kind === "invoice" && invoiceId) {
+        const invTipCents = pi?.metadata?.tipCents
+          ? parseInt(pi.metadata.tipCents, 10)
+          : 0;
+        const amountReceivedCents =
+          typeof pi?.amount_received === "number"
+            ? pi.amount_received
+            : typeof pi?.amount === "number"
+              ? pi.amount
+              : 0;
+
+        let invReceiptUrl: string | null = null;
+        try {
+          invReceiptUrl = await getReceiptUrlFromPaymentIntent(paymentIntentId);
+        } catch (e: any) {
+          console.warn(
+            "⚠️ could not fetch invoice receipt url:",
+            e?.message ?? e,
+          );
+        }
+
+        await finalizeInvoicePaid({
+          invoiceId,
+          paymentIntentId,
+          amountReceivedCents,
+          tipCents: invTipCents,
+          receiptUrl: invReceiptUrl,
+        });
+
+        return NextResponse.json({ received: true });
+      }
 
       let bookingId = str(pi?.metadata?.bookingId);
       const isBalancePayment = pi?.metadata?.isBalancePayment === "true";

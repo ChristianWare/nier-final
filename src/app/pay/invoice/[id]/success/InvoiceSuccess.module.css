@@ -1,0 +1,75 @@
+.wrap {
+  display: flex;
+  justify-content: center;
+  padding: 6rem 0;
+}
+
+.card {
+  width: 100%;
+  max-width: 480px;
+  display: grid;
+  gap: 1.4rem;
+  justify-items: center;
+  text-align: center;
+  padding: 3.2rem 2.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 16px;
+  background: var(--white);
+}
+
+.mark {
+  width: 64px;
+  height: 64px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green);
+  color: var(--white);
+  font-size: 3.2rem;
+  font-weight: 700;
+}
+
+.markNeutral {
+  background: var(--lightGray);
+  color: var(--black400);
+}
+
+.title {
+  font-size: 2.4rem;
+  font-weight: 900;
+}
+
+.sub {
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.receiptBox {
+  width: 100%;
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.6rem;
+  background: var(--cream);
+  border-radius: 10px;
+  margin-top: 0.8rem;
+}
+
+.receiptRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.5rem;
+}
+
+.receiptRow:last-child {
+  font-weight: 700;
+}
+
+.emailNote {
+  font-size: 1.4rem;
+  opacity: 0.7;
+}
+
+.actions {
+  margin-top: 1rem;
+}

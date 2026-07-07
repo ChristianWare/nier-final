@@ -1,0 +1,367 @@
+.container {
+  display: grid;
+  gap: 2rem;
+}
+
+.header {
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--stroke);
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  font-size: 1.4rem;
+  color: var(--black400);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--black);
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 0.4rem;
+}
+
+.createdMeta {
+  font-size: 1.4rem;
+  opacity: 0.6;
+  margin-top: 0.4rem;
+}
+
+.headerAmount {
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+}
+
+.amountLabel {
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+  font-weight: 700;
+}
+
+.amountValue {
+  font-size: 2.8rem;
+  font-weight: 900;
+}
+
+/* ── Layout ── */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.main {
+  display: grid;
+  gap: 2rem;
+}
+
+.side {
+  display: grid;
+  gap: 2rem;
+  position: sticky;
+  top: 2rem;
+}
+
+.card {
+  display: grid;
+  gap: 1.4rem;
+  padding: 2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 12px;
+  background: var(--white);
+}
+
+.cardTitle {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+/* ── Line items table ── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.5rem;
+}
+
+.table thead th {
+  text-align: left;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  padding: 0 0 1rem;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.table tbody td {
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.center {
+  text-align: center;
+}
+
+.right {
+  text-align: right;
+}
+
+.totals {
+  display: grid;
+  gap: 0.7rem;
+  padding-top: 0.4rem;
+}
+
+.totalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.5rem;
+  opacity: 0.85;
+}
+
+.grand {
+  padding-top: 1rem;
+  margin-top: 0.4rem;
+  border-top: 2px solid var(--black);
+  font-size: 1.9rem;
+  font-weight: 900;
+  opacity: 1;
+}
+
+.memo,
+.internalNote {
+  display: grid;
+  gap: 0.4rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 8px;
+  background: var(--cream);
+  font-size: 1.4rem;
+}
+
+.internalNote {
+  background: var(--lightYellow);
+}
+
+.memoLabel {
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.6;
+}
+
+/* ── Activity ── */
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.4rem;
+}
+
+.activityRow {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.activityDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-top: 0.5rem;
+  flex-shrink: 0;
+}
+
+.activityBody {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.activityLabel {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.activityMeta {
+  font-size: 1.3rem;
+  opacity: 0.6;
+}
+
+/* ── Customer ── */
+.customer {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.customerName {
+  font-size: 1.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.guestTag {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.6rem;
+  border-radius: 4px;
+  background: var(--cream);
+  color: var(--black400);
+}
+
+.customerLine {
+  font-size: 1.4rem;
+  opacity: 0.7;
+}
+
+.viewAccount {
+  font-size: 1.3rem;
+  color: var(--blue);
+  text-decoration: none;
+  margin-top: 0.4rem;
+}
+
+.viewAccount:hover {
+  text-decoration: underline;
+}
+
+.metaList {
+  display: grid;
+  gap: 0.7rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.4rem;
+}
+
+.metaRow span:first-child {
+  opacity: 0.6;
+}
+
+/* ── Actions column ── */
+.actionsCol {
+  display: grid;
+  gap: 1rem;
+}
+
+.emailChip {
+  font-size: 1.3rem;
+  opacity: 0.7;
+  padding: 0.8rem 1rem;
+  background: var(--cream);
+  border-radius: 6px;
+}
+
+.ghostBtn {
+  width: 100%;
+  text-align: center;
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.ghostBtn:hover:not(:disabled) {
+  border-color: var(--strokeii);
+}
+
+.ghostBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dangerBtn {
+  width: 100%;
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--accent100);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--accent600);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dangerBtn:hover:not(:disabled) {
+  background: var(--accent100);
+}
+
+.dangerBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.divider {
+  height: 1px;
+  background: var(--stroke);
+  margin: 0.4rem 0;
+}
+
+.paidBanner {
+  padding: 1.2rem;
+  text-align: center;
+  border-radius: 8px;
+  background: var(--lighterGreen);
+  color: var(--darkGreen);
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.voidBanner {
+  padding: 1.2rem;
+  text-align: center;
+  border-radius: 8px;
+  background: var(--lightGray);
+  color: var(--black400);
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+/* ── Mobile ── */
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .side {
+    position: static;
+  }
+}
