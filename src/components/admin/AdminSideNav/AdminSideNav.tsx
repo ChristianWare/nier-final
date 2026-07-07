@@ -29,6 +29,7 @@ import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
   { title: "Earnings", href: "/admin/earnings", icon: <Money /> },
+  { title: "Invoices", href: "/admin/invoices", icon: <Money /> },
   { title: "Bookings", href: "/admin/bookings", icon: <Appointments /> },
   { title: "Services", href: "/admin/services", icon: <Bell /> },
   {
