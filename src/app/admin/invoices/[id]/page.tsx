@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { formatMoney } from "@/lib/timezone";
 import InvoiceActions from "./InvoiceActions";
+import InvoicePdfPanel from "./InvoicePdfPanel";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -228,6 +229,13 @@ export default async function AdminInvoiceDetailPage({ params }: Props) {
               </div>
             )}
           </div>
+
+          {/* ── PDF preview ── */}
+          <InvoicePdfPanel
+            invoiceId={invoice.id}
+            invoiceNumber={invoice.invoiceNumber}
+            isPaid={invoice.status === "PAID" || balanceDueCents <= 0}
+          />
 
           {/* ── Activity ── */}
           <div className={styles.card}>

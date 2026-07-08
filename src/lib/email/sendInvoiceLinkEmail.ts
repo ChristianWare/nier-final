@@ -2,6 +2,7 @@
 // src/lib/email/sendInvoiceLinkEmail.ts
 import { Resend } from "resend";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
+import { renderInvoicePdfBuffer } from "@/lib/invoice/buildInvoicePdfData";
 
 function requireEnv(name: string) {
   const v = process.env[name];
@@ -45,6 +46,7 @@ export type InvoiceLinkArgs = {
   payUrl: string;
   memo?: string | null;
   dueDateISO?: string | null;
+  invoiceId?: string | null;
 };
 
 export async function sendInvoiceLinkEmail(args: InvoiceLinkArgs): Promise<void> {
@@ -151,11 +153,23 @@ export async function sendInvoiceLinkEmail(args: InvoiceLinkArgs): Promise<void>
     .filter(Boolean)
     .join("\n");
 
+  // ── Attach the invoice PDF (best-effort) ──
+  let attachments: Array<{ filename: string; content: Buffer }> | undefined;
+  if (args.invoiceId) {
+    const pdf = await renderInvoicePdfBuffer(args.invoiceId);
+    if (pdf) {
+      attachments = [
+        { filename: `invoice-${args.invoiceNumber}.pdf`, content: pdf },
+      ];
+    }
+  }
+
   await resend.emails.send({
     from,
     to: args.to,
     subject: `Invoice ${args.invoiceNumber} from ${companyName}`,
     html,
     text,
+    ...(attachments ? { attachments } : {}),
   });
 }

@@ -84,6 +84,7 @@ export async function adminSendInvoice(input: {
       payUrl,
       memo: invoice.memo,
       dueDateISO: invoice.dueDate ? invoice.dueDate.toISOString() : null,
+      invoiceId: invoice.id,
     });
   } catch (e) {
     console.error("[adminSendInvoice] email failed:", e);
