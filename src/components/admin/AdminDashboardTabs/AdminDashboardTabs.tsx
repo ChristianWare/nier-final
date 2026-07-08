@@ -9,7 +9,8 @@ type TabId =
   | "alerts"
   | "incompleteApprovals"
   | "paymentsReceived"
-  | "outstandingBalances";
+  | "outstandingBalances"
+  | "invoices";
 
 type Props = {
   bookingRequests: React.ReactNode;
@@ -18,12 +19,14 @@ type Props = {
   incompleteApprovals: React.ReactNode;
   paymentsReceived: React.ReactNode;
   outstandingBalances: React.ReactNode;
+  invoices: React.ReactNode;
   countBookingRequests: number;
   countIncompleteRides: number;
   countAlerts: number;
   countIncompleteApprovals: number;
   countPaymentsReceived: number;
   countOutstandingBalances: number;
+  countInvoices: number;
 };
 
 const TAB_ORDER: TabId[] = [
@@ -33,6 +36,7 @@ const TAB_ORDER: TabId[] = [
   "incompleteApprovals",
   "paymentsReceived",
   "outstandingBalances",
+  "invoices",
 ];
 
 const TAB_LABELS: Record<TabId, string> = {
@@ -42,6 +46,7 @@ const TAB_LABELS: Record<TabId, string> = {
   incompleteApprovals: "Approvals",
   paymentsReceived: "Payments",
   outstandingBalances: "Balances",
+  invoices: "Invoices",
 };
 
 const TAB_URGENCY: Record<TabId, "danger" | "warning" | "neutral"> = {
@@ -51,6 +56,7 @@ const TAB_URGENCY: Record<TabId, "danger" | "warning" | "neutral"> = {
   incompleteApprovals: "warning",
   paymentsReceived: "neutral",
   outstandingBalances: "warning",
+  invoices: "warning",
 };
 
 export default function AdminDashboardTabs({
@@ -60,12 +66,14 @@ export default function AdminDashboardTabs({
   incompleteApprovals,
   paymentsReceived,
   outstandingBalances,
+  invoices,
   countBookingRequests,
   countIncompleteRides,
   countAlerts,
   countIncompleteApprovals,
   countPaymentsReceived,
   countOutstandingBalances,
+  countInvoices,
 }: Props) {
   const counts: Record<TabId, number> = {
     bookingRequests: countBookingRequests,
@@ -74,6 +82,7 @@ export default function AdminDashboardTabs({
     incompleteApprovals: countIncompleteApprovals,
     paymentsReceived: countPaymentsReceived,
     outstandingBalances: countOutstandingBalances,
+    invoices: countInvoices,
   };
 
   const panels: Record<TabId, React.ReactNode> = {
@@ -83,6 +92,7 @@ export default function AdminDashboardTabs({
     incompleteApprovals,
     paymentsReceived,
     outstandingBalances,
+    invoices,
   };
 
   const defaultTab =

@@ -43,6 +43,9 @@ import AdminIncompleteRides, {
   IncompleteRideItem,
 } from "@/components/admin/AdminIncompleteRides/AdminIncompleteRides";
 import AdminDashboardTabs from "@/components/admin/AdminDashboardTabs/AdminDashboardTabs";
+import AdminInvoicesSnapshot, {
+  AdminInvoiceItem,
+} from "@/components/admin/AdminInvoicesSnapshot/AdminInvoicesSnapshot";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -2068,6 +2071,60 @@ export default async function AdminHome() {
       },
     }));
 
+  // ==========================================
+  // AD-HOC INVOICES (dashboard tab)
+  // ==========================================
+  const invoicesRaw = await db.invoice.findMany({
+    where: { status: { not: "VOID" } },
+    orderBy: [{ createdAt: "desc" }],
+    take: 100,
+    select: {
+      id: true,
+      invoiceNumber: true,
+      status: true,
+      totalCents: true,
+      amountPaidCents: true,
+      currency: true,
+      createdAt: true,
+      sentAt: true,
+      dueDate: true,
+      paidAt: true,
+      userId: true,
+      user: { select: { name: true, email: true } },
+      guestName: true,
+      guestEmail: true,
+    },
+  });
+
+  const invoiceItems: AdminInvoiceItem[] = (invoicesRaw as any[]).map((inv) => ({
+    id: inv.id,
+    invoiceNumber: inv.invoiceNumber,
+    status: inv.status,
+    totalCents: inv.totalCents ?? 0,
+    amountPaidCents: inv.amountPaidCents ?? 0,
+    balanceDueCents: Math.max(
+      0,
+      (inv.totalCents ?? 0) - (inv.amountPaidCents ?? 0),
+    ),
+    currency: inv.currency ?? "usd",
+    customerName:
+      inv.user?.name?.trim() ||
+      inv.guestName?.trim() ||
+      inv.user?.email ||
+      inv.guestEmail ||
+      "Customer",
+    customerEmail: inv.user?.email || inv.guestEmail || null,
+    isGuest: !inv.userId,
+    createdAtIso: new Date(inv.createdAt).toISOString(),
+    sentAtIso: inv.sentAt ? new Date(inv.sentAt).toISOString() : null,
+    dueDateIso: inv.dueDate ? new Date(inv.dueDate).toISOString() : null,
+    paidAtIso: inv.paidAt ? new Date(inv.paidAt).toISOString() : null,
+  }));
+
+  const outstandingInvoiceCount = invoiceItems.filter(
+    (x) => x.status === "SENT" || x.status === "PARTIALLY_PAID",
+  ).length;
+
   return (
     <section className={styles.content}>
       <AdminPageIntro
@@ -2126,6 +2183,7 @@ export default async function AdminHome() {
         countPaymentsReceived={paymentsToday.length}
         // Outstanding balances: total unpaid/partial items
         countOutstandingBalances={outstandingBalanceItems.length}
+        countInvoices={outstandingInvoiceCount}
         // ── Panel content — server components passed as ReactNode slots ──
         bookingRequests={
           <AdminRecentBookingRequests
@@ -2164,6 +2222,13 @@ export default async function AdminHome() {
             items={outstandingBalanceItems}
             timeZone={companyTz}
             bookingHrefBase='/admin/bookings'
+          />
+        }
+        invoices={
+          <AdminInvoicesSnapshot
+            items={invoiceItems}
+            timeZone={companyTz}
+            invoiceHrefBase='/admin/invoices'
           />
         }
       />
