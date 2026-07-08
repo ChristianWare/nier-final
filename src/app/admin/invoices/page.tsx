@@ -88,17 +88,22 @@ export default async function AdminInvoicesPage({
         <div className={styles.headerTop}>
           <div>
             <h1 className="heading h2">Invoices</h1>
+            <div className={styles.invoicesTop}>
             <p className="subheading">
               Charge a customer or guest any amount. They pay through the same
               secure checkout used for bookings and receive an emailed receipt.
             </p>
-          </div>
+            <div className={styles.btnContainer}>
+
           <Button
             href="/admin/invoices/new"
-            btnType="blackReg"
+            btnType="green"
             text="New invoice"
             plus
-          />
+            />
+            </div>
+          </div>
+            </div>
         </div>
 
         <div className={styles.tabRow}>

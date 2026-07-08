@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/lib/email/sendInvoiceReceiptEmail.ts
 import { Resend } from "resend";
+import { renderToBuffer } from "@react-pdf/renderer";
+import { createElement } from "react";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
+import InvoiceReceiptPDF from "@/lib/invoice/InvoiceReceiptPDF";
+import type { InvoiceReceiptPDFData } from "@/lib/invoice/InvoiceReceiptPDF";
 
 function requireEnv(name: string) {
   const v = process.env[name];
@@ -45,6 +49,7 @@ export type InvoiceReceiptArgs = {
   currency: string;
   paidAtISO: string | null;
   memo?: string | null;
+  customerPhone?: string | null;
 };
 
 export async function sendInvoiceReceiptEmail(
@@ -150,11 +155,60 @@ export async function sendInvoiceReceiptEmail(
     ...(args.memo ? ["", args.memo] : []),
   ].join("\n");
 
+  // ── Generate PDF receipt (best-effort) ──
+  let pdfAttachment: { filename: string; content: Buffer } | null = null;
+  try {
+    const pdfData: InvoiceReceiptPDFData = {
+      invoiceNumber: args.invoiceNumber,
+      invoiceDate: paidOn || fmtDate(new Date().toISOString()),
+      paidDate: paidOn || null,
+      status: "PAID",
+      company: {
+        name: companyName,
+        address: settings.officeAddress ?? "",
+        city: settings.officeCity ?? "",
+        phone: dispatchPhone,
+        email: supportEmail,
+      },
+      customer: {
+        name: (args.name ?? "").trim() || "Customer",
+        email: args.to,
+        phone: args.customerPhone ?? null,
+      },
+      lineItems: args.lineItems,
+      subtotalCents: args.subtotalCents,
+      tipCents: args.tipCents,
+      amountPaidCents: args.amountPaidCents,
+      currency,
+      memo: args.memo ?? null,
+    };
+
+    const pdfBuffer = await renderToBuffer(
+      createElement(InvoiceReceiptPDF, { data: pdfData }) as any,
+    );
+    pdfAttachment = {
+      filename: `invoice-${args.invoiceNumber}.pdf`,
+      content: Buffer.from(pdfBuffer),
+    };
+  } catch (e) {
+    console.error("[sendInvoiceReceiptEmail] PDF generation failed:", e);
+  }
+
   await resend.emails.send({
     from,
     to: args.to,
     subject: `Receipt for invoice ${args.invoiceNumber} — ${companyName}`,
     html,
     text,
+    ...(pdfAttachment
+      ? {
+          attachments: [
+            {
+              filename: pdfAttachment.filename,
+              content: pdfAttachment.content,
+            },
+          ],
+        }
+      : {}),
   });
 }

@@ -25,11 +25,12 @@ import Business from "@/components/shared/icons/Business/Business";
 import ImageIcon from "@/components/shared/icons/ImageIcon/ImageIcon";
 import Modal from "@/components/shared/Modal/Modal";
 import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
+import Receipt from "@/components/shared/icons/Receipt/Receipt";
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
   { title: "Earnings", href: "/admin/earnings", icon: <Money /> },
-  { title: "Invoices", href: "/admin/invoices", icon: <Money /> },
+  { title: "Invoices", href: "/admin/invoices", icon: <Receipt /> },
   { title: "Bookings", href: "/admin/bookings", icon: <Appointments /> },
   { title: "Services", href: "/admin/services", icon: <Bell /> },
   {

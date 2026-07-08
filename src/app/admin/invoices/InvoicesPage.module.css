@@ -15,7 +15,27 @@
   gap: 2rem;
   flex-wrap: wrap;
   padding-bottom: 1.5rem;
-  border-bottom: 2px solid var(--stroke);
+}
+
+.invoicesTop {
+  display: grid;
+  grid-template-columns: 4fr 2fr;
+  gap: 3rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+.invoicesTop p {
+  display: block;
+}
+
+.btnContainer {
+  
+  
+  
+  
+  
+  margin-left: auto;
 }
 
 .tabRow {
@@ -147,4 +167,16 @@
   display: block;
   font-size: 1.2rem;
   opacity: 0.65;
+}
+
+@media screen and (max-width: 968px) {
+  .invoicesTop {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btnContainer {
+    margin-left: 0;
+  }
 }

@@ -29,9 +29,10 @@ export async function finalizeInvoicePaid(args: FinalizeArgs): Promise<void> {
       currency: true,
       memo: true,
       stripePaymentIntentId: true,
-      user: { select: { name: true, email: true } },
+      user: { select: { name: true, email: true, phone: true } },
       guestName: true,
       guestEmail: true,
+      guestPhone: true,
       lineItems: {
         orderBy: { position: "asc" },
         select: {
@@ -112,6 +113,7 @@ export async function finalizeInvoicePaid(args: FinalizeArgs): Promise<void> {
         currency: invoice.currency ?? "usd",
         paidAtISO: isFullyPaid ? now.toISOString() : null,
         memo: invoice.memo,
+        customerPhone: invoice.user?.phone ?? invoice.guestPhone ?? null,
       });
     } catch (e) {
       console.error(
