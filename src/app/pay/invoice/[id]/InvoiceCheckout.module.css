@@ -36,6 +36,7 @@
 .invNo {
   font-size: 2.4rem;
   font-weight: 900;
+  letter-spacing: -.5px;
 }
 
 .greeting {

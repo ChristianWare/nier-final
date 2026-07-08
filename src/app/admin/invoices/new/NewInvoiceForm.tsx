@@ -446,12 +446,12 @@ export default function NewInvoiceForm() {
       <div className={styles.actions}>
         <Button href="/admin/invoices" btnType="grayReg" text="Cancel" />
         <Button
-          btnType="blackReg"
+          btnType="greenReg"
           text={submitting ? "Creating…" : "Create invoice"}
           onClick={handleSubmit}
           disabled={submitting}
           as="button"
-          checkIcon
+          // checkIcon
         />
       </div>
     </div>

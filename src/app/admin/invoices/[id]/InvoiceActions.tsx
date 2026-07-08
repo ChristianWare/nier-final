@@ -44,6 +44,9 @@ export default function InvoiceActions({
   const [showPaidModal, setShowPaidModal] = useState(false);
   const [paidNote, setPaidNote] = useState("");
 
+  const [showVoidModal, setShowVoidModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const isPaid = status === "PAID" || balanceDueCents <= 0;
   const isVoid = status === "VOID";
 
@@ -107,13 +110,7 @@ export default function InvoiceActions({
     });
   }
 
-  function voidInvoice() {
-    if (
-      !window.confirm(
-        "Void this invoice? The customer will no longer be able to pay it. This can't be undone.",
-      )
-    )
-      return;
+  function confirmVoid() {
     startTransition(async () => {
       const res = await adminVoidInvoice({ invoiceId });
       if ("error" in res) {
@@ -121,13 +118,12 @@ export default function InvoiceActions({
         return;
       }
       toast.success("Invoice voided");
+      setShowVoidModal(false);
       router.refresh();
     });
   }
 
-  function deleteDraft() {
-    if (!window.confirm("Delete this draft invoice? This can't be undone."))
-      return;
+  function confirmDelete() {
     startTransition(async () => {
       const res = await adminDeleteInvoice({ invoiceId });
       if ("error" in res) {
@@ -135,6 +131,7 @@ export default function InvoiceActions({
         return;
       }
       toast.success("Draft deleted");
+      setShowDeleteModal(false);
       router.push("/admin/invoices");
     });
   }
@@ -199,7 +196,7 @@ export default function InvoiceActions({
         onClick={handleSendDefault}
         disabled={isPending}
         type="button"
-        email
+        // arrow
       />
 
       <button
@@ -229,7 +226,7 @@ export default function InvoiceActions({
       <button
         type="button"
         className={styles.dangerBtn}
-        onClick={voidInvoice}
+        onClick={() => setShowVoidModal(true)}
         disabled={isPending}
       >
         Void invoice
@@ -239,7 +236,7 @@ export default function InvoiceActions({
         <button
           type="button"
           className={styles.dangerBtn}
-          onClick={deleteDraft}
+          onClick={() => setShowDeleteModal(true)}
           disabled={isPending}
         >
           Delete draft
@@ -325,6 +322,64 @@ export default function InvoiceActions({
               disabled={isPending}
             >
               {isPending ? "Saving…" : "Mark paid"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Void confirmation modal */}
+      <Modal isOpen={showVoidModal} onClose={() => setShowVoidModal(false)}>
+        <div style={{ display: "grid", gap: 16, padding: 8 }}>
+          <div className="cardTitle h5">Void invoice?</div>
+          <p className="miniNote">
+            The customer will no longer be able to pay this invoice. This{" "}
+            <strong>can&apos;t be undone</strong>.
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className="secondaryBtn"
+              onClick={() => setShowVoidModal(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="dangerBtn"
+              onClick={confirmVoid}
+              disabled={isPending}
+            >
+              {isPending ? "Voiding…" : "Void invoice"}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete-draft confirmation modal */}
+      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+        <div style={{ display: "grid", gap: 16, padding: 8 }}>
+          <div className="cardTitle h5">Delete draft?</div>
+          <p className="miniNote">
+            This permanently deletes the draft invoice. This{" "}
+            <strong>can&apos;t be undone</strong>.
+          </p>
+          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+            <button
+              type="button"
+              className="secondaryBtn"
+              onClick={() => setShowDeleteModal(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="dangerBtn"
+              onClick={confirmDelete}
+              disabled={isPending}
+            >
+              {isPending ? "Deleting…" : "Delete draft"}
             </button>
           </div>
         </div>
