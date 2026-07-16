@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import toast from "react-hot-toast";
-import styles from "./InvoicePdfpanel.module.css";
+import styles from "./InvoicePdfPanel.module.css";
 
 type Props = {
   invoiceId: string;
