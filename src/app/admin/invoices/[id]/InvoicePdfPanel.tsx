@@ -10,6 +10,7 @@ type Props = {
   isPaid: boolean;
 };
 
+
 export default function InvoicePdfPanel({
   invoiceId,
   invoiceNumber,
