@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
 import TableOfContents from "./TableOfContents";
+import { SITE_URL } from "@/lib/site";
 
 type Tag = { _id: string; name: string; slug?: { current?: string } };
 
@@ -32,8 +33,8 @@ type Post = {
 
 const CLIENT_NAME = process.env.CLIENT_NAME || "Nier Transportation";
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://example.com";
+// const SITE_URL =
+//   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://example.com";
 
 export const revalidate = 60;
 
