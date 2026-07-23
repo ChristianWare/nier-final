@@ -39,6 +39,7 @@ export async function generateMetadata({
 
   return {
     title: `${vehicle.title} Service in ${city.name}, AZ | Nier Transportation`,
+    robots: { index: false, follow: true },
     description: `Book a ${vehicle.title} in ${city.name}, Arizona. ${vehicle.shortDesc}`,
     alternates: {
       canonical: `https://www.niertransportation.com/fleet/${vehicle.slug}/${city.slug}`,

@@ -9,6 +9,8 @@ import Glendale from "../../public/images/areas/westValleyii.jpg";
 import ParadiseValley from "../../public/images/areas/yuma.jpg";
 import type { StaticImageData } from "next/image";
 
+// TODO: replace every "$X" placeholder rate with real pricing before deploy.
+
 export const serviceAreaCities = [
   {
     name: "Scottsdale",
@@ -28,6 +30,28 @@ export const serviceAreaCities = [
       "Old Town Scottsdale",
       "SkySong Innovation Center",
       "Scottsdale Fashion Square",
+    ],
+    faqs: [
+      {
+        q: "How much is a black car from Scottsdale to Sky Harbor Airport?",
+        a: "Flat-rate transfers from Scottsdale to PHX start at $X — no surge pricing. Depending on where you are in Scottsdale, the drive runs roughly 20–30 minutes, and we track your flight so pickup timing adjusts automatically.",
+      },
+      {
+        q: "Do you serve Scottsdale Airport (SDL) and private aviation?",
+        a: "Yes. We handle FBO pickups and drop-offs at Scottsdale Airport for private and corporate flyers, with chauffeurs staged to your wheels-down time.",
+      },
+      {
+        q: "Do you provide golf transportation in Scottsdale?",
+        a: "Golf outings are one of our core services — TPC Scottsdale, resort courses, and group rounds. During WM Phoenix Open week we run dedicated event logistics; book early, that week fills fast.",
+      },
+      {
+        q: "Can I book an hourly chauffeur for a night in Old Town Scottsdale?",
+        a: "Yes — hourly service from $X/hr keeps your chauffeur with you all evening: dinner, Old Town, and a safe ride home, with no surge pricing at closing time.",
+      },
+      {
+        q: "Where is Nier Transportation based?",
+        a: "We're headquartered right here in Scottsdale on Via Linda and have served the Valley since 2004 — Scottsdale isn't a service-area checkbox for us, it's home.",
+      },
     ],
   },
   {
@@ -49,6 +73,28 @@ export const serviceAreaCities = [
       "Biltmore Fashion Park",
       "Arizona State Capitol",
     ],
+    faqs: [
+      {
+        q: "How much does a black car to Sky Harbor cost from Phoenix?",
+        a: "Flat-rate airport transfers start at $X, with free flight tracking and no surge pricing. We stage chauffeurs based on live traffic and departure data, so early flights and late arrivals are never a problem.",
+      },
+      {
+        q: "Do you handle group transportation in Phoenix?",
+        a: "Yes — executive sprinters, mini party buses, and full-size motorcoaches for corporate groups, weddings, and events. One coordinator, one invoice, and vehicles matched to your headcount.",
+      },
+      {
+        q: "Can you pick up from downtown Phoenix events?",
+        a: "We run Chase Field, Footprint Center, and Phoenix Convention Center pickups constantly. Your chauffeur pre-positions near the venue so you're not waiting in the post-event rideshare scrum.",
+      },
+      {
+        q: "Do you offer corporate accounts in Phoenix?",
+        a: "Yes — recurring rides, priority booking, and monthly invoicing for Phoenix-area companies. Many of our corporate clients have been with us for over a decade.",
+      },
+      {
+        q: "How far in advance should I book?",
+        a: "We recommend 24 hours for standard rides and 48+ hours for event nights and holiday weekends, but we take last-minute bookings whenever a vehicle is available — call (480) 300-6003 to check.",
+      },
+    ],
   },
   {
     name: "Tempe",
@@ -66,7 +112,7 @@ export const serviceAreaCities = [
       "Tempe Town Lake",
       "Mill Avenue District",
       "Tempe Marketplace",
-      "State Farm Stadium (nearby)",
+      "Mountain America Stadium (ASU)",
       "Phoenix Sky Harbor Airport (adjacent)",
     ],
   },
@@ -168,6 +214,28 @@ export const serviceAreaCities = [
       "Camelback Ranch",
       "Glendale Glitters District",
       "Loop 101 / Cardinals Drive Corridor",
+    ],
+    faqs: [
+      {
+        q: "How much is a black car from Glendale to Sky Harbor Airport?",
+        a: "Flat-rate airport transfers from Glendale start at $X — no surge pricing, ever. The drive runs about 25–30 minutes via the Loop 101 and I-10, and we stage chauffeurs based on live flight and traffic data.",
+      },
+      {
+        q: "Do you provide transportation for State Farm Stadium events?",
+        a: "Yes — Cardinals games, college football, concerts, and major events. Our chauffeurs know the staging lanes, event exits, and post-game pickup corridors, so you're not sitting in the parking crawl.",
+      },
+      {
+        q: "How far in advance should I book for a game or concert?",
+        a: "For major events at State Farm Stadium or Desert Diamond Arena, we recommend booking at least 48 hours ahead. Last-minute rides are often available — call us at (480) 300-6003 to check.",
+      },
+      {
+        q: "Do you pick up from Westgate Entertainment District hotels?",
+        a: "Yes. We serve all Westgate-area hotels and restaurants, plus the surrounding West Valley including Peoria, Litchfield Park, and Avondale.",
+      },
+      {
+        q: "Can my company set up a corporate account for Glendale rides?",
+        a: "Absolutely. We run recurring corporate rides, VIP event logistics, and group transportation across the West Valley with monthly invoicing.",
+      },
     ],
   },
   {
@@ -291,25 +359,6 @@ export const serviceAreaCities = [
     ],
   },
   {
-    name: "Scottsdale",
-    slug: "scottsdale",
-    note: "Home to world-class golf courses like TPC Scottsdale and Troon North",
-    src: Scottsdale,
-    airportNote:
-      "Scottsdale sits about 15 minutes from PHX via the 101 and 202. We also serve Scottsdale Airport (SDL) directly for private aviation and FBO passengers.",
-    corporateNote:
-      "Scottsdale's corporate corridor runs from SkySong through Kierland and DC Ranch. We run more executive airport pickups and corporate account rides out of Scottsdale than any other city we serve.",
-    localContext:
-      "From Old Town to Kierland Commons, Scottsdale is our most active market for both leisure and corporate ground transportation. Our chauffeurs know every resort entrance, valet lane, and golf bag drop point.",
-    localLandmarks: [
-      "TPC Scottsdale",
-      "Troon North Golf Club",
-      "Kierland Commons",
-      "Old Town Scottsdale",
-      "SkySong Innovation Center",
-    ],
-  },
-  {
     name: "Tucson",
     slug: "tucson",
     note: "Arizona's second-largest city, about 115 miles south of Phoenix",
@@ -367,97 +416,6 @@ export const serviceAreaCities = [
       "Embry-Riddle Aeronautical University",
       "Prescott National Forest",
       "Sharlot Hall Museum",
-    ],
-  },
-  {
-    name: "Paradise Valley",
-    slug: "paradise-valley",
-    note: "Home to some of Arizona's most prestigious resorts and estates",
-    src: ParadiseValley,
-    airportNote:
-      "Paradise Valley is approximately 20 minutes from PHX via the 51. Private aviation clients at SDL are just minutes away. We offer discreet vehicle options for clients who prefer low-profile arrivals.",
-    corporateNote:
-      "Paradise Valley is home base for some of Arizona's most prominent executives. We handle recurring airport transfers, private event transportation, and corporate hospitality at the major resort properties.",
-    localContext:
-      "Paradise Valley is Arizona's most exclusive municipality — 15 square miles with no commercial development. Our chauffeurs understand the privacy expectations of PV residents and resort guests.",
-    localLandmarks: [
-      "The Phoenician Resort",
-      "Sanctuary Camelback Mountain Resort",
-      "Camelback Mountain",
-      "Mountain Shadows Resort",
-      "JW Marriott Camelback Inn",
-    ],
-  },
-  {
-    name: "Cave Creek",
-    slug: "cave-creek",
-    note: "Known for its western charm, art galleries, and luxury desert retreats",
-    src: Scottsdale,
-    airportNote:
-      "Cave Creek is about 35–40 minutes from PHX via the 51 or Cave Creek Road. We plan departure times carefully for Cave Creek clients to account for the full drive without cutting it close on early flights.",
-    corporateNote:
-      "Cave Creek attracts self-employed executives and high-net-worth individuals who prefer a rural desert lifestyle. Recurring airport transfers and discreet point-to-point rides are the most common requests.",
-    localContext:
-      "Cave Creek has maintained its western character while becoming a destination for luxury desert retreats and boutique dining. Our team knows the Cave Creek corridor well without GPS confusion.",
-    localLandmarks: [
-      "Cave Creek Regional Park",
-      "Binkley's Restaurant",
-      "Buffalo Chip Saloon",
-      "Spur Cross Ranch Conservation Area",
-    ],
-  },
-  {
-    name: "Fountain Hills",
-    slug: "fountain-hills",
-    note: "Known for the iconic Fountain Park and stunning mountain views",
-    src: Mesa,
-    airportNote:
-      "Fountain Hills is about 35 minutes from PHX via the 202 and SR-87. The timing requires planning — we build appropriate buffer for Fountain Hills clients so airport runs are never rushed.",
-    corporateNote:
-      "Fountain Hills has a high concentration of retired executives and remote professionals. Airport transfers and recurring rides are the primary requests — clients who moved here for the lifestyle but still travel frequently for business.",
-    localContext:
-      "Fountain Hills is built around a man-made lake with one of the world's tallest fountains. The town hosts popular art festivals and attracts visitors near We-Ko-Pa Golf Club and Fort McDowell.",
-    localLandmarks: [
-      "Fountain Park",
-      "We-Ko-Pa Golf Club",
-      "Fort McDowell Yavapai Nation",
-      "McDowell Mountain Regional Park",
-    ],
-  },
-  {
-    name: "Surprise",
-    slug: "surprise",
-    note: "A growing West Valley community with easy freeway access",
-    src: Peoria,
-    airportNote:
-      "Surprise is about 35–40 minutes from PHX via the 303 and I-10. We plan Surprise pickups with generous lead time and real-time traffic monitoring for early morning flights.",
-    corporateNote:
-      "Surprise has attracted significant industrial and logistics operations along the 303 corridor. Corporate account demand tends to be for recurring commute rides and airport transfers.",
-    localContext:
-      "Surprise Stadium hosts Kansas City Royals and Texas Rangers spring training. Beyond baseball season, it's an active residential market with growing demand for professional ground transportation.",
-    localLandmarks: [
-      "Surprise Stadium",
-      "Prasada Shopping Center",
-      "White Tank Mountain Regional Park",
-      "Loop 303 Business Corridor",
-    ],
-  },
-  {
-    name: "Goodyear",
-    slug: "goodyear",
-    note: "A rapidly growing West Valley city near the I-10 corridor",
-    src: Glendale,
-    airportNote:
-      "Goodyear is about 30–35 minutes from PHX via I-10. We time pickups based on current traffic and your actual flight time.",
-    corporateNote:
-      "Goodyear's I-10 corridor is a major logistics and distribution hub. Corporate account transportation is increasingly common as more executives relocate here.",
-    localContext:
-      "Goodyear Ballpark hosts Cleveland Guardians and Cincinnati Reds spring training. Palm Valley and Estrella Mountain Ranch are active markets for professional transportation.",
-    localLandmarks: [
-      "Goodyear Ballpark",
-      "Estrella Mountain Regional Park",
-      "Palm Valley Corridor",
-      "Goodyear Airport",
     ],
   },
   {
@@ -882,6 +840,17 @@ export const serviceAreaCities = [
   },
 ] as const;
 
+// Guard: fail fast if a city slug is ever duplicated again.
+// Duplicate slugs silently break `find()` lookups, generateStaticParams,
+// and the sitemap — this makes the mistake impossible to ship.
+const seenSlugs = new Set<string>();
+for (const c of serviceAreaCities) {
+  if (seenSlugs.has(c.slug)) {
+    throw new Error(`Duplicate city slug in serviceAreaCities: "${c.slug}"`);
+  }
+  seenSlugs.add(c.slug);
+}
+
 export type CityData = {
   name: string;
   slug: string;
@@ -891,4 +860,5 @@ export type CityData = {
   corporateNote?: string;
   localContext?: string;
   localLandmarks?: readonly string[];
+  faqs?: readonly { q: string; a: string }[];
 };

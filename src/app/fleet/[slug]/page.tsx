@@ -21,6 +21,9 @@ export async function generateMetadata({
     title: v?.seo?.metaTitle ?? v?.title ?? "Vehicle",
     description:
       v?.seo?.metaDescription ?? v?.shortDesc ?? v?.desc ?? v?.longDesc,
+    alternates: {
+      canonical: `https://www.niertransportation.com/fleet/${slug}`,
+    },
   };
 }
 
@@ -65,9 +68,12 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         areaServed: "Phoenix Metro, Arizona",
       },
     }),
-    ...(vehicle.faqs &&
-      vehicle.faqs.length > 0 && {
-        mainEntityOfPage: {
+  };
+
+  const faqJsonLd =
+    vehicle.faqs && vehicle.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
           "@type": "FAQPage",
           mainEntity: vehicle.faqs.map((faq) => ({
             "@type": "Question",
@@ -77,9 +83,8 @@ export default async function Page({ params }: { params: Promise<Params> }) {
               text: faq.a,
             },
           })),
-        },
-      }),
-  };
+        }
+      : null;
 
   return (
     <main>
@@ -87,6 +92,12 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(vehicleSchema) }}
       />
+      {faqJsonLd && (
+        <script
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <Nav background='accent' />
       <FleetSlugPageIntro vehicle={vehicle} />
       <FleetDetails vehicle={vehicle} />

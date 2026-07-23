@@ -177,3 +177,17 @@
     max-width: 100%;
   }
 }
+
+
+.ctaRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.callLink {
+  font-weight: 600;
+  text-decoration: underline;
+  color: inherit;
+}

@@ -6,6 +6,9 @@ import type { Metadata } from "next";
 import Nav from "@/components/shared/Nav/Nav";
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
+import AboutTestimonials from "@/components/AboutPage/AboutTestimonials/AboutTestimonials";
+import Faq from "@/components/shared/Faq/Faq";
+import Button from "@/components/shared/Button/Button";
 import LocationCityIntro from "@/components/LocationCityPage/LocationCityIntro/LocationCityIntro";
 import LocationCityMission from "@/components/LocationCityPage/LocationCityMission/LocationCityMission";
 import LocationCityServicesGrid from "@/components/LocationCityPage/LocationCityServicesGrid/LocationCityServicesGrid";
@@ -126,7 +129,7 @@ export default async function LocationCityPage({
         "@type": "Service",
         name: `${service.title} in ${city.name}`,
         description: service.description,
-        url: `${SITE_URL}/services/${service.slug}/${city.slug}`,
+        url: `${SITE_URL}/services/${service.slug}`,
         provider: {
           "@type": "LocalBusiness",
           name: "Nier Transportation",
@@ -178,6 +181,19 @@ export default async function LocationCityPage({
     sameAs: ["https://www.instagram.com/niertransportation"],
   };
 
+  const faqJsonLd =
+    city.faqs && city.faqs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: city.faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }
+      : null;
+
   return (
     <main>
       <script
@@ -190,6 +206,12 @@ export default async function LocationCityPage({
           __html: JSON.stringify(localBusinessSchema),
         }}
       />
+      {faqJsonLd && (
+        <script
+          type='application/ld+json'
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
       <Nav background='cream' />
       <LocationCityIntro city={city} />
       <LocationCityMission city={city} />
@@ -212,6 +234,12 @@ export default async function LocationCityPage({
                 {city.corporateNote && (
                   <p className={styles.cityContextCopy}>{city.corporateNote}</p>
                 )}
+                <div className={styles.ctaRow}>
+                  <Button href='/book' text='Book a ride' btnType='black' arrow />
+                  <a href='tel:+14803006003' className={styles.callLink}>
+                    Or call (480) 300-6003
+                  </a>
+                </div>
               </div>
               {city.localLandmarks && city.localLandmarks.length > 0 && (
                 <div className={styles.cityContextRight}>
@@ -234,6 +262,18 @@ export default async function LocationCityPage({
 
       <LocationCityServicesGrid city={city} />
       <HowItWorks />
+
+      {city.faqs && city.faqs.length > 0 && (
+        <Faq
+          items={city.faqs.map((f, i) => ({
+            id: i,
+            question: f.q,
+            answer: f.a,
+          }))}
+        />
+      )}
+
+      <AboutTestimonials />
       <AboutNumbers />
     </main>
   );

@@ -60,20 +60,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // Dynamic service + city pages
-  const serviceCityPages = servicesData.flatMap((service) =>
-    serviceAreaCities.map((city) => ({
-      url: `${baseUrl}/services/${service.slug}/${city.slug}`,
-      lastModified: new Date(),
-      changeFrequency: "monthly" as const,
-      priority: 0.5,
-    })),
-  );
+  // const serviceCityPages = servicesData.flatMap((service) =>
+  //   serviceAreaCities.map((city) => ({
+  //     url: `${baseUrl}/services/${service.slug}/${city.slug}`,
+  //     lastModified: new Date(),
+  //     changeFrequency: "monthly" as const,
+  //     priority: 0.5,
+  //   })),
+  // );
 
   return [
     ...staticPages,
     ...blogPages,
     ...servicePages,
     ...locationPages,
-    ...serviceCityPages,
+    // ...serviceCityPages,
   ];
 }
