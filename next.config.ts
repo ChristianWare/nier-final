@@ -8,6 +8,17 @@ const withBundleAnalyzer = bundleAnalyzer({
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "niertransportation.com" }],
+        destination: "https://www.niertransportation.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
+
   experimental: {
     optimizeCss: true,
   },
