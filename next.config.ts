@@ -16,6 +16,12 @@ const nextConfig: NextConfig = {
         destination: "https://www.niertransportation.com/:path*",
         permanent: true,
       },
+      {
+        source:
+          "/blog/elevate-your-travel-experience-with-the-best-black-car-service-in-phoenix-az",
+        destination: "/services/airport-transfers",
+        permanent: true,
+      },
     ];
   },
 

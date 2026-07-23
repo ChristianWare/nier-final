@@ -9,7 +9,9 @@ import Glendale from "../../public/images/areas/westValleyii.jpg";
 import ParadiseValley from "../../public/images/areas/yuma.jpg";
 import type { StaticImageData } from "next/image";
 
-// TODO: replace every "$X" placeholder rate with real pricing before deploy.
+// NOTE: FAQ answers currently describe flat rates without dollar amounts.
+// When real pricing is confirmed, add "from $X" figures back into the
+// airport/hourly answers — concrete prices improve CTR and conversions.
 
 export const serviceAreaCities = [
   {
@@ -34,7 +36,7 @@ export const serviceAreaCities = [
     faqs: [
       {
         q: "How much is a black car from Scottsdale to Sky Harbor Airport?",
-        a: "Flat-rate transfers from Scottsdale to PHX start at $X — no surge pricing. Depending on where you are in Scottsdale, the drive runs roughly 20–30 minutes, and we track your flight so pickup timing adjusts automatically.",
+        a: "Scottsdale-to-PHX transfers are a flat rate — no surge pricing, no meter running. Your exact rate depends on pickup location; book online or call (480) 300-6003 for an instant quote. The drive runs roughly 20–30 minutes, and we track your flight so pickup timing adjusts automatically.",
       },
       {
         q: "Do you serve Scottsdale Airport (SDL) and private aviation?",
@@ -46,7 +48,7 @@ export const serviceAreaCities = [
       },
       {
         q: "Can I book an hourly chauffeur for a night in Old Town Scottsdale?",
-        a: "Yes — hourly service from $X/hr keeps your chauffeur with you all evening: dinner, Old Town, and a safe ride home, with no surge pricing at closing time.",
+        a: "Yes — flat hourly service keeps your chauffeur with you all evening: dinner, Old Town, and a safe ride home, with no surge pricing at closing time. Book online or call for current hourly rates.",
       },
       {
         q: "Where is Nier Transportation based?",
@@ -76,7 +78,7 @@ export const serviceAreaCities = [
     faqs: [
       {
         q: "How much does a black car to Sky Harbor cost from Phoenix?",
-        a: "Flat-rate airport transfers start at $X, with free flight tracking and no surge pricing. We stage chauffeurs based on live traffic and departure data, so early flights and late arrivals are never a problem.",
+        a: "Airport transfers are a flat rate with free flight tracking and no surge pricing — book online or call (480) 300-6003 for an instant quote. We stage chauffeurs based on live traffic and departure data, so early flights and late arrivals are never a problem.",
       },
       {
         q: "Do you handle group transportation in Phoenix?",
@@ -218,7 +220,7 @@ export const serviceAreaCities = [
     faqs: [
       {
         q: "How much is a black car from Glendale to Sky Harbor Airport?",
-        a: "Flat-rate airport transfers from Glendale start at $X — no surge pricing, ever. The drive runs about 25–30 minutes via the Loop 101 and I-10, and we stage chauffeurs based on live flight and traffic data.",
+        a: "Airport transfers from Glendale are a flat rate — no surge pricing, ever. Book online or call (480) 300-6003 for an instant quote. The drive runs about 25–30 minutes via the Loop 101 and I-10, and we stage chauffeurs based on live flight and traffic data.",
       },
       {
         q: "Do you provide transportation for State Farm Stadium events?",
