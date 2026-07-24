@@ -15,11 +15,15 @@ const OG_IMAGE = `${SITE_URL}/og-image.png`;
 const titleOverrides: Partial<Record<string, string>> = {
   "airport-transfers":
     "Black Car Service to Phoenix Sky Harbor Airport | Nier Transportation",
+  "group-transportation":
+    "Group Transportation Phoenix | Nier Transportation",
 };
 
 const descriptionOverrides: Partial<Record<string, string>> = {
   "airport-transfers":
     "Flat-rate airport black car service to PHX Sky Harbor, Scottsdale (SDL) & Mesa Gateway (AZA). Real-time flight tracking, 60-minute grace period, and meet & greet. Book in minutes.",
+  "group-transportation":
+    "Group transportation in Phoenix — executive sprinters, mini party buses & full-size motorcoaches. One coordinator, one invoice, no surge pricing. Corporate, weddings & events.",
 };
 
 export function generateStaticParams() {

@@ -1,6 +1,7 @@
 import { MetadataRoute } from "next";
 import { servicesData } from "@/lib/services";
 import { serviceAreaCities } from "@/lib/cities";
+import { routesData } from "@/lib/routes";
 import { client } from "@/sanity/lib/client";
 
 export const revalidate = 3600;
@@ -59,6 +60,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // Route ("A to B") money pages
+  const routePages = routesData.map((route) => ({
+    url: `${baseUrl}/routes/${route.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
   // Dynamic service + city pages
   // const serviceCityPages = servicesData.flatMap((service) =>
   //   serviceAreaCities.map((city) => ({
@@ -74,6 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...blogPages,
     ...servicePages,
     ...locationPages,
+    ...routePages,
     // ...serviceCityPages,
   ];
 }
