@@ -206,16 +206,16 @@ export default async function HomePage() {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-
       {/* ── Google Maps script for Places autocomplete in the booking widget ── */}
       <Script
         src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY}&libraries=places`}
         strategy='lazyOnload'
       />
-
+      const x = "test"
       <Nav />
       <Hero
         serviceTypes={serviceTypesRaw as any}
+
         vehicles={vehicles as any}
         companyTimezone={companySettings.timezone}
         companyTimezoneLabel={companyTimezoneLabel}

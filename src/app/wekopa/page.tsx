@@ -38,11 +38,13 @@ export default function WekoPaPage() {
           />
         }
       />
-
       <Marquee
         words={["We-Ko-Pa", "Golf", "&", "Casino", "Resort"]}
         speedSeconds={90}
       />
+
+
+
 
       <WekoPaPricing />
       <FlightTrackerSection />
