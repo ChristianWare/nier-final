@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { serviceAreaCities } from "@/lib/cities";
 import type { CityData } from "@/lib/cities";
 import { servicesData as services } from "@/lib/services";
@@ -233,6 +234,18 @@ export default async function LocationCityPage({
                 )}
                 {city.corporateNote && (
                   <p className={styles.cityContextCopy}>{city.corporateNote}</p>
+                )}
+                {city.routePromo && (
+                  <p className={styles.cityContextCopy}>
+                    {city.routePromo.blurb}{" "}
+                    <Link
+                      href={city.routePromo.href}
+                      className={styles.routeLink}
+                    >
+                      {city.routePromo.anchor}
+                    </Link>
+                    .
+                  </p>
                 )}
                 <div className={styles.ctaRow}>
                   <Button href='/book' text='Book a ride' btnType='black' arrow />

@@ -1,9 +1,13 @@
 // app/services/[slug]/page.tsx  (server component)
 
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { servicesData } from "@/lib/services";
+import { routesData } from "@/lib/routes";
 import ServiceDetailsClient from "./components/ServiceDetailsClient/ServiceDetailsClient";
+import LayoutWrapper from "@/components/shared/LayoutWrapper";
+import promoStyles from "./PopularRoutes.module.css";
 
 type Params = { slug: string };
 
@@ -145,6 +149,32 @@ export default async function Page({
         />
       )}
       <ServiceDetailsClient service={svc} />
+
+      {svc.slug === "long-distance-drives" && (
+        <section className={promoStyles.section}>
+          <LayoutWrapper>
+            <h2 className={`${promoStyles.heading} h3`}>
+              Popular Long-Distance Routes
+            </h2>
+            <p className={promoStyles.copy}>
+              Flat-rate, door-to-door private transfers on the routes we run
+              most — both directions, any day.
+            </p>
+            <ul className={promoStyles.list}>
+              {routesData.map((route) => (
+                <li key={route.slug} className={promoStyles.item}>
+                  <Link
+                    href={`/routes/${route.slug}`}
+                    className={promoStyles.link}
+                  >
+                    {route.origin} to {route.destination} car service
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </LayoutWrapper>
+        </section>
+      )}
     </>
   );
 }

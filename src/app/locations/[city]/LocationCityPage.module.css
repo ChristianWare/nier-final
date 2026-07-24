@@ -153,6 +153,12 @@
   border-radius: 5px;
 }
 
+.routeLink {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @media screen and (max-width: 1268px) {
   .citiesGrid {
     grid-template-columns: repeat(2, 1fr);

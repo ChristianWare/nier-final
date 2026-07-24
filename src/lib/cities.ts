@@ -33,6 +33,12 @@ export const serviceAreaCities = [
       "SkySong Innovation Center",
       "Scottsdale Fashion Square",
     ],
+    routePromo: {
+      href: "/routes/phoenix-to-scottsdale",
+      anchor:
+        "book a private Phoenix to Scottsdale car service at a flat rate",
+      blurb: "Making the run between Phoenix and Scottsdale?",
+    },
     faqs: [
       {
         q: "How much is a black car from Scottsdale to Sky Harbor Airport?",
@@ -359,6 +365,11 @@ export const serviceAreaCities = [
       "Oak Creek Canyon",
       "Tlaquepaque Arts Village",
     ],
+    routePromo: {
+      href: "/routes/phoenix-to-sedona",
+      anchor: "book a private Phoenix to Sedona transfer, door to door",
+      blurb: "Flying into Sky Harbor and heading straight for the red rocks?",
+    },
   },
   {
     name: "Tucson",
@@ -379,6 +390,12 @@ export const serviceAreaCities = [
       "Fourth Avenue District",
       "Raytheon Technologies Campus",
     ],
+    routePromo: {
+      href: "/routes/tucson-to-phoenix",
+      anchor:
+        "book a private Tucson to Phoenix car service — no shared shuttle stops",
+      blurb: "Connecting between Tucson and the Valley?",
+    },
   },
   {
     name: "Flagstaff",
@@ -399,6 +416,11 @@ export const serviceAreaCities = [
       "Flagstaff Pulliam Airport (FLG)",
       "Historic Route 66",
     ],
+    routePromo: {
+      href: "/routes/flagstaff-to-phoenix",
+      anchor: "book a private Flagstaff to Phoenix airport car service",
+      blurb: "Need to make a Sky Harbor flight from the mountains?",
+    },
   },
   {
     name: "Prescott",
@@ -419,6 +441,11 @@ export const serviceAreaCities = [
       "Prescott National Forest",
       "Sharlot Hall Museum",
     ],
+    routePromo: {
+      href: "/routes/phoenix-to-prescott",
+      anchor: "book a private Phoenix to Prescott transfer at a flat rate",
+      blurb: "Heading up for the mountain air?",
+    },
   },
   {
     name: "Avondale",
@@ -863,4 +890,5 @@ export type CityData = {
   localContext?: string;
   localLandmarks?: readonly string[];
   faqs?: readonly { q: string; a: string }[];
+  routePromo?: { href: string; anchor: string; blurb: string };
 };

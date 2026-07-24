@@ -12,6 +12,7 @@ import GoogleIcon from "../icons/GoogleIcon/GoogleIcon";
 import FooterTop from "./FooterTop/FooterTop";
 import Logo from "../Logo/Logo";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import Marquee from "../Marquee/Marquee";
 
 interface Option {
   id: number;
@@ -43,10 +44,15 @@ const data: Section[] = [
       {
         id: 1.3,
         option: "Corporate Events",
-        href: "/services/corporate-events",
+        href: "/services/corporate-and-event-logistics",
       },
-      { id: 1.4, option: "Party Bus", href: "/services/party-bus" },
-      { id: 1.5, option: "Weddings", href: "/services/weddings" },
+      {
+        id: 1.4,
+        option: "Group Transportation",
+        href: "/services/group-transportation",
+      },
+      { id: 1.5, option: "Party Bus", href: "/services/party-bus" },
+      { id: 1.6, option: "Weddings", href: "/services/weddings" },
     ],
   },
   {
@@ -70,47 +76,83 @@ const data: Section[] = [
       {
         id: 4.1,
         option: "Scottsdale",
-        href: "/services/airport-transfers/scottsdale",
+        href: "/locations/scottsdale",
       },
       {
         id: 4.2,
         option: "Phoenix",
-        href: "/services/airport-transfers/phoenix",
+        href: "/locations/phoenix",
       },
       {
         id: 4.3,
-        option: "Paradise Valley",
-        href: "/services/airport-transfers/paradise-valley",
+        option: "Glendale",
+        href: "/locations/glendale",
       },
       {
         id: 4.4,
-        option: "Tempe",
-        href: "/services/airport-transfers/tempe",
+        option: "Paradise Valley",
+        href: "/locations/paradise-valley",
       },
       {
         id: 4.5,
-        option: "Chandler",
-        href: "/services/airport-transfers/chandler",
+        option: "Tempe",
+        href: "/locations/tempe",
       },
       {
         id: 4.6,
-        option: "Mesa",
-        href: "/services/airport-transfers/mesa",
+        option: "Chandler",
+        href: "/locations/chandler",
       },
       {
         id: 4.7,
-        option: "Gilbert",
-        href: "/services/airport-transfers/gilbert",
+        option: "Mesa",
+        href: "/locations/mesa",
       },
       {
         id: 4.8,
-        option: "Cave Creek",
-        href: "/services/airport-transfers/cave-creek",
+        option: "Gilbert",
+        href: "/locations/gilbert",
       },
       {
         id: 4.9,
+        option: "Cave Creek",
+        href: "/locations/cave-creek",
+      },
+      {
+        id: 4.91,
         option: "View all locations →",
         href: "/locations",
+      },
+    ],
+  },
+  {
+    id: 5,
+    title: "Popular Routes",
+    options: [
+      {
+        id: 5.1,
+        option: "Phoenix to Scottsdale",
+        href: "/routes/phoenix-to-scottsdale",
+      },
+      {
+        id: 5.2,
+        option: "Tucson to Phoenix",
+        href: "/routes/tucson-to-phoenix",
+      },
+      {
+        id: 5.3,
+        option: "Phoenix to Sedona",
+        href: "/routes/phoenix-to-sedona",
+      },
+      {
+        id: 5.4,
+        option: "Flagstaff to Phoenix",
+        href: "/routes/flagstaff-to-phoenix",
+      },
+      {
+        id: 5.5,
+        option: "Phoenix to Prescott",
+        href: "/routes/phoenix-to-prescott",
       },
     ],
   },
@@ -185,11 +227,23 @@ export default async function Footer() {
 
   return (
     <footer className={styles.container}>
+<div className={styles.marqueeContainer}>
+
+            <Marquee
+                        words={[
+                          "Nier Transportation",
+                        ]}
+                        speedSeconds={10}
+                        />
+                        </div>
       <LayoutWrapper>
         <div className={styles.content}>
           <FooterTop />
           <div className={styles.top}>
-            <div className={styles.logoDetailsSocials}>
+
+            <div
+            
+            className={styles.logoDetailsSocials}>
               <Link href='/' className={styles.logoContainer}>
                 <Logo className={styles.logo} />
                 <span className={styles.logoText}>{companyName}</span>
