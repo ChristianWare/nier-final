@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   title: "Charter Bus Rental Phoenix | Nier Transportation",
   description:
     "Phoenix charter bus rental for corporate events, weddings, airport transfers, and group outings. 56-passenger luxury charter bus available 24/7 across the Valley.",
+  alternates: {
+    canonical: "https://www.niertransportation.com/charter-bus-rental-phoenix",
+  },
 };
 
 const charterServiceSchema = {
