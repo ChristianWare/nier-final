@@ -4,7 +4,7 @@ import styles from "./ServiceSlugPageIntro.module.css";
 // import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Link from "next/link";
 import Image from "next/image";
-import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
+// import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import type { ServiceShape as Service } from "@/lib/services"; // ← unify here
 
 export default function ServiceSlugPageIntro({
@@ -30,7 +30,7 @@ export default function ServiceSlugPageIntro({
       {/* <LayoutWrapper> */}
       <div className={styles.content}>
         <div className={styles.top}>
-          <SectionHeading text='service' dot />
+          {/* <SectionHeading text='service' dot /> */}
           <h1 className={`${styles.heading} underline`}>{service.title}</h1>
           {/* <p className={styles.copy}>{service.copy}</p> */}
           {service.src && (
