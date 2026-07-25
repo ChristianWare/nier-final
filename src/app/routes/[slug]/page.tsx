@@ -17,6 +17,7 @@ import Faq from "@/components/shared/Faq/Faq";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import styles from "./RoutePage.module.css";
+import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 
 type Params = { slug: string };
 
@@ -128,6 +129,12 @@ export default async function RoutePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
       <Nav background='accent' />
+      <Breadcrumbs
+        items={[
+          { name: "Routes", href: "/routes" },
+          { name: `${route.origin} to ${route.destination}` },
+        ]}
+      />
 
       <section className={styles.intro}>
         <LayoutWrapper>
@@ -141,7 +148,12 @@ export default async function RoutePage({
             </h1>
             <p className={styles.lead}>{route.heroLine}</p>
             <div className={styles.ctas}>
-              <Button href='/book' text='Book this route' btnType='black' arrow />
+              <Button
+                href='/book'
+                text='Book this route'
+                btnType='black'
+                arrow
+              />
               <Button
                 href='/contact'
                 text='Get an instant quote'
