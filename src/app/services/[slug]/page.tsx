@@ -21,6 +21,8 @@ const titleOverrides: Partial<Record<string, string>> = {
     "Black Car Service to Phoenix Sky Harbor Airport | Nier Transportation",
   "group-transportation":
     "Group Transportation Phoenix | Nier Transportation",
+  "black-truck-service":
+    "Black Truck Service Phoenix | Nier Transportation",
 };
 
 const descriptionOverrides: Partial<Record<string, string>> = {
@@ -28,6 +30,8 @@ const descriptionOverrides: Partial<Record<string, string>> = {
     "Flat-rate airport black car service to PHX Sky Harbor, Scottsdale (SDL) & Mesa Gateway (AZA). Real-time flight tracking, 60-minute grace period, and meet & greet. Book in minutes.",
   "group-transportation":
     "Group transportation in Phoenix — executive sprinters, mini party buses & full-size motorcoaches. One coordinator, one invoice, no surge pricing. Corporate, weddings & events.",
+  "black-truck-service":
+    "Black truck service in Phoenix — chauffeured Cadillac Escalade ESV & luxury black SUVs. Flat rates, airport transfers, events & corporate. The blacked-out SUV, driven for you.",
 };
 
 export function generateStaticParams() {
@@ -126,14 +130,14 @@ export default async function Page({
   const faqJsonLd =
     svc.faqs && svc.faqs.length > 0
       ? {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: svc.faqs.map((f) => ({
-            "@type": "Question",
-            name: f.q,
-            acceptedAnswer: { "@type": "Answer", text: f.a },
-          })),
-        }
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: svc.faqs.map((f) => ({
+          "@type": "Question",
+          name: f.q,
+          acceptedAnswer: { "@type": "Answer", text: f.a },
+        })),
+      }
       : null;
 
   return (

@@ -1622,112 +1622,200 @@ export const servicesData = [
   },
 
   // ============================================================
-// GROUP TRANSPORTATION — new service entry for servicesData
-// Paste this object into the servicesData array in src/lib/services.ts.
-// Recommended placement: right after the "corporate-and-event-logistics"
-// entry (array order controls display order in service grids).
-// Uses existing image imports (Corporate, Party) — swap in dedicated
-// group-transport photos later if you get them.
-// ============================================================
-{
-  id: 11,
-  title: "Group Transportation",
-  slug: "group-transportation",
-  copy: "Private group transportation across Phoenix — executive sprinters, mini party buses, and full-size motorcoaches with one coordinator and one invoice.",
-  marketingCopy:
-    "Moving a group in Phoenix? One coordinator, one invoice, and the right vehicles for your headcount — from 14-passenger executive sprinters to full-size motorcoaches. Corporate teams, weddings, conventions, and events, handled door to door.",
-  src: Corporate,
-  src2: Party,
-  description:
-    "Group transportation in Phoenix for corporate teams, weddings, conventions, and events. Executive sprinters, mini party buses, and full-size motorcoaches — one coordinator, one invoice, no surge pricing.",
-  whoThisIsFor: [
-    "Corporate teams and convention groups who need reliable shuttles between hotels, venues, and Sky Harbor",
-    "Wedding parties moving guests between ceremony, reception, and hotel blocks on a fixed timeline",
-    "Event and conference planners who want one point of contact instead of coordinating a fleet of rideshares",
-    "Sports teams, golf groups, and social outings that need everyone to arrive together — and on time",
-  ],
-  whatsIncluded: [
-    "Dedicated Group Coordinator – One point of contact from quote to final drop-off; no juggling multiple drivers or apps.",
-    "One Invoice – Consolidated billing for the entire group and every vehicle, with corporate account options.",
-    "Right-Sized Fleet – We match vehicles to your actual headcount and luggage, not the other way around.",
-    "Professional Chauffeurs – Uniformed, trained drivers who handle staging, loading, and timing.",
-    "Route & Timing Plan – Pickup order, staging locations, and buffer time planned in advance for events and venues.",
-    "Real-Time Adjustments – Dispatch monitors traffic and event schedules and adjusts vehicles on the fly.",
-  ],
-  vehicleClasses: [
-    "Executive Sprinter Van (up to 14 passengers) – Ideal for corporate teams and airport group transfers",
-    "Mini Party Bus (20–40 passengers) – Weddings, celebrations, and group nights out",
-    "Full-Size Motorcoach – Conventions, large weddings, and the biggest groups",
-    "Executive Sedans & SUVs – Overflow vehicles for VIPs and smaller breakout groups",
-  ],
-  pickupOptions: [
-    "Single-Point Pickup: One staging location for the whole group — hotel, office, or venue.",
-    "Multi-Stop Routing: Planned pickup order across several locations with a coordinated timeline.",
-    "Shuttle Loops: Continuous loops between two or more points for events, conventions, and wedding blocks.",
-  ],
-  bookingAndPayment: [
-    "Group quotes in minutes – Tell us your headcount, dates, and stops; we'll match vehicles and send a flat-rate quote.",
-    "Transparent pricing – Flat rates with no surge pricing; call (480) 300-6003 or book online for an instant quote.",
-    "One invoice – Consolidated billing across all vehicles; monthly statements available for corporate accounts.",
-    "Deposits – Secure your date with a deposit; balance settles per your preference.",
-  ],
-  whatToExpect: [
-    "Planning Call: We confirm headcount, stops, timing, and any venue requirements before your date.",
-    "Confirmation: You receive a run sheet with vehicles, chauffeur contacts, and staging details.",
-    "Day-Of Coordination: Chauffeurs stage early; your coordinator monitors timing and adjusts in real time.",
-    "Wrap-Up: One consolidated invoice after the event — no chasing receipts across vehicles.",
-  ],
-  features: [
-    {
-      id: 1,
-      title: "One Coordinator, One Invoice",
-      details:
-        "A single point of contact plans your group's routing and timing, and every vehicle lands on one consolidated invoice.",
-    },
-    {
-      id: 2,
-      title: "Fleet Matched to Headcount",
-      details:
-        "From 14-passenger executive sprinters to mini party buses and full-size motorcoaches — we size the fleet to your group, with luggage accounted for.",
-    },
-    {
-      id: 3,
-      title: "Event & Venue Logistics",
-      details:
-        "Staging lanes, load zones, and post-event exits planned in advance for Phoenix venues, hotels, and Sky Harbor.",
-    },
-    {
-      id: 4,
-      title: "Shuttle Loops & Multi-Stop Routes",
-      details:
-        "Continuous loops between hotel blocks and venues, or planned multi-stop pickups across the Valley — built around your timeline.",
-    },
-  ],
-  faqs: [
-    {
-      q: "How much does group transportation cost in Phoenix?",
-      a: "Group rides are quoted as a flat rate based on headcount, vehicle type, and itinerary — no surge pricing, no per-app math. Tell us your group size, dates, and stops, and we'll send an all-in quote. Book online or call (480) 300-6003.",
-    },
-    {
-      q: "What group sizes can you handle?",
-      a: "Anything from a 6-person leadership team to full conventions. Executive sprinters carry up to 14, mini party buses handle 20–40, and full-size motorcoaches cover the largest groups. For big events we run multiple vehicles under one coordinator.",
-    },
-    {
-      q: "Do you do group airport transfers to Sky Harbor?",
-      a: "Yes — arrivals and departures for corporate groups, wedding parties, and teams. We track every flight, stage vehicles by terminal, and assist with group luggage so nobody is left waiting at the curb.",
-    },
-    {
-      q: "Can you run shuttle loops for a wedding or conference?",
-      a: "Yes. We run continuous loops between hotel blocks, ceremony sites, and venues on a schedule you approve in advance — guests never wait long, and the timeline stays intact.",
-    },
-    {
-      q: "How far in advance should we book group transportation?",
-      a: "For multi-vehicle events, 2–4 weeks gives us the best vehicle selection; peak season (spring training, WM Phoenix Open, wedding season) books earlier. Have a last-minute need? Call (480) 300-6003 — we'll tell you honestly what's available.",
-    },
-    {
-      q: "Do you offer group transportation outside Phoenix?",
-      a: "Yes — we serve the entire Valley, including Scottsdale, Tempe, Glendale, and the East and West Valley, plus long-distance group trips to Sedona, Tucson, and Flagstaff.",
-    },
-  ],
-},
+  // GROUP TRANSPORTATION — new service entry for servicesData
+  // Paste this object into the servicesData array in src/lib/services.ts.
+  // Recommended placement: right after the "corporate-and-event-logistics"
+  // entry (array order controls display order in service grids).
+  // Uses existing image imports (Corporate, Party) — swap in dedicated
+  // group-transport photos later if you get them.
+  // ============================================================
+  {
+    id: 11,
+    title: "Group Transportation",
+    slug: "group-transportation",
+    copy: "Private group transportation across Phoenix — executive sprinters, mini party buses, and full-size motorcoaches with one coordinator and one invoice.",
+    marketingCopy:
+      "Moving a group in Phoenix? One coordinator, one invoice, and the right vehicles for your headcount — from 14-passenger executive sprinters to full-size motorcoaches. Corporate teams, weddings, conventions, and events, handled door to door.",
+    src: Corporate,
+    src2: Party,
+    description:
+      "Group transportation in Phoenix for corporate teams, weddings, conventions, and events. Executive sprinters, mini party buses, and full-size motorcoaches — one coordinator, one invoice, no surge pricing.",
+    whoThisIsFor: [
+      "Corporate teams and convention groups who need reliable shuttles between hotels, venues, and Sky Harbor",
+      "Wedding parties moving guests between ceremony, reception, and hotel blocks on a fixed timeline",
+      "Event and conference planners who want one point of contact instead of coordinating a fleet of rideshares",
+      "Sports teams, golf groups, and social outings that need everyone to arrive together — and on time",
+    ],
+    whatsIncluded: [
+      "Dedicated Group Coordinator – One point of contact from quote to final drop-off; no juggling multiple drivers or apps.",
+      "One Invoice – Consolidated billing for the entire group and every vehicle, with corporate account options.",
+      "Right-Sized Fleet – We match vehicles to your actual headcount and luggage, not the other way around.",
+      "Professional Chauffeurs – Uniformed, trained drivers who handle staging, loading, and timing.",
+      "Route & Timing Plan – Pickup order, staging locations, and buffer time planned in advance for events and venues.",
+      "Real-Time Adjustments – Dispatch monitors traffic and event schedules and adjusts vehicles on the fly.",
+    ],
+    vehicleClasses: [
+      "Executive Sprinter Van (up to 14 passengers) – Ideal for corporate teams and airport group transfers",
+      "Mini Party Bus (20–40 passengers) – Weddings, celebrations, and group nights out",
+      "Full-Size Motorcoach – Conventions, large weddings, and the biggest groups",
+      "Executive Sedans & SUVs – Overflow vehicles for VIPs and smaller breakout groups",
+    ],
+    pickupOptions: [
+      "Single-Point Pickup: One staging location for the whole group — hotel, office, or venue.",
+      "Multi-Stop Routing: Planned pickup order across several locations with a coordinated timeline.",
+      "Shuttle Loops: Continuous loops between two or more points for events, conventions, and wedding blocks.",
+    ],
+    bookingAndPayment: [
+      "Group quotes in minutes – Tell us your headcount, dates, and stops; we'll match vehicles and send a flat-rate quote.",
+      "Transparent pricing – Flat rates with no surge pricing; call (480) 300-6003 or book online for an instant quote.",
+      "One invoice – Consolidated billing across all vehicles; monthly statements available for corporate accounts.",
+      "Deposits – Secure your date with a deposit; balance settles per your preference.",
+    ],
+    whatToExpect: [
+      "Planning Call: We confirm headcount, stops, timing, and any venue requirements before your date.",
+      "Confirmation: You receive a run sheet with vehicles, chauffeur contacts, and staging details.",
+      "Day-Of Coordination: Chauffeurs stage early; your coordinator monitors timing and adjusts in real time.",
+      "Wrap-Up: One consolidated invoice after the event — no chasing receipts across vehicles.",
+    ],
+    features: [
+      {
+        id: 1,
+        title: "One Coordinator, One Invoice",
+        details:
+          "A single point of contact plans your group's routing and timing, and every vehicle lands on one consolidated invoice.",
+      },
+      {
+        id: 2,
+        title: "Fleet Matched to Headcount",
+        details:
+          "From 14-passenger executive sprinters to mini party buses and full-size motorcoaches — we size the fleet to your group, with luggage accounted for.",
+      },
+      {
+        id: 3,
+        title: "Event & Venue Logistics",
+        details:
+          "Staging lanes, load zones, and post-event exits planned in advance for Phoenix venues, hotels, and Sky Harbor.",
+      },
+      {
+        id: 4,
+        title: "Shuttle Loops & Multi-Stop Routes",
+        details:
+          "Continuous loops between hotel blocks and venues, or planned multi-stop pickups across the Valley — built around your timeline.",
+      },
+    ],
+    faqs: [
+      {
+        q: "How much does group transportation cost in Phoenix?",
+        a: "Group rides are quoted as a flat rate based on headcount, vehicle type, and itinerary — no surge pricing, no per-app math. Tell us your group size, dates, and stops, and we'll send an all-in quote. Book online or call (480) 300-6003.",
+      },
+      {
+        q: "What group sizes can you handle?",
+        a: "Anything from a 6-person leadership team to full conventions. Executive sprinters carry up to 14, mini party buses handle 20–40, and full-size motorcoaches cover the largest groups. For big events we run multiple vehicles under one coordinator.",
+      },
+      {
+        q: "Do you do group airport transfers to Sky Harbor?",
+        a: "Yes — arrivals and departures for corporate groups, wedding parties, and teams. We track every flight, stage vehicles by terminal, and assist with group luggage so nobody is left waiting at the curb.",
+      },
+      {
+        q: "Can you run shuttle loops for a wedding or conference?",
+        a: "Yes. We run continuous loops between hotel blocks, ceremony sites, and venues on a schedule you approve in advance — guests never wait long, and the timeline stays intact.",
+      },
+      {
+        q: "How far in advance should we book group transportation?",
+        a: "For multi-vehicle events, 2–4 weeks gives us the best vehicle selection; peak season (spring training, WM Phoenix Open, wedding season) books earlier. Have a last-minute need? Call (480) 300-6003 — we'll tell you honestly what's available.",
+      },
+      {
+        q: "Do you offer group transportation outside Phoenix?",
+        a: "Yes — we serve the entire Valley, including Scottsdale, Tempe, Glendale, and the East and West Valley, plus long-distance group trips to Sedona, Tucson, and Flagstaff.",
+      },
+    ],
+  },
+  {
+    id: 12,
+    title: "Black Truck Service",
+    slug: "black-truck-service",
+    copy: "Chauffeured black truck service in Phoenix — Cadillac Escalade ESV and luxury black SUVs with professional drivers, flat rates, and no surge pricing.",
+    marketingCopy:
+      "Want the blacked-out SUV arrival without driving it yourself? Our black truck service pairs the Cadillac Escalade ESV and 7-passenger Suburban with professional chauffeurs — airport runs, events, and nights out across the Valley at a flat rate.",
+    src: Corporate,
+    src2: Party,
+    description:
+      "Black truck service in Phoenix — chauffeured Cadillac Escalade ESV and luxury black SUVs. Flat-rate airport transfers, events, and corporate rides. The blacked-out SUV look, driven for you.",
+    whoThisIsFor: [
+      "Travelers who want the full-size black SUV arrival at Sky Harbor — with room for every bag",
+      "Groups of 4–7 who won't fit a sedan but don't need a sprinter",
+      "Event nights, concerts, and game days where you want to show up in the blacked-out truck, not park it",
+      "Executives and VIPs who prefer the presence and privacy of a full-size SUV",
+    ],
+    whatsIncluded: [
+      "Professional Chauffeur – Uniformed, trained, and familiar with valet lanes, venue drop zones, and airport staging.",
+      "Full-Size Black SUVs – Cadillac Escalade ESV and 7-passenger Suburban, detailed before every ride.",
+      "Flat-Rate Pricing – Your rate is locked when you book; no surge pricing on event nights.",
+      "Flight Tracking – Airport pickups adjust automatically to early arrivals and delays.",
+      "Room for Everything – Golf bags, luggage for a full group, car seats on request.",
+      "24/7 Availability – Early flights, late landings, and last calls covered.",
+    ],
+    vehicleClasses: [
+      "Cadillac Escalade ESV – The flagship black truck: executive presence, premium cabin, generous luggage space",
+      "Chevy Suburban (7-Passenger) – Full-size capacity for groups and families with luggage",
+      "Executive Sprinter Van – When the group outgrows the truck, up to 14 passengers",
+    ],
+    bookingAndPayment: [
+      "Instant quotes – Book online in minutes or call (480) 300-6003; your flat rate is confirmed before you ride.",
+      "No surge pricing – The rate you book is the rate you pay, event night or not.",
+      "Corporate accounts – Recurring black truck rides with monthly invoicing available.",
+    ],
+    features: [
+      {
+        id: 1,
+        title: "The Blacked-Out Arrival, Driven for You",
+        details:
+          "All the presence of a full-size black truck — Escalade ESV or Suburban — with a professional chauffeur handling traffic, parking, and timing.",
+      },
+      {
+        id: 2,
+        title: "Built for Airport Runs",
+        details:
+          "Full-size luggage capacity plus real-time flight tracking, so the truck is staged when you land — not when you were scheduled to.",
+      },
+      {
+        id: 3,
+        title: "Groups Up to 7",
+        details:
+          "Seats a full group with bags in one vehicle. Bigger crew? We scale to sprinters and multi-vehicle bookings under one invoice.",
+      },
+      {
+        id: 4,
+        title: "Event-Night Ready",
+        details:
+          "Concerts, game days, and nights out across Phoenix and Scottsdale — staged pickups, no surge pricing at closing time.",
+      },
+    ],
+    faqs: [
+      {
+        q: "What is black truck service?",
+        a: "It's chauffeured transportation in a full-size black SUV — our Cadillac Escalade ESV or 7-passenger Suburban — with a professional driver. You get the blacked-out truck look and space, without driving or parking it yourself.",
+      },
+      {
+        q: "How much does black truck service cost in Phoenix?",
+        a: "It's a flat rate based on your pickup, drop-off, and vehicle — no surge pricing, no meter. Book online or call (480) 300-6003 for an instant quote.",
+      },
+      {
+        q: "Can I get a black truck pickup at Sky Harbor Airport?",
+        a: "Yes — airport transfers are one of the most common black truck requests. We track your flight, stage the SUV by terminal, and there's room for every bag, golf clubs included.",
+      },
+      {
+        q: "How many people fit in a black truck?",
+        a: "Up to 7 passengers in the Suburban, with the Escalade ESV prioritizing executive comfort and luggage space. Larger group? We'll move you into an executive sprinter or run multiple vehicles under one booking.",
+      },
+      {
+        q: "Is this the same as renting a black truck?",
+        a: "No — this is a chauffeured service, not a rental. A professional driver handles the entire ride, so there's no counter, no insurance forms, and no parking. You just ride.",
+      },
+      {
+        q: "Where do you offer black truck service?",
+        a: "Across the entire Valley — Phoenix, Scottsdale, Glendale, Tempe, and the East and West Valley — plus long-distance trips to Sedona, Tucson, Flagstaff, and Prescott.",
+      },
+    ],
+  },
 ] satisfies ReadonlyArray<ServiceShape>;
