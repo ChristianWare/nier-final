@@ -1,4 +1,5 @@
-import { serviceQuestions, services } from "@/lib/data";
+import { serviceQuestions } from "@/lib/data";
+import { servicesData as services } from "@/lib/services";
 import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
 import ServicePageIntro from "@/components/ServicesPage/ServicePageIntro/ServicePageIntro";
 import ServicesMission from "@/components/ServicesPage/ServicesMission/ServicesMission";
@@ -71,7 +72,7 @@ export default function ServicesPage() {
       />
       <Nav background='cream' />
       <ServicePageIntro
-        heading='Chauffeur servicestailored to every journey.'
+        heading='Chauffeur services tailored to every journey'
         label='Services'
         stat={{
           quote:

@@ -12,7 +12,7 @@ import Img1 from "../../../../public/images/other/road.jpg";
 import { usePathname } from "next/navigation";
 import Logo from "../Logo/Logo";
 import { useSession } from "next-auth/react";
-import { services } from "@/lib/data";
+import { servicesData as services } from "@/lib/services";
 
 export interface NavProps {
   navItemColor?: string;
@@ -65,8 +65,8 @@ export default function Nav({
   // For mobile — build a button for each role the user has
   const mobileDashboardLinks: { label: string; href: string }[] = isAuthed
     ? (["USER", "ADMIN", "DRIVER", "CORPORATE"] as AppRole[])
-        .filter((role) => roles.includes(role))
-        .map((role) => ROLE_DASHBOARD[role])
+      .filter((role) => roles.includes(role))
+      .map((role) => ROLE_DASHBOARD[role])
     : [];
 
   const [isOpen, setIsOpen] = useState(false);
@@ -209,19 +209,16 @@ export default function Nav({
 
   return (
     <header
-      className={`${styles.header} ${
-        scrolled ? styles.scrolled : styles.transparent
-      } ${isOpen ? styles.open : ""} ${bgClass} ${
-        forceSolid ? styles.forceSolid : ""
-      }`}
+      className={`${styles.header} ${scrolled ? styles.scrolled : styles.transparent
+        } ${isOpen ? styles.open : ""} ${bgClass} ${forceSolid ? styles.forceSolid : ""
+        }`}
       ref={navRef}
     >
       <nav className={styles.navbar}>
         <Link
           href='/'
-          className={`${styles.logoContainer} ${
-            shouldBlend ? styles.blend : ""
-          }`}
+          className={`${styles.logoContainer} ${shouldBlend ? styles.blend : ""
+            }`}
         >
           <Logo className={styles.logo} />
           <span className={styles.text}>Nier Transportation</span>
@@ -257,9 +254,8 @@ export default function Nav({
                 >
                   <Link
                     href={item.href}
-                    className={`${styles.navItem} ${styles[color]} ${
-                      active ? styles.navItemActive : ""
-                    } ${shouldBlend ? styles.blend : ""}`}
+                    className={`${styles.navItem} ${styles[color]} ${active ? styles.navItemActive : ""
+                      } ${shouldBlend ? styles.blend : ""}`}
                     onClick={closeMenu}
                     aria-current={active ? "page" : undefined}
                   >
@@ -321,9 +317,8 @@ export default function Nav({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`${styles.navItem} ${styles[color]} ${
-                  active ? styles.navItemActive : ""
-                } ${shouldBlend ? styles.blend : ""} ${item.isLast ? styles.navItemLast : ""}`}
+                className={`${styles.navItem} ${styles[color]} ${active ? styles.navItemActive : ""
+                  } ${shouldBlend ? styles.blend : ""} ${item.isLast ? styles.navItemLast : ""}`}
                 onClick={closeMenu}
                 aria-current={active ? "page" : undefined}
               >
@@ -374,9 +369,8 @@ export default function Nav({
         <div className={styles.btnContainer}>
           <Link
             href={primaryHref}
-            className={`${styles.navItem} ${styles[color]} ${
-              accountActive ? styles.navItemActive : ""
-            }`}
+            className={`${styles.navItem} ${styles[color]} ${accountActive ? styles.navItemActive : ""
+              }`}
             onClick={closeMenu}
             aria-current={accountActive ? "page" : undefined}
           >
@@ -402,21 +396,18 @@ export default function Nav({
         >
           <span
             aria-hidden='true'
-            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
-              shouldBlend ? styles.blend : ""
-            }`}
+            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${shouldBlend ? styles.blend : ""
+              }`}
           ></span>
           <span
             aria-hidden='true'
-            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
-              shouldBlend ? styles.blend : ""
-            }`}
+            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${shouldBlend ? styles.blend : ""
+              }`}
           ></span>
           <span
             aria-hidden='true'
-            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
-              shouldBlend ? styles.blend : ""
-            }`}
+            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${shouldBlend ? styles.blend : ""
+              }`}
           ></span>
         </span>
       </nav>

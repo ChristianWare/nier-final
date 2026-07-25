@@ -10,7 +10,7 @@ export default function FleetPageIntro() {
         <div className={styles.content}>
           <SectionHeading text='Our Fleet' />
           <h1 className={styles.heading}>
-            Comfortable, impeccably maintained vehicles for all your needs.
+            Comfortable, impeccably maintained vehicles for all your needs
           </h1>
           <p className={styles.copy}>
             From executive sedans to extended SUVs and premium Sprinters, every

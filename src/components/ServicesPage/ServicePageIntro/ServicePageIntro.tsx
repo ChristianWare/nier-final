@@ -44,7 +44,7 @@ export default function ServicePageIntro({
                   {btnText}
                 </Link>
               ) : null}
-          
+
             </div>
             <div className={styles.right}>
               <div className={styles.statBox}>

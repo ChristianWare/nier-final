@@ -211,7 +211,6 @@ export default async function HomePage() {
         src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY}&libraries=places`}
         strategy='lazyOnload'
       />
-      const x = "test"
       <Nav />
       <Hero
         serviceTypes={serviceTypesRaw as any}

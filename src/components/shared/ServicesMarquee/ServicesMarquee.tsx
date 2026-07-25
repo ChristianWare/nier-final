@@ -4,7 +4,7 @@
 import styles from "./ServicesMarquee.module.css";
 import Image from "next/image";
 import Link from "next/link";
-import { services } from "@/lib/data";
+import { servicesData as services } from "@/lib/services";
 import { StaticImageData } from "next/image";
 import SectionHeading from "../SectionHeading/SectionHeading";
 import LayoutWrapper from "../LayoutWrapper";

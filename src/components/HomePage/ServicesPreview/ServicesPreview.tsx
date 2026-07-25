@@ -5,7 +5,7 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./ServicesPreview.module.css";
 import Button from "@/components/shared/Button/Button";
 import Image from "next/image";
-import { services } from "@/lib/data";
+import { servicesData as services } from "@/lib/services";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";

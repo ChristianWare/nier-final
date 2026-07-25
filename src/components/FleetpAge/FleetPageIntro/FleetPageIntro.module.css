@@ -12,7 +12,8 @@
 }
 
 .heading {
-  max-width: 700px;
+  max-width: 650px;
+  text-transform: capitalize;
 }
 
 .copy {

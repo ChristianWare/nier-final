@@ -18,6 +18,7 @@
 
 .heading {
   max-width: 600px;
+  text-transform: capitalize;
 }
 
 .btn {
