@@ -3,6 +3,8 @@ import Airport2 from "../../public/images/other/airport2.jpg";
 import Golf from "../../public/images/other/golf.jpg";
 import Golf2 from "../../public/images/other/golf2.jpg";
 import Corporate from "../../public/images/other/corporateii.jpg";
+import Mark4 from "../../public/images/other/imgMarq4.jpg";
+import GroupImg from "../../public/images/other/group.jpg";
 import Hourly from "../../public/images/other/driver.jpg";
 import Hourly2 from "../../public/images/other/chauffeur2.jpg";
 import Wedding from "../../public/images/other/wedding3.jpg";
@@ -1636,7 +1638,7 @@ export const servicesData = [
     copy: "Private group transportation across Phoenix — executive sprinters, mini party buses, and full-size motorcoaches with one coordinator and one invoice.",
     marketingCopy:
       "Moving a group in Phoenix? One coordinator, one invoice, and the right vehicles for your headcount — from 14-passenger executive sprinters to full-size motorcoaches. Corporate teams, weddings, conventions, and events, handled door to door.",
-    src: Corporate,
+    src: GroupImg,
     src2: Party,
     description:
       "Group transportation in Phoenix for corporate teams, weddings, conventions, and events. Executive sprinters, mini party buses, and full-size motorcoaches — one coordinator, one invoice, no surge pricing.",
@@ -1737,7 +1739,7 @@ export const servicesData = [
     copy: "Chauffeured black truck service in Phoenix — Cadillac Escalade ESV and luxury black SUVs with professional drivers, flat rates, and no surge pricing.",
     marketingCopy:
       "Want the blacked-out SUV arrival without driving it yourself? Our black truck service pairs the Cadillac Escalade ESV and 7-passenger Suburban with professional chauffeurs — airport runs, events, and nights out across the Valley at a flat rate.",
-    src: Corporate,
+    src: Mark4,
     src2: Party,
     description:
       "Black truck service in Phoenix — chauffeured Cadillac Escalade ESV and luxury black SUVs. Flat-rate airport transfers, events, and corporate rides. The blacked-out SUV look, driven for you.",
