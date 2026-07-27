@@ -288,6 +288,161 @@ export const routesData: readonly RouteData[] = [
       },
     ],
   },
+  {
+    slug: "scottsdale-to-sky-harbor",
+    origin: "Scottsdale",
+    destination: "Sky Harbor",
+    metaTitle: "Scottsdale to Sky Harbor Car Service | Nier Transportation",
+    metaDescription:
+      "Flat-rate car service between Scottsdale and Phoenix Sky Harbor Airport — as little as 15 minutes via the 101 and 202, flight tracked, available 24/7. Resort, Old Town, and North Scottsdale pickups, both directions.",
+    heroLine:
+      "The Valley's most-booked airport run — flat-rate, flight-tracked car service between Scottsdale and Sky Harbor, from Old Town to North Scottsdale, both directions, any hour.",
+    distance: "10–20 miles",
+    driveTime: "About 15–30 minutes",
+    vehicles: "Sedans, SUVs & Sprinters",
+    overview: [
+      "Scottsdale to Sky Harbor is the single most requested route we run. Via the Loop 101 and Loop 202, South Scottsdale and Old Town reach the terminals in about 15 minutes; North Scottsdale, Kierland, and the Airpark run closer to 25–30 depending on the hour — and your chauffeur knows which corridor is moving before you're in the car.",
+      "We cover every kind of Scottsdale pickup this route produces: resort departures with bell-stand coordination, Old Town hotels, private residences and gated communities, and corporate rides out of the Airpark. Arrivals get flight tracking from wheels-up with meet & greet at baggage claim or curbside pickup timed by text.",
+      "Both directions ride at the same flat rate, day or night. That matters most for the early departures — the 4am and 5am flights where a pre-confirmed chauffeur beats hoping a rideshare accepts, and where we build your pickup around live traffic and terminal security lines.",
+    ],
+    whyPrivate: [
+      "Flat rate locked at booking — no 5am surge pricing",
+      "Flight tracking on every Sky Harbor pickup",
+      "Meet & greet at baggage claim or curbside by text",
+      "Resort, hotel, and gated-community pickups handled smoothly",
+      "Early departures confirmed the night before — never declined",
+      "Sedans, SUVs, and Sprinters, both directions, 24/7",
+    ],
+    bookCardCopy:
+      "Lock in a flat rate between Scottsdale and Sky Harbor — book online in minutes or call (480) 300-6003 for an instant quote.",
+    faqs: [
+      {
+        q: "How much is a car service from Scottsdale to Sky Harbor?",
+        a: "It's a flat rate based on your exact pickup point in Scottsdale — no surge pricing, no meter. Book online or call (480) 300-6003 for an instant quote in either direction.",
+      },
+      {
+        q: "How long is the drive from Scottsdale to the airport?",
+        a: "About 15 minutes from Old Town and South Scottsdale via the 101 and 202, and closer to 25–30 from North Scottsdale and the Airpark. We monitor live traffic and set your pickup time around when you actually need to be at your terminal.",
+      },
+      {
+        q: "Do you pick up from Scottsdale resorts?",
+        a: "Every day — we coordinate with the bell stand, stage at the main entrance, and time the pickup to your flight. Just add your resort and flight number when you book.",
+      },
+      {
+        q: "Can you handle a 5am flight out of Sky Harbor?",
+        a: "That's our specialty on this route. Your pickup is confirmed the night before, built around live traffic and terminal security lines, with a chauffeur assigned in advance — the exact ride rideshare apps are least reliable for.",
+      },
+      {
+        q: "What happens if my arriving flight is delayed?",
+        a: "Nothing you need to manage — we track the flight, not the clock, and your chauffeur's arrival adjusts to actual wheels-down time at no extra charge.",
+      },
+      {
+        q: "Do you also serve Scottsdale Airport (SDL)?",
+        a: "Yes — SDL's private aviation traffic is a separate service we run daily, including FBO coordination and SDL ↔ Sky Harbor transfers for mixed itineraries.",
+      },
+    ],
+  },
+  {
+    slug: "paradise-valley-to-sky-harbor",
+    origin: "Paradise Valley",
+    destination: "Sky Harbor",
+    metaTitle:
+      "Paradise Valley to Sky Harbor Car Service | Nier Transportation",
+    metaDescription:
+      "Private car service between Paradise Valley and Sky Harbor Airport — about 20 minutes via the 51, flight tracked, with discreet unmarked vehicle options. Resort and estate pickups, both directions, 24/7.",
+    heroLine:
+      "Discreet, flat-rate car service between Paradise Valley and Sky Harbor — about 20 minutes door to terminal via the 51, with estate, resort, and gated-community pickups handled quietly and on time.",
+    distance: "About 10–12 miles",
+    driveTime: "About 20 minutes",
+    vehicles: "Sedans, SUVs & Sprinters",
+    overview: [
+      "Paradise Valley sits about 20 minutes from Sky Harbor via the 51 — one of the most direct airport corridors in the Valley — and it's a run we've made daily since 2004. Estates, gated communities, and the town's resorts all have their own pickup rhythms, and our chauffeurs know them.",
+      "Discretion is the difference on this route. Unmarked vehicle options are available for clients who prefer a low-profile departure or arrival, gate codes and staff instructions are saved to your profile, and resort pickups are coordinated with the bell stand so you're never waiting at a curb.",
+      "Arrivals are flight-tracked from wheels-up with meet & greet at baggage claim or curbside by text; departures are timed around live traffic on the 51 and your terminal's security lines. Both directions, same flat rate, any hour — including the early flights.",
+    ],
+    whyPrivate: [
+      "About 20 minutes door to terminal via the 51",
+      "Unmarked vehicle options for discreet travel",
+      "Gate codes and estate instructions saved to your profile",
+      "Resort pickups coordinated with the bell stand",
+      "Flight tracking with meet & greet or curbside by text",
+      "Flat rate, both directions, 24/7",
+    ],
+    bookCardCopy:
+      "Quiet, on-time transfers between Paradise Valley and Sky Harbor — book online or call (480) 300-6003 for an instant flat-rate quote.",
+    faqs: [
+      {
+        q: "How long is the drive from Paradise Valley to Sky Harbor?",
+        a: "About 20 minutes via the 51 for most of the town, one of the most direct airport corridors in the Valley. We monitor live traffic and time your pickup to your flight, not a guess.",
+      },
+      {
+        q: "How much does the trip cost?",
+        a: "It's a flat rate based on your exact pickup point — no surge pricing, no meter. Book online or call (480) 300-6003 for an instant quote in either direction.",
+      },
+      {
+        q: "Do you offer unmarked vehicles?",
+        a: "Yes — low-profile, unmarked options are available on request at no change to the rate, a courtesy our Paradise Valley clients use constantly.",
+      },
+      {
+        q: "Can you pick up inside a gated community?",
+        a: "Yes — gate codes, guard-house instructions, and staff contacts are saved securely to your profile after the first ride, so every pickup after that is seamless.",
+      },
+      {
+        q: "Do you serve Paradise Valley's resorts?",
+        a: "Daily — pickups are coordinated with the bell stand and timed to your flight, whether you're heading to Sky Harbor or arriving in from it.",
+      },
+    ],
+  },
+  {
+    slug: "chandler-to-sky-harbor",
+    origin: "Chandler",
+    destination: "Sky Harbor",
+    metaTitle: "Chandler to Sky Harbor Car Service | Nier Transportation",
+    metaDescription:
+      "Flat-rate car service between Chandler and Phoenix Sky Harbor Airport — about 25 minutes via the 202, flight tracked, available 24/7. Price Road corridor corporate travel, residential pickups, both directions.",
+    heroLine:
+      "Flat-rate, flight-tracked car service between Chandler and Sky Harbor — about 25 minutes via the 202, timed to live traffic so early departures leave on schedule, not early.",
+    distance: "About 15–22 miles",
+    driveTime: "About 25 minutes",
+    vehicles: "Sedans, SUVs & Sprinters",
+    overview: [
+      "Chandler sits about 25 minutes from Sky Harbor via the 202 — a straightforward corridor our chauffeurs run daily in both directions. We time departures with live traffic data so you arrive with room to spare without leaving earlier than you need to.",
+      "A lot of this route is business travel: the Price Road tech corridor generates constant airport runs, and corporate accounts get assigned chauffeurs, consolidated billing, and pickup times their travelers don't have to think about. Residential pickups across Chandler and Ocotillo get the same precision.",
+      "Arrivals are flight-tracked from wheels-up — meet & greet at baggage claim or curbside coordinated by text — and both directions ride at the same flat rate, any hour. For flights out of Mesa Gateway instead, we cover that run too; book whichever airport your fare flies from.",
+    ],
+    whyPrivate: [
+      "About 25 minutes via the 202, timed to live traffic",
+      "Flat rate locked at booking — no surge on early departures",
+      "Flight tracking with meet & greet or curbside by text",
+      "Corporate accounts for the Price Road tech corridor",
+      "Mesa Gateway (AZA) runs covered as well",
+      "Sedans, SUVs, and Sprinters, both directions, 24/7",
+    ],
+    bookCardCopy:
+      "Lock in a flat rate between Chandler and Sky Harbor — book online in minutes or call (480) 300-6003 for an instant quote.",
+    faqs: [
+      {
+        q: "How long does it take to get from Chandler to Sky Harbor?",
+        a: "About 25 minutes via the 202 for most of Chandler, depending on your exact pickup point and the hour. We watch live traffic and set your pickup time so you arrive comfortably without leaving earlier than necessary.",
+      },
+      {
+        q: "How much is a car service from Chandler to the airport?",
+        a: "It's a flat rate based on your exact pickup and terminal — no surge pricing, no meter. Book online or call (480) 300-6003 for an instant quote in both directions.",
+      },
+      {
+        q: "Can my company set up recurring airport runs?",
+        a: "Yes — corporate accounts get consolidated billing, saved traveler preferences, and priority scheduling, which is how most of our Price Road corridor clients run it.",
+      },
+      {
+        q: "Do you also cover Mesa Gateway for Chandler pickups?",
+        a: "Yes — Gateway is often the shorter drive from Chandler when your route flies from AZA. We serve both airports at flat rates, so choose by flight, not by ride logistics.",
+      },
+      {
+        q: "What if my arriving flight into Sky Harbor is delayed?",
+        a: "We track the flight, not the clock — your chauffeur's arrival adjusts to actual wheels-down time at no extra charge, whether you land early or late.",
+      },
+    ],
+  },
 ] as const;
 
 // Guard: fail fast if a route slug is ever duplicated.

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import styles from "./WekoPaPage.module.css";
 import Nav from "@/components/shared/Nav/Nav";
 import Faq from "@/components/shared/Faq/Faq";
@@ -13,16 +14,54 @@ import Marquee from "@/components/shared/Marquee/Marquee";
 import ScrollToSectionButton from "@/components/shared/ScrollToSectionButton/ScrollToSectionButton";
 import ClearHash from "@/components/shared/ClearHash/ClearHash";
 import FlightTrackerSection from "@/components/HomePage/FlightTrackerSection/FlightTrackerSection";
+import { SITE_URL } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title:
+    "We-Ko-Pa Golf Club Car Service | Sky Harbor Transfers | Nier Transportation",
+  description:
+    "Flat-rate private car service between Phoenix Sky Harbor Airport and We-Ko-Pa Golf Club & Casino Resort. From $90 with fare and gratuity included — flight tracked, available 24/7 for golf outings, casino trips, and resort stays.",
+  alternates: {
+    canonical: `${SITE_URL}/wekopa`,
+  },
+  openGraph: {
+    title: "We-Ko-Pa Golf Club Car Service | Nier Transportation",
+    description:
+      "Flat-rate Sky Harbor ↔ We-Ko-Pa transfers. Fare and gratuity included, flight tracked, available 24/7.",
+    url: `${SITE_URL}/wekopa`,
+  },
+};
+
+const wekopaServiceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  name: "We-Ko-Pa Golf Club Car Service",
+  url: `${SITE_URL}/wekopa`,
+  description:
+    "Private flat-rate transfers between Phoenix Sky Harbor International Airport and We-Ko-Pa Golf Club & Casino Resort in Fort McDowell, Arizona. Sedans, SUVs, and Sprinter vans with fare and gratuity included in every rate.",
+  provider: {
+    "@type": "LocalBusiness",
+    name: "Nier Transportation",
+    url: SITE_URL,
+  },
+  areaServed: ["Phoenix", "Scottsdale", "Fountain Hills", "Fort McDowell"],
+};
 
 export default function WekoPaPage() {
   return (
     <main>
+      <script
+        type='application/ld+json'
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(wekopaServiceSchema),
+        }}
+      />
       <ClearHash />
       <Nav background='cream' />
 
       {/* ─── HERO ─── */}
       <ServicePageIntro
-        heading='Sky Harbor to Wekopa, Wekopa to Sky Harbor'
+        heading='Sky Harbor to We-Ko-Pa, We-Ko-Pa to Sky Harbor'
         label='We-Ko-Pa transfers'
         stat={{
           quote:
@@ -42,9 +81,6 @@ export default function WekoPaPage() {
         words={["We-Ko-Pa", "Golf", "&", "Casino", "Resort"]}
         speedSeconds={90}
       />
-
-
-
 
       <WekoPaPricing />
       <FlightTrackerSection />

@@ -1,5 +1,6 @@
 .wrapper {
-  margin-top: 5rem;
+  position: relative;
+  top: 5rem;
 }
 
 .list {

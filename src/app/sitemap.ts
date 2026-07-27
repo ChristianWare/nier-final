@@ -2,6 +2,7 @@ import { MetadataRoute } from "next";
 import { servicesData } from "@/lib/services";
 import { serviceAreaCities } from "@/lib/cities";
 import { routesData } from "@/lib/routes";
+import { airportsData } from "@/lib/airports";
 import { client } from "@/sanity/lib/client";
 
 export const revalidate = 3600;
@@ -20,15 +21,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   );
 
   // Static pages
+  // Note: /corporate is the login-gated portal (middleware redirects it),
+  // so it never belongs here. /corporate-accounts is the public page.
   const staticPages = [
     "",
     "/about",
     "/services",
     "/fleet",
-    "/contact",
-    "/corporate",
-    "/blog",
+    "/routes",
+    "/airports",
     "/locations",
+    "/wekopa",
+    "/charter-bus-rental-phoenix",
+    "/corporate-accounts",
+    "/book",
+    "/blog",
+    "/contact",
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
@@ -68,15 +76,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Dynamic service + city pages
-  // const serviceCityPages = servicesData.flatMap((service) =>
-  //   serviceAreaCities.map((city) => ({
-  //     url: `${baseUrl}/services/${service.slug}/${city.slug}`,
-  //     lastModified: new Date(),
-  //     changeFrequency: "monthly" as const,
-  //     priority: 0.5,
-  //   })),
-  // );
+  // Per-airport money pages
+  const airportPages = airportsData.map((airport) => ({
+    url: `${baseUrl}/airports/${airport.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
+  // Service + city combo pages stay OUT of the sitemap on purpose —
+  // they are noindexed (robots: index false, follow true) to avoid
+  // scaled near-duplicate content. Do not re-add without curating.
 
   return [
     ...staticPages,
@@ -84,6 +94,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...servicePages,
     ...locationPages,
     ...routePages,
-    // ...serviceCityPages,
+    ...airportPages,
   ];
 }
