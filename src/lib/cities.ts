@@ -34,10 +34,9 @@ export const serviceAreaCities = [
       "Scottsdale Fashion Square",
     ],
     routePromo: {
-      href: "/routes/phoenix-to-scottsdale",
-      anchor:
-        "book a private Phoenix to Scottsdale car service at a flat rate",
-      blurb: "Making the run between Phoenix and Scottsdale?",
+      href: "/routes/scottsdale-to-sky-harbor",
+      anchor: "book a flat-rate Scottsdale to Sky Harbor car service",
+      blurb: "Catching a flight out of PHX?",
     },
     faqs: [
       {
@@ -81,6 +80,11 @@ export const serviceAreaCities = [
       "Biltmore Fashion Park",
       "Arizona State Capitol",
     ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "see how Sky Harbor pickups work, terminal by terminal",
+      blurb: "Flying in or out of PHX?",
+    },
     faqs: [
       {
         q: "How much does a black car to Sky Harbor cost from Phoenix?",
@@ -143,6 +147,11 @@ export const serviceAreaCities = [
       "Chicago Cubs Spring Training",
       "Banner Gateway Medical Center",
     ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "see how Sky Harbor pickups work, terminal by terminal",
+      blurb: "Flying in or out of PHX?",
+    },
   },
   {
     name: "Chandler",
@@ -163,6 +172,11 @@ export const serviceAreaCities = [
       "Chandler Center for the Arts",
       "PayPal Chandler Campus",
     ],
+    routePromo: {
+      href: "/routes/chandler-to-sky-harbor",
+      anchor: "book a flat-rate Chandler to Sky Harbor car service",
+      blurb: "Flying out of PHX from the East Valley?",
+    },
   },
   {
     name: "Gilbert",
@@ -265,6 +279,11 @@ export const serviceAreaCities = [
       "Andaz Scottsdale",
       "JW Marriott Camelback Inn",
     ],
+    routePromo: {
+      href: "/routes/paradise-valley-to-sky-harbor",
+      anchor: "book a private Paradise Valley to Sky Harbor transfer",
+      blurb: "Heading to Sky Harbor from the town?",
+    },
   },
   {
     name: "Cave Creek",

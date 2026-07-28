@@ -14,15 +14,20 @@ type Params = { slug: string };
 const SITE_URL = "https://www.niertransportation.com";
 const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
+/* Airport runs vs. intercity runs — used to route each set of links to
+   the service page where they're thematically relevant. */
+const airportRoutes = routesData.filter((r) => r.destination === "Sky Harbor");
+const intercityRoutes = routesData.filter(
+  (r) => r.destination !== "Sky Harbor",
+);
+
 /* Per-service overrides for search-targeted titles/descriptions.
    Default pattern still applies to any slug not listed here. */
 const titleOverrides: Partial<Record<string, string>> = {
   "airport-transfers":
     "Black Car Service to Phoenix Sky Harbor Airport | Nier Transportation",
-  "group-transportation":
-    "Group Transportation Phoenix | Nier Transportation",
-  "black-truck-service":
-    "Black Truck Service Phoenix | Nier Transportation",
+  "group-transportation": "Group Transportation Phoenix | Nier Transportation",
+  "black-truck-service": "Black Truck Service Phoenix | Nier Transportation",
 };
 
 const descriptionOverrides: Partial<Record<string, string>> = {
@@ -88,11 +93,7 @@ export async function generateMetadata({
 }
 
 /* ——— page component ——— */
-export default async function Page({
-  params,
-}: {
-  params: Promise<Params>;
-}) {
+export default async function Page({ params }: { params: Promise<Params> }) {
   const { slug } = await params;
   const svc = servicesData.find((s) => s.slug === slug);
 
@@ -130,14 +131,14 @@ export default async function Page({
   const faqJsonLd =
     svc.faqs && svc.faqs.length > 0
       ? {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        mainEntity: svc.faqs.map((f) => ({
-          "@type": "Question",
-          name: f.q,
-          acceptedAnswer: { "@type": "Answer", text: f.a },
-        })),
-      }
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: svc.faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }
       : null;
 
   return (
@@ -154,6 +155,61 @@ export default async function Page({
       )}
       <ServiceDetailsClient service={svc} />
 
+      {svc.slug === "airport-transfers" && (
+        <section className={promoStyles.section}>
+          <LayoutWrapper>
+            <h2 className={`${promoStyles.heading} h3`}>
+              Airport Routes &amp; Terminals
+            </h2>
+            <p className={promoStyles.copy}>
+              Every Valley airport, covered — terminal-by-terminal pickup guides
+              and flat-rate routes from the cities we serve most.
+            </p>
+            <ul className={promoStyles.list}>
+              <li className={promoStyles.item}>
+                <Link
+                  href='/airports/phx-sky-harbor'
+                  className={promoStyles.link}
+                >
+                  PHX Sky Harbor airport car service
+                </Link>
+              </li>
+              <li className={promoStyles.item}>
+                <Link
+                  href='/airports/mesa-gateway'
+                  className={promoStyles.link}
+                >
+                  Mesa Gateway (AZA) airport car service
+                </Link>
+              </li>
+              <li className={promoStyles.item}>
+                <Link
+                  href='/airports/scottsdale-airport'
+                  className={promoStyles.link}
+                >
+                  Scottsdale Airport (SDL) car service
+                </Link>
+              </li>
+              {airportRoutes.map((route) => (
+                <li key={route.slug} className={promoStyles.item}>
+                  <Link
+                    href={`/routes/${route.slug}`}
+                    className={promoStyles.link}
+                  >
+                    {route.origin} to {route.destination} car service
+                  </Link>
+                </li>
+              ))}
+              <li className={promoStyles.item}>
+                <Link href='/airports' className={promoStyles.link}>
+                  View all airports →
+                </Link>
+              </li>
+            </ul>
+          </LayoutWrapper>
+        </section>
+      )}
+
       {svc.slug === "long-distance-drives" && (
         <section className={promoStyles.section}>
           <LayoutWrapper>
@@ -165,7 +221,7 @@ export default async function Page({
               most — both directions, any day.
             </p>
             <ul className={promoStyles.list}>
-              {routesData.map((route) => (
+              {intercityRoutes.map((route) => (
                 <li key={route.slug} className={promoStyles.item}>
                   <Link
                     href={`/routes/${route.slug}`}

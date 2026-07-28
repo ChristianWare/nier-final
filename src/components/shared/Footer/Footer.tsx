@@ -154,6 +154,52 @@ const data: Section[] = [
         option: "Phoenix to Prescott",
         href: "/routes/phoenix-to-prescott",
       },
+      {
+        id: 5.6,
+        option: "Scottsdale to Sky Harbor",
+        href: "/routes/scottsdale-to-sky-harbor",
+      },
+      {
+        id: 5.7,
+        option: "Paradise Valley to Sky Harbor",
+        href: "/routes/paradise-valley-to-sky-harbor",
+      },
+      {
+        id: 5.8,
+        option: "Chandler to Sky Harbor",
+        href: "/routes/chandler-to-sky-harbor",
+      },
+      {
+        id: 5.9,
+        option: "View all routes →",
+        href: "/routes",
+      },
+    ],
+  },
+  {
+    id: 6,
+    title: "Airports",
+    options: [
+      {
+        id: 6.1,
+        option: "PHX Sky Harbor",
+        href: "/airports/phx-sky-harbor",
+      },
+      {
+        id: 6.2,
+        option: "Mesa Gateway (AZA)",
+        href: "/airports/mesa-gateway",
+      },
+      {
+        id: 6.3,
+        option: "Scottsdale Airport (SDL)",
+        href: "/airports/scottsdale-airport",
+      },
+      {
+        id: 6.4,
+        option: "View all airports →",
+        href: "/airports",
+      },
     ],
   },
 ];
@@ -227,23 +273,14 @@ export default async function Footer() {
 
   return (
     <footer className={styles.container}>
-<div className={styles.marqueeContainer}>
-
-            <Marquee
-                        words={[
-                          "Nier Transportation",
-                        ]}
-                        speedSeconds={10}
-                        />
-                        </div>
+      <div className={styles.marqueeContainer}>
+        <Marquee words={["Nier Transportation"]} speedSeconds={10} />
+      </div>
       <LayoutWrapper>
         <div className={styles.content}>
           <FooterTop />
           <div className={styles.top}>
-
-            <div
-            
-            className={styles.logoDetailsSocials}>
+            <div className={styles.logoDetailsSocials}>
               <Link href='/' className={styles.logoContainer}>
                 <Logo className={styles.logo} />
                 <span className={styles.logoText}>{companyName}</span>
