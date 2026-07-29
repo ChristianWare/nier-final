@@ -33,6 +33,17 @@ export const post = {
         Rule.max(200).warning("Shorter excerpt is usually better"),
     },
     {
+      name: "relatedLink",
+      title: "Related money page",
+      description:
+        "Internal page this post supports, e.g. /routes/scottsdale-to-sky-harbor",
+      type: "object",
+      fields: [
+        { name: "label", title: "Link text", type: "string" },
+        { name: "href", title: "Internal path", type: "string" },
+      ],
+    },
+    {
       name: "body",
       title: "Body",
       type: "array",

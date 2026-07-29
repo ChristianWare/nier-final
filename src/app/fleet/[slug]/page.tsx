@@ -7,6 +7,7 @@ import FleetSlugPageIntro from "./components/FleetSlugPageIntro/FleetSlugPageInt
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import Nav from "@/components/shared/Nav/Nav";
+import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 
 type Params = { slug: string };
 
@@ -99,6 +100,9 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         />
       )}
       <Nav background='accent' />
+      <Breadcrumbs
+        items={[{ name: "Fleet", href: "/fleet" }, { name: vehicle.title }]}
+      />
       <FleetSlugPageIntro vehicle={vehicle} />
       <FleetDetails vehicle={vehicle} />
       <BlogSection />

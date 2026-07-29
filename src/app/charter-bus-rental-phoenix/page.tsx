@@ -9,6 +9,7 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import Faq from "@/components/shared/Faq/Faq";
 import Nav from "@/components/shared/Nav/Nav";
+import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
 import { charterQuestions } from "@/lib/data";
 import type { Metadata } from "next";
 
@@ -137,6 +138,18 @@ export default function CharterBusRentalPage() {
       <CharterPricing />
       <AboutUsIntroCharter />
       <CharterFleet />
+      <RelatedLinks
+        title='Planning group transportation?'
+        links={[
+          {
+            label: "Group transportation in Phoenix",
+            href: "/services/group-transportation",
+          },
+          { label: "Party bus service", href: "/services/party-bus" },
+          { label: "Our motorcoach", href: "/fleet/motorcoach" },
+          { label: "Our party bus fleet", href: "/fleet/party-bus" },
+        ]}
+      />
       <Faq items={charterQuestions} />
       <BlogSection />
       <AboutNumbers />

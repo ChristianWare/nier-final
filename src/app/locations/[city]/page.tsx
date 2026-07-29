@@ -14,6 +14,7 @@ import LocationCityIntro from "@/components/LocationCityPage/LocationCityIntro/L
 import LocationCityMission from "@/components/LocationCityPage/LocationCityMission/LocationCityMission";
 import LocationCityServicesGrid from "@/components/LocationCityPage/LocationCityServicesGrid/LocationCityServicesGrid";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
+import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import styles from "./LocationCityPage.module.css";
 
 type Params = { city: string };
@@ -64,8 +65,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { city: citySlug } = await params;
   const city = serviceAreaCities.find((c) => c.slug === citySlug) as
-    | CityData
-    | undefined;
+    CityData | undefined;
   if (!city) return {};
 
   const title = `Black Car Service ${city.name}, AZ | Nier Transportation`;
@@ -110,8 +110,7 @@ export default async function LocationCityPage({
   const resolvedParams = await params;
   const citySlug = resolvedParams.city;
   const city = serviceAreaCities.find((c) => c.slug === citySlug) as
-    | CityData
-    | undefined;
+    CityData | undefined;
 
   if (!city) notFound();
 
@@ -214,6 +213,9 @@ export default async function LocationCityPage({
         />
       )}
       <Nav background='cream' />
+      <Breadcrumbs
+        items={[{ name: "Locations", href: "/locations" }, { name: city.name }]}
+      />
       <LocationCityIntro city={city} />
       <LocationCityMission city={city} />
 
@@ -248,7 +250,12 @@ export default async function LocationCityPage({
                   </p>
                 )}
                 <div className={styles.ctaRow}>
-                  <Button href='/book' text='Book a ride' btnType='black' arrow />
+                  <Button
+                    href='/book'
+                    text='Book a ride'
+                    btnType='black'
+                    arrow
+                  />
                   <a href='tel:+14803006003' className={styles.callLink}>
                     Or call (480) 300-6003
                   </a>

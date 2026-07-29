@@ -13,6 +13,7 @@ import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
 import TableOfContents from "./TableOfContents";
 import { SITE_URL } from "@/lib/site";
+import Link from "next/link";
 
 type Tag = { _id: string; name: string; slug?: { current?: string } };
 
@@ -22,6 +23,7 @@ type Post = {
   slug: { current: string };
   publishedAt: string;
   excerpt?: string;
+  relatedLink?: { label?: string; href?: string };
   coverImage?: {
     _type: "image";
     asset: { _ref?: string; _type: "reference"; _id?: string };
@@ -46,6 +48,7 @@ async function getPost(slug: string): Promise<Post | null> {
       slug,
       publishedAt,
       excerpt,
+      relatedLink,
       coverImage{asset, alt},
       tags[]->{ _id, name, slug },
       body[]{
@@ -316,6 +319,13 @@ export default async function BlogPostPage({
           </div>
         )}
 
+        {post.relatedLink?.href && post.relatedLink?.label && (
+          <p className={styles.relatedCta}>
+            Related:{" "}
+            <Link href={post.relatedLink.href}>{post.relatedLink.label}</Link>
+          </p>
+        )}
+
         {/* ── Author + share bar ── */}
         <div className={styles.authorBar}>
           <div className={styles.authorLeft}>
@@ -415,7 +425,7 @@ export default async function BlogPostPage({
               <span className={`${styles.insightsHeading} h4`}>
                 More Articles
               </span>
-              <MoreInsights currentSlug={post.slug.current}  />
+              <MoreInsights currentSlug={post.slug.current} />
             </div>
           </aside>
         </div>

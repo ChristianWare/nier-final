@@ -488,3 +488,14 @@
     display: none;
   }
 }
+
+
+.relatedCta {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 2rem 0;
+}
+.relatedCta a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
