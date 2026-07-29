@@ -22,6 +22,37 @@ const nextConfig: NextConfig = {
         destination: "/services/airport-transfers",
         permanent: true,
       },
+      // ── Legacy URL cleanup (GSC soft-404s + stale crawl paths) ──
+      {
+        source: "/services/charter-bus-rental-phoenix",
+        destination: "/charter-bus-rental-phoenix",
+        permanent: true,
+      },
+      {
+        source: "/services/long-distance",
+        destination: "/services/long-distance-drives",
+        permanent: true,
+      },
+      {
+        source: "/services/corporate-events",
+        destination: "/services/corporate-and-event-logistics",
+        permanent: true,
+      },
+      {
+        source: "/services/recurring-rides",
+        destination: "/services/reoccurring-rides",
+        permanent: true,
+      },
+      {
+        source: "/services/party-bus-weddings",
+        destination: "/services/party-bus",
+        permanent: true,
+      },
+      {
+        source: "/california",
+        destination: "/locations",
+        permanent: true,
+      },
     ];
   },
 

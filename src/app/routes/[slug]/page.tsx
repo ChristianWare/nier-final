@@ -16,6 +16,7 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import Faq from "@/components/shared/Faq/Faq";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
+import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
 import styles from "./RoutePage.module.css";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 
@@ -80,6 +81,35 @@ export default async function RoutePage({
   if (!route) notFound();
 
   const canonical = `${SITE_URL}/routes/${route.slug}`;
+
+  /* Sibling routes for the related-links block: same category first
+     (airport runs vs. intercity runs, split on Sky Harbor), then the
+     rest. Airport runs also link the PHX airport page. */
+  const isAirportRun = route.destination === "Sky Harbor";
+  const siblings = routesData
+    .filter((r) => r.slug !== route.slug)
+    .sort((a, b) => {
+      const aSame = (a.destination === "Sky Harbor") === isAirportRun ? 0 : 1;
+      const bSame = (b.destination === "Sky Harbor") === isAirportRun ? 0 : 1;
+      return aSame - bSame;
+    })
+    .slice(0, 3);
+
+  const relatedLinks = [
+    ...siblings.map((r) => ({
+      label: `${r.origin} to ${r.destination} car service`,
+      href: `/routes/${r.slug}`,
+    })),
+    ...(isAirportRun
+      ? [
+          {
+            label: "PHX Sky Harbor airport car service",
+            href: "/airports/phx-sky-harbor",
+          },
+        ]
+      : []),
+    { label: "View all routes →", href: "/routes" },
+  ];
 
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -228,6 +258,8 @@ export default async function RoutePage({
           answer: f.a,
         }))}
       />
+
+      <RelatedLinks title='More popular routes' links={relatedLinks} />
 
       <AboutTestimonials />
       <AboutNumbers />

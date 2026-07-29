@@ -6,9 +6,17 @@ import BookingPageIntro from "@/components/BookingPage/BookingPageIntro/BookingP
 import Nav from "@/components/shared/Nav/Nav";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import type { Metadata } from "next";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Book Your Ride | Nier Transportation",
+  description:
+    "Book your black car, SUV, or Sprinter online in minutes — flat rates, flight tracking, available 24/7 across Phoenix, Scottsdale, and the Valley.",
+  alternates: { canonical: "https://www.niertransportation.com/book" },
+};
 
 export default async function BookPage() {
   // ✅ Get current user session

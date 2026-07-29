@@ -1,0 +1,56 @@
+.container {
+  padding: 10rem 0rem;
+  background-color: var(--white);
+}
+
+.content {
+  max-width: 82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.heading {
+  margin-bottom: 0.5rem;
+}
+
+.updated {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--paragraph);
+  opacity: 0.7;
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  letter-spacing: -.5px;
+}
+
+.copy {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--paragraph);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding-left: 2rem;
+  margin: 0;
+}
+
+.listItem {
+  font-size: 1.5rem;
+  line-height: 1.75;
+  color: var(--paragraph);
+}
+
+@media (max-width: 700px) {
+  .container {
+    padding: 6rem 0rem;
+  }
+}

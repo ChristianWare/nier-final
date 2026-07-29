@@ -1,6 +1,14 @@
+// src/app/airports/[slug]/page.tsx  (server component)
+//
+// SETUP: this template reuses the same class names as the route pages.
+// Copy src/app/routes/[slug]/RoutePage.module.css to
+// src/app/airports/[slug]/AirportPage.module.css — every class used
+// below already exists in that file.
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { airportsData } from "@/lib/airports";
+import { routesData } from "@/lib/routes";
 import Nav from "@/components/shared/Nav/Nav";
 import Button from "@/components/shared/Button/Button";
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
@@ -9,6 +17,7 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import Faq from "@/components/shared/Faq/Faq";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
+import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
 import styles from "./AirportPage.module.css";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
@@ -73,6 +82,29 @@ export default async function AirportPage({
   if (!airport) notFound();
 
   const canonical = `${SITE_URL}/airports/${airport.slug}`;
+
+  /* Related links: routes that serve this airport first, then the
+     other airports, then the hub. PHX also gets We-Ko-Pa — it's a
+     Sky Harbor route in all but name. */
+  const routesToThisAirport = routesData.filter(
+    (r) => r.destination === airport.shortName,
+  );
+  const otherAirports = airportsData.filter((a) => a.slug !== airport.slug);
+
+  const relatedLinks = [
+    ...routesToThisAirport.map((r) => ({
+      label: `${r.origin} to ${r.destination} car service`,
+      href: `/routes/${r.slug}`,
+    })),
+    ...(airport.slug === "phx-sky-harbor"
+      ? [{ label: "We-Ko-Pa Golf Club transfers", href: "/wekopa" }]
+      : []),
+    ...otherAirports.map((a) => ({
+      label: `${a.shortName} airport car service`,
+      href: `/airports/${a.slug}`,
+    })),
+    { label: "View all airports →", href: "/airports" },
+  ];
 
   const serviceSchema = {
     "@context": "https://schema.org",
@@ -221,6 +253,8 @@ export default async function AirportPage({
           answer: f.a,
         }))}
       />
+
+      <RelatedLinks title='Related airports & routes' links={relatedLinks} />
 
       <AboutTestimonials />
       <AboutNumbers />

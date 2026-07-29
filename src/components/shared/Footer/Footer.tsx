@@ -359,6 +359,12 @@ export default async function Footer() {
                   Fonts & Footers
                 </Link>
               </small>
+              <Link href='/terms' className={styles.link}>
+                Terms
+              </Link>
+              <Link href='/privacy' className={styles.link}>
+                Privacy
+              </Link>
             </div>
           </div>
         </div>
