@@ -60,7 +60,7 @@ export default function ServiceCityFleet({ city }: { city: CityData }) {
                   <Button
                     href={`/fleet/${x.slug}/${city.slug}`}
                     btnType='black'
-                    text='Book in {city.name}'
+                    text={`Book in ${city.name}`}
                     arrow
                   />
                 </div>

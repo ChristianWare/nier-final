@@ -141,7 +141,7 @@ export default async function ServiceCityPage({
                 dot
               />
               <h1 className={`${styles.heading} underline`}>
-                {service.title} in {city.name}, AZ
+                {service.title} in  <br />{city.name}, AZ
               </h1>
               <p className={styles.lead}>
                 Professional {service.title.toLowerCase()} serving {city.name},{" "}
