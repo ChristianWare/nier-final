@@ -6,7 +6,8 @@ import {
   DEFAULT_SMS_EVENTS,
 } from "./events";
 import { buildAdminNotification } from "./templates";
-import { sendSms } from "@/lib/sms/sendSms";
+import { sendSmsViaEmailGateway } from "@/lib/sms/sendSmsViaEmailGateway";
+import { toGatewayAddress, trimForGateway } from "@/lib/sms/carriers";
 import { sendAdminNotificationEmail } from "@/lib/email/sendAdminNotificationEmail";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
 import { notifyAdminsPush } from "@/lib/push/notifyUser";
@@ -91,16 +92,13 @@ type AdminSettings = {
   smsEnabled: boolean;
   emailTo: string | null;
   smsTo: string | null;
+  smsCarrier: string | null;
   emailEvents: NotificationEvent[];
   smsEvents: NotificationEvent[];
 };
 
 function normalizeEmail(v: string) {
   return (v ?? "").trim().toLowerCase();
-}
-
-function normalizePhoneE164(v: string) {
-  return (v ?? "").trim();
 }
 
 async function getAdminSettings(userId: string): Promise<AdminSettings> {
@@ -111,6 +109,7 @@ async function getAdminSettings(userId: string): Promise<AdminSettings> {
       smsEnabled: true,
       emailTo: true,
       smsTo: true,
+      smsCarrier: true,
       emailEvents: true,
       smsEvents: true,
     },
@@ -122,6 +121,7 @@ async function getAdminSettings(userId: string): Promise<AdminSettings> {
     smsEnabled: s?.smsEnabled ?? false,
     emailTo: s?.emailTo ?? null,
     smsTo: s?.smsTo ?? null,
+    smsCarrier: s?.smsCarrier ?? null,
     emailEvents: (s?.emailEvents as any as NotificationEvent[]) ?? [],
     smsEvents: (s?.smsEvents as any as NotificationEvent[]) ?? [],
   };
@@ -228,9 +228,11 @@ async function buildNotificationJobs(args: {
       }
     }
 
-    // SMS
+    // SMS — delivered via the carrier's email-to-SMS gateway, so `to` is a
+    // gateway address (e.g. 9177691192@vtext.com), not a phone number.
+    // Skips silently if the admin hasn't set both a number and a carrier.
     if (settings.smsEnabled && settings.smsEvents.includes(event)) {
-      const to = normalizePhoneE164(settings.smsTo ?? "");
+      const to = toGatewayAddress(settings.smsTo, settings.smsCarrier);
       if (to) {
         const dedupeKey = `${event}:${bookingId}:SMS:${to}`;
         jobs.push({
@@ -238,7 +240,7 @@ async function buildNotificationJobs(args: {
           event,
           to,
           subject: null,
-          body: tpl.smsBody,
+          body: trimForGateway(tpl.smsBody),
           bookingId,
           userId: a.id,
           dedupeKey,
@@ -327,7 +329,7 @@ export async function sendAdminNotificationsForBookingEvent(args: {
           html: job.htmlBody || undefined,
         });
       } else if (job.channel === "SMS") {
-        await sendSms({
+        await sendSmsViaEmailGateway({
           to: job.to,
           body: job.body,
         });

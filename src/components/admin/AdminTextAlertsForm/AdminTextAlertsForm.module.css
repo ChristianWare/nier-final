@@ -1,0 +1,173 @@
+.form {
+  background: white;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2rem;
+  display: grid;
+  gap: 2.4rem;
+}
+
+.switchRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.hint {
+  font-size: 1.3rem;
+  line-height: 1.6;
+  color: var(--paragraph);
+  opacity: 0.75;
+  margin-top: 0.5rem;
+  max-width: 52ch;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.label {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--paragraph);
+}
+
+.input,
+.select {
+  height: 4.4rem;
+  padding: 0 1.2rem;
+  font-size: 1.5rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  background: white;
+  color: inherit;
+  width: 100%;
+}
+
+.input:focus,
+.select:focus {
+  outline: 2px solid #16a34a;
+  outline-offset: -1px;
+}
+
+.eventsBlock {
+  padding-top: 2rem;
+  border-top: 1px solid var(--stroke);
+  display: grid;
+  gap: 0.8rem;
+}
+
+.checkList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 2rem;
+  margin-top: 0.8rem;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.checkRow input {
+  width: 1.8rem;
+  height: 1.8rem;
+  accent-color: #16a34a;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 2rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.saveBtn {
+  padding: 1.3rem 2.4rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  background: #16a34a;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.saveBtn:hover {
+  opacity: 0.9;
+}
+
+.saveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Toggle Switch (mirrors AdminNotificationSettingsForm) ── */
+.toggle {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggleOn {
+  background-color: #16a34a;
+}
+
+.toggleOff {
+  background-color: #d1d5db;
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background-color: white;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease;
+}
+
+.toggleOn .toggleThumb {
+  transform: translateX(24px);
+}
+
+.toggleOff .toggleThumb {
+  transform: translateX(0px);
+}
+
+@media (max-width: 700px) {
+  .fieldGrid,
+  .checkList {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,5 +1,6 @@
 import { getMyAdminNotificationSettings } from "../../../../actions/admin/notificationSettings";
 import AdminNotificationSettingsForm from "@/components/admin/AdminNotificationSettingsForm/AdminNotificationSettingsForm";
+import AdminTextAlertsForm from "@/components/admin/AdminTextAlertsForm/AdminTextAlertsForm";
 import PushNotificationToggleServer from "@/components/shared/PushNotificationToggle/PushNotificationToggleServer";
 
 export const runtime = "nodejs";
@@ -20,6 +21,26 @@ export default async function NotificationsPage() {
         </header>
 
         <AdminNotificationSettingsForm initial={initial} />
+      </section>
+
+      {/* ── Text Alerts (carrier email-to-SMS gateway) ── */}
+      <section className='container' style={{ marginTop: "7rem" }}>
+        <header className='header'>
+          <h2 className='heading h2'>Text alerts</h2>
+          <p className='subheading'>
+            Get a text on your phone the moment a booking comes in, so requests
+            don&apos;t sit unseen. Add your mobile number and carrier below.
+          </p>
+        </header>
+
+        <AdminTextAlertsForm
+          initial={{
+            smsEnabled: initial.smsEnabled,
+            smsTo: initial.smsTo,
+            smsCarrier: initial.smsCarrier,
+            smsEvents: initial.smsEvents,
+          }}
+        />
       </section>
 
       {/* ── Push Notification Settings ── */}

@@ -689,6 +689,7 @@ model AdminNotificationSettings {
 
   emailTo String?
   smsTo   String?
+  smsCarrier String?
 
   emailEvents NotificationEventType[] @default([])
   smsEvents   NotificationEventType[] @default([])
