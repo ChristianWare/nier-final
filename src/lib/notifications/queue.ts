@@ -179,6 +179,19 @@ async function buildNotificationJobs(args: {
   const customerName =
     booking.user?.name?.trim() || booking.guestName?.trim() || "—";
 
+  // Quoted total. For trip groups the customer was quoted the group total,
+  // not this leg's — mirrors what fireAdminPush already does.
+  let quotedTotalCents = booking.totalCents;
+  let legCount = 1;
+  if (booking.tripGroupId) {
+    const legs = await db.booking.findMany({
+      where: { tripGroupId: booking.tripGroupId },
+      select: { totalCents: true },
+    });
+    quotedTotalCents = legs.reduce((sum, l) => sum + l.totalCents, 0);
+    legCount = legs.length;
+  }
+
   const tpl = buildAdminNotification({
     event,
     appUrl,
@@ -190,6 +203,9 @@ async function buildNotificationJobs(args: {
       dropoffAddress: booking.dropoffAddress,
       serviceName: booking.serviceType?.name ?? "Trip",
       customerName,
+      totalCents: quotedTotalCents,
+      currency: booking.currency,
+      legCount,
     },
   });
 
@@ -232,6 +248,9 @@ async function buildNotificationJobs(args: {
     // gateway address (e.g. 9177691192@vtext.com), not a phone number.
     // Skips silently if the admin hasn't set both a number and a carrier.
     if (settings.smsEnabled && settings.smsEvents.includes(event)) {
+      // Compose first, then pick the gateway: short bodies go SMS, longer
+      // ones go MMS so the carrier doesn't truncate at 160 characters.
+      const smsText = trimForGateway(tpl.smsBody, 300);
       const to = toGatewayAddress(settings.smsTo, settings.smsCarrier);
       if (to) {
         const dedupeKey = `${event}:${bookingId}:SMS:${to}`;
@@ -240,7 +259,7 @@ async function buildNotificationJobs(args: {
           event,
           to,
           subject: null,
-          body: trimForGateway(tpl.smsBody),
+          body: smsText,
           bookingId,
           userId: a.id,
           dedupeKey,

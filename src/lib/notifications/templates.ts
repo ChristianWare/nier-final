@@ -118,6 +118,9 @@ export function buildAdminNotification(args: {
     dropoffAddress: string;
     serviceName: string;
     customerName: string;
+    totalCents?: number | null;
+    currency?: string | null;
+    legCount?: number | null;
   };
 }) {
   const { event, appUrl, timeZone, booking } = args;
@@ -128,6 +131,21 @@ export function buildAdminNotification(args: {
   const svc = safeOneLine(booking.serviceName);
   const name = safeOneLine(booking.customerName);
   const confirmationCode = booking.id.slice(0, 8).toUpperCase();
+
+  // Quoted total, e.g. "$95" or "$95.50". Empty string when there's no
+  // price yet, so it drops cleanly out of the joined lines below.
+  const money =
+    typeof booking.totalCents === "number" && booking.totalCents > 0
+      ? new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: (booking.currency || "usd").toUpperCase(),
+          minimumFractionDigits: booking.totalCents % 100 === 0 ? 0 : 2,
+        }).format(booking.totalCents / 100)
+      : "";
+
+  // "Sunday - 10/18/26 at 5:00 AM" — the pickup time matters operationally,
+  // so it rides along with the date. Drop the last line if you want date only.
+  const pickupDate = new Date(booking.pickupAt);
 
   const adminUrl = `${appUrl}/admin/bookings/${encodeURIComponent(booking.id)}`;
 
@@ -424,6 +442,7 @@ export function buildAdminNotification(args: {
     `Confirmation: ${confirmationCode}`,
     `Customer: ${name || "—"}`,
     `Service: ${svc}`,
+    `Quoted: ${money || "—"}`,
     "",
     `📅 When: ${when}`,
     `📍 Pickup: ${pickup}`,
@@ -438,12 +457,29 @@ export function buildAdminNotification(args: {
     `© ${new Date().getFullYear()} Nier Transportation`,
   ].join("\n");
 
-  // SMS body (short)
+  // Keep the whole message under ~120 chars so it clears the carrier's
+  // truncation point in a single text. ASCII only — emoji or typographic
+  // punctuation force UCS-2 encoding and halve the per-message budget.
+  const clip = (s: string, max: number) =>
+    s.length > max ? `${s.slice(0, max - 1).trimEnd()}.` : s;
+
+  const smsDate = new Intl.DateTimeFormat("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "2-digit",
+    timeZone,
+  }).format(new Date(booking.pickupAt));
+
   const smsBody = [
-    `${emoji} ${titleMap[event]} — ${when}`,
-    `${svc}`,
-    `${pickup} → ${dropoff}`,
-    `Admin: ${adminUrl}`,
+    `${titleMap[event]} for ${smsDate}:`,
+    "",
+    `Client: ${clip(name || "-", 22)}`,
+    "",
+    `Service: ${clip(svc, 20)}`,
+    "",
+    `Amount: ${money || "-"}`,
+    "",
+    "Log in to review",
   ].join("\n");
 
   return {

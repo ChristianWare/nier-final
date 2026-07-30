@@ -4,8 +4,9 @@ export function formatPhoenixDateTime(d: Date, timeZone: string) {
     weekday: "short",
     month: "short",
     day: "numeric",
-    hour: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
+    hourCycle: "h23",
   }).format(d);
 }
 

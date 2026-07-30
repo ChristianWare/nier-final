@@ -4,7 +4,7 @@ import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue
 export async function GET() {
   const result = await sendAdminNotificationsForBookingEvent({
     event: "BOOKING_REQUESTED",
-    bookingId: "cmohr16q0000ql504osj4hveh",
+    bookingId: "cmqgooay80001jv04i8azeuvi",
   });
   return NextResponse.json(result);
 }
