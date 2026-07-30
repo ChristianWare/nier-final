@@ -670,6 +670,8 @@ enum NotificationEventType {
   TRIP_COMPLETED
   BOOKING_CANCELLED
   BOOKING_DECLINED
+  NO_SHOW
+  REFUND_ISSUED
 }
 
 enum NotificationJobStatus {
