@@ -111,47 +111,47 @@ export default function CorporateInquiryForm() {
               value: /^[a-zA-ZÀ-ÿ0-9\s'\-\.\&\,]+$/,
               message: "Company name contains invalid characters",
             },
-            validate: (val) => {
-              const blocked = [
-                "mailinator.com",
-                "guerrillamail.com",
-                "tempmail.com",
-                "throwam.com",
-                "yopmail.com",
-                "sharklasers.com",
-                "guerrillamailblock.com",
-                "grr.la",
-                "spam4.me",
-                "trashmail.com",
-              ];
-              const domain = val.split("@")[1]?.toLowerCase() ?? "";
+            // validate: (val) => {
+            //   const blocked = [
+            //     "mailinator.com",
+            //     "guerrillamail.com",
+            //     "tempmail.com",
+            //     "throwam.com",
+            //     "yopmail.com",
+            //     "sharklasers.com",
+            //     "guerrillamailblock.com",
+            //     "grr.la",
+            //     "spam4.me",
+            //     "trashmail.com",
+            //   ];
+            //   const domain = val.split("@")[1]?.toLowerCase() ?? "";
 
-              // Block known disposable domains
-              if (blocked.includes(domain)) {
-                return "Please use a valid business email address";
-              }
+            //   // Block known disposable domains
+            //   if (blocked.includes(domain)) {
+            //     return "Please use a valid business email address";
+            //   }
 
-              // Block if TLD is not a real word (must be 2-6 letters only)
-              const tld = domain.split(".").pop() ?? "";
-              if (!/^[a-z]{2,6}$/.test(tld)) {
-                return "Please enter a valid email address";
-              }
+            //   // Block if TLD is not a real word (must be 2-6 letters only)
+            //   const tld = domain.split(".").pop() ?? "";
+            //   if (!/^[a-z]{2,6}$/.test(tld)) {
+            //     return "Please enter a valid email address";
+            //   }
 
-              // Block if any part of the domain is pure consonants (gibberish like gdsgh, sfg)
-              const parts = domain.split(".");
-              const hasGibberishPart = parts.some((part) => {
-                if (part.length < 4) return false; // short parts like "co" are fine
-                const vowelRatio =
-                  (part.match(/[aeiou]/gi)?.length ?? 0) / part.length;
-                return vowelRatio === 0; // zero vowels = gibberish
-              });
+            //   // Block if any part of the domain is pure consonants (gibberish like gdsgh, sfg)
+            //   const parts = domain.split(".");
+            //   const hasGibberishPart = parts.some((part) => {
+            //     if (part.length < 4) return false; // short parts like "co" are fine
+            //     const vowelRatio =
+            //       (part.match(/[aeiou]/gi)?.length ?? 0) / part.length;
+            //     return vowelRatio === 0; // zero vowels = gibberish
+            //   });
 
-              if (hasGibberishPart) {
-                return "Please enter a valid business email address";
-              }
+            //   if (hasGibberishPart) {
+            //     return "Please enter a valid business email address";
+            //   }
 
-              return true;
-            },
+            //   return true;
+            // },
           })}
         />
         {errors.companyName && (
