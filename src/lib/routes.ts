@@ -443,6 +443,114 @@ export const routesData: readonly RouteData[] = [
       },
     ],
   },
+  {
+    slug: "tempe-to-sky-harbor",
+    origin: "Tempe",
+    destination: "Sky Harbor",
+    metaTitle: "Tempe to Sky Harbor Car Service | Nier Transportation",
+    metaDescription:
+      "Flat-rate car service between Tempe and Phoenix Sky Harbor Airport — about 10–15 minutes via the 143 and Loop 202, flight tracked, available 24/7. ASU, Mill Avenue, and Tempe hotel pickups, both directions.",
+    heroLine:
+      "The shortest airport run in the Valley — flat-rate, flight-tracked car service between Tempe and Sky Harbor, from ASU to the Rio Salado corridor, both directions, any hour.",
+    distance: "5–10 miles",
+    driveTime: "About 10–15 minutes",
+    vehicles: "Sedans, SUVs & Sprinters",
+    overview: [
+      "Tempe sits directly across the Salt River from Sky Harbor — PHX is minutes away via the 143 and Loop 202, making this the shortest airport corridor in the entire metro. Downtown Tempe and Mill Avenue reach the terminals in about 10 minutes; south Tempe and the Loop 101 side run closer to 15, and your chauffeur knows which approach is moving before you're in the car.",
+      "We cover everything this corridor produces: ASU move-in weekends, graduation, and family fly-ins for game days at Mountain America Stadium; hotel pickups along Mill Avenue and Tempe Town Lake; and daily corporate rides out of the Rio Salado employers — Marina Heights, the Novus corridor, and the offices in between. Every ride is private, door to door, on your schedule.",
+      "Both directions ride at the same flat rate, day or night. A ride this short is exactly where rideshare pricing and reliability swing the most — a pre-confirmed chauffeur at a locked rate means the 5am departure and the midnight arrival both just work.",
+    ],
+    whyPrivate: [
+      "Flat rate locked at booking — no surge on a 10-minute ride",
+      "Flight tracking on every Sky Harbor pickup",
+      "Meet & greet at baggage claim or curbside by text",
+      "ASU, hotel, and Tempe Town Lake pickups handled daily",
+      "Early departures confirmed the night before — never declined",
+      "Sedans, SUVs, and Sprinters, both directions, 24/7",
+    ],
+    bookCardCopy:
+      "Lock in a flat rate between Tempe and Sky Harbor — book online in minutes or call (480) 300-6003 for an instant quote.",
+    faqs: [
+      {
+        q: "How far is Tempe from Phoenix Sky Harbor Airport?",
+        a: "About 5–10 miles depending on where in Tempe you start — downtown Tempe and Mill Avenue are roughly 10 minutes from the terminals via the 143 and Loop 202, and south Tempe runs closer to 15. It's the shortest airport corridor in the Valley.",
+      },
+      {
+        q: "How much is a car service from Tempe to Sky Harbor?",
+        a: "It's a flat rate based on your exact pickup point — no surge pricing, no meter. Book online or call (480) 300-6003 for an instant quote in either direction.",
+      },
+      {
+        q: "Do you pick up at ASU and Tempe hotels?",
+        a: "Every day — campus, move-in and graduation runs, and the hotels along Mill Avenue and Tempe Town Lake. Add your pickup point and flight number when you book and we handle the rest.",
+      },
+      {
+        q: "Can you handle an early morning flight out of Sky Harbor?",
+        a: "Yes — your pickup is confirmed the night before with a chauffeur assigned in advance, timed around live traffic and terminal security lines. Short ride or not, the 5am departure is exactly when a pre-confirmed car matters most.",
+      },
+      {
+        q: "What happens if my arriving flight is delayed?",
+        a: "Nothing you need to manage — we track the flight, not the clock, and your chauffeur's arrival adjusts to actual wheels-down time at no extra charge.",
+      },
+      {
+        q: "Do you also run Phoenix Sky Harbor to Tempe?",
+        a: "Yes — this page covers both directions at the same flat rate: airport pickups to ASU, Mill Avenue, Tempe Town Lake hotels, or anywhere else in Tempe, any hour.",
+      },
+    ],
+  },
+  {
+    slug: "buckeye-to-sky-harbor",
+    origin: "Buckeye",
+    destination: "Sky Harbor",
+    metaTitle: "Buckeye to Sky Harbor Car Service | Nier Transportation",
+    metaDescription:
+      "Flat-rate car service between Buckeye and Phoenix Sky Harbor Airport — about 40–45 minutes on I-10, flight tracked, available 24/7. Verrado, Sundance, and West Valley pickups, both directions.",
+    heroLine:
+      "Reliable, flat-rate car service between Buckeye and Sky Harbor — about 40–45 minutes on I-10, with early departures planned and confirmed the night before. Both directions, any hour.",
+    distance: "About 35 miles",
+    driveTime: "About 40–45 minutes",
+    vehicles: "Sedans, SUVs & Sprinters",
+    overview: [
+      "Buckeye sits on the western edge of the Valley, about 40–45 minutes from Sky Harbor on I-10 — far enough that airport rides need to be planned, not left to whichever driver happens to accept. We build extra lead time into every Buckeye pickup and monitor the I-10 corridor in real time, so an early departure never turns into a sprint.",
+      "One of the fastest-growing cities in the country deserves airport service that actually shows up. We pick up across Buckeye daily — Verrado, Sundance, Tartesso, and the newer communities along the Loop 303 corridor — plus the corporate travel that the I-10 logistics and distribution growth keeps adding to this side of the Valley.",
+      "Both directions ride at the same flat rate. Arrivals get flight tracking from wheels-up with meet & greet at baggage claim or curbside pickup timed by text — and a chauffeur who has made the drive west more times than any app driver you'll match with.",
+    ],
+    whyPrivate: [
+      "Flat rate locked at booking — no distance surge to the West Valley",
+      "Early departures planned with I-10 lead time built in",
+      "Flight tracking on every Sky Harbor pickup",
+      "Verrado, Sundance, and gated-community pickups handled smoothly",
+      "A confirmed chauffeur — not a rideshare gamble at the Valley's edge",
+      "Sedans, SUVs, and Sprinters, both directions, 24/7",
+    ],
+    bookCardCopy:
+      "Lock in a flat rate between Buckeye and Sky Harbor — book online in minutes or call (480) 300-6003 for an instant quote.",
+    faqs: [
+      {
+        q: "How long is the drive from Buckeye to Phoenix Sky Harbor?",
+        a: "About 40–45 minutes for the roughly 35-mile run on I-10, depending on where in Buckeye you start and the hour. We monitor I-10 conditions in real time and set your pickup around when you actually need to be at your terminal.",
+      },
+      {
+        q: "How much is a car service from Buckeye to the airport?",
+        a: "It's a flat rate based on your exact pickup point — no meter running for 35 miles and no surge pricing. Book online or call (480) 300-6003 for an instant quote in either direction.",
+      },
+      {
+        q: "Can you handle a 4am or 5am flight out of Sky Harbor?",
+        a: "That's exactly what this route is built for. Out west, the early morning rideshare is the least reliable ride in the Valley — your pickup is confirmed the night before with a chauffeur assigned in advance and lead time already built in.",
+      },
+      {
+        q: "Do you pick up in Verrado and the gated communities?",
+        a: "Daily — Verrado, Sundance, Tartesso, Festival Ranch, and the communities along the Loop 303. Add your gate details when you book and your chauffeur handles the rest.",
+      },
+      {
+        q: "What happens if my flight into PHX is delayed?",
+        a: "We track the flight, not the clock — your chauffeur's arrival adjusts to actual wheels-down time at no extra charge, so you're never re-booking a 35-mile ride from baggage claim.",
+      },
+      {
+        q: "Can a group travel together?",
+        a: "Yes — executive Sprinters seat up to 14, and for larger groups we coordinate multiple vehicles under one booking and one invoice.",
+      },
+    ],
+  },
 ] as const;
 
 // Guard: fail fast if a route slug is ever duplicated.

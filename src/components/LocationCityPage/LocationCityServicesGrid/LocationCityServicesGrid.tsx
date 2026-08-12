@@ -33,7 +33,7 @@ export default function LocationCityServicesGrid({ city }: { city: CityData }) {
                   <Button
                     text='Learn More'
                     btnType='underlinedBlack'
-                    href={`/services/${x.slug}/${city.slug}`}
+                    href={`/services/${x.slug}`}
                     arrow
                   />
                 </div>

@@ -53,6 +53,69 @@ const nextConfig: NextConfig = {
         destination: "/locations",
         permanent: true,
       },
+      // ── Combo-matrix teardown (Aug 2026) ──────────────────────────────
+      // The service×city and fleet×city pages are gone. Winners first:
+      // airport/long-distance combos with a matching /routes page keep
+      // the equity they earned. ORDER MATTERS — Next.js applies the first
+      // matching rule, so these specific rules must stay ABOVE the two
+      // catch-alls at the bottom.
+      {
+        source: "/services/airport-transfers/scottsdale",
+        destination: "/routes/scottsdale-to-sky-harbor",
+        permanent: true,
+      },
+      {
+        source: "/services/airport-transfers/paradise-valley",
+        destination: "/routes/paradise-valley-to-sky-harbor",
+        permanent: true,
+      },
+      {
+        source: "/services/airport-transfers/chandler",
+        destination: "/routes/chandler-to-sky-harbor",
+        permanent: true,
+      },
+      {
+        source: "/services/airport-transfers/tempe",
+        destination: "/routes/tempe-to-sky-harbor",
+        permanent: true,
+      },
+      {
+        source: "/services/airport-transfers/buckeye",
+        destination: "/routes/buckeye-to-sky-harbor",
+        permanent: true,
+      },
+      {
+        source: "/services/long-distance-drives/tucson",
+        destination: "/routes/tucson-to-phoenix",
+        permanent: true,
+      },
+      {
+        source: "/services/long-distance-drives/sedona",
+        destination: "/routes/phoenix-to-sedona",
+        permanent: true,
+      },
+      {
+        source: "/services/long-distance-drives/flagstaff",
+        destination: "/routes/flagstaff-to-phoenix",
+        permanent: true,
+      },
+      {
+        source: "/services/long-distance-drives/prescott",
+        destination: "/routes/phoenix-to-prescott",
+        permanent: true,
+      },
+      // Everything else in the matrix collapses to its parent page.
+      // (Two segments only — real one-segment pages are untouched.)
+      {
+        source: "/services/:slug/:city",
+        destination: "/services/:slug",
+        permanent: true,
+      },
+      {
+        source: "/fleet/:slug/:city",
+        destination: "/fleet/:slug",
+        permanent: true,
+      },
     ];
   },
 

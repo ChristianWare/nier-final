@@ -101,7 +101,7 @@ export default function LocationsPage() {
                   {services.map((service) => (
                     <li key={service.slug}>
                       <Link
-                        href={`/services/${service.slug}/${city.slug}`}
+                        href={`/services/${service.slug}`}
                         className={styles.serviceLink}
                       >
                         {service.title}
