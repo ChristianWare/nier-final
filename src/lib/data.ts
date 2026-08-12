@@ -668,6 +668,24 @@ export const corporateQuestions = [
     answer:
       "Your account dashboard provides full trip history, per-employee usage breakdowns, and downloadable invoices. This makes it easy to track transportation spend and reconcile billing at the end of each period.",
   },
+  {
+    id: "m1",
+    question: "Do you offer motor coach rental in Phoenix?",
+    answer:
+      "Yes — our 56-passenger full-size motor coach is the flagship of the fleet, with onboard restroom, reclining seats, and luggage bays. It covers conventions, large weddings, game-day runs, and group airport transfers across the Phoenix metro.",
+  },
+  {
+    id: "m2",
+    question: "What's the difference between a coach bus and a charter bus?",
+    answer:
+      "In practice they're the same vehicle booked the same way: a coach bus (or motor coach) is the full-size, highway-comfortable bus, and 'charter' just means you're renting it privately with a professional driver. If your group is under 40, a mini party bus or executive Sprinter may fit better — we match the vehicle to your headcount when you request a quote.",
+  },
+  {
+    id: "m3",
+    question: "How much does it cost to rent a charter bus in Phoenix?",
+    answer:
+      "Pricing depends on hours, distance, vehicle size, and date — most trips are quoted as a flat rate with an hourly minimum, locked in at booking with no surge pricing. Split across 40–56 passengers, a full-size coach often costs less per person than the same group would spend on rideshares and parking. Call (480) 300-6003 or request a quote online for an exact number.",
+  },
 ] as const;
 
 export const wekopaQuestions = [

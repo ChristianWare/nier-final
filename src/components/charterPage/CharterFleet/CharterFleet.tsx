@@ -11,12 +11,17 @@ export default function CharterFleet() {
     <section className={styles.container}>
       <LayoutWrapper>
         <div className={styles.top}>
-          <h2 className={styles.heading}>Our Charter Bus Fleet</h2>
+          <h2 className={styles.heading}>
+            Charter Bus & Motor Coach Rental Fleet
+          </h2>{" "}
           <p className={styles.copy}>
-            From our 56-passenger full-size coach bus with onboard restroom and
-            entertainment to minibus options for smaller groups — every vehicle
-            is maintained above DOT standards and ready to move your group
-            across Phoenix on schedule.
+            Our motor coach rental in Phoenix is built around one flagship
+            vehicle: a 56-passenger full-size coach bus with onboard restroom,
+            reclining seats, and entertainment — maintained above DOT standards
+            and ready to move your group across the Valley on schedule. Need
+            something smaller? Our mini party bus covers groups of 20–40 and
+            executive Sprinters handle teams up to 14, so every coach bus rental
+            is matched to your actual headcount.
           </p>
         </div>
         <div className={styles.content}>

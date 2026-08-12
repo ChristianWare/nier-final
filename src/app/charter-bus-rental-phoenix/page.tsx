@@ -14,9 +14,9 @@ import { charterQuestions } from "@/lib/data";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Charter Bus Rental Phoenix | Nier Transportation",
+  title: "Charter Bus & Motor Coach Rental Phoenix | Nier Transportation",
   description:
-    "Phoenix charter bus rental for corporate events, weddings, airport transfers, and group outings. 56-passenger luxury charter bus available 24/7 across the Valley.",
+    "Charter bus and motor coach rental in Phoenix — 56-passenger luxury coach, mini party bus, and Sprinters for corporate events, weddings, airport transfers, and group outings. Available 24/7 across the Valley.",
   alternates: {
     canonical: "https://www.niertransportation.com/charter-bus-rental-phoenix",
   },
@@ -25,15 +25,15 @@ export const metadata: Metadata = {
 const charterServiceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  name: "Charter Bus Rental Phoenix",
-  url: "https://www.niertransportation.com/services/charter-bus-rental-phoenix",
+  name: "Charter Bus & Motor Coach Rental Phoenix",
+  url: "https://www.niertransportation.com/charter-bus-rental-phoenix",
   description:
     "Luxury 56-passenger charter bus rental serving Phoenix, Scottsdale, and the greater Metro Phoenix area. Available for corporate events, weddings, airport group transfers, and private group outings.",
   provider: {
     "@type": "LocalBusiness",
     name: "Nier Transportation",
     url: "https://www.niertransportation.com",
-    telephone: "+16022694481",
+    telephone: "+14803006003",
     address: {
       "@type": "PostalAddress",
       addressLocality: "Phoenix",

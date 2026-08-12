@@ -12,7 +12,7 @@ export default function CharterPricing() {
           <div className={styles.left}>
             <SectionHeading text='Pricing' dot />
             <h2 className={`${styles.heading} h3`}>
-              How Much Does Phoenix Charter Bus Rental Pricing Cost With Nier?
+              Charter Bus Rental Prices in Phoenix
             </h2>
             <p className={styles.copy1}>
               Charter bus rental pricing varies based on a handful of key

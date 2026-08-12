@@ -11,19 +11,18 @@ export default function CharterPageIntro() {
           <div className={styles.top}>
             <SectionHeading text='Charter Bus Rental Phoenix' dot />
             <h1 className={styles.heading}>
-              Phoenix charter bus rental: Nier Transportation&apos;s premier charter
-              bus rental service in AZ
+              Charter Bus & Motor Coach Rental in Phoenix, Arizona
             </h1>
             <p className={styles.copy}>
               When your group needs to move through the Valley in comfort,
               style, and on schedule, Nier Transportation delivers the charter
-              bus rental in Phoenix that gets it done right. Since 2004, we&apos;ve
-              been the trusted name in luxury group transportation across the
-              Phoenix metro area — and our 56-passenger charter bus is the
-              flagship of our fleet. Whether you&apos;re coordinating a corporate
-              outing, planning a wedding shuttle, or organizing a school trip,
-              you&apos;ll find everything you need to know right here — and by the
-              end, you&apos;ll be ready to book.
+              bus rental in Phoenix that gets it done right. Since 2004,
+              we&apos;ve been the trusted name in luxury group transportation
+              across the Phoenix metro area — and our 56-passenger motor coach
+              is the flagship of our fleet. Whether you&apos;re coordinating a
+              corporate outing, planning a wedding shuttle, or organizing a
+              school trip, you&apos;ll find everything you need to know right
+              here — and by the end, you&apos;ll be ready to book.
             </p>
             <div className={styles.btnContainer}>
               <Button

@@ -26,7 +26,7 @@ const descriptionOverrides: Partial<Record<string, string>> = {
   scottsdale:
     "Scottsdale's trusted black car service since 2004. Airport transfers to PHX & SDL, hourly chauffeur, golf course transportation, corporate rides, and weddings. Flat rates, no surge pricing.",
   phoenix:
-    "Phoenix black car service trusted since 2004. Airport transfers to Sky Harbor, hourly chauffeur, corporate ground transport, and special events. Flat rates, available 24/7.",
+    "Phoenix car service trusted since 2004 — black car and airport transfers to Sky Harbor, hourly chauffeur, corporate transport, and events. Flat rates, 24/7.",
   tempe:
     "Black car service in Tempe, AZ — airport transfers to PHX & AZA, hourly chauffeur near ASU and Tempe Marketplace, and corporate rides. Flat rates, no surge pricing.",
   chandler:
@@ -35,7 +35,7 @@ const descriptionOverrides: Partial<Record<string, string>> = {
   "paradise-valley":
     "Luxury black car service in Paradise Valley, AZ — discreet, professional chauffeurs for resort transfers, airport rides, and private events. Flat rates, available 24/7.",
   glendale:
-    "Black car service in Glendale, AZ — State Farm Stadium transfers, airport rides to PHX, hourly chauffeur, and corporate transportation. Flat rates, no surge pricing.",
+    "Airport transportation and black car service in Glendale, AZ — Sky Harbor transfers, State Farm Stadium events, hourly chauffeur, and corporate rides. Flat rates, no surge pricing.",
   gilbert:
     "Black car service in Gilbert, AZ — one of the fastest-growing East Valley communities. Airport transfers, hourly chauffeur, corporate rides, and events. Flat rates, no surge pricing.",
   peoria:
@@ -54,6 +54,11 @@ const descriptionOverrides: Partial<Record<string, string>> = {
     "Black car service from Phoenix to Prescott, AZ — private transfers to the charming mountain city. Long distance rides, flat rates, no surge pricing.",
 };
 
+const titleOverrides: Partial<Record<string, string>> = {
+  glendale: "Airport Transportation & Car Service in Glendale, AZ | Nier",
+  phoenix: "Phoenix Car Service — Black Car & Airport Transfers | Nier",
+};
+
 export function generateStaticParams() {
   return serviceAreaCities.map((city) => ({ city: city.slug }));
 }
@@ -68,7 +73,9 @@ export async function generateMetadata({
     CityData | undefined;
   if (!city) return {};
 
-  const title = `Black Car Service ${city.name}, AZ | Nier Transportation`;
+  const title =
+    titleOverrides[city.slug] ??
+    `Black Car Service ${city.name}, AZ | Nier Transportation`;
   const description =
     descriptionOverrides[city.slug] ??
     `Black car service in ${city.name}, AZ — ${city.note.toLowerCase()}. Airport transfers, hourly chauffeur, and corporate rides with flat rates and no surge pricing. Available 24/7.`;

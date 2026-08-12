@@ -104,6 +104,16 @@ const nextConfig: NextConfig = {
         destination: "/routes/phoenix-to-prescott",
         permanent: true,
       },
+      {
+        source: "/services/airport-transfers/tucson",
+        destination: "/routes/tucson-to-phoenix",
+        permanent: true,
+      },
+      {
+        source: "/services/point-to-point/tucson",
+        destination: "/routes/tucson-to-phoenix",
+        permanent: true,
+      },
       // Everything else in the matrix collapses to its parent page.
       // (Two segments only — real one-segment pages are untouched.)
       {

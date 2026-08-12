@@ -65,7 +65,7 @@ export const servicesData = [
     src: Airport,
     src2: Airport2,
     description:
-      "Premium airport transfers to PHX, SDL, and AZA with real-time flight tracking, 60-minute grace period, and door-to-door service across Metro Phoenix.",
+      "Phoenix airport transportation with real-time flight tracking, a 60-minute grace period, and door-to-door black car service to PHX, SDL, and AZA across Metro Phoenix.",
     whoThisIsFor: [
       "Business travelers who need on-time pickups and quiet, climate-controlled rides to work in transit",
       "Families with luggage, strollers, and child seats who want hands-on help from curb to door",
@@ -154,6 +154,18 @@ export const servicesData = [
       {
         q: "Can you handle very late arrivals?",
         a: "Yes—24/7 service with advance booking. For red-eyes and first-wave arrivals, reserve as early as possible.",
+      },
+      {
+        q: "How much does airport transportation cost in Phoenix?",
+        a: "It's a flat rate based on your pickup point and vehicle — no meter, no surge pricing, and the rate includes flight tracking and up to 60 minutes of wait time after landing. Book online or call (480) 300-6003 for an instant quote in either direction.",
+      },
+      {
+        q: "Is a black car better than a taxi or shuttle from Sky Harbor?",
+        a: "A taxi is whatever's next in line, and a shuttle makes shared stops on someone else's schedule. A black car is reserved in advance at a locked flat rate, staged to your actual landing time, and drives door to door with no other passengers. For early departures and late arrivals, that difference is the whole point.",
+      },
+      {
+        q: "Do you provide car service to Phoenix Sky Harbor from anywhere in the Valley?",
+        a: "Yes — Scottsdale, Phoenix, Tempe, Chandler, Mesa, Gilbert, Paradise Valley, Glendale, Peoria, and the surrounding communities, in both directions, 24/7. Early departures are confirmed the night before with a chauffeur assigned in advance.",
       },
     ],
     addOns: [

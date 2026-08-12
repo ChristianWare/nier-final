@@ -67,11 +67,11 @@ export const serviceAreaCities = [
     note: "Served by Sky Harbor International Airport (PHX)",
     src: Phoenix,
     airportNote:
-      "Sky Harbor International Airport sits at the center of Phoenix — Terminal 3 and Terminal 4 handle all commercial flights. We monitor every inbound flight and adjust pickup timing automatically, so your driver is staged when you land, not when you were scheduled to land.",
+      "Black car service to the Phoenix airport is the ride we run most. Sky Harbor International sits at the center of the city — Terminals 3 and 4 handle all commercial flights — and we monitor every inbound flight and adjust pickup timing automatically, so your driver is staged when you land, not when you were scheduled to land.",
     corporateNote:
       "Downtown Phoenix is home to major law firms, financial institutions, and the Phoenix Convention Center. Biltmore and Camelback corridors house dozens of Fortune 500 regional offices. We serve corporate accounts across all of them with centralized billing and consistent chauffeurs.",
     localContext:
-      "Phoenix is our home market. We've been running black car service here since 2004, which means our chauffeurs know the city's traffic patterns, event schedules, and venue access points at a level that GPS alone can't replicate. From Footprint Center to the Biltmore, we've run rides everywhere in this city.",
+      "Phoenix is our home market. We've been running car service in Phoenix since 2004 — black cars, SUVs, and Sprinters — which means our chauffeurs know the city's traffic patterns, event schedules, and venue access points at a level that GPS alone can't replicate. From Footprint Center to the Biltmore, we've run rides everywhere in this city.",
     localLandmarks: [
       "Phoenix Sky Harbor International Airport (PHX)",
       "Footprint Center",
@@ -224,7 +224,7 @@ export const serviceAreaCities = [
     note: "Home to State Farm Stadium and Desert Diamond Arena",
     src: Glendale,
     airportNote:
-      "Glendale is about 25–30 minutes from PHX via the 101 and I-10. We stage chauffeurs based on live departure times and real traffic data — not generic estimates — so your airport run from Glendale never feels rushed or padded.",
+      "Airport transportation from Glendale is one of our most-booked West Valley services. Glendale is about 25–30 minutes from PHX via the Loop 101 and I-10, and we stage chauffeurs based on live departure times and real traffic data — not generic estimates — so your airport run never feels rushed or padded.",
     corporateNote:
       "Glendale's Westgate Entertainment District and the State Farm Stadium area have attracted significant hospitality and event-related corporate activity. We handle group transportation, VIP event logistics, and recurring corporate account rides across the West Valley.",
     localContext:
@@ -238,6 +238,10 @@ export const serviceAreaCities = [
       "Loop 101 / Cardinals Drive Corridor",
     ],
     faqs: [
+      {
+        q: "How far is Glendale from Phoenix Sky Harbor Airport?",
+        a: "About 15–20 miles depending on where in Glendale you start — plan on 25–30 minutes via the Loop 101 and I-10, a bit longer at rush hour. We run the route in both directions at a flat rate and build lead time into early-morning departures automatically.",
+      },
       {
         q: "How much is a black car from Glendale to Sky Harbor Airport?",
         a: "Airport transfers from Glendale are a flat rate — no surge pricing, ever. Book online or call (480) 300-6003 for an instant quote. The drive runs about 25–30 minutes via the Loop 101 and I-10, and we stage chauffeurs based on live flight and traffic data.",
