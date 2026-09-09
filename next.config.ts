@@ -126,6 +126,11 @@ const nextConfig: NextConfig = {
         destination: "/fleet/:slug",
         permanent: true,
       },
+      {
+        source: "/charter",
+        destination: "/charter-bus-rental-phoenix",
+        permanent: true,
+      },
     ];
   },
 

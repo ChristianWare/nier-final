@@ -150,7 +150,7 @@ export default function CharterBusRentalPage() {
           { label: "Our party bus fleet", href: "/fleet/party-bus" },
         ]}
       />
-      <Faq items={charterQuestions} />
+      <Faq items={charterQuestions} limit={charterQuestions.length} />
       <BlogSection />
       <AboutNumbers />
     </main>
