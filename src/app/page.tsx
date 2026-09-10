@@ -17,10 +17,10 @@ const HowItWorks = dynamic(
 const ServiceAreas = dynamic(
   () => import("@/components/HomePage/ServiceAreas/ServiceAreas"),
 );
-const FlightTrackerSection = dynamic(
-  () =>
-    import("@/components/HomePage/FlightTrackerSection/FlightTrackerSection"),
-);
+// const FlightTrackerSection = dynamic(
+//   () =>
+//     import("@/components/HomePage/FlightTrackerSection/FlightTrackerSection"),
+// );
 const CorporateIntro = dynamic(
   () => import("@/components/HomePage/CorporateIntro/CorporateIntro"),
 );
@@ -224,7 +224,7 @@ export default async function HomePage() {
       <ServicesMarquee />
       <HowItWorks />
       <ServiceAreas />
-      <FlightTrackerSection />
+      {/* <FlightTrackerSection /> */}
       <CorporateIntro />
       <WekopaIntro />
       <CharterIntro />

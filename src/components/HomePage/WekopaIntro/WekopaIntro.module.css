@@ -23,7 +23,7 @@
 
 .mapDataContainer {
   width: 100%;
-  margin-top: 2rem;
+  margin-top: 10rem;
 }
 
 .card {
@@ -138,6 +138,10 @@
 
   .card:last-child {
     padding-bottom: 2rem;
+  }
+
+  .mapDataContainer {
+    margin-top: 5rem;
   }
 }
 

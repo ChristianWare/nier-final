@@ -46,7 +46,7 @@ export default function WekopaIntro() {
                 <div className={styles.btnContainer}>
                   <Button
                     href='/wekopa'
-                    text='Book your Transfer'
+                    text='Book your transfer'
                     btnType='black'
                     arrow
                   />

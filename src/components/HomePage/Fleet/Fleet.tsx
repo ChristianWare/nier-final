@@ -51,7 +51,7 @@ export default function Fleet() {
                   <Button
                     href={`/fleet/${x.slug}`}
                     btnType='black'
-                    text='More Details'
+                    text='More details'
                     arrow
                   />
                 </div>

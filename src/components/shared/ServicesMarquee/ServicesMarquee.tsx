@@ -198,7 +198,7 @@ export default function ServicesMarquee() {
       <div className={styles.btnClusterContainer}>
         <Button
           href='/services'
-          text='See All Services'
+          text='See all services'
           btnType='black'
           arrow
         />

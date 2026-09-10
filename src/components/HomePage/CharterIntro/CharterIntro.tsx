@@ -28,7 +28,7 @@ export default function CharterIntro() {
             <div className={styles.btnContainer}>
               <Button
                 href='/charter-bus-rental-phoenix'
-                text='More Charter Details'
+                text='More charter details'
                 btnType='underlinedBlack'
                 arrow
               />
