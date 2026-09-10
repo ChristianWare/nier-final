@@ -63,6 +63,17 @@
   animation-play-state: paused;
 }
 
+@media screen and (max-width: 1268px) {
+  .word {
+    font-size: 12rem;
+  }
+
+  .logo {
+    font-size: 7rem;
+  }
+}
+
+
 @media screen and (max-width: 768px) {
   .word {
     font-size: 12rem;

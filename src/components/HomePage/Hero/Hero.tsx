@@ -8,6 +8,7 @@ import HomeBookingWidget, {
   type WidgetServiceTypeDTO,
   type WidgetVehicleDTO,
 } from "../HomeBookingWidget/HomeBookingWidget";
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
 
 export default function Hero({
   serviceTypes = [],
@@ -56,7 +57,7 @@ export default function Hero({
         <div className={styles.imgOverlay} />
         <div className={styles.marqueeWrap}>
           <div className={styles.cc2}>
-            {/* <div className={styles.left2}>
+            <div className={styles.left2}>
               <p className={styles.copyii}>
                 Executive sedans, luxury SUVs, Sprinter vans, and 56 passenger
                 Motor Coach Buses — available 24/7 across the Phoenix metro.
@@ -66,7 +67,7 @@ export default function Hero({
             <div className={styles.right2}>
               <p className={styles.copyii}>Discover more</p>
               <Arrow className={styles.arrow} />
-            </div> */}
+            </div>
           </div>
           <Marquee
             words={[
@@ -88,10 +89,11 @@ export default function Hero({
             <div className={styles.cc1}>
               <div className={styles.left}>
                 <h1 className={styles.heading}>
-                  Black Car Service in Phoenix &amp; Scottsdale —{" "}
-                  <br className={styles.break} /> Trusted Since 2004
+                  Your trusted Black Car Service in Phoenix &amp; Scottsdale,
+                  AZ.
                 </h1>
-
+              </div>
+              <div className={styles.right}>
                 <p className={styles.copy}>
                   At Nier Transportation, we&apos;re more than a car service;
                   we&apos;re your trusted partner in high end transportation.
@@ -101,20 +103,18 @@ export default function Hero({
                   <Button
                     href='/book'
                     text='Book your Ride'
-                    btnType='red'
+                    btnType='underlinedWhite'
                     arrow
                   />
                 </div>
-              </div>
-              <div className={styles.right}>
-                <div className={styles.widgetRow}>
+                {/* <div className={styles.widgetRow}>
                   <HomeBookingWidget
                     serviceTypes={serviceTypes}
                     vehicles={vehicles}
                     companyTimezone={companyTimezone}
                     companyTimezoneLabel={companyTimezoneLabel}
                   />
-                </div>
+                </div> */}
               </div>
             </div>
 
