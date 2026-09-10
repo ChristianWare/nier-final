@@ -352,7 +352,7 @@ export default function Nav({
           )}
 
           <div className={styles.btnContainerii}>
-            <Button href='/book' text='Book your Ride' btnType='red' arrow />
+            <Button href='/book' text='Book your ride' btnType='red' arrow />
           </div>
 
           {/* Mobile bottom actions */}
@@ -377,7 +377,7 @@ export default function Nav({
             {accountText}
           </Link>
 
-          <Button href='/book' text='Book your Ride' btnType='red' arrow />
+          <Button href='/book' text='Book your ride' btnType='red' arrow />
         </div>
 
         <span

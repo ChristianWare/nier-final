@@ -15,7 +15,7 @@
   transition: all 0.2s ease-in-out;
   white-space: nowrap;
   cursor: pointer;
-  text-transform: capitalize;
+  /* text-transform: capitalize; */
   line-height: 1;
   user-select: none;
 }

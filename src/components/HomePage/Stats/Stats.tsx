@@ -71,7 +71,7 @@ export default function Stats({ flipped = false }: StatsProps) {
               <div className={styles.btnContainer}>
                 <Button
                   href='/book'
-                  text='Book your Ride'
+                  text='Book your ride'
                   btnType='red'
                   arrow
                 />
