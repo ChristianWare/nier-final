@@ -1,3 +1,4 @@
+import Button from "@/components/shared/Button/Button";
 import styles from "./AboutPageIntro.module.css";
 // import Button from "@/components/shared/Button/Button";
 import Marquee from "@/components/shared/Marquee/Marquee";
@@ -10,10 +11,8 @@ export default function AboutPageIntro() {
         <div className={styles.left}>
           <div className={styles.leftContent}>
             <div className={styles.top}>
-              <SectionHeading text='About us' dot />
-              <h1 className={`${styles.heading} h2`}>
-                {/* We&apos;ve been at the forefront of the travel industry for over
-                a decade.{" "} */}
+              {/* <SectionHeading text='About us' dot /> */}
+              <h1 className={styles.heading}>
                 Scottsdale & Phoenix&apos;s premier black car service
               </h1>
               <p className={styles.copy}>
@@ -22,7 +21,7 @@ export default function AboutPageIntro() {
                 don&apos;t just get you there — we make the journey worth
                 remembering.
               </p>
-              {/* <div className={styles.btnContainer}>
+              <div className={styles.btnContainer}>
                 <Button
                   text='Get in touch'
                   btnType='red'
@@ -35,13 +34,13 @@ export default function AboutPageIntro() {
                   href='/services'
                   arrow
                 />
-              </div> */}
+              </div>
             </div>
             <div className={styles.bottom}>
-              <b className={styles.bottomCopy}>
+              <p className={styles.bottomCopy}>
                 Our commitment to excellence and innovation has made us a
                 trusted partner for travelers worldwide.
-              </b>
+              </p>
             </div>
           </div>
         </div>

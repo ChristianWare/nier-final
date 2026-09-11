@@ -206,6 +206,10 @@
     gap: 3rem;
   } */
 
+   .container, .content {
+    min-height: 100vh;
+  }
+
   .content {
     padding-top: 6rem;
   }
