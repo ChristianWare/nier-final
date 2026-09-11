@@ -210,16 +210,13 @@
 @media screen and (max-width: 568px) {
   .container,
   .content {
-    min-height: 100vh;
-  }
-
-  .cc2 {
-    padding: 5rem 1.7rem;
+    min-height: 95vh;
   }
 
   .heading {
-    max-width: 100%;
-    width: 100%;
+    max-width: 80%;
+    margin-left: auto;
+    margin-right: auto;
     text-align: center;
   }
 
@@ -230,10 +227,6 @@
 
   .copy {
     opacity: 0.7;
-  }
-
-  .cc1 {
-    gap: 4rem;
   }
 
   .right {
@@ -273,7 +266,7 @@
     justify-content: center;
     padding-top: 0;
     padding-bottom: 0;
-    margin-top: -15rem;
+    margin-top: -10rem;
   }
 }
 

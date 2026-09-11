@@ -37,6 +37,7 @@
   text-align: left;
   width: 100%;
   display: block;
+  color: inherit;
 }
 
 .cardActive,
