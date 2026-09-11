@@ -499,3 +499,47 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ── MDX additions: tables, rules, event date ── */
+.ptTableWrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 2.4rem 0;
+}
+
+.ptTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.6rem;
+  line-height: 1.5;
+}
+
+.ptThead {
+  background-color: var(--cream);
+}
+
+.ptTh {
+  text-align: left;
+  font-weight: 700;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
+
+.ptTd {
+  padding: 1.2rem 1.4rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  vertical-align: top;
+}
+
+.ptHr {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  margin: 3rem 0;
+}
+
+.eventDate {
+  margin-top: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+}

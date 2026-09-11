@@ -14,11 +14,7 @@ type Post = {
   slug: { current: string };
   publishedAt: string;
   excerpt?: string;
-  coverImage?: {
-    _type: "image";
-    asset: { _ref: string; _type: "reference" };
-    alt?: string;
-  };
+  coverImage?: { src: string; alt?: string };
   tags?: Tag[];
 };
 
@@ -125,13 +121,7 @@ export default function AllBlogsPostsClient({
                 href: `/blog/${p.slug.current}`,
                 date: p.publishedAt,
                 excerpt: p.excerpt ?? "",
-                imageUrl: p.coverImage
-                  ? urlFor(p.coverImage)
-                      .width(800)
-                      .height(600)
-                      .fit("crop")
-                      .url()
-                  : undefined,
+                imageUrl: p.coverImage?.src,
                 imageAlt: p.coverImage?.alt ?? p.title,
               }}
             />

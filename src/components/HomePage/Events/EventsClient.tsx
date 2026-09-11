@@ -6,7 +6,6 @@ import Image from "next/image";
 import styles from "./Events.module.css";
 import Button from "@/components/shared/Button/Button";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
-import { urlFor } from "@/sanity/lib/image";
 
 type EventPost = {
   _id: string;
@@ -15,11 +14,7 @@ type EventPost = {
   excerpt?: string;
   publishedAt: string;
   eventDate?: string;
-  coverImage?: {
-    _type: "image";
-    asset: { _ref: string; _type: "reference" };
-    alt?: string;
-  };
+  coverImage?: { src: string; alt?: string };
 };
 
 type Tab = "upcoming" | "past";
@@ -111,13 +106,7 @@ export default function EventsClient({ posts }: { posts: EventPost[] }) {
         ) : (
           displayPosts.map((event) => {
             const dateStr = (event.eventDate ?? event.publishedAt).slice(0, 10);
-            const img = event.coverImage
-              ? urlFor(event.coverImage)
-                  .width(1200)
-                  .height(800)
-                  .fit("crop")
-                  .url()
-              : undefined;
+            const img = event.coverImage?.src;
             return (
               <div
                 key={event._id}

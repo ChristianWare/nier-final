@@ -4,16 +4,14 @@ import { serviceAreaCities } from "@/lib/cities";
 import { routesData } from "@/lib/routes";
 import { airportsData } from "@/lib/airports";
 import { fleetData } from "@/lib/data";
-import { client } from "@/sanity/lib/client";
-
-export const revalidate = 3600;
+import { getAllPosts } from "@/lib/blog";
 
 const baseUrl = "https://www.niertransportation.com";
 
 // Honest lastmod. Google ignores <lastmod> when every URL claims "now" on
 // every request (which is what `new Date()` did). Bump a date here whenever
 // a page actually changes; everything else falls back to the last broad
-// site update.
+// site update. Blog posts carry their own dates from frontmatter.
 const DEFAULT_LAST_MOD = "2026-07-29";
 const LAST_MOD: Partial<Record<string, string>> = {
   "/charter-bus-rental-phoenix": "2026-08-12",
@@ -29,25 +27,10 @@ function lastMod(path: string): Date {
   return new Date(LAST_MOD[path] ?? DEFAULT_LAST_MOD);
 }
 
-type SitemapPost = {
-  slug: string;
-  publishedAt?: string;
-  updatedAt?: string;
-};
-
-const POSTS_QUERY = `*[_type == "post" && defined(slug.current)] | order(publishedAt desc) {
-  "slug": slug.current,
-  publishedAt,
-  "updatedAt": _updatedAt
-}`;
-
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  // All published blog posts from Sanity, with their real last-edit date
-  const posts = await client.fetch<SitemapPost[]>(
-    POSTS_QUERY,
-    {},
-    { next: { revalidate } },
-  );
+export default function sitemap(): MetadataRoute.Sitemap {
+  // All published blog posts from /content/blog (drafts are already
+  // excluded by getAllPosts in production builds)
+  const posts = getAllPosts();
 
   // Static pages
   // Note: /corporate is the login-gated portal (middleware redirects it),
@@ -76,10 +59,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const blogPages = posts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(
-      post.updatedAt ?? post.publishedAt ?? DEFAULT_LAST_MOD,
-    ),
+    url: `${baseUrl}/blog/${post.slug.current}`,
+    lastModified: new Date(post.updatedAt),
     changeFrequency: "weekly" as const,
     priority: 0.7,
   }));
@@ -112,7 +93,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Vehicle pages were missing from the sitemap entirely
+  // Vehicle pages
   const fleetPages = fleetData.map((vehicle) => ({
     url: `${baseUrl}/fleet/${vehicle.slug}`,
     lastModified: lastMod(`/fleet/${vehicle.slug}`),

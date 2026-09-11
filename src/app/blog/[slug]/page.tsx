@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./BlogPostPage.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Nav from "@/components/shared/Nav/Nav";
-import { client } from "@/sanity/lib/client";
-import { urlFor } from "@/sanity/lib/image";
-import { PortableText, PortableTextComponents } from "@portabletext/react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import MoreInsights from "@/components/BlogPage/MoreInsights/MoreInsights";
@@ -14,66 +10,16 @@ import Button from "@/components/shared/Button/Button";
 import TableOfContents from "./TableOfContents";
 import { SITE_URL } from "@/lib/site";
 import Link from "next/link";
-
-type Tag = { _id: string; name: string; slug?: { current?: string } };
-
-type Post = {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  publishedAt: string;
-  excerpt?: string;
-  relatedLink?: { label?: string; href?: string };
-  coverImage?: {
-    _type: "image";
-    asset: { _ref?: string; _type: "reference"; _id?: string };
-    alt?: string;
-  };
-  tags?: Tag[];
-  body?: any[];
-};
+import { MDXRemote } from "next-mdx-remote/rsc";
+import remarkGfm from "remark-gfm";
+import type { MDXComponents } from "mdx/types";
+import type { ReactNode } from "react";
+import { getAllPosts, getPostBySlug, slugify } from "@/lib/blog";
 
 const CLIENT_NAME = process.env.CLIENT_NAME || "Nier Transportation";
 
-// const SITE_URL =
-//   process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://example.com";
-
-export const revalidate = 60;
-
-async function getPost(slug: string): Promise<Post | null> {
-  const query = `
-    *[_type == "post" && slug.current == $slug][0]{
-      _id,
-      title,
-      slug,
-      publishedAt,
-      excerpt,
-      relatedLink,
-      coverImage{asset, alt},
-      tags[]->{ _id, name, slug },
-      body[]{
-        ...,
-        _type == "image" => { ..., asset-> }
-      }
-    }
-  `;
-  const post = await client.fetch<Post | null>(
-    query,
-    { slug },
-    { next: { revalidate } },
-  );
-  return post;
-}
-
-async function getAllTags(): Promise<Tag[]> {
-  const query = `
-    *[_type == "tag"] | order(name asc) {
-      _id,
-      name,
-      slug
-    }
-  `;
-  return client.fetch<Tag[]>(query, {}, { next: { revalidate } });
+export function generateStaticParams() {
+  return getAllPosts().map((post) => ({ slug: post.slug.current }));
 }
 
 export async function generateMetadata({
@@ -82,9 +28,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPost(slug);
+  const post = getPostBySlug(slug);
 
-  if (!post?._id) {
+  if (!post || (process.env.NODE_ENV === "production" && post.draft)) {
     return {
       title: `Post not found | ${CLIENT_NAME}`,
       robots: { index: false },
@@ -94,9 +40,9 @@ export async function generateMetadata({
   const title = `${post.title}`;
   const description =
     post.excerpt ||
-    `Read this article from ${CLIENT_NAME} on direct-booking websites and growth for service businesses.`;
+    `Read this article from ${CLIENT_NAME} on luxury ground transportation in Phoenix and Scottsdale.`;
   const ogImage = post.coverImage
-    ? urlFor(post.coverImage).width(1200).height(630).fit("crop").url()
+    ? `${SITE_URL}${post.coverImage.src}`
     : `${SITE_URL}/og-image.png`;
   const canonical = `${SITE_URL}/blog/${post.slug.current}`;
 
@@ -109,114 +55,108 @@ export async function generateMetadata({
       description,
       type: "article",
       url: canonical,
-      images: ogImage
-        ? [
-            {
-              url: ogImage,
-              width: 1200,
-              height: 630,
-              alt: post.coverImage?.alt || post.title,
-            },
-          ]
-        : undefined,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.coverImage?.alt || post.title,
+        },
+      ],
       publishedTime: post.publishedAt,
+      modifiedTime: post.updatedAt,
       tags: post.tags?.map((t) => t.name),
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: ogImage ? [ogImage] : undefined,
+      images: [ogImage],
     },
   };
 }
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/\s+/g, "-");
+// ── helpers for the MDX component map ──
+function getText(children: ReactNode): string {
+  if (typeof children === "string") return children;
+  if (typeof children === "number") return String(children);
+  if (Array.isArray(children)) return children.map(getText).join("");
+  if (
+    children &&
+    typeof children === "object" &&
+    "props" in children &&
+    (children as { props?: { children?: ReactNode } }).props
+  ) {
+    return getText(
+      (children as { props: { children?: ReactNode } }).props.children,
+    );
+  }
+  return "";
 }
 
-function extractHeadings(body: any[]): { text: string; id: string }[] {
-  return body
-    .filter((b) => b._type === "block" && b.style === "h2")
-    .map((b) => {
-      const text = b.children?.map((c: any) => c.text).join("") || "";
-      return { text, id: slugify(text) };
-    })
-    .filter((h) => h.text.length > 0);
-}
-
-const ptComponents: PortableTextComponents = {
-  types: {
-    image: ({ value }) => {
-      if (!value?.asset?._ref && !value?.asset?._id) return null;
-      const alt = value?.alt || "Blog image";
-      const src = urlFor(value).width(1600).fit("max").url();
-      return (
-        <figure className={styles.ptImage}>
-          <Image
-            src={src}
-            alt={alt}
-            title={alt}
-            width={1600}
-            height={900}
-            className={styles.ptImageEl}
-          />
-          {alt ? (
-            <figcaption className={styles.ptCaption}>{alt}</figcaption>
-          ) : null}
-        </figure>
-      );
-    },
+const mdxComponents: MDXComponents = {
+  h2: ({ children }) => {
+    const id = slugify(getText(children));
+    return (
+      <h2 id={id} className={`${styles.ptH2} cardTitleii h2`}>
+        {children}
+      </h2>
+    );
   },
-  marks: {
-    link: ({ children, value }) => {
-      const href = value?.href || "#";
-      const isExternal = /^https?:\/\//.test(href);
-      return (
-        <a
-          href={href}
-          target={isExternal ? "_blank" : undefined}
-          rel={isExternal ? "noopener noreferrer" : undefined}
-          className={styles.ptLink}
-        >
-          {children}
-        </a>
-      );
-    },
-    strong: ({ children }) => (
-      <strong className={styles.ptStrong}>{children}</strong>
-    ),
-    em: ({ children }) => <em className={styles.ptEm}>{children}</em>,
-    code: ({ children }) => <code className={styles.ptCode}>{children}</code>,
+  h3: ({ children }) => <h3 className={styles.ptH3}>{children}</h3>,
+  p: ({ children }) => <p className={styles.ptP}>{children}</p>,
+  blockquote: ({ children }) => (
+    <blockquote className={styles.ptBlockquote}>{children}</blockquote>
+  ),
+  ul: ({ children }) => <ul className={styles.ptUl}>{children}</ul>,
+  ol: ({ children }) => <ol className={styles.ptOl}>{children}</ol>,
+  li: ({ children }) => <li className={styles.ptLi}>{children}</li>,
+  strong: ({ children }) => (
+    <strong className={styles.ptStrong}>{children}</strong>
+  ),
+  em: ({ children }) => <em className={styles.ptEm}>{children}</em>,
+  code: ({ children }) => <code className={styles.ptCode}>{children}</code>,
+  hr: () => <hr className={styles.ptHr} />,
+  a: ({ href, children }) => {
+    const url = href || "#";
+    const isExternal = /^https?:\/\//.test(url);
+    return (
+      <a
+        href={url}
+        target={isExternal ? "_blank" : undefined}
+        rel={isExternal ? "noopener noreferrer" : undefined}
+        className={styles.ptLink}
+      >
+        {children}
+      </a>
+    );
   },
-  block: {
-    h2: ({ children, value }) => {
-      const text = value?.children?.map((c: any) => c.text).join("") || "";
-      const id = slugify(text);
-      return (
-        <h2 id={id} className={`${styles.ptH2} cardTitleii h2`}>
-          {children}
-        </h2>
-      );
-    },
-    h3: ({ children }) => <h3 className={styles.ptH3}>{children}</h3>,
-    normal: ({ children }) => <p className={styles.ptP}>{children}</p>,
-    blockquote: ({ children }) => (
-      <blockquote className={styles.ptBlockquote}>{children}</blockquote>
-    ),
+  img: ({ src, alt }) => {
+    if (!src || typeof src !== "string") return null;
+    const altText = alt || "Blog image";
+    return (
+      <figure className={styles.ptImage}>
+        <Image
+          src={src}
+          alt={altText}
+          title={altText}
+          width={1600}
+          height={900}
+          className={styles.ptImageEl}
+          style={{ width: "100%", height: "auto" }}
+        />
+        {alt ? <figcaption className={styles.ptCaption}>{alt}</figcaption> : null}
+      </figure>
+    );
   },
-  list: {
-    bullet: ({ children }) => <ul className={styles.ptUl}>{children}</ul>,
-    number: ({ children }) => <ol className={styles.ptOl}>{children}</ol>,
-  },
-  listItem: {
-    bullet: ({ children }) => <li className={styles.ptLi}>{children}</li>,
-    number: ({ children }) => <li className={styles.ptLi}>{children}</li>,
-  },
+  table: ({ children }) => (
+    <div className={styles.ptTableWrap}>
+      <table className={styles.ptTable}>{children}</table>
+    </div>
+  ),
+  thead: ({ children }) => <thead className={styles.ptThead}>{children}</thead>,
+  th: ({ children }) => <th className={styles.ptTh}>{children}</th>,
+  td: ({ children }) => <td className={styles.ptTd}>{children}</td>,
 };
 
 export default async function BlogPostPage({
@@ -225,9 +165,10 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [post] = await Promise.all([getPost(slug), getAllTags()]);
+  const post = getPostBySlug(slug);
 
-  if (!post?._id) notFound();
+  if (!post || (process.env.NODE_ENV === "production" && post.draft))
+    notFound();
 
   const prettyDate = new Date(post.publishedAt).toLocaleDateString("en-US", {
     month: "long",
@@ -235,11 +176,15 @@ export default async function BlogPostPage({
     year: "numeric",
   });
 
-  const coverSrc = post.coverImage
-    ? urlFor(post.coverImage).width(2000).height(1200).fit("crop").url()
-    : undefined;
+  const prettyEventDate = post.eventDate
+    ? new Date(`${post.eventDate}T12:00:00`).toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "long",
+        day: "2-digit",
+        year: "numeric",
+      })
+    : null;
 
-  const headings = post.body ? extractHeadings(post.body) : [];
   const postUrl = `${SITE_URL}/blog/${post.slug.current}`;
 
   const articleSchema = {
@@ -249,7 +194,7 @@ export default async function BlogPostPage({
     description: post.excerpt || "",
     url: postUrl,
     datePublished: post.publishedAt,
-    dateModified: post.publishedAt,
+    dateModified: post.updatedAt,
     author: {
       "@type": "Person",
       name: "Barry LaNier",
@@ -264,12 +209,10 @@ export default async function BlogPostPage({
         url: "https://www.niertransportation.com/nierLogo.png",
       },
     },
-    ...(coverSrc && {
+    ...(post.coverImage && {
       image: {
         "@type": "ImageObject",
-        url: coverSrc,
-        width: 2000,
-        height: 1200,
+        url: `${SITE_URL}${post.coverImage.src}`,
       },
     }),
     ...(post.tags?.length && {
@@ -289,29 +232,29 @@ export default async function BlogPostPage({
       <LayoutWrapper>
         {/* ── Post header: tags + title + excerpt ── */}
         <header className={styles.header}>
-          {post?.tags?.length ? (
+          {post.tags?.length ? (
             <ul className={styles.tags}>
               {post.tags.map((t) => (
                 <li key={t._id}>
-                  <SectionHeading
-                    text={t.slug?.current ? t.name : CLIENT_NAME}
-                    dot
-                  />
+                  <SectionHeading text={t.name} dot />
                 </li>
               ))}
             </ul>
           ) : null}
           <h1 className={`${styles.heading} h2`}>{post.title}</h1>
           {post.excerpt && <p className={styles.excerpt}>{post.excerpt}</p>}
+          {prettyEventDate && (
+            <p className={styles.eventDate}>Event date: {prettyEventDate}</p>
+          )}
         </header>
 
         {/* ── Cover image: full width ── */}
-        {coverSrc && (
+        {post.coverImage && (
           <div className={styles.coverWrap}>
             <Image
-              src={coverSrc}
-              alt={post?.coverImage?.alt || post.title}
-              title={post?.coverImage?.alt || post.title}
+              src={post.coverImage.src}
+              alt={post.coverImage.alt || post.title}
+              title={post.coverImage.alt || post.title}
               fill
               priority
               className={styles.coverImg}
@@ -346,12 +289,7 @@ export default async function BlogPostPage({
               className={styles.shareBtn}
               aria-label='Share on Facebook'
             >
-              <svg
-                width='16'
-                height='16'
-                viewBox='0 0 24 24'
-                fill='currentColor'
-              >
+              <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
                 <path d='M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z' />
               </svg>
             </a>
@@ -362,12 +300,7 @@ export default async function BlogPostPage({
               className={styles.shareBtn}
               aria-label='Share on LinkedIn'
             >
-              <svg
-                width='16'
-                height='16'
-                viewBox='0 0 24 24'
-                fill='currentColor'
-              >
+              <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
                 <path d='M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z' />
                 <rect x='2' y='9' width='4' height='12' />
                 <circle cx='4' cy='4' r='2' />
@@ -380,12 +313,7 @@ export default async function BlogPostPage({
               className={styles.shareBtn}
               aria-label='Share on X'
             >
-              <svg
-                width='16'
-                height='16'
-                viewBox='0 0 24 24'
-                fill='currentColor'
-              >
+              <svg width='16' height='16' viewBox='0 0 24 24' fill='currentColor'>
                 <path d='M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z' />
               </svg>
             </a>
@@ -401,22 +329,19 @@ export default async function BlogPostPage({
                 <p className={styles.sideCtaText}>
                   Ready to book your ride with Nier Transportation?
                 </p>
-                <Button
-                  href='/book'
-                  text='Book your Ride'
-                  btnType='red'
-                  arrow
-                />
+                <Button href='/book' text='Book your Ride' btnType='red' arrow />
               </div>
-              <TableOfContents headings={headings} />
+              <TableOfContents headings={post.headings} />
             </div>
           </aside>
 
           {/* Col 2: Article body */}
           <article className={styles.articleBody}>
-            {post?.body?.length ? (
-              <PortableText value={post.body} components={ptComponents} />
-            ) : null}
+            <MDXRemote
+              source={post.content}
+              components={mdxComponents}
+              options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
+            />
           </article>
 
           {/* Col 3: More insights */}

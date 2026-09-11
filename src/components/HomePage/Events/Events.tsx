@@ -2,8 +2,8 @@ import styles from "./Events.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Button from "@/components/shared/Button/Button";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
-import { client } from "@/sanity/lib/client";
 import EventsClient from "./EventsClient";
+import { getAllPosts, isEventPost } from "@/lib/blog";
 
 type EventPost = {
   _id: string;
@@ -12,36 +12,34 @@ type EventPost = {
   excerpt?: string;
   publishedAt: string;
   eventDate?: string;
-  coverImage?: {
-    _type: "image";
-    asset: { _ref: string; _type: "reference" };
-    alt?: string;
-  };
+  coverImage?: { src: string; alt?: string };
 };
 
-async function getAllEventPosts(): Promise<EventPost[]> {
-  const query = `
-    *[
-      _type == "post" &&
-      (
-        "events" in tags[]->slug.current ||
-        "events" in tags
-      )
-    ] | order(coalesce(dateTime(eventDate), publishedAt) desc) {
-      _id,
-      title,
-      slug,
-      excerpt,
-      publishedAt,
-      eventDate,
-      coverImage{asset, alt, _type}
-    }
-  `;
-  return client.fetch(query, {}, { next: { revalidate: 60 } });
+function getAllEventPosts(): EventPost[] {
+  return (
+    getAllPosts()
+      .filter(isEventPost)
+      .map((p) => ({
+        _id: p._id,
+        title: p.title,
+        slug: p.slug,
+        excerpt: p.excerpt,
+        publishedAt: p.publishedAt,
+        eventDate: p.eventDate,
+        coverImage: p.coverImage,
+      }))
+      // Same ordering the old GROQ query used: coalesce(eventDate, publishedAt) desc.
+      // EventsClient re-sorts into upcoming/past tabs either way.
+      .sort((a, b) => {
+        const aDate = (a.eventDate ?? a.publishedAt).slice(0, 10);
+        const bDate = (b.eventDate ?? b.publishedAt).slice(0, 10);
+        return bDate.localeCompare(aDate);
+      })
+  );
 }
 
-export default async function Events() {
-  const posts = await getAllEventPosts();
+export default function Events() {
+  const posts = getAllEventPosts();
 
   return (
     <section className={styles.container}>

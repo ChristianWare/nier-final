@@ -3,40 +3,13 @@ import styles from "./BlogSection.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import BlogCardOne from "@/components/BlogPage/BlogCardOne/BlogCardOne";
 import BlogCardTwo from "@/components/BlogPage/BlogCardTwo/BlogCardTwo";
-import { client } from "@/sanity/lib/client";
-import { urlFor } from "@/sanity/lib/image";
 import Button from "@/components/shared/Button/Button";
 import SectionHeading from "../SectionHeading/SectionHeading";
+import { getAllPosts, isEventPost } from "@/lib/blog";
 
-type Post = {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  publishedAt: string;
-  excerpt?: string;
-  coverImage?: {
-    _type: "image";
-    asset: { _ref: string; _type: "reference" };
-    alt?: string;
-  };
-};
-
-async function getPosts(): Promise<Post[]> {
-  const query = `
-*[_type == "post" && !("events" in tags[]->slug.current)] | order(publishedAt desc)    {
-      _id,
-      title,
-      slug,
-      publishedAt,
-      excerpt,
-      coverImage{asset, alt, _type}
-    }
-  `;
-  return client.fetch(query, {}, { next: { revalidate: 60 } });
-}
-
-export default async function BlogSection() {
-  const posts = await getPosts();
+export default function BlogSection() {
+  // Same rule as the old Sanity query: event posts stay out of this section
+  const posts = getAllPosts().filter((p) => !isEventPost(p));
   const primary = posts[0];
   const secondary = posts.slice(1, 3);
 
@@ -64,13 +37,7 @@ export default async function BlogSection() {
                     href: `/blog/${primary.slug.current}`,
                     date: primary.publishedAt,
                     excerpt: primary.excerpt ?? "",
-                    imageUrl: primary.coverImage
-                      ? urlFor(primary.coverImage)
-                          .width(1400)
-                          .height(900)
-                          .fit("crop")
-                          .url()
-                      : undefined,
+                    imageUrl: primary.coverImage?.src,
                     imageAlt: primary.coverImage?.alt ?? primary.title,
                   }}
                 />
@@ -86,13 +53,7 @@ export default async function BlogSection() {
                     href: `/blog/${p.slug.current}`,
                     date: p.publishedAt,
                     excerpt: p.excerpt ?? "",
-                    imageUrl: p.coverImage
-                      ? urlFor(p.coverImage)
-                          .width(800)
-                          .height(600)
-                          .fit("crop")
-                          .url()
-                      : undefined,
+                    imageUrl: p.coverImage?.src,
                     imageAlt: p.coverImage?.alt ?? p.title,
                   }}
                 />
