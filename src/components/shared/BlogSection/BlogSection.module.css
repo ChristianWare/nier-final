@@ -42,7 +42,7 @@
 .bottom {
   /* background-color: var(--white); */
   border-radius: 20px;
-  padding: 3rem;
+  margin-top: 3rem;
 }
 
 @media screen and (max-width: 1068px) {
