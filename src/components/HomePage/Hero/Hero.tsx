@@ -56,6 +56,8 @@ export default function Hero({
 
         <div className={styles.imgOverlay} />
         <div className={styles.marqueeWrap}>
+          <LayoutWrapper>
+
           <div className={styles.cc2}>
             <div className={styles.left2}>
               <p className={styles.copyii}>
@@ -65,10 +67,11 @@ export default function Hero({
               </p>
             </div>
             <div className={styles.right2}>
-              <p className={styles.copyii}>Discover more</p>
+              <p className={styles.copyiii}>Discover more</p>
               <Arrow className={styles.arrow} />
             </div>
           </div>
+          </LayoutWrapper>
           <Marquee
             words={[
               "Phoenix",
@@ -100,12 +103,22 @@ export default function Hero({
                 </p>
 
                 <div className={styles.btnContainerii}>
-                  <Button
-                    href='/book'
-                    text='Book your Ride'
-                    btnType='underlinedWhite'
-                    arrow
-                  />
+                  <div className={styles.btnDesktop}>
+                    <Button
+                      href='/book'
+                      text='Book your Ride'
+                      btnType='underlinedWhite'
+                      arrow
+                    />
+                  </div>
+                  <div className={styles.btnMobile}>
+                    <Button
+                      href='/book'
+                      text='Book your Ride'
+                      btnType='red'
+                      arrow
+                    />
+                  </div>
                 </div>
                 {/* <div className={styles.widgetRow}>
                   <HomeBookingWidget
