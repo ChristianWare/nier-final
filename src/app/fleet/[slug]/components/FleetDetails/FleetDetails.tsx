@@ -185,7 +185,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
 
               <div className={styles.btnContainer}>
                 <Button
-                  href='/'
+                  href='/book'
                   text='Book this vehicle'
                   btnType='black'
                   arrow

@@ -60,22 +60,22 @@ export const serviceAreaCities = [
       {
         name: "Old Town Scottsdale",
         copy: "The entertainment district runs late and parking runs scarce. We handle dinner runs, nights out, and hotel pickups along the Old Town resort row every single week.",
-        img: "/images/areas/old-town-scottsdale.jpg",
+        img: "/images/areas/brewery.jpg",
       },
       {
         name: "Kierland & Scottsdale Quarter",
         copy: "Shopping, resorts, and the Airpark's corporate offices in one square mile — our most-requested corporate pickup zone in the city, minutes from Scottsdale Airport.",
-        img: "/images/areas/kierland.jpg",
+        img: "/images/areas/scottsdale.jpg",
       },
       {
         name: "McCormick Ranch & Gainey Ranch",
         copy: "Resort and country-club Scottsdale. Airport transfers, golf runs, and special-occasion rides from the communities along Scottsdale Road's green corridor.",
-        img: "/images/areas/mccormick-ranch.jpg",
+        img: "/images/areas/lake.jpg",
       },
       {
         name: "North Scottsdale",
         copy: "Troon, DC Ranch, Grayhawk, and Pinnacle Peak — the far north is where rideshares get scarce and a pre-confirmed chauffeur earns its keep, especially for early flights.",
-        img: "/images/areas/north-scottsdale.jpg",
+        img: "/images/areas/scottsdaleii.jpg",
       },
     ],
 
@@ -192,6 +192,46 @@ export const serviceAreaCities = [
   {
     name: "Tempe",
     slug: "tempe",
+    airportMinutes: "10–15",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Tempe to Sky Harbor is the shortest airport run in the Valley — about 10 minutes via the 143 — and we still stage to your actual landing time, flat rate, both directions.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive car service for the Rio Salado employers — Marina Heights, the Novus corridor, and the Tempe Marketplace offices — plus conference and event shuttles for ASU and downtown.",
+        href: "/services/corporate-and-event-logistics",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for ASU game days at Mountain America Stadium, move-in weekends, graduation, and team travel across Tempe.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown Tempe & Mill Avenue",
+        copy: "Mill Avenue's restaurants, bars, and hotels keep late hours, and parking never keeps up. Dinner runs, nights out, and hotel pickups here are a nightly routine for our chauffeurs.",
+        img: "/images/areas/brewery.jpg",
+      },
+      {
+        name: "ASU & the Novus Corridor",
+        copy: "Campus, Mountain America Stadium, and the offices rising along the Novus Innovation Corridor — game days, graduation, and corporate rides all start here.",
+        img: "/images/areas/tempe.jpg",
+      },
+      {
+        name: "Tempe Town Lake & Rio Salado",
+        copy: "The lakefront hotels and the Marina Heights corporate campus — our most-requested Tempe pickup zone for executive travel and early Sky Harbor departures.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "South Tempe",
+        copy: "The neighborhoods along Warner and Elliot down to the Loop 101 — quieter, farther from the airport, and exactly where a confirmed flat-rate car beats a rideshare gamble at 5am.",
+        img: "/images/areas/chandler.jpg",
+      },
+    ],
     note: "Home to Arizona State University and Tempe Marketplace",
     src: Tempe,
     airportNote:
@@ -212,6 +252,46 @@ export const serviceAreaCities = [
   {
     name: "Mesa",
     slug: "mesa",
+    airportMinutes: "20–30",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Mesa is the one city we serve with two airports: Sky Harbor about 20–30 minutes west, and Mesa Gateway (AZA) right in town — flight-tracked transfers to both, flat rate.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sloan Park spring training, Mesa Arts Center shows, and church and team travel — Sprinters, mini coaches, and a 56-passenger motorcoach for groups across Mesa.",
+        href: "/services/group-transportation",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive rides for the Banner Gateway medical corridor, the Falcon Field aerospace employers, and the Gateway-area business parks — reliable, invoiced, on time.",
+        href: "/services/corporate-and-event-logistics",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown Mesa",
+        copy: "Main Street, the Mesa Arts Center, and the restaurant blocks along the light rail — show nights and dinner runs where we stage nearby and pick you up at the door.",
+        img: "/images/areas/mesa.jpg",
+      },
+      {
+        name: "Eastmark & Mesa Gateway",
+        copy: "Southeast Mesa's fastest-growing master-planned community sits minutes from Gateway Airport — early Allegiant departures and daily commutes are our specialty here.",
+        img: "/images/areas/mesaii.jpg",
+      },
+      {
+        name: "Red Mountain & Las Sendas",
+        copy: "Northeast Mesa's foothill communities are a longer haul to Sky Harbor, which is exactly why residents book a flat-rate car with lead time built in.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Dobson Ranch & West Mesa",
+        copy: "Sloan Park, the Fiesta District, and the established neighborhoods along Dobson Road — spring training shuttles and quick Sky Harbor runs via the 60 and the 101.",
+        img: "/images/areas/tempe.jpg",
+      },
+    ],
     note: "Served by Phoenix-Mesa Gateway Airport (AZA)",
     src: Mesa,
     airportNote:
@@ -237,6 +317,46 @@ export const serviceAreaCities = [
   {
     name: "Chandler",
     slug: "chandler",
+    airportMinutes: "25–30",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Chandler to Sky Harbor via the 202 runs about 25 minutes — flight-tracked pickups timed to wheels-down and early departures confirmed the night before.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive transportation for the Price Road tech corridor — Intel, PayPal, and the campuses in between — with corporate accounts, portal booking, and monthly invoicing.",
+        href: "/services/corporate-and-event-logistics",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "Wild Horse Pass concerts and casino nights, Chandler Center for the Arts, and downtown's festival calendar — staged pickups so nobody circles for a rideshare.",
+        href: "/services/special-events",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown Chandler",
+        copy: "The San Marcos hotel, the restaurant row on Arizona Avenue, and a festival calendar that fills the streets — date nights and group outings that end with a car waiting.",
+        img: "/images/areas/chandler.jpg",
+      },
+      {
+        name: "Ocotillo",
+        copy: "Golf-course living in south Chandler, a longer run to Sky Harbor, and the highest concentration of early-morning corporate flyers we serve in the city.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Price Road Corridor",
+        copy: "Intel, PayPal, and the tech campuses that make Chandler an executive-travel market — airport runs, client dinners, and campus-to-campus transfers on account.",
+        img: "/images/areas/gilbert.webp",
+      },
+      {
+        name: "Chandler Fashion Center & West Chandler",
+        copy: "The Loop 101 shopping and hotel district — convenient to Wild Horse Pass and the airport corridor, and a frequent pickup point for visiting business travelers.",
+        img: "/images/areas/tempe.jpg",
+      },
+    ],
     note: "A major corporate and tech hub in the East Valley",
     src: Chandler,
     airportNote:
@@ -262,6 +382,46 @@ export const serviceAreaCities = [
   {
     name: "Gilbert",
     slug: "gilbert",
+    airportMinutes: "25–35",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Gilbert to Sky Harbor is about 30 minutes via the 202 — we run it at every hour with flight tracking, flat rates, and pickups confirmed the night before.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Wedding Transportation",
+        copy: "Gilbert is the East Valley's wedding capital — Heritage District venues, barn weddings, and resort ceremonies — with wedding party cars and guest shuttles under one booking.",
+        href: "/services/weddings",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for church groups, youth sports, and company outings — from the Heritage District to SanTan Village and beyond.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Heritage District",
+        copy: "Downtown Gilbert's restaurant and venue row — wedding nights, dinner reservations, and the kind of evening that shouldn't end with a designated driver.",
+        img: "/images/areas/gilbert.webp",
+      },
+      {
+        name: "Val Vista Lakes",
+        copy: "Central Gilbert's lakeside community — steady airport transfers and corporate rides, close to the 202 and the Banner Gateway medical corridor.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Power Ranch",
+        copy: "South Gilbert's master-planned neighborhoods sit farther from Sky Harbor — a flat-rate car with lead time is the right call for early flights.",
+        img: "/images/areas/chandler.jpg",
+      },
+      {
+        name: "Agritopia & Morrison Ranch",
+        copy: "Gilbert's most-photographed neighborhoods — dinner at Joe's Farm Grill, weddings at Barnone, and group rides that start and end at the same front door.",
+        img: "/images/areas/mesa.jpg",
+      },
+    ],
     note: "One of the fastest-growing communities in the East Valley",
     src: Gilbert,
     airportNote:
@@ -282,6 +442,46 @@ export const serviceAreaCities = [
   {
     name: "Peoria",
     slug: "peoria",
+    airportMinutes: "30–35",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Peoria to Sky Harbor is 30–35 minutes via the 101 — a run we plan with the full drive time built in so early departures never feel rushed.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "Peoria Sports Complex spring training, P83 concerts and restaurants, and Lake Pleasant weekends — group rides with a staged pickup at the end.",
+        href: "/services/special-events",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive transportation for the USAA campus and the Loop 101 business corridor — corporate accounts, daily commutes, and airport runs on invoice.",
+        href: "/services/corporate-and-event-logistics",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Old Town Peoria",
+        copy: "Peoria's historic core and civic center — a frequent pickup zone for events, dinners, and residents heading to Sky Harbor.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "Vistancia",
+        copy: "Northwest Peoria's master-planned community is one of the Valley's farthest points from the airport — exactly where a confirmed flat-rate car earns its keep.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "P83 & the Sports Complex District",
+        copy: "Spring training at the Peoria Sports Complex, the P83 entertainment district, and the hotels around it — staged group pickups all season.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "Lake Pleasant Corridor",
+        copy: "The northern reaches along Lake Pleasant Parkway — lake weekends, resort stays, and long airport runs we time to the minute.",
+        img: "/images/areas/lake.jpg",
+      },
+    ],
     note: "Home to the Peoria Sports Complex and P83 Entertainment District",
     src: Peoria,
     airportNote:
@@ -340,22 +540,22 @@ export const serviceAreaCities = [
       {
         name: "Westgate Entertainment District",
         copy: "Game days, concerts, and everything around State Farm Stadium and Desert Diamond Arena — the single busiest pickup zone we run in the West Valley.",
-        img: "/images/areas/westgate.jpg",
+        img: "/images/areas/westValleyii.jpg",
       },
       {
         name: "Historic Downtown & Catlin Court",
         copy: "Old Towne Glendale's antique district and restaurant blocks — a favorite for date nights, group outings, and out-of-town guests staying nearby.",
-        img: "/images/areas/downtown-glendale.jpg",
+        img: "/images/areas/westValley.jpg",
       },
       {
         name: "Arrowhead",
         copy: "From Arrowhead Towne Center up through the ranch communities, north Glendale riders book us most for early Sky Harbor departures and group events.",
-        img: "/images/areas/arrowhead.jpg",
+        img: "/images/areas/westValleyiii.jpg",
       },
       {
         name: "Zanjero & the Loop 101 Corridor",
         copy: "The hotel cluster serving Westgate's event traffic — we run stadium shuttles, airport transfers, and corporate pickups along this corridor year-round.",
-        img: "/images/areas/zanjero.jpg",
+        img: "/images/areas/phoenix.jpg",
       },
     ],
     faqs: [
@@ -388,6 +588,46 @@ export const serviceAreaCities = [
   {
     name: "Paradise Valley",
     slug: "paradise-valley",
+    airportMinutes: "15–20",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Paradise Valley to Sky Harbor via the 51 is about 20 minutes — discreet, flight-tracked transfers for the resort guests and residents who expect precision.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Hourly Chauffeur",
+        copy: "As-directed chauffeur service by the hour — dinner in Old Town, a day of meetings across the Valley, or a resort evening with a car and driver on standby.",
+        href: "/services/hourly-chauffeur",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive and VIP transportation for the Camelback resort corridor — conferences at the Phoenician and Camelback Inn, board retreats, and private events.",
+        href: "/services/corporate-and-event-logistics",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Camelback Mountain Resort Corridor",
+        copy: "The Phoenician, Sanctuary, and Mountain Shadows — resort guests here book us for airport transfers, dinners in Scottsdale, and day trips to Sedona.",
+        img: "/images/areas/scottsdaleii.jpg",
+      },
+      {
+        name: "Mummy Mountain",
+        copy: "Hillside estates with winding private roads — our chauffeurs know the gates and the approaches, and stage exactly where you tell us.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+      {
+        name: "Lincoln Drive Corridor",
+        copy: "The Camelback Inn, Andaz, and the Lincoln Drive estates — a steady mix of executive airport runs and resort event transportation.",
+        img: "/images/areas/scottsdale.jpg",
+      },
+      {
+        name: "Tatum & Doubletree Ranch",
+        copy: "Paradise Valley's eastern neighborhoods toward Scottsdale — quick access to the 101 for Sky Harbor and Scottsdale Airport transfers alike.",
+        img: "/images/areas/phoenix.jpg",
+      },
+    ],
     note: "Home to some of Arizona's most prestigious resorts and estates",
     src: ParadiseValley,
     airportNote:
@@ -413,6 +653,46 @@ export const serviceAreaCities = [
   {
     name: "Cave Creek",
     slug: "cave-creek",
+    airportMinutes: "35–40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Cave Creek to Sky Harbor is 35–40 minutes via the 51 or Cave Creek Road — we build the lead time in so a 6am departure is calm, not a sprint.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Black Truck Service",
+        copy: "Cave Creek's ranch-country character deserves a ride to match — our black truck service handles trail-town nights out, resort transfers, and desert events with room for gear.",
+        href: "/services/black-truck-service",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides from Cave Creek to anywhere in the Valley — dinner in Scottsdale, a downtown game, or a Carefree resort — without the drive home.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Cave Creek Road & Frontier Town",
+        copy: "The saloons, steakhouses, and shops of the old-west main drag — Buffalo Chip, Harold's, Binkley's — nights out where nobody should be driving.",
+        img: "/images/areas/brewery.jpg",
+      },
+      {
+        name: "Rancho Mañana",
+        copy: "Golf-course homes and the resort spa — a regular pickup zone for airport transfers and Scottsdale dinner runs.",
+        img: "/images/areas/scottsdale.jpg",
+      },
+      {
+        name: "Tonto Hills & Spur Cross",
+        copy: "The far-north desert communities near Spur Cross Ranch — remote enough that rideshare rarely shows, which is why residents pre-book with us.",
+        img: "/images/areas/scottsdaleii.jpg",
+      },
+      {
+        name: "Carefree Highway Corridor",
+        copy: "The east-west artery connecting Cave Creek to the 17 and the 51 — our route of choice for timing Sky Harbor runs around traffic.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+    ],
     note: "Known for its western charm, art galleries, and luxury desert retreats",
     src: Scottsdale,
     airportNote:
@@ -433,6 +713,46 @@ export const serviceAreaCities = [
   {
     name: "Fountain Hills",
     slug: "fountain-hills",
+    airportMinutes: "35–40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Fountain Hills to Sky Harbor via the 202 and Shea runs about 35 minutes — flight-tracked, flat rate, and confirmed the night before for early flights.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Golf Outing Transportation",
+        copy: "We-Ko-Pa, Eagle Mountain, FireRock, and SunRidge Canyon — golf outing transportation for foursomes and corporate groups, clubs handled.",
+        href: "/services/golf-outing-transportation",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "Fountain Park festivals, Fort McDowell casino and concert nights, and events at We-Ko-Pa Casino Resort — staged pickups when the show lets out.",
+        href: "/services/special-events",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Avenue of the Fountains & Fountain Park",
+        copy: "The town center around the fountain — festivals, restaurants, and the Fountain Hills Theater — our most common Fountain Hills pickup point.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Eagle Mountain",
+        copy: "The gated golf community on the town's southern edge — airport transfers and golf-day rides from a neighborhood our chauffeurs know by gate.",
+        img: "/images/areas/scottsdale.jpg",
+      },
+      {
+        name: "FireRock & SunRidge Canyon",
+        copy: "Country-club living along Shea Boulevard — executive airport runs and dinner transfers into Scottsdale are the daily routine here.",
+        img: "/images/areas/scottsdaleii.jpg",
+      },
+      {
+        name: "Fort McDowell & We-Ko-Pa",
+        copy: "The casino resort, the golf club, and the Yavapai Nation's event venues just east of town — group and event transportation all year.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+    ],
     note: "Known for the iconic Fountain Park and stunning mountain views",
     src: Mesa,
     airportNote:
@@ -453,6 +773,46 @@ export const serviceAreaCities = [
   {
     name: "Surprise",
     slug: "surprise",
+    airportMinutes: "35–40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Surprise to Sky Harbor is 35–40 minutes via the 303 and I-10 — we plan every run with the full drive built in, both directions, flat rate.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Recurring Rides",
+        copy: "Standing weekly rides for Sun City Grand and Surprise residents — medical appointments, standing commutes, and regular airport runs on a set schedule.",
+        href: "/services/reoccurring-rides",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "Surprise Stadium spring training, Rangers and Royals game days, and White Tank Mountain events — group rides with a staged return.",
+        href: "/services/special-events",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Original Town Site & Surprise Stadium",
+        copy: "The city's historic core and the spring training ballpark — game-day shuttles and event pickups from March through the fall calendar.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "Marley Park",
+        copy: "Surprise's tree-lined master-planned community — steady family airport transfers and group rides from a neighborhood built for front-porch pickups.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "Sun City Grand & Asante",
+        copy: "Active-adult communities where reliability matters most — recurring rides, medical transfers, and airport runs with a chauffeur who's on time every time.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "Prasada & Loop 303 Corridor",
+        copy: "The new retail and hotel district along the 303 — convenient staging for airport runs and a frequent pickup point for visiting business travelers.",
+        img: "/images/areas/phoenix.jpg",
+      },
+    ],
     note: "A growing West Valley community with easy freeway access",
     src: Peoria,
     airportNote:
@@ -473,6 +833,46 @@ export const serviceAreaCities = [
   {
     name: "Goodyear",
     slug: "goodyear",
+    airportMinutes: "30–35",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Goodyear to Sky Harbor is 30–35 minutes on I-10 — flight-tracked transfers timed to the West Valley's freeway conditions, both directions.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "Goodyear Ballpark spring training, Phoenix Raceway weekends nearby, and Estrella events — group rides with a staged pickup at the end.",
+        href: "/services/special-events",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive transportation for the Litchfield Road business district and the I-10 logistics employers — corporate accounts and invoiced airport runs.",
+        href: "/services/corporate-and-event-logistics",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Estrella",
+        copy: "The master-planned community in the Estrella foothills — one of the farther airport runs we make in the West Valley, planned with lead time.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "Palm Valley",
+        copy: "Golf-course neighborhoods along Litchfield Road — a steady source of airport transfers and dinner runs into Litchfield Park and Phoenix.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "PebbleCreek",
+        copy: "The active-adult golf community — recurring rides, medical transfers, and airport runs where an on-time chauffeur is the whole point.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "Goodyear Ballpark & Litchfield Road District",
+        copy: "Spring training for the Guardians and Reds, the hotels around the ballpark, and the business district — group and event pickups every season.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+    ],
     note: "A rapidly growing West Valley city near the I-10 corridor",
     src: Glendale,
     airportNote:
@@ -493,6 +893,46 @@ export const serviceAreaCities = [
   {
     name: "Sedona",
     slug: "sedona",
+    airportMinutes: "120",
+    topServices: [
+      {
+        title: "Long-Distance Drives",
+        copy: "Phoenix to Sedona in a private car — two hours door to door via I-17 and SR-179, flat rate, with a chauffeur who knows every overlook on the way in.",
+        href: "/services/long-distance-drives",
+      },
+      {
+        title: "Wedding Transportation",
+        copy: "Red-rock weddings at L'Auberge, Enchantment, and Sedona's chapel venues — wedding party cars and guest shuttles from the Valley and around town.",
+        href: "/services/weddings",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Day trips from Sedona to Oak Creek Canyon, the Verde Valley wineries, or Flagstaff — a chauffeur for the day so everyone can enjoy the drive.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Uptown Sedona",
+        copy: "The shops and galleries along SR-89A — hotel pickups, dinner runs, and the starting point for most of our Sedona day tours.",
+        img: "/images/areas/sedona.jpg",
+      },
+      {
+        name: "West Sedona",
+        copy: "Sedona's residential and resort heart — airport transfers to Phoenix and shuttles to Enchantment Resort and the Boynton Canyon trailheads.",
+        img: "/images/areas/prescott.webp",
+      },
+      {
+        name: "Village of Oak Creek",
+        copy: "Bell Rock, Cathedral Rock views, and the resorts along SR-179 — our first stop coming up from Phoenix and a wedding-venue favorite.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Oak Creek Canyon",
+        copy: "The winding canyon road north toward Flagstaff — scenic transfers and day-trip drives where a professional chauffeur is worth every mile.",
+        img: "/images/areas/flagstaff.jpg",
+      },
+    ],
     note: "A world-renowned red rock destination about two hours north of Phoenix",
     src: ParadiseValley,
     airportNote:
@@ -518,6 +958,46 @@ export const serviceAreaCities = [
   {
     name: "Tucson",
     slug: "tucson",
+    airportMinutes: "90–100",
+    topServices: [
+      {
+        title: "Long-Distance Drives",
+        copy: "Phoenix to Tucson in a private car — 115 miles and about 90 minutes on I-10, flat rate, with connections between Sky Harbor and Tucson International.",
+        href: "/services/long-distance-drives",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive intercity transportation for the Raytheon, university, and medical employers — Phoenix-to-Tucson meetings without the rental-car hassle.",
+        href: "/services/corporate-and-event-logistics",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for University of Arizona game days, conferences, and team travel between the two cities.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown Tucson",
+        copy: "The Congress Street district, the convention center, and the hotels around them — our Tucson drop-off and pickup hub.",
+        img: "/images/areas/tucson.webp",
+      },
+      {
+        name: "University of Arizona & Main Gate",
+        copy: "Campus, the medical center, and Main Gate Square — game days, graduation, and academic travel to and from Phoenix.",
+        img: "/images/areas/casaGrande.jpg",
+      },
+      {
+        name: "Catalina Foothills",
+        copy: "The resort and estate neighborhoods in the Santa Catalina foothills — Ventana Canyon, Hacienda del Sol, and the executive homes between them.",
+        img: "/images/areas/casaGrandeii.jpg",
+      },
+      {
+        name: "Tucson International & the I-10 Corridor",
+        copy: "TUS and the southern freeway corridor — airport-to-airport transfers and the on-ramp for every Phoenix run.",
+        img: "/images/areas/phoenix.jpg",
+      },
+    ],
     note: "Arizona's second-largest city, about 115 miles south of Phoenix",
     src: Phoenix,
     airportNote:
@@ -544,6 +1024,46 @@ export const serviceAreaCities = [
   {
     name: "Flagstaff",
     slug: "flagstaff",
+    airportMinutes: "130",
+    topServices: [
+      {
+        title: "Long-Distance Drives",
+        copy: "Phoenix to Flagstaff in a private car — 145 miles and about two hours up I-17, flat rate, in any season including snow.",
+        href: "/services/long-distance-drives",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for NAU move-in and graduation, Snowbowl ski days, and Grand Canyon group excursions from Flagstaff.",
+        href: "/services/group-transportation",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Flagstaff to the Grand Canyon, Sedona, or Sky Harbor — direct rides with a chauffeur who knows the mountain roads.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Historic Downtown & Railroad District",
+        copy: "Route 66, the Weatherford, and the restaurant blocks along the tracks — hotel pickups and the meeting point for Grand Canyon departures.",
+        img: "/images/areas/flagstaff.jpg",
+      },
+      {
+        name: "NAU & the Southside",
+        copy: "Northern Arizona University and the historic Southside — student travel, graduation weekends, and family fly-ins from Phoenix.",
+        img: "/images/areas/prescott.webp",
+      },
+      {
+        name: "East Flagstaff",
+        copy: "The hotels and neighborhoods along Route 66 east — a frequent pickup zone for Phoenix transfers and Sedona day trips.",
+        img: "/images/areas/sedona.jpg",
+      },
+      {
+        name: "Fort Valley & Snowbowl",
+        copy: "The road up to Arizona Snowbowl and the San Francisco Peaks — ski-day rides where a professional driver on a winter road is the whole point.",
+        img: "/images/areas/lake.jpg",
+      },
+    ],
     note: "A mountain city about two hours north of Phoenix near the Grand Canyon",
     src: ParadiseValley,
     airportNote:
@@ -569,6 +1089,46 @@ export const serviceAreaCities = [
   {
     name: "Prescott",
     slug: "prescott",
+    airportMinutes: "90–100",
+    topServices: [
+      {
+        title: "Long-Distance Drives",
+        copy: "Phoenix to Prescott in a private car — 100 miles and about 90 minutes via I-17 and SR-69, flat rate, both directions.",
+        href: "/services/long-distance-drives",
+      },
+      {
+        title: "Wedding Transportation",
+        copy: "Prescott's historic hotels, Granite Dells venues, and pine-country ranches — wedding party cars and guest shuttles from the Valley.",
+        href: "/services/weddings",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Prescott to Jerome, Sedona, or Sky Harbor — direct rides for day trips and airport connections.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Whiskey Row & Courthouse Plaza",
+        copy: "Prescott's historic center — the Hassayampa Inn, the Palace Saloon, and the plaza events that draw crowds every weekend.",
+        img: "/images/areas/prescott.webp",
+      },
+      {
+        name: "Granite Dells & Watson Lake",
+        copy: "The boulder landscapes north of town — wedding venues, trailheads, and the scenic stretch our chauffeurs know well.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Prescott Lakes",
+        copy: "The golf-course community on the east side — airport transfers to Phoenix and executive rides on a schedule.",
+        img: "/images/areas/sedona.jpg",
+      },
+      {
+        name: "Prescott Valley",
+        copy: "The neighboring town along SR-69 — Findlay Toyota Center events and the on-ramp for every Phoenix run.",
+        img: "/images/areas/flagstaff.jpg",
+      },
+    ],
     note: "A charming mountain city about 90 minutes north of Phoenix",
     src: ParadiseValley,
     airportNote:
@@ -594,6 +1154,46 @@ export const serviceAreaCities = [
   {
     name: "Avondale",
     slug: "avondale",
+    airportMinutes: "25–30",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Avondale to Sky Harbor is 25–30 minutes straight down I-10 — flight-tracked pickups, flat rate, both directions.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "Phoenix Raceway NASCAR weekends and Avondale Civic Center events — group rides with a staged pickup when the checkered flag drops.",
+        href: "/services/special-events",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides from Avondale to anywhere in the Valley — a downtown game, a Scottsdale dinner, or a Westgate concert — with no one driving home.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Old Town Avondale",
+        copy: "The historic Western Avenue district — civic events, dinners, and a convenient staging point for I-10 airport runs.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "Garden Lakes",
+        copy: "The lakeside community off Indian School Road — steady family airport transfers and group event rides.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Rancho Santa Fe",
+        copy: "Avondale's northern neighborhoods near the 101 — quick freeway access for Sky Harbor and Westgate runs.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "Phoenix Raceway & Avondale Boulevard Corridor",
+        copy: "Race weekends bring the Valley's worst traffic — we stage on the corridor and pick up exactly where we said we would.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+    ],
     note: "Home to Phoenix Raceway and major West Valley destinations",
     src: Glendale,
     airportNote:
@@ -612,6 +1212,46 @@ export const serviceAreaCities = [
   {
     name: "Buckeye",
     slug: "buckeye",
+    airportMinutes: "40–45",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Buckeye to Sky Harbor is 40–45 minutes on I-10 — we build extra lead time into every early departure and monitor the corridor in real time.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Recurring Rides",
+        copy: "Standing rides for Verrado and Sundance residents — weekly commutes, medical appointments, and regular airport runs on a set schedule.",
+        href: "/services/reoccurring-rides",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for Buckeye's community events, team travel, and Valley outings from the far West Valley.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Verrado",
+        copy: "The master-planned community in the White Tank foothills — our most common Buckeye pickup point for airport transfers and Valley events.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "Sundance",
+        copy: "Central Buckeye's neighborhoods off I-10 — quick freeway access and a reliable flat-rate run to Sky Harbor.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "Tartesso",
+        copy: "The far-west community — a long run to the airport that we plan with generous lead time, especially before dawn.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "Festival Ranch",
+        copy: "Northern Buckeye's active-adult and family communities — recurring rides and airport transfers where reliability is everything.",
+        img: "/images/areas/phoenix.jpg",
+      },
+    ],
     note: "A fast-growing community on the western edge of the Valley",
     src: Peoria,
     airportNote:
@@ -630,6 +1270,46 @@ export const serviceAreaCities = [
   {
     name: "Litchfield Park",
     slug: "litchfield-park",
+    airportMinutes: "30",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Litchfield Park to Sky Harbor is about 30 minutes via I-10 — flight-tracked, flat rate, and confirmed the night before.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Golf Outing Transportation",
+        copy: "The Wigwam's three championship courses and the West Valley's best tracks — golf outing transportation for groups with clubs handled.",
+        href: "/services/golf-outing-transportation",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "The Wigwam's resort events, weddings, and holiday galas, plus Goodyear Ballpark spring training minutes away — staged pickups every time.",
+        href: "/services/special-events",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "The Wigwam & Village Center",
+        copy: "The historic resort and the palm-lined village core — resort guest transfers, golf rides, and event pickups year-round.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "Litchfield Greens",
+        copy: "Golf-course homes wrapped around the Wigwam's fairways — executive airport transfers and dinner runs.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "Dreaming Summit",
+        copy: "Litchfield Park's newer neighborhoods on the north side — family airport transfers and group outings.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "Russell Ranch",
+        copy: "Established homes along the Camelback Road corridor — a quick on-ramp to the 101 for Sky Harbor runs.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+    ],
     note: "An upscale West Valley community known for The Wigwam resort",
     src: Peoria,
     airportNote:
@@ -648,6 +1328,46 @@ export const serviceAreaCities = [
   {
     name: "Sun City",
     slug: "sun-city",
+    airportMinutes: "30–35",
+    topServices: [
+      {
+        title: "Recurring Rides",
+        copy: "Standing weekly rides for Sun City residents — medical appointments, standing errands, and regular airport runs with a chauffeur you'll recognize.",
+        href: "/services/reoccurring-rides",
+      },
+      {
+        title: "Airport Transfers",
+        copy: "Sun City to Sky Harbor is 30–35 minutes via the 101 and I-10 — door-to-door, flight-tracked, with help with luggage every time.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides to Valley medical centers, family visits, and dinner reservations — no driving after dark, no parking garages.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Lakeview & Viewpoint Lake",
+        copy: "The lakeside center of Sun City — recreation center pickups, dinner runs, and airport transfers from the community's heart.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Bell Road Corridor",
+        copy: "Bell Recreation Center and the shopping along Bell Road — a frequent staging point for medical and airport rides.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "Del Webb Boulevard & the Sundial",
+        copy: "The original Sun City neighborhoods around the Sundial Recreation Center — standing rides on a schedule residents can count on.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "Grand Avenue & 99th Avenue",
+        copy: "Sun City's southern edge along Grand Avenue — quick access to the 101 for Sky Harbor and downtown runs.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+    ],
     note: "A premier active adult community in the Northwest Valley",
     src: Glendale,
     airportNote:
@@ -666,6 +1386,46 @@ export const serviceAreaCities = [
   {
     name: "Sun City West",
     slug: "sun-city-west",
+    airportMinutes: "35",
+    topServices: [
+      {
+        title: "Recurring Rides",
+        copy: "Standing rides for Sun City West residents — medical appointments, weekly errands, and regular airport transfers with a familiar chauffeur.",
+        href: "/services/reoccurring-rides",
+      },
+      {
+        title: "Airport Transfers",
+        copy: "Sun City West to Sky Harbor is about 35 minutes via the 303 and I-10 — door-to-door with luggage assistance, flight tracking, and lead time built in.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides to the Banner and Abrazo medical campuses, family in the East Valley, or a Westgate show — no night driving required.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "R.H. Johnson Recreation Center District",
+        copy: "The community's main campus — the library, the rec center, and the surrounding neighborhoods where most Sun City West rides begin.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "Grandview & Beardsley",
+        copy: "The eastern neighborhoods near Beardsley Recreation Center — quick access to the 101 for airport and medical runs.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "Palm Ridge",
+        copy: "The Palm Ridge Recreation Center area — recurring rides and airport transfers on a set weekly schedule.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "Loop 303 & Grand Avenue Corridor",
+        copy: "The community's freeway connections west and south — our route of choice for timing Sky Harbor runs.",
+        img: "/images/areas/phoenix.jpg",
+      },
+    ],
     note: "A premier active adult community in the Northwest Valley",
     src: Glendale,
     airportNote:
@@ -684,6 +1444,46 @@ export const serviceAreaCities = [
   {
     name: "Anthem",
     slug: "anthem",
+    airportMinutes: "35–40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Anthem to Sky Harbor is 35–40 minutes down I-17 — flight-tracked, flat rate, and planned with lead time for the early departures this commuter community books most.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Golf Outing Transportation",
+        copy: "Anthem Golf and Country Club's two courses and the north Valley tracks — golf outing rides with clubs handled and a chauffeur waiting at the 19th hole.",
+        href: "/services/golf-outing-transportation",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive commutes and airport runs for Anthem's north-Phoenix professionals — corporate accounts and invoiced rides.",
+        href: "/services/corporate-and-event-logistics",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Anthem Parkside",
+        copy: "The community's family neighborhoods and the big park — airport transfers, group outings, and school-event rides.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+      {
+        name: "Anthem Country Club",
+        copy: "The gated golf community — executive airport runs and dinner transfers with a chauffeur who knows the gates.",
+        img: "/images/areas/scottsdale.jpg",
+      },
+      {
+        name: "Tramonto & Carefree Highway Corridor",
+        copy: "The neighborhoods just south along the Carefree Highway — quick I-17 access for Sky Harbor and downtown runs.",
+        img: "/images/areas/scottsdaleii.jpg",
+      },
+      {
+        name: "Outlets at Anthem & I-17 Corridor",
+        copy: "The retail and hotel district at the interchange — a convenient staging point for airport pickups and Valley trips.",
+        img: "/images/areas/phoenix.jpg",
+      },
+    ],
     note: "A master-planned community at the north end of the Valley",
     src: Phoenix,
     airportNote:
@@ -702,6 +1502,46 @@ export const serviceAreaCities = [
   {
     name: "Carefree",
     slug: "carefree",
+    airportMinutes: "35–40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Carefree to Sky Harbor is 35–40 minutes via the 51 or Cave Creek Road — discreet, flight-tracked transfers for resort guests and residents.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Hourly Chauffeur",
+        copy: "As-directed chauffeur service by the hour — a day of galleries and dinner, a Scottsdale evening, or a resort stay with a car on standby.",
+        href: "/services/hourly-chauffeur",
+      },
+      {
+        title: "Golf Outing Transportation",
+        copy: "The Boulders, Desert Forest, and the north Scottsdale courses minutes away — golf outing transportation with clubs handled.",
+        href: "/services/golf-outing-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Town Center & the Sundial",
+        copy: "Carefree's boutique core around the sundial — restaurant runs, gallery days, and resort guest pickups.",
+        img: "/images/areas/brewery.jpg",
+      },
+      {
+        name: "The Boulders Resort",
+        copy: "The desert resort and its residences — airport transfers, golf days, and dinners in Scottsdale for guests and owners alike.",
+        img: "/images/areas/scottsdaleii.jpg",
+      },
+      {
+        name: "Carefree Ranch",
+        copy: "Estate properties on large desert lots — our chauffeurs know the private roads and stage exactly where you say.",
+        img: "/images/areas/scottsdale.jpg",
+      },
+      {
+        name: "Black Mountain Foothills",
+        copy: "Hillside homes with views and winding access — remote enough that a pre-confirmed car is the only reliable ride.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+    ],
     note: "A boutique desert town known for its galleries, dining, and luxury homes",
     src: Scottsdale,
     airportNote:
@@ -721,6 +1561,46 @@ export const serviceAreaCities = [
   {
     name: "Rio Verde",
     slug: "rio-verde",
+    airportMinutes: "40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Rio Verde to Sky Harbor is about 40 minutes through north Scottsdale — a run where rideshare rarely reaches and a pre-booked chauffeur always does.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Golf Outing Transportation",
+        copy: "Rio Verde Country Club, Tonto Verde, and the Verde River courses — golf outing rides for members and their guests.",
+        href: "/services/golf-outing-transportation",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides into Scottsdale for dinner, shopping at Kierland, or a night at the resorts — with the drive home handled.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Rio Verde Country Club",
+        copy: "The community's original golf neighborhoods — airport transfers and Scottsdale runs for residents who value a reliable car.",
+        img: "/images/areas/scottsdale.jpg",
+      },
+      {
+        name: "Trilogy at Verde River",
+        copy: "The newer resort-style community — recurring rides, airport transfers, and group outings to the Valley.",
+        img: "/images/areas/scottsdaleii.jpg",
+      },
+      {
+        name: "Tonto Verde",
+        copy: "Golf-course living along the Verde River — a frequent pickup point for Sky Harbor departures at every hour.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Rio Verde Foothills",
+        copy: "The rural desert acreage north of the community — remote roads where our chauffeurs plan the approach in advance.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+    ],
     note: "An upscale community in the Sonoran Desert foothills",
     src: Scottsdale,
     airportNote:
@@ -739,6 +1619,46 @@ export const serviceAreaCities = [
   {
     name: "Ahwatukee",
     slug: "ahwatukee",
+    airportMinutes: "20–25",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Ahwatukee to Sky Harbor is 20–25 minutes on I-10 — one of the Valley's most direct airport runs, flight-tracked and flat rate.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive rides for the Chandler tech corridor and downtown Phoenix — corporate accounts and invoiced airport transfers from the Foothills.",
+        href: "/services/corporate-and-event-logistics",
+      },
+      {
+        title: "Golf Outing Transportation",
+        copy: "Ahwatukee's own courses and the Wild Horse Pass tracks nearby — golf outing rides with clubs handled.",
+        href: "/services/golf-outing-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Ahwatukee Foothills",
+        copy: "The South Mountain foothill neighborhoods — steady airport transfers and a favorite pickup point for early-morning corporate flyers.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+      {
+        name: "Lakewood",
+        copy: "The lakeside community along Warner Road — family airport runs and group rides to Valley events.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Club West",
+        copy: "The golf community on Ahwatukee's western edge — a longer run to I-10, planned with lead time.",
+        img: "/images/areas/chandler.jpg",
+      },
+      {
+        name: "Mountain Park Ranch",
+        copy: "Established neighborhoods off Ray Road — quick access to I-10 for Sky Harbor and downtown runs.",
+        img: "/images/areas/phoenix.jpg",
+      },
+    ],
     note: "A South Phoenix community nestled at the base of South Mountain",
     src: Phoenix,
     airportNote:
@@ -757,6 +1677,46 @@ export const serviceAreaCities = [
   {
     name: "Laveen",
     slug: "laveen",
+    airportMinutes: "20–25",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Laveen to Sky Harbor is 20–25 minutes via I-10 — flight-tracked, flat rate, both directions.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for church groups, school events, and family celebrations across Laveen and South Phoenix.",
+        href: "/services/group-transportation",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides to downtown, the Tempe entertainment district, or Chandler — with nobody driving home.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Laveen Village Core",
+        copy: "The historic center along Baseline Road — community events and a convenient staging point for airport runs.",
+        img: "/images/areas/phoenix.jpg",
+      },
+      {
+        name: "Rogers Ranch",
+        copy: "Laveen's master-planned neighborhoods — family airport transfers and group event rides.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "South Mountain Foothills",
+        copy: "The homes along the preserve's southern edge — quick access to I-10 for Sky Harbor and downtown.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+      {
+        name: "Baseline Road Corridor",
+        copy: "Laveen's main artery east to Phoenix — our route of choice for timing airport pickups.",
+        img: "/images/areas/downtown-phoenix.jpeg",
+      },
+    ],
     note: "A growing South Phoenix community near the I-10 and Loop 202",
     src: Phoenix,
     airportNote:
@@ -775,6 +1735,46 @@ export const serviceAreaCities = [
   {
     name: "Queen Creek",
     slug: "queen-creek",
+    airportMinutes: "40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Queen Creek to Sky Harbor is about 40 minutes via the 202 and SR-24 — with Mesa Gateway (AZA) just 15 minutes away, we run both, flat rate.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Wedding Transportation",
+        copy: "Queen Creek's barn and farm venues — Schnepf Farms, the Olive Mill, and the ranch venues around them — wedding party cars and guest shuttles.",
+        href: "/services/weddings",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for church groups, youth sports, and company outings from the far Southeast Valley.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown Queen Creek",
+        copy: "The town center at Ellsworth and Ocotillo — restaurants, events, and the pickup point for most of our Queen Creek rides.",
+        img: "/images/areas/gilbert.webp",
+      },
+      {
+        name: "Agritourism Corridor",
+        copy: "Schnepf Farms, the Queen Creek Olive Mill, and the farm venues — weddings, festivals, and group outings all season.",
+        img: "/images/areas/casaGrande.jpg",
+      },
+      {
+        name: "San Tan Mountain Foothills",
+        copy: "The neighborhoods climbing toward San Tan Mountain Regional Park — a longer airport run, planned with lead time.",
+        img: "/images/areas/mesaii.jpg",
+      },
+      {
+        name: "Queen Creek Marketplace & SR-24 Corridor",
+        copy: "The retail district and the freeway extension toward Gateway Airport — quick staging for airport runs in both directions.",
+        img: "/images/areas/chandler.jpg",
+      },
+    ],
     note: "A growing Southeast Valley community with easy access to the 24 freeway",
     src: Gilbert,
     airportNote:
@@ -794,6 +1794,46 @@ export const serviceAreaCities = [
   {
     name: "San Tan Valley",
     slug: "san-tan-valley",
+    airportMinutes: "45",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "San Tan Valley to Sky Harbor is about 45 minutes — and Mesa Gateway is under 20 — so we run both airports with lead time built in and flat rates.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Recurring Rides",
+        copy: "Standing rides for San Tan Valley commuters and families — weekly airport runs and scheduled transfers into the Valley.",
+        href: "/services/reoccurring-rides",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for team travel, church groups, and community events from the Southeast Valley's fastest-growing area.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Johnson Ranch",
+        copy: "The established master-planned community — family airport transfers and group outings from a neighborhood we serve daily.",
+        img: "/images/areas/casaGrande.jpg",
+      },
+      {
+        name: "San Tan Heights",
+        copy: "Neighborhoods along Hunt Highway with San Tan Mountain views — steady airport runs planned around the corridor's traffic.",
+        img: "/images/areas/mesaii.jpg",
+      },
+      {
+        name: "Ironwood Crossing",
+        copy: "The community near the SR-24 extension — the quickest San Tan Valley access to Mesa Gateway Airport.",
+        img: "/images/areas/gilbert.webp",
+      },
+      {
+        name: "Hunt Highway Corridor",
+        copy: "The area's main artery — our route for timing Sky Harbor and Gateway pickups to the minute.",
+        img: "/images/areas/casaGrandeii.jpg",
+      },
+    ],
     note: "A growing Southeast Valley community near San Tan Mountain Regional Park",
     src: Gilbert,
     airportNote:
@@ -812,6 +1852,46 @@ export const serviceAreaCities = [
   {
     name: "Maricopa",
     slug: "maricopa",
+    airportMinutes: "40–45",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Maricopa to Sky Harbor is 40–45 minutes via SR-347 and I-10 — we monitor the 347 corridor's traffic and build the lead time in.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Recurring Rides",
+        copy: "Standing rides for Maricopa commuters — weekly airport runs and scheduled transfers into Phoenix on a reliable calendar.",
+        href: "/services/reoccurring-rides",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "Harrah's Ak-Chin concerts and casino nights, Copper Sky events, and Valley outings — group rides with a staged return.",
+        href: "/services/special-events",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Province",
+        copy: "The active-adult lakeside community — recurring rides, medical transfers, and airport runs where an on-time chauffeur matters most.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Rancho El Dorado",
+        copy: "Golf-course neighborhoods in central Maricopa — family airport transfers and Valley event rides.",
+        img: "/images/areas/maricopa.jpeg",
+      },
+      {
+        name: "Glennwilde",
+        copy: "One of Maricopa's largest master-planned communities — steady early-morning Sky Harbor departures via the 347.",
+        img: "/images/areas/maricopaii.jpg",
+      },
+      {
+        name: "Tortosa",
+        copy: "Southern Maricopa's newer neighborhoods — a long airport run we plan with generous lead time.",
+        img: "/images/areas/casaGrande.jpg",
+      },
+    ],
     note: "A fast-growing city south of the Valley off the SR-347",
     src: Mesa,
     airportNote:
@@ -830,6 +1910,46 @@ export const serviceAreaCities = [
   {
     name: "Apache Junction",
     slug: "apache-junction",
+    airportMinutes: "40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Apache Junction to Sky Harbor is about 40 minutes via US-60 and the 202 — with Mesa Gateway 20 minutes closer, we run both, flat rate.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "Lost Dutchman Days, Goldfield events, and Superstition Mountain outings — group rides with a staged pickup.",
+        href: "/services/special-events",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides to Canyon Lake, the Apache Trail, or the East Valley's restaurants and venues — with the mountain roads handled.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown Apache Junction",
+        copy: "The Apache Trail and Idaho Road corridor — the town's civic center and the pickup point for most of our AJ rides.",
+        img: "/images/areas/mesa.jpg",
+      },
+      {
+        name: "Superstition Mountain Foothills",
+        copy: "Neighborhoods at the base of the Superstitions — airport transfers and day-trip rides with a view.",
+        img: "/images/areas/mesaii.jpg",
+      },
+      {
+        name: "Goldfield & Lost Dutchman Corridor",
+        copy: "The ghost town, the state park, and the venues along the Apache Trail — event and group transportation.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Ironwood Drive & US-60 Corridor",
+        copy: "The freeway side of town — our on-ramp for timing Sky Harbor and Gateway runs.",
+        img: "/images/areas/casaGrandeii.jpg",
+      },
+    ],
     note: "A scenic East Valley city near the Superstition Mountains",
     src: Mesa,
     airportNote:
@@ -849,6 +1969,46 @@ export const serviceAreaCities = [
   {
     name: "Gold Canyon",
     slug: "gold-canyon",
+    airportMinutes: "45",
+    topServices: [
+      {
+        title: "Golf Outing Transportation",
+        copy: "Superstition Mountain Golf and Country Club and Gold Canyon Golf Resort — golf outing rides with clubs handled and a chauffeur at the clubhouse.",
+        href: "/services/golf-outing-transportation",
+      },
+      {
+        title: "Airport Transfers",
+        copy: "Gold Canyon to Sky Harbor is about 45 minutes via US-60 — we build the lead time in, and Mesa Gateway is a quicker alternative we run daily.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides to Mesa, Scottsdale, or downtown Phoenix for dinner and events — with no drive home after.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Superstition Mountain Golf & Country Club",
+        copy: "The gated golf community under the mountains — executive airport transfers and golf-day rides for members and guests.",
+        img: "/images/areas/mesaii.jpg",
+      },
+      {
+        name: "Gold Canyon Golf Resort",
+        copy: "The resort and its neighborhoods — guest transfers, wedding transportation, and Valley dinner runs.",
+        img: "/images/areas/mesa.jpg",
+      },
+      {
+        name: "Peralta Trails",
+        copy: "The trailhead neighborhoods on the east side — a long airport run planned with generous lead time.",
+        img: "/images/areas/casaGrandeii.jpg",
+      },
+      {
+        name: "MountainBrook Village",
+        copy: "The active-adult community — recurring rides, medical transfers, and airport runs on a set schedule.",
+        img: "/images/areas/gilbert.webp",
+      },
+    ],
     note: "A scenic desert community at the foot of the Superstition Mountains",
     src: Mesa,
     airportNote:
@@ -867,6 +2027,46 @@ export const serviceAreaCities = [
   {
     name: "Wickenburg",
     slug: "wickenburg",
+    airportMinutes: "60",
+    topServices: [
+      {
+        title: "Long-Distance Drives",
+        copy: "Phoenix to Wickenburg in a private car — 60 miles and about an hour via US-60, flat rate, for dude-ranch stays and rodeo weekends.",
+        href: "/services/long-distance-drives",
+      },
+      {
+        title: "Black Truck Service",
+        copy: "Ranch country calls for the black truck — resort transfers, rodeo nights, and desert events with room for gear and a chauffeur who fits the town.",
+        href: "/services/black-truck-service",
+      },
+      {
+        title: "Wedding Transportation",
+        copy: "Rancho de los Caballeros and Wickenburg's ranch venues — wedding party cars and guest shuttles from the Valley.",
+        href: "/services/weddings",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Historic Downtown Wickenburg",
+        copy: "The western-heritage main street — the Desert Caballeros Western Museum, the shops, and the rodeo-weekend crowds.",
+        img: "/images/areas/brewery.jpg",
+      },
+      {
+        name: "Wickenburg Ranch",
+        copy: "The golf and active-adult community north of town — airport transfers to Phoenix and event rides.",
+        img: "/images/areas/prescott.webp",
+      },
+      {
+        name: "Rancho de los Caballeros",
+        copy: "The dude ranch and golf club — guest transfers from Sky Harbor and wedding transportation.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "Hassayampa River Corridor",
+        copy: "The river preserve and the US-60 approach — the route our chauffeurs know for every Phoenix run.",
+        img: "/images/areas/lake.jpg",
+      },
+    ],
     note: "A historic desert town northwest of Phoenix known for luxury guest ranches",
     src: Scottsdale,
     airportNote:
@@ -886,6 +2086,46 @@ export const serviceAreaCities = [
   {
     name: "Payson",
     slug: "payson",
+    airportMinutes: "90",
+    topServices: [
+      {
+        title: "Long-Distance Drives",
+        copy: "Phoenix to Payson in a private car — 90 miles and about 90 minutes up the Beeline Highway, flat rate, in any season.",
+        href: "/services/long-distance-drives",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for Rim Country retreats, church camps, and family reunions from the Valley.",
+        href: "/services/group-transportation",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Payson to the Mogollon Rim, Tonto Natural Bridge, or Sky Harbor — direct rides with a chauffeur who knows the mountain roads.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown Payson & Main Street",
+        copy: "The town center and its restaurants — hotel pickups and the meeting point for Rim Country departures.",
+        img: "/images/areas/prescott.webp",
+      },
+      {
+        name: "Green Valley Park",
+        copy: "The lakeside park and the neighborhoods around it — event and group transportation.",
+        img: "/images/areas/lake.jpg",
+      },
+      {
+        name: "Rim Country & Christopher Creek",
+        copy: "The cabins and campgrounds east along SR-260 — retreat and reunion rides from Phoenix.",
+        img: "/images/areas/flagstaff.jpg",
+      },
+      {
+        name: "Beeline Highway Corridor",
+        copy: "The SR-87 approach from the Valley — the road every Payson ride travels, driven by chauffeurs who respect it.",
+        img: "/images/areas/sedona.jpg",
+      },
+    ],
     note: "A mountain retreat about 90 minutes northeast of Phoenix on the Mogollon Rim",
     src: ParadiseValley,
     airportNote:
@@ -905,6 +2145,46 @@ export const serviceAreaCities = [
   {
     name: "Yuma",
     slug: "yuma",
+    airportMinutes: "150",
+    topServices: [
+      {
+        title: "Long-Distance Drives",
+        copy: "Phoenix to Yuma in a private car — 185 miles and about 2.5 hours via I-10 and I-8, flat rate, with connections to Yuma International.",
+        href: "/services/long-distance-drives",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive intercity transportation for MCAS Yuma contractors, agricultural employers, and medical travel to Phoenix.",
+        href: "/services/corporate-and-event-logistics",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for team travel, military family events, and Yuma-to-Phoenix group trips.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown & Historic Yuma",
+        copy: "The Territorial Prison, the riverfront, and Main Street — hotel pickups and the hub for Phoenix departures.",
+        img: "/images/areas/yuma.jpg",
+      },
+      {
+        name: "Fortuna Foothills",
+        copy: "The active-adult and family communities east of town — recurring rides and long-distance transfers to Phoenix.",
+        img: "/images/areas/casaGrande.jpg",
+      },
+      {
+        name: "Yuma Palms & the I-8 Corridor",
+        copy: "The retail district at the interchange — a convenient staging point for intercity runs.",
+        img: "/images/areas/casaGrandeii.jpg",
+      },
+      {
+        name: "MCAS Yuma Corridor",
+        copy: "The air station and its neighborhoods — military family transfers and Phoenix connections.",
+        img: "/images/areas/maricopaii.jpg",
+      },
+    ],
     note: "A city in southwestern Arizona near the California border",
     src: ParadiseValley,
     airportNote:
@@ -924,6 +2204,46 @@ export const serviceAreaCities = [
   {
     name: "Tolleson",
     slug: "tolleson",
+    airportMinutes: "20–25",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Tolleson to Sky Harbor is 20–25 minutes straight up I-10 — one of the West Valley's quickest airport runs, flight-tracked and flat rate.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive rides for the West Valley Business Park and the I-10 logistics employers — corporate accounts and invoiced airport transfers.",
+        href: "/services/corporate-and-event-logistics",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for community events, church groups, and Valley outings from Tolleson.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Old Town Tolleson",
+        copy: "The Van Buren Street core — civic events and a convenient staging point for I-10 airport runs.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "I-10 & 99th Avenue Corridor",
+        copy: "The interchange district — quick freeway access and a frequent pickup point for business travelers.",
+        img: "/images/areas/phoenix.jpg",
+      },
+      {
+        name: "West Valley Business Park",
+        copy: "The logistics and industrial employers — executive airport runs and corporate transfers on account.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "Loop 101 Corridor",
+        copy: "Tolleson's eastern edge — our route for Westgate events and north Valley runs.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+    ],
     note: "A West Valley city with easy access to I-10 and Loop 101",
     src: Glendale,
     airportNote:
@@ -942,6 +2262,46 @@ export const serviceAreaCities = [
   {
     name: "El Mirage",
     slug: "el-mirage",
+    airportMinutes: "30–35",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "El Mirage to Sky Harbor is 30–35 minutes via the 101 and I-10 — flight-tracked, flat rate, both directions.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Recurring Rides",
+        copy: "Standing rides for El Mirage families and commuters — weekly airport runs and scheduled Valley transfers.",
+        href: "/services/reoccurring-rides",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides to Westgate, Surprise Stadium, or downtown Phoenix — with nobody driving home.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Thompson Ranch",
+        copy: "The master-planned community on the city's north side — family airport transfers and group rides.",
+        img: "/images/areas/westValleyiii.jpg",
+      },
+      {
+        name: "Rancho El Mirage",
+        copy: "Established neighborhoods along El Mirage Road — steady airport runs and Valley event rides.",
+        img: "/images/areas/westValley.jpg",
+      },
+      {
+        name: "Dysart Road Business District",
+        copy: "The city's commercial corridor — a frequent staging point for airport pickups.",
+        img: "/images/areas/westValleyii.jpg",
+      },
+      {
+        name: "El Mirage Road Corridor",
+        copy: "The main artery to the 101 — our route for timing Sky Harbor runs.",
+        img: "/images/areas/phoenix.jpg",
+      },
+    ],
     note: "A Northwest Valley community near Surprise and Peoria",
     src: Peoria,
     airportNote:
@@ -960,6 +2320,46 @@ export const serviceAreaCities = [
   {
     name: "New River",
     slug: "new-river",
+    airportMinutes: "35–40",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "New River to Sky Harbor is 35–40 minutes down I-17 — flight-tracked, flat rate, with lead time built in for the far-north run.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct rides to Anthem, north Phoenix, or downtown — with the I-17 drive handled by a professional.",
+        href: "/services/point-to-point",
+      },
+      {
+        title: "Black Truck Service",
+        copy: "Desert-acreage living deserves a ride with ground clearance — our black truck service handles New River's rural roads with room for gear.",
+        href: "/services/black-truck-service",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "New River Road Corridor",
+        copy: "The community's main route and the homes along it — airport transfers and Valley runs from rural acreage.",
+        img: "/images/areas/phoenixii.jpg",
+      },
+      {
+        name: "Desert Hills",
+        copy: "The neighboring desert community — a frequent pickup zone for Sky Harbor departures.",
+        img: "/images/areas/scottsdaleii.jpg",
+      },
+      {
+        name: "I-17 & Anthem Interchange",
+        copy: "The freeway connection south — our on-ramp for every Phoenix run.",
+        img: "/images/areas/phoenix.jpg",
+      },
+      {
+        name: "Black Canyon City",
+        copy: "The town just north on I-17 — long-distance transfers and Valley connections.",
+        img: "/images/areas/prescott.webp",
+      },
+    ],
     note: "A rural community north of Phoenix near the I-17 corridor",
     src: Phoenix,
     airportNote:
@@ -978,6 +2378,46 @@ export const serviceAreaCities = [
   {
     name: "Casa Grande",
     slug: "casa-grande",
+    airportMinutes: "50",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Casa Grande sits midway between Sky Harbor and Tucson International on I-10 — about 50 minutes to PHX — and we run both airports, flat rate.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Long-Distance Drives",
+        copy: "Casa Grande to Tucson, Phoenix, or beyond — private intercity rides on I-10 with a chauffeur who drives it daily.",
+        href: "/services/long-distance-drives",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive rides for the Lucid plant and the industrial employers along I-10 — corporate accounts and invoiced airport transfers.",
+        href: "/services/corporate-and-event-logistics",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown Casa Grande",
+        copy: "The historic center and its civic events — hotel pickups and the hub for airport runs in both directions.",
+        img: "/images/areas/casaGrande.jpg",
+      },
+      {
+        name: "Mission Royale",
+        copy: "The active-adult golf community — recurring rides, medical transfers, and airport runs on a set schedule.",
+        img: "/images/areas/casaGrandeii.jpg",
+      },
+      {
+        name: "The Promenade & I-10 Corridor",
+        copy: "The retail district at the interchange — a convenient staging point for Phoenix and Tucson transfers.",
+        img: "/images/areas/maricopa.jpeg",
+      },
+      {
+        name: "Palm Creek & Florence Boulevard Corridor",
+        copy: "The resort community and the road east toward Florence — group rides and long-distance connections.",
+        img: "/images/areas/maricopaii.jpg",
+      },
+    ],
     note: "A central Arizona city midway between Phoenix and Tucson",
     src: Mesa,
     airportNote:
@@ -996,6 +2436,46 @@ export const serviceAreaCities = [
   {
     name: "Florence",
     slug: "florence",
+    airportMinutes: "50",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Florence to Sky Harbor is about 50 minutes via SR-79 and US-60 — a longer run we plan with lead time, and Mesa Gateway is a closer alternative we run daily.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Recurring Rides",
+        copy: "Standing rides for Anthem at Merrill Ranch residents — medical appointments, weekly errands, and regular airport transfers.",
+        href: "/services/reoccurring-rides",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters and coaches for Florence's community events, reunions, and group trips into the Valley.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Historic Downtown Florence",
+        copy: "One of Arizona's oldest main streets — civic events and the pickup point for most of our Florence rides.",
+        img: "/images/areas/casaGrande.jpg",
+      },
+      {
+        name: "Anthem at Merrill Ranch",
+        copy: "The master-planned community on the town's north side — recurring rides and airport transfers where reliability matters.",
+        img: "/images/areas/chandler.jpg",
+      },
+      {
+        name: "Florence Gardens",
+        copy: "The established active-adult community — scheduled medical and airport runs with a familiar chauffeur.",
+        img: "/images/areas/casaGrandeii.jpg",
+      },
+      {
+        name: "SR-79 & Hunt Highway Corridor",
+        copy: "Florence's connections north toward Queen Creek and the Valley — our route for timing every airport run.",
+        img: "/images/areas/gilbert.webp",
+      },
+    ],
     note: "A historic town in Pinal County southeast of the Valley",
     src: Chandler,
     airportNote:

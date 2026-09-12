@@ -1,6 +1,7 @@
 .container {
   background-color: var(--white);
   padding: 10rem 0rem;
+  padding-bottom: 0;
 }
 
 .content {
@@ -65,7 +66,7 @@
 }
 
 .rightContent {
-  background-color: var(--stroke);
+  background-color: var(--accent);
   border-radius: 7px;
   padding: 3rem;
   align-self: flex-start;

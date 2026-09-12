@@ -99,7 +99,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
       )}
-      <Nav background='accent' />
+      <Nav background='cream' />
       <Breadcrumbs
         items={[{ name: "Fleet", href: "/fleet" }, { name: vehicle.title }]}
       />

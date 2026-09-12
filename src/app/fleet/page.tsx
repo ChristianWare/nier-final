@@ -79,7 +79,7 @@ export default function FleetPage() {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <Nav background='accent' />
+      <Nav background='white' />
       <FleetPageIntro />
       <FleetPostHero />
       <Fleet />

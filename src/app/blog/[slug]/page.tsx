@@ -15,6 +15,7 @@ import remarkGfm from "remark-gfm";
 import type { MDXComponents } from "mdx/types";
 import type { ReactNode } from "react";
 import { getAllPosts, getPostBySlug, slugify } from "@/lib/blog";
+import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
 const CLIENT_NAME = process.env.CLIENT_NAME || "Nier Transportation";
 
@@ -370,6 +371,8 @@ export default async function BlogPostPage({
           </aside>
         </div>
       </LayoutWrapper>
+      <div style={{ marginBottom: '20rem' }} />
+        <AboutNumbers />
     </main>
   );
 }

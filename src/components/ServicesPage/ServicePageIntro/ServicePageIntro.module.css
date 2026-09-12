@@ -17,7 +17,7 @@
 }
 
 .heading {
-  max-width: 600px;
+  max-width: 700px;
   text-transform: capitalize;
 }
 
@@ -86,7 +86,6 @@
 }
 
 .bottom {
-  margin-top: -12rem;
   position: relative;
   z-index: 1;
 }

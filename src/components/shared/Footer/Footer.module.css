@@ -90,6 +90,10 @@
   margin-bottom: 2rem;
 }
 
+.linkSection li {
+  font-size: 14px;
+}
+
 .linkSectionList {
   list-style: none;
   color: var(--darkGrayii);

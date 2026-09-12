@@ -51,7 +51,7 @@ export default function FleetSlugPageIntro({
             </article>
 
             <div className={styles.btnContainer}>
-              <Button href='/' text='Book your ride' btnType='black' arrow />
+              <Button href='/book' text='Book your ride' btnType='black' arrow />
             </div>
           </div>
         </div>
