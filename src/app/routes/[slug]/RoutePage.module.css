@@ -1,5 +1,5 @@
 .intro {
-  padding: 10rem 0rem;
+  padding: 7rem 0rem;
   background-color: var(--cream);
 }
 
@@ -136,6 +136,10 @@
 }
 
 @media screen and (max-width: 768px) {
+  .intro {
+    padding-top: 5rem;
+  }
+  
   .overviewGrid {
     grid-template-columns: repeat(1, 1fr);
   }

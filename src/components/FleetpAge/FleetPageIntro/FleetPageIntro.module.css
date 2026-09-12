@@ -25,6 +25,7 @@
 .copy {
   font-size: 2rem;
   max-width: 600px;
+  color: var(--paragraph)
 }
 
 .imgContainer {
