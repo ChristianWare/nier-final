@@ -1,13 +1,36 @@
 .container {
-  background-color: var(--white);
+  background-color: var(--cream);
   padding: 10rem 0rem;
 }
 
-.heading {
-  font-size: 3.2rem;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: -0.5px;
+.content {
+  position: relative;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* faint vertical gridlines behind the cards, like the reference */
+.lines {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.lines span {
+  border-left: 1px solid var(--stroke);
+}
+
+.lines span:last-child {
+  border-right: 1px solid var(--stroke);
+}
+
+.headingWrap {
+  position: relative;
+  z-index: 1;
   text-align: center;
   margin-bottom: 5rem;
 }
@@ -16,29 +39,51 @@
   display: block;
 }
 
+/* ── shared card ── */
+.card {
+  position: relative;
+  z-index: 1;
+  background-color: var(--white);
+  border-radius: 14px;
+  padding: 2.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  /* if you switch .container to var(--white), uncomment: */
+  /* border: 1px solid var(--stroke); */
+}
+
+.cardDark {
+  background-color: var(--black, #0f1526);
+}
+
+.cardDark .quoteText,
+.cardDark .authorName,
+.cardDark .authorCity {
+  color: var(--white);
+}
+
+.cardDark .avatar {
+  background-color: var(--white);
+  color: var(--black, #0f1526);
+}
+
+/* ── stat bar ── */
 .barCard {
+  position: relative;
+  z-index: 1;
+  background-color: var(--white);
+  border-radius: 14px;
+  padding: 2.8rem 2.4rem;
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1.1fr 1fr;
   gap: 4rem;
   align-items: center;
-  background-color: var(--cream);
-  border: 2px solid var(--stroke);
-  border-radius: 10px;
-  padding: 3rem;
   margin-bottom: 2rem;
 }
 
-.barLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 1.4rem;
-}
-
-.barHeading {
-  font-size: 2.2rem;
-  font-weight: 700;
-  line-height: 1.3;
-  margin: 0;
+.title {
+  max-width: 300px;
 }
 
 .barStats {
@@ -50,109 +95,154 @@
 .barStat {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
 }
 
-.barStatValue {
-  font-size: 4rem;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: -1px;
+.statValue {
+  font-weight: 700;
 }
 
-.barStatLabel {
-  font-size: 1.6rem;
-  line-height: 1.5;
+.statLabel {
+  font-size: 14px;
+  line-height: 1.4;
   color: var(--paragraph);
+  max-width: 20ch;
+  font-weight: 400;
 }
 
+.statLabelStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* stat inside a quote card: numeral + label side by side */
+.cardStat {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+/* stat inside the tall card: numeral over label */
+.cardStatStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+/* .cardStatStack .statLabel {
+  font-weight: 700;
+  color: inherit;
+  max-width: none;
+} */
+
+/* ── bento ── */
 .bento {
   display: grid;
-  grid-template-columns: 1fr 1.2fr;
+  grid-template-columns: 1.45fr 1fr;
   gap: 2rem;
-  align-items: start;
+  align-items: stretch;
 }
 
-.bentoLeft,
-.bentoRight {
+.bentoLeft {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-.quoteCard {
-  background-color: var(--cream);
-  border: 2px solid var(--stroke);
-  border-radius: 10px;
-  padding: 3rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.6rem;
+.bottomRow {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 2rem;
+  flex: 1;
 }
 
-.quoteCardAccent {
-  background-color: var(--accent);
-  border-color: var(--accent);
-}
-
-.quoteCardAccent .quoteText,
-.quoteCardAccent .quoteName,
-.quoteCardAccent .quoteCity,
-.quoteCardAccent .quoteMark {
-  color: var(--white);
+.cardTall {
+  justify-content: flex-start;
 }
 
 .quoteMark {
   font-size: 4.8rem;
   font-weight: 900;
-  line-height: 0.5;
+  line-height: 0.55;
   color: var(--accent);
 }
 
 .quoteText {
-  font-size: 1.6rem;
-  line-height: 1.7;
   color: var(--paragraph);
-  margin: 0;
 }
 
-.quoteMeta {
+.author {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.authorMeta {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
-  margin-top: auto;
 }
 
-.quoteName {
-  font-size: 1.6rem;
+.authorName {
   font-weight: 700;
 }
 
-.quoteCity {
-  font-size: 1.6rem;
+.authorCity {
   color: var(--paragraph);
 }
 
 .imgContainer {
   position: relative;
   width: 100%;
-  height: 280px;
+  height: 200px;
   border-radius: 10px;
   overflow: hidden;
+  margin-top: 1rem;
 }
 
 .img {
   object-fit: cover;
 }
 
-@media screen and (max-width: 1068px) {
-  .heading {
-    font-size: 2.8rem;
+@media screen and (max-width: 1268px) {
+  .content {
+    width: 100%;
   }
 
   .barCard {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     gap: 3rem;
+  }
+
+  .bento {
+    grid-template-columns: 1fr;
+  }
+
+  .lines {
+    display: none;
   }
 }
 
@@ -161,19 +251,24 @@
     padding: 6rem 0rem;
   }
 
-  .heading {
-    font-size: 2.4rem;
-  }
-
   .br {
     display: none;
   }
 
-  .bento {
+  .barStats {
     grid-template-columns: 1fr;
   }
 
-  .imgContainer {
-    height: 220px;
+  .bottomRow {
+    grid-template-columns: 1fr;
+  }
+
+  .cardStat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    text-align: center;
   }
 }

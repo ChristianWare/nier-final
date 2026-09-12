@@ -31,9 +31,9 @@ export default function LocationCityNeighborhoods({
         <div className={styles.grid}>
           {city.neighborhoods.map((hood, i) => (
             <div key={hood.name} className={styles.col}>
-              <span className={styles.num}>
+              {/* <span className={styles.num}>
                 {String(i + 1).padStart(2, "0")}
-              </span>
+              </span> */}
               <h3 className="h4">{hood.name}</h3>
               <p className={styles.hoodCopy}>{hood.copy}</p>
               {hood.img && (

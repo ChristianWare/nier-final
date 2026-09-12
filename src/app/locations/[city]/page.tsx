@@ -234,7 +234,7 @@ export default async function LocationCityPage({
       {/* City-specific unique content — critical for Google indexing */}
       {(city.localContext || city.airportNote || city.corporateNote) && (
         <section className={styles.cityContext}>
-          <LayoutWrapper>
+          {/* <LayoutWrapper>
             <div className={styles.cityContextGrid}>
               <div className={styles.cityContextLeft}>
                 <h2 className={styles.cityContextHeading}>
@@ -283,7 +283,7 @@ export default async function LocationCityPage({
                 </div>
               )}
             </div>
-          </LayoutWrapper>
+          </LayoutWrapper> */}
         </section>
       )}
 
@@ -291,7 +291,8 @@ export default async function LocationCityPage({
       <LocationCityNeighborhoods city={city} />
       <LocationCityServicesGrid city={city} />
 
-      <LocationCityTestimonials city={city} />
+      {/* <LocationCityTestimonials city={city} /> */}
+      <AboutTestimonials />
       <HowItWorks />
 
       {city.faqs && city.faqs.length > 0 && (
@@ -304,7 +305,6 @@ export default async function LocationCityPage({
         />
       )}
 
-      <AboutTestimonials />
       <AboutNumbers />
     </main>
   );
