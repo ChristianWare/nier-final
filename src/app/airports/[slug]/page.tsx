@@ -21,6 +21,7 @@ import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
 import styles from "./AirportPage.module.css";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
+import Image from "next/image";
 
 type Params = { slug: string };
 
@@ -158,7 +159,7 @@ export default async function AirportPage({
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <Nav background='accent' />
+      <Nav background='cream' />
       <Breadcrumbs
         items={[
           { name: "Airports", href: "/airports" },
@@ -169,25 +170,37 @@ export default async function AirportPage({
       <section className={styles.intro}>
         <LayoutWrapper>
           <div className={styles.introContent}>
-            <SectionHeading
-              text={`${airport.code} · ${airport.shortName}`}
-              color='cream'
-            />
-            <h1 className={`${styles.heading} h1`}>{airport.h1}</h1>
-            <p className={styles.lead}>{airport.heroLine}</p>
-            <div className={styles.ctas}>
-              <Button
-                href='/book'
-                text='Book airport transfer'
-                btnType='black'
-                arrow
+            <div className={styles.left}>
+              <SectionHeading
+                text={`${airport.code} · ${airport.shortName}`}
+                color='cream'
               />
-              <Button
-                href='/contact'
-                text='Get an instant quote'
-                btnType='underlinedWhite'
-                arrow
-              />
+              <h1 className={`${styles.heading} h1`}>{airport.h1}</h1>
+              <p className={styles.lead}>{airport.heroLine}</p>
+              <div className={styles.ctas}>
+                <Button
+                  href='/book'
+                  text='Book airport transfer'
+                  btnType='black'
+                  arrow
+                />
+                <Button
+                  href='/contact'
+                  text='Get an instant quote'
+                  btnType='underlinedBlack'
+                  arrow
+                />
+              </div>
+            </div>
+            <div className={styles.right}>
+              <div className={styles.imgContainer}>
+                <Image
+                  src={airport.heroImage}
+                  alt={`${airport.name} airport`}
+                  fill
+                  className={styles.img}
+                />
+              </div>
             </div>
           </div>
         </LayoutWrapper>

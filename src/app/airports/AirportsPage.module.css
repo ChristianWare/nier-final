@@ -13,15 +13,28 @@
   max-width: 900px;
 }
 
+.heading {
+  max-width: 500px;
+}
+
 .lead {
-  font-size: 1.6rem;
-  line-height: 1.7;
+  max-width: 700px;
   color: var(--paragraph);
 }
 
 .airportsSection {
   padding: 10rem 0rem;
   background-color: var(--white);
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  height: 350px;
+}
+
+.img {
+  object-fit: contain;
 }
 
 .airportsGrid {
@@ -60,29 +73,27 @@
 }
 
 .metaItem {
-  font-size: 1.3rem;
+  font-size: 14px;
   font-weight: 700;
   color: var(--paragraph);
   background: var(--lighterBlue);
-  padding: 0.5rem 1rem;
+  padding: 0.7rem 1rem;
   border-radius: 5px;
   border: 1px solid var(--blue);
 }
 
 .airportCopy {
-  font-size: 1.5rem;
-  line-height: 1.7;
   color: var(--paragraph);
   flex-grow: 1;
 }
 
-@media (max-width: 1100px) {
+@media screen and (max-width: 1100px) {
   .airportsGrid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 700px) {
+@media screen and (max-width: 768px) {
   .airportsGrid {
     grid-template-columns: 1fr;
   }
@@ -94,5 +105,9 @@
 
   .intro {
     padding-bottom: 0rem;
+  }
+
+  .imgContainer {
+    height: 300px;
   }
 }

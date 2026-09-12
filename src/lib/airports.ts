@@ -3,12 +3,18 @@
 // times, corridors, carriers) mirror the copy in cities.ts — if a number
 // changes there, change it here too.
 
+import type { StaticImageData } from "next/image";
+import SkyHarborImg from "../../public/images/other/airport.png";
+import MesaGatewayImg from "../../public/images/other/airport2.webp";
+import ScottsdaleAirportImg from "../../public/images/other/airport3.png";
+
 export type AirportData = {
   slug: string;
   code: string; // IATA
   name: string; // full official name
   shortName: string; // how riders say it
   h1: string;
+  heroImage: StaticImageData;
   metaTitle: string;
   metaDescription: string;
   heroLine: string;
@@ -28,6 +34,7 @@ export const airportsData: readonly AirportData[] = [
     name: "Phoenix Sky Harbor International Airport",
     shortName: "Sky Harbor",
     h1: "PHX Sky Harbor Airport Car Service",
+    heroImage: SkyHarborImg,
     metaTitle: "PHX Sky Harbor Airport Car Service | Nier Transportation",
     metaDescription:
       "Private car service to and from Phoenix Sky Harbor (PHX) — flight-tracked pickups at Terminals 3 & 4, meet & greet or curbside, flat rates, available 24/7. Serving Scottsdale, Paradise Valley, and the entire Valley since 2004.",
@@ -84,6 +91,7 @@ export const airportsData: readonly AirportData[] = [
     name: "Phoenix–Mesa Gateway Airport",
     shortName: "Mesa Gateway",
     h1: "Phoenix–Mesa Gateway Airport Car Service",
+    heroImage: MesaGatewayImg,
     metaTitle: "Mesa Gateway Airport (AZA) Car Service | Nier Transportation",
     metaDescription:
       "Private car service to and from Phoenix–Mesa Gateway Airport (AZA) — flat rates, flight-tracked pickups, single-terminal simplicity. Serving Mesa, Gilbert, Chandler, Queen Creek, and the entire Valley.",
@@ -136,6 +144,7 @@ export const airportsData: readonly AirportData[] = [
     name: "Scottsdale Airport",
     shortName: "Scottsdale Airport",
     h1: "Scottsdale Airport (SDL) Car Service",
+    heroImage: ScottsdaleAirportImg,
     metaTitle:
       "Scottsdale Airport (SDL) Car Service | Private Aviation | Nier Transportation",
     metaDescription:

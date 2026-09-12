@@ -7,6 +7,7 @@ import Button from "@/components/shared/Button/Button";
 import { airportsData } from "@/lib/airports";
 import { SITE_URL } from "@/lib/site";
 import styles from "./AirportsPage.module.css";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title:
@@ -72,6 +73,14 @@ export default function AirportsPage() {
                   <h2 className={`${styles.airportName} h4 cardTitle`}>
                     {airport.shortName}
                   </h2>
+                  <div className={styles.imgContainer}>
+                    <Image
+                      src={airport.heroImage}
+                      alt={`${airport.name} airport`}
+                      fill
+                      className={styles.img}
+                    />
+                  </div>
                   <ul className={styles.metaRow}>
                     <li className={styles.metaItem}>{airport.code}</li>
                     <li className={styles.metaItem}>{airport.terminals}</li>
