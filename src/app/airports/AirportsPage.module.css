@@ -111,3 +111,197 @@
     height: 300px;
   }
 }
+
+
+/* ── Featured cards: code badge + section head ── */
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 4rem;
+}
+
+.featuredHeading {
+  margin: 0;
+}
+
+.cardTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.codeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  background-color: var(--accent);
+  color: var(--white);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.codeBadgeSm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 5.2rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  background-color: var(--cream);
+  border: 1px solid var(--stroke);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+
+/* ── Private aviation band ── */
+.aviationBand {
+  background-color: var(--white);
+  padding: 8rem 0rem;
+}
+
+.aviationContent {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  background-color: var(--cream);
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  padding: 4rem;
+}
+
+.aviationLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.aviationHeading {
+  margin: 0;
+}
+
+.aviationCopy {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.aviationRight {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ── Directory tables ── */
+.directorySection {
+  padding: 8rem 0rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.directoryHeading {
+  margin: 0 0 1.2rem 0;
+}
+
+.directoryBlurb {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  max-width: 70ch;
+  margin: 0 0 3rem 0;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.6rem;
+  line-height: 1.5;
+}
+
+.th {
+  text-align: left;
+  font-weight: 700;
+  padding: 1.2rem 1.4rem;
+  border-bottom: 2px solid var(--stroke);
+  white-space: nowrap;
+}
+
+.td {
+  padding: 1.4rem;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: top;
+}
+
+.tr:hover {
+  background-color: var(--cream);
+}
+
+.airportLink {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.airportLink:hover {
+  color: var(--accent);
+}
+
+.airportPlain {
+  font-weight: 700;
+}
+
+.note {
+  font-size: 1.6rem;
+  line-height: 1.6;
+  color: var(--paragraph);
+  margin: 0.6rem 0 0 0;
+  max-width: 48ch;
+}
+
+.codes {
+  font-size: 1.6rem;
+  color: var(--paragraph);
+  opacity: 0.7;
+  margin: 0.4rem 0 0 0;
+}
+
+.sourceNote {
+  font-size: 1.6rem;
+  color: var(--paragraph);
+  opacity: 0.7;
+  margin: 1.6rem 0 0 0;
+}
+
+@media screen and (max-width: 1068px) {
+  .aviationContent {
+    grid-template-columns: 1fr;
+    padding: 3rem;
+  }
+
+  .aviationRight {
+    justify-content: flex-start;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .aviationBand,
+  .directorySection {
+    padding: 6rem 0rem;
+  }
+
+  .table {
+    min-width: 920px;
+  }
+}

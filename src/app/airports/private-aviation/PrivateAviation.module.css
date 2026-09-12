@@ -1,0 +1,267 @@
+.intro {
+  padding: 10rem 0rem 8rem 0rem;
+  background-color: var(--cream);
+}
+
+.introContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 860px;
+}
+
+.heading {
+  margin: 0;
+}
+
+.lead {
+  font-size: 1.8rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  margin: 0;
+}
+
+.ctas {
+  display: flex;
+  align-items: center;
+  gap: 2.4rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.callLink {
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: inherit;
+}
+
+.howSection {
+  padding: 10rem 0rem;
+  background-color: var(--white);
+}
+
+.howGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr;
+  gap: 6rem;
+  align-items: start;
+}
+
+.howLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.howHeading {
+  margin: 0;
+}
+
+.howCopy {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  margin: 0;
+}
+
+.howList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.howItem {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  padding: 1.6rem 0;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.howItem:last-child {
+  border-bottom: none;
+}
+
+.howItem strong {
+  color: inherit;
+  font-weight: 700;
+}
+
+.airportsSection {
+  padding: 10rem 0rem;
+  background-color: var(--cream);
+}
+
+.sectionHead {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 4rem;
+}
+
+.sectionHeading {
+  margin: 0;
+}
+
+.airportGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.card {
+  background-color: var(--white);
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  background-color: var(--accent);
+  color: var(--white);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.cardCity {
+  font-size: 1.6rem;
+  color: var(--paragraph);
+}
+
+.cardName {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.cardLink {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cardLink:hover {
+  color: var(--accent);
+}
+
+.cardCopy {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  margin: 0;
+}
+
+.cardMeta {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: auto 0 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.gaNote {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  margin: 3rem 0 0 0;
+}
+
+.inlineLink {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.whoSection {
+  padding: 10rem 0rem;
+  background-color: var(--white);
+}
+
+.whoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+}
+
+.whoCard {
+  border-left: 1px solid var(--stroke);
+  padding-left: 2.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.whoTitle {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.whoCopy {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  margin: 0;
+}
+
+.whoCta {
+  margin-top: 4rem;
+}
+
+@media screen and (max-width: 1068px) {
+  .howGrid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .airportGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .whoGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .intro,
+  .howSection,
+  .airportsSection,
+  .whoSection {
+    padding: 6rem 0rem;
+  }
+
+  .airportGrid,
+  .whoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .whoCard {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--stroke);
+    padding-top: 2rem;
+  }
+}
