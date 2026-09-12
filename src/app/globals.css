@@ -476,7 +476,7 @@ th {
   border: 1px solid rgba(0, 0, 0, 0.12);
   white-space: nowrap;
   font-weight: 700;
-  letter-spacing: .5px;
+  letter-spacing: 0.5px;
   width: fit-content;
   text-transform: uppercase;
   line-height: 1;
@@ -884,5 +884,13 @@ th {
   .select,
   .selectBorder {
     font-size: 16px !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  h1,
+  .h1 {
+    letter-spacing: -1.5px;
+    font-size: 35px;
   }
 }

@@ -179,21 +179,14 @@
   margin: 0;
 }
 
-/* Table of Contents */
 .toc {
   display: flex;
   flex-direction: column;
-  gap: 1.4rem;
-  padding: 2rem;
-  background: var(--lightBlue);
-  border: 1px solid var(--blue);
-  border-radius: 10px;
-  /* border-left: 2px solid var(--stroke); */
-  /* padding-left: 2rem; */
+  gap: 3rem;
 }
 
 .tocTitle {
-  font-size: 1.6rem;
+  font-size: 2rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -228,9 +221,9 @@
 .tocLinkActive {
   opacity: 1;
   color: var(--blue) !important;
-  /* font-weight: 700; */
+  font-weight: 700;
   /* font-size: 1.4rem; */
-  /* letter-spacing: normal; */
+  letter-spacing: normal;
 }
 
 /* ─── Article Body ──────────────────────────────────────── */
@@ -265,6 +258,10 @@
 }
 
 .ptH2 {
+  font-size: 32px;
+  line-height: 1.2em;
+  font-weight: 500;
+  letter-spacing: -1.6px;
   margin-top: 1rem;
   scroll-margin-top: 110px;
   /* margin-bottom: -1.5rem; */
@@ -276,6 +273,7 @@
   font-weight: 600;
   margin-top: 0.5rem;
   color: var(--black);
+  letter-spacing: -1px;
 }
 
 .ptUl,
@@ -487,8 +485,11 @@
   .shareRow {
     display: none;
   }
-}
 
+  .ptH2 {
+    font-size: 26px;
+  }
+}
 
 .relatedCta {
   font-size: 1.5rem;
