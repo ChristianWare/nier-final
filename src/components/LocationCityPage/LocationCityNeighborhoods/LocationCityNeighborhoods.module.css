@@ -16,12 +16,13 @@
   gap: 1.4rem;
   border-right: 1px solid var(--stroke);
   padding-right: 5rem;
+  padding-bottom: 5rem;
   height: 100%;
 }
 
 .heading {
   padding-left: 5rem;
-  padding-bottom: 8rem;
+  padding-bottom: 5rem;
 }
 
 .bigStat {
@@ -124,13 +125,13 @@
   .topLeft {
     border-right: none;
     padding-right: 0;
+    padding-bottom: 2rem;
     height: auto;
   }
 
   .heading {
     padding: 0;
     padding-bottom: 3rem;
-
   }
 
   .grid {
@@ -161,7 +162,6 @@
     justify-content: center;
     gap: 2rem;
     text-align: center;
-
   }
 
   .topLeft {
