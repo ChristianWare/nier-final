@@ -593,3 +593,83 @@
 .mobileDashboardBtn:hover {
   opacity: 0.8;
 }
+
+/* ── Partners dropdown (desktop only) ──────────────── */
+
+.navItemBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.caret {
+  width: 1.2rem;
+  height: 1.2rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.caretOpen {
+  transform: rotate(180deg);
+}
+
+.partnersDropdown {
+  position: absolute;
+  top: calc(100% + 1.8rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--stroke);
+  overflow: hidden;
+  animation: dropdownFadeIn 0.18s ease both;
+  z-index: 9998;
+}
+
+.partnerDropdownItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.6rem 1.8rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--stroke);
+  transition: background 0.15s ease;
+}
+
+.partnerDropdownItem:last-child {
+  border-bottom: none;
+}
+
+.partnerDropdownItem:hover {
+  background: var(--cream);
+}
+
+.partnerDropdownTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+
+.partnerDropdownCopy {
+  font-size: 1.6rem;
+  color: var(--paragraph);
+  line-height: 1.4;
+}
+
+@media screen and (max-width: 1368px) {
+  .partnersDropdown {
+    display: none !important;
+  }
+}

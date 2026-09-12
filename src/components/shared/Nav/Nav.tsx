@@ -65,15 +65,17 @@ export default function Nav({
   // For mobile — build a button for each role the user has
   const mobileDashboardLinks: { label: string; href: string }[] = isAuthed
     ? (["USER", "ADMIN", "DRIVER", "CORPORATE"] as AppRole[])
-      .filter((role) => roles.includes(role))
-      .map((role) => ROLE_DASHBOARD[role])
+        .filter((role) => roles.includes(role))
+        .map((role) => ROLE_DASHBOARD[role])
     : [];
 
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const [partnersOpen, setPartnersOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const servicesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const partnersTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
 
@@ -117,9 +119,23 @@ export default function Nav({
     }, 150);
   };
 
+  const handlePartnersMouseEnter = () => {
+    if (isMobile) return;
+    if (partnersTimeoutRef.current) clearTimeout(partnersTimeoutRef.current);
+    setPartnersOpen(true);
+  };
+
+  const handlePartnersMouseLeave = () => {
+    if (isMobile) return;
+    partnersTimeoutRef.current = setTimeout(() => {
+      setPartnersOpen(false);
+    }, 150);
+  };
+
   useEffect(() => {
     return () => {
       if (servicesTimeoutRef.current) clearTimeout(servicesTimeoutRef.current);
+      if (partnersTimeoutRef.current) clearTimeout(partnersTimeoutRef.current);
     };
   }, []);
 
@@ -166,13 +182,27 @@ export default function Nav({
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
+  const partners = [
+    {
+      text: "We-Ko-Pa Golf Club",
+      href: "/wekopa",
+      copy: "Sky Harbor & Mesa Gateway transfers",
+    },
+    {
+      text: "Denū Hotel & Spa",
+      href: "/denu-hotel",
+      copy: "Downtown Phoenix airport transfers",
+    },
+  ];
+  const partnersActive = partners.some((p) => isActive(p.href));
+
   const items = [
     { text: "Home", href: "/" },
     { text: "Services *", href: "/services", hasDropdown: true },
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
     { text: "Corporate", href: "/corporate-accounts" },
-    { text: "Wekopa", href: "/wekopa" },
+    { text: "Partners", href: "/wekopa", hasPartnersDropdown: true },
     { text: "Charter", href: "/charter-bus-rental-phoenix" },
     { text: "Contact", href: "/contact", isLast: true },
   ];
@@ -209,16 +239,19 @@ export default function Nav({
 
   return (
     <header
-      className={`${styles.header} ${scrolled ? styles.scrolled : styles.transparent
-        } ${isOpen ? styles.open : ""} ${bgClass} ${forceSolid ? styles.forceSolid : ""
-        }`}
+      className={`${styles.header} ${
+        scrolled ? styles.scrolled : styles.transparent
+      } ${isOpen ? styles.open : ""} ${bgClass} ${
+        forceSolid ? styles.forceSolid : ""
+      }`}
       ref={navRef}
     >
       <nav className={styles.navbar}>
         <Link
           href='/'
-          className={`${styles.logoContainer} ${shouldBlend ? styles.blend : ""
-            }`}
+          className={`${styles.logoContainer} ${
+            shouldBlend ? styles.blend : ""
+          }`}
         >
           <Logo className={styles.logo} />
           <span className={styles.text}>Nier Transportation</span>
@@ -254,8 +287,9 @@ export default function Nav({
                 >
                   <Link
                     href={item.href}
-                    className={`${styles.navItem} ${styles[color]} ${active ? styles.navItemActive : ""
-                      } ${shouldBlend ? styles.blend : ""}`}
+                    className={`${styles.navItem} ${styles[color]} ${
+                      active ? styles.navItemActive : ""
+                    } ${shouldBlend ? styles.blend : ""}`}
                     onClick={closeMenu}
                     aria-current={active ? "page" : undefined}
                   >
@@ -313,12 +347,87 @@ export default function Nav({
               );
             }
 
+            if (item.hasPartnersDropdown) {
+              // Mobile menu has no dropdowns — show the partners as plain rows
+              if (isMobile) {
+                return partners.map((p) => (
+                  <Link
+                    key={p.href}
+                    href={p.href}
+                    className={`${styles.navItem} ${styles[color]} ${isActive(p.href) ? styles.navItemActive : ""}`}
+                    onClick={closeMenu}
+                    aria-current={isActive(p.href) ? "page" : undefined}
+                  >
+                    {p.text}
+                  </Link>
+                ));
+              }
+
+              return (
+                <div
+                  key={item.href}
+                  className={styles.servicesWrapper}
+                  onMouseEnter={handlePartnersMouseEnter}
+                  onMouseLeave={handlePartnersMouseLeave}
+                >
+                  <button
+                    type='button'
+                    className={`${styles.navItem} ${styles.navItemBtn} ${styles[color]} ${partnersActive ? styles.navItemActive : ""} ${shouldBlend ? styles.blend : ""}`}
+                    onClick={() => setPartnersOpen((s) => !s)}
+                    aria-haspopup='menu'
+                    aria-expanded={partnersOpen}
+                  >
+                    {item.text}
+                    <svg
+                      className={`${styles.caret} ${partnersOpen ? styles.caretOpen : ""}`}
+                      viewBox='0 0 24 24'
+                      fill='none'
+                      stroke='currentColor'
+                      strokeWidth='2.5'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      aria-hidden='true'
+                    >
+                      <path d='M6 9l6 6 6-6' />
+                    </svg>
+                  </button>
+
+                  {partnersOpen && (
+                    <div
+                      className={styles.partnersDropdown}
+                      onMouseEnter={handlePartnersMouseEnter}
+                      onMouseLeave={handlePartnersMouseLeave}
+                      role='menu'
+                    >
+                      {partners.map((p) => (
+                        <Link
+                          key={p.href}
+                          href={p.href}
+                          className={styles.partnerDropdownItem}
+                          onClick={() => setPartnersOpen(false)}
+                          role='menuitem'
+                        >
+                          <span className={styles.partnerDropdownTitle}>
+                            {p.text}
+                          </span>
+                          <span className={styles.partnerDropdownCopy}>
+                            {p.copy}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`${styles.navItem} ${styles[color]} ${active ? styles.navItemActive : ""
-                  } ${shouldBlend ? styles.blend : ""} ${item.isLast ? styles.navItemLast : ""}`}
+                className={`${styles.navItem} ${styles[color]} ${
+                  active ? styles.navItemActive : ""
+                } ${shouldBlend ? styles.blend : ""} ${item.isLast ? styles.navItemLast : ""}`}
                 onClick={closeMenu}
                 aria-current={active ? "page" : undefined}
               >
@@ -369,8 +478,9 @@ export default function Nav({
         <div className={styles.btnContainer}>
           <Link
             href={primaryHref}
-            className={`${styles.navItem} ${styles[color]} ${accountActive ? styles.navItemActive : ""
-              }`}
+            className={`${styles.navItem} ${styles[color]} ${
+              accountActive ? styles.navItemActive : ""
+            }`}
             onClick={closeMenu}
             aria-current={accountActive ? "page" : undefined}
           >
@@ -396,18 +506,21 @@ export default function Nav({
         >
           <span
             aria-hidden='true'
-            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${shouldBlend ? styles.blend : ""
-              }`}
+            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
+              shouldBlend ? styles.blend : ""
+            }`}
           ></span>
           <span
             aria-hidden='true'
-            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${shouldBlend ? styles.blend : ""
-              }`}
+            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
+              shouldBlend ? styles.blend : ""
+            }`}
           ></span>
           <span
             aria-hidden='true'
-            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${shouldBlend ? styles.blend : ""
-              }`}
+            className={`${styles.whiteBar} ${styles[hamburgerColor]} ${
+              shouldBlend ? styles.blend : ""
+            }`}
           ></span>
         </span>
       </nav>

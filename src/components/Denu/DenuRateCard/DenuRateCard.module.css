@@ -1,0 +1,124 @@
+.container {
+  background-color: var(--white);
+  padding: 10rem 0rem;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 5rem;
+}
+
+.heading {
+  margin: 0;
+}
+
+.subCopy {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  max-width: 62ch;
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+.card {
+  background-color: var(--cream);
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cardWide {
+  grid-column: 1 / -1;
+}
+
+.cardNote {
+  font-size: 1.6rem;
+  color: var(--paragraph);
+  margin: 0 0 1.4rem 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.6rem;
+}
+
+.th,
+.thNum {
+  text-align: left;
+  font-weight: 700;
+  padding: 1.2rem 0;
+  border-bottom: 2px solid var(--stroke);
+}
+
+.thNum,
+.tdNum {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.td,
+.tdNum {
+  padding: 1.4rem 0;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: middle;
+}
+
+.tdNum {
+  font-weight: 700;
+}
+
+.pill {
+  display: inline-block;
+  margin-left: 1rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 100px;
+  background-color: var(--accent);
+  color: var(--white);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.ctaRow {
+  display: flex;
+  align-items: center;
+  gap: 2.4rem;
+  flex-wrap: wrap;
+  margin-top: 4rem;
+}
+
+.callLink {
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  color: inherit;
+}
+
+@media screen and (max-width: 968px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 6rem 0rem;
+  }
+
+  .card {
+    padding: 2rem;
+  }
+}

@@ -1,0 +1,385 @@
+.container {
+  background-color: var(--cream);
+  padding: 10rem 0;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--stroke),
+    var(--stroke) 1px,
+    transparent 1px,
+    transparent
+  );
+  background-size: 500px 500px;
+}
+
+/* ── TOP ── */
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 6rem;
+  text-align: center;
+}
+
+.heading {
+  max-width: 600px;
+}
+
+.subCopy {
+  color: var(--paragraph);
+  max-width: 520px;
+  line-height: 1.6;
+}
+
+/* ── AIRPORT GROUP ── */
+.airportGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.airportGroup:last-child {
+  margin-bottom: 0;
+}
+
+.airportLabel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--black);
+}
+
+.airportDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── CARDS ── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card {
+  border-radius: 10px;
+  padding: 4rem;
+  padding-top: 6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  position: relative;
+}
+
+/* Theme: --black */
+.dark1 {
+  background-color: var(--black);
+  border: 1px solid var(--black);
+}
+
+.dark1 .planName,
+.dark1 .priceDollar,
+.dark1 .priceValue {
+  color: var(--white);
+}
+
+.dark1 .planTagline,
+.dark1 .priceUnit {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.dark1 .featureStar {
+  color: var(--accent);
+}
+
+.dark1 .featureText {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.dark1 .divider {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark1 .dividerLine {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.light1 .planTagline {
+  color: var(--black) !important;
+}
+
+/* Theme: --black400 */
+.dark2 {
+  background-color: var(--black400);
+  border: 1px solid var(--black400);
+}
+
+.dark2 .planName,
+.dark2 .priceDollar,
+.dark2 .priceValue {
+  color: var(--white);
+}
+
+.dark2 .planTagline,
+.dark2 .priceUnit {
+  color: rgba(255, 255, 255, 1);
+}
+
+.dark2 .featureStar {
+  color: var(--accent);
+}
+
+.dark2 .featureText {
+  color: rgba(255, 255, 255, 1);
+}
+
+.dark2 .divider {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark2 .dividerLine {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Theme: --black300 */
+.light1 {
+  background-color: var(--black300);
+  border: 1px solid var(--black300);
+}
+
+.light1 .planName,
+.light1 .priceDollar,
+.light1 .priceValue {
+  color: var(--black);
+}
+
+.light1 .planTagline,
+.light1 .priceUnit {
+  color: var(--black400);
+}
+
+.light1 .featureStar {
+  color: var(--black);
+}
+
+.light1 .featureText {
+  color: var(--black);
+}
+
+.light1 .divider {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.light1 .dividerLine {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+/* Theme: --white */
+.light2 {
+  background-color: var(--white);
+  border: 1px solid var(--stroke);
+}
+
+.light2 .planName,
+.light2 .priceDollar,
+.light2 .priceValue {
+  color: var(--black);
+}
+
+.light2 .planTagline,
+.light2 .priceUnit {
+  color: var(--text);
+}
+
+.light2 .featureStar {
+  color: var(--black);
+}
+
+.light2 .featureText {
+  color: var(--paragraph);
+}
+
+.light2 .divider {
+  background-color: var(--stroke);
+}
+
+.light2 .dividerLine {
+  border-color: var(--stroke);
+}
+
+/* ── POPULAR BADGE ── */
+.popularBadge {
+  position: absolute;
+  top: -1px;
+  right: 3rem;
+  background-color: var(--accent);
+  color: var(--cream);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 1rem 1.4rem;
+  border-radius: 0 0 8px 8px;
+}
+
+/* ── CARD TOP ── */
+.cardTop {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.planName {
+  font-size: 2.8rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.planTagline {
+  font-size: 1.5rem;
+  line-height: 1.5;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+
+.priceDollar {
+  font-size: 3rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.priceValue {
+  font-size: 7rem;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+
+.priceUnit {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.priceDetails {
+  font-size: 1.3rem !important;
+}
+
+/* ── CTA ── */
+.cardCta {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── DIVIDER ── */
+.divider {
+  width: 100%;
+  height: 1px;
+}
+
+/* ── FEATURE LIST ── */
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+}
+
+.featureStar {
+  font-size: 1rem;
+  flex-shrink: 0;
+  margin-top: 0.4rem;
+}
+
+.featureText {
+  font-size: 1.5rem;
+  line-height: 1.4;
+}
+
+/* ── RESPONSIVE ── */
+@media screen and (max-width: 768px) {
+  .cards {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .card {
+    padding: 3rem 2.5rem;
+    padding-top: 7rem;
+  }
+
+  .priceValue {
+    font-size: 5.5rem;
+  }
+}
+
+@media screen and (max-width: 1268px) {
+  .container {
+    background-size: 300px 300px;
+  }
+}
+
+@media screen and (max-width: 1068px) {
+  .container {
+    background-size: 250px 250px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    background-size: 75px 75px;
+  }
+}
+
+.airportTag {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.dark1 .airportTag,
+.dark2 .airportTag {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.light1 .airportTag,
+.light2 .airportTag {
+  color: var(--paragraph);
+}

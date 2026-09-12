@@ -737,6 +737,54 @@ export const wekopaQuestions = [
   },
 ] as const;
 
+export const denuQuestions = [
+  {
+    id: 1,
+    question: "How far is Denū Hotel & Spa from Sky Harbor Airport?",
+    answer:
+      "Denū sits at 1 E Adams Street in the heart of Downtown Phoenix, about four miles from Phoenix Sky Harbor — roughly 12 minutes door to door in normal traffic. Nier Transportation runs the route at a flat rate with gratuity included, in both directions, 24 hours a day.",
+  },
+  {
+    id: 1.1,
+    question: "Is gratuity included in the transfer price?",
+    answer:
+      "Yes. Every airport and local transfer on the Denū rate card includes the chauffeur's gratuity. The price you see is the price you pay — no surge, no meter, no tip prompt at the end of the ride.",
+  },
+  {
+    id: 2,
+    question: "Where does my chauffeur meet me at Sky Harbor?",
+    answer:
+      "Inside at baggage claim with a name sign, or at the curb outside your terminal coordinated by text — your choice at booking. Either way we track your flight and stage to your actual landing time, so an early arrival or a delay never leaves you waiting.",
+  },
+  {
+    id: 3,
+    question:
+      "Can you pick me up at Mesa Gateway or Scottsdale Airport instead?",
+    answer:
+      "Yes. Mesa Gateway (AZA) transfers book online right here at a flat rate. Scottsdale Airport (SCF), Glendale Airport (GEU), and private FBO arrivals are on the rate card and booked by phone at (480) 300-6003 so we can confirm the FBO and tail number.",
+  },
+  {
+    id: 4,
+    question:
+      "Do you provide rides from the hotel to Old Town Scottsdale, State Farm Stadium, or Cave Creek?",
+    answer:
+      "Those are our three most-requested local runs from Denū, and all three are flat-rate with gratuity included: Old Town Scottsdale for dinner and nightlife, State Farm Stadium for game days and concerts, and Buffalo Chip Saloon in Cave Creek for a genuine old-west night out. Book through our main booking page or call to reserve.",
+  },
+  {
+    id: 5,
+    question:
+      "Can we book vehicles by the hour for a meeting, wedding, or event at Denū?",
+    answer:
+      "Yes — sedans, SUVs, Sprinters, mini-buses, and a 56-passenger motorcoach are available hourly for group shuttles, wedding-guest loops, and conference logistics from the hotel. The hourly rate card is on this page; groups and event planners can set up a corporate account for one invoice.",
+  },
+  {
+    id: 6,
+    question: "How much notice do you need for a Denū transfer?",
+    answer:
+      "As much as your schedule allows, but same-day requests are common and usually workable — call (480) 300-6003 for short-notice coordination. For early-morning departures, book the night before and your chauffeur is confirmed and assigned before you sleep.",
+  },
+];
+
 export type Vehicle = {
   id: number;
   title: string;
