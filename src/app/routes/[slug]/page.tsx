@@ -158,7 +158,7 @@ export default async function RoutePage({
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <Nav background='accent' />
+      <Nav background='cream' />
       <Breadcrumbs
         items={[
           { name: "Routes", href: "/routes" },
@@ -187,7 +187,7 @@ export default async function RoutePage({
               <Button
                 href='/contact'
                 text='Get an instant quote'
-                btnType='underlinedWhite'
+                btnType='underlinedBlack'
                 arrow
               />
             </div>

@@ -44,7 +44,7 @@ export default function Breadcrumbs({ items }: { items: Crumb[] }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <nav aria-label='Breadcrumb' className={styles.wrapper}>
-        <LayoutWrapper>
+        <LayoutWrapper paddingNone='paddingNone'>
           <ol className={styles.list}>
             {trail.map((crumb, i) => {
               const isLast = i === trail.length - 1;

@@ -3,14 +3,26 @@
   background-color: transparent;
 }
 
+.paddingNone {
+  padding: 0 3rem;
+}
+
 @media screen and (max-width: 870px) {
   .container {
     padding: 5rem 2rem;
+  }
+
+  .paddingNone {
+    padding: 0 2rem;
   }
 }
 
 @media screen and (max-width: 568px) {
   .container {
     padding: 5rem 1rem;
+  }
+
+  .paddingNone {
+    padding: 0 1rem;
   }
 }

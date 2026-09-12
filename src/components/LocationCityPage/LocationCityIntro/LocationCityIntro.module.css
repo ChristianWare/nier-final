@@ -24,6 +24,10 @@
   gap: 2rem;
 }
 
+.heading {
+  max-width: 700px;
+}
+
 .right {
   position: relative;
   z-index: 2;
@@ -70,7 +74,7 @@
 }
 
 .bottom {
-  margin-top: -12rem;
+  /* margin-top: -12rem; */
   position: relative;
   z-index: 1;
 }
@@ -94,10 +98,6 @@
   .top {
     grid-template-columns: 1fr;
     grid-gap: 5rem;
-  }
-
-  .heading {
-    width: 80%;
   }
 
   .right {
