@@ -13,18 +13,26 @@ const baseUrl = "https://www.niertransportation.com";
 // a page actually changes; everything else falls back to the last broad
 // site update. Blog posts carry their own dates from frontmatter.
 const DEFAULT_LAST_MOD = "2026-07-29";
+
+// Every location page gained the stats, top-services, neighborhoods, and
+// testimonials sections plus per-city hero images in the Sept 12 deploy.
+const LOCATIONS_LAST_MOD = "2026-09-12";
+
 const LAST_MOD: Partial<Record<string, string>> = {
   "/charter-bus-rental-phoenix": "2026-08-12",
   "/services/airport-transfers": "2026-08-12",
   "/services/group-transportation": "2026-08-12",
-  "/locations/glendale": "2026-08-12",
-  "/locations/phoenix": "2026-08-12",
   "/routes/tempe-to-sky-harbor": "2026-08-11",
   "/routes/buckeye-to-sky-harbor": "2026-08-11",
+  "/airports": "2026-09-12",
+  "/airports/private-aviation": "2026-09-12",
+  "/airports/deer-valley": "2026-09-12",
+  "/airports/tucson-international": "2026-09-12",
+  "/denu-hotel": "2026-09-12",
 };
 
-function lastMod(path: string): Date {
-  return new Date(LAST_MOD[path] ?? DEFAULT_LAST_MOD);
+function lastMod(path: string, fallback: string = DEFAULT_LAST_MOD): Date {
+  return new Date(LAST_MOD[path] ?? fallback);
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -42,8 +50,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/fleet",
     "/routes",
     "/airports",
+    "/airports/private-aviation",
     "/locations",
     "/wekopa",
+    "/denu-hotel",
     "/charter-bus-rental-phoenix",
     "/corporate-accounts",
     "/book",
@@ -74,7 +84,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const locationPages = serviceAreaCities.map((city) => ({
     url: `${baseUrl}/locations/${city.slug}`,
-    lastModified: lastMod(`/locations/${city.slug}`),
+    lastModified: lastMod(`/locations/${city.slug}`, LOCATIONS_LAST_MOD),
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
