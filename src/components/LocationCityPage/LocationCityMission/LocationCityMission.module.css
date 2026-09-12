@@ -1,14 +1,6 @@
 .container {
   background-color: var(--white);
   padding: 10rem 0rem;
-  background-image: repeating-linear-gradient(
-    to right,
-    var(--stroke),
-    var(--stroke) 1px,
-    transparent 1px,
-    transparent
-  );
-  background-size: 500px 500px;
 }
 
 .content {
@@ -34,12 +26,6 @@
   margin-top: 1rem;
 }
 
-@media screen and (max-width: 1268px) {
-  .container {
-    background-size: 300px 300px;
-  }
-}
-
 @media screen and (max-width: 1068px) {
   .container {
     background-size: 250px 250px;
@@ -47,10 +33,6 @@
 }
 
 @media screen and (max-width: 568px) {
-  .container {
-    background-size: 75px 75px;
-  }
-
   .content {
     align-items: flex-start;
     justify-content: flex-start;

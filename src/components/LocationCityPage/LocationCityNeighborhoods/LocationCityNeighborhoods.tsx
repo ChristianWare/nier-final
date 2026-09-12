@@ -1,5 +1,6 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./LocationCityNeighborhoods.module.css";
+import Image from "next/image";
 import type { CityData } from "@/lib/cities";
 
 export default function LocationCityNeighborhoods({
@@ -33,8 +34,19 @@ export default function LocationCityNeighborhoods({
               <span className={styles.num}>
                 {String(i + 1).padStart(2, "0")}
               </span>
-              <h3 className={styles.hoodName}>{hood.name}</h3>
+              <h3 className="h4">{hood.name}</h3>
               <p className={styles.hoodCopy}>{hood.copy}</p>
+              {hood.img && (
+                <div className={styles.imgContainer}>
+                  <Image
+                    src={hood.img}
+                    alt={`${hood.name} — black car service in ${city.name}, AZ`}
+                    title={`${hood.name} — black car service in ${city.name}, AZ`}
+                    fill
+                    className={styles.img}
+                  />
+                </div>
+              )}
             </div>
           ))}
         </div>

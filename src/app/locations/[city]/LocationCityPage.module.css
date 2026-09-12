@@ -184,7 +184,6 @@
   }
 }
 
-
 .ctaRow {
   display: flex;
   align-items: center;
@@ -200,8 +199,8 @@
 
 /* ── City context section (locations/[city]) ── */
 .cityContext {
-  padding: 10rem 0rem;
-  background-color: var(--white);
+  padding-bottom: 10rem;
+  background-color: var(--cream);
 }
 
 .cityContextGrid {
@@ -217,19 +216,9 @@
   gap: 2rem;
 }
 
-.cityContextHeading {
-  font-size: 3.2rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -1px;
-}
-
 .cityContextCopy {
-  font-size: 1.6rem;
-  line-height: 1.7;
   color: var(--paragraph);
   max-width: 65ch;
-  margin: 0;
 }
 
 .cityContextRight {
@@ -237,13 +226,6 @@
   border: 2px solid var(--stroke);
   border-radius: 10px;
   padding: 2.4rem;
-}
-
-.landmarksHeading {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin: 0 0 1rem 0;
-  letter-spacing: -.5px;
 }
 
 .landmarksList {
@@ -286,9 +268,5 @@
   .cityContextGrid {
     grid-template-columns: 1fr;
     gap: 4rem;
-  }
-
-  .cityContextHeading {
-    font-size: 2.6rem;
   }
 }

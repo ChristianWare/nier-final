@@ -60,20 +60,25 @@ export const serviceAreaCities = [
       {
         name: "Old Town Scottsdale",
         copy: "The entertainment district runs late and parking runs scarce. We handle dinner runs, nights out, and hotel pickups along the Old Town resort row every single week.",
+        img: "/images/areas/old-town-scottsdale.jpg",
       },
       {
         name: "Kierland & Scottsdale Quarter",
         copy: "Shopping, resorts, and the Airpark's corporate offices in one square mile — our most-requested corporate pickup zone in the city, minutes from Scottsdale Airport.",
+        img: "/images/areas/kierland.jpg",
       },
       {
         name: "McCormick Ranch & Gainey Ranch",
         copy: "Resort and country-club Scottsdale. Airport transfers, golf runs, and special-occasion rides from the communities along Scottsdale Road's green corridor.",
+        img: "/images/areas/mccormick-ranch.jpg",
       },
       {
         name: "North Scottsdale",
         copy: "Troon, DC Ranch, Grayhawk, and Pinnacle Peak — the far north is where rideshares get scarce and a pre-confirmed chauffeur earns its keep, especially for early flights.",
+        img: "/images/areas/north-scottsdale.jpg",
       },
     ],
+
     faqs: [
       {
         q: "How much is a black car from Scottsdale to Sky Harbor Airport?",
@@ -143,18 +148,22 @@ export const serviceAreaCities = [
       {
         name: "Downtown & Roosevelt Row",
         copy: "Footprint Center, Chase Field, the convention center, and the arts district — event nights are exactly when a staged pickup beats circling for rideshare.",
+        img: "/images/areas/downtown-phoenix.jpeg",
       },
       {
         name: "Biltmore & Camelback Corridor",
         copy: "Phoenix's executive spine. Corporate accounts here ride with us daily — office-to-airport, client dinners, and resort pickups along Camelback Road.",
+        img: "/images/areas/biltmore.jpg",
       },
       {
         name: "Arcadia",
         copy: "Date nights on the dining strip, airport runs from the neighborhoods under Camelback Mountain, and group rides that start and end at the same front door.",
+        img: "/images/areas/arcadia.jpeg",
       },
       {
         name: "Desert Ridge & North Phoenix",
         copy: "From Desert Ridge Marketplace and High Street up through the Loop 101 corridor — far enough from Sky Harbor that a flat rate and a confirmed car matter.",
+        img: "/images/areas/desert-ridge.webp",
       },
     ],
     faqs: [
@@ -331,18 +340,22 @@ export const serviceAreaCities = [
       {
         name: "Westgate Entertainment District",
         copy: "Game days, concerts, and everything around State Farm Stadium and Desert Diamond Arena — the single busiest pickup zone we run in the West Valley.",
+        img: "/images/areas/westgate.jpg",
       },
       {
         name: "Historic Downtown & Catlin Court",
         copy: "Old Towne Glendale's antique district and restaurant blocks — a favorite for date nights, group outings, and out-of-town guests staying nearby.",
+        img: "/images/areas/downtown-glendale.jpg",
       },
       {
         name: "Arrowhead",
         copy: "From Arrowhead Towne Center up through the ranch communities, north Glendale riders book us most for early Sky Harbor departures and group events.",
+        img: "/images/areas/arrowhead.jpg",
       },
       {
         name: "Zanjero & the Loop 101 Corridor",
         copy: "The hotel cluster serving Westgate's event traffic — we run stadium shuttles, airport transfers, and corporate pickups along this corridor year-round.",
+        img: "/images/areas/zanjero.jpg",
       },
     ],
     faqs: [
@@ -1024,5 +1037,5 @@ export type CityData = {
   routePromo?: { href: string; anchor: string; blurb: string };
   airportMinutes?: string;
   topServices?: readonly { title: string; copy: string; href: string }[];
-  neighborhoods?: readonly { name: string; copy: string }[];
+  neighborhoods?: readonly { name: string; copy: string; img?: string }[];
 };

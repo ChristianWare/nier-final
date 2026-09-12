@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
 import type { CityData } from "@/lib/cities";
+import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 
 export default function LocationCityTopServices({ city }: { city: CityData }) {
   if (!city.topServices || city.topServices.length === 0) return null;
@@ -12,20 +13,6 @@ export default function LocationCityTopServices({ city }: { city: CityData }) {
     <section className={styles.container}>
       <LayoutWrapper>
         <div className={styles.grid}>
-          <div className={styles.features}>
-            {city.topServices.map((service) => (
-              <div key={service.title} className={styles.feature}>
-                <span className={styles.marker} aria-hidden='true' />
-                <h3 className={styles.featureTitle}>
-                  <Link href={service.href} className={styles.featureLink}>
-                    {service.title}
-                  </Link>
-                </h3>
-                <p className={styles.featureCopy}>{service.copy}</p>
-              </div>
-            ))}
-          </div>
-
           <div className={styles.imgContainer}>
             <Image
               src={city.src}
@@ -46,13 +33,16 @@ export default function LocationCityTopServices({ city }: { city: CityData }) {
               at booking, and a vehicle matched to the trip — no surge pricing,
               no guessing.
             </p>
+            <div className={styles.features}>
+              {city.topServices.map((service) => (
+                <div key={service.title} className={styles.feature}>
+                  <SectionHeading text={service.title} dot />
+                  <p className={styles.featureCopy}>{service.copy}</p>
+                </div>
+              ))}
+            </div>
             <div className={styles.btnContainer}>
-              <Button
-                href='/book'
-                text='Book your Ride'
-                btnType='black'
-                arrow
-              />
+              <Button href='/book' text='Book your Ride' btnType='red' arrow />
             </div>
           </div>
         </div>

@@ -291,7 +291,6 @@ export default async function LocationCityPage({
       <LocationCityNeighborhoods city={city} />
       <LocationCityServicesGrid city={city} />
 
-      <LocationCityServicesGrid city={city} />
       <LocationCityTestimonials city={city} />
       <HowItWorks />
 
