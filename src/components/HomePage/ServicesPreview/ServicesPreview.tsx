@@ -66,26 +66,25 @@ export default function ServicesPreview() {
                     </div> */}
                     <h3 className={`cardTitle h5`}>{x.title}</h3>
                   </div>
-                  <p className={styles.desc}>{x.copy}</p>
+                  <div className={styles.imgContainer}>
+                    <Image
+                      src={x.src}
+                      alt={x.title}
+                      title={x.title}
+                      fill
+                      className={styles.img}
+                      sizes='(max-width: 768px) 100vw, (max-width: 1268px) 50vw, 33vw'
+                    />
+                  </div>
                 </div>
+                <p className={styles.desc}>{x.copy}</p>
 
                 <div className={styles.btnContainer}>
                   <Button
                     text='Learn More'
-                    btnType='underlinedBlack'
+                    btnType='black'
                     href={`/services/${x.slug}`}
                     arrow
-                  />
-                </div>
-
-                <div className={styles.imgContainer}>
-                  <Image
-                    src={x.src}
-                    alt={x.title}
-                    title={x.title}
-                    fill
-                    className={styles.img}
-                    sizes='(max-width: 768px) 100vw, (max-width: 1268px) 50vw, 33vw'
                   />
                 </div>
               </div>

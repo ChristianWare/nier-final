@@ -1,5 +1,5 @@
 .container {
-  background-color: var(--white);
+  background-color: var(--cream);
   padding: 10rem 0rem;
 }
 
@@ -31,15 +31,15 @@
 }
 
 .card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1rem;
-  /* background-color: var(--white); */
+  background-color: var(--white);
   padding: 2rem;
   border-radius: 10px;
-  border: 2px solid var(--stroke);
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+
+  /* border: 2px solid var(--stroke); */
 }
 
 .imgContainer {
@@ -136,7 +136,7 @@
   }
 }
 
-@media screen and (max-width: 568px) {
+@media screen and (max-width: 668px) {
   .bottom {
     grid-template-columns: repeat(1, 1fr);
   }

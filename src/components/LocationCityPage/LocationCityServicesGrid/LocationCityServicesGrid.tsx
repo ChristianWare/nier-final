@@ -21,30 +21,25 @@ export default function LocationCityServicesGrid({ city }: { city: CityData }) {
               <div key={x.id} className={styles.card}>
                 <div className={styles.titleDescBox}>
                   <div className={styles.idTitleBox}>
-                    <div className={styles.idBox}>
-                      <span className={styles.id}>{x.id}</span>
-                    </div>
                     <h3 className={`cardTitle h5`}>{x.title}</h3>
                   </div>
-                  <p className={styles.desc}>{x.copy}</p>
+                  <div className={styles.imgContainer}>
+                    <Image
+                      src={x.src}
+                      alt={x.title}
+                      title={x.title}
+                      fill
+                      className={styles.img}
+                    />
+                  </div>
                 </div>
-
+                  <p className={styles.desc}>{x.copy}</p>
                 <div className={styles.btnContainer}>
                   <Button
                     text='Learn More'
-                    btnType='underlinedBlack'
+                    btnType='black'
                     href={`/services/${x.slug}`}
                     arrow
-                  />
-                </div>
-
-                <div className={styles.imgContainer}>
-                  <Image
-                    src={x.src}
-                    alt={x.title}
-                    title={x.title}
-                    fill
-                    className={styles.img}
                   />
                 </div>
               </div>
