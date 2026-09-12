@@ -38,6 +38,42 @@ export const serviceAreaCities = [
       anchor: "book a flat-rate Scottsdale to Sky Harbor car service",
       blurb: "Catching a flight out of PHX?",
     },
+    airportMinutes: "20–30",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Flat-rate black car service between Scottsdale and Sky Harbor, flight-tracked in both directions — from Old Town's hotel row to the far north valley.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Golf Outing Transportation",
+        copy: "Group rides to TPC Scottsdale, Troon North, and every course in between — clubs in the back, foursome in comfort, tee time made.",
+        href: "/services/golf-outing-transportation",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive car service for the Kierland and Airpark business corridors, plus event shuttles for resort conferences and galas across Scottsdale.",
+        href: "/services/corporate-and-event-logistics",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Old Town Scottsdale",
+        copy: "The entertainment district runs late and parking runs scarce. We handle dinner runs, nights out, and hotel pickups along the Old Town resort row every single week.",
+      },
+      {
+        name: "Kierland & Scottsdale Quarter",
+        copy: "Shopping, resorts, and the Airpark's corporate offices in one square mile — our most-requested corporate pickup zone in the city, minutes from Scottsdale Airport.",
+      },
+      {
+        name: "McCormick Ranch & Gainey Ranch",
+        copy: "Resort and country-club Scottsdale. Airport transfers, golf runs, and special-occasion rides from the communities along Scottsdale Road's green corridor.",
+      },
+      {
+        name: "North Scottsdale",
+        copy: "Troon, DC Ranch, Grayhawk, and Pinnacle Peak — the far north is where rideshares get scarce and a pre-confirmed chauffeur earns its keep, especially for early flights.",
+      },
+    ],
     faqs: [
       {
         q: "How much is a black car from Scottsdale to Sky Harbor Airport?",
@@ -85,6 +121,42 @@ export const serviceAreaCities = [
       anchor: "see how Sky Harbor pickups work, terminal by terminal",
       blurb: "Flying in or out of PHX?",
     },
+    airportMinutes: "10–20",
+    topServices: [
+      {
+        title: "Airport Transfers",
+        copy: "Black car service to Phoenix Sky Harbor is the ride we run most — flight-tracked pickups, flat rates, and chauffeurs staged to wheels-down, not the schedule.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Corporate & Event Logistics",
+        copy: "Executive transportation for downtown Phoenix, the Camelback Corridor, and the convention center — single rides to multi-day event operations under one invoice.",
+        href: "/services/corporate-and-event-logistics",
+      },
+      {
+        title: "Group Transportation",
+        copy: "Sprinters, mini coaches, and a 56-passenger motorcoach for game days at Footprint Center and Chase Field, weddings, and company outings across Phoenix.",
+        href: "/services/group-transportation",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Downtown & Roosevelt Row",
+        copy: "Footprint Center, Chase Field, the convention center, and the arts district — event nights are exactly when a staged pickup beats circling for rideshare.",
+      },
+      {
+        name: "Biltmore & Camelback Corridor",
+        copy: "Phoenix's executive spine. Corporate accounts here ride with us daily — office-to-airport, client dinners, and resort pickups along Camelback Road.",
+      },
+      {
+        name: "Arcadia",
+        copy: "Date nights on the dining strip, airport runs from the neighborhoods under Camelback Mountain, and group rides that start and end at the same front door.",
+      },
+      {
+        name: "Desert Ridge & North Phoenix",
+        copy: "From Desert Ridge Marketplace and High Street up through the Loop 101 corridor — far enough from Sky Harbor that a flat rate and a confirmed car matter.",
+      },
+    ],
     faqs: [
       {
         q: "How much does a black car to Sky Harbor cost from Phoenix?",
@@ -236,6 +308,42 @@ export const serviceAreaCities = [
       "Camelback Ranch",
       "Glendale Glitters District",
       "Loop 101 / Cardinals Drive Corridor",
+    ],
+    airportMinutes: "25–30",
+    topServices: [
+      {
+        title: "Airport Transportation",
+        copy: "Airport transportation from Glendale is our most-booked West Valley service — lead time built in for the I-10 and Loop 101 run, both directions, flat rate.",
+        href: "/services/airport-transfers",
+      },
+      {
+        title: "Special Event Rides",
+        copy: "State Farm Stadium, Desert Diamond Arena, and the growing Vai Resort district — drop-off at the gate, staged pickup at the final whistle, no lot exit crawl.",
+        href: "/services/special-events",
+      },
+      {
+        title: "Point-to-Point Transfers",
+        copy: "Direct city-to-city rides from Glendale to anywhere in the Valley — dinner in Scottsdale, a meeting downtown, or a night out without anyone driving home.",
+        href: "/services/point-to-point",
+      },
+    ],
+    neighborhoods: [
+      {
+        name: "Westgate Entertainment District",
+        copy: "Game days, concerts, and everything around State Farm Stadium and Desert Diamond Arena — the single busiest pickup zone we run in the West Valley.",
+      },
+      {
+        name: "Historic Downtown & Catlin Court",
+        copy: "Old Towne Glendale's antique district and restaurant blocks — a favorite for date nights, group outings, and out-of-town guests staying nearby.",
+      },
+      {
+        name: "Arrowhead",
+        copy: "From Arrowhead Towne Center up through the ranch communities, north Glendale riders book us most for early Sky Harbor departures and group events.",
+      },
+      {
+        name: "Zanjero & the Loop 101 Corridor",
+        copy: "The hotel cluster serving Westgate's event traffic — we run stadium shuttles, airport transfers, and corporate pickups along this corridor year-round.",
+      },
     ],
     faqs: [
       {
@@ -914,4 +1022,7 @@ export type CityData = {
   localLandmarks?: readonly string[];
   faqs?: readonly { q: string; a: string }[];
   routePromo?: { href: string; anchor: string; blurb: string };
+  airportMinutes?: string;
+  topServices?: readonly { title: string; copy: string; href: string }[];
+  neighborhoods?: readonly { name: string; copy: string }[];
 };

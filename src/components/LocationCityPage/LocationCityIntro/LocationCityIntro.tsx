@@ -1,7 +1,6 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./LocationCityIntro.module.css";
 import Image from "next/image";
-import Img1 from "../../../../public/images/other/services.jpg";
 import Img2 from "../../../../public/images/people/Adam.jpg";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import type { CityData } from "@/lib/cities";
@@ -41,11 +40,12 @@ export default function LocationCityIntro({ city }: { city: CityData }) {
               </div>
               <div className={styles.imgContainer}>
                 <Image
-                  src={Img1}
+                  src={city.src}
                   alt={`Luxury black car service in ${city.name}`}
                   title={`Luxury black car service in ${city.name}`}
                   className={styles.img}
                   fill
+                  placeholder='blur'
                 />
               </div>
             </div>
@@ -55,11 +55,13 @@ export default function LocationCityIntro({ city }: { city: CityData }) {
       <div className={styles.bottom}>
         <div className={styles.imgContainer}>
           <Image
-            src={Img1}
+            src={city.src}
             alt={`Luxury black car service in ${city.name}`}
             title={`Luxury black car service in ${city.name}`}
             className={styles.img}
             fill
+            priority
+            placeholder='blur'
           />
         </div>
       </div>

@@ -197,3 +197,98 @@
   text-decoration: underline;
   color: inherit;
 }
+
+/* ── City context section (locations/[city]) ── */
+.cityContext {
+  padding: 10rem 0rem;
+  background-color: var(--white);
+}
+
+.cityContextGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 6rem;
+  align-items: start;
+}
+
+.cityContextLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.cityContextHeading {
+  font-size: 3.2rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -1px;
+}
+
+.cityContextCopy {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  max-width: 65ch;
+  margin: 0;
+}
+
+.cityContextRight {
+  background-color: var(--cream);
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  padding: 2.4rem;
+}
+
+.landmarksHeading {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  letter-spacing: -.5px;
+}
+
+.landmarksList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.landmarkItem {
+  font-size: 1.6rem;
+  line-height: 1.6;
+  color: var(--paragraph);
+  padding: 1.2rem 0;
+  border-bottom: 1px solid var(--stroke);
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.landmarkItem:last-child {
+  border-bottom: none;
+}
+
+.landmarkItem::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+  flex-shrink: 0;
+}
+
+@media screen and (max-width: 968px) {
+  .cityContext {
+    padding: 6rem 0rem;
+  }
+
+  .cityContextGrid {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+  }
+
+  .cityContextHeading {
+    font-size: 2.6rem;
+  }
+}

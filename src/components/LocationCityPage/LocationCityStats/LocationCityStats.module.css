@@ -1,0 +1,111 @@
+.container {
+  background-color: var(--cream);
+  padding: 10rem 0rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 6rem;
+  background-color: var(--white);
+  border-radius: 15px;
+  padding: 9rem;
+}
+
+.heading {
+  /* max-width: 500px; */
+  font-size: 4rem;
+  line-height: 125%;
+  font-weight: 600;
+  letter-spacing: -1.2px;
+}
+
+.accent {
+  color: var(--accent);
+  display: block;
+}
+
+.faded {
+  opacity: 0.35;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4rem;
+}
+
+.statCol {
+  border-left: 1px solid var(--stroke);
+  padding-left: 2.4rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 10rem;
+}
+
+.statCol::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent);
+}
+
+.statValue {
+  font-size: 8rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -2.4px;
+  margin-bottom: 4rem;
+}
+
+.statLabel {
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+
+.statCopy {
+  font-size: 1.6rem;
+  line-height: 1.7;
+  color: var(--paragraph);
+  max-width: 32ch;
+  margin: 0;
+}
+
+@media screen and (max-width: 1068px) {
+  .heading {
+    font-size: 3rem;
+  }
+
+  .content {
+    padding: 5rem;
+  }
+
+  .statValue {
+    font-size: 5rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+ .content {
+  padding: 3rem;
+ }
+ 
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .statColMid,
+  .statColLast {
+    margin-top: 0;
+  }
+}

@@ -15,6 +15,10 @@ import LocationCityMission from "@/components/LocationCityPage/LocationCityMissi
 import LocationCityServicesGrid from "@/components/LocationCityPage/LocationCityServicesGrid/LocationCityServicesGrid";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
+import LocationCityStats from "@/components/LocationCityPage/LocationCityStats/LocationCityStats";
+import LocationCityTopServices from "@/components/LocationCityPage/LocationCityTopServices/LocationCityTopServices";
+import LocationCityNeighborhoods from "@/components/LocationCityPage/LocationCityNeighborhoods/LocationCityNeighborhoods";
+import LocationCityTestimonials from "@/components/LocationCityPage/LocationCityTestimonials/LocationCityTestimonials";
 import styles from "./LocationCityPage.module.css";
 
 type Params = { city: string };
@@ -225,6 +229,7 @@ export default async function LocationCityPage({
       />
       <LocationCityIntro city={city} />
       <LocationCityMission city={city} />
+      <LocationCityStats city={city} />
 
       {/* City-specific unique content — critical for Google indexing */}
       {(city.localContext || city.airportNote || city.corporateNote) && (
@@ -257,12 +262,7 @@ export default async function LocationCityPage({
                   </p>
                 )}
                 <div className={styles.ctaRow}>
-                  <Button
-                    href='/book'
-                    text='Book a ride'
-                    btnType='black'
-                    arrow
-                  />
+                  <Button href='/book' text='Book a ride' btnType='red' arrow />
                   <a href='tel:+14803006003' className={styles.callLink}>
                     Or call (480) 300-6003
                   </a>
@@ -287,7 +287,12 @@ export default async function LocationCityPage({
         </section>
       )}
 
+      <LocationCityTopServices city={city} />
+      <LocationCityNeighborhoods city={city} />
       <LocationCityServicesGrid city={city} />
+
+      <LocationCityServicesGrid city={city} />
+      <LocationCityTestimonials city={city} />
       <HowItWorks />
 
       {city.faqs && city.faqs.length > 0 && (
