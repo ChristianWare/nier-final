@@ -3,7 +3,7 @@ import Phoenix from "../../public/images/areas/phoenix.jpg";
 import Tempe from "../../public/images/areas/tempe.jpg";
 import Mesa from "../../public/images/areas/mesa.jpg";
 import Chandler from "../../public/images/areas/chandler.jpg";
-import Gilbert from "../../public/images/areas/gilbert.webp";
+import Gilbert from "../../public/images/areas/gilbert.jpg";
 import Peoria from "../../public/images/areas/westValleyiii.jpg";
 import Glendale from "../../public/images/areas/westValleyii.jpg";
 import ParadiseValley from "../../public/images/areas/yuma.jpg";
@@ -349,7 +349,7 @@ export const serviceAreaCities = [
       {
         name: "Price Road Corridor",
         copy: "Intel, PayPal, and the tech campuses that make Chandler an executive-travel market — airport runs, client dinners, and campus-to-campus transfers on account.",
-        img: "/images/areas/gilbert.webp",
+        img: "/images/areas/gilbert.jpg",
       },
       {
         name: "Chandler Fashion Center & West Chandler",
@@ -404,7 +404,7 @@ export const serviceAreaCities = [
       {
         name: "Heritage District",
         copy: "Downtown Gilbert's restaurant and venue row — wedding nights, dinner reservations, and the kind of evening that shouldn't end with a designated driver.",
-        img: "/images/areas/gilbert.webp",
+        img: "/images/areas/gilbert.jpg",
       },
       {
         name: "Val Vista Lakes",
@@ -1757,7 +1757,7 @@ export const serviceAreaCities = [
       {
         name: "Downtown Queen Creek",
         copy: "The town center at Ellsworth and Ocotillo — restaurants, events, and the pickup point for most of our Queen Creek rides.",
-        img: "/images/areas/gilbert.webp",
+        img: "/images/areas/gilbert.jpg",
       },
       {
         name: "Agritourism Corridor",
@@ -1826,7 +1826,7 @@ export const serviceAreaCities = [
       {
         name: "Ironwood Crossing",
         copy: "The community near the SR-24 extension — the quickest San Tan Valley access to Mesa Gateway Airport.",
-        img: "/images/areas/gilbert.webp",
+        img: "/images/areas/gilbert.jpg",
       },
       {
         name: "Hunt Highway Corridor",
@@ -2006,7 +2006,7 @@ export const serviceAreaCities = [
       {
         name: "MountainBrook Village",
         copy: "The active-adult community — recurring rides, medical transfers, and airport runs on a set schedule.",
-        img: "/images/areas/gilbert.webp",
+        img: "/images/areas/gilbert.jpg",
       },
     ],
     note: "A scenic desert community at the foot of the Superstition Mountains",
@@ -2473,7 +2473,7 @@ export const serviceAreaCities = [
       {
         name: "SR-79 & Hunt Highway Corridor",
         copy: "Florence's connections north toward Queen Creek and the Valley — our route for timing every airport run.",
-        img: "/images/areas/gilbert.webp",
+        img: "/images/areas/gilbert.jpg",
       },
     ],
     note: "A historic town in Pinal County southeast of the Valley",

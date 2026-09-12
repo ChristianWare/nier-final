@@ -12,7 +12,7 @@ import ImgWestValley from "../../../../public/images/areas/westValleyiii.jpg";
 import ImgCasaGrande from "../../../../public/images/areas/casaGrandeii.jpg";
 import ImgMaricopa from "../../../../public/images/areas/maricopaii.jpg";
 import Chandler from "../../../../public/images/areas/chandler.jpg";
-import Gilbert from "../../../../public/images/areas/gilbert.webp";
+import Gilbert from "../../../../public/images/areas/gilbert.jpg";
 import Tucson from "../../../../public/images/areas/tucson.webp";
 import Flagstaff from "../../../../public/images/areas/flagstaff.jpg";
 import Yuma from "../../../../public/images/areas/yuma.jpg";
@@ -191,8 +191,8 @@ export default function Areas() {
               Based in the Phoenix metro area, we provide luxury ground
               transportation across Arizona — from Scottsdale to Sedona, Phoenix
               to Tucson, and everywhere in between. Whether you need a quick
-              airport transfer or a multi-stop corporate itinerary, we&apos;ve got
-              the coverage.
+              airport transfer or a multi-stop corporate itinerary, we&apos;ve
+              got the coverage.
             </p>
 
             <div className={styles.imgContainer}>
@@ -267,7 +267,9 @@ export default function Areas() {
                       </div>
                     </div>
                     <div className={styles.cardRight}>
-                      <h4 className={`${styles.feature} cardTitle bgWhite h5`}>{x.feature}</h4>
+                      <h4 className={`${styles.feature} cardTitle bgWhite h5`}>
+                        {x.feature}
+                      </h4>
                       <p className={styles.desc}>{x.desc}</p>
                     </div>
                   </div>
