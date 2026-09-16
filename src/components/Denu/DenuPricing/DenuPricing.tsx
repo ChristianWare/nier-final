@@ -140,7 +140,7 @@ export default function DenuPricing() {
                 </div>
                 <hr className={styles.dividerLine} />
                 <p className={`${styles.priceDetails} badge badge_neutral`}>
-                  ({plan.priceDetails})
+                  {plan.priceDetails}
                 </p>
               </div>
               <div className={styles.cardCta}>
