@@ -11,6 +11,7 @@ import SendPaymentLinkButton from "@/components/admin/SendPaymentLinkButton/Send
 import { BookingStatus, Role } from "@prisma/client";
 import Link from "next/link";
 import DeleteBookingDangerZoneClient from "./DeleteBookingDangerZoneClient";
+import TrashBanner from "./TrashBanner/TrashBanner";
 import AdminManualCardPaymentClient from "./AdminManualCardPaymentClient";
 import AdminChargeCardOnFileButton from "@/components/admin/AdminChargeCardOnFileButton/AdminChargeCardOnFileButton";
 import QuickActionsClient from "./QuickActionsClient";
@@ -438,6 +439,17 @@ export default async function AdminBookingDetailPage({
   const tripGroupData = await getTripGroupForBooking(id);
   const isCorporateBooking = Boolean(booking.corporateAccountId);
   const isGroupBooking = Boolean(tripGroupData);
+
+  // Trash state — findUnique is deliberately unfiltered so trashed
+  // bookings still open; the page locks all operational actions.
+  const isTrashed = Boolean(booking.deletedAt);
+  const deletedBy =
+    isTrashed && booking.deletedById
+      ? await db.user.findUnique({
+          where: { id: booking.deletedById },
+          select: { name: true, email: true },
+        })
+      : null;
   const groupPaymentStatus = tripGroupData?.tripGroup.paymentStatus ?? null;
   const groupTotalCents = tripGroupData
     ? tripGroupData.siblings.reduce((sum, s) => sum + s.totalCents, 0)
@@ -725,9 +737,7 @@ export default async function AdminBookingDetailPage({
     companyTz,
   );
   const airportLeg = (booking.serviceType.airportLeg ?? "NONE") as
-    | "PICKUP"
-    | "DROPOFF"
-    | "NONE";
+    "PICKUP" | "DROPOFF" | "NONE";
   const hasRouteCoordinates =
     booking.pickupLat &&
     booking.pickupLng &&
@@ -1263,16 +1273,20 @@ export default async function AdminBookingDetailPage({
               flexWrap: "wrap",
             }}
           >
-            <ApproveRouteClient
-              bookingId={booking.id}
-              isApproved={booking.routeApproved}
-            />
-            <EditTripDetailsClient
-              bookingId={booking.id}
-              initialData={tripEditData}
-              pricingData={pricingData}
-              companyTimezone={companyTz}
-            />
+            {!isTrashed && (
+              <ApproveRouteClient
+                bookingId={booking.id}
+                isApproved={booking.routeApproved}
+              />
+            )}
+            {!isTrashed && (
+              <EditTripDetailsClient
+                bookingId={booking.id}
+                initialData={tripEditData}
+                pricingData={pricingData}
+                companyTimezone={companyTz}
+              />
+            )}
           </div>
         </>
       ),
@@ -1341,10 +1355,12 @@ export default async function AdminBookingDetailPage({
           <br />
           {booking.serviceType?.pricingStrategy === "HOURLY" && (
             <div style={{ marginTop: 12, marginBottom: 4 }}>
-              <EditHoursClient
-                bookingId={booking.id}
-                currentHours={decimalToNumber(booking.hoursRequested)}
-              />
+              {!isTrashed && (
+                <EditHoursClient
+                  bookingId={booking.id}
+                  currentHours={decimalToNumber(booking.hoursRequested)}
+                />
+              )}
             </div>
           )}
           <PriceForm
@@ -1355,10 +1371,12 @@ export default async function AdminBookingDetailPage({
             taxesCents={booking.taxesCents}
             totalCents={booking.totalCents}
             extraAction={
-              <ApprovePriceClient
-                bookingId={booking.id}
-                isApproved={booking.priceApproved}
-              />
+              isTrashed ? null : (
+                <ApprovePriceClient
+                  bookingId={booking.id}
+                  isApproved={booking.priceApproved}
+                />
+              )
             }
           />
         </>
@@ -1533,26 +1551,28 @@ export default async function AdminBookingDetailPage({
               {!isCorporateBooking && (
                 <>
                   <div className={styles.sectionDivider} />
-                  <DepositSetupClient
-                    bookingId={booking.id}
-                    totalCents={
-                      isGroupBooking ? groupTotalCents : booking.totalCents
-                    }
-                    currency={booking.currency}
-                    isPaid={isPaid}
-                    initialDepositMode={booking.depositMode}
-                    initialDepositPercent={booking.depositPercent ?? null}
-                    initialDepositDueDate={
-                      booking.depositDueDate
-                        ? booking.depositDueDate.toISOString().slice(0, 10)
-                        : null
-                    }
-                    initialBalanceDueDate={
-                      booking.balanceDueDate
-                        ? booking.balanceDueDate.toISOString().slice(0, 10)
-                        : null
-                    }
-                  />
+                  {!isTrashed && (
+                    <DepositSetupClient
+                      bookingId={booking.id}
+                      totalCents={
+                        isGroupBooking ? groupTotalCents : booking.totalCents
+                      }
+                      currency={booking.currency}
+                      isPaid={isPaid}
+                      initialDepositMode={booking.depositMode}
+                      initialDepositPercent={booking.depositPercent ?? null}
+                      initialDepositDueDate={
+                        booking.depositDueDate
+                          ? booking.depositDueDate.toISOString().slice(0, 10)
+                          : null
+                      }
+                      initialBalanceDueDate={
+                        booking.balanceDueDate
+                          ? booking.balanceDueDate.toISOString().slice(0, 10)
+                          : null
+                      }
+                    />
+                  )}
                 </>
               )}
 
@@ -1640,19 +1660,21 @@ export default async function AdminBookingDetailPage({
                   Card-only checkout. After success, the button turns green and
                   says &ldquo;Payment successful&rdquo;.
                 </div>
-                <AdminManualCardPaymentClient
-                  bookingId={booking.id}
-                  amountCents={
-                    isGroupBooking ? groupTotalCents : booking.totalCents
-                  }
-                  currency={booking.currency}
-                  isPaid={isPaid}
-                  isApproved={isApproved}
-                  amountPaidCents={
-                    isGroupBooking ? groupAmountPaidCents : amountPaidCents
-                  } // ← group-aware
-                  stripePublishableKey={stripePublishableKey}
-                />
+                {!isTrashed && (
+                  <AdminManualCardPaymentClient
+                    bookingId={booking.id}
+                    amountCents={
+                      isGroupBooking ? groupTotalCents : booking.totalCents
+                    }
+                    currency={booking.currency}
+                    isPaid={isPaid}
+                    isApproved={isApproved}
+                    amountPaidCents={
+                      isGroupBooking ? groupAmountPaidCents : amountPaidCents
+                    } // ← group-aware
+                    stripePublishableKey={stripePublishableKey}
+                  />
+                )}
               </div>
 
               <div style={{ marginTop: 18 }}>
@@ -1770,7 +1792,11 @@ export default async function AdminBookingDetailPage({
       label: "Approval",
       isComplete: approvalIsComplete,
       sectionId: "approval-section",
-      content: (
+      content: isTrashed ? (
+        <p className='emptySmall'>
+          Restore this booking to change its approval.
+        </p>
+      ) : (
         <ApprovalToggleClient
           bookingId={booking.id}
           isApproved={isApproved}
@@ -1789,6 +1815,15 @@ export default async function AdminBookingDetailPage({
         <BookingTabsProvider defaultTabId={defaultTabId}>
           <section className={styles.parent}>
             <div className={styles.container}>
+              {isTrashed && booking.deletedAt && (
+                <TrashBanner
+                  bookingId={booking.id}
+                  deletedAtIso={booking.deletedAt.toISOString()}
+                  deletedByLabel={deletedBy?.name ?? deletedBy?.email ?? null}
+                  hasPayment={Boolean(booking.payment)}
+                  timeZone={companyTz}
+                />
+              )}
               <header className='header'>
                 <h1 className={`heading h2`}>
                   Booking Details
@@ -1855,6 +1890,11 @@ export default async function AdminBookingDetailPage({
                       >
                         {currentStatusLabel}
                       </span>
+                      {isTrashed && (
+                        <span className={`badge badge_bad ${styles.badge}`}>
+                          In Trash
+                        </span>
+                      )}
                       {currentStatus === "COMPLETED" && isPaid && (
                         <span className={`badge badge_good ${styles.badge}`}>
                           Paid
@@ -2241,7 +2281,10 @@ export default async function AdminBookingDetailPage({
                 />
               </Card>
 
-              <DeleteBookingDangerZoneClient bookingId={booking.id} />
+              <DeleteBookingDangerZoneClient
+                bookingId={booking.id}
+                isTrashed={isTrashed}
+              />
             </div>
 
             {/* ── Right sidebar ── */}
@@ -2277,17 +2320,25 @@ export default async function AdminBookingDetailPage({
                 corporateAccountName={booking.corporateAccount?.name ?? null}
               />
               <Card title='Quick Actions'>
-                <QuickActionsClient
-                  bookingId={booking.id}
-                  currentStatus={currentStatus}
-                  pickupAt={booking.pickupAt.toISOString()}
-                  hasDriver={hasDriver}
-                  hasVehicleUnit={hasVehicleUnit}
-                  hasDriverPay={hasDriverPay}
-                  isApproved={isApproved}
-                />
+                {isTrashed ? (
+                  <p className='emptySmall'>
+                    Restore this booking to use quick actions.
+                  </p>
+                ) : (
+                  <QuickActionsClient
+                    bookingId={booking.id}
+                    currentStatus={currentStatus}
+                    pickupAt={booking.pickupAt.toISOString()}
+                    hasDriver={hasDriver}
+                    hasVehicleUnit={hasVehicleUnit}
+                    hasDriverPay={hasDriverPay}
+                    isApproved={isApproved}
+                  />
+                )}
                 <div className={styles.quickActionsDivider} />
-                <DuplicateBookingClient bookingId={booking.id} />
+                {!isTrashed && (
+                  <DuplicateBookingClient bookingId={booking.id} />
+                )}
               </Card>
             </div>
           </section>

@@ -317,3 +317,75 @@
     padding: 4px 7px;
   }
 }
+
+/* ── Bulk select → Trash ───────────────────────────── */
+
+.bulkBar {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  flex-wrap: wrap;
+  padding: 1.2rem 1.6rem;
+  background: var(--cream);
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  font-size: 1.6rem;
+}
+
+.bulkCount {
+  font-weight: 700;
+}
+
+.bulkBtn {
+  font-size: 1.6rem;
+  font-weight: 600;
+  padding: 0.8rem 1.4rem;
+  border-radius: 7px;
+  border: none;
+  background: var(--accent);
+  color: var(--white);
+  cursor: pointer;
+}
+
+.bulkBtn:disabled,
+.bulkClear:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.bulkClear {
+  font-size: 1.6rem;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.bulkLink {
+  margin-left: auto;
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.checkbox {
+  width: 1.8rem;
+  height: 1.8rem;
+  accent-color: var(--accent);
+  cursor: pointer;
+  position: relative;
+  z-index: 3;
+}
+
+.thCheck,
+.tdCheck {
+  width: 4rem;
+}
+
+@media screen and (max-width: 768px) {
+  .bulkLink {
+    margin-left: 0;
+  }
+}

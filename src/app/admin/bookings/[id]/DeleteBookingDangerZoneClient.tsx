@@ -4,44 +4,45 @@ import styles from "./AdminBookingDetailPage.module.css";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import Modal from "@/components/shared/Modal/Modal";
-import { deleteBooking } from "../../../../../actions/bookings/deleteBooking";
+import BulkConfirmModal from "@/components/admin/BulkConfirmModal/BulkConfirmModal";
+import { trashBookings } from "../../../../../actions/admin/bookingTrash";
 
+/**
+ * Danger zone for a live booking: moves it to the Trash (reversible for
+ * 7 days). Permanent deletion is only offered from the Trash itself —
+ * see TrashBanner — so this renders nothing once the booking is trashed.
+ */
 export default function DeleteBookingDangerZoneClient({
   bookingId,
+  isTrashed = false,
 }: {
   bookingId: string;
+  isTrashed?: boolean;
 }) {
   const router = useRouter();
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-  const [ack, setAck] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [pending, setPending] = useState(false);
+  const [, startTransition] = useTransition();
 
-  const canDelete = ack && confirmText.trim().toUpperCase() === "DELETE";
+  if (isTrashed) return null;
 
-  function open() {
-    setConfirmText("");
-    setAck(false);
-    setConfirmOpen(true);
-  }
-
-  function runDelete() {
-    if (!canDelete || isPending) return;
-
-    startTransition(async () => {
-      const res = await deleteBooking(bookingId);
-
-      if (!res?.ok) {
-        toast.error(res?.error ?? "Failed to delete booking.");
+  async function runTrash() {
+    if (pending) return;
+    setPending(true);
+    try {
+      const res = await trashBookings([bookingId]);
+      if (!res.ok) {
+        toast.error(res.error ?? "Failed to move booking to the Trash.");
         return;
       }
-
-      toast.success("Booking deleted.");
+      toast.success("Booking moved to the Trash.");
       setConfirmOpen(false);
-      router.push("/admin/bookings");
-      router.refresh();
-    });
+      startTransition(() => {
+        router.refresh();
+      });
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -54,77 +55,44 @@ export default function DeleteBookingDangerZoneClient({
           Danger zone
         </div>
         <p className='subheading'>
-          Permanently delete this booking and all related records (payment,
-          assignment, status events, add-ons).{" "}
-          <strong>This can’t be undone.</strong>
+          Move this booking to the Trash. It disappears from every list,
+          calendar, and report, and can be restored for 7 days. After that,
+          unpaid bookings are permanently deleted; bookings with a payment on
+          file are kept.
         </p>
       </div>
 
       <div className={styles.dangerActions}>
         <div className={styles.btnContainer}>
-          <button type='button' className='dangerBtn' onClick={open}>
-            Delete booking
+          <button
+            type='button'
+            className='dangerBtn'
+            onClick={() => setConfirmOpen(true)}
+            disabled={pending}
+          >
+            Move to Trash
           </button>
         </div>
-        <div className='emptySmall colorRed fw700 uppercase'>
-          This is permanent. There is no recovery after deletion.
+        <div className='emptySmall fw700 uppercase'>
+          Reversible for 7 days from the Trash tab.
         </div>
       </div>
 
-      <Modal isOpen={confirmOpen} onClose={() => setConfirmOpen(false)}>
-        <div className={styles.modalContent}>
-          <div className='cardTitle h5'>Delete this booking?</div>
-
-          <p className='paragraph'>
-            You are about to permanently delete booking{" "}
-            <strong>{bookingId}</strong>.
-            <br />
-            <span className={styles.modalSubnote}>This can’t be undone.</span>
-          </p>
-
-          <div className={styles.confirmBlock}>
-            <label className={styles.confirmLabel}>
-              Type <strong>DELETE</strong> to confirm
-            </label>
-            <input
-              className='inputBorder'
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder='Type DELETE'
-              autoComplete='off'
-            />
-
-            <label className={styles.confirmCheckboxRow}>
-              <input
-                type='checkbox'
-                checked={ack}
-                onChange={(e) => setAck(e.target.checked)}
-              />
-              <span>I understand this action cannot be undone.</span>
-            </label>
-          </div>
-
-          <div className={styles.modalActions}>
-            <button
-              type='button'
-              className='primaryBtn'
-              onClick={() => setConfirmOpen(false)}
-              disabled={isPending}
-            >
-              Cancel
-            </button>
-
-            <button
-              type='button'
-              className='dangerBtn'
-              onClick={runDelete}
-              disabled={isPending || !canDelete}
-            >
-              {isPending ? "Deleting..." : "Confirm delete"}
-            </button>
-          </div>
-        </div>
-      </Modal>
+      <BulkConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={runTrash}
+        pending={pending}
+        title='Move this booking to the Trash?'
+        body={
+          <>
+            Booking <strong>{bookingId}</strong> will be hidden everywhere and
+            can be restored from the <strong>Trash</strong> tab for 7 days.
+          </>
+        }
+        confirmLabel='Move to Trash'
+        pendingLabel='Moving...'
+      />
     </div>
   );
 }

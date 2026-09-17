@@ -11,6 +11,12 @@ import FilterSelectClient from "./FilterSelectClient";
 import TripGroupBadge from "@/components/admin/TripGroupBadge/TripGroupBadge";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
+import {
+  BulkSelectProvider,
+  BulkActionBar,
+  RowCheckbox,
+  SelectAllCheckbox,
+} from "./BulkSelect";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +38,7 @@ const STATUSES = [
   "REFUNDED",
   "PARTIALLY_REFUNDED",
   "DRAFT",
+  "TRASH",
 ] as const;
 
 const RANGES = [
@@ -182,6 +189,8 @@ function statusLabel(status: BookingStatus) {
 
 function statusTabLabel(status: StatusFilter): string {
   switch (status) {
+    case "TRASH":
+      return "Trash";
     case "ALL":
       return "All";
     case "PAYMENT_RECEIVED":
@@ -297,6 +306,13 @@ function buildWhere(args: {
   const { now, timezone, status, range, paid, stuck, fromYmd, toYmd, q } = args;
 
   const where: Prisma.BookingWhereInput = {};
+
+  // Trash pseudo-status: only soft-deleted rows, no other filters.
+  // Mentioning deletedAt here also bypasses the global soft-delete guard.
+  if (status === "TRASH") {
+    where.deletedAt = { not: null };
+    return where;
+  }
 
   const todayStart = tz.startOfDay(now, timezone);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
@@ -976,345 +992,392 @@ export default async function AdminBookingsPage({
       ) : (
         <div className={styles.tableCard}>
           <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead className={styles.thead}>
-                <tr className={styles.trHead}>
-                  <SortableHeader
-                    label='Created'
-                    column='created'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                  />
-                  <SortableHeader
-                    label='Created by'
-                    column='createdBy'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                  />
-                  <SortableHeader
-                    label='Pickup'
-                    column='pickup'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                  />
-                  <SortableHeader
-                    label='Status'
-                    column='status'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                  />
-                  <SortableHeader
-                    label='Customer'
-                    column='customer'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                  />
-                  <SortableHeader
-                    label='Service'
-                    column='service'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                  />
-                  <SortableHeader
-                    label='Vehicle'
-                    column='vehicle'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                  />
-                  <SortableHeader
-                    label='Driver'
-                    column='driver'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                  />
-                  <SortableHeader
-                    label='Total'
-                    column='total'
-                    currentSort={sort}
-                    currentOrder={order}
-                    baseParams={baseParams}
-                    align='right'
-                  />
-                </tr>
-              </thead>
+            <BulkSelectProvider>
+              <BulkActionBar inTrash={status === "TRASH"} />
+              <table className={styles.table}>
+                <thead className={styles.thead}>
+                  <tr className={styles.trHead}>
+                    <th className={styles.th}>
+                      <SelectAllCheckbox ids={bookings.map((b) => b.id)} />
+                    </th>
+                    <SortableHeader
+                      label='Created'
+                      column='created'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                    />
+                    <SortableHeader
+                      label='Created by'
+                      column='createdBy'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                    />
+                    <SortableHeader
+                      label='Pickup'
+                      column='pickup'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                    />
+                    <SortableHeader
+                      label='Status'
+                      column='status'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                    />
+                    <SortableHeader
+                      label='Customer'
+                      column='customer'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                    />
+                    <SortableHeader
+                      label='Service'
+                      column='service'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                    />
+                    <SortableHeader
+                      label='Vehicle'
+                      column='vehicle'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                    />
+                    <SortableHeader
+                      label='Driver'
+                      column='driver'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                    />
+                    <SortableHeader
+                      label='Total'
+                      column='total'
+                      currentSort={sort}
+                      currentOrder={order}
+                      baseParams={baseParams}
+                      align='right'
+                    />
+                  </tr>
+                </thead>
 
-              <tbody>
-                {bookings.map((b) => {
-                  const href = `/admin/bookings/${b.id}`;
-                  const pickupEta = tz.formatEta(b.pickupAt, now);
-                  const createdAgo = tz.formatEta(b.createdAt, now);
-                  const total = tz.formatMoneyShort(b.totalCents ?? 0);
+                <tbody>
+                  {bookings.map((b) => {
+                    const href = `/admin/bookings/${b.id}`;
+                    const pickupEta = tz.formatEta(b.pickupAt, now);
+                    const createdAgo = tz.formatEta(b.createdAt, now);
+                    const total = tz.formatMoneyShort(b.totalCents ?? 0);
 
-                  const confirmationCode = getConfirmationCode(b.id);
+                    const confirmationCode = getConfirmationCode(b.id);
 
-                  const isCorporate = Boolean((b as any).corporateAccount);
-                  const isWekopa =
-                    !isCorporate &&
-                    (b as any).eventType === "Golf Transfer — We-Ko-Pa";
-                  const tripGroup = (b as any).tripGroup ?? null;
-                  const legNumber = tripGroup
-                    ? tripGroup.bookings.findIndex(
-                        (bg: any) => bg.id === b.id,
-                      ) + 1
-                    : 0;
-                  const customerName =
-                    b.user?.name?.trim() ||
-                    b.guestName?.trim() ||
-                    (b as any).corporatePassenger?.name?.trim() ||
-                    "Guest";
-                  const customerEmail =
-                    b.user?.email ??
-                    b.guestEmail ??
-                    (b as any).corporatePassenger?.email ??
-                    "";
+                    const isCorporate = Boolean((b as any).corporateAccount);
+                    const isWekopa =
+                      !isCorporate &&
+                      (b as any).eventType === "Golf Transfer — We-Ko-Pa";
+                    const tripGroup = (b as any).tripGroup ?? null;
+                    const legNumber = tripGroup
+                      ? tripGroup.bookings.findIndex(
+                          (bg: any) => bg.id === b.id,
+                        ) + 1
+                      : 0;
+                    const customerName =
+                      b.user?.name?.trim() ||
+                      b.guestName?.trim() ||
+                      (b as any).corporatePassenger?.name?.trim() ||
+                      "Guest";
+                    const customerEmail =
+                      b.user?.email ??
+                      b.guestEmail ??
+                      (b as any).corporatePassenger?.email ??
+                      "";
 
-                  const driverName = b.assignment?.driver?.name?.trim() || "";
-                  const driverEmail = b.assignment?.driver?.email ?? "";
-                  const payStatus = b.payment?.status ?? null;
+                    const driverName = b.assignment?.driver?.name?.trim() || "";
+                    const driverEmail = b.assignment?.driver?.email ?? "";
+                    const payStatus = b.payment?.status ?? null;
 
-                  const statusDisplay =
-                    payStatus === "PARTIALLY_PAID"
-                      ? "Partially paid"
-                      : payStatus === "PAID" &&
-                          (b.status === "CONFIRMED" ||
-                            b.status === "PENDING_PAYMENT")
-                        ? "Paid"
-                        : payStatus === "PAID" && b.status === "COMPLETED"
-                          ? "Completed · Paid"
-                          : statusLabel(b.status);
+                    const statusDisplay =
+                      payStatus === "PARTIALLY_PAID"
+                        ? "Partially paid"
+                        : payStatus === "PAID" &&
+                            (b.status === "CONFIRMED" ||
+                              b.status === "PENDING_PAYMENT")
+                          ? "Paid"
+                          : payStatus === "PAID" && b.status === "COMPLETED"
+                            ? "Completed · Paid"
+                            : statusLabel(b.status);
 
-                  const statusTone: BadgeTone =
-                    payStatus === "PARTIALLY_PAID"
-                      ? "warn"
-                      : payStatus === "PAID" &&
-                          (b.status === "CONFIRMED" ||
-                            b.status === "PENDING_PAYMENT")
-                        ? "good"
-                        : payStatus === "PAID" && b.status === "COMPLETED"
+                    const statusTone: BadgeTone =
+                      payStatus === "PARTIALLY_PAID"
+                        ? "warn"
+                        : payStatus === "PAID" &&
+                            (b.status === "CONFIRMED" ||
+                              b.status === "PENDING_PAYMENT")
                           ? "good"
-                          : badgeTone(b.status);
+                          : payStatus === "PAID" && b.status === "COMPLETED"
+                            ? "good"
+                            : badgeTone(b.status);
 
-                  const createdEvent = b.statusEvents?.[0] ?? null;
-                  const actor = createdEvent?.createdBy ?? null;
+                    const createdEvent = b.statusEvents?.[0] ?? null;
+                    const actor = createdEvent?.createdBy ?? null;
 
-                  let createdByTop = "Guest checkout";
+                    let createdByTop = "Guest checkout";
 
-                  if (actor?.roles?.includes(Role.ADMIN)) {
-                    createdByTop = "Admin";
-                  } else if (isCorporate) {
-                    createdByTop = "Corp Admin";
-                  } else if (actor) {
-                    createdByTop = "User account";
-                  } else if (b.user) {
-                    createdByTop = "User account";
-                  } else {
-                    createdByTop = "Guest checkout";
-                  }
+                    if (actor?.roles?.includes(Role.ADMIN)) {
+                      createdByTop = "Admin";
+                    } else if (isCorporate) {
+                      createdByTop = "Corp Admin";
+                    } else if (actor) {
+                      createdByTop = "User account";
+                    } else if (b.user) {
+                      createdByTop = "User account";
+                    } else {
+                      createdByTop = "Guest checkout";
+                    }
 
-                  return (
-                    <tr
-                      key={b.id}
-                      className={`${styles.tr} ${isCorporate ? styles.trCorporate : isWekopa ? styles.trWekopa : ""}`}
-                    >
-                      <td
-                        className={styles.td}
-                        data-label='Created'
-                        style={{ position: "relative" }}
+                    return (
+                      <tr
+                        key={b.id}
+                        className={`${styles.tr} ${isCorporate ? styles.trCorporate : isWekopa ? styles.trWekopa : ""}`}
                       >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-label='Open booking'
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        <div className={styles.pickupCell}>
-                          <Link href={href} className={styles.rowLink}>
-                            {tz.formatDate(b.createdAt, companyTz)}{" "}
-                          </Link>
-                          <div className={styles.pickupMeta}>
-                            <span className={styles.pill}>{createdAgo}</span>
-                            <span
-                              className={styles.confirmationCode}
-                              title='Confirmation Code'
-                            >
-                              #{confirmationCode}
-                            </span>
+                        <td className={styles.td} data-label='Select'>
+                          <RowCheckbox id={b.id} />
+                        </td>
+                        <td
+                          className={styles.td}
+                          data-label='Created'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-label='Open booking'
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
+                          <div className={styles.pickupCell}>
+                            <Link href={href} className={styles.rowLink}>
+                              {tz.formatDate(b.createdAt, companyTz)}{" "}
+                            </Link>
+                            <div className={styles.pickupMeta}>
+                              <span className={styles.pill}>{createdAgo}</span>
+                              <span
+                                className={styles.confirmationCode}
+                                title='Confirmation Code'
+                              >
+                                #{confirmationCode}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td
-                        className={styles.td}
-                        data-label='Created by'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        <div className={styles.cellStack}>
-                          <div className={styles.cellStrong}>
-                            {createdByTop}
-                          </div>
-                        </div>
-                      </td>
-                      <td
-                        className={styles.td}
-                        data-label='Pickup'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        <div className={styles.pickupCell}>
-                          <Link href={href} className={styles.rowLink}>
-                            {tz.formatDate(b.pickupAt, companyTz)}
-                          </Link>
-                          <div className={styles.pickupMeta}>
-                            <span className={styles.pill}>{pickupEta}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td
-                        className={styles.td}
-                        data-label='Status'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        <div className={styles.pickupMeta}>
-                          <span className={`badge badge_${statusTone}`}>
-                            {statusDisplay}
-                          </span>
-                          {tripGroup && legNumber > 0 && (
-                            <TripGroupBadge
-                              legNumber={legNumber}
-                              totalLegs={tripGroup.legCount}
-                            />
-                          )}
-                        </div>
-                      </td>
-                      <td
-                        className={styles.td}
-                        data-label='Customer'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        <div className={styles.cellStack}>
-                          <Link href={href} className={styles.rowLink}>
-                            {customerName}
-                          </Link>
-                          <div className={styles.cellSub}>
-                            {isCorporate
-                              ? ((b as any).corporateAccount?.name ??
-                                customerEmail)
-                              : customerEmail}
-                          </div>
-                        </div>
-                      </td>
-                      <td
-                        className={styles.td}
-                        data-label='Service'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        <div className={styles.cellStack}>
-                          <div className={styles.cellStrong}>
-                            {b.serviceType?.name ?? "—"}
-                          </div>
-                        </div>
-                      </td>
-                      <td
-                        className={styles.td}
-                        data-label='Vehicle'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        <div className={styles.cellStack}>
-                          <div className={styles.cellStrong}>
-                            {b.vehicle?.name ?? "—"}
-                          </div>
-                        </div>
-                      </td>
-                      <td
-                        className={`${styles.td} ${!b.assignment?.driver ? styles.unassignedCell : ""}`}
-                        data-label='Driver'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        {b.assignment?.driver ? (
+                        </td>
+                        <td
+                          className={styles.td}
+                          data-label='Created by'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
                           <div className={styles.cellStack}>
                             <div className={styles.cellStrong}>
-                              {driverName || "—"}
+                              {createdByTop}
                             </div>
-                            <div className={styles.cellSub}>{driverEmail}</div>
                           </div>
-                        ) : (
-                          <div className={styles.cellSub}>Unassigned</div>
-                        )}
-                      </td>
-                      <td
-                        className={`${styles.td} ${styles.tdRight}`}
-                        data-label='Total'
-                        style={{ position: "relative" }}
-                      >
-                        <Link
-                          href={href}
-                          className={styles.rowStretchedLink}
-                          aria-hidden='true'
-                          tabIndex={-1}
-                          style={{ position: "absolute", inset: 0, zIndex: 5 }}
-                        />
-                        <div className={styles.totalCell}>{total}</div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </td>
+                        <td
+                          className={styles.td}
+                          data-label='Pickup'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
+                          <div className={styles.pickupCell}>
+                            <Link href={href} className={styles.rowLink}>
+                              {tz.formatDate(b.pickupAt, companyTz)}
+                            </Link>
+                            <div className={styles.pickupMeta}>
+                              <span className={styles.pill}>{pickupEta}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td
+                          className={styles.td}
+                          data-label='Status'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
+                          <div className={styles.pickupMeta}>
+                            <span className={`badge badge_${statusTone}`}>
+                              {statusDisplay}
+                            </span>
+                            {tripGroup && legNumber > 0 && (
+                              <TripGroupBadge
+                                legNumber={legNumber}
+                                totalLegs={tripGroup.legCount}
+                              />
+                            )}
+                          </div>
+                        </td>
+                        <td
+                          className={styles.td}
+                          data-label='Customer'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
+                          <div className={styles.cellStack}>
+                            <Link href={href} className={styles.rowLink}>
+                              {customerName}
+                            </Link>
+                            <div className={styles.cellSub}>
+                              {isCorporate
+                                ? ((b as any).corporateAccount?.name ??
+                                  customerEmail)
+                                : customerEmail}
+                            </div>
+                          </div>
+                        </td>
+                        <td
+                          className={styles.td}
+                          data-label='Service'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
+                          <div className={styles.cellStack}>
+                            <div className={styles.cellStrong}>
+                              {b.serviceType?.name ?? "—"}
+                            </div>
+                          </div>
+                        </td>
+                        <td
+                          className={styles.td}
+                          data-label='Vehicle'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
+                          <div className={styles.cellStack}>
+                            <div className={styles.cellStrong}>
+                              {b.vehicle?.name ?? "—"}
+                            </div>
+                          </div>
+                        </td>
+                        <td
+                          className={`${styles.td} ${!b.assignment?.driver ? styles.unassignedCell : ""}`}
+                          data-label='Driver'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
+                          {b.assignment?.driver ? (
+                            <div className={styles.cellStack}>
+                              <div className={styles.cellStrong}>
+                                {driverName || "—"}
+                              </div>
+                              <div className={styles.cellSub}>
+                                {driverEmail}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className={styles.cellSub}>Unassigned</div>
+                          )}
+                        </td>
+                        <td
+                          className={`${styles.td} ${styles.tdRight}`}
+                          data-label='Total'
+                          style={{ position: "relative" }}
+                        >
+                          <Link
+                            href={href}
+                            className={styles.rowStretchedLink}
+                            aria-hidden='true'
+                            tabIndex={-1}
+                            style={{
+                              position: "absolute",
+                              inset: 0,
+                              zIndex: 5,
+                            }}
+                          />
+                          <div className={styles.totalCell}>{total}</div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </BulkSelectProvider>
           </div>
         </div>
       )}

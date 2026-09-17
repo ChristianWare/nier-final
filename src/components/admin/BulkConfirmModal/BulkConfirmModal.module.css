@@ -1,0 +1,46 @@
+/* Mirrors the delete-confirmation modal on the booking detail page */
+
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.modalSubnote {
+  display: inline-block;
+  margin-top: 1rem;
+  opacity: 0.8;
+}
+
+.confirmBlock {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.confirmLabel {
+  font-weight: 900;
+  letter-spacing: normal;
+  opacity: 0.7;
+  text-transform: uppercase;
+  font-size: 1.4rem;
+}
+
+.confirmCheckboxRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 1.4rem;
+  opacity: 0.9;
+}
+
+.modalActions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 5rem;
+}

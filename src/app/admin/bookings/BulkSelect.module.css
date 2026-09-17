@@ -1,0 +1,64 @@
+.checkbox {
+  width: 1.8rem;
+  height: 1.8rem;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+  background-color: var(--cream);
+  border: 2px solid var(--stroke);
+  border-radius: 10px;
+  padding: 1.4rem 2rem;
+  margin-bottom: 1.6rem;
+}
+
+.count {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.btn {
+  font-size: 1.6rem;
+  font-weight: 600;
+  padding: 0.9rem 1.6rem;
+  border-radius: 7px;
+  border: 1px solid var(--stroke);
+  background-color: var(--white);
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btnDanger {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--white);
+}
+
+.btnGhost {
+  font-size: 1.6rem;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+/* Optimistically removed rows: hide the whole table row that contains
+   a hidden checkbox until the server refresh lands. */
+.rowHidden {
+  visibility: hidden;
+}
+
+tr:has(.rowHidden) {
+  display: none;
+}

@@ -2,7 +2,11 @@
 
 import styles from "./AdminRecentBookingRequests.module.css";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { trashBookings } from "../../../../actions/admin/bookingTrash";
+import toast from "react-hot-toast";
+import BulkConfirmModal from "@/components/admin/BulkConfirmModal/BulkConfirmModal";
 
 export type RecentBookingRequestItem = {
   id: string;
@@ -104,20 +108,29 @@ export default function AdminRecentBookingRequests({
   const [bucket, setBucket] = useState<Bucket>("all");
   const [customerFilter, setCustomerFilter] = useState<CustomerFilter>("all");
 
+  // Rows removed optimistically after a successful trash action.
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const liveItems = useMemo(
+    () => items.filter((x) => !hiddenIds.has(x.id)),
+    [items, hiddenIds],
+  );
+
   const counts = useMemo(() => {
-    const total = items.length;
-    const guests = items.filter((x) => x.customer.kind === "guest").length;
-    const corporate = items.filter(
+    const total = liveItems.length;
+    const guests = liveItems.filter((x) => x.customer.kind === "guest").length;
+    const corporate = liveItems.filter(
       (x) => x.customer.kind === "corporate",
     ).length;
     const accounts = total - guests - corporate;
-    const review = items.filter((x) => x.status === "PENDING_REVIEW").length;
-    const pay = items.filter((x) => x.status === "PENDING_PAYMENT").length;
+    const review = liveItems.filter(
+      (x) => x.status === "PENDING_REVIEW",
+    ).length;
+    const pay = liveItems.filter((x) => x.status === "PENDING_PAYMENT").length;
     return { total, guests, accounts, corporate, review, pay };
-  }, [items]);
+  }, [liveItems]);
 
   const filtered = useMemo(() => {
-    let list = items.slice();
+    let list = liveItems.slice();
 
     if (bucket === "review")
       list = list.filter((x) => x.status === "PENDING_REVIEW");
@@ -152,7 +165,61 @@ export default function AdminRecentBookingRequests({
     });
 
     return list;
-  }, [items, bucket, customerFilter]);
+  }, [liveItems, bucket, customerFilter]);
+
+  // ── Bulk select → Trash ───────────────────────────────────────────────
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [pending, setPending] = useState(false);
+  const [, startTransition] = useTransition();
+  const [trashOpen, setTrashOpen] = useState(false);
+  const router = useRouter();
+
+  const toggleSelected = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const visibleIds = filtered.map((b) => b.id);
+  const allSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selected.has(id));
+
+  const selectedCount = selected.size;
+  const selectedPlural = selectedCount === 1 ? "booking" : "bookings";
+
+  const runBulkTrash = async () => {
+    if (selectedCount === 0 || pending) return;
+    const ids = [...selected];
+
+    setPending(true);
+    try {
+      const res = await trashBookings(ids);
+      if (!res.ok) {
+        toast.error(res.error ?? "Failed to move to trash.");
+        return;
+      }
+      toast.success(
+        `Moved ${res.count ?? selectedCount} ${selectedPlural} to the Trash.`,
+      );
+
+      // 1) Optimistic: rows disappear right now.
+      setHiddenIds((prev) => {
+        const next = new Set(prev);
+        for (const id of ids) next.add(id);
+        return next;
+      });
+      setTrashOpen(false);
+      setSelected(new Set());
+      // 2) Server truth: re-render the dashboard in its own transition.
+      startTransition(() => {
+        router.refresh();
+      });
+    } finally {
+      setPending(false);
+    }
+  };
 
   return (
     <section className={styles.container} aria-label='Recent booking requests'>
@@ -240,6 +307,33 @@ export default function AdminRecentBookingRequests({
         </div>
       </header>
 
+      {selected.size > 0 && (
+        <div className={styles.bulkBar}>
+          <span className={styles.bulkCount}>
+            {selected.size} selected{pending ? " — working…" : ""}
+          </span>
+          <button
+            type='button'
+            className={styles.bulkBtn}
+            onClick={() => setTrashOpen(true)}
+            disabled={pending}
+          >
+            Move to Trash
+          </button>
+          <button
+            type='button'
+            className={styles.bulkClear}
+            onClick={() => setSelected(new Set())}
+            disabled={pending}
+          >
+            Clear
+          </button>
+          <Link href='/admin/bookings?status=TRASH' className={styles.bulkLink}>
+            View trash →
+          </Link>
+        </div>
+      )}
+
       {filtered.length === 0 ? (
         <div className='emptySmall'>No items match your filters.</div>
       ) : (
@@ -247,6 +341,17 @@ export default function AdminRecentBookingRequests({
           <table className={styles.table}>
             <thead className={styles.thead}>
               <tr className={styles.trHead}>
+                <th className={`${styles.th} ${styles.thCheck}`}>
+                  <input
+                    type='checkbox'
+                    className={styles.checkbox}
+                    checked={allSelected}
+                    onChange={() =>
+                      setSelected(allSelected ? new Set() : new Set(visibleIds))
+                    }
+                    aria-label='Select all visible requests'
+                  />
+                </th>
                 <th className={styles.th}>Status</th>
                 <th className={styles.th}>Created</th>
                 <th className={styles.th}>Pickup</th>
@@ -292,6 +397,19 @@ export default function AdminRecentBookingRequests({
 
                 return (
                   <tr key={b.id} className={styles.tr}>
+                    <td
+                      className={`${styles.td} ${styles.tdCheck}`}
+                      data-label='Select'
+                    >
+                      <input
+                        type='checkbox'
+                        className={styles.checkbox}
+                        checked={selected.has(b.id)}
+                        onChange={() => toggleSelected(b.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label='Select booking request'
+                      />
+                    </td>
                     <td className={styles.td} data-label='Status'>
                       <Link
                         href={href}
@@ -416,6 +534,23 @@ export default function AdminRecentBookingRequests({
           </table>
         </div>
       )}
+      <BulkConfirmModal
+        open={trashOpen}
+        onClose={() => setTrashOpen(false)}
+        onConfirm={runBulkTrash}
+        pending={pending}
+        title={`Move ${selectedCount} ${selectedPlural} to the Trash?`}
+        body={
+          <>
+            They will disappear from every list, calendar, and report, and can
+            be restored from the <strong>Trash</strong> tab on the Bookings page
+            for 7 days. After that, unpaid bookings are permanently deleted;
+            bookings with a payment on file are kept.
+          </>
+        }
+        confirmLabel='Move to Trash'
+        pendingLabel='Moving...'
+      />
     </section>
   );
 }

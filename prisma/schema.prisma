@@ -525,6 +525,10 @@ model Booking {
   guestStripeCustomerId      String?
   guestStripePaymentMethodId String?
 
+    // Soft delete (trash can)
+  deletedAt   DateTime?
+  deletedById String?
+
   @@index([userId])
   @@index([serviceTypeId])
   @@index([vehicleId])
@@ -533,6 +537,7 @@ model Booking {
   @@index([corporateAccountId])
   @@index([corporatePassengerId])
   @@index([tripGroupId])
+  @@index([deletedAt])
 }
 
 model BookingNote {
