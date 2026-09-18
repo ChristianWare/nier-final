@@ -61,7 +61,7 @@ export default function WekoPaPage() {
 
       {/* ─── HERO ─── */}
       <ServicePageIntro
-        heading='We-Ko-Pa ↔ Sky Harbor'
+        heading='We-Ko-Pa ↔ Airport'
         label='Airport transfers'
         stat={{
           quote:

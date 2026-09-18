@@ -62,7 +62,7 @@ export default function DenuHotelPage() {
 
       {/* ─── HERO ─── */}
       <ServicePageIntro
-        heading='Denū Hotel ↔ Sky Harbor'
+        heading='Denū Hotel ↔ Airport'
         label='Airport transfers'
         stat={{
           quote:
