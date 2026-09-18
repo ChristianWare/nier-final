@@ -62,8 +62,8 @@ export default function DenuHotelPage() {
 
       {/* ─── HERO ─── */}
       <ServicePageIntro
-        heading='Sky Harbor to Denū, Denū to Sky Harbor'
-        label='Denū Hotel transfers'
+        heading='Denū Hotel ↔ Sky Harbor'
+        label='Airport transfers'
         stat={{
           quote:
             "Have used this service multiple times. The drivers are great. Always very professional and prompt. You can tell they care about safety and a great customer experience, would definitely recommend it.",

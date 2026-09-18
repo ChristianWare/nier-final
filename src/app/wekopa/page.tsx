@@ -61,8 +61,8 @@ export default function WekoPaPage() {
 
       {/* ─── HERO ─── */}
       <ServicePageIntro
-        heading='Sky Harbor to We-Ko-Pa, We-Ko-Pa to Sky Harbor'
-        label='We-Ko-Pa transfers'
+        heading='We-Ko-Pa ↔ Sky Harbor'
+        label='Airport transfers'
         stat={{
           quote:
             "Have used this service multiple times. The drivers are great. Always very professional and prompt. You can tell they care about safety and a great customer experience, would definitely recommend it.",
