@@ -62,7 +62,7 @@ export default function DenuHotelPage() {
 
       {/* ─── HERO ─── */}
       <ServicePageIntro
-        heading='Denū Hotel ↔ Airport'
+        heading='Denū Hotel & Spa ↔ Airport'
         label='Airport transfers'
         stat={{
           quote:
@@ -79,7 +79,7 @@ export default function DenuHotelPage() {
         }
       />
       <Marquee
-        words={["Denū", "Hotel", "&", "Spa", "Downtown", "Phoenix"]}
+        words={["Denū Hotel & Spa"]}
         speedSeconds={90}
       />
 

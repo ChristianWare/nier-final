@@ -149,7 +149,7 @@ export default function DenuPricing() {
                   text='Book This Vehicle'
                   btnType={
                     plan.theme === "dark1" || plan.theme === "dark2"
-                      ? "underlinedWhite"
+                      ? "white"
                       : "black"
                   }
                   arrow
