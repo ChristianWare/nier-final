@@ -18,6 +18,10 @@
   margin-top: 2rem;
 }
 
+.title {
+  max-width: 500px;
+}
+
 .desc {
   display: -webkit-box;
   -webkit-line-clamp: 2;

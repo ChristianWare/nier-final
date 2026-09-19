@@ -25,9 +25,9 @@ export default function FinalCTA() {
                 </p>
                 <div className={styles.btnContainer}>
                   <Button
-                    as='span'
+                    href='/contact'
                     text='Contact Nier Transportation'
-                    btnType='underlinedBlackii'
+                    btnType='black'
                     arrow
                   />
                 </div>

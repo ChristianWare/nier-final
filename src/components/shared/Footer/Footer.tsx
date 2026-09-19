@@ -274,7 +274,7 @@ export default async function Footer() {
   return (
     <footer className={styles.container}>
       <div className={styles.marqueeContainer}>
-        <Marquee words={["Nier Transportation"]} speedSeconds={10} />
+        <Marquee words={["Nier Transportation"]} speedSeconds={50} />
       </div>
       <LayoutWrapper>
         <div className={styles.content}>

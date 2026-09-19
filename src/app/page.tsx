@@ -10,6 +10,7 @@ import { Metadata } from "next";
 import ServicesMarquee from "@/components/shared/ServicesMarquee/ServicesMarquee";
 import { db } from "@/lib/db";
 import { getCompanySettings } from "../../actions/admin/companySettings";
+import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
 
 const HowItWorks = dynamic(
   () => import("@/components/shared/HowItWorks/HowItWorks"),
@@ -233,7 +234,8 @@ export default async function HomePage() {
       <Events />
       <Faq items={homeQuestions} />
       <BlogSection />
-      <AboutNumbers />
+      {/* <AboutNumbers /> */}
+      <FinalCTA />
     </main>
   );
 }

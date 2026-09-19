@@ -19,6 +19,15 @@
   background-color: var(--accent);
 }
 
+.heading {
+  max-width: 600px;
+}
+
+.copy {
+  max-width: 450px;
+  
+}
+
 .top,
 .bottom {
   display: flex;

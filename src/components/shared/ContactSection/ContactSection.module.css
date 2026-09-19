@@ -50,6 +50,7 @@
 .labelInputBox textarea::placeholder {
   color: var(--darkGray);
   opacity: 0.3;
+  line-height: 1.5;
 }
 
 .labelInputBox select {
