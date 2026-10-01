@@ -23,6 +23,13 @@ type Props = {
   amountRefundedCents: number;
   currency: string;
   stripePaymentIntentId: string | null;
+  /**
+   * Multi-ride trips only. A trip is one bill, so "has the customer overpaid?"
+   * is judged on the trip: its total, and what was collected (less refunds)
+   * across all of its rides. Left out for a single booking.
+   */
+  billTotalCents?: number;
+  billNetPaidCents?: number;
 };
 
 export default function RefundButton({
@@ -32,6 +39,8 @@ export default function RefundButton({
   amountRefundedCents,
   currency,
   stripePaymentIntentId,
+  billTotalCents,
+  billNetPaidCents,
 }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -41,8 +50,13 @@ export default function RefundButton({
   // Calculate net paid (paid minus already refunded)
   const netPaidCents = amountPaidCents - amountRefundedCents;
 
-  // Calculate refund due (overpayment) - if price was lowered after payment
-  const refundDueCents = Math.max(0, netPaidCents - totalCents);
+  // Calculate refund due (overpayment) - if price was lowered after payment.
+  // On a multi-ride trip every payment can sit on one ride's record, so the
+  // comparison is trip against trip, never one ride's record against one
+  // ride's price.
+  const owedCents = billTotalCents ?? totalCents;
+  const collectedCents = billNetPaidCents ?? netPaidCents;
+  const refundDueCents = Math.max(0, collectedCents - owedCents);
   const hasRefundDue = refundDueCents > 0;
 
   // Check if payment has been received
@@ -144,9 +158,11 @@ export default function RefundButton({
             </strong>{" "}
             <span className={styles.refundDetail}>
               Customer paid{" "}
-              <strong>{formatMoney(amountPaidCents, currency)}</strong>, but
-              current total is{" "}
-              <strong>{formatMoney(totalCents, currency)}</strong>
+              <strong>
+                {formatMoney(billNetPaidCents ?? amountPaidCents, currency)}
+              </strong>
+              , but current total is{" "}
+              <strong>{formatMoney(owedCents, currency)}</strong>
             </span>
           </div>
           <button

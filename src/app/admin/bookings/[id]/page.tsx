@@ -615,6 +615,27 @@ export default async function AdminBookingDetailPage({
     : booking.payment?.status === "PAID";
   const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
   const amountRefundedCents = booking.payment?.amountRefundedCents ?? 0;
+
+  // ── Refund panel: has the customer paid more than the bill? ──
+  // A multi-ride trip is ONE bill. Its payments can all sit on one ride's
+  // record (the ride whose page the charge was made from), so compare what
+  // was collected across every ride with the trip total.
+  const tripPayments =
+    tripGroupData && booking.tripGroupId
+      ? await db.payment.findMany({
+          where: { booking: { tripGroupId: booking.tripGroupId } },
+          select: { amountPaidCents: true, amountRefundedCents: true },
+        })
+      : null;
+  const tripBill = tripPayments
+    ? {
+        totalCents: groupTotalCents,
+        netPaidCents: tripPayments.reduce(
+          (sum, p) => sum + p.amountPaidCents - (p.amountRefundedCents ?? 0),
+          0,
+        ),
+      }
+    : null;
   const tipCents = booking.payment?.tipCents ?? 0;
   const isApproved =
     booking.status !== "PENDING_REVIEW" &&
@@ -1768,6 +1789,8 @@ export default async function AdminBookingDetailPage({
                 totalCents={booking.totalCents}
                 amountPaidCents={amountPaidCents}
                 amountRefundedCents={amountRefundedCents}
+                billTotalCents={tripBill?.totalCents}
+                billNetPaidCents={tripBill?.netPaidCents}
                 currency={booking.currency}
                 stripePaymentIntentId={
                   booking.payment?.stripePaymentIntentId ?? null
