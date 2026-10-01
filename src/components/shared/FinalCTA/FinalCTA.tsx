@@ -13,7 +13,7 @@ export default function FinalCTA() {
           <LayoutWrapper>
             <div className={styles.content}>
               <div className={styles.top}>
-                <SectionHeading text='Contat Us' />
+                <SectionHeading text='Contact Us' />
                 <h2 className={`${styles.heading} h1`}>
                   Take the first step toward an elevated travel experience.
                 </h2>

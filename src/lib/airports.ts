@@ -25,11 +25,19 @@ export type AirportData = {
   pickupHighlights: readonly string[];
   bookCardCopy: string;
   faqs: readonly { q: string; a: string }[];
+  /** Blog guides about this airport, shown in the Related links section. */
+  relatedPosts?: readonly { label: string; href: string }[];
 };
 
 export const airportsData: readonly AirportData[] = [
   {
     slug: "phx-sky-harbor",
+    relatedPosts: [
+      {
+        label: "Sky Harbor guide 2026: terminals, pickup doors & what's new",
+        href: "/blog/sky-harbor-airport-guide",
+      },
+    ],
     code: "PHX",
     name: "Phoenix Sky Harbor International Airport",
     shortName: "Sky Harbor",
@@ -87,6 +95,12 @@ export const airportsData: readonly AirportData[] = [
   },
   {
     slug: "mesa-gateway",
+    relatedPosts: [
+      {
+        label: "Every airline that flies out of Mesa Gateway (2026)",
+        href: "/blog/mesa-gateway-airport-airlines-2026",
+      },
+    ],
     code: "AZA",
     name: "Phoenix–Mesa Gateway Airport",
     shortName: "Mesa Gateway",
@@ -140,6 +154,12 @@ export const airportsData: readonly AirportData[] = [
   },
   {
     slug: "scottsdale-airport",
+    relatedPosts: [
+      {
+        label: "Can you fly into Scottsdale Airport? Flights, JSX & private aviation",
+        href: "/blog/scottsdale-airport-flights",
+      },
+    ],
     code: "SDL",
     name: "Scottsdale Airport",
     shortName: "Scottsdale Airport",

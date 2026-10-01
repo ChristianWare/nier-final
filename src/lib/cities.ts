@@ -87,6 +87,10 @@ export const serviceAreaCities = [
       {
         q: "Do you serve Scottsdale Airport (SDL) and private aviation?",
         a: "Yes. We handle FBO pickups and drop-offs at Scottsdale Airport for private and corporate flyers, with chauffeurs staged to your wheels-down time.",
+        link: {
+          href: "/airports/private-aviation",
+          label: "See our private jet & FBO car service",
+        },
       },
       {
         q: "Do you provide golf transportation in Scottsdale?",
@@ -2513,7 +2517,12 @@ export type CityData = {
   corporateNote?: string;
   localContext?: string;
   localLandmarks?: readonly string[];
-  faqs?: readonly { q: string; a: string }[];
+  faqs?: readonly {
+    q: string;
+    a: string;
+    /** Optional internal link rendered under the answer (not part of FAQ schema). */
+    link?: { href: string; label: string };
+  }[];
   routePromo?: { href: string; anchor: string; blurb: string };
   airportMinutes?: string;
   topServices?: readonly { title: string; copy: string; href: string }[];

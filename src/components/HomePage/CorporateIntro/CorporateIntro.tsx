@@ -19,7 +19,7 @@ export default function CorporateIntro() {
               Simplify how your company moves. With a Nier Transportation
               corporate account, you get centralized billing, a dedicated
               passenger roster, negotiated rates, and a single point of contact
-              for all your ground .transportation needs.
+              for all your ground transportation needs.
             </p>
             <div className={styles.btnContainer}>
               <Button

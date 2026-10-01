@@ -1,15 +1,18 @@
-import { Suspense } from "react";
 import AllBlogsPosts from "@/components/BlogPage/AllBlogsPosts/AllBlogsPosts";
 import BlogPageIntro from "@/components/BlogPage/BlogPageIntro/BlogPageIntro";
 import Nav from "@/components/shared/Nav/Nav";
 import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
-import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
 import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Blog | Luxury Transportation Tips & Travel Guides",
   description:
     "Tips, guides, and insights on luxury ground transportation, airport travel, and getting around Scottsdale and Phoenix in style.",
+  alternates: {
+    // ?tag= and ?q= views are filtered copies of this page, so they canonical here.
+    canonical: `${SITE_URL}/blog`,
+  },
 };
 
 const blogSchema = {
@@ -35,12 +38,10 @@ export default function BlogPage() {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogSchema) }}
       />
-      <Suspense fallback={<LoadingPulse />}>
-        <Nav background='cream' />
-        <BlogPageIntro />
-        <AllBlogsPosts />
-        <FinalCTA />
-      </Suspense>
+      <Nav background='cream' />
+      <BlogPageIntro />
+      <AllBlogsPosts />
+      <FinalCTA />
     </main>
   );
 }

@@ -15,6 +15,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  // Resolves relative canonical/og URLs. Pages that set their own openGraph
+  // should pass `url: "/their-path"`; pages that don't now get no og:url
+  // instead of the homepage's (which Facebook/LinkedIn treated as canonical).
+  metadataBase: new URL("https://www.niertransportation.com"),
   title: "Nier Transportation | Black Car Service Phoenix & Scottsdale",
   description:
     "Phoenix and Scottsdale's trusted black car service since 2004. Flat-rate airport transfers, hourly chauffeur, corporate rides, and weddings. No surge pricing, available 24/7.",
@@ -22,7 +26,6 @@ export const metadata: Metadata = {
     title: "Nier Transportation | Black Car Service Phoenix & Scottsdale",
     description:
       "Phoenix and Scottsdale's trusted black car service since 2004. Flat-rate airport transfers, hourly chauffeur, corporate rides, and weddings. No surge pricing, available 24/7.",
-    url: "https://www.niertransportation.com",
     siteName: "Nier Transportation",
     type: "website",
     images: [

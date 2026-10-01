@@ -97,8 +97,12 @@ export default async function AirportPage({
       label: `${r.origin} to ${r.destination} car service`,
       href: `/routes/${r.slug}`,
     })),
+    ...(airport.relatedPosts ?? []),
     ...(airport.slug === "phx-sky-harbor"
-      ? [{ label: "We-Ko-Pa Golf Club transfers", href: "/wekopa" }]
+      ? [
+          { label: "We-Ko-Pa Golf Club transfers", href: "/wekopa" },
+          { label: "Denū Hotel & Spa airport transfers", href: "/denu-hotel" },
+        ]
       : []),
     ...otherAirports.map((a) => ({
       label: `${a.shortName} airport car service`,
@@ -267,7 +271,10 @@ export default async function AirportPage({
         }))}
       />
 
-      <RelatedLinks title='Related airports & routes' links={relatedLinks} />
+      <RelatedLinks
+        title='Related routes, airports & guides'
+        links={relatedLinks}
+      />
 
       <AboutTestimonials />
       <AboutNumbers />

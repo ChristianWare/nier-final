@@ -3,12 +3,19 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./Faq.module.css";
 import Image from "next/image";
+import Link from "next/link";
 import Img1 from "../../../../public/images/other/chauffeur.jpg";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import { useState } from "react";
 import Arrow from "../icons/Arrow/Arrow";
 
-type FAQItem = { id: number | string; question: string; answer: string };
+type FAQItem = {
+  id: number | string;
+  question: string;
+  answer: string;
+  /** Optional internal link shown under the answer. */
+  link?: { href: string; label: string };
+};
 
 export default function Faq({
   items,
@@ -89,6 +96,16 @@ export default function Faq({
                     <p className={styles.answer} lang='en'>
                       {x.answer}
                     </p>
+                    {x.link && (
+                      <p className={styles.answer}>
+                        <Link
+                          href={x.link.href}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {x.link.label} →
+                        </Link>
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

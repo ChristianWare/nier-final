@@ -202,6 +202,14 @@ const data: Section[] = [
       },
     ],
   },
+  {
+    id: 7,
+    title: "Partners",
+    options: [
+      { id: 7.1, option: "We-Ko-Pa Golf Club", href: "/wekopa" },
+      { id: 7.2, option: "Denū Hotel & Spa", href: "/denu-hotel" },
+    ],
+  },
 ];
 
 // Icon component map for dynamic rendering

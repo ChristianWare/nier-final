@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import styles from "./BlogPageIntro.module.css";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
@@ -18,7 +19,11 @@ export default function BlogPageIntro() {
             articles designed to help you make the most of your travel
             experiences.
           </p>
-          <BlogSearchBar />
+          {/* BlogSearchBar uses useSearchParams(); keep its client-only
+              render contained here so the heading above stays in the HTML. */}
+          <Suspense fallback={null}>
+            <BlogSearchBar />
+          </Suspense>
         </div>
       </LayoutWrapper>
     </div>

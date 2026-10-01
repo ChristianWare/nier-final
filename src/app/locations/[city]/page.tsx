@@ -301,6 +301,7 @@ export default async function LocationCityPage({
             id: i,
             question: f.q,
             answer: f.a,
+            link: f.link,
           }))}
         />
       )}

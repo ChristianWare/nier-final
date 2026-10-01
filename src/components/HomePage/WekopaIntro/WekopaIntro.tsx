@@ -36,7 +36,7 @@ export default function WekopaIntro() {
                 rate, flight tracked, and on time.
               </h2>
               <p className={styles.mainCopy}>
-                We-Ko-Pa is 30 miutues from Sky Harbor International Airport.
+                We-Ko-Pa is 30 minutes from Sky Harbor International Airport.
                 Rideshare apps don&apos;t specialize in this corridor — Nier
                 does. We&apos;ve served Phoenix and Scottsdale since 2004 and
                 the Sky Harbor to We-Ko-Pa run is one of our most requested

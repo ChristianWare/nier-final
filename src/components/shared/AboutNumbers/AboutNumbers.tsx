@@ -63,7 +63,7 @@ export default function AboutNumbers() {
             </h2>
             <div className={styles.btnClusterContainer}>
               <Button
-                href='/'
+                href='/book'
                 text='Book your ride'
                 btnType='underlinedWhite'
                 arrow

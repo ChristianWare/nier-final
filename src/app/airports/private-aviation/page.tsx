@@ -14,6 +14,7 @@ import { arizonaAirportsDirectory } from "@/lib/arizonaAirports";
 import { SITE_URL } from "@/lib/site";
 import styles from "./PrivateAviation.module.css";
 
+
 const canonical = `${SITE_URL}/airports/private-aviation`;
 
 export const metadata: Metadata = {
