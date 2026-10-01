@@ -168,6 +168,9 @@ export default function UserTripPaymentClient({
             tipCents,
             currency,
             isBalancePayment: false,
+            // This form pays for this one ride. The server works the amount
+            // out itself and refuses if it differs from the total shown here.
+            scope: "ride",
           }),
         });
 

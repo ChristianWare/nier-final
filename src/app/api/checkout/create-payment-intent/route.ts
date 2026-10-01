@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
+import { resolveCheckoutCharge } from "@/lib/booking/checkoutCharge";
 
 export const runtime = "nodejs";
 
@@ -10,15 +11,10 @@ export async function POST(req: Request) {
   try {
     const stripe = await getStripe();
     const body = await req.json();
-    const {
-      bookingId,
-      amountCents,
-      tipCents,
-      currency,
-      isBalancePayment,
-      isDepositPayment,
-      depositAmountCents,
-    } = body;
+    // The browser says WHAT it is paying for and how much tip to add. The
+    // total it showed the customer (amountCents) is only ever compared with
+    // the figure worked out below. It is never used as the amount to charge.
+    const { bookingId, amountCents, tipCents, isDepositPayment, scope } = body;
 
     if (!bookingId || !amountCents || amountCents <= 0) {
       return NextResponse.json(
@@ -63,6 +59,24 @@ export async function POST(req: Request) {
       );
     }
 
+    // ── What this payment costs, worked out here on the server ─────────────
+    const resolved = await resolveCheckoutCharge({
+      bookingId: booking.id,
+      tipCents,
+      isDepositPayment: isDepositPayment === true,
+      scope: scope === "ride" ? "ride" : "bill",
+      expectedAmountCents: amountCents,
+    });
+    if (!resolved.ok) {
+      return NextResponse.json(
+        { error: resolved.error, amountDueCents: resolved.amountDueCents },
+        { status: resolved.reason === "amount_changed" ? 409 : 400 },
+      );
+    }
+    const { charge } = resolved;
+    const baseFareCents = charge.fareCents;
+    const chargeCurrency = charge.due.currency;
+
     const customerEmail = booking.user?.email ?? booking.guestEmail ?? null;
     const customerName = booking.user?.name ?? booking.guestName ?? "Guest";
 
@@ -71,8 +85,13 @@ export async function POST(req: Request) {
     const hasOverageFee = (booking.vehicle?.overageFeeCents ?? 0) > 0;
     const requiresSavedCard = isHourly && hasOverageFee;
 
-    // Calculate amounts
-    const baseFareCents = amountCents - (tipCents || 0);
+    // Read by the Stripe webhook when it records the payment.
+    const chargeMetadata = {
+      bookingId: booking.id,
+      userId: booking.userId ?? "",
+      ...charge.metadata,
+      requiresSavedCard: requiresSavedCard ? "true" : "false",
+    };
 
     // ── Resolve or create Stripe customer ──────────────────────────────────
     // For charter bookings (hourly + overage fee set), we always need a
@@ -117,17 +136,8 @@ export async function POST(req: Request) {
         paymentIntent = await stripe.paymentIntents.update(
           existingPaymentIntentId,
           {
-            amount: amountCents,
-            metadata: {
-              bookingId: booking.id,
-              userId: booking.userId ?? "",
-              tipCents: String(tipCents || 0),
-              baseFareCents: String(baseFareCents),
-              isBalancePayment: isBalancePayment ? "true" : "false",
-              isDepositPayment: isDepositPayment ? "true" : "false",
-              depositAmountCents: depositAmountCents ? String(depositAmountCents) : "",
-              requiresSavedCard: requiresSavedCard ? "true" : "false",
-            },
+            amount: charge.amountCents,
+            metadata: chargeMetadata,
           },
         );
       } catch (updateError) {
@@ -141,21 +151,12 @@ export async function POST(req: Request) {
     // Create new PaymentIntent if we don't have one
     if (!paymentIntent) {
       const piParams: any = {
-        amount: amountCents,
-        currency: currency || "usd",
+        amount: charge.amountCents,
+        currency: chargeCurrency,
         automatic_payment_methods: {
           enabled: true,
         },
-        metadata: {
-          bookingId: booking.id,
-          userId: booking.userId ?? "",
-          tipCents: String(tipCents || 0),
-          baseFareCents: String(baseFareCents),
-          isBalancePayment: isBalancePayment ? "true" : "false",
-          isDepositPayment: isDepositPayment ? "true" : "false",
-          depositAmountCents: depositAmountCents ? String(depositAmountCents) : "",
-          requiresSavedCard: requiresSavedCard ? "true" : "false",
-        },
+        metadata: chargeMetadata,
         receipt_email: customerEmail || undefined,
         description: `${booking.serviceType?.name ?? "Transportation"} - ${booking.pickupAddress} → ${booking.dropoffAddress}`,
       };
@@ -174,7 +175,7 @@ export async function POST(req: Request) {
         update: {
           stripePaymentIntentId: paymentIntent.id,
           amountTotalCents: baseFareCents,
-          currency: currency || "usd",
+          currency: chargeCurrency,
         },
         create: {
           bookingId: booking.id,
@@ -183,7 +184,7 @@ export async function POST(req: Request) {
           amountSubtotalCents: booking.subtotalCents ?? baseFareCents,
           amountTotalCents: baseFareCents,
           amountPaidCents: 0,
-          currency: currency || "usd",
+          currency: chargeCurrency,
         },
       });
     }

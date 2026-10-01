@@ -3,17 +3,27 @@
 
 import { db } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
-import { getAmountDue } from "@/lib/booking/getAmountDue";
 import { billScope, chargeSavedCard } from "@/lib/booking/chargeSavedCard";
+import { resolveCheckoutCharge } from "@/lib/booking/checkoutCharge";
+import { getSessionUserId } from "@/lib/sessionUser";
 
-function money(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`;
+/**
+ * A saved card is only ever shown to, or charged by, the customer the booking
+ * belongs to, signed in to their own account. Holding the pay link is not
+ * enough: links get forwarded, and an admin can send one to another address.
+ */
+async function getOwnerIfViewing(booking: {
+  userId: string | null;
+}): Promise<string | null> {
+  if (!booking.userId) return null;
+  const viewerId = await getSessionUserId();
+  return viewerId === booking.userId ? booking.userId : null;
 }
 
 // ── "Pay with saved card" on the customer's pay page ─────────────────────────
 //
-// The server works out the fare itself (trip-aware, and deposit-aware) and
-// only charges if the total matches what the button showed. Like the admin
+// The server works out the amount itself (the same calculation the card form
+// uses) and only charges if it matches what the button showed. Like the admin
 // card-on-file action, it only moves the money: the Stripe webhook records it.
 
 export async function chargeCardOnFileForCheckout({
@@ -47,13 +57,18 @@ export async function chargeCardOnFileForCheckout({
       userId: true,
       guestStripeCustomerId: true,
       status: true,
-      depositMode: true,
-      depositPercent: true,
-      depositCents: true,
     },
   });
 
   if (!booking) return { error: "Booking not found" };
+
+  const ownerId = await getOwnerIfViewing(booking);
+  if (!ownerId) {
+    return {
+      error:
+        "Please sign in to your account to pay with a saved card, or use the card form below. Nothing was charged.",
+    };
+  }
 
   const invalidStatuses = [
     "CANCELLED",
@@ -66,72 +81,28 @@ export async function chargeCardOnFileForCheckout({
     return { error: "This booking cannot be paid." };
   }
 
-  // Same calculation the pay page uses. For a multi-ride trip this is the
-  // whole trip, whichever ride's link the customer opened.
-  const due = await getAmountDue(bookingId);
-  if (!due || due.totalCents <= 0) {
-    return { error: "Invalid booking total." };
+  // What this payment costs: trip-aware, deposit-aware, and checked against
+  // the total the button showed.
+  const resolved = await resolveCheckoutCharge({
+    bookingId,
+    tipCents,
+    isDepositPayment,
+    expectedAmountCents,
+  });
+  if (!resolved.ok) {
+    return { error: resolved.error, amountDueCents: resolved.amountDueCents };
   }
-  if (due.balanceCents <= 0) {
-    return { error: "This booking is already fully paid." };
-  }
-
-  const tip = tipCents ?? 0;
-  if (!Number.isInteger(tip) || tip < 0) {
-    return { error: "Invalid tip amount." };
-  }
-
-  // The deposit, worked out the same way the pay page does.
-  const depositCents =
-    booking.depositMode && booking.depositPercent != null
-      ? Math.round((due.totalCents * booking.depositPercent) / 100)
-      : (booking.depositCents ?? null);
-  const depositIsOpen =
-    booking.depositMode &&
-    depositCents != null &&
-    depositCents > 0 &&
-    due.paidCents < depositCents;
-
-  let fareCents: number;
-  if (isDepositPayment) {
-    if (!depositIsOpen || depositCents == null) {
-      return {
-        error:
-          "A deposit can't be paid on this booking right now. Nothing was charged. Please refresh the page.",
-      };
-    }
-    fareCents = depositCents;
-  } else {
-    fareCents = due.balanceCents;
-  }
-
-  const amountToCharge = fareCents + tip;
-
-  // What you see is what you pay.
-  if (expectedAmountCents !== amountToCharge) {
-    return {
-      error: `The amount due is now ${money(amountToCharge)}. Nothing was charged. Please refresh the page and try again.`,
-      amountDueCents: amountToCharge,
-    };
-  }
+  const { charge } = resolved;
 
   // ── Resolve Stripe customer ID ─────────────────────────────────────────
-  // Support both registered users (via User.stripeCustomerId) and
-  // guests on charter bookings (via Booking.guestStripeCustomerId).
-  let customerId: string | null = null;
-
-  if (booking.userId) {
-    const user = await db.user.findUnique({
-      where: { id: booking.userId },
-      select: { stripeCustomerId: true },
-    });
-    customerId = user?.stripeCustomerId ?? null;
-  }
-
-  // Fall back to guest Stripe customer saved at charter checkout
-  if (!customerId) {
-    customerId = booking.guestStripeCustomerId ?? null;
-  }
+  // The customer's own Stripe record first, then one saved on the booking
+  // at charter checkout.
+  const user = await db.user.findUnique({
+    where: { id: ownerId },
+    select: { stripeCustomerId: true },
+  });
+  const customerId =
+    user?.stripeCustomerId ?? booking.guestStripeCustomerId ?? null;
 
   if (!customerId) {
     return { error: "No card on file." };
@@ -139,24 +110,19 @@ export async function chargeCardOnFileForCheckout({
 
   const result = await chargeSavedCard({
     customerId,
-    amountCents: amountToCharge,
-    currency: due.currency,
-    chargeScope: billScope(due),
-    previouslyPaidCents: due.paidCents,
+    amountCents: charge.amountCents,
+    currency: charge.due.currency,
+    chargeScope: billScope(charge.due),
+    previouslyPaidCents: charge.due.paidCents,
     // Same keys the card form's PaymentIntent carries, so the webhook records
     // both kinds of payment the same way.
     metadata: {
       bookingId: booking.id,
-      tripGroupId: due.tripGroupId ?? "",
-      userId: booking.userId ?? "",
+      tripGroupId: charge.due.tripGroupId ?? "",
+      userId: ownerId,
       kind: "CARD_ON_FILE_CHECKOUT",
-      tipCents: tip.toString(),
-      baseFareCents: fareCents.toString(),
-      isBalancePayment:
-        !isDepositPayment && due.paidCents > 0 ? "true" : "false",
-      isDepositPayment: isDepositPayment ? "true" : "false",
-      depositAmountCents: isDepositPayment ? fareCents.toString() : "",
-      originalTotal: due.totalCents.toString(),
+      ...charge.metadata,
+      originalTotal: charge.due.totalCents.toString(),
     },
   });
 
@@ -213,7 +179,7 @@ export async function isCheckoutPaymentRecorded(
   return Boolean(row);
 }
 
-// ── Read-only: get the saved card for a booking (supports guests) ─────────────
+// ── Read-only: the saved card for a booking, for its own signed-in customer ──
 
 export async function getSavedCardForBooking(bookingId: string): Promise<{
   hasCard: boolean;
@@ -231,6 +197,9 @@ export async function getSavedCardForBooking(bookingId: string): Promise<{
   });
 
   if (!booking) return null;
+
+  // Only the booking's own customer, signed in, gets to see the saved card.
+  if (!(await getOwnerIfViewing(booking))) return null;
 
   // Resolve customer ID — registered user first, then guest charter customer
   let customerId: string | null = null;

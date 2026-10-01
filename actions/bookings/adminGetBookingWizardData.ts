@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { getAdminUserId } from "@/lib/sessionUser";
 
 export async function adminGetBookingWizardData({
   bookingId,
@@ -8,6 +9,8 @@ export async function adminGetBookingWizardData({
   bookingId: string;
 }) {
   if (!bookingId) return { error: "Missing bookingId" };
+
+  if (!(await getAdminUserId())) return { error: "Unauthorized" };
 
   const b = await db.booking.findUnique({
     where: { id: bookingId },

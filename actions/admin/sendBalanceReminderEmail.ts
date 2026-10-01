@@ -19,7 +19,11 @@ export async function sendBalanceReminderEmail(formData: FormData) {
     (session?.user?.id as string | undefined) ??
     (session?.user?.userId as string | undefined);
 
-  if (!session?.user || !actorId) {
+  // Admins only. Being signed in as a customer is not enough.
+  const roles = (session?.user as { roles?: unknown } | undefined)?.roles;
+  const isAdmin = Array.isArray(roles) && roles.includes("ADMIN");
+
+  if (!session?.user || !actorId || !isAdmin) {
     return { error: "Unauthorized" };
   }
 

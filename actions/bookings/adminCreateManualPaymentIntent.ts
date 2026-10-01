@@ -2,6 +2,7 @@
 
 import { getStripe } from "@/lib/stripe";
 import { getAmountDue } from "@/lib/booking/getAmountDue";
+import { getAdminUserId } from "@/lib/sessionUser";
 
 export async function adminCreateManualPaymentIntent({
   bookingId,
@@ -9,6 +10,8 @@ export async function adminCreateManualPaymentIntent({
   bookingId: string;
 }) {
   if (!bookingId) return { error: "Missing bookingId" };
+
+  if (!(await getAdminUserId())) return { error: "Unauthorized" };
 
   // One shared calculation of what is still owed: the booking's total minus
   // what has been collected, or for a multi-ride trip the trip's total minus

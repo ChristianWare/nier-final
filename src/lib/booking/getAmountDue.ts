@@ -28,6 +28,12 @@ export type AmountDue = {
   paidCents: number;
   /** Still owed. Never negative. */
   balanceCents: number;
+  /**
+   * What paying for THIS ride alone costs: its own price minus what has been
+   * collected on it, and never more than the bill still owes. For a single
+   * booking this is the same as balanceCents.
+   */
+  rideBalanceCents: number;
 };
 
 function toCents(value: unknown): number {
@@ -58,6 +64,7 @@ export async function getAmountDue(
   if (!booking.tripGroupId) {
     const totalCents = toCents(booking.totalCents);
     const paidCents = toCents(booking.payment?.amountPaidCents);
+    const balanceCents = Math.max(0, totalCents - paidCents);
     return {
       bookingId: booking.id,
       tripGroupId: null,
@@ -66,7 +73,8 @@ export async function getAmountDue(
       currency,
       totalCents,
       paidCents,
-      balanceCents: Math.max(0, totalCents - paidCents),
+      balanceCents,
+      rideBalanceCents: balanceCents,
     };
   }
 
@@ -114,6 +122,12 @@ export async function getAmountDue(
     paidCents = Math.max(paidCents, totalCents);
   }
 
+  const balanceCents = Math.max(0, totalCents - paidCents);
+  const ownBalanceCents = Math.max(
+    0,
+    toCents(booking.totalCents) - toCents(booking.payment?.amountPaidCents),
+  );
+
   return {
     bookingId: booking.id,
     tripGroupId: booking.tripGroupId,
@@ -122,6 +136,7 @@ export async function getAmountDue(
     currency,
     totalCents,
     paidCents,
-    balanceCents: Math.max(0, totalCents - paidCents),
+    balanceCents,
+    rideBalanceCents: Math.min(ownBalanceCents, balanceCents),
   };
 }

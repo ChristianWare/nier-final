@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
+import { getAdminUserId } from "@/lib/sessionUser";
 
 export async function adminCreateSetupIntentForUser({
   userId,
@@ -9,6 +10,8 @@ export async function adminCreateSetupIntentForUser({
   userId: string;
 }): Promise<{ clientSecret: string } | { error: string }> {
   if (!userId) return { error: "Missing userId" };
+
+  if (!(await getAdminUserId())) return { error: "Unauthorized" };
 
   const user = await db.user.findUnique({
     where: { id: userId },
@@ -63,6 +66,8 @@ export async function adminRemoveCardForUser({
 }): Promise<{ success: true } | { error: string }> {
   if (!userId || !paymentMethodId) return { error: "Missing required fields" };
 
+  if (!(await getAdminUserId())) return { error: "Unauthorized" };
+
   const user = await db.user.findUnique({
     where: { id: userId },
     select: { stripeCustomerId: true },
@@ -93,6 +98,8 @@ export async function adminGetCardsForUser(userId: string): Promise<
   }[]
 > {
   if (!userId) return [];
+
+  if (!(await getAdminUserId())) return [];
 
   const user = await db.user.findUnique({
     where: { id: userId },
