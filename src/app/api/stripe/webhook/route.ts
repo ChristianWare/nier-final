@@ -122,19 +122,35 @@ async function finalizePaid(args: {
     const previouslyPaidCents = existingPayment?.amountPaidCents ?? 0;
     const previousTipCents = existingPayment?.tipCents ?? 0;
 
-    let newPaymentAmount: number;
-    if (isDepositPayment && depositAmountCents) {
-      newPaymentAmount = depositAmountCents;
+    // How much of THIS payment is fare and how much is tip.
+    //
+    // What Stripe actually collected is the source of truth:
+    //   fare = collected − tip.
+    // The deposit/balance figures in the metadata are fare-only (they never
+    // include the tip), so they are used as the fare directly, and only when
+    // the event carries no collected amount.
+    const claimedTipCents =
+      typeof tipCents === "number" && Number.isFinite(tipCents)
+        ? Math.round(tipCents)
+        : 0;
+    let thisTipCents = Math.max(0, claimedTipCents);
+    let baseFarePayment: number;
+    if (typeof amountTotalCents === "number" && amountTotalCents > 0) {
+      // A tip can never be more than what was collected, so the fare recorded
+      // can never be more than the money that actually came in.
+      thisTipCents = Math.min(thisTipCents, amountTotalCents);
+      baseFarePayment = amountTotalCents - thisTipCents;
+    } else if (isDepositPayment && depositAmountCents) {
+      baseFarePayment = depositAmountCents;
     } else if (isBalancePayment && balanceAmount) {
-      newPaymentAmount = balanceAmount;
-    } else if (typeof amountTotalCents === "number" && amountTotalCents > 0) {
-      newPaymentAmount = amountTotalCents;
+      baseFarePayment = balanceAmount;
     } else {
-      newPaymentAmount = booking.totalCents ?? 0;
+      baseFarePayment = booking.totalCents ?? 0;
     }
+    // Fare + tip, i.e. what the customer paid in this payment.
+    const newPaymentAmount = baseFarePayment + thisTipCents;
 
-    const totalTipCents = previousTipCents + (tipCents ?? 0);
-    const baseFarePayment = newPaymentAmount - (tipCents ?? 0);
+    const totalTipCents = previousTipCents + thisTipCents;
     const totalPaidCents =
       isBalancePayment || isDepositPayment
         ? previouslyPaidCents + baseFarePayment
@@ -154,7 +170,7 @@ async function finalizePaid(args: {
     console.log(
       `✅ Payment recorded for booking ${bookingId}:`,
       `Previous: $${(previouslyPaidCents / 100).toFixed(2)}`,
-      `New payment: $${(newPaymentAmount / 100).toFixed(2)} (base: $${(baseFarePayment / 100).toFixed(2)}, tip: $${((tipCents ?? 0) / 100).toFixed(2)})`,
+      `New payment: $${(newPaymentAmount / 100).toFixed(2)} (base: $${(baseFarePayment / 100).toFixed(2)}, tip: $${(thisTipCents / 100).toFixed(2)})`,
       `Total paid: $${(totalPaidCents / 100).toFixed(2)}`,
       `Booking total: $${((booking.totalCents ?? 0) / 100).toFixed(2)}`,
       `Total tips: $${(totalTipCents / 100).toFixed(2)}`,
@@ -216,7 +232,7 @@ async function finalizePaid(args: {
           metadata: {
             amountCents: newPaymentAmount,
             baseFareCents: baseFarePayment,
-            tipCents: tipCents ?? 0,
+            tipCents: thisTipCents,
             method: "online",
             currency: safeCurrency,
             stripePaymentIntentId: paymentIntentId,
@@ -238,7 +254,7 @@ async function finalizePaid(args: {
           metadata: {
             amountCents: newPaymentAmount,
             baseFareCents: baseFarePayment,
-            tipCents: tipCents ?? 0,
+            tipCents: thisTipCents,
             method: "online",
             currency: safeCurrency,
             stripePaymentIntentId: paymentIntentId,
@@ -294,11 +310,6 @@ async function finalizePaid(args: {
           (sum, b) => sum + (b.payment?.amountPaidCents ?? 0),
           0,
         );
-        const totalTips = group.bookings.reduce(
-          (sum, b) => sum + (b.payment?.tipCents ?? 0),
-          0,
-        );
-
         // ✅ FIX: Use total coverage, not per-booking payment records.
         // A single payment on one booking can cover the entire group total.
         const isGroupFullyCovered = totalActuallyPaid >= groupTotal;
@@ -307,7 +318,10 @@ async function finalizePaid(args: {
           where: { id: paidBooking.tripGroupId },
           data: {
             paymentStatus: isGroupFullyCovered ? "PAID" : "NONE",
-            amountPaidCents: totalActuallyPaid + totalTips,
+            // Fare collected toward the trip. Tips stay on each ride's
+            // payment record (tipCents) and are not mixed into this figure,
+            // so "trip total − this" is the balance still owed.
+            amountPaidCents: totalActuallyPaid,
             totalCents: groupTotal,
             paidAt: isGroupFullyCovered ? new Date() : undefined,
           },
@@ -321,66 +335,47 @@ async function finalizePaid(args: {
             "DRAFT",
           ];
 
+          // The trip's money is recorded once, on the ride it was paid
+          // through. Every other ride only needs confirming. Each ride is
+          // handled on its own so one failure cannot stop the rest.
           for (const sibling of group.bookings) {
             if (sibling.id === bookingId) continue; // Already handled in main tx
 
-            // Confirm booking status if eligible
-            if (upgradableStatuses.includes(sibling.status as BookingStatus)) {
-              await db.booking.update({
-                where: { id: sibling.id },
-                data: { status: "CONFIRMED" },
-              });
-            }
+            try {
+              const confirmNow = upgradableStatuses.includes(
+                sibling.status as BookingStatus,
+              );
 
-            // ✅ FIX: Create payment records for siblings that have none,
-            // so they show as paid on their own detail pages.
-            if (!sibling.payment) {
-              await db.payment.create({
+              if (confirmNow) {
+                await db.booking.update({
+                  where: { id: sibling.id },
+                  data: { status: "CONFIRMED" },
+                });
+              }
+
+              await db.bookingStatusEvent.create({
                 data: {
                   bookingId: sibling.id,
-                  status: "PAID",
-                  stripePaymentIntentId: paymentIntentId ?? undefined,
-                  paidAt: new Date(),
-                  amountSubtotalCents:
-                    sibling.subtotalCents ?? sibling.totalCents,
-                  amountTotalCents: sibling.totalCents,
-                  amountPaidCents: sibling.totalCents,
-                  amountRefundedCents: 0,
-                  currency: (
-                    sibling.currency ??
-                    group.currency ??
-                    "usd"
-                  ).toLowerCase(),
+                  // A ride that is already past "confirmed" (in progress,
+                  // completed, cancelled...) keeps the status it has.
+                  status: confirmNow
+                    ? "CONFIRMED"
+                    : (sibling.status as BookingStatus),
+                  eventType: "PAYMENT_RECEIVED",
+                  metadata: {
+                    method: "online",
+                    note: "Confirmed via group payment",
+                    groupId: paidBooking.tripGroupId,
+                    paymentIntentId: paymentIntentId ?? null,
+                  },
                 },
               });
-            } else if (
-              sibling.payment.status !== "PAID" &&
-              sibling.payment.status !== "PARTIALLY_PAID"
-            ) {
-              await db.payment.update({
-                where: { id: sibling.payment.id },
-                data: {
-                  status: "PAID",
-                  paidAt: new Date(),
-                  stripePaymentIntentId:
-                    paymentIntentId ?? sibling.payment.id ?? undefined,
-                },
-              });
+            } catch (e) {
+              console.error(
+                `❌ Failed to confirm ride ${sibling.id} after trip payment:`,
+                e,
+              );
             }
-
-            await db.bookingStatusEvent.create({
-              data: {
-                bookingId: sibling.id,
-                status: "CONFIRMED",
-                eventType: "PAYMENT_RECEIVED",
-                metadata: {
-                  method: "online",
-                  note: "Confirmed via group payment",
-                  groupId: paidBooking.tripGroupId,
-                  paymentIntentId: paymentIntentId ?? null,
-                },
-              },
-            });
           }
         }
       }

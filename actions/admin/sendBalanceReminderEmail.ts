@@ -7,6 +7,7 @@ import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { revalidatePath } from "next/cache";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
+import { getAmountDue } from "@/lib/booking/getAmountDue";
 
 const Schema = z.object({
   bookingId: z.string().min(1),
@@ -42,12 +43,18 @@ export async function sendBalanceReminderEmail(formData: FormData) {
 
   if (!booking) return { error: "Booking not found." };
 
-  // Only makes sense when there's actually an outstanding balance
-  const amountPaidCents = booking.payment?.amountPaidCents ?? 0;
-  const totalCents = booking.totalCents ?? 0;
-  const outstandingCents = totalCents - amountPaidCents;
+  // Only makes sense when there's actually an outstanding balance.
+  // For a multi-ride trip these are the trip's figures, not this one ride's.
+  const due = await getAmountDue(bookingId);
+  const amountPaidCents =
+    due?.paidCents ?? booking.payment?.amountPaidCents ?? 0;
+  const totalCents = due?.totalCents ?? booking.totalCents ?? 0;
+  const outstandingCents = Math.max(0, totalCents - amountPaidCents);
 
-  if (outstandingCents <= 0 && booking.payment?.status !== "PENDING") {
+  if (
+    outstandingCents <= 0 &&
+    (due?.isGroup || booking.payment?.status !== "PENDING")
+  ) {
     return { error: "No outstanding balance on this booking." };
   }
 

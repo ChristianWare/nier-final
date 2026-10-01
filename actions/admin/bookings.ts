@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { getStripe } from "@/lib/stripe";
+import { getAmountDue } from "@/lib/booking/getAmountDue";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import { revalidatePath } from "next/cache";
@@ -737,7 +738,11 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     effectiveTotalCents = siblings.reduce((sum, s) => sum + s.totalCents, 0);
   }
 
-  const amountPaidCents = b.payment?.amountPaidCents ?? 0;
+  // What has been collected toward this bill. For a multi-ride trip that is
+  // everything paid on ANY of its rides, not only the ride this link is sent
+  // from (which is why the email used to show the full trip total).
+  const due = await getAmountDue(b.id);
+  const amountPaidCents = due?.paidCents ?? b.payment?.amountPaidCents ?? 0;
   const amountToCharge = isBalancePayment
     ? effectiveTotalCents - amountPaidCents
     : effectiveTotalCents;

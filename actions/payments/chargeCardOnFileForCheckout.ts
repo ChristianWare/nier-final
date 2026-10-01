@@ -1,16 +1,42 @@
+// actions/payments/chargeCardOnFileForCheckout.ts
 "use server";
 
 import { db } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
+import { getAmountDue } from "@/lib/booking/getAmountDue";
+import { billScope, chargeSavedCard } from "@/lib/booking/chargeSavedCard";
+
+function money(cents: number) {
+  return `$${(cents / 100).toFixed(2)}`;
+}
+
+// ── "Pay with saved card" on the customer's pay page ─────────────────────────
+//
+// The server works out the fare itself (trip-aware, and deposit-aware) and
+// only charges if the total matches what the button showed. Like the admin
+// card-on-file action, it only moves the money: the Stripe webhook records it.
 
 export async function chargeCardOnFileForCheckout({
   bookingId,
   tipCents,
+  isDepositPayment = false,
+  expectedAmountCents,
 }: {
   bookingId: string;
   tipCents?: number;
+  /** The customer chose "Pay deposit" on the pay page. */
+  isDepositPayment?: boolean;
+  /** The total on the "Pay $X" button: fare plus tip. If that is no longer
+   *  what is owed, nothing is charged. */
+  expectedAmountCents: number;
 }): Promise<
-  { success: true; last4: string; amountCents: number } | { error: string }
+  | {
+      success: true;
+      last4: string;
+      amountCents: number;
+      paymentIntentId: string;
+    }
+  | { error: string; amountDueCents?: number }
 > {
   if (!bookingId) return { error: "Missing bookingId" };
 
@@ -20,12 +46,10 @@ export async function chargeCardOnFileForCheckout({
       id: true,
       userId: true,
       guestStripeCustomerId: true,
-      totalCents: true,
-      currency: true,
       status: true,
-      payment: {
-        select: { amountPaidCents: true, status: true },
-      },
+      depositMode: true,
+      depositPercent: true,
+      depositCents: true,
     },
   });
 
@@ -42,17 +66,53 @@ export async function chargeCardOnFileForCheckout({
     return { error: "This booking cannot be paid." };
   }
 
-  const totalCents = Number(booking.totalCents ?? 0);
-  if (!Number.isFinite(totalCents) || totalCents <= 0) {
+  // Same calculation the pay page uses. For a multi-ride trip this is the
+  // whole trip, whichever ride's link the customer opened.
+  const due = await getAmountDue(bookingId);
+  if (!due || due.totalCents <= 0) {
     return { error: "Invalid booking total." };
   }
-
-  const amountPaidCents = Number(booking.payment?.amountPaidCents ?? 0);
-  const tip = tipCents ?? 0;
-  const amountToCharge = totalCents - amountPaidCents + tip;
-
-  if (amountToCharge <= 0) {
+  if (due.balanceCents <= 0) {
     return { error: "This booking is already fully paid." };
+  }
+
+  const tip = tipCents ?? 0;
+  if (!Number.isInteger(tip) || tip < 0) {
+    return { error: "Invalid tip amount." };
+  }
+
+  // The deposit, worked out the same way the pay page does.
+  const depositCents =
+    booking.depositMode && booking.depositPercent != null
+      ? Math.round((due.totalCents * booking.depositPercent) / 100)
+      : (booking.depositCents ?? null);
+  const depositIsOpen =
+    booking.depositMode &&
+    depositCents != null &&
+    depositCents > 0 &&
+    due.paidCents < depositCents;
+
+  let fareCents: number;
+  if (isDepositPayment) {
+    if (!depositIsOpen || depositCents == null) {
+      return {
+        error:
+          "A deposit can't be paid on this booking right now. Nothing was charged. Please refresh the page.",
+      };
+    }
+    fareCents = depositCents;
+  } else {
+    fareCents = due.balanceCents;
+  }
+
+  const amountToCharge = fareCents + tip;
+
+  // What you see is what you pay.
+  if (expectedAmountCents !== amountToCharge) {
+    return {
+      error: `The amount due is now ${money(amountToCharge)}. Nothing was charged. Please refresh the page and try again.`,
+      amountDueCents: amountToCharge,
+    };
   }
 
   // ── Resolve Stripe customer ID ─────────────────────────────────────────
@@ -77,102 +137,80 @@ export async function chargeCardOnFileForCheckout({
     return { error: "No card on file." };
   }
 
-  const stripe = await getStripe();
-
-  const pmList = await stripe.paymentMethods.list({
-    customer: customerId,
-    type: "card",
-    limit: 10,
-  });
-
-  const now = new Date();
-  const activePm = pmList.data.find((pm) => {
-    const card = pm.card;
-    if (!card) return false;
-    const expDate = new Date(card.exp_year, card.exp_month - 1, 1);
-    return expDate >= new Date(now.getFullYear(), now.getMonth(), 1);
-  });
-
-  if (!activePm) {
-    return { error: "No active card on file." };
-  }
-
-  const currency = (booking.currency ?? "USD").toLowerCase();
-  const isBalancePayment = amountPaidCents > 0;
-
-  const pi = await stripe.paymentIntents.create({
-    amount: amountToCharge,
-    currency,
-    customer: customerId,
-    payment_method: activePm.id,
-    confirm: true,
-    off_session: true,
+  const result = await chargeSavedCard({
+    customerId,
+    amountCents: amountToCharge,
+    currency: due.currency,
+    chargeScope: billScope(due),
+    previouslyPaidCents: due.paidCents,
+    // Same keys the card form's PaymentIntent carries, so the webhook records
+    // both kinds of payment the same way.
     metadata: {
       bookingId: booking.id,
-      tipCents: tip.toString(),
+      tripGroupId: due.tripGroupId ?? "",
+      userId: booking.userId ?? "",
       kind: "CARD_ON_FILE_CHECKOUT",
-      isBalancePayment: isBalancePayment ? "true" : "false",
-      originalTotal: totalCents.toString(),
-      previouslyPaid: amountPaidCents.toString(),
+      tipCents: tip.toString(),
+      baseFareCents: fareCents.toString(),
+      isBalancePayment:
+        !isDepositPayment && due.paidCents > 0 ? "true" : "false",
+      isDepositPayment: isDepositPayment ? "true" : "false",
+      depositAmountCents: isDepositPayment ? fareCents.toString() : "",
+      originalTotal: due.totalCents.toString(),
     },
   });
 
-  if (pi.status !== "succeeded") {
-    return {
-      error: `Payment requires additional authentication. Please use the card form below instead.`,
-    };
-  }
-
-  const newAmountPaid = amountPaidCents + amountToCharge;
-  const isFullyPaid = newAmountPaid >= totalCents;
-  const paidAt = new Date();
-
-  await db.payment.upsert({
-    where: { bookingId: booking.id },
-    create: {
-      bookingId: booking.id,
-      status: "PAID",
-      amountPaidCents: newAmountPaid,
-      tipCents: tip > 0 ? tip : undefined,
-      stripePaymentIntentId: pi.id,
-      paidAt,
-    },
-    update: {
-      status: isFullyPaid ? "PAID" : "PARTIALLY_REFUNDED",
-      amountPaidCents: newAmountPaid,
-      tipCents: tip > 0 ? tip : undefined,
-      stripePaymentIntentId: pi.id,
-      paidAt: isFullyPaid ? paidAt : undefined,
-    },
-  });
-
-  if (isFullyPaid) {
-    await db.booking.update({
-      where: { id: booking.id },
-      data: { status: "CONFIRMED" },
-    });
-
-    await db.bookingStatusEvent.create({
-      data: {
-        bookingId: booking.id,
-        status: "CONFIRMED",
-        eventType: "PAYMENT_RECEIVED",
-        metadata: {
-          amountCents: amountToCharge,
-          tipCents: tip,
-          method: "card_on_file",
-          last4: activePm.card?.last4 ?? null,
-          stripePaymentIntentId: pi.id,
-        },
-      },
-    });
+  if (!result.ok) {
+    switch (result.reason) {
+      case "stripe_unreachable":
+        return {
+          error:
+            "We couldn't reach the payment processor. Nothing was charged. Please try again.",
+        };
+      case "no_active_card":
+        return { error: "No active card on file." };
+      case "already_charged":
+        return {
+          error:
+            "This card was already charged for this booking a moment ago. Please wait a minute and refresh. You do not need to pay again.",
+        };
+      case "needs_authentication":
+        return {
+          error:
+            "Your bank needs you to approve this payment. Nothing was charged. Please use the card form below instead.",
+        };
+      case "declined":
+        return {
+          error: `${result.detail ?? "Your card was declined."} Nothing was charged. Please use the card form below instead.`,
+        };
+      default:
+        return {
+          error:
+            "We couldn't confirm this payment. Please wait a minute and refresh this page before trying again.",
+        };
+    }
   }
 
   return {
     success: true,
-    last4: activePm.card?.last4 ?? "????",
-    amountCents: amountToCharge,
+    last4: result.last4,
+    amountCents: result.amountCents,
+    paymentIntentId: result.paymentIntentId,
   };
+}
+
+// ── Read-only: has the webhook recorded this payment yet? ─────────────────────
+// The pay page waits on this for a few seconds before showing the receipt.
+
+export async function isCheckoutPaymentRecorded(
+  paymentIntentId: string,
+): Promise<boolean> {
+  if (!paymentIntentId) return false;
+  const row = await db.payment.findUnique({
+    where: { stripePaymentIntentId: paymentIntentId },
+    select: { id: true },
+  });
+  return Boolean(row);
 }
 
 // ── Read-only: get the saved card for a booking (supports guests) ─────────────

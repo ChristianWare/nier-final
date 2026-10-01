@@ -12,7 +12,10 @@ import {
 import styles from "./Checkout.module.css";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import Button from "@/components/shared/Button/Button";
-import { chargeCardOnFileForCheckout } from "../../../../actions/payments/chargeCardOnFileForCheckout";
+import {
+  chargeCardOnFileForCheckout,
+  isCheckoutPaymentRecorded,
+} from "../../../../actions/payments/chargeCardOnFileForCheckout";
 import Modal from "@/components/shared/Modal/Modal";
 
 type Stop = {
@@ -262,19 +265,44 @@ export default function CheckoutClient({
   async function handleCardOnFileCharge() {
     setCardOnFileCharging(true);
     setCardOnFileConfirming(false);
+    let paymentIntentId: string | null = null;
     try {
-      const result = await chargeCardOnFileForCheckout({ bookingId, tipCents });
+      // Send exactly what the button shows. The server works the amount out
+      // again and refuses if the two differ.
+      const result = await chargeCardOnFileForCheckout({
+        bookingId,
+        tipCents,
+        isDepositPayment: isThisDepositPayment,
+        expectedAmountCents: totalCents,
+      });
       if ("error" in result) {
         setError(result.error);
         return;
       }
+      paymentIntentId = result.paymentIntentId;
       setCardOnFileSuccess(true);
-      window.location.href = `/pay/${bookingId}/success`;
     } catch {
-      setError("Something went wrong. Please try the card form below.");
+      // The request itself failed, so we don't know whether the card was
+      // charged. Don't send the customer to pay a second time.
+      setError(
+        "We couldn't confirm that payment. Please wait a minute and refresh this page before trying again.",
+      );
+      return;
     } finally {
       setCardOnFileCharging(false);
     }
+
+    // Stripe posts the payment to the booking a moment later. Give it a few
+    // seconds so the confirmation page can show the receipt.
+    for (let i = 0; i < 8; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      try {
+        if (await isCheckoutPaymentRecorded(paymentIntentId)) break;
+      } catch {
+        break;
+      }
+    }
+    window.location.href = `/pay/${bookingId}/success`;
   }
 
   // The amount to charge depends on whether they chose deposit or full
@@ -872,9 +900,11 @@ export default function CheckoutClient({
                       onClick={() => setCardOnFileConfirming(true)}
                       disabled={cardOnFileCharging || cardOnFileSuccess}
                     >
-                      {cardOnFileCharging
-                        ? "Charging…"
-                        : `Pay ${formatMoney(totalCents, currency)}`}
+                      {cardOnFileSuccess
+                        ? "Payment received…"
+                        : cardOnFileCharging
+                          ? "Charging…"
+                          : `Pay ${formatMoney(totalCents, currency)}`}
                     </button>
                   </div>
                   <p style={{ fontSize: "1.2rem", opacity: 0.5, margin: 0 }}>

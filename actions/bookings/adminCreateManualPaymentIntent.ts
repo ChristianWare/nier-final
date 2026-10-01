@@ -1,7 +1,7 @@
 "use server";
 
-import { db } from "@/lib/db";
 import { getStripe } from "@/lib/stripe";
+import { getAmountDue } from "@/lib/booking/getAmountDue";
 
 export async function adminCreateManualPaymentIntent({
   bookingId,
@@ -10,62 +10,36 @@ export async function adminCreateManualPaymentIntent({
 }) {
   if (!bookingId) return { error: "Missing bookingId" };
 
-  const b = await db.booking.findUnique({
-    where: { id: bookingId },
-    select: {
-      id: true,
-      totalCents: true,
-      currency: true,
-      tripGroupId: true, // ← NEW
-      payment: { select: { amountPaidCents: true, status: true } },
-    },
-  });
+  // One shared calculation of what is still owed: the booking's total minus
+  // what has been collected, or for a multi-ride trip the trip's total minus
+  // everything collected on the trip.
+  const due = await getAmountDue(bookingId);
 
-  if (!b) return { error: "Booking not found" };
+  if (!due) return { error: "Booking not found" };
 
-  // ── For group bookings, charge the group total minus what's already paid ──
-  let effectiveTotalCents = Number(b.totalCents ?? 0);
-  let groupAmountPaidCents = 0;
-
-  if (b.tripGroupId) {
-    const siblings = await db.booking.findMany({
-      where: { tripGroupId: b.tripGroupId },
-      select: {
-        totalCents: true,
-        payment: { select: { amountPaidCents: true } },
-      },
-    });
-    effectiveTotalCents = siblings.reduce((sum, s) => sum + s.totalCents, 0);
-    groupAmountPaidCents = siblings.reduce(
-      (sum, s) => sum + (s.payment?.amountPaidCents ?? 0),
-      0,
-    );
-  }
-
-  if (!Number.isFinite(effectiveTotalCents) || effectiveTotalCents <= 0) {
+  if (due.totalCents <= 0) {
     return { error: "Booking total must be > 0. Approve price first." };
   }
 
-  const amountToCharge = effectiveTotalCents - groupAmountPaidCents;
+  const amountToCharge = due.balanceCents;
   if (amountToCharge <= 0) {
     return { error: "No balance due. The booking is fully paid." };
   }
 
-  const currency = (b.currency ?? "USD").toLowerCase();
-  const isBalancePayment = groupAmountPaidCents > 0;
+  const isBalancePayment = due.paidCents > 0;
 
   const stripe = await getStripe();
   const pi = await stripe.paymentIntents.create({
     amount: amountToCharge,
-    currency,
+    currency: due.currency,
     metadata: {
-      bookingId: b.id,
-      tripGroupId: b.tripGroupId ?? "", // ← NEW
+      bookingId: due.bookingId,
+      tripGroupId: due.tripGroupId ?? "",
       kind: "ADMIN_MANUAL",
       isBalancePayment: isBalancePayment ? "true" : "false",
       balanceAmount: amountToCharge.toString(),
-      originalTotal: effectiveTotalCents.toString(),
-      previouslyPaid: groupAmountPaidCents.toString(),
+      originalTotal: due.totalCents.toString(),
+      previouslyPaid: due.paidCents.toString(),
     },
     automatic_payment_methods: { enabled: true },
   });

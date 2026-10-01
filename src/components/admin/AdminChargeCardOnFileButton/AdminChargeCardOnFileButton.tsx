@@ -1,18 +1,23 @@
 "use client";
 
 import styles from "./AdminChargeCardOnFileButton.module.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Modal from "@/components/shared/Modal/Modal";
 import toast from "react-hot-toast";
-import { adminChargeCardOnFile } from "../../../../actions/admin/chargeCardOnFile";
+import {
+  adminChargeCardOnFile,
+  adminGetCardOnFileQuote,
+  type CardOnFileQuote,
+} from "../../../../actions/admin/chargeCardOnFile";
 import { getSavedCardForBooking } from "../../../../actions/payments/chargeCardOnFileForCheckout";
 
 interface Props {
   bookingId: string;
-  amountCents: number;
-  currency: string;
   onSuccess?: () => void | Promise<void>;
 }
+
+type SavedCard = Awaited<ReturnType<typeof getSavedCardForBooking>>;
 
 function centsToUsd(cents: number) {
   return (cents / 100).toFixed(2);
@@ -28,45 +33,135 @@ const BRAND_LABELS: Record<string, string> = {
   unionpay: "UnionPay",
 };
 
+// The Stripe webhook records the payment a moment after the charge succeeds.
+const RECORD_POLL_MS = 1000;
+const RECORD_POLL_TRIES = 10;
+
 export default function AdminChargeCardOnFileButton({
   bookingId,
-  amountCents,
-  currency,
   onSuccess,
 }: Props) {
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
-  const [cardInfo, setCardInfo] = useState<Awaited<
-    ReturnType<typeof getSavedCardForBooking>
-  > | null>(null);
+  const [cardInfo, setCardInfo] = useState<SavedCard | null>(null);
+  // The amount comes from the server, from the same calculation the charge
+  // uses. The button never trusts a number handed down by the page.
+  const [quote, setQuote] = useState<CardOnFileQuote | null>(null);
   const [charging, setCharging] = useState(false);
-  const [charged, setCharged] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [charged, setCharged] = useState<{
+    amountCents: number;
+    last4: string;
+    recorded: boolean | null; // null = still waiting on Stripe
+  } | null>(null);
+
+  const alive = useRef(true);
 
   useEffect(() => {
-    getSavedCardForBooking(bookingId)
-      .then(setCardInfo)
-      .catch(() => setCardInfo(null))
-      .finally(() => setLoading(false));
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+
+  const loadQuote = useCallback(async (): Promise<CardOnFileQuote | null> => {
+    try {
+      const res = await adminGetCardOnFileQuote(bookingId);
+      return "error" in res ? null : res;
+    } catch {
+      return null;
+    }
   }, [bookingId]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([
+      getSavedCardForBooking(bookingId).catch(() => null),
+      loadQuote(),
+    ])
+      .then(([card, q]) => {
+        if (cancelled) return;
+        setCardInfo(card);
+        setQuote(q);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bookingId, loadQuote]);
+
+  async function waitUntilRecorded(balanceBefore: number): Promise<boolean> {
+    for (let i = 0; i < RECORD_POLL_TRIES; i++) {
+      await new Promise((resolve) => setTimeout(resolve, RECORD_POLL_MS));
+      if (!alive.current) return false;
+      const fresh = await loadQuote();
+      if (fresh && fresh.balanceCents < balanceBefore) {
+        if (alive.current) setQuote(fresh);
+        // The webhook updates the trip record just after the ride's payment
+        // record. Give it that beat so the refreshed page shows the end state.
+        await new Promise((resolve) => setTimeout(resolve, RECORD_POLL_MS));
+        return true;
+      }
+    }
+    return false;
+  }
+
   async function handleCharge() {
+    if (!quote || charging) return;
     setCharging(true);
     setConfirming(false);
+    let didCharge = false;
     try {
-      const result = await adminChargeCardOnFile({ bookingId });
+      const result = await adminChargeCardOnFile({
+        bookingId,
+        expectedAmountCents: quote.balanceCents,
+      });
+
       if ("error" in result) {
         toast.error(result.error);
+        // The amount owed changed since this button was drawn. Show the new
+        // amount and make the admin confirm it again.
+        if (typeof result.amountDueCents === "number") {
+          const fresh = await loadQuote();
+          if (alive.current && fresh) setQuote(fresh);
+        }
         return;
       }
-      setCharged(true);
+
+      didCharge = true;
+      setCharged({
+        amountCents: result.amountCents,
+        last4: result.last4,
+        recorded: null,
+      });
       toast.success(
         `Card charged successfully — •••• ${result.last4} · $${centsToUsd(result.amountCents)}`,
       );
+
+      const recorded = await waitUntilRecorded(quote.balanceCents);
+      if (alive.current) {
+        setCharged((c) => (c ? { ...c, recorded } : c));
+      }
+      router.refresh();
       if (onSuccess) await onSuccess();
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      if (!didCharge) {
+        toast.error(
+          "We couldn't confirm whether the card was charged. Refresh this page and check before trying again.",
+        );
+      } else if (alive.current) {
+        // The charge went through; only the follow-up refresh failed.
+        setCharged((c) =>
+          c && c.recorded === null ? { ...c, recorded: false } : c,
+        );
+      }
     } finally {
-      setCharging(false);
+      if (alive.current) setCharging(false);
     }
   }
 
@@ -105,12 +200,62 @@ export default function AdminChargeCardOnFileButton({
         <div>
           <div className={styles.successTitle}>Payment successful</div>
           <div className={styles.successSub}>
-            {brandLabel} •••• {cardInfo.last4} was charged $
-            {centsToUsd(amountCents)}
+            {brandLabel} •••• {charged.last4} was charged $
+            {centsToUsd(charged.amountCents)}
           </div>
+          {charged.recorded === null && (
+            <div className={styles.successSub}>
+              Recording the payment on the booking…
+            </div>
+          )}
+          {charged.recorded === false && (
+            <div className={styles.successSub}>
+              Stripe is still posting this payment to the booking. Refresh in a
+              minute. Do not charge again.
+            </div>
+          )}
         </div>
       </div>
     );
+  }
+
+  if (!quote) {
+    return (
+      <p className='miniNote' style={{ color: "#dc2626" }}>
+        Couldn&apos;t load the amount due for this booking. Refresh the page —
+        the card can&apos;t be charged until the amount is confirmed.
+      </p>
+    );
+  }
+
+  const what = quote.isGroup ? "trip" : "booking";
+
+  if (quote.totalCents <= 0) {
+    return (
+      <p className='miniNote'>
+        Set and approve a price before charging the card on file.
+      </p>
+    );
+  }
+
+  if (quote.balanceCents <= 0) {
+    return (
+      <p className='miniNote'>
+        Nothing to charge. This {what} is paid in full.
+      </p>
+    );
+  }
+
+  const amount = `$${centsToUsd(quote.balanceCents)}`;
+  const tripLabel = `${quote.rideCount}-ride trip`;
+
+  // One line explaining what the amount is, whenever it isn't simply
+  // "the full price of this one ride".
+  let context: string | null = null;
+  if (quote.paidCents > 0) {
+    context = `Remaining balance${quote.isGroup ? ` for this ${tripLabel}` : ""}: $${centsToUsd(quote.paidCents)} of $${centsToUsd(quote.totalCents)} already paid.`;
+  } else if (quote.isGroup) {
+    context = `Full total for this ${tripLabel}.`;
   }
 
   return (
@@ -131,6 +276,8 @@ export default function AdminChargeCardOnFileButton({
         <span className='badge badge_good'>Active</span>
       </div>
 
+      {context && <p className='miniNote'>{context}</p>}
+
       {/* Confirm step */}
       <button
         type='button'
@@ -138,7 +285,9 @@ export default function AdminChargeCardOnFileButton({
         onClick={() => setConfirming(true)}
         disabled={charging}
       >
-        Charge {brandLabel} •••• {cardInfo.last4} · ${centsToUsd(amountCents)}
+        {charging
+          ? "Charging…"
+          : `Charge ${brandLabel} •••• ${cardInfo.last4} · ${amount}`}
       </button>
 
       <Modal isOpen={confirming} onClose={() => setConfirming(false)}>
@@ -147,10 +296,11 @@ export default function AdminChargeCardOnFileButton({
           <p className='paragraph'>
             Are you sure you want to charge{" "}
             <strong>
-              ${centsToUsd(amountCents)} {currency.toUpperCase()}
+              {amount} {quote.currency.toUpperCase()}
             </strong>{" "}
             to {brandLabel} •••• {cardInfo.last4}?
           </p>
+          {context && <p className='miniNote'>{context}</p>}
           <p className='miniNote'>
             This is an off-session charge and cannot be undone. If the card
             requires authentication it will fail — use the payment link instead.

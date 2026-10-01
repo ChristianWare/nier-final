@@ -829,12 +829,10 @@ export default async function AdminBookingDetailPage({
       feesCents: 0,
       taxesCents: 0,
       totalCents: groupTotalCents,
-      tipCents: Math.max(
-        0,
-        (tripGroupData.tripGroup.amountPaidCents ?? 0) - groupTotalCents,
-      ),
-      amountPaidCents:
-        tripGroupData.tripGroup.amountPaidCents ?? groupTotalCents,
+      // Tips are read from the rides' payment records. The trip's own
+      // "amount paid" is fare only.
+      tipCents: tripGroupData.tripGroup.tipCents,
+      amountPaidCents: groupTotalCents + tripGroupData.tripGroup.tipCents,
       amountRefundedCents: 0,
       currency: tripGroupData.tripGroup.currency,
       paymentMethodDisplay: null,
@@ -994,7 +992,8 @@ export default async function AdminBookingDetailPage({
     }));
   const outstandingCents = Math.max(
     0,
-    (isGroupBooking ? groupTotalCents : booking.totalCents) - amountPaidCents,
+    (isGroupBooking ? groupTotalCents : booking.totalCents) -
+      (isGroupBooking ? groupAmountPaidCents : amountPaidCents),
   );
   // ── Tab completion ────────────────────────────────────────────────────────
   const tripIsComplete = booking.routeApproved;
@@ -1704,13 +1703,7 @@ export default async function AdminBookingDetailPage({
                     <span>💳</span> <span>No card on file</span>
                   </div>
                 )}
-                <AdminChargeCardOnFileButton
-                  bookingId={booking.id}
-                  amountCents={
-                    isGroupBooking ? groupTotalCents : booking.totalCents
-                  }
-                  currency={booking.currency}
-                />
+                <AdminChargeCardOnFileButton bookingId={booking.id} />
               </div>
 
               <div style={{ marginTop: 18 }}>

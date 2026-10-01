@@ -49,6 +49,12 @@ export default function AdminManualCardPaymentClient({
   );
   const [clientSecret, setClientSecret] = useState<string>("");
   const [creating, setCreating] = useState(false);
+  // What the server actually put on the PaymentIntent. The card form shows
+  // this, so the amount on screen is the amount that will be charged.
+  const [serverCharge, setServerCharge] = useState<{
+    amountCents: number;
+    isBalancePayment: boolean;
+  } | null>(null);
   // ✅ Track if payment just completed (to hide the form immediately)
   const [justPaid, setJustPaid] = useState(false);
 
@@ -114,6 +120,13 @@ export default function AdminManualCardPaymentClient({
       if (!secret) {
         toast.error("No clientSecret returned.");
         return;
+      }
+      const serverAmount = Number((res as any)?.amountToCharge);
+      if (Number.isFinite(serverAmount) && serverAmount > 0) {
+        setServerCharge({
+          amountCents: serverAmount,
+          isBalancePayment: Boolean((res as any)?.isBalancePayment),
+        });
       }
       setClientSecret(secret);
     } catch (e: any) {
@@ -187,8 +200,11 @@ export default function AdminManualCardPaymentClient({
       <ManualPaymentInner
         clientSecret={clientSecret}
         currency={currency}
-        amountToCharge={hasBalanceDue ? balanceDueCents : amountCents}
-        isBalancePayment={hasBalanceDue}
+        amountToCharge={
+          serverCharge?.amountCents ??
+          (hasBalanceDue ? balanceDueCents : amountCents)
+        }
+        isBalancePayment={serverCharge?.isBalancePayment ?? hasBalanceDue}
         onPaymentSuccess={() => setJustPaid(true)}
       />
     </Elements>

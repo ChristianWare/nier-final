@@ -7,6 +7,7 @@ import CheckoutClient from "./CheckoutClient";
 import { getStripePublishableKey } from "@/lib/stripe";
 import { getSavedCardForBooking } from "../../../../actions/payments/chargeCardOnFileForCheckout";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import { getAmountDue } from "@/lib/booking/getAmountDue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,26 +51,14 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
     notFound();
   }
 
-  // ── Group booking: use group total instead of individual leg total ──
+  // ── What is owed: the booking, or the whole trip for a multi-ride booking ──
+  // The same calculation the "Pay with saved card" charge uses, so the amount
+  // shown here and the amount charged cannot drift apart.
   // Must be declared BEFORE deposit fields since isDepositAlreadyPaid depends on it
-  let effectiveTotalCents = booking.totalCents;
-  let effectiveAmountPaidCents = booking.payment?.amountPaidCents ?? 0;
-
-  if (booking.tripGroupId) {
-    const tripGroup = await db.tripGroup.findUnique({
-      where: { id: booking.tripGroupId },
-      include: {
-        bookings: { select: { totalCents: true } },
-      },
-    });
-    if (tripGroup) {
-      effectiveTotalCents = tripGroup.bookings.reduce(
-        (sum, b) => sum + b.totalCents,
-        0,
-      );
-      effectiveAmountPaidCents = tripGroup.amountPaidCents;
-    }
-  }
+  const due = await getAmountDue(booking.id);
+  const effectiveTotalCents = due?.totalCents ?? booking.totalCents;
+  const effectiveAmountPaidCents =
+    due?.paidCents ?? booking.payment?.amountPaidCents ?? 0;
 
   // ── Deposit fields ── (declared after effectiveTotalCents is computed)
   const depositMode = (booking as any).depositMode ?? false;

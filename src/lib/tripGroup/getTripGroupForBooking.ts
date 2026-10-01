@@ -30,6 +30,7 @@ export async function getTripGroupForBooking(bookingId: string) {
           status: true,
           totalCents: true,
           priceApproved: true,
+          payment: { select: { tipCents: true } },
           serviceType: { select: { name: true } },
           assignment: {
             select: {
@@ -53,6 +54,11 @@ export async function getTripGroupForBooking(bookingId: string) {
       paymentStatus: tripGroup.paymentStatus,
       paidAt: tripGroup.paidAt,
       amountPaidCents: tripGroup.amountPaidCents,
+      // Tips paid across every ride in the trip.
+      tipCents: tripGroup.bookings.reduce(
+        (sum, b) => sum + (b.payment?.tipCents ?? 0),
+        0,
+      ),
       currency: tripGroup.currency,
     },
     siblings: tripGroup.bookings.map((b) => ({

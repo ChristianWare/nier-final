@@ -3731,8 +3731,6 @@ export default function AdminNewBookingWizard({
                       </div>
                       <AdminChargeCardOnFileButton
                         bookingId={bookingId}
-                        amountCents={bookingData?.totalCents ?? estimateCents}
-                        currency={bookingData?.currency ?? "USD"}
                         onSuccess={async () => {
                           await refreshBookingData(bookingId);
                         }}
