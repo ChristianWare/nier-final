@@ -25,8 +25,7 @@ export type CollectionRide = {
 
 export type CollectionTrip = {
   id: string;
-  /** What the trip record says was paid (cash is recorded here). */
-  amountPaidCents: number;
+  /** PAID when the trip is fully covered, including cash recorded on it. */
   paymentStatus: string;
   /** Every ride of the trip, including ones outside the period shown. */
   rides: CollectionRide[];
@@ -41,6 +40,9 @@ export type CollectionSummary = {
   /** collected / scheduled, or null when nothing is scheduled. */
   collectedRate: number | null;
   rides: number;
+  /** Completed rides that haven't been fully paid: what's actually late. */
+  unpaidCompletedCents: number;
+  unpaidCompletedRides: number;
 };
 
 /** Rides that are expected to be paid for: not drafts, not lost. */
@@ -60,13 +62,14 @@ function tripPaidShare(trip: CollectionTrip): number {
     .filter(isScheduled)
     .reduce((sum, r) => sum + Math.max(0, r.totalCents || 0), 0);
   if (priceCents <= 0) return 0;
+  // Cash on a trip always marks it PAID. The trip record's own amount isn't
+  // used: before Sept 30 it was saved with the tips mixed in.
   if (trip.paymentStatus === "PAID") return 1;
   const onRides = live.reduce(
     (sum, r) => sum + Math.max(0, (r.paidCents || 0) - (r.refundedCents || 0)),
     0,
   );
-  const paid = Math.max(onRides, trip.amountPaidCents || 0);
-  return clamp(paid / priceCents, 0, 1);
+  return clamp(onRides / priceCents, 0, 1);
 }
 
 export function summarizeCollection(
@@ -76,6 +79,8 @@ export function summarizeCollection(
   let scheduled = 0;
   let collected = 0;
   let count = 0;
+  let unpaidCompleted = 0;
+  let unpaidCompletedRides = 0;
   const shares = new Map<string, number>();
 
   for (const r of rides) {
@@ -85,14 +90,22 @@ export function summarizeCollection(
     count += 1;
 
     const trip = r.tripGroupId ? trips.get(r.tripGroupId) : undefined;
+    let paid: number;
     if (!trip) {
-      collected += clamp((r.paidCents || 0) - (r.refundedCents || 0), 0, price);
-      continue;
+      paid = clamp((r.paidCents || 0) - (r.refundedCents || 0), 0, price);
+    } else {
+      // The trip's payments are spread across its rides by price, so a trip
+      // that crosses two months counts correctly in each.
+      if (!shares.has(trip.id)) shares.set(trip.id, tripPaidShare(trip));
+      paid = price * shares.get(trip.id)!;
     }
-    // The trip's payments are spread across its rides by price, so a trip
-    // that crosses two months counts correctly in each.
-    if (!shares.has(trip.id)) shares.set(trip.id, tripPaidShare(trip));
-    collected += price * shares.get(trip.id)!;
+    collected += paid;
+
+    const owed = Math.round(price - paid);
+    if (r.status === "COMPLETED" && owed > 0) {
+      unpaidCompleted += owed;
+      unpaidCompletedRides += 1;
+    }
   }
 
   const collectedCents = Math.min(scheduled, Math.round(collected));
@@ -102,6 +115,8 @@ export function summarizeCollection(
     stillOwedCents: scheduled - collectedCents,
     collectedRate: scheduled > 0 ? collectedCents / scheduled : null,
     rides: count,
+    unpaidCompletedCents: unpaidCompleted,
+    unpaidCompletedRides,
   };
 }
 
@@ -140,7 +155,6 @@ export async function loadTripsForCollection(
     where: { id: { in: ids } },
     select: {
       id: true,
-      amountPaidCents: true,
       paymentStatus: true,
       bookings: {
         select: {
@@ -159,7 +173,6 @@ export async function loadTripsForCollection(
       g.id,
       {
         id: g.id,
-        amountPaidCents: g.amountPaidCents,
         paymentStatus: String(g.paymentStatus),
         rides: g.bookings.map(toCollectionRide),
       },

@@ -953,9 +953,10 @@ export default async function EarningsPage({
                   from: rangeFromParam ?? defaultFrom,
                   to: rangeToParam ?? defaultTo,
                 };
-  const stillOwedHref = buildHref("/admin/bookings", {
+  const unpaidRidesHref = buildHref("/admin/bookings", {
     ...bookingsRange,
     driver: selectedDriverId ?? undefined,
+    status: "COMPLETED",
     payment: "unpaid",
   });
   const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
@@ -1144,11 +1145,14 @@ export default async function EarningsPage({
           sub={`${tz.formatMoneyShort(collection.collectedCents, currency)} of ${tz.formatMoneyShort(collection.scheduledCents, currency)}`}
           tone='good'
         />
-        <Link href={stillOwedHref} className={cardLinks.kpiAnchor}>
+        <Link href={unpaidRidesHref} className={cardLinks.kpiAnchor}>
           <KpiCard
-            label='Still owed'
-            value={tz.formatMoneyShort(collection.stillOwedCents, currency)}
-            sub='See unpaid rides →'
+            label='Unpaid rides'
+            value={tz.formatMoneyShort(
+              collection.unpaidCompletedCents,
+              currency,
+            )}
+            sub={`${collection.unpaidCompletedRides} completed, not fully paid →`}
             tone='warn'
             className={cardLinks.kpiLink}
           />

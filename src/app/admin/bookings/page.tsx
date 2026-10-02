@@ -1006,7 +1006,7 @@ export default async function AdminBookingsPage({
               prefix='$'
               sub={
                 collection && collection.scheduledCents > 0
-                  ? `${Math.round((collection.collectedRate ?? 0) * 100)}% of booked value · ${tz.formatMoneyShort(collection.stillOwedCents)} still owed`
+                  ? `${Math.round((collection.collectedRate ?? 0) * 100)}% of booked value${collection.unpaidCompletedCents > 0 ? ` · ${tz.formatMoneyShort(collection.unpaidCompletedCents)} unpaid on completed rides` : ""}`
                   : "Nothing booked yet"
               }
             />

@@ -97,11 +97,20 @@ export function buildBookingsWhere(
     where.status = status as BookingStatus;
   }
 
-  // ── Payment ──
+  // ── Payment, for the whole trip: a ride in a paid trip is paid even when
+  // the money sits on a sibling ride's payment record ──
   if (args.payment === "paid") {
-    extra.push({ payment: { is: { status: "PAID" } } });
+    extra.push({
+      OR: [
+        { payment: { is: { status: "PAID" } } },
+        { tripGroup: { is: { paymentStatus: "PAID" } } },
+      ],
+    });
   } else if (args.payment === "unpaid") {
-    extra.push({ NOT: { payment: { status: "PAID" } } });
+    extra.push(
+      { NOT: { payment: { status: "PAID" } } },
+      { NOT: { tripGroup: { is: { paymentStatus: "PAID" } } } },
+    );
   }
 
   const needle = (q ?? "").trim();
