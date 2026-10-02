@@ -44,3 +44,65 @@
   flex-direction: column;
   gap: 18px;
 }
+
+/* ── One filter row under the time tabs (earnings-style fields) ── */
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  padding: 1rem 0 0;
+}
+
+.clearBtn {
+  align-self: flex-end;
+}
+
+.filterNote {
+  flex-basis: 100%;
+}
+
+/* ── Clickable cards: a card sets the Status filter ── */
+.kpiAnchor {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+.kpiAnchor:focus-visible {
+  outline: 2px solid var(--black);
+  outline-offset: 2px;
+}
+
+.kpiLink {
+  height: 100%;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.kpiAnchor:hover .kpiLink {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.kpiActive {
+  box-shadow: inset 0 0 0 2px var(--black);
+}
+
+.kpiAnchor:hover .kpiActive {
+  box-shadow:
+    inset 0 0 0 2px var(--black),
+    0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpiLink {
+    transition: none;
+  }
+  .kpiAnchor:hover .kpiLink {
+    transform: none;
+  }
+}

@@ -19,13 +19,11 @@ const UPCOMING_TABS = [
   { value: "today", label: "Today" },
   { value: "next24", label: "Next 24h" },
   { value: "next7", label: "Next 7 days" },
+  { value: "upcoming", label: "Upcoming" },
 ] as const;
 
 /** Ranges that only make sense by pickup date. */
-const PICKUP_ONLY = ["next24", "next7"];
-
-/** Quick filters that replace the time range; picking a time clears them. */
-const DATE_OVERRIDES = ["completed", "future", "stuck"];
+const PICKUP_ONLY = ["next24", "next7", "upcoming"];
 
 export default function BookingsTimeControls({
   activeRange,
@@ -60,7 +58,6 @@ export default function BookingsTimeControls({
 
   function fresh() {
     const next = new URLSearchParams(sp.toString());
-    for (const k of DATE_OVERRIDES) next.delete(k);
     next.delete("page");
     return next;
   }

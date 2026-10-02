@@ -27,9 +27,6 @@ import {
 const BAR_RADIUS_TOP: [number, number, number, number] = [10, 10, 0, 0];
 const BAR_RADIUS_NONE: [number, number, number, number] = [0, 0, 0, 0];
 
-/** Quick filters that replace the time range; picking a date clears them. */
-const DATE_OVERRIDES = ["completed", "future", "stuck"];
-
 export default function BookingsChart({
   data,
   breakdown,
@@ -60,7 +57,6 @@ export default function BookingsChart({
     const b = buckets.find((x) => x.key === key);
     if (!b?.from || !b?.to) return;
     const next = new URLSearchParams(sp.toString());
-    for (const k of DATE_OVERRIDES) next.delete(k);
     next.delete("month");
     next.set("range", "range");
     next.set("from", b.from);

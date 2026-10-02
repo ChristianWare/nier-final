@@ -48,7 +48,7 @@ export function getRangeWindow(args: {
   toYmd: string;
   /** YYYY-MM shown by the Daily view (defaults to the current month). */
   monthKey?: string;
-}): { gte: Date; lt: Date } | undefined {
+}): { gte: Date; lt?: Date } | undefined {
   const { now, timezone, range, fromYmd, toYmd, monthKey } = args;
   const todayStart = tz.startOfDay(now, timezone);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
@@ -61,7 +61,10 @@ export function getRangeWindow(args: {
   const yearStart = startOfYear(now, timezone);
   const nextYearStart = startOfNextYear(yearStart, timezone);
 
-  let pickupAtFilter: { gte: Date; lt: Date } | undefined;
+  let pickupAtFilter: { gte: Date; lt?: Date } | undefined;
+
+  // Every pickup from now on, however far ahead.
+  if (range === "upcoming") return { gte: now };
 
   if (range === "today")
     pickupAtFilter = { gte: todayStart, lt: tomorrowStart };
@@ -122,17 +125,11 @@ export function getRangeWindow(args: {
 /** What the time controls' pill, the chart and the Rides card say. */
 export function describeRange(args: {
   range: string;
-  win: { gte: Date; lt: Date } | undefined;
+  win: { gte: Date; lt?: Date } | undefined;
   now: Date;
   timezone: string;
-  completed: boolean;
-  future: boolean;
-  stuck: boolean;
 }): string {
   const { range, win, now, timezone } = args;
-  if (args.completed) return "All completed rides";
-  if (args.future) return "All upcoming rides";
-  if (args.stuck) return "Stuck in review";
   switch (range) {
     case "month":
       return tz.formatMonthLabel(win?.gte ?? now, timezone);
@@ -152,8 +149,10 @@ export function describeRange(args: {
       return "Next 24 hours";
     case "next7":
       return "Next 7 days";
+    case "upcoming":
+      return "Upcoming";
     case "range": {
-      if (!win) return "Date range";
+      if (!win?.lt) return "Date range";
       const first = tz.formatDateMedium(win.gte, timezone);
       const last = tz.formatDateMedium(
         new Date(win.lt.getTime() - 1),

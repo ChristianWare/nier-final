@@ -5,11 +5,20 @@ import { db } from "@/lib/db";
 import { Prisma, BookingStatus, Role } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
 import SearchFormClient from "./SearchFormClient";
-import ClearFiltersButton from "@/components/admin/Clearfiltersbutton/Clearfiltersbutton";
-import FilterSelectClient from "./FilterSelectClient";
 import TripGroupBadge from "@/components/admin/TripGroupBadge/TripGroupBadge";
 import BookingsChart from "./BookingsChart";
 import BookingsTimeControls from "./BookingsTimeControls";
+import BookingsFilters from "./BookingsFilters";
+import { redirect } from "next/navigation";
+import {
+  STATUS_GROUP_FILTERS,
+  buildBookingsWhere,
+  mapLegacyBookingParams,
+  type AssignmentFilter,
+  type BookingsWhereArgs,
+  type FlightFilter,
+  type PaymentFilter,
+} from "@/lib/booking/bookingsWhere";
 import CountUp from "@/components/shared/CountUp/CountUp";
 // The cards and chart reuse the earnings page's styles so both pages match.
 import earnings from "../earnings/AdminEarningsPage.module.css";
@@ -37,6 +46,12 @@ export const dynamic = "force-dynamic";
 
 const STATUSES = [
   "ALL",
+  // Groups, the same ones as the cards and the chart colors
+  "NEEDS_ACTION",
+  "BOOKED",
+  "DONE",
+  "LOST",
+  "STUCK",
   "PAYMENT_RECEIVED",
   "PENDING_REVIEW",
   "DECLINED",
@@ -65,6 +80,7 @@ const RANGES = [
   "today",
   "next24",
   "next7",
+  "upcoming",
   "range",
 ] as const;
 
@@ -91,6 +107,8 @@ type SearchParams = {
   status?: StatusFilter;
   range?: RangeFilter;
   q?: string;
+  // Old checkbox params: redirected to payment / assignment / flight /
+  // status / range by mapLegacyBookingParams.
   unassigned?: "1";
   assigned?: "1";
   paid?: "1";
@@ -109,6 +127,9 @@ type SearchParams = {
   breakdown?: string;
   /** YYYY-MM for the Daily view; omitted for the current month. */
   month?: string;
+  payment?: string;
+  assignment?: string;
+  flight?: string;
 };
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
@@ -181,6 +202,16 @@ function statusTabLabel(status: StatusFilter): string {
       return "Trash";
     case "ALL":
       return "All";
+    case "NEEDS_ACTION":
+      return "Needs action";
+    case "BOOKED":
+      return "Booked";
+    case "DONE":
+      return "Done";
+    case "LOST":
+      return "Lost";
+    case "STUCK":
+      return "Stuck in review";
     case "PAYMENT_RECEIVED":
       return "Payment Received";
     case "PENDING_REVIEW":
@@ -269,188 +300,6 @@ function safeCustomerType(v: any): "all" | "guest" | "account" | "corporate" {
   const valid = ["all", "guest", "account", "corporate"];
   return valid.includes(v) ? v : "all";
 }
-function buildWhere(args: {
-  now: Date;
-  timezone: string;
-  status: StatusFilter;
-  range: RangeFilter;
-  unassigned: boolean;
-  assigned: boolean;
-  paid: boolean;
-  unpaid: boolean;
-  stuck: boolean;
-  completed: boolean;
-  future: boolean;
-  fromYmd: string;
-  toYmd: string;
-  q?: string;
-  customerType?: string;
-  driver?: string;
-  serviceType?: string;
-  rideType?: string;
-  flightInfo?: boolean;
-  dateField?: "pickupAt" | "createdAt";
-  monthKey?: string;
-}) {
-  const { now, timezone, status, range, paid, stuck, fromYmd, toYmd, q } = args;
-
-  const where: Prisma.BookingWhereInput = {};
-
-  // Trash pseudo-status: only soft-deleted rows, no other filters.
-  // Mentioning deletedAt here also bypasses the global soft-delete guard.
-  if (status === "TRASH") {
-    where.deletedAt = { not: null };
-    return where;
-  }
-
-  // The range applies to the pickup date, or to the booked (created) date
-  // when the chart's "Booked date" basis is on.
-  const dateField = args.dateField ?? "pickupAt";
-  const pickupAtFilter = getRangeWindow({
-    now,
-    timezone,
-    range,
-    fromYmd,
-    toYmd,
-    monthKey: args.monthKey,
-  });
-  if (pickupAtFilter) where[dateField] = pickupAtFilter;
-
-  if (status === "PAYMENT_RECEIVED") {
-    where.status = { in: ["CONFIRMED", "PENDING_PAYMENT"] as BookingStatus[] };
-    where.payment = { is: { status: "PAID" } };
-  } else if (status !== "ALL") {
-    where.status = status as BookingStatus;
-  }
-  // Pay filters (mutually exclusive)
-  if (paid) {
-    where.payment = { is: { status: "PAID" } };
-  } else if (args.unpaid) {
-    where.NOT = { payment: { status: "PAID" } };
-  }
-
-  if (stuck) {
-    const stuckCutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-    where.status = "PENDING_REVIEW";
-    where.createdAt = { lt: stuckCutoff };
-    where.pickupAt = { gte: now };
-  }
-
-  const needle = (q ?? "").trim();
-  if (needle) {
-    const isConfirmationCode = /^[A-Za-z0-9]{6,8}$/i.test(needle);
-
-    const existingAnd = Array.isArray(where.AND)
-      ? where.AND
-      : where.AND
-        ? [where.AND]
-        : [];
-
-    const searchConditions: Prisma.BookingWhereInput[] = [
-      { id: { contains: needle, mode: "insensitive" } },
-      { guestName: { contains: needle, mode: "insensitive" } },
-      { guestEmail: { contains: needle, mode: "insensitive" } },
-      { guestPhone: { contains: needle, mode: "insensitive" } },
-      { pickupAddress: { contains: needle, mode: "insensitive" } },
-      { dropoffAddress: { contains: needle, mode: "insensitive" } },
-      { user: { is: { name: { contains: needle, mode: "insensitive" } } } },
-      { user: { is: { email: { contains: needle, mode: "insensitive" } } } },
-      {
-        corporateAccount: {
-          is: { name: { contains: needle, mode: "insensitive" } },
-        },
-      },
-      {
-        corporatePassenger: {
-          is: { name: { contains: needle, mode: "insensitive" } },
-        },
-      },
-      {
-        corporatePassenger: {
-          is: { email: { contains: needle, mode: "insensitive" } },
-        },
-      },
-      {
-        corporatePassenger: {
-          is: { phone: { contains: needle, mode: "insensitive" } },
-        },
-      },
-      { costCenter: { contains: needle, mode: "insensitive" } },
-      { projectCode: { contains: needle, mode: "insensitive" } },
-    ];
-
-    if (isConfirmationCode) {
-      searchConditions.push({
-        id: { startsWith: needle.toLowerCase(), mode: "insensitive" },
-      });
-    }
-
-    where.AND = [
-      ...existingAnd,
-      {
-        OR: searchConditions,
-      },
-    ];
-  }
-
-  // Customer type filter
-  const ct = args.customerType ?? "all";
-  if (ct === "guest") {
-    where.userId = null;
-    where.corporateAccountId = null;
-  } else if (ct === "account") {
-    where.userId = { not: null };
-    where.corporateAccountId = null;
-  } else if (ct === "corporate") {
-    where.corporateAccountId = { not: null };
-  }
-
-  // Trip quick filters (completed / future override range + status)
-  if (args.completed) {
-    where.status = "COMPLETED" as BookingStatus;
-    delete where[dateField];
-  }
-
-  if (args.future) {
-    where.pickupAt = { gte: args.now };
-    where.status = {
-      notIn: [
-        "COMPLETED",
-        "CANCELLED",
-        "REFUNDED",
-        "PARTIALLY_REFUNDED",
-        "NO_SHOW",
-      ] as BookingStatus[],
-    };
-  }
-
-  // Assignment filters (driver > unassigned > assigned)
-  const drvFilter = args.driver ?? "all";
-  if (drvFilter !== "all") {
-    where.assignment = { driverId: drvFilter };
-  } else if (args.unassigned) {
-    where.assignment = { is: null };
-  } else if (args.assigned) {
-    where.assignment = { isNot: null };
-  }
-
-  if (args.serviceType && args.serviceType !== "all") {
-    where.serviceTypeId = args.serviceType;
-  }
-
-  if (args.rideType === "single") {
-    where.tripGroupId = null;
-  } else if (args.rideType === "multi") {
-    where.tripGroupId = { not: null };
-  }
-
-  if (args.flightInfo) {
-    where.flightNumber = { not: null };
-  }
-
-  return where;
-}
-
 const MONTH_OPTIONS = [
   { v: "01", label: "Jan" },
   { v: "02", label: "Feb" },
@@ -472,17 +321,30 @@ function KpiCard({
   sub,
   prefix,
   tone = "neutral",
+  href,
+  active = false,
 }: {
   label: string;
   value: number;
   sub: string;
   prefix?: string;
   tone?: "neutral" | "good" | "warn" | "tip" | "bad";
+  /** Makes the card a filter: clicking it opens this link. */
+  href?: string;
+  /** This card's filter is the one applied. */
+  active?: boolean;
 }) {
   const toneClass =
     tone === "bad" ? chartStyles.tone_bad : earnings[`tone_${tone}`];
-  return (
-    <div className={`${earnings.kpiCard} ${toneClass ?? ""}`}>
+  const card = (
+    <div
+      className={[
+        earnings.kpiCard,
+        toneClass ?? "",
+        href ? chartStyles.kpiLink : "",
+        active ? chartStyles.kpiActive : "",
+      ].join(" ")}
+    >
       <div className={earnings.kpiTop}>
         <div className='emptyTitle underline'>{label}</div>
       </div>
@@ -493,13 +355,28 @@ function KpiCard({
       <div className='miniNote'>{sub}</div>
     </div>
   );
+  if (!href) return card;
+  return (
+    <Link
+      href={href}
+      scroll={false}
+      className={chartStyles.kpiAnchor}
+      aria-current={active ? "true" : undefined}
+      title={
+        active
+          ? "Showing these bookings. Click to show all."
+          : "Show these bookings"
+      }
+    >
+      {card}
+    </Link>
+  );
 }
 
 function buildOrderBy(
   sort: SortColumn | undefined,
   order: SortOrder,
   status: StatusFilter,
-  stuck: boolean,
 ): Prisma.BookingOrderByWithRelationInput[] {
   if (sort) {
     const direction =
@@ -529,10 +406,10 @@ function buildOrderBy(
     }
   }
 
-  if (stuck || status === "PENDING_REVIEW") {
+  if (status === "STUCK" || status === "PENDING_REVIEW") {
     return [{ createdAt: Prisma.SortOrder.asc }];
   }
-  if (status === "ALL") {
+  if (status === "ALL" || status === "DONE" || status === "LOST") {
     return [{ pickupAt: Prisma.SortOrder.desc }];
   }
   if (
@@ -552,6 +429,12 @@ export default async function AdminBookingsPage({
 }) {
   const sp = await searchParams;
 
+  // Old bookmarks (?paid=1, ?stuck=1, …) open the same view in the new filters.
+  const legacyParams = mapLegacyBookingParams(
+    sp as Record<string, string | undefined>,
+  );
+  if (legacyParams) redirect(buildHref("/admin/bookings", legacyParams));
+
   const status = safeStatus(sp.status) as StatusFilter;
   // When searching, default to all-time so results aren't hidden by date range
   const range = safeRange(
@@ -561,19 +444,25 @@ export default async function AdminBookingsPage({
   const order = safeOrder(sp.order);
   const customerType = safeCustomerType(sp.customerType);
 
-  const unassigned = sp.unassigned === "1";
-  const assigned = (sp as any).assigned === "1";
-  const paid = sp.paid === "1";
-  const unpaid = (sp as any).unpaid === "1";
-  const stuck = sp.stuck === "1";
-  const completed = (sp as any).completed === "1";
-  const future = (sp as any).future === "1";
+  const payment: PaymentFilter =
+    sp.payment === "paid" || sp.payment === "unpaid" ? sp.payment : "any";
+  const assignment: AssignmentFilter =
+    sp.assignment === "assigned" || sp.assignment === "unassigned"
+      ? sp.assignment
+      : "any";
+  const flight: FlightFilter =
+    sp.flight === "yes" || sp.flight === "no" ? sp.flight : "any";
+  const serviceTypeFilter = (sp as any).serviceType ?? "all";
+  const rideTypeFilter = (sp as any).rideType ?? "all";
   const page = clampPage(sp.page);
 
   // "Booked date" filters by when bookings were made, so it only applies to
   // ranges that look back in time.
   const basis: ChartBasis =
-    sp.basis === "created" && range !== "next24" && range !== "next7"
+    sp.basis === "created" &&
+    range !== "next24" &&
+    range !== "next7" &&
+    range !== "upcoming"
       ? "created"
       : "pickup";
   const dateField: "pickupAt" | "createdAt" =
@@ -622,31 +511,26 @@ export default async function AdminBookingsPage({
   const driverFilter = (sp as any).driver ?? "all";
   const isDriverSelected = driverFilter !== "all";
 
-  const whereArgs: Parameters<typeof buildWhere>[0] = {
+  const whereArgs: BookingsWhereArgs = {
     now,
     timezone: companyTz,
     status,
     range,
-    unassigned,
-    assigned,
-    paid,
-    unpaid,
-    stuck,
-    completed,
-    future,
     fromYmd,
     toYmd,
     q,
     customerType,
     driver: driverFilter,
-    serviceType: (sp as any).serviceType ?? "all",
-    rideType: (sp as any).rideType ?? "all",
-    flightInfo: (sp as any).flightInfo === "1",
+    serviceType: serviceTypeFilter,
+    rideType: rideTypeFilter,
+    payment,
+    assignment,
+    flight,
     dateField,
     monthKey: selectedMonthKey,
   };
-  const where = buildWhere(whereArgs);
-  const orderBy = buildOrderBy(sort, order, status, stuck);
+  const where = buildBookingsWhere(whereArgs);
+  const orderBy = buildOrderBy(sort, order, status);
 
   const totalCount = await db.booking.count({ where });
 
@@ -688,104 +572,63 @@ export default async function AdminBookingsPage({
     take: PAGE_SIZE,
   });
 
-  // ── Count helper (each count computed independently of other checkbox filters) ──
-
-  async function countFor(next: {
-    status?: StatusFilter;
-    range?: RangeFilter;
-    unassigned?: boolean;
-    assigned?: boolean;
-    paid?: boolean;
-    unpaid?: boolean;
-    stuck?: boolean;
-    completed?: boolean;
-    future?: boolean;
-    fromYmd?: string;
-    toYmd?: string;
-    q?: string;
-    customerType?: string;
-    driver?: string;
-    serviceType?: string;
-    rideType?: string;
-    flightInfo?: boolean;
-  }) {
-    const w = buildWhere({
-      now,
-      timezone: companyTz,
-      status: next.status ?? status,
-      range: next.range ?? range,
-      unassigned:
-        typeof next.unassigned === "boolean" ? next.unassigned : false,
-      assigned: typeof next.assigned === "boolean" ? next.assigned : false,
-      paid: typeof next.paid === "boolean" ? next.paid : false,
-      unpaid: typeof next.unpaid === "boolean" ? next.unpaid : false,
-      stuck: typeof next.stuck === "boolean" ? next.stuck : false,
-      completed: typeof next.completed === "boolean" ? next.completed : false,
-      future: typeof next.future === "boolean" ? next.future : false,
-      fromYmd: next.fromYmd ?? fromYmd,
-      toYmd: next.toYmd ?? toYmd,
-      q: next.q ?? q,
-      customerType: next.customerType ?? customerType,
-      driver: next.driver ?? driverFilter,
-      serviceType: next.serviceType ?? (sp as any).serviceType ?? "all",
-      rideType: next.rideType ?? (sp as any).rideType ?? "all",
-      flightInfo:
-        typeof next.flightInfo === "boolean" ? next.flightInfo : false,
-      // Next 24h / next 7 days always count by pickup date.
-      dateField:
-        (next.range ?? range) === "next24" || (next.range ?? range) === "next7"
-          ? "pickupAt"
-          : dateField,
-      monthKey: selectedMonthKey,
+  // ── Counts for each filter option: the current period and every other
+  // filter applied, with just that one filter changed ──
+  function countFor(next: Partial<BookingsWhereArgs>) {
+    return db.booking.count({
+      where: buildBookingsWhere({ ...whereArgs, ...next }),
     });
-    return db.booking.count({ where: w });
   }
+  const PAYMENT_VALUES = ["any", "paid", "unpaid"] as const;
+  const ASSIGNMENT_VALUES = ["any", "assigned", "unassigned"] as const;
+  const FLIGHT_VALUES = ["any", "yes", "no"] as const;
 
   const [
     statusCountsArr,
-    futureCount,
-    completedCount,
-    stuckCount,
-    paidCount,
-    unpaidCount,
-    assignedCount,
-    unassignedCount,
-    flightInfoCount,
+    paymentCountsArr,
+    assignmentCountsArr,
+    flightCountsArr,
   ] = await Promise.all([
     Promise.all(
-      STATUSES.map(async (s) => {
-        const c =
-          s === "ALL"
-            ? await countFor({ status: "ALL", q })
-            : await countFor({ status: s, q });
-        return [s, c] as const;
-      }),
+      STATUSES.map(async (s) => [s, await countFor({ status: s })] as const),
     ),
-    countFor({ future: true, q }),
-    countFor({ completed: true, q }),
-    countFor({ stuck: true, q }),
-    countFor({ paid: true, q }),
-    countFor({ unpaid: true, q }),
-    countFor({ assigned: true, q }),
-    countFor({ unassigned: true, q }),
-    countFor({ flightInfo: true, q }),
+    Promise.all(
+      PAYMENT_VALUES.map(
+        async (v) => [v, await countFor({ payment: v })] as const,
+      ),
+    ),
+    Promise.all(
+      ASSIGNMENT_VALUES.map(
+        async (v) => [v, await countFor({ assignment: v })] as const,
+      ),
+    ),
+    Promise.all(
+      FLIGHT_VALUES.map(
+        async (v) => [v, await countFor({ flight: v })] as const,
+      ),
+    ),
   ]);
 
   const statusCounts = Object.fromEntries(statusCountsArr) as Record<
     StatusFilter,
     number
   >;
+  const paymentCounts = Object.fromEntries(paymentCountsArr) as Record<
+    PaymentFilter,
+    number
+  >;
+  const assignmentCounts = Object.fromEntries(assignmentCountsArr) as Record<
+    AssignmentFilter,
+    number
+  >;
+  const flightCounts = Object.fromEntries(flightCountsArr) as Record<
+    FlightFilter,
+    number
+  >;
 
   const baseParams: Record<string, string | undefined> = {
     status: status === "ALL" ? "ALL" : status,
     range: range === "month" ? undefined : range,
-    unassigned: unassigned ? "1" : undefined,
-    assigned: assigned ? "1" : undefined,
-    paid: paid ? "1" : undefined,
-    unpaid: unpaid ? "1" : undefined,
-    stuck: stuck ? "1" : undefined,
-    completed: completed ? "1" : undefined,
-    future: future ? "1" : undefined,
     from: range === "range" ? fromYmd : undefined,
     to: range === "range" ? toYmd : undefined,
     q: q.length ? q : undefined,
@@ -793,31 +636,28 @@ export default async function AdminBookingsPage({
     order: sort ? order : undefined,
     customerType: customerType !== "all" ? customerType : undefined,
     driver: driverFilter !== "all" ? driverFilter : undefined,
-    serviceType:
-      (sp as any).serviceType !== "all" ? (sp as any).serviceType : undefined,
-    rideType: (sp as any).rideType !== "all" ? (sp as any).rideType : undefined,
-    flightInfo: (sp as any).flightInfo === "1" ? "1" : undefined,
+    serviceType: serviceTypeFilter !== "all" ? serviceTypeFilter : undefined,
+    rideType: rideTypeFilter !== "all" ? rideTypeFilter : undefined,
+    payment: payment !== "any" ? payment : undefined,
+    assignment: assignment !== "any" ? assignment : undefined,
+    flight: flight !== "any" ? flight : undefined,
     basis: basis === "created" ? "created" : undefined,
     breakdown: breakdown !== "status" ? breakdown : undefined,
     month: range === "month" ? monthParam : undefined,
   };
 
+  // Which-bookings filters (and search). "Clear filters" resets these and
+  // keeps the time view.
   const hasActiveFilters =
     status !== "ALL" ||
-    range !== "month" ||
-    unassigned ||
-    assigned ||
-    paid ||
-    unpaid ||
-    stuck ||
-    completed ||
-    future ||
-    q.length > 0 ||
-    sort !== undefined ||
     customerType !== "all" ||
-    basis === "created" ||
-    (range === "month" && !!monthParam) ||
-    isDriverSelected;
+    isDriverSelected ||
+    serviceTypeFilter !== "all" ||
+    rideTypeFilter !== "all" ||
+    payment !== "any" ||
+    assignment !== "any" ||
+    flight !== "any" ||
+    q.length > 0;
 
   const pageParams: Record<string, string | undefined> = {
     ...baseParams,
@@ -825,7 +665,8 @@ export default async function AdminBookingsPage({
   };
 
   // ── Time controls, cards and chart: all driven by the filters above ──
-  const fitToData = range === "all" || completed || future || stuck;
+  // All time and Upcoming have no fixed end, so the chart fits to the data.
+  const fitToData = range === "all" || range === "upcoming";
   const win = getRangeWindow({
     now,
     timezone: companyTz,
@@ -839,9 +680,6 @@ export default async function AdminBookingsPage({
     win,
     now,
     timezone: companyTz,
-    completed,
-    future,
-    stuck,
   });
 
   const bounds = await db.booking.aggregate({
@@ -915,8 +753,7 @@ export default async function AdminBookingsPage({
       range,
       basis,
       breakdown,
-      // Completed / Future / Stuck replace the time range: fit to the data.
-      window: !fitToData && win ? { start: win.gte, end: win.lt } : null,
+      window: !fitToData && win?.lt ? { start: win.gte, end: win.lt } : null,
     });
 
     // Current month: how the month is going against the same days last month.
@@ -926,7 +763,7 @@ export default async function AdminBookingsPage({
       !fitToData
     ) {
       const sd = sameDaysLastMonth(now, companyTz);
-      const lastWhere = buildWhere({
+      const lastWhere = buildBookingsWhere({
         ...whereArgs,
         range: "range",
         fromYmd: sd.lastFromYmd,
@@ -947,6 +784,12 @@ export default async function AdminBookingsPage({
       ridesSub = `So far ${soFar} · same days last month ${lastRides}`;
     }
   }
+
+  const cardHref = (value: string) =>
+    buildHref("/admin/bookings", {
+      ...baseParams,
+      status: status === value ? "ALL" : value,
+    });
 
   return (
     <section className={styles.container} aria-label='Bookings'>
@@ -988,84 +831,95 @@ export default async function AdminBookingsPage({
           rangeLabel={rangeLabel}
         />
 
-        <div className={styles.filters}>
-          {/* Dropdown row: Status · Customer type · Driver · Service · Ride type */}
-          <div className={styles.filterRow}>
-            <FilterSelectClient
-              label='Status'
-              paramName='status'
-              defaultValue='ALL'
-              current={baseParams}
-              options={STATUSES.map((s) => ({
-                value: s,
-                label: statusTabLabel(s),
-                count: statusCounts[s],
-              }))}
-            />
-
-            <FilterSelectClient
-              label='Customer type'
-              paramName='customerType'
-              defaultValue='all'
-              current={baseParams}
-              options={[
-                { value: "all", label: "All customers" },
-                { value: "guest", label: "Guest" },
-                { value: "account", label: "Account" },
-                { value: "corporate", label: "Corporate" },
-              ]}
-            />
-
-            <FilterSelectClient
-              label='Driver'
-              paramName='driver'
-              defaultValue='all'
-              current={baseParams}
-              options={driverFilterOptions}
-            />
-
-            <FilterSelectClient
-              label='Service'
-              paramName='serviceType'
-              defaultValue='all'
-              current={baseParams}
-              options={serviceTypeFilterOptions}
-            />
-
-            <FilterSelectClient
-              label='Ride Type'
-              paramName='rideType'
-              defaultValue='all'
-              current={baseParams}
-              options={[
-                { value: "all", label: "All ride types" },
-                { value: "single", label: "Single Ride" },
-                { value: "multi", label: "Multi Trip" },
-              ]}
-            />
-          </div>
-
-          {/* Checkbox filter sections */}
-          <FilterCheckboxSections
-            current={baseParams}
-            isDriverSelected={isDriverSelected}
-            counts={{
-              future: futureCount,
-              completed: completedCount,
-              stuck: stuckCount,
-              paid: paidCount,
-              unpaid: unpaidCount,
-              assigned: assignedCount,
-              unassigned: unassignedCount,
-              flightInfo: flightInfoCount,
-            }}
-          />
-
-          {/* Clear All Filters */}
-          <div className={styles.filterGroup}>
-            <ClearFiltersButton hasActiveFilters={hasActiveFilters} />
-          </div>
-        </div>
+        <BookingsFilters
+          values={{
+            status,
+            customerType,
+            driver: driverFilter,
+            serviceType: serviceTypeFilter,
+            rideType: rideTypeFilter,
+            payment,
+            assignment,
+            flight,
+          }}
+          statusGroups={[
+            {
+              options: [
+                { value: "ALL", label: "All", count: statusCounts.ALL },
+              ],
+            },
+            {
+              label: "Groups",
+              options: (
+                ["NEEDS_ACTION", "BOOKED", "DONE", "LOST", "STUCK"] as const
+              ).map((v) => ({
+                value: v,
+                label: statusTabLabel(v),
+                count: statusCounts[v],
+              })),
+            },
+            {
+              label: "Statuses",
+              options: STATUSES.filter(
+                (v) =>
+                  v !== "ALL" &&
+                  v !== "STUCK" &&
+                  v !== "DRAFT" &&
+                  v !== "TRASH" &&
+                  !STATUS_GROUP_FILTERS[v],
+              ).map((v) => ({
+                value: v,
+                label: statusTabLabel(v),
+                count: statusCounts[v],
+              })),
+            },
+            {
+              label: "Other",
+              options: (["DRAFT", "TRASH"] as const).map((v) => ({
+                value: v,
+                label: v === "DRAFT" ? "Drafts" : "Trash",
+                count: statusCounts[v],
+              })),
+            },
+          ]}
+          customerOptions={[
+            { value: "all", label: "All customers" },
+            { value: "guest", label: "Guest" },
+            { value: "account", label: "Account" },
+            { value: "corporate", label: "Corporate" },
+          ]}
+          driverOptions={driverFilterOptions}
+          serviceOptions={serviceTypeFilterOptions}
+          rideOptions={[
+            { value: "all", label: "All ride types" },
+            { value: "single", label: "Single Ride" },
+            { value: "multi", label: "Multi Trip" },
+          ]}
+          paymentOptions={[
+            { value: "any", label: "Any", count: paymentCounts.any },
+            { value: "paid", label: "Paid", count: paymentCounts.paid },
+            { value: "unpaid", label: "Unpaid", count: paymentCounts.unpaid },
+          ]}
+          assignmentOptions={[
+            { value: "any", label: "Any", count: assignmentCounts.any },
+            {
+              value: "assigned",
+              label: "Assigned",
+              count: assignmentCounts.assigned,
+            },
+            {
+              value: "unassigned",
+              label: "Unassigned",
+              count: assignmentCounts.unassigned,
+            },
+          ]}
+          flightOptions={[
+            { value: "any", label: "Any", count: flightCounts.any },
+            { value: "yes", label: "Has flight info", count: flightCounts.yes },
+            { value: "no", label: "No flight info", count: flightCounts.no },
+          ]}
+          hasActive={hasActiveFilters}
+        />
 
         <SearchFormClient current={baseParams} defaultValue={q} />
       </header>
@@ -1075,29 +929,42 @@ export default async function AdminBookingsPage({
           <div className={earnings.kpiGrid}>
             <KpiCard
               label='Rides'
+              href={buildHref("/admin/bookings", {
+                ...baseParams,
+                status: "ALL",
+              })}
+              active={status === "ALL"}
               value={chartData.summary.rides}
               sub={ridesSub}
             />
             <KpiCard
               label='Needs action'
+              href={cardHref("NEEDS_ACTION")}
+              active={status === "NEEDS_ACTION"}
               value={chartData.summary.needsAction}
               sub='Pending review or payment'
               tone='warn'
             />
             <KpiCard
               label='Booked'
+              href={cardHref("BOOKED")}
+              active={status === "BOOKED"}
               value={chartData.summary.upcoming - chartData.summary.needsAction}
               sub='Confirmed or assigned'
               tone='tip'
             />
             <KpiCard
               label='Done'
+              href={cardHref("DONE")}
+              active={status === "DONE"}
               value={chartData.summary.done}
               sub='Completed or underway'
               tone='good'
             />
             <KpiCard
               label='Lost'
+              href={cardHref("LOST")}
+              active={status === "LOST"}
               value={chartData.summary.lost}
               sub={
                 chartData.summary.lostRate == null
@@ -1555,217 +1422,6 @@ export default async function AdminBookingsPage({
 }
 
 /* ── Filter Checkbox Sections ──────────────────────────────── */
-
-function FilterCheckboxSections({
-  current,
-  isDriverSelected,
-  counts,
-}: {
-  current: Record<string, string | undefined>;
-  isDriverSelected: boolean;
-  counts: {
-    future: number;
-    completed: number;
-    stuck: number;
-    paid: number;
-    unpaid: number;
-    assigned: number;
-    unassigned: number;
-    flightInfo: number;
-  };
-}) {
-  const futureOn = current.future === "1";
-  const completedOn = current.completed === "1";
-  const stuckOn = current.stuck === "1";
-  const paidOn = current.paid === "1";
-  const unpaidOn = current.unpaid === "1";
-  const assignedOn = current.assigned === "1";
-  const unassignedOn = current.unassigned === "1";
-
-  // Trip filter hrefs (mutually exclusive within group)
-  const futureHref = buildHref("/admin/bookings", {
-    ...current,
-    future: futureOn ? undefined : "1",
-    completed: undefined,
-    stuck: undefined,
-    page: undefined,
-  });
-
-  const completedHref = buildHref("/admin/bookings", {
-    ...current,
-    completed: completedOn ? undefined : "1",
-    future: undefined,
-    stuck: undefined,
-    page: undefined,
-  });
-
-  const stuckHref = buildHref("/admin/bookings", {
-    ...current,
-    stuck: stuckOn ? undefined : "1",
-    status: stuckOn ? current.status : "PENDING_REVIEW",
-    future: undefined,
-    completed: undefined,
-    page: undefined,
-  });
-
-  // Pay filter hrefs (mutually exclusive)
-  const paidHref = buildHref("/admin/bookings", {
-    ...current,
-    paid: paidOn ? undefined : "1",
-    unpaid: undefined,
-    page: undefined,
-  });
-
-  const unpaidHref = buildHref("/admin/bookings", {
-    ...current,
-    unpaid: unpaidOn ? undefined : "1",
-    paid: undefined,
-    page: undefined,
-  });
-
-  // Assignment filter hrefs (mutually exclusive)
-  const assignedHref = buildHref("/admin/bookings", {
-    ...current,
-    assigned: assignedOn ? undefined : "1",
-    unassigned: undefined,
-    page: undefined,
-  });
-
-  const unassignedHref = buildHref("/admin/bookings", {
-    ...current,
-    unassigned: unassignedOn ? undefined : "1",
-    assigned: undefined,
-    page: undefined,
-  });
-
-  const flightInfoOn = current.flightInfo === "1";
-  const flightInfoHref = buildHref("/admin/bookings", {
-    ...current,
-    flightInfo: flightInfoOn ? undefined : "1",
-    page: undefined,
-  });
-
-  return (
-    <div className={styles.filterSections}>
-      {/* Trip Filters */}
-      <div className={styles.filterSection}>
-        <div className={styles.filterTitle}>Trip Filters</div>
-        <div className={styles.checkboxCol}>
-          <CheckboxLink
-            label='Future Trips'
-            active={futureOn}
-            href={futureHref}
-            count={counts.future}
-          />
-          <CheckboxLink
-            label='Completed'
-            active={completedOn}
-            href={completedHref}
-            count={counts.completed}
-          />
-          <CheckboxLink
-            label='Stuck in Review'
-            active={stuckOn}
-            href={stuckHref}
-            count={counts.stuck}
-          />
-          <CheckboxLink
-            label='Has Flight Info'
-            active={flightInfoOn}
-            href={flightInfoHref}
-            count={counts.flightInfo}
-          />
-        </div>
-      </div>
-
-      {/* Pay Filters */}
-      <div className={styles.filterSection}>
-        <div className={styles.filterTitle}>Pay Filters</div>
-        <div className={styles.checkboxCol}>
-          <CheckboxLink
-            label='Paid'
-            active={paidOn}
-            href={paidHref}
-            count={counts.paid}
-          />
-          <CheckboxLink
-            label='Unpaid'
-            active={unpaidOn}
-            href={unpaidHref}
-            count={counts.unpaid}
-          />
-        </div>
-      </div>
-
-      {/* Assignment Filters */}
-      <div className={styles.filterSection}>
-        <div className={styles.filterTitle}>Assignment Filters</div>
-        <div className={styles.checkboxCol}>
-          <CheckboxLink
-            label='Assigned'
-            active={assignedOn}
-            href={assignedHref}
-            count={counts.assigned}
-            disabled={isDriverSelected}
-          />
-          <CheckboxLink
-            label='Unassigned'
-            active={unassignedOn}
-            href={unassignedHref}
-            count={counts.unassigned}
-            disabled={isDriverSelected}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CheckboxLink({
-  label,
-  active,
-  href,
-  count,
-  disabled = false,
-}: {
-  label: string;
-  active: boolean;
-  href: string;
-  count: number;
-  disabled?: boolean;
-}) {
-  const classes = [
-    styles.checkboxLink,
-    active ? styles.checkboxActive : "",
-    disabled ? styles.checkboxDisabled : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  if (disabled) {
-    return (
-      <span className={classes}>
-        <span className={styles.checkboxBox}>
-          {active && <span className={styles.checkmark}>✓</span>}
-        </span>
-        {label}
-        <span className='countPill'>{count}</span>
-      </span>
-    );
-  }
-
-  return (
-    <Link className={classes} href={href}>
-      <span className={styles.checkboxBox}>
-        {active && <span className={styles.checkmark}>✓</span>}
-      </span>
-      {label}
-      <span className='countPill'>{count}</span>
-    </Link>
-  );
-}
-
-/* ── Sortable Header ──────────────────────────────────────── */
 
 function SortableHeader({
   label,

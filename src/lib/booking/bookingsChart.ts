@@ -107,6 +107,16 @@ export function statusGroup(status: BookingStatus): GroupKey | null {
   return STATUS_GROUP[status] ?? null;
 }
 
+export type StatusGroupKey = GroupKey;
+
+/** The booking statuses in a group. The Status filter and the cards use
+ *  these, so a card, its bar color and its filter always agree. */
+export function statusesInGroup(group: GroupKey): BookingStatus[] {
+  return (Object.keys(STATUS_GROUP) as BookingStatus[]).filter(
+    (s) => STATUS_GROUP[s] === group,
+  );
+}
+
 export const STATUS_SERIES: ChartSeries[] = [
   { key: "needs_action", label: "Needs action", color: "#f59e0b" },
   { key: "booked", label: "Booked", color: "var(--accentBlue, #3b82f6)" },
