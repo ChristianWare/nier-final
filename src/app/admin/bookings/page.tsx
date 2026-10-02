@@ -140,7 +140,7 @@ type SearchParams = {
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
 
 function getConfirmationCode(bookingId: string): string {
   return bookingId.slice(0, 8).toUpperCase();

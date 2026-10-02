@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./AdminReportsPage.module.css";
 import { db } from "@/lib/db";
 import base from "../AdminStyles.module.css";
@@ -11,6 +9,19 @@ import PeakTimesPieChart from "./PeakTimesPieChart";
 import CountUp from "@/components/shared/CountUp/CountUp";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
+import {
+  chartAggDaily,
+  chartAggMonthly,
+  kpisFromChartData,
+} from "@/lib/earnings/moneyIn";
+import { findTripCashPayments } from "@/lib/earnings/tripCash";
+import {
+  driverStats,
+  leadTimeBuckets,
+  loadReportRides,
+  operationalStats,
+  peakTimes,
+} from "@/lib/reports/rideStats";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -97,75 +108,6 @@ function resolveMonthYear({
   return { year: y, month: m, key: `${y}-${m}` };
 }
 
-function quarterKeyFromMonthKey(monthKey: string) {
-  const y = Number(monthKey.slice(0, 4));
-  const m = Number(monthKey.slice(5, 7));
-  const q = Math.floor((m - 1) / 3) + 1;
-  return `${y}-Q${q}`;
-}
-
-function quarterStartFromQuarterKey(key: string, timeZone: string) {
-  const match = /^(\d{4})-Q([1-4])$/.exec(key.trim());
-  if (!match) return null;
-  const y = Number(match[1]);
-  const q = Number(match[2]);
-  const startMonth = (q - 1) * 3 + 1;
-  const isoDate = `${y}-${String(startMonth).padStart(2, "0")}-01`;
-  return new Date(tz.localToUtcIso(isoDate, "00:00", timeZone));
-}
-
-function quarterTick(key: string) {
-  const match = /^(\d{4})-Q([1-4])$/.exec(key.trim());
-  if (!match) return key;
-  const yy = match[1].slice(2);
-  return `Q${match[2]} ${yy}`;
-}
-
-function quarterLabel(key: string) {
-  const match = /^(\d{4})-Q([1-4])$/.exec(key.trim());
-  if (!match) return key;
-  return `Q${match[2]} ${match[1]}`;
-}
-
-function yearTick(y: string) {
-  return y.slice(2);
-}
-
-function kpisFromChartData(
-  rows: {
-    capturedCents: number;
-    refundedCents: number;
-    netCents: number;
-    count: number;
-    refundedCount?: number;
-  }[],
-) {
-  let capturedSum = 0;
-  let refundedSum = 0;
-  let netSum = 0;
-  let payCount = 0;
-  let refundCount = 0;
-
-  for (const r of rows) {
-    capturedSum += Number(r.capturedCents || 0);
-    refundedSum += Number(r.refundedCents || 0);
-    netSum += Number(r.netCents || 0);
-    payCount += Number(r.count || 0);
-    refundCount += Number(r.refundedCount || 0);
-  }
-
-  const avgCents = payCount > 0 ? Math.round(capturedSum / payCount) : 0;
-
-  return {
-    capturedSumCents: capturedSum,
-    refundedSumCents: refundedSum,
-    netSumCents: netSum,
-    payCount,
-    refundCount,
-    avgCents,
-  };
-}
-
 function chartHeadingFromData(view: ViewMode, data: { key: string }[]) {
   if (view === "daily") return "Daily revenue";
   const k = data?.[0]?.key ?? "";
@@ -201,269 +143,9 @@ function parseValue(str: string): {
 // REVENUE DATA AGGREGATION
 // ============================================
 
-async function chartAggDaily(fromUtc: Date, toUtc: Date, timeZone: string) {
-  const capturedRows = (await db.$queryRaw<any[]>`
-    SELECT
-      to_char(date_trunc('day', "paidAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
-      COUNT(*) as count
-    FROM "Payment"
-    WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
-    GROUP BY 1
-    ORDER BY 1 ASC
-  `) as any[];
-
-  const refundRows = (await db.$queryRaw<any[]>`
-    SELECT
-      to_char(date_trunc('day', "updatedAt" AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
-      COUNT(*) as count
-    FROM "Payment"
-    WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
-      AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
-    GROUP BY 1
-    ORDER BY 1 ASC
-  `) as any[];
-
-  const cap = new Map<string, { sumCents: number; count: number }>();
-  for (const r of capturedRows) {
-    const k = String(r.key);
-    cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
-  }
-
-  const ref = new Map<string, { sumCents: number; count: number }>();
-  for (const r of refundRows) {
-    const k = String(r.key);
-    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
-  }
-
-  const points: {
-    key: string;
-    tick: string;
-    label: string;
-    capturedCents: number;
-    refundedCents: number;
-    netCents: number;
-    count: number;
-    refundedCount: number;
-  }[] = [];
-
-  for (
-    let d = new Date(fromUtc.getTime());
-    d.getTime() < toUtc.getTime();
-    d = new Date(d.getTime() + 24 * 60 * 60 * 1000)
-  ) {
-    const ymd = tz.formatIsoDate(d, timeZone);
-    const c = cap.get(ymd) ?? { sumCents: 0, count: 0 };
-    const r = ref.get(ymd) ?? { sumCents: 0, count: 0 };
-    const n = c.sumCents - r.sumCents;
-
-    points.push({
-      key: ymd,
-      tick: tz.formatDayTick(d, timeZone),
-      label: tz.formatDateMedium(d, timeZone),
-      capturedCents: c.sumCents,
-      refundedCents: r.sumCents,
-      netCents: n,
-      count: c.count,
-      refundedCount: r.count,
-    });
-  }
-
-  return points;
-}
-
-async function chartAggMonthly(fromUtc: Date, toUtc: Date, timeZone: string) {
-  const capturedRows = (await db.$queryRaw<any[]>`
-    SELECT
-      to_char(date_trunc('month', "paidAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
-      COUNT(*) as count
-    FROM "Payment"
-    WHERE "paidAt" >= ${fromUtc} AND "paidAt" < ${toUtc}
-    GROUP BY 1
-    ORDER BY 1 ASC
-  `) as any[];
-
-  const refundRows = (await db.$queryRaw<any[]>`
-    SELECT
-      to_char(date_trunc('month', "updatedAt" AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
-      COALESCE(SUM("amountTotalCents"), 0) as sum,
-      COUNT(*) as count
-    FROM "Payment"
-    WHERE "status" IN ('REFUNDED', 'PARTIALLY_REFUNDED')
-      AND "updatedAt" >= ${fromUtc} AND "updatedAt" < ${toUtc}
-    GROUP BY 1
-    ORDER BY 1 ASC
-  `) as any[];
-
-  const cap = new Map<string, { sumCents: number; count: number }>();
-  for (const r of capturedRows) {
-    const k = String(r.key);
-    cap.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
-  }
-
-  const ref = new Map<string, { sumCents: number; count: number }>();
-  for (const r of refundRows) {
-    const k = String(r.key);
-    ref.set(k, { sumCents: Number(r.sum || 0), count: Number(r.count || 0) });
-  }
-
-  const months: string[] = [];
-  for (
-    let ms = tz.startOfMonth(fromUtc, timeZone);
-    ms.getTime() < toUtc.getTime();
-    ms = tz.addMonths(ms, 1, timeZone)
-  ) {
-    months.push(tz.monthKey(ms, timeZone));
-  }
-
-  if (months.length <= 36) {
-    return months.map((k) => {
-      const ms =
-        tz.monthStartFromKey(k, timeZone) ?? tz.startOfMonth(fromUtc, timeZone);
-      const c = cap.get(k) ?? { sumCents: 0, count: 0 };
-      const r = ref.get(k) ?? { sumCents: 0, count: 0 };
-      const n = c.sumCents - r.sumCents;
-
-      return {
-        key: k,
-        tick: tz.formatMonthTick(ms, timeZone),
-        label: tz.formatMonthLabel(ms, timeZone),
-        capturedCents: c.sumCents,
-        refundedCents: r.sumCents,
-        netCents: n,
-        count: c.count,
-        refundedCount: r.count,
-      };
-    });
-  }
-
-  // Quarter aggregation for longer periods
-  const qKeys: string[] = [];
-  const seenQ = new Set<string>();
-  for (const mk of months) {
-    const qk = quarterKeyFromMonthKey(mk);
-    if (!seenQ.has(qk)) {
-      seenQ.add(qk);
-      qKeys.push(qk);
-    }
-  }
-  qKeys.sort((a, b) => (a < b ? -1 : 1));
-
-  if (qKeys.length <= 36) {
-    const qCap = new Map<string, { sumCents: number; count: number }>();
-    const qRef = new Map<string, { sumCents: number; count: number }>();
-
-    for (const mk of months) {
-      const qk = quarterKeyFromMonthKey(mk);
-      const c = cap.get(mk) ?? { sumCents: 0, count: 0 };
-      const r = ref.get(mk) ?? { sumCents: 0, count: 0 };
-
-      const pc = qCap.get(qk) ?? { sumCents: 0, count: 0 };
-      qCap.set(qk, {
-        sumCents: pc.sumCents + c.sumCents,
-        count: pc.count + c.count,
-      });
-
-      const pr = qRef.get(qk) ?? { sumCents: 0, count: 0 };
-      qRef.set(qk, {
-        sumCents: pr.sumCents + r.sumCents,
-        count: pr.count + r.count,
-      });
-    }
-
-    return qKeys.map((qk) => {
-      const qs =
-        quarterStartFromQuarterKey(qk, timeZone) ??
-        tz.startOfMonth(fromUtc, timeZone);
-      const c = qCap.get(qk) ?? { sumCents: 0, count: 0 };
-      const r = qRef.get(qk) ?? { sumCents: 0, count: 0 };
-      const n = c.sumCents - r.sumCents;
-
-      return {
-        key: qk,
-        tick: quarterTick(qk),
-        label: quarterLabel(qk),
-        capturedCents: c.sumCents,
-        refundedCents: r.sumCents,
-        netCents: n,
-        count: c.count,
-        refundedCount: r.count,
-      };
-    });
-  }
-
-  // Year aggregation for very long periods
-  const years: string[] = [];
-  const seenY = new Set<string>();
-  for (const mk of months) {
-    const y = mk.slice(0, 4);
-    if (!seenY.has(y)) {
-      seenY.add(y);
-      years.push(y);
-    }
-  }
-  years.sort((a, b) => (a < b ? -1 : 1));
-
-  const yCap = new Map<string, { sumCents: number; count: number }>();
-  const yRef = new Map<string, { sumCents: number; count: number }>();
-
-  for (const mk of months) {
-    const y = mk.slice(0, 4);
-    const c = cap.get(mk) ?? { sumCents: 0, count: 0 };
-    const r = ref.get(mk) ?? { sumCents: 0, count: 0 };
-
-    const pc = yCap.get(y) ?? { sumCents: 0, count: 0 };
-    yCap.set(y, {
-      sumCents: pc.sumCents + c.sumCents,
-      count: pc.count + c.count,
-    });
-
-    const pr = yRef.get(y) ?? { sumCents: 0, count: 0 };
-    yRef.set(y, {
-      sumCents: pr.sumCents + r.sumCents,
-      count: pr.count + r.count,
-    });
-  }
-
-  return years.map((y) => {
-    const c = yCap.get(y) ?? { sumCents: 0, count: 0 };
-    const r = yRef.get(y) ?? { sumCents: 0, count: 0 };
-    const n = c.sumCents - r.sumCents;
-
-    return {
-      key: y,
-      tick: yearTick(y),
-      label: y,
-      capturedCents: c.sumCents,
-      refundedCents: r.sumCents,
-      netCents: n,
-      count: c.count,
-      refundedCount: r.count,
-    };
-  });
-}
-
 // ============================================
 // OPERATIONAL METRICS DATA AGGREGATION
 // ============================================
-
-async function getBookingsByStatus(fromUtc: Date, toUtc: Date) {
-  const rows = await db.$queryRaw<{ status: string; count: bigint }[]>`
-    SELECT status, COUNT(*) as count
-    FROM "Booking"
-    WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
-    GROUP BY status
-    ORDER BY count DESC
-  `;
-
-  return rows.map((r) => ({
-    name: formatStatusLabel(r.status),
-    value: Number(r.count),
-    status: r.status,
-  }));
-}
 
 function formatStatusLabel(status: string): string {
   const labels: Record<string, string> = {
@@ -484,109 +166,13 @@ function formatStatusLabel(status: string): string {
   return labels[status] || status;
 }
 
-async function getLeadTimeDistribution(fromUtc: Date, toUtc: Date) {
-  const rows = await db.$queryRaw<{ bucket: string; count: bigint }[]>`
-    SELECT 
-      CASE 
-        WHEN EXTRACT(EPOCH FROM ("pickupAt" - "createdAt")) / 86400 < 1 THEN 'Same Day'
-        WHEN EXTRACT(EPOCH FROM ("pickupAt" - "createdAt")) / 86400 < 2 THEN '1 Day'
-        WHEN EXTRACT(EPOCH FROM ("pickupAt" - "createdAt")) / 86400 < 3 THEN '2 Days'
-        WHEN EXTRACT(EPOCH FROM ("pickupAt" - "createdAt")) / 86400 < 7 THEN '3-6 Days'
-        WHEN EXTRACT(EPOCH FROM ("pickupAt" - "createdAt")) / 86400 < 14 THEN '1-2 Weeks'
-        WHEN EXTRACT(EPOCH FROM ("pickupAt" - "createdAt")) / 86400 < 30 THEN '2-4 Weeks'
-        ELSE '1+ Month'
-      END as bucket,
-      COUNT(*) as count
-    FROM "Booking"
-    WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
-      AND "pickupAt" IS NOT NULL
-    GROUP BY bucket
-  `;
-
-  const order = [
-    "Same Day",
-    "1 Day",
-    "2 Days",
-    "3-6 Days",
-    "1-2 Weeks",
-    "2-4 Weeks",
-    "1+ Month",
-  ];
-
-  const dataMap = new Map(rows.map((r) => [r.bucket, Number(r.count)]));
-
-  return order.map((bucket) => ({
-    name: bucket,
-    value: dataMap.get(bucket) || 0,
-  }));
-}
-
-async function getPeakBookingTimes(
-  fromUtc: Date,
-  toUtc: Date,
-  timeZone: string,
-) {
-  // Day of week distribution
-  const dayRows = await db.$queryRaw<{ dow: number; count: bigint }[]>`
-    SELECT 
-      EXTRACT(DOW FROM "pickupAt" AT TIME ZONE ${timeZone}) as dow,
-      COUNT(*) as count
-    FROM "Booking"
-    WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
-      AND "pickupAt" IS NOT NULL
-    GROUP BY dow
-    ORDER BY dow
-  `;
-
-  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const dayMap = new Map(dayRows.map((r) => [Number(r.dow), Number(r.count)]));
-
-  const dayData = dayNames.map((name, i) => ({
-    name,
-    value: dayMap.get(i) || 0,
-  }));
-
-  // Time of day distribution
-  const hourRows = await db.$queryRaw<{ hour_bucket: string; count: bigint }[]>`
-    SELECT 
-      CASE 
-        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${timeZone}) < 6 THEN 'Night (12-6am)'
-        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${timeZone}) < 12 THEN 'Morning (6am-12pm)'
-        WHEN EXTRACT(HOUR FROM "pickupAt" AT TIME ZONE ${timeZone}) < 18 THEN 'Afternoon (12-6pm)'
-        ELSE 'Evening (6pm-12am)'
-      END as hour_bucket,
-      COUNT(*) as count
-    FROM "Booking"
-    WHERE "createdAt" >= ${fromUtc} AND "createdAt" < ${toUtc}
-      AND "pickupAt" IS NOT NULL
-    GROUP BY hour_bucket
-  `;
-
-  const hourOrder = [
-    "Morning (6am-12pm)",
-    "Afternoon (12-6pm)",
-    "Evening (6pm-12am)",
-    "Night (12-6am)",
-  ];
-  const hourMap = new Map(
-    hourRows.map((r) => [r.hour_bucket, Number(r.count)]),
-  );
-
-  const hourData = hourOrder.map((name) => ({
-    name,
-    value: hourMap.get(name) || 0,
-  }));
-
-  return { dayData, hourData };
-}
-
 async function getRevenueByServiceType(fromUtc: Date, toUtc: Date) {
   const rows = await db.$queryRaw<
     { name: string; totalCents: bigint; count: bigint }[]
   >`
     SELECT 
       st.name,
-      COALESCE(SUM(p."amountTotalCents"), 0) as "totalCents",
+      COALESCE(SUM(p."amountPaidCents" + p."tipCents"), 0) as "totalCents",
       COUNT(p.id) as count
     FROM "Payment" p
     JOIN "Booking" b ON p."bookingId" = b.id
@@ -609,7 +195,7 @@ async function getRevenueByVehicle(fromUtc: Date, toUtc: Date) {
   >`
     SELECT 
       COALESCE(v.name, 'Unassigned') as name,
-      COALESCE(SUM(p."amountTotalCents"), 0) as "totalCents",
+      COALESCE(SUM(p."amountPaidCents" + p."tipCents"), 0) as "totalCents",
       COUNT(p.id) as count
     FROM "Payment" p
     JOIN "Booking" b ON p."bookingId" = b.id
@@ -629,121 +215,6 @@ async function getRevenueByVehicle(fromUtc: Date, toUtc: Date) {
 // ============================================
 // DRIVER PERFORMANCE DATA AGGREGATION
 // ============================================
-
-interface DriverPerformanceRow {
-  driverId: string;
-  driverName: string | null;
-  driverEmail: string;
-  totalTrips: number;
-  completedTrips: number;
-  cancelledTrips: number;
-  noShowTrips: number;
-  totalEarnings: number;
-  completionRate: number;
-}
-
-async function getDriverPerformance(
-  fromUtc: Date,
-  toUtc: Date,
-): Promise<DriverPerformanceRow[]> {
-  const rows = await db.$queryRaw<
-    {
-      driverId: string;
-      driverName: string | null;
-      driverEmail: string;
-      totalTrips: bigint;
-      completedTrips: bigint;
-      cancelledTrips: bigint;
-      noShowTrips: bigint;
-      totalEarnings: bigint;
-    }[]
-  >`
-    SELECT 
-      a."driverId",
-      u.name as "driverName",
-      u.email as "driverEmail",
-      COUNT(a.id) as "totalTrips",
-      COUNT(CASE WHEN b.status = 'COMPLETED' THEN 1 END) as "completedTrips",
-      COUNT(CASE WHEN b.status = 'CANCELLED' THEN 1 END) as "cancelledTrips",
-      COUNT(CASE WHEN b.status = 'NO_SHOW' THEN 1 END) as "noShowTrips",
-      COALESCE(SUM(a."driverPaymentCents"), 0) as "totalEarnings"
-    FROM "Assignment" a
-    JOIN "User" u ON a."driverId" = u.id
-    JOIN "Booking" b ON a."bookingId" = b.id
-    WHERE a."assignedAt" >= ${fromUtc} AND a."assignedAt" < ${toUtc}
-    GROUP BY a."driverId", u.name, u.email
-    ORDER BY "totalTrips" DESC
-  `;
-
-  return rows.map((r) => {
-    const totalTrips = Number(r.totalTrips);
-    const completedTrips = Number(r.completedTrips);
-    return {
-      driverId: r.driverId,
-      driverName: r.driverName,
-      driverEmail: r.driverEmail,
-      totalTrips,
-      completedTrips,
-      cancelledTrips: Number(r.cancelledTrips),
-      noShowTrips: Number(r.noShowTrips),
-      totalEarnings: Number(r.totalEarnings),
-      completionRate:
-        totalTrips > 0 ? Math.round((completedTrips / totalTrips) * 100) : 0,
-    };
-  });
-}
-
-async function getDriverTripsDistribution(fromUtc: Date, toUtc: Date) {
-  const rows = await db.$queryRaw<
-    {
-      driverName: string | null;
-      driverEmail: string;
-      tripCount: bigint;
-    }[]
-  >`
-    SELECT 
-      u.name as "driverName",
-      u.email as "driverEmail",
-      COUNT(a.id) as "tripCount"
-    FROM "Assignment" a
-    JOIN "User" u ON a."driverId" = u.id
-    WHERE a."assignedAt" >= ${fromUtc} AND a."assignedAt" < ${toUtc}
-    GROUP BY u.name, u.email
-    ORDER BY "tripCount" DESC
-    LIMIT 10
-  `;
-
-  return rows.map((r) => ({
-    name: r.driverName || r.driverEmail.split("@")[0],
-    value: Number(r.tripCount),
-  }));
-}
-
-async function getDriverEarningsDistribution(fromUtc: Date, toUtc: Date) {
-  const rows = await db.$queryRaw<
-    {
-      driverName: string | null;
-      driverEmail: string;
-      totalEarnings: bigint;
-    }[]
-  >`
-    SELECT 
-      u.name as "driverName",
-      u.email as "driverEmail",
-      COALESCE(SUM(a."driverPaymentCents"), 0) as "totalEarnings"
-    FROM "Assignment" a
-    JOIN "User" u ON a."driverId" = u.id
-    WHERE a."assignedAt" >= ${fromUtc} AND a."assignedAt" < ${toUtc}
-    GROUP BY u.name, u.email
-    ORDER BY "totalEarnings" DESC
-    LIMIT 10
-  `;
-
-  return rows.map((r) => ({
-    name: r.driverName || r.driverEmail.split("@")[0],
-    value: Number(r.totalEarnings),
-  }));
-}
 
 // ============================================
 // MAIN COMPONENT
@@ -854,53 +325,77 @@ export default async function AdminReportsPage({
   const currency = "USD";
 
   // Fetch all data in parallel
-  const [
-    revenueChartData,
-    bookingsByStatus,
-    leadTimeData,
-    peakTimesData,
-    revenueByService,
-    revenueByVehicle,
-    driverPerformance,
-    driverTripsDistribution,
-    driverEarningsDistribution,
-  ] = await Promise.all([
-    view === "daily"
-      ? chartAggDaily(fromUtc, toUtc, companyTz)
-      : chartAggMonthly(fromUtc, toUtc, companyTz),
-    getBookingsByStatus(fromUtc, toUtc),
-    getLeadTimeDistribution(fromUtc, toUtc),
-    getPeakBookingTimes(fromUtc, toUtc, companyTz),
-    getRevenueByServiceType(fromUtc, toUtc),
-    getRevenueByVehicle(fromUtc, toUtc),
-    getDriverPerformance(fromUtc, toUtc),
-    getDriverTripsDistribution(fromUtc, toUtc),
-    getDriverEarningsDistribution(fromUtc, toUtc),
-  ]);
+  // "Showing bookings by": pickup date (default) or booked date. Money is
+  // always counted by payment date, with the same math as the earnings page.
+  const basis: "pickup" | "created" =
+    spGet(sp, "basis") === "created" ? "created" : "pickup";
+  const basisLabel = basis === "created" ? "by booked date" : "by pickup date";
+  const todayStart = tz.startOfDay(now, companyTz);
+
+  const [revenueChartData, rides, serviceRows, vehicleRows, tripCash] =
+    await Promise.all([
+      view === "daily"
+        ? chartAggDaily(fromUtc, toUtc, companyTz)
+        : chartAggMonthly(fromUtc, toUtc, companyTz),
+      loadReportRides({
+        dateField: basis === "created" ? "createdAt" : "pickupAt",
+        window: view === "all" ? null : { gte: fromUtc, lt: toUtc },
+      }),
+      getRevenueByServiceType(fromUtc, toUtc),
+      getRevenueByVehicle(fromUtc, toUtc),
+      findTripCashPayments(fromUtc, toUtc),
+    ]);
+
+  // Cash recorded on trips isn't on a payment record, so it is its own slice
+  // (the slices then add up to Captured).
+  const tripCashCents = tripCash.reduce((sum, t) => sum + t.cents, 0);
+  const cashSlice =
+    tripCashCents > 0
+      ? [
+          {
+            name: "Cash on trips",
+            value: tripCashCents,
+            count: tripCash.length,
+          },
+        ]
+      : [];
+  const revenueByService = [...serviceRows, ...cashSlice];
+  const revenueByVehicle = [...vehicleRows, ...cashSlice];
+
+  const ops = operationalStats(rides, todayStart);
+  const bookingsByStatus = ops.byStatus.map((x) => ({
+    name: formatStatusLabel(x.status),
+    value: x.count,
+    status: x.status,
+  }));
+  const leadTimeData = leadTimeBuckets(rides);
+  const peakTimesData = peakTimes(rides, companyTz);
+  const driverPerformance = driverStats(rides, now, todayStart);
+  const driverTripsDistribution = driverPerformance
+    .slice(0, 10)
+    .map((d) => ({ name: d.driverName, value: d.trips }));
+  const driverEarningsDistribution = [...driverPerformance]
+    .sort((x, y) => y.payCents - x.payCents)
+    .slice(0, 10)
+    .map((d) => ({ name: d.driverName, value: d.payCents }));
+  const driverPayMissing = driverPerformance.reduce(
+    (sum, d) => sum + d.payMissing,
+    0,
+  );
 
   const kpi = kpisFromChartData(revenueChartData);
   const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
   const revenueChartTitle = chartHeadingFromData(view, revenueChartData);
 
-  // Calculate operational KPIs
-  const totalBookings = bookingsByStatus.reduce((sum, s) => sum + s.value, 0);
-  const completedBookings =
-    bookingsByStatus.find((s) => s.status === "COMPLETED")?.value || 0;
-  const cancelledBookings =
-    bookingsByStatus.find((s) => s.status === "CANCELLED")?.value || 0;
-  const noShowBookings =
-    bookingsByStatus.find((s) => s.status === "NO_SHOW")?.value || 0;
-
-  const completionRate =
-    totalBookings > 0
-      ? Math.round((completedBookings / totalBookings) * 100)
-      : 0;
-  const cancellationRate =
-    totalBookings > 0
-      ? Math.round((cancelledBookings / totalBookings) * 100)
-      : 0;
-  const noShowRate =
-    totalBookings > 0 ? Math.round((noShowBookings / totalBookings) * 100) : 0;
+  // Operational KPIs. Rates only look at rides before today, so upcoming
+  // rides don't drag them down.
+  const totalBookings = ops.total;
+  const completedBookings = ops.completed;
+  const cancelledBookings = ops.cancelled;
+  const noShowBookings = ops.noShows;
+  const completionRate = ops.completionRate ?? 0;
+  const cancellationRate = ops.cancellationRate ?? 0;
+  const noShowRate = ops.noShowRate ?? 0;
 
   return (
     <section className={`${base.content} ${styles.container}`}>
@@ -921,6 +416,7 @@ export default async function AdminReportsPage({
           initialFrom={rangeFromParam ?? defaultFrom}
           initialTo={rangeToParam ?? defaultTo}
           rangeLabel={rangeLabel}
+          basis={basis}
         />
       </header>
 
@@ -930,7 +426,9 @@ export default async function AdminReportsPage({
       <section className={styles.section}>
         <div className='header'>
           <h2 className={`cardTitle h4`}>Revenue &amp; Financial</h2>
-          <span className={styles.sectionBadge}>{rangeLabel}</span>
+          <span className={styles.sectionBadge}>
+            {rangeLabel} · by payment date
+          </span>
         </div>
 
         <div className={styles.kpiGrid}>
@@ -1009,19 +507,21 @@ export default async function AdminReportsPage({
       <section className={styles.section}>
         <div className='header'>
           <h2 className={`cardTitle h4`}>Operational Metrics</h2>
-          <span className={styles.sectionBadge}>{rangeLabel}</span>
+          <span className={styles.sectionBadge}>
+            {rangeLabel} · {basisLabel}
+          </span>
         </div>
 
         <div className={styles.kpiGrid}>
           <KpiCard
             label='Total Bookings'
             value={String(totalBookings)}
-            sub='In selected period'
+            sub={`Rides ${basisLabel}`}
           />
           <KpiCard
             label='Completion Rate'
             value={`${completionRate}%`}
-            sub={`${completedBookings} completed`}
+            sub={`${completedBookings} completed · ${ops.notClosedOut} not closed out`}
             tone={completionRate >= 80 ? "good" : "warn"}
           />
           <KpiCard
@@ -1107,43 +607,47 @@ export default async function AdminReportsPage({
       <section className={styles.section}>
         <div className='header'>
           <h2 className={`cardTitle h4`}>Driver Performance</h2>
-          <span className={styles.sectionBadge}>{rangeLabel}</span>
+          <span className={styles.sectionBadge}>
+            {rangeLabel} · {basisLabel}
+          </span>
         </div>
 
         <div className={styles.kpiGrid}>
           <KpiCard
             label='Active Drivers'
             value={String(driverPerformance.length)}
-            sub='With assignments'
+            sub='With rides in this period'
           />
           <KpiCard
-            label='Total Trips Assigned'
+            label='Total Trips'
             value={String(
-              driverPerformance.reduce((sum, d) => sum + d.totalTrips, 0),
+              driverPerformance.reduce((sum, d) => sum + d.trips, 0),
             )}
-            sub='In selected period'
+            sub={`Rides ${basisLabel}`}
           />
           <KpiCard
             label='Avg Trips per Driver'
             value={String(
               driverPerformance.length > 0
                 ? Math.round(
-                    driverPerformance.reduce(
-                      (sum, d) => sum + d.totalTrips,
-                      0,
-                    ) / driverPerformance.length,
+                    driverPerformance.reduce((sum, d) => sum + d.trips, 0) /
+                      driverPerformance.length,
                   )
                 : 0,
             )}
             sub='Workload distribution'
           />
           <KpiCard
-            label='Total Driver Earnings'
+            label='Driver Pay'
             value={tz.formatMoneyShort(
-              driverPerformance.reduce((sum, d) => sum + d.totalEarnings, 0),
+              driverPerformance.reduce((sum, d) => sum + d.payCents, 0),
               currency,
             )}
-            sub='Driver payments'
+            sub={
+              driverPayMissing > 0
+                ? `Not recorded on ${driverPayMissing} completed ${driverPayMissing === 1 ? "ride" : "rides"}`
+                : "Pay + tips recorded on rides"
+            }
             tone='good'
           />
         </div>
@@ -1177,7 +681,7 @@ export default async function AdminReportsPage({
           <div className={styles.chartCard}>
             <div className={styles.chartHeader}>
               <h3 className={`cardTitle h6`}>Earnings by Driver</h3>
-              <span className='miniNote'>Top 10 drivers by earnings</span>
+              <span className='miniNote'>Top 10 drivers by pay recorded</span>
             </div>
             <div className={styles.chartBodyPie}>
               <StatusPieChart
@@ -1212,7 +716,7 @@ export default async function AdminReportsPage({
             {driverPerformance.length === 0 ? (
               <div className={styles.emptyState}>
                 <div className={styles.emptyTitle}>
-                  No driver assignments found
+                  No rides with a driver in this period
                 </div>
                 <span className='miniNote'>
                   Try a different filter or expand the date range.
@@ -1225,10 +729,12 @@ export default async function AdminReportsPage({
                     <th>Driver</th>
                     <th className={styles.right}>Trips</th>
                     <th className={styles.right}>Completed</th>
+                    <th className={styles.right}>Upcoming</th>
+                    <th className={styles.right}>Not closed out</th>
                     <th className={styles.right}>Cancelled</th>
                     <th className={styles.right}>No-Shows</th>
                     <th className={styles.right}>Completion Rate</th>
-                    <th className={styles.right}>Earnings</th>
+                    <th className={styles.right}>Pay</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1236,30 +742,40 @@ export default async function AdminReportsPage({
                     <tr key={driver.driverId}>
                       <td>
                         <div className={styles.driverName}>
-                          {driver.driverName ||
-                            driver.driverEmail.split("@")[0]}
+                          {driver.driverName}
                         </div>
                         <span className='miniNote'>{driver.driverEmail}</span>
                       </td>
-                      <td className={styles.right}>{driver.totalTrips}</td>
-                      <td className={styles.right}>{driver.completedTrips}</td>
-                      <td className={styles.right}>{driver.cancelledTrips}</td>
-                      <td className={styles.right}>{driver.noShowTrips}</td>
+                      <td className={styles.right}>{driver.trips}</td>
+                      <td className={styles.right}>{driver.completed}</td>
+                      <td className={styles.right}>{driver.upcoming}</td>
+                      <td className={styles.right}>{driver.notClosedOut}</td>
+                      <td className={styles.right}>{driver.cancelled}</td>
+                      <td className={styles.right}>{driver.noShows}</td>
                       <td className={styles.right}>
-                        <span
-                          className={
-                            driver.completionRate >= 90
-                              ? styles.rateBadgeGood
-                              : driver.completionRate >= 70
-                                ? styles.rateBadgeWarn
-                                : styles.rateBadgeBad
-                          }
-                        >
-                          {driver.completionRate}%
-                        </span>
+                        {driver.completionRate == null ? (
+                          <span className='miniNote'>—</span>
+                        ) : (
+                          <span
+                            className={
+                              driver.completionRate >= 90
+                                ? styles.rateBadgeGood
+                                : driver.completionRate >= 70
+                                  ? styles.rateBadgeWarn
+                                  : styles.rateBadgeBad
+                            }
+                          >
+                            {driver.completionRate}%
+                          </span>
+                        )}
                       </td>
                       <td className={styles.right}>
-                        {tz.formatMoneyShort(driver.totalEarnings, currency)}
+                        {tz.formatMoneyShort(driver.payCents, currency)}
+                        {driver.payMissing > 0 ? (
+                          <div className='miniNote'>
+                            {driver.payMissing} not recorded
+                          </div>
+                        ) : null}
                       </td>
                     </tr>
                   ))}

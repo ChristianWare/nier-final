@@ -61,12 +61,15 @@ export default function ReportsControls({
   initialFrom,
   initialTo,
   rangeLabel,
+  basis = "pickup",
 }: {
   years: string[];
   monthOptions: { v: string; label: string }[];
   defaultFrom: string;
   defaultTo: string;
   initialView: ViewMode;
+  /** Which date the bookings and driver sections count by. */
+  basis?: "pickup" | "created";
   initialYear: string;
   initialMonth: string;
   initialFrom: string;
@@ -96,6 +99,13 @@ export default function ReportsControls({
     const qs = next.toString();
     const href = qs ? `${pathname}?${qs}` : pathname;
     startTransition(() => router.replace(href, { scroll: false }));
+  }
+
+  function onBasisChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const next = new URLSearchParams(spKey);
+    if (e.target.value === "created") next.set("basis", "created");
+    else next.delete("basis");
+    nav(next);
   }
 
   function setView(nextView: ViewMode) {
@@ -163,6 +173,23 @@ export default function ReportsControls({
 
   return (
     <div className={styles.controlsWrapper}>
+      <div className={styles.basisRow}>
+        <label className={styles.basisLabel}>
+          <span className='miniNote'>Showing bookings by</span>
+          <select
+            className='selectBorder emptySmall'
+            value={basis}
+            onChange={onBasisChange}
+            disabled={isPending}
+          >
+            <option value='pickup'>Pickup date</option>
+            <option value='created'>Booked date</option>
+          </select>
+        </label>
+        <span className='miniNote'>
+          Money is always counted by payment date.
+        </span>
+      </div>
       <div className={styles.tabs}>
         <button
           type='button'

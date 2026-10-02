@@ -585,3 +585,19 @@
     gap: 1rem;
   }
 }
+
+/* "Showing bookings by" above the period tabs */
+.basisRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.6rem;
+  margin-bottom: 1.2rem;
+}
+
+.basisLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 220px;
+}
