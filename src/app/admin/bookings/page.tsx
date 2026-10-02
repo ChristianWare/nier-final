@@ -9,6 +9,18 @@ import SearchFormClient from "./SearchFormClient";
 import ClearFiltersButton from "@/components/admin/Clearfiltersbutton/Clearfiltersbutton";
 import FilterSelectClient from "./FilterSelectClient";
 import TripGroupBadge from "@/components/admin/TripGroupBadge/TripGroupBadge";
+import type { ComponentProps } from "react";
+import BookingsChart from "./BookingsChart";
+import {
+  CHART_BREAKDOWNS,
+  buildBookingsChart,
+  countRidesBetween,
+  recentMonths,
+  safeBreakdown,
+  sameDaysLastMonth,
+  type ChartBasis,
+  type ChartRow,
+} from "@/lib/booking/bookingsChart";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import {
@@ -88,6 +100,8 @@ type SearchParams = {
   page?: string;
   customerType?: "all" | "guest" | "account" | "corporate";
   driver?: string;
+  basis?: "created";
+  breakdown?: string;
 };
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
@@ -282,41 +296,18 @@ function safeCustomerType(v: any): "all" | "guest" | "account" | "corporate" {
   return valid.includes(v) ? v : "all";
 }
 
-function buildWhere(args: {
+/** The date window for a range filter, in the company's time zone.
+ *  "all" has no window. Shared by the list query and the chart. */
+function getRangeWindow(args: {
   now: Date;
   timezone: string;
-  status: StatusFilter;
   range: RangeFilter;
-  unassigned: boolean;
-  assigned: boolean;
-  paid: boolean;
-  unpaid: boolean;
-  stuck: boolean;
-  completed: boolean;
-  future: boolean;
   fromYmd: string;
   toYmd: string;
-  q?: string;
-  customerType?: string;
-  driver?: string;
-  serviceType?: string;
-  rideType?: string;
-  flightInfo?: boolean;
-}) {
-  const { now, timezone, status, range, paid, stuck, fromYmd, toYmd, q } = args;
-
-  const where: Prisma.BookingWhereInput = {};
-
-  // Trash pseudo-status: only soft-deleted rows, no other filters.
-  // Mentioning deletedAt here also bypasses the global soft-delete guard.
-  if (status === "TRASH") {
-    where.deletedAt = { not: null };
-    return where;
-  }
-
+}): { gte: Date; lt: Date } | undefined {
+  const { now, timezone, range, fromYmd, toYmd } = args;
   const todayStart = tz.startOfDay(now, timezone);
   const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-
   const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -326,7 +317,7 @@ function buildWhere(args: {
   const yearStart = startOfYear(now, timezone);
   const nextYearStart = startOfNextYear(yearStart, timezone);
 
-  let pickupAtFilter: Prisma.DateTimeFilter | undefined;
+  let pickupAtFilter: { gte: Date; lt: Date } | undefined;
 
   if (range === "today")
     pickupAtFilter = { gte: todayStart, lt: tomorrowStart };
@@ -355,7 +346,53 @@ function buildWhere(args: {
     pickupAtFilter = { gte: fromUtc, lt: toUtc };
   }
 
-  if (pickupAtFilter) where.pickupAt = pickupAtFilter;
+  return pickupAtFilter;
+}
+
+function buildWhere(args: {
+  now: Date;
+  timezone: string;
+  status: StatusFilter;
+  range: RangeFilter;
+  unassigned: boolean;
+  assigned: boolean;
+  paid: boolean;
+  unpaid: boolean;
+  stuck: boolean;
+  completed: boolean;
+  future: boolean;
+  fromYmd: string;
+  toYmd: string;
+  q?: string;
+  customerType?: string;
+  driver?: string;
+  serviceType?: string;
+  rideType?: string;
+  flightInfo?: boolean;
+  dateField?: "pickupAt" | "createdAt";
+}) {
+  const { now, timezone, status, range, paid, stuck, fromYmd, toYmd, q } = args;
+
+  const where: Prisma.BookingWhereInput = {};
+
+  // Trash pseudo-status: only soft-deleted rows, no other filters.
+  // Mentioning deletedAt here also bypasses the global soft-delete guard.
+  if (status === "TRASH") {
+    where.deletedAt = { not: null };
+    return where;
+  }
+
+  // The range applies to the pickup date, or to the booked (created) date
+  // when the chart's "Booked date" basis is on.
+  const dateField = args.dateField ?? "pickupAt";
+  const pickupAtFilter = getRangeWindow({
+    now,
+    timezone,
+    range,
+    fromYmd,
+    toYmd,
+  });
+  if (pickupAtFilter) where[dateField] = pickupAtFilter;
 
   if (status === "PAYMENT_RECEIVED") {
     where.status = { in: ["CONFIRMED", "PENDING_PAYMENT"] as BookingStatus[] };
@@ -449,7 +486,7 @@ function buildWhere(args: {
   // Trip quick filters (completed / future override range + status)
   if (args.completed) {
     where.status = "COMPLETED" as BookingStatus;
-    delete where.pickupAt;
+    delete where[dateField];
   }
 
   if (args.future) {
@@ -567,6 +604,16 @@ export default async function AdminBookingsPage({
   const future = (sp as any).future === "1";
   const page = clampPage(sp.page);
 
+  // "Booked date" filters by when bookings were made, so it only applies to
+  // ranges that look back in time.
+  const basis: ChartBasis =
+    sp.basis === "created" && range !== "next24" && range !== "next7"
+      ? "created"
+      : "pickup";
+  const dateField: "pickupAt" | "createdAt" =
+    basis === "created" ? "createdAt" : "pickupAt";
+  const breakdown = safeBreakdown(sp.breakdown);
+
   const q = (sp.q ?? "").trim();
   const now = new Date();
   const { timezone: companyTz } = await getCompanySettings();
@@ -605,7 +652,7 @@ export default async function AdminBookingsPage({
   const driverFilter = (sp as any).driver ?? "all";
   const isDriverSelected = driverFilter !== "all";
 
-  const where = buildWhere({
+  const whereArgs: Parameters<typeof buildWhere>[0] = {
     now,
     timezone: companyTz,
     status,
@@ -625,7 +672,9 @@ export default async function AdminBookingsPage({
     serviceType: (sp as any).serviceType ?? "all",
     rideType: (sp as any).rideType ?? "all",
     flightInfo: (sp as any).flightInfo === "1",
-  });
+    dateField,
+  };
+  const where = buildWhere(whereArgs);
   const orderBy = buildOrderBy(sort, order, status, stuck);
 
   const totalCount = await db.booking.count({ where });
@@ -711,6 +760,11 @@ export default async function AdminBookingsPage({
       rideType: next.rideType ?? (sp as any).rideType ?? "all",
       flightInfo:
         typeof next.flightInfo === "boolean" ? next.flightInfo : false,
+      // Next 24h / next 7 days always count by pickup date.
+      dateField:
+        (next.range ?? range) === "next24" || (next.range ?? range) === "next7"
+          ? "pickupAt"
+          : dateField,
     });
     return db.booking.count({ where: w });
   }
@@ -782,6 +836,8 @@ export default async function AdminBookingsPage({
       (sp as any).serviceType !== "all" ? (sp as any).serviceType : undefined,
     rideType: (sp as any).rideType !== "all" ? (sp as any).rideType : undefined,
     flightInfo: (sp as any).flightInfo === "1" ? "1" : undefined,
+    basis: basis === "created" ? "created" : undefined,
+    breakdown: breakdown !== "status" ? breakdown : undefined,
   };
 
   const hasActiveFilters =
@@ -797,12 +853,164 @@ export default async function AdminBookingsPage({
     q.length > 0 ||
     sort !== undefined ||
     customerType !== "all" ||
+    basis === "created" ||
     isDriverSelected;
 
   const pageParams: Record<string, string | undefined> = {
     ...baseParams,
     page: safePage > 1 ? String(safePage) : undefined,
   };
+
+  // ── Chart: the same bookings the list shows, grouped over time ──
+  let chartProps: ComponentProps<typeof BookingsChart> | null = null;
+  if (status !== "TRASH" && status !== "DRAFT") {
+    const raw = await db.booking.findMany({
+      where: { AND: [where, { status: { not: "DRAFT" as BookingStatus } }] },
+      select: {
+        id: true,
+        status: true,
+        pickupAt: true,
+        createdAt: true,
+        tripGroupId: true,
+        totalCents: true,
+        userId: true,
+        corporateAccountId: true,
+        serviceType: { select: { id: true, name: true } },
+        vehicle: { select: { id: true, name: true } },
+        assignment: {
+          select: { driver: { select: { id: true, name: true, email: true } } },
+        },
+      },
+    });
+    const chartRows: ChartRow[] = raw.map((b) => ({
+      id: b.id,
+      status: b.status,
+      pickupAt: b.pickupAt,
+      createdAt: b.createdAt,
+      tripGroupId: b.tripGroupId,
+      totalCents: b.totalCents,
+      userId: b.userId,
+      corporateAccountId: b.corporateAccountId,
+      serviceType: b.serviceType ?? null,
+      vehicle: b.vehicle ?? null,
+      driver: b.assignment?.driver
+        ? {
+            id: b.assignment.driver.id,
+            name: b.assignment.driver.name?.trim() || b.assignment.driver.email,
+          }
+        : null,
+    }));
+
+    // These quick filters replace the time range, so the chart fits the data.
+    const fitToData = range === "all" || completed || future || stuck;
+    const win = fitToData
+      ? undefined
+      : getRangeWindow({ now, timezone: companyTz, range, fromYmd, toYmd });
+
+    const chartData = buildBookingsChart({
+      rows: chartRows,
+      now,
+      timeZone: companyTz,
+      range,
+      basis,
+      breakdown,
+      window: win ? { start: win.gte, end: win.lt } : null,
+    });
+
+    const href = (overrides: Record<string, string | undefined>) =>
+      buildHref("/admin/bookings", { ...baseParams, ...overrides });
+    // Picking a date replaces quick filters that would override it.
+    const dateOverrides = {
+      completed: undefined,
+      future: undefined,
+      stuck: undefined,
+    };
+
+    const bucketHrefs: Record<string, string> = {};
+    for (const b of chartData.buckets) {
+      if (b.from && b.to) {
+        bucketHrefs[b.key] = href({
+          ...dateOverrides,
+          range: "range",
+          from: b.from,
+          to: b.to,
+        });
+      }
+    }
+
+    const months = recentMonths(now, companyTz);
+    const monthOptions = months.map((m, i) => ({
+      value: m.key,
+      label: i === 0 ? `${m.label} (current)` : m.label,
+      href:
+        i === 0
+          ? href({
+              ...dateOverrides,
+              range: "month",
+              from: undefined,
+              to: undefined,
+            })
+          : href({ ...dateOverrides, range: "range", from: m.from, to: m.to }),
+    }));
+    const selectedMonth = fitToData
+      ? ""
+      : range === "month"
+        ? months[0].key
+        : range === "range"
+          ? (months.find((m) => m.from === fromYmd && m.to === toYmd)?.key ??
+            "")
+          : "";
+
+    let comparison: ComponentProps<typeof BookingsChart>["comparison"] = null;
+    if (range === "month" && !fitToData) {
+      const sd = sameDaysLastMonth(now, companyTz);
+      const lastWhere = buildWhere({
+        ...whereArgs,
+        range: "range",
+        fromYmd: sd.lastFromYmd,
+        toYmd: sd.lastToYmd,
+      });
+      const lastRides = await db.booking.count({
+        where: {
+          AND: [lastWhere, { status: { not: "DRAFT" as BookingStatus } }],
+        },
+      });
+      comparison = {
+        thisLabel: sd.thisLabel,
+        thisRides: countRidesBetween(
+          chartRows,
+          basis,
+          companyTz,
+          sd.thisFromYmd,
+          sd.thisToYmd,
+        ),
+        lastLabel: sd.lastLabel,
+        lastRides,
+      };
+    }
+
+    chartProps = {
+      data: chartData,
+      basis,
+      basisHrefs:
+        range === "next24" || range === "next7"
+          ? null
+          : {
+              pickup: href({ basis: undefined }),
+              created: href({ basis: "created" }),
+            },
+      breakdown,
+      breakdownOptions: CHART_BREAKDOWNS.map((o) => ({
+        value: o.value,
+        label: o.label,
+        href: href({ breakdown: o.value === "status" ? undefined : o.value }),
+      })),
+      monthOptions,
+      selectedMonth,
+      bucketHrefs,
+      comparison,
+    };
+  }
 
   return (
     <section className={styles.container} aria-label='Bookings'>
@@ -971,6 +1179,8 @@ export default async function AdminBookingsPage({
           current={pageParams}
         />
       </header>
+
+      {chartProps ? <BookingsChart {...chartProps} /> : null}
 
       {bookings.length === 0 ? (
         <div className={styles.empty}>
