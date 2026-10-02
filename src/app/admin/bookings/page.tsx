@@ -4,18 +4,20 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { Prisma, BookingStatus, Role } from "@prisma/client";
 import Button from "@/components/shared/Button/Button";
-import CustomRangeFormClient from "./CustomRangeFormClient";
 import SearchFormClient from "./SearchFormClient";
 import ClearFiltersButton from "@/components/admin/Clearfiltersbutton/Clearfiltersbutton";
 import FilterSelectClient from "./FilterSelectClient";
 import TripGroupBadge from "@/components/admin/TripGroupBadge/TripGroupBadge";
-import type { ComponentProps } from "react";
 import BookingsChart from "./BookingsChart";
+import BookingsTimeControls from "./BookingsTimeControls";
+import CountUp from "@/components/shared/CountUp/CountUp";
+// The cards and chart reuse the earnings page's styles so both pages match.
+import earnings from "../earnings/AdminEarningsPage.module.css";
+import chartStyles from "./BookingsChart.module.css";
+import { describeRange, getRangeWindow } from "@/lib/booking/bookingsRange";
 import {
-  CHART_BREAKDOWNS,
   buildBookingsChart,
   countRidesBetween,
-  recentMonths,
   safeBreakdown,
   sameDaysLastMonth,
   type ChartBasis,
@@ -56,7 +58,10 @@ const STATUSES = [
 const RANGES = [
   "all",
   "month",
-  "year",
+  "week",
+  "last12",
+  "ytd",
+  "year", // full calendar year; kept for existing links (no tab of its own)
   "today",
   "next24",
   "next7",
@@ -102,44 +107,13 @@ type SearchParams = {
   driver?: string;
   basis?: "created";
   breakdown?: string;
+  /** YYYY-MM for the Daily view; omitted for the current month. */
+  month?: string;
 };
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
 const PAGE_SIZE = 10;
-
-function parseYMD(s: string | null | undefined) {
-  if (!s) return null;
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s).trim());
-  if (!match) return null;
-  const y = Number(match[1]);
-  const m = Number(match[2]);
-  const d = Number(match[3]);
-  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d))
-    return null;
-  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
-  return { y, m, d };
-}
-
-function startOfDayFromYMD(
-  ymd: { y: number; m: number; d: number },
-  timezone: string,
-) {
-  const iso = `${ymd.y}-${String(ymd.m).padStart(2, "0")}-${String(ymd.d).padStart(2, "0")}`;
-  return new Date(tz.localToUtcIso(iso, "00:00", timezone));
-}
-
-function startOfYear(dateUtc: Date, timezone: string) {
-  const { y } = tz.toLocalParts(dateUtc, timezone);
-  const iso = `${y}-01-01`;
-  return new Date(tz.localToUtcIso(iso, "00:00", timezone));
-}
-
-function startOfNextYear(yearStartUtc: Date, timezone: string) {
-  const { y } = tz.toLocalParts(yearStartUtc, timezone);
-  const iso = `${y + 1}-01-01`;
-  return new Date(tz.localToUtcIso(iso, "00:00", timezone));
-}
 
 function getConfirmationCode(bookingId: string): string {
   return bookingId.slice(0, 8).toUpperCase();
@@ -295,60 +269,6 @@ function safeCustomerType(v: any): "all" | "guest" | "account" | "corporate" {
   const valid = ["all", "guest", "account", "corporate"];
   return valid.includes(v) ? v : "all";
 }
-
-/** The date window for a range filter, in the company's time zone.
- *  "all" has no window. Shared by the list query and the chart. */
-function getRangeWindow(args: {
-  now: Date;
-  timezone: string;
-  range: RangeFilter;
-  fromYmd: string;
-  toYmd: string;
-}): { gte: Date; lt: Date } | undefined {
-  const { now, timezone, range, fromYmd, toYmd } = args;
-  const todayStart = tz.startOfDay(now, timezone);
-  const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
-  const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const next7d = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-  const monthStart = tz.startOfMonth(now, timezone);
-  const nextMonthStart = tz.addMonths(monthStart, 1, timezone);
-
-  const yearStart = startOfYear(now, timezone);
-  const nextYearStart = startOfNextYear(yearStart, timezone);
-
-  let pickupAtFilter: { gte: Date; lt: Date } | undefined;
-
-  if (range === "today")
-    pickupAtFilter = { gte: todayStart, lt: tomorrowStart };
-  if (range === "next24") pickupAtFilter = { gte: now, lt: next24h };
-  if (range === "next7") pickupAtFilter = { gte: now, lt: next7d };
-  if (range === "month")
-    pickupAtFilter = { gte: monthStart, lt: nextMonthStart };
-  if (range === "year") pickupAtFilter = { gte: yearStart, lt: nextYearStart };
-  // "all" intentionally sets no date filter
-
-  if (range === "range") {
-    const f = parseYMD(fromYmd);
-    const t = parseYMD(toYmd);
-
-    let fromUtc = f ? startOfDayFromYMD(f, timezone) : todayStart;
-    const toUtc0 = t ? startOfDayFromYMD(t, timezone) : todayStart;
-
-    let toUtc = new Date(toUtc0.getTime() + 24 * 60 * 60 * 1000);
-
-    if (toUtc.getTime() < fromUtc.getTime()) {
-      const tmp = fromUtc;
-      fromUtc = toUtc0;
-      toUtc = new Date(tmp.getTime() + 24 * 60 * 60 * 1000);
-    }
-
-    pickupAtFilter = { gte: fromUtc, lt: toUtc };
-  }
-
-  return pickupAtFilter;
-}
-
 function buildWhere(args: {
   now: Date;
   timezone: string;
@@ -370,6 +290,7 @@ function buildWhere(args: {
   rideType?: string;
   flightInfo?: boolean;
   dateField?: "pickupAt" | "createdAt";
+  monthKey?: string;
 }) {
   const { now, timezone, status, range, paid, stuck, fromYmd, toYmd, q } = args;
 
@@ -391,6 +312,7 @@ function buildWhere(args: {
     range,
     fromYmd,
     toYmd,
+    monthKey: args.monthKey,
   });
   if (pickupAtFilter) where[dateField] = pickupAtFilter;
 
@@ -529,6 +451,50 @@ function buildWhere(args: {
   return where;
 }
 
+const MONTH_OPTIONS = [
+  { v: "01", label: "Jan" },
+  { v: "02", label: "Feb" },
+  { v: "03", label: "Mar" },
+  { v: "04", label: "Apr" },
+  { v: "05", label: "May" },
+  { v: "06", label: "Jun" },
+  { v: "07", label: "Jul" },
+  { v: "08", label: "Aug" },
+  { v: "09", label: "Sep" },
+  { v: "10", label: "Oct" },
+  { v: "11", label: "Nov" },
+  { v: "12", label: "Dec" },
+];
+/** Same markup and styles as the earnings page's KPI cards. */
+function KpiCard({
+  label,
+  value,
+  sub,
+  prefix,
+  tone = "neutral",
+}: {
+  label: string;
+  value: number;
+  sub: string;
+  prefix?: string;
+  tone?: "neutral" | "good" | "warn" | "tip" | "bad";
+}) {
+  const toneClass =
+    tone === "bad" ? chartStyles.tone_bad : earnings[`tone_${tone}`];
+  return (
+    <div className={`${earnings.kpiCard} ${toneClass ?? ""}`}>
+      <div className={earnings.kpiTop}>
+        <div className='emptyTitle underline'>{label}</div>
+      </div>
+      <div className={earnings.kpiValue}>
+        {prefix ? <span>{prefix}</span> : null}
+        <CountUp from={0} to={value} duration={1.5} separator=',' delay={0.1} />
+      </div>
+      <div className='miniNote'>{sub}</div>
+    </div>
+  );
+}
+
 function buildOrderBy(
   sort: SortColumn | undefined,
   order: SortOrder,
@@ -613,10 +579,14 @@ export default async function AdminBookingsPage({
   const dateField: "pickupAt" | "createdAt" =
     basis === "created" ? "createdAt" : "pickupAt";
   const breakdown = safeBreakdown(sp.breakdown);
+  const monthParam =
+    sp.month && /^\d{4}-(0[1-9]|1[0-2])$/.test(sp.month) ? sp.month : undefined;
 
   const q = (sp.q ?? "").trim();
   const now = new Date();
   const { timezone: companyTz } = await getCompanySettings();
+  const currentMonthKey = tz.monthKey(now, companyTz);
+  const selectedMonthKey = monthParam ?? currentMonthKey;
 
   const defaultFrom = tz.formatIsoDate(now, companyTz);
   const defaultTo = tz.formatIsoDate(now, companyTz);
@@ -673,6 +643,7 @@ export default async function AdminBookingsPage({
     rideType: (sp as any).rideType ?? "all",
     flightInfo: (sp as any).flightInfo === "1",
     dateField,
+    monthKey: selectedMonthKey,
   };
   const where = buildWhere(whereArgs);
   const orderBy = buildOrderBy(sort, order, status, stuck);
@@ -765,13 +736,13 @@ export default async function AdminBookingsPage({
         (next.range ?? range) === "next24" || (next.range ?? range) === "next7"
           ? "pickupAt"
           : dateField,
+      monthKey: selectedMonthKey,
     });
     return db.booking.count({ where: w });
   }
 
   const [
     statusCountsArr,
-    rangeCountsArr,
     futureCount,
     completedCount,
     stuckCount,
@@ -790,12 +761,6 @@ export default async function AdminBookingsPage({
         return [s, c] as const;
       }),
     ),
-    Promise.all(
-      RANGES.map(async (r) => {
-        const c = await countFor({ range: r, q });
-        return [r, c] as const;
-      }),
-    ),
     countFor({ future: true, q }),
     countFor({ completed: true, q }),
     countFor({ stuck: true, q }),
@@ -808,10 +773,6 @@ export default async function AdminBookingsPage({
 
   const statusCounts = Object.fromEntries(statusCountsArr) as Record<
     StatusFilter,
-    number
-  >;
-  const rangeCounts = Object.fromEntries(rangeCountsArr) as Record<
-    RangeFilter,
     number
   >;
 
@@ -838,6 +799,7 @@ export default async function AdminBookingsPage({
     flightInfo: (sp as any).flightInfo === "1" ? "1" : undefined,
     basis: basis === "created" ? "created" : undefined,
     breakdown: breakdown !== "status" ? breakdown : undefined,
+    month: range === "month" ? monthParam : undefined,
   };
 
   const hasActiveFilters =
@@ -854,6 +816,7 @@ export default async function AdminBookingsPage({
     sort !== undefined ||
     customerType !== "all" ||
     basis === "created" ||
+    (range === "month" && !!monthParam) ||
     isDriverSelected;
 
   const pageParams: Record<string, string | undefined> = {
@@ -861,8 +824,52 @@ export default async function AdminBookingsPage({
     page: safePage > 1 ? String(safePage) : undefined,
   };
 
-  // ── Chart: the same bookings the list shows, grouped over time ──
-  let chartProps: ComponentProps<typeof BookingsChart> | null = null;
+  // ── Time controls, cards and chart: all driven by the filters above ──
+  const fitToData = range === "all" || completed || future || stuck;
+  const win = getRangeWindow({
+    now,
+    timezone: companyTz,
+    range,
+    fromYmd,
+    toYmd,
+    monthKey: selectedMonthKey,
+  });
+  const rangeLabel = describeRange({
+    range,
+    win,
+    now,
+    timezone: companyTz,
+    completed,
+    future,
+    stuck,
+  });
+
+  const bounds = await db.booking.aggregate({
+    _min: { pickupAt: true, createdAt: true },
+    _max: { pickupAt: true },
+  });
+  const thisYear = tz.toLocalParts(now, companyTz).y;
+  const firstYear = Math.min(
+    thisYear,
+    bounds._min.pickupAt
+      ? tz.toLocalParts(bounds._min.pickupAt, companyTz).y
+      : thisYear,
+    bounds._min.createdAt
+      ? tz.toLocalParts(bounds._min.createdAt, companyTz).y
+      : thisYear,
+  );
+  const lastYear = Math.max(
+    thisYear + 1,
+    bounds._max.pickupAt
+      ? tz.toLocalParts(bounds._max.pickupAt, companyTz).y
+      : thisYear,
+  );
+  const years = Array.from({ length: lastYear - firstYear + 1 }, (_, i) =>
+    String(firstYear + i),
+  );
+
+  let chartData: ReturnType<typeof buildBookingsChart> | null = null;
+  let ridesSub = rangeLabel;
   if (status !== "TRASH" && status !== "DRAFT") {
     const raw = await db.booking.findMany({
       where: { AND: [where, { status: { not: "DRAFT" as BookingStatus } }] },
@@ -901,68 +908,23 @@ export default async function AdminBookingsPage({
         : null,
     }));
 
-    // These quick filters replace the time range, so the chart fits the data.
-    const fitToData = range === "all" || completed || future || stuck;
-    const win = fitToData
-      ? undefined
-      : getRangeWindow({ now, timezone: companyTz, range, fromYmd, toYmd });
-
-    const chartData = buildBookingsChart({
+    chartData = buildBookingsChart({
       rows: chartRows,
       now,
       timeZone: companyTz,
       range,
       basis,
       breakdown,
-      window: win ? { start: win.gte, end: win.lt } : null,
+      // Completed / Future / Stuck replace the time range: fit to the data.
+      window: !fitToData && win ? { start: win.gte, end: win.lt } : null,
     });
 
-    const href = (overrides: Record<string, string | undefined>) =>
-      buildHref("/admin/bookings", { ...baseParams, ...overrides });
-    // Picking a date replaces quick filters that would override it.
-    const dateOverrides = {
-      completed: undefined,
-      future: undefined,
-      stuck: undefined,
-    };
-
-    const bucketHrefs: Record<string, string> = {};
-    for (const b of chartData.buckets) {
-      if (b.from && b.to) {
-        bucketHrefs[b.key] = href({
-          ...dateOverrides,
-          range: "range",
-          from: b.from,
-          to: b.to,
-        });
-      }
-    }
-
-    const months = recentMonths(now, companyTz);
-    const monthOptions = months.map((m, i) => ({
-      value: m.key,
-      label: i === 0 ? `${m.label} (current)` : m.label,
-      href:
-        i === 0
-          ? href({
-              ...dateOverrides,
-              range: "month",
-              from: undefined,
-              to: undefined,
-            })
-          : href({ ...dateOverrides, range: "range", from: m.from, to: m.to }),
-    }));
-    const selectedMonth = fitToData
-      ? ""
-      : range === "month"
-        ? months[0].key
-        : range === "range"
-          ? (months.find((m) => m.from === fromYmd && m.to === toYmd)?.key ??
-            "")
-          : "";
-
-    let comparison: ComponentProps<typeof BookingsChart>["comparison"] = null;
-    if (range === "month" && !fitToData) {
+    // Current month: how the month is going against the same days last month.
+    if (
+      range === "month" &&
+      selectedMonthKey === currentMonthKey &&
+      !fitToData
+    ) {
       const sd = sameDaysLastMonth(now, companyTz);
       const lastWhere = buildWhere({
         ...whereArgs,
@@ -975,41 +937,15 @@ export default async function AdminBookingsPage({
           AND: [lastWhere, { status: { not: "DRAFT" as BookingStatus } }],
         },
       });
-      comparison = {
-        thisLabel: sd.thisLabel,
-        thisRides: countRidesBetween(
-          chartRows,
-          basis,
-          companyTz,
-          sd.thisFromYmd,
-          sd.thisToYmd,
-        ),
-        lastLabel: sd.lastLabel,
-        lastRides,
-      };
+      const soFar = countRidesBetween(
+        chartRows,
+        basis,
+        companyTz,
+        sd.thisFromYmd,
+        sd.thisToYmd,
+      );
+      ridesSub = `So far ${soFar} · same days last month ${lastRides}`;
     }
-
-    chartProps = {
-      data: chartData,
-      basis,
-      basisHrefs:
-        range === "next24" || range === "next7"
-          ? null
-          : {
-              pickup: href({ basis: undefined }),
-              created: href({ basis: "created" }),
-            },
-      breakdown,
-      breakdownOptions: CHART_BREAKDOWNS.map((o) => ({
-        value: o.value,
-        label: o.label,
-        href: href({ breakdown: o.value === "status" ? undefined : o.value }),
-      })),
-      monthOptions,
-      selectedMonth,
-      bucketHrefs,
-      comparison,
-    };
   }
 
   return (
@@ -1039,52 +975,22 @@ export default async function AdminBookingsPage({
           </div>
         </div>
 
-        <div className={styles.filters}>
-          {/* Dropdown row: Time · Status · Customer type · Driver */}
-          <div className={styles.filterRow}>
-            <FilterSelectClient
-              label='Time'
-              paramName='range'
-              defaultValue='month'
-              current={baseParams}
-              options={[
-                {
-                  value: "all",
-                  label: "All time",
-                  count: rangeCounts.all,
-                },
-                {
-                  value: "month",
-                  label: "Current month",
-                  count: rangeCounts.month,
-                },
-                {
-                  value: "year",
-                  label: "Current year",
-                  count: rangeCounts.year,
-                },
-                {
-                  value: "today",
-                  label: "Today",
-                  count: rangeCounts.today,
-                },
-                {
-                  value: "next24",
-                  label: "Next 24h",
-                  count: rangeCounts.next24,
-                },
-                {
-                  value: "next7",
-                  label: "Next 7 days",
-                  count: rangeCounts.next7,
-                },
-                {
-                  value: "range",
-                  label: "Custom range",
-                },
-              ]}
-            />
+        <BookingsTimeControls
+          activeRange={range}
+          basis={basis}
+          years={years}
+          monthOptions={MONTH_OPTIONS}
+          selectedYear={selectedMonthKey.slice(0, 4)}
+          selectedMonth={selectedMonthKey.slice(5, 7)}
+          currentMonthKey={currentMonthKey}
+          from={fromYmd}
+          to={toYmd}
+          rangeLabel={rangeLabel}
+        />
 
+        <div className={styles.filters}>
+          {/* Dropdown row: Status · Customer type · Driver · Service · Ride type */}
+          <div className={styles.filterRow}>
             <FilterSelectClient
               label='Status'
               paramName='status'
@@ -1139,15 +1045,6 @@ export default async function AdminBookingsPage({
             />
           </div>
 
-          {/* Custom date range */}
-          {range === "range" ? (
-            <CustomRangeFormClient
-              current={baseParams}
-              defaultFrom={defaultFrom}
-              defaultTo={defaultTo}
-            />
-          ) : null}
-
           {/* Checkbox filter sections */}
           <FilterCheckboxSections
             current={baseParams}
@@ -1171,16 +1068,71 @@ export default async function AdminBookingsPage({
         </div>
 
         <SearchFormClient current={baseParams} defaultValue={q} />
-
-        <Pagination
-          totalCount={totalCount}
-          page={safePage}
-          totalPages={totalPages}
-          current={pageParams}
-        />
       </header>
 
-      {chartProps ? <BookingsChart {...chartProps} /> : null}
+      {chartData ? (
+        <div className={chartStyles.kpiSection}>
+          <div className={earnings.kpiGrid}>
+            <KpiCard
+              label='Rides'
+              value={chartData.summary.rides}
+              sub={ridesSub}
+            />
+            <KpiCard
+              label='Needs action'
+              value={chartData.summary.needsAction}
+              sub='Pending review or payment'
+              tone='warn'
+            />
+            <KpiCard
+              label='Booked'
+              value={chartData.summary.upcoming - chartData.summary.needsAction}
+              sub='Confirmed or assigned'
+              tone='tip'
+            />
+            <KpiCard
+              label='Done'
+              value={chartData.summary.done}
+              sub='Completed or underway'
+              tone='good'
+            />
+            <KpiCard
+              label='Lost'
+              value={chartData.summary.lost}
+              sub={
+                chartData.summary.lostRate == null
+                  ? "Cancelled, no-show, declined"
+                  : `${Math.round(chartData.summary.lostRate * 100)}% · cancelled, no-show, declined`
+              }
+              tone='bad'
+            />
+            <KpiCard
+              label='Trips'
+              value={chartData.summary.trips}
+              sub='A multi-ride trip counts once'
+            />
+            <KpiCard
+              label='Booked value'
+              value={Math.round(chartData.summary.bookedValueCents / 100)}
+              prefix='$'
+              sub='Excludes lost rides'
+            />
+          </div>
+
+          <BookingsChart
+            data={chartData}
+            breakdown={breakdown}
+            rangeLabel={rangeLabel}
+          />
+        </div>
+      ) : null}
+
+      <Pagination
+        totalCount={totalCount}
+        page={safePage}
+        totalPages={totalPages}
+        current={pageParams}
+      />
 
       {bookings.length === 0 ? (
         <div className={styles.empty}>

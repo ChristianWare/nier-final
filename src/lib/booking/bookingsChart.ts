@@ -237,8 +237,8 @@ export function pickGranularity(
   spanMs: number,
 ): ChartGranularity {
   if (range === "today" || range === "next24") return "hour";
-  if (range === "month" || range === "next7") return "day";
-  if (range === "year") return "month";
+  if (range === "month" || range === "week" || range === "next7") return "day";
+  if (range === "last12" || range === "ytd" || range === "year") return "month";
   const days = spanMs / DAY_MS;
   if (days <= 1.05) return "hour";
   if (days <= 62) return "day";
@@ -258,7 +258,6 @@ function fmt(key: string, opts: Intl.DateTimeFormatOptions): string {
 function bucketLabels(
   key: string,
   granularity: ChartGranularity,
-  spansYears: boolean,
 ): { tick: string; label: string } {
   switch (granularity) {
     case "hour":
@@ -273,22 +272,30 @@ function bucketLabels(
       };
     case "day":
       return {
-        tick: fmt(key, { month: "short", day: "numeric" }),
+        tick: fmt(key, { month: "2-digit", day: "2-digit" }),
         label: fmt(key, { weekday: "short", month: "short", day: "numeric" }),
       };
     case "week":
       return {
-        tick: fmt(key, { month: "short", day: "numeric" }),
+        tick: fmt(key, { month: "2-digit", day: "2-digit" }),
         label: `Week of ${fmt(key, { month: "short", day: "numeric", year: "numeric" })}`,
       };
     case "month":
       return {
-        tick: spansYears
-          ? fmt(key, { month: "short", year: "2-digit" })
-          : fmt(key, { month: "short" }),
+        tick: fmt(key, { month: "short", year: "2-digit" }),
         label: fmt(key, { month: "long", year: "numeric" }),
       };
   }
+}
+
+/** Card title for the chart, matching the earnings page ("Daily earnings"). */
+export function chartTitle(granularity: ChartGranularity): string {
+  return {
+    hour: "Hourly bookings",
+    day: "Daily bookings",
+    week: "Weekly bookings",
+    month: "Monthly bookings",
+  }[granularity];
 }
 
 function bucketDates(
@@ -473,9 +480,6 @@ export function buildBookingsChart({
     end.getTime() - start.getTime(),
   );
   const keys = bucketKeys(start, end, granularity, timeZone);
-  const spansYears =
-    keys.length > 0 &&
-    keys[0].slice(0, 4) !== keys[keys.length - 1].slice(0, 4);
 
   const { series, seriesKeyOf } = buildSeries(charted, breakdown);
   const blank = () => Object.fromEntries(series.map((s) => [s.key, 0]));
@@ -484,7 +488,7 @@ export function buildBookingsChart({
   const buckets: ChartBucket[] = keys.map((key) => {
     const bucket: ChartBucket = {
       key,
-      ...bucketLabels(key, granularity, spansYears),
+      ...bucketLabels(key, granularity),
       ...bucketDates(key, granularity),
       total: 0,
       values: blank(),
@@ -554,18 +558,4 @@ export function countRidesBetween(
     );
     return day >= fromYmd && day <= toYmd;
   }).length;
-}
-
-/** The last 12 months, newest first, as YYYY-MM keys with labels. */
-export function recentMonths(now: Date, timeZone: string, count = 12) {
-  const current = tz.monthKey(now, timeZone);
-  return Array.from({ length: count }, (_, i) => {
-    const key = addMonthsToKey(current, -i);
-    return {
-      key,
-      from: `${key}-01`,
-      to: lastDayOfMonth(key),
-      label: fmt(`${key}-01`, { month: "long", year: "numeric" }),
-    };
-  });
 }

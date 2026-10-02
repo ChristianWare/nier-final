@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -12,275 +12,200 @@ import {
   CartesianGrid,
   Tooltip,
   ReferenceLine,
+  Rectangle,
 } from "recharts";
+// Same card, legend, canvas and tooltip styles as the earnings chart.
+import earnings from "../earnings/AdminEarningsPage.module.css";
 import styles from "./BookingsChart.module.css";
-import type {
-  BookingsChartData,
-  ChartBasis,
-  ChartBreakdown,
+import {
+  CHART_BREAKDOWNS,
+  chartTitle,
+  type BookingsChartData,
+  type ChartBreakdown,
 } from "@/lib/booking/bookingsChart";
 
-type Option = { value: string; label: string; href: string };
+const BAR_RADIUS_TOP: [number, number, number, number] = [10, 10, 0, 0];
+const BAR_RADIUS_NONE: [number, number, number, number] = [0, 0, 0, 0];
 
-type Props = {
-  data: BookingsChartData;
-  basis: ChartBasis;
-  /** Null when the time range only makes sense by pickup date. */
-  basisHrefs: { pickup: string; created: string } | null;
-  breakdown: ChartBreakdown;
-  breakdownOptions: Option[];
-  monthOptions: Option[];
-  /** Matches a monthOptions value, or "" when the list isn't on a whole month. */
-  selectedMonth: string;
-  /** Bucket key → link that filters the list to that bucket. */
-  bucketHrefs: Record<string, string>;
-  comparison: {
-    thisLabel: string;
-    thisRides: number;
-    lastLabel: string;
-    lastRides: number;
-  } | null;
-  currency?: string;
-};
-
-const GRANULARITY_LABEL = {
-  hour: "by hour",
-  day: "by day",
-  week: "by week",
-  month: "by month",
-} as const;
-
-function money(cents: number, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format((cents || 0) / 100);
-}
-
-function ChartTooltip({
-  active,
-  payload,
-  labels,
-  series,
-}: {
-  active?: boolean;
-  payload?: any[];
-  labels: Record<string, string>;
-  series: BookingsChartData["series"];
-}) {
-  if (!active || !payload?.length) return null;
-  const row = payload[0]?.payload ?? {};
-  const shown = series.filter((s) => (row[s.key] ?? 0) > 0);
-  return (
-    <div className={styles.tooltip}>
-      <div className={styles.tooltipTitle}>{labels[row.key] ?? row.key}</div>
-      {shown.map((s) => (
-        <div key={s.key} className={styles.tooltipRow}>
-          <span className={styles.swatch} style={{ background: s.color }} />
-          <span>{s.label}</span>
-          <strong>{row[s.key]}</strong>
-        </div>
-      ))}
-      <div className={`${styles.tooltipRow} ${styles.tooltipTotal}`}>
-        <span />
-        <span>Total</span>
-        <strong>{row.total ?? 0}</strong>
-      </div>
-    </div>
-  );
-}
+/** Quick filters that replace the time range; picking a date clears them. */
+const DATE_OVERRIDES = ["completed", "future", "stuck"];
 
 export default function BookingsChart({
   data,
-  basis,
-  basisHrefs,
   breakdown,
-  breakdownOptions,
-  monthOptions,
-  selectedMonth,
-  bucketHrefs,
-  comparison,
-  currency = "USD",
-}: Props) {
+  rangeLabel,
+}: {
+  data: BookingsChartData;
+  breakdown: ChartBreakdown;
+  /** The period the page is showing, e.g. "Oct 2026". */
+  rangeLabel: string;
+}) {
   const router = useRouter();
-  const { buckets, series, summary, granularity, todayKey } = data;
+  const pathname = usePathname();
+  const sp = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const { buckets, series, granularity, todayKey } = data;
 
-  const rows = buckets.map((b) => ({
-    key: b.key,
-    total: b.total,
-    ...b.values,
-  }));
+  function nav(next: URLSearchParams) {
+    next.delete("page");
+    const qs = next.toString();
+    startTransition(() =>
+      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false }),
+    );
+  }
+
+  // Clicking a bar sets the page's date range to that bar, so the list
+  // below (and this chart) show just those bookings.
+  function showBucket(key: string | undefined) {
+    const b = buckets.find((x) => x.key === key);
+    if (!b?.from || !b?.to) return;
+    const next = new URLSearchParams(sp.toString());
+    for (const k of DATE_OVERRIDES) next.delete(k);
+    next.delete("month");
+    next.set("range", "range");
+    next.set("from", b.from);
+    next.set("to", b.to);
+    nav(next);
+  }
+
+  function onBreakdownChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const next = new URLSearchParams(sp.toString());
+    if (e.target.value === "status") next.delete("breakdown");
+    else next.set("breakdown", e.target.value);
+    nav(next);
+  }
+
+  // The topmost non-empty segment of each bar gets the rounded top.
+  const rows = buckets.map((b) => {
+    let top: string | null = null;
+    for (const s of series) if ((b.values[s.key] ?? 0) > 0) top = s.key;
+    return {
+      key: b.key,
+      tick: b.tick,
+      label: b.label,
+      total: b.total,
+      __top: top,
+      ...b.values,
+    };
+  });
   const ticks = Object.fromEntries(buckets.map((b) => [b.key, b.tick]));
-  const labels = Object.fromEntries(buckets.map((b) => [b.key, b.label]));
   const clickable = granularity !== "hour";
-
-  const go = (key: string | undefined) => {
-    const href = key ? bucketHrefs[key] : undefined;
-    if (href) router.push(href);
-  };
-
-  const navigate = (options: Option[], value: string) => {
-    const href = options.find((o) => o.value === value)?.href;
-    if (href) router.push(href);
-  };
-
-  const lostRate =
-    summary.lostRate == null ? "—" : `${Math.round(summary.lostRate * 100)}%`;
+  const total = buckets.reduce((sum, b) => sum + b.total, 0);
 
   return (
-    <details className={styles.card} open>
-      <summary className={styles.cardHeader}>
-        <span className={styles.title}>Bookings chart</span>
-        <span className={styles.subtitle}>
-          {summary.rides} {summary.rides === 1 ? "ride" : "rides"} ·{" "}
-          {basis === "created" ? "by booked date" : "by pickup date"},{" "}
-          {GRANULARITY_LABEL[granularity]}
-        </span>
-      </summary>
+    <section className={`${earnings.card} ${earnings.chartCard}`}>
+      <div className={earnings.cardHeader}>
+        <div className='cardTitle h4'>{chartTitle(granularity)}</div>
+        <div className='miniNote'>{rangeLabel}</div>
+      </div>
 
-      <div className={styles.body}>
-        <div className={styles.controls}>
-          {basisHrefs ? (
-            <div
-              className={styles.segmented}
-              role='group'
-              aria-label='Count by'
-            >
-              <span className={styles.controlLabel}>Count by</span>
-              <Link
-                href={basisHrefs.pickup}
-                className={basis === "pickup" ? styles.segActive : styles.seg}
-                aria-current={basis === "pickup" ? "true" : undefined}
-              >
-                Pickup date
-              </Link>
-              <Link
-                href={basisHrefs.created}
-                className={basis === "created" ? styles.segActive : styles.seg}
-                aria-current={basis === "created" ? "true" : undefined}
-              >
-                Booked date
-              </Link>
+      <div className={earnings.chartWrap}>
+        <div className={earnings.chartInner}>
+          <div className={styles.legendRow}>
+            <div className={earnings.legend}>
+              {series.map((s) => (
+                <div key={s.key} className={earnings.legendItem}>
+                  <span
+                    className={earnings.swatch}
+                    style={{ background: s.color }}
+                  />
+                  <span className='miniNote'>{s.label}</span>
+                </div>
+              ))}
             </div>
-          ) : null}
 
-          <label className={styles.control}>
-            <span className={styles.controlLabel}>Break down by</span>
-            <select
-              className={styles.select}
-              value={breakdown}
-              onChange={(e) => navigate(breakdownOptions, e.target.value)}
-            >
-              {breakdownOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className={styles.colorBy}>
+              <span className='miniNote'>Color bars by</span>
+              <select
+                className='selectBorder emptySmall'
+                value={breakdown}
+                onChange={onBreakdownChange}
+                disabled={isPending}
+              >
+                {CHART_BREAKDOWNS.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
-          <label className={styles.control}>
-            <span className={styles.controlLabel}>Month</span>
-            <select
-              className={styles.select}
-              value={selectedMonth}
-              onChange={(e) => navigate(monthOptions, e.target.value)}
-            >
-              {selectedMonth === "" ? (
-                <option value='' disabled>
-                  Pick a month
-                </option>
-              ) : null}
-              {monthOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className={styles.kpis}>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Rides</span>
-            <strong className={styles.kpiValue}>{summary.rides}</strong>
-          </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Trips</span>
-            <strong className={styles.kpiValue}>{summary.trips}</strong>
-          </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Done</span>
-            <strong className={styles.kpiValue}>{summary.done}</strong>
-          </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Upcoming</span>
-            <strong className={styles.kpiValue}>{summary.upcoming}</strong>
-            {summary.needsAction > 0 ? (
-              <span className={styles.kpiNote}>
-                {summary.needsAction} need action
-              </span>
-            ) : null}
-          </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Cancelled / no-show</span>
-            <strong className={styles.kpiValue}>{lostRate}</strong>
-            <span className={styles.kpiNote}>{summary.lost} lost</span>
-          </div>
-          <div className={styles.kpi}>
-            <span className={styles.kpiLabel}>Booked value</span>
-            <strong className={styles.kpiValue}>
-              {money(summary.bookedValueCents, currency)}
-            </strong>
-            <span className={styles.kpiNote}>excludes lost rides</span>
-          </div>
-        </div>
-
-        {comparison ? (
-          <p className={styles.comparison}>
-            So far this month: <strong>{comparison.thisRides}</strong> rides (
-            {comparison.thisLabel}) · Same days last month:{" "}
-            <strong>{comparison.lastRides}</strong> ({comparison.lastLabel})
-          </p>
-        ) : null}
-
-        {buckets.length === 0 ? (
-          <p className={styles.empty}>No rides to chart for these filters.</p>
-        ) : (
-          <>
-            <div
-              className={styles.chartBox}
-              role='img'
-              aria-label={`Bar chart of ${summary.rides} rides ${GRANULARITY_LABEL[granularity]}`}
-            >
+          <div
+            className={earnings.chartCanvas}
+            role='img'
+            aria-label={`${chartTitle(granularity)}: ${total} rides, ${rangeLabel}`}
+          >
+            {buckets.length === 0 ? (
+              <div className={styles.empty}>
+                <span className='miniNote'>
+                  No bookings to chart for these filters.
+                </span>
+              </div>
+            ) : (
               <ResponsiveContainer width='100%' height='100%'>
                 <BarChart
                   data={rows}
-                  margin={{ top: 16, right: 8, left: -16, bottom: 0 }}
+                  margin={{ top: 6, right: 10, bottom: 6, left: 10 }}
                 >
                   <CartesianGrid stroke='rgba(0,0,0,0.08)' vertical={false} />
                   <XAxis
                     dataKey='key'
                     tickFormatter={(k: string) => ticks[k] ?? k}
-                    interval='preserveStartEnd'
-                    minTickGap={12}
+                    tickLine={false}
+                    axisLine={false}
                     tick={{ fontSize: 12 }}
+                    interval='preserveStartEnd'
+                    minTickGap={16}
                   />
                   <YAxis
-                    allowDecimals={false}
+                    tickLine={false}
+                    axisLine={false}
                     tick={{ fontSize: 12 }}
-                    width={40}
+                    width={36}
+                    allowDecimals={false}
                   />
                   <Tooltip
                     cursor={{ fill: "rgba(0,0,0,0.04)" }}
-                    content={<ChartTooltip labels={labels} series={series} />}
+                    content={({ active, payload }: any) => {
+                      if (!active || !payload || payload.length === 0)
+                        return null;
+                      const row = payload[0]?.payload as any;
+                      return (
+                        <div className={earnings.tooltip}>
+                          <div className={earnings.tooltipTitle}>
+                            {row.label}
+                          </div>
+                          {series
+                            .filter((s) => (row[s.key] ?? 0) > 0)
+                            .map((s) => (
+                              <div key={s.key} className={earnings.tooltipRow}>
+                                <span className='miniNote'>{s.label}</span>
+                                <span className={earnings.tooltipVal}>
+                                  {row[s.key]}
+                                </span>
+                              </div>
+                            ))}
+                          <div className={earnings.tooltipRow}>
+                            <span className='miniNote'>Total rides</span>
+                            <span className={earnings.tooltipVal}>
+                              {row.total ?? 0}
+                            </span>
+                          </div>
+                          {clickable && row.total > 0 ? (
+                            <span className='miniNote'>
+                              Click to see these bookings
+                            </span>
+                          ) : null}
+                        </div>
+                      );
+                    }}
                   />
                   {todayKey ? (
                     <ReferenceLine
                       x={todayKey}
-                      stroke='var(--black)'
-                      strokeDasharray='3 3'
+                      stroke='rgba(0,0,0,0.35)'
+                      strokeDasharray='4 4'
                       label={{ value: "Today", position: "top", fontSize: 11 }}
                     />
                   ) : null}
@@ -289,37 +214,40 @@ export default function BookingsChart({
                       key={s.key}
                       dataKey={s.key}
                       name={s.label}
-                      stackId='rides'
+                      stackId='bookings'
                       fill={s.color}
                       cursor={clickable ? "pointer" : undefined}
-                      onClick={(d: any) => go(d?.payload?.key ?? d?.key)}
-                      isAnimationActive={false}
+                      onClick={(d: any) =>
+                        showBucket(d?.payload?.key ?? d?.key)
+                      }
+                      shape={(props: any) => (
+                        <Rectangle
+                          x={props.x}
+                          y={props.y}
+                          width={props.width}
+                          height={props.height}
+                          fill={props.fill}
+                          radius={
+                            props.payload?.__top === s.key
+                              ? BAR_RADIUS_TOP
+                              : BAR_RADIUS_NONE
+                          }
+                        />
+                      )}
                     />
                   ))}
                 </BarChart>
               </ResponsiveContainer>
+            )}
+          </div>
+
+          {clickable && buckets.length > 0 ? (
+            <div className='miniNote'>
+              Click a bar to show those bookings in the list below.
             </div>
-
-            <ul className={styles.legend}>
-              {series.map((s) => (
-                <li key={s.key} className={styles.legendItem}>
-                  <span
-                    className={styles.swatch}
-                    style={{ background: s.color }}
-                  />
-                  {s.label}
-                </li>
-              ))}
-            </ul>
-
-            {clickable ? (
-              <p className={styles.hint}>
-                Click a bar to show those bookings in the list below.
-              </p>
-            ) : null}
-          </>
-        )}
+          ) : null}
+        </div>
       </div>
-    </details>
+    </section>
   );
 }
