@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "../../../../../auth";
 import { db } from "@/lib/db";
+import { findTripCashPayments } from "@/lib/earnings/tripCash";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -174,6 +175,9 @@ export async function GET(req: Request) {
       currency: true,
       amountSubtotalCents: true,
       amountTotalCents: true,
+      amountPaidCents: true,
+      tipCents: true,
+      amountRefundedCents: true,
       bookingId: true,
       booking: {
         select: {
@@ -206,6 +210,13 @@ export async function GET(req: Request) {
     "pickupAtUtc",
     "pickupAddress",
     "dropoffAddress",
+    // Money actually received (added at the end so existing columns keep
+    // their positions). collectedCents = farePaidCents + tipCents.
+    "farePaidCents",
+    "tipCents",
+    "collectedCents",
+    "refundedCents",
+    "source",
   ].join(",");
 
   const lines = rows.map((p) => {
@@ -236,10 +247,47 @@ export async function GET(req: Request) {
       csvEscape(pickupAtUtc),
       csvEscape(b?.pickupAddress ?? ""),
       csvEscape(b?.dropoffAddress ?? ""),
+      csvEscape(String(p.amountPaidCents ?? 0)),
+      csvEscape(String(p.tipCents ?? 0)),
+      csvEscape(String((p.amountPaidCents ?? 0) + (p.tipCents ?? 0))),
+      csvEscape(String(p.amountRefundedCents ?? 0)),
+      "payment",
     ].join(",");
   });
 
-  const csv = [header, ...lines].join("\n");
+  // Cash recorded on multi-ride trips is saved on the trip, not on a payment
+  // record; include it so the export matches the earnings page.
+  const tripCash = await findTripCashPayments(fromUtc, toUtc);
+  const tripCashLines = tripCash.map((t) => {
+    const b = t.trip.bookings[0];
+    const customerName =
+      (b?.user?.name?.trim() || "").trim() ||
+      (b?.guestName?.trim() || "").trim() ||
+      "Customer";
+    return [
+      csvEscape(`trip:${t.tripId}`),
+      csvEscape(t.paidAt.toISOString()),
+      "PAID",
+      "usd",
+      "",
+      "",
+      csvEscape(b?.id ?? ""),
+      csvEscape(customerName),
+      csvEscape((b?.user?.email || "").trim()),
+      csvEscape((b?.guestEmail || "").trim()),
+      csvEscape((b?.guestPhone || "").trim()),
+      csvEscape(b?.pickupAt ? new Date(b.pickupAt).toISOString() : ""),
+      csvEscape(b?.pickupAddress ?? ""),
+      csvEscape(b?.dropoffAddress ?? ""),
+      csvEscape(String(t.cents)),
+      "0",
+      csvEscape(String(t.cents)),
+      "0",
+      "trip cash",
+    ].join(",");
+  });
+
+  const csv = [header, ...lines, ...tripCashLines].join("\n");
 
   return new NextResponse(csv, {
     status: 200,

@@ -25,6 +25,12 @@ import earnings from "../earnings/AdminEarningsPage.module.css";
 import chartStyles from "./BookingsChart.module.css";
 import { describeRange, getRangeWindow } from "@/lib/booking/bookingsRange";
 import {
+  loadTripsForCollection,
+  summarizeCollection,
+  toCollectionRide,
+  type CollectionSummary,
+} from "@/lib/booking/rideCollection";
+import {
   buildBookingsChart,
   countRidesBetween,
   safeBreakdown,
@@ -707,6 +713,7 @@ export default async function AdminBookingsPage({
   );
 
   let chartData: ReturnType<typeof buildBookingsChart> | null = null;
+  let collection: CollectionSummary | null = null;
   let ridesSub = rangeLabel;
   if (status !== "TRASH" && status !== "DRAFT") {
     const raw = await db.booking.findMany({
@@ -724,6 +731,9 @@ export default async function AdminBookingsPage({
         vehicle: { select: { id: true, name: true } },
         assignment: {
           select: { driver: { select: { id: true, name: true, email: true } } },
+        },
+        payment: {
+          select: { amountPaidCents: true, amountRefundedCents: true },
         },
       },
     });
@@ -745,6 +755,12 @@ export default async function AdminBookingsPage({
           }
         : null,
     }));
+
+    // Paid toward these same rides (whenever it was paid), trip-aware.
+    collection = summarizeCollection(
+      raw.map(toCollectionRide),
+      await loadTripsForCollection(raw.map((b) => b.tripGroupId)),
+    );
 
     chartData = buildBookingsChart({
       rows: chartRows,
@@ -983,6 +999,16 @@ export default async function AdminBookingsPage({
               value={Math.round(chartData.summary.bookedValueCents / 100)}
               prefix='$'
               sub='Excludes lost rides'
+            />
+            <KpiCard
+              label='Collected'
+              value={Math.round((collection?.collectedCents ?? 0) / 100)}
+              prefix='$'
+              sub={
+                collection && collection.scheduledCents > 0
+                  ? `${Math.round((collection.collectedRate ?? 0) * 100)}% of booked value · ${tz.formatMoneyShort(collection.stillOwedCents)} still owed`
+                  : "Nothing booked yet"
+              }
             />
           </div>
 

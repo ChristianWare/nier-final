@@ -12,6 +12,10 @@ import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import StripeSettingsSection from "@/components/admin/StripeSettingsSection/StripeSettingsSection";
 import { getStripeSettings } from "../../../../actions/admin/stripeSettings";
+import { findTripCashPayments } from "@/lib/earnings/tripCash";
+import { loadCollection } from "@/lib/booking/rideCollection";
+// Clickable-card styles shared with the bookings page.
+import cardLinks from "../bookings/BookingsChart.module.css";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -231,11 +235,12 @@ async function chartAggDaily(
   toUtc: Date,
   timeZone: string,
 ): Promise<ChartPoint[]> {
-  // ✅ Use amountPaidCents — actual money received, not booking total
+  // Money received = fare + tip. A payment record keeps them separately
+  // (amountPaidCents is the fare only), so add the tip back in here.
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('day', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM-DD') as key,
-      COALESCE(SUM("amountPaidCents"), 0) as sum,
+      COALESCE(SUM("amountPaidCents" + "tipCents"), 0) as sum,
       COALESCE(SUM("tipCents"), 0) as tips,
       COUNT(*) as count
     FROM "Payment"
@@ -267,6 +272,14 @@ async function chartAggDaily(
       tipCents: Number(r.tips || 0),
       count: Number(r.count || 0),
     });
+  }
+
+  // Cash recorded on a multi-ride trip is saved on the trip, not on a
+  // payment record, so add it here.
+  for (const t of await findTripCashPayments(fromUtc, toUtc)) {
+    const key = tz.formatIsoDate(t.paidAt, timeZone);
+    const c = cap.get(key) ?? { sumCents: 0, tipCents: 0, count: 0 };
+    cap.set(key, { ...c, sumCents: c.sumCents + t.cents, count: c.count + 1 });
   }
 
   const ref = new Map<string, { sumCents: number; count: number }>();
@@ -308,11 +321,12 @@ async function chartAggMonthly(
   toUtc: Date,
   timeZone: string,
 ): Promise<ChartPoint[]> {
-  // ✅ Use amountPaidCents — actual money received, not booking total
+  // Money received = fare + tip. A payment record keeps them separately
+  // (amountPaidCents is the fare only), so add the tip back in here.
   const capturedRows = (await db.$queryRaw<any[]>`
     SELECT
       to_char(date_trunc('month', "paidAt" AT TIME ZONE 'UTC' AT TIME ZONE ${timeZone}), 'YYYY-MM') as key,
-      COALESCE(SUM("amountPaidCents"), 0) as sum,
+      COALESCE(SUM("amountPaidCents" + "tipCents"), 0) as sum,
       COALESCE(SUM("tipCents"), 0) as tips,
       COUNT(*) as count
     FROM "Payment"
@@ -344,6 +358,14 @@ async function chartAggMonthly(
       tipCents: Number(r.tips || 0),
       count: Number(r.count || 0),
     });
+  }
+
+  // Cash recorded on a multi-ride trip is saved on the trip, not on a
+  // payment record, so add it here.
+  for (const t of await findTripCashPayments(fromUtc, toUtc)) {
+    const key = tz.monthKey(t.paidAt, timeZone);
+    const c = cap.get(key) ?? { sumCents: 0, tipCents: 0, count: 0 };
+    cap.set(key, { ...c, sumCents: c.sumCents + t.cents, count: c.count + 1 });
   }
 
   const ref = new Map<string, { sumCents: number; count: number }>();
@@ -839,6 +861,33 @@ export default async function EarningsPage({
         },
       });
 
+  // One list: payment records (fare + tip) and cash recorded on trips.
+  const tripCash = selectedDriverId
+    ? []
+    : await findTripCashPayments(fromUtc, toUtc);
+  const paymentRows = [
+    ...payments.map((p) => ({
+      id: p.id,
+      paidAt: p.paidAt,
+      totalCents: (p.amountPaidCents ?? 0) + (p.tipCents ?? 0),
+      tipCents: p.tipCents ?? 0,
+      bookingId: p.bookingId,
+      booking: p.booking,
+      tripCash: false,
+    })),
+    ...tripCash.map((t) => ({
+      id: `trip-cash-${t.tripId}`,
+      paidAt: t.paidAt as Date | null,
+      totalCents: t.cents,
+      tipCents: 0,
+      bookingId: t.trip.bookings[0]?.id ?? null,
+      booking: t.trip.bookings[0] ?? null,
+      tripCash: true,
+    })),
+  ]
+    .sort((a, b) => (b.paidAt?.getTime() ?? 0) - (a.paidAt?.getTime() ?? 0))
+    .slice(0, 250);
+
   /* ── Driver trips list (driver mode only) ───────────────── */
 
   const driverTrips = selectedDriverId
@@ -871,6 +920,44 @@ export default async function EarningsPage({
   const stripeSettings = await getStripeSettings();
 
   const kpi = kpisFromChartData(chartData);
+
+  // Rides with pickups in this period, counted by the rides themselves (not
+  // by when money came in). Matches the bookings page's Booked value and
+  // Collected for the same period.
+  const collection = await loadCollection({
+    ...(view === "all" ? {} : { pickupAt: { gte: fromUtc, lt: toUtc } }),
+    ...(selectedDriverId ? { assignment: { driverId: selectedDriverId } } : {}),
+  });
+  const collectedPct =
+    collection.collectedRate == null
+      ? 0
+      : Math.round(collection.collectedRate * 100);
+  const bookingsRange: Record<string, string | undefined> =
+    view === "daily"
+      ? {
+          month:
+            resolvedMonthKey === tz.monthKey(now, companyTz)
+              ? undefined
+              : resolvedMonthKey,
+        }
+      : view === "weekly"
+        ? { range: "week" }
+        : view === "monthly"
+          ? { range: "last12" }
+          : view === "ytd"
+            ? { range: "ytd" }
+            : view === "all"
+              ? { range: "all" }
+              : {
+                  range: "range",
+                  from: rangeFromParam ?? defaultFrom,
+                  to: rangeToParam ?? defaultTo,
+                };
+  const stillOwedHref = buildHref("/admin/bookings", {
+    ...bookingsRange,
+    driver: selectedDriverId ?? undefined,
+    payment: "unpaid",
+  });
   const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
 
   /* ── Monthly breakdown (always company-level) ───────────── */
@@ -883,10 +970,10 @@ export default async function EarningsPage({
     monthMenuStarts[monthMenuStarts.length - 1] ?? currentMonthStartForMenu;
   const nextAfterCurrent = tz.addMonths(currentMonthStartForMenu, 1, companyTz);
 
-  // ✅ Use amountPaidCents for monthly breakdown — actual money received
+  // Money received per month: fare + tip, plus cash recorded on trips.
   const last12CapturedRows = await db.payment.findMany({
     where: { paidAt: { gte: oldestMonthStart, lt: nextAfterCurrent } },
-    select: { paidAt: true, amountPaidCents: true },
+    select: { paidAt: true, amountPaidCents: true, tipCents: true },
   });
 
   const bucket = new Map<string, { sumCents: number; count: number }>();
@@ -895,7 +982,18 @@ export default async function EarningsPage({
     const key = tz.monthKey(r.paidAt, companyTz);
     const prev = bucket.get(key) ?? { sumCents: 0, count: 0 };
     bucket.set(key, {
-      sumCents: prev.sumCents + (r.amountPaidCents ?? 0), // ✅ was amountTotalCents
+      sumCents: prev.sumCents + (r.amountPaidCents ?? 0) + (r.tipCents ?? 0),
+      count: prev.count + 1,
+    });
+  }
+  for (const t of await findTripCashPayments(
+    oldestMonthStart,
+    nextAfterCurrent,
+  )) {
+    const key = tz.monthKey(t.paidAt, companyTz);
+    const prev = bucket.get(key) ?? { sumCents: 0, count: 0 };
+    bucket.set(key, {
+      sumCents: prev.sumCents + t.cents,
       count: prev.count + 1,
     });
   }
@@ -980,6 +1078,11 @@ export default async function EarningsPage({
         />
       </header>
 
+      <div className={styles.kpiGroupLabel}>
+        {selectedDriverId
+          ? "Driver pay · completed rides"
+          : "Money in · by payment date"}
+      </div>
       <div className={styles.kpiGrid}>
         <KpiCard
           label='Base Pay'
@@ -1024,6 +1127,32 @@ export default async function EarningsPage({
             />
           </>
         )}
+      </div>
+
+      <div className={styles.kpiGroupLabel}>
+        Rides with pickups · {rangeLabel}
+      </div>
+      <div className={styles.kpiGrid}>
+        <KpiCard
+          label='Scheduled'
+          value={tz.formatMoneyShort(collection.scheduledCents, currency)}
+          sub={`${collection.rides} ${collection.rides === 1 ? "ride" : "rides"} · cancelled excluded`}
+        />
+        <KpiCard
+          label='Collected'
+          value={`${collectedPct}%`}
+          sub={`${tz.formatMoneyShort(collection.collectedCents, currency)} of ${tz.formatMoneyShort(collection.scheduledCents, currency)}`}
+          tone='good'
+        />
+        <Link href={stillOwedHref} className={cardLinks.kpiAnchor}>
+          <KpiCard
+            label='Still owed'
+            value={tz.formatMoneyShort(collection.stillOwedCents, currency)}
+            sub='See unpaid rides →'
+            tone='warn'
+            className={cardLinks.kpiLink}
+          />
+        </Link>
       </div>
 
       <section className={`${styles.card} ${styles.chartCard}`}>
@@ -1123,7 +1252,7 @@ export default async function EarningsPage({
           {/* Company mode: payments list */}
           {!selectedDriverId && (
             <>
-              {payments.length === 0 ? (
+              {paymentRows.length === 0 ? (
                 <div className={styles.empty}>
                   <div className={styles.emptyTitle}>No payments found</div>
                   <div className='miniNote'>
@@ -1139,11 +1268,11 @@ export default async function EarningsPage({
                         <th>Booking</th>
                         <th>Customer</th>
                         <th className={styles.right}>Tip</th>
-                        <th className={styles.right}>Amount</th>
+                        <th className={styles.right}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {payments.map((p) => {
+                      {paymentRows.map((p) => {
                         const paidAt = p.paidAt ? new Date(p.paidAt) : null;
                         const b = p.booking;
                         const cust =
@@ -1168,6 +1297,9 @@ export default async function EarningsPage({
                           <tr key={p.id}>
                             <td>
                               {paidAt ? tz.formatDate(paidAt, companyTz) : "—"}
+                              {p.tripCash ? (
+                                <div className='miniNote'>Cash on trip</div>
+                              ) : null}
                             </td>
                             <td>
                               <Link
@@ -1199,11 +1331,8 @@ export default async function EarningsPage({
                                 : "—"}
                             </td>
                             <td className={styles.right}>
-                              {/* ✅ was p.amountTotalCents — now shows actual amount collected */}
-                              {tz.formatMoneyShort(
-                                p.amountPaidCents ?? 0,
-                                currency,
-                              )}
+                              {/* Money received: fare + tip */}
+                              {tz.formatMoneyShort(p.totalCents, currency)}
                             </td>
                           </tr>
                         );
@@ -1305,16 +1434,18 @@ function KpiCard({
   value,
   sub,
   tone = "neutral",
+  className = "",
 }: {
   label: string;
   value: string;
   sub: string;
   tone?: "neutral" | "good" | "warn" | "tip";
+  className?: string;
 }) {
   const { value: numericValue, prefix, suffix } = parseValue(value);
 
   return (
-    <div className={`${styles.kpiCard} ${styles[`tone_${tone}`]}`}>
+    <div className={`${styles.kpiCard} ${styles[`tone_${tone}`]} ${className}`}>
       <div className={styles.kpiTop}>
         <div className='emptyTitle underline'>{label}</div>
       </div>

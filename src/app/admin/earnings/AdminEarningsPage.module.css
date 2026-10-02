@@ -411,3 +411,14 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Labels above the two card groups: money in (by payment date) and rides
+   with pickups in the period (by pickup date). */
+.kpiGroupLabel {
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--paragraph, #555);
+  margin-bottom: -8px;
+}
