@@ -8,6 +8,7 @@
 import type { BookingStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import * as tz from "@/lib/timezone";
+import { isPayMissing } from "@/lib/drivers/driverPay";
 
 export type ReportRide = {
   id: string;
@@ -18,6 +19,11 @@ export type ReportRide = {
   driver: { id: string; name: string; email: string } | null;
   driverPayCents: number | null;
   driverTipCents: number | null;
+  /** The driver's pay settings (defaults when there's no profile yet). */
+  driverPaidPerRide: boolean;
+  driverPayPercent: number | null;
+  serviceName: string | null;
+  vehicleName: string | null;
 };
 
 /** Rides (not drafts) whose pickup date, or booked date, is in the window.
@@ -25,14 +31,19 @@ export type ReportRide = {
 export async function loadReportRides({
   dateField,
   window,
+  driverId,
 }: {
   dateField: "pickupAt" | "createdAt";
-  window: { gte: Date; lt: Date } | null;
+  /** lt omitted = open-ended (e.g. every pickup from now on). */
+  window: { gte: Date; lt?: Date } | null;
+  /** Only this driver's rides. */
+  driverId?: string;
 }): Promise<ReportRide[]> {
   const rows = await db.booking.findMany({
     where: {
       status: { not: "DRAFT" as BookingStatus },
       ...(window ? { [dateField]: window } : {}),
+      ...(driverId ? { assignment: { driverId } } : {}),
     },
     select: {
       id: true,
@@ -44,9 +55,20 @@ export async function loadReportRides({
         select: {
           driverPaymentCents: true,
           driverTipCents: true,
-          driver: { select: { id: true, name: true, email: true } },
+          driver: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              driverProfile: {
+                select: { payPercent: true, paidPerRide: true },
+              },
+            },
+          },
         },
       },
+      serviceType: { select: { name: true } },
+      vehicle: { select: { name: true } },
     },
   });
   return rows.map((r) => ({
@@ -64,6 +86,10 @@ export async function loadReportRides({
       : null,
     driverPayCents: r.assignment?.driverPaymentCents ?? null,
     driverTipCents: r.assignment?.driverTipCents ?? null,
+    driverPaidPerRide: r.assignment?.driver?.driverProfile?.paidPerRide ?? true,
+    driverPayPercent: r.assignment?.driver?.driverProfile?.payPercent ?? null,
+    serviceName: r.serviceType?.name ?? null,
+    vehicleName: r.vehicle?.name ?? null,
   }));
 }
 
@@ -72,7 +98,7 @@ const DONE: BookingStatus[] = ["COMPLETED", "PARTIALLY_REFUNDED"];
 
 /** A ride before today that is neither completed nor called off: nobody
  *  closed it out. (Today's rides aren't judged yet.) */
-function notClosedOut(r: ReportRide, todayStart: Date) {
+export function isNotClosedOut(r: ReportRide, todayStart: Date) {
   return (
     r.pickupAt < todayStart &&
     !DONE.includes(r.status) &&
@@ -92,7 +118,7 @@ export function operationalStats(rides: ReportRide[], todayStart: Date) {
   const completed = rides.filter((r) => DONE.includes(r.status)).length;
   const cancelled = rides.filter((r) => r.status === "CANCELLED").length;
   const noShows = rides.filter((r) => r.status === "NO_SHOW").length;
-  const open = rides.filter((r) => notClosedOut(r, todayStart)).length;
+  const open = rides.filter((r) => isNotClosedOut(r, todayStart)).length;
 
   return {
     total: rides.length,
@@ -210,8 +236,13 @@ export type DriverStatsRow = {
   completionRate: number | null;
   /** Driver pay + tips recorded on the rides. */
   payCents: number;
-  /** Completed rides with no driver pay recorded. */
+  basePayCents: number;
+  tipCents: number;
+  /** Completed rides with no driver pay recorded (never counted for
+   *  drivers who aren't paid per ride). */
   payMissing: number;
+  payPercent: number | null;
+  paidPerRide: boolean;
 };
 
 export function driverStats(rides: ReportRide[], now: Date, todayStart: Date) {
@@ -230,17 +261,28 @@ export function driverStats(rides: ReportRide[], now: Date, todayStart: Date) {
       noShows: 0,
       completionRate: null,
       payCents: 0,
+      basePayCents: 0,
+      tipCents: 0,
       payMissing: 0,
+      payPercent: r.driverPayPercent,
+      paidPerRide: r.driverPaidPerRide,
     };
     row.trips += 1;
     if (DONE.includes(r.status)) row.completed += 1;
     if (r.status === "CANCELLED") row.cancelled += 1;
     if (r.status === "NO_SHOW") row.noShows += 1;
-    if (notClosedOut(r, todayStart)) row.notClosedOut += 1;
+    if (isNotClosedOut(r, todayStart)) row.notClosedOut += 1;
     if (r.pickupAt >= now && !LOST.includes(r.status)) row.upcoming += 1;
+    row.basePayCents += r.driverPayCents ?? 0;
+    row.tipCents += r.driverTipCents ?? 0;
     row.payCents += (r.driverPayCents ?? 0) + (r.driverTipCents ?? 0);
-    if (DONE.includes(r.status) && r.driverPayCents == null)
+    if (
+      DONE.includes(r.status) &&
+      r.driverPaidPerRide &&
+      isPayMissing(r.driverPayCents)
+    ) {
       row.payMissing += 1;
+    }
     rows.set(r.driver.id, row);
   }
   const list = [...rows.values()].map((row) => ({

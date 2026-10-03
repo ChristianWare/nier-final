@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { BookingStatus } from "@prisma/client";
 import { auth } from "../../auth";
 import { db } from "@/lib/db";
+import { syncDriverPaySafely } from "@/lib/drivers/driverPay";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -82,6 +83,9 @@ export async function updateDriverBookingStatus(formData: FormData) {
       createdById: actorId,
     },
   });
+
+  // Completed: fill in the driver's default pay and tips.
+  if (nextStatus === "COMPLETED") await syncDriverPaySafely([bookingId]);
 
   revalidatePath("/driver-dashboard");
   revalidatePath("/driver-dashboard/trips");

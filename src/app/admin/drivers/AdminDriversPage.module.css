@@ -127,3 +127,120 @@
     padding-right: 10px;
   }
 }
+
+/* ── Drivers page additions ── */
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.attention {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin: 1.6rem 0;
+  padding: 1.2rem 1.6rem;
+  border-radius: 10px;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(255, 200, 9, 0.18);
+}
+
+.attentionItems {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.6rem;
+  align-items: baseline;
+}
+
+.attentionActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.block {
+  margin: 2.4rem 0;
+  scroll-margin-top: 2rem;
+}
+
+.blockHead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+}
+
+.warnNote {
+  color: var(--darkYellow, #92400e);
+}
+
+.doc_bad {
+  color: var(--red, #b91c1c);
+  font-weight: 600;
+}
+
+.doc_warn {
+  color: var(--darkYellow, #92400e);
+  font-weight: 600;
+}
+
+.doc_ok {
+  color: var(--darkGreen, #166534);
+}
+
+.doc_none {
+  color: var(--paragraph, #666);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.6rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 1.2rem 1.6rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field input,
+.field textarea {
+  font: inherit;
+}
+
+.checkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+  margin: 1.2rem 0;
+}
+
+.formFoot {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  margin-top: 1.4rem;
+}
+
+.downloads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}

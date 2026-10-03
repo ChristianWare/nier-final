@@ -380,3 +380,51 @@ export async function chartAggMonthly(
     };
   });
 }
+
+/** Money received (fare + tip) by service type, by payment date. */
+export async function getRevenueByServiceType(fromUtc: Date, toUtc: Date) {
+  const rows = await db.$queryRaw<
+    { name: string; totalCents: bigint; count: bigint }[]
+  >`
+    SELECT
+      st.name,
+      COALESCE(SUM(p."amountPaidCents" + p."tipCents"), 0) as "totalCents",
+      COUNT(p.id) as count
+    FROM "Payment" p
+    JOIN "Booking" b ON p."bookingId" = b.id
+    JOIN "ServiceType" st ON b."serviceTypeId" = st.id
+    WHERE p."paidAt" >= ${fromUtc} AND p."paidAt" < ${toUtc}
+    GROUP BY st.name
+    ORDER BY "totalCents" DESC
+  `;
+
+  return rows.map((r) => ({
+    name: r.name,
+    value: Number(r.totalCents),
+    count: Number(r.count),
+  }));
+}
+
+/** Money received (fare + tip) by vehicle, by payment date. */
+export async function getRevenueByVehicle(fromUtc: Date, toUtc: Date) {
+  const rows = await db.$queryRaw<
+    { name: string; totalCents: bigint; count: bigint }[]
+  >`
+    SELECT
+      COALESCE(v.name, 'Unassigned') as name,
+      COALESCE(SUM(p."amountPaidCents" + p."tipCents"), 0) as "totalCents",
+      COUNT(p.id) as count
+    FROM "Payment" p
+    JOIN "Booking" b ON p."bookingId" = b.id
+    LEFT JOIN "Vehicle" v ON b."vehicleId" = v.id
+    WHERE p."paidAt" >= ${fromUtc} AND p."paidAt" < ${toUtc}
+    GROUP BY v.name
+    ORDER BY "totalCents" DESC
+  `;
+
+  return rows.map((r) => ({
+    name: r.name,
+    value: Number(r.totalCents),
+    count: Number(r.count),
+  }));
+}

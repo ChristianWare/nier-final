@@ -36,7 +36,10 @@ export default function BookingsTimeControls({
   from,
   to,
   rangeLabel,
+  basisTitle = "Showing bookings by",
 }: {
+  /** Label above the pickup/booked date switch. */
+  basisTitle?: string;
   activeRange: string;
   basis: "pickup" | "created";
   years: string[];
@@ -144,7 +147,7 @@ export default function BookingsTimeControls({
     <>
       <div className={earnings.driverSelector}>
         <label className={earnings.driverLabel}>
-          <span className='miniNote'>Showing bookings by</span>
+          <span className='miniNote'>{basisTitle}</span>
           <select
             className='selectBorder emptySmall'
             style={{ minWidth: "275px" }}

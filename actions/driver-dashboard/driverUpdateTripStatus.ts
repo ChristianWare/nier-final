@@ -2,6 +2,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { syncDriverPaySafely } from "@/lib/drivers/driverPay";
 import { auth } from "../../auth";
 import { BookingStatus } from "@prisma/client";
 import { revalidatePath } from "next/cache";
@@ -194,6 +195,11 @@ export async function driverUpdateTripStatus(input: UpdateTripStatusInput) {
       }).catch((err) => {
         console.error("Failed to send customer notification:", err);
       });
+    }
+
+    // Completed: fill in the driver's default pay and tips.
+    if (newStatus === BookingStatus.COMPLETED) {
+      await syncDriverPaySafely([bookingId]);
     }
 
     revalidatePath(`/driver-dashboard/trips/${bookingId}`);

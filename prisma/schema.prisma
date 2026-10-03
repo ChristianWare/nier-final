@@ -224,6 +224,7 @@ model User {
   updatedAt                  DateTime                    @updatedAt
   adminNotificationSettings  AdminNotificationSettings?
   driverNotificationSettings DriverNotificationSettings?
+  driverProfile              DriverProfile?
 }
 
 model Account {
@@ -1253,4 +1254,37 @@ model TripGroup {
   @@index([userId])
   @@index([corporateAccountId])
   @@index([paymentStatus])
+}
+
+/// Driver details kept by the admin: default pay, documents, and the
+/// information needed for 1099s (no Social Security or tax ID numbers).
+model DriverProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Default pay as a percentage of the ride's full price (fees and taxes
+  /// included). Filled in when a ride is completed; tips go to the driver in
+  /// full. Pay entered on a ride is never overwritten.
+  payPercent  Float?
+  /// Owners and salaried drivers aren't paid per ride: no pay is filled in
+  /// for them and they never show as "pay not recorded".
+  paidPerRide Boolean @default(true)
+  active      Boolean @default(true)
+
+  // For 1099s
+  legalName      String?
+  mailingAddress String?
+  w9ReceivedAt   DateTime?
+
+  // Documents
+  licenseNumber      String?
+  licenseExpiresAt   DateTime?
+  permitExpiresAt    DateTime?
+  insuranceExpiresAt DateTime?
+  backgroundCheckAt  DateTime?
+
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

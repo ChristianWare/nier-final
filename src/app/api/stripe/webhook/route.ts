@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 import { db } from "@/lib/db";
+import { syncDriverPaySafely } from "@/lib/drivers/driverPay";
 import { BookingStatus } from "@prisma/client";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import {
@@ -383,6 +384,9 @@ async function finalizePaid(args: {
   } catch (e) {
     console.error("❌ Failed to update trip group after payment:", e);
   }
+
+  // ── Driver pay: a payment can carry a tip for a ride that's already done ──
+  await syncDriverPaySafely([bookingId]);
 
   // ── Send payment confirmation email with PDF invoice ──
   try {

@@ -1,17 +1,22 @@
+import Link from "next/link";
 import styles from "./AdminReportsPage.module.css";
 import { db } from "@/lib/db";
 import base from "../AdminStyles.module.css";
 import ReportsControls from "./Reportscontrols";
 import RevenueChart from "./Revenuechart";
 import StatusPieChart from "./StatusPieChart";
+import KpiCard from "./KpiCard";
+import DriverPerformanceSection from "./DriverPerformanceSection";
+import ReportBuilder from "./ReportBuilder";
 import LeadTimePieChart from "./LeadTimePieChart";
 import PeakTimesPieChart from "./PeakTimesPieChart";
-import CountUp from "@/components/shared/CountUp/CountUp";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import {
   chartAggDaily,
   chartAggMonthly,
+  getRevenueByServiceType,
+  getRevenueByVehicle,
   kpisFromChartData,
 } from "@/lib/earnings/moneyIn";
 import { findTripCashPayments } from "@/lib/earnings/tripCash";
@@ -116,29 +121,6 @@ function chartHeadingFromData(view: ViewMode, data: { key: string }[]) {
   return "Monthly revenue";
 }
 
-function parseValue(str: string): {
-  value: number;
-  prefix: string;
-  suffix: string;
-} {
-  const cleaned = str.replace(/,/g, "").trim();
-  const match = cleaned.match(/^([^\d.-]*)([+-]?\d+(?:\.\d+)?)([^\d]*)$/);
-
-  if (match) {
-    const prefix = match[1] || "";
-    const value = parseFloat(match[2]) || 0;
-    const suffix = match[3] || "";
-    return { value, prefix, suffix };
-  }
-
-  const numValue = parseFloat(cleaned);
-  if (!isNaN(numValue)) {
-    return { value: numValue, prefix: "", suffix: "" };
-  }
-
-  return { value: 0, prefix: "", suffix: str };
-}
-
 // ============================================
 // REVENUE DATA AGGREGATION
 // ============================================
@@ -164,52 +146,6 @@ function formatStatusLabel(status: string): string {
     NO_SHOW: "No Show",
   };
   return labels[status] || status;
-}
-
-async function getRevenueByServiceType(fromUtc: Date, toUtc: Date) {
-  const rows = await db.$queryRaw<
-    { name: string; totalCents: bigint; count: bigint }[]
-  >`
-    SELECT 
-      st.name,
-      COALESCE(SUM(p."amountPaidCents" + p."tipCents"), 0) as "totalCents",
-      COUNT(p.id) as count
-    FROM "Payment" p
-    JOIN "Booking" b ON p."bookingId" = b.id
-    JOIN "ServiceType" st ON b."serviceTypeId" = st.id
-    WHERE p."paidAt" >= ${fromUtc} AND p."paidAt" < ${toUtc}
-    GROUP BY st.name
-    ORDER BY "totalCents" DESC
-  `;
-
-  return rows.map((r) => ({
-    name: r.name,
-    value: Number(r.totalCents),
-    count: Number(r.count),
-  }));
-}
-
-async function getRevenueByVehicle(fromUtc: Date, toUtc: Date) {
-  const rows = await db.$queryRaw<
-    { name: string; totalCents: bigint; count: bigint }[]
-  >`
-    SELECT 
-      COALESCE(v.name, 'Unassigned') as name,
-      COALESCE(SUM(p."amountPaidCents" + p."tipCents"), 0) as "totalCents",
-      COUNT(p.id) as count
-    FROM "Payment" p
-    JOIN "Booking" b ON p."bookingId" = b.id
-    LEFT JOIN "Vehicle" v ON b."vehicleId" = v.id
-    WHERE p."paidAt" >= ${fromUtc} AND p."paidAt" < ${toUtc}
-    GROUP BY v.name
-    ORDER BY "totalCents" DESC
-  `;
-
-  return rows.map((r) => ({
-    name: r.name,
-    value: Number(r.totalCents),
-    count: Number(r.count),
-  }));
 }
 
 // ============================================
@@ -363,6 +299,13 @@ export default async function AdminReportsPage({
   const revenueByVehicle = [...vehicleRows, ...cashSlice];
 
   const ops = operationalStats(rides, todayStart);
+  const reportDrivers = (
+    await db.user.findMany({
+      where: { roles: { has: "DRIVER" } },
+      orderBy: [{ name: "asc" }, { email: "asc" }],
+      select: { id: true, name: true, email: true },
+    })
+  ).map((d) => ({ id: d.id, name: d.name?.trim() || d.email }));
   const bookingsByStatus = ops.byStatus.map((x) => ({
     name: formatStatusLabel(x.status),
     value: x.count,
@@ -371,17 +314,6 @@ export default async function AdminReportsPage({
   const leadTimeData = leadTimeBuckets(rides);
   const peakTimesData = peakTimes(rides, companyTz);
   const driverPerformance = driverStats(rides, now, todayStart);
-  const driverTripsDistribution = driverPerformance
-    .slice(0, 10)
-    .map((d) => ({ name: d.driverName, value: d.trips }));
-  const driverEarningsDistribution = [...driverPerformance]
-    .sort((x, y) => y.payCents - x.payCents)
-    .slice(0, 10)
-    .map((d) => ({ name: d.driverName, value: d.payCents }));
-  const driverPayMissing = driverPerformance.reduce(
-    (sum, d) => sum + d.payMissing,
-    0,
-  );
 
   const kpi = kpisFromChartData(revenueChartData);
   const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
@@ -404,6 +336,17 @@ export default async function AdminReportsPage({
         <p className='subheading'>
           Comprehensive business analytics for Nier Transportation
         </p>
+        <div className={styles.headerActions}>
+          <ReportBuilder
+            years={years}
+            defaultYear={resolvedMY.year}
+            defaultMonth={resolvedMY.month}
+            drivers={reportDrivers}
+          />
+          <Link className='tab' href='/admin/drivers'>
+            Drivers page
+          </Link>
+        </div>
 
         <ReportsControls
           years={years}
@@ -602,189 +545,14 @@ export default async function AdminReportsPage({
       </section>
 
       {/* ============================================ */}
-      {/* DRIVER PERFORMANCE SECTION */}
+      {/* DRIVER PERFORMANCE SECTION (shared with the Drivers page) */}
       {/* ============================================ */}
-      <section className={styles.section}>
-        <div className='header'>
-          <h2 className={`cardTitle h4`}>Driver Performance</h2>
-          <span className={styles.sectionBadge}>
-            {rangeLabel} · {basisLabel}
-          </span>
-        </div>
-
-        <div className={styles.kpiGrid}>
-          <KpiCard
-            label='Active Drivers'
-            value={String(driverPerformance.length)}
-            sub='With rides in this period'
-          />
-          <KpiCard
-            label='Total Trips'
-            value={String(
-              driverPerformance.reduce((sum, d) => sum + d.trips, 0),
-            )}
-            sub={`Rides ${basisLabel}`}
-          />
-          <KpiCard
-            label='Avg Trips per Driver'
-            value={String(
-              driverPerformance.length > 0
-                ? Math.round(
-                    driverPerformance.reduce((sum, d) => sum + d.trips, 0) /
-                      driverPerformance.length,
-                  )
-                : 0,
-            )}
-            sub='Workload distribution'
-          />
-          <KpiCard
-            label='Driver Pay'
-            value={tz.formatMoneyShort(
-              driverPerformance.reduce((sum, d) => sum + d.payCents, 0),
-              currency,
-            )}
-            sub={
-              driverPayMissing > 0
-                ? `Not recorded on ${driverPayMissing} completed ${driverPayMissing === 1 ? "ride" : "rides"}`
-                : "Pay + tips recorded on rides"
-            }
-            tone='good'
-          />
-        </div>
-
-        <div className={styles.chartsRow}>
-          <div className={styles.chartCard}>
-            <div className={styles.chartHeader}>
-              <h3 className={`cardTitle h6`}>Trips by Driver</h3>
-              <span className='miniNote'>Top 10 drivers by trip count</span>
-            </div>
-            <div className={styles.chartBodyPie}>
-              <StatusPieChart
-                data={driverTripsDistribution}
-                dataKey='value'
-                colors={[
-                  "#3b82f6",
-                  "#10b981",
-                  "#8b5cf6",
-                  "#f59e0b",
-                  "#ef4444",
-                  "#06b6d4",
-                  "#ec4899",
-                  "#84cc16",
-                  "#f97316",
-                  "#6366f1",
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className={styles.chartCard}>
-            <div className={styles.chartHeader}>
-              <h3 className={`cardTitle h6`}>Earnings by Driver</h3>
-              <span className='miniNote'>Top 10 drivers by pay recorded</span>
-            </div>
-            <div className={styles.chartBodyPie}>
-              <StatusPieChart
-                data={driverEarningsDistribution}
-                dataKey='value'
-                isCurrency={true}
-                currency={currency}
-                colors={[
-                  "#10b981",
-                  "#3b82f6",
-                  "#8b5cf6",
-                  "#f59e0b",
-                  "#ef4444",
-                  "#06b6d4",
-                  "#ec4899",
-                  "#84cc16",
-                  "#f97316",
-                  "#6366f1",
-                ]}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Driver Performance Table */}
-        <div className={styles.chartCardLarge}>
-          <div className={styles.chartHeader}>
-            <h3 className={`cardTitle h6`}>Driver Leaderboard</h3>
-            <span className='miniNote'>Performance breakdown by driver</span>
-          </div>
-          <div className={styles.tableWrap}>
-            {driverPerformance.length === 0 ? (
-              <div className={styles.emptyState}>
-                <div className={styles.emptyTitle}>
-                  No rides with a driver in this period
-                </div>
-                <span className='miniNote'>
-                  Try a different filter or expand the date range.
-                </span>
-              </div>
-            ) : (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Driver</th>
-                    <th className={styles.right}>Trips</th>
-                    <th className={styles.right}>Completed</th>
-                    <th className={styles.right}>Upcoming</th>
-                    <th className={styles.right}>Not closed out</th>
-                    <th className={styles.right}>Cancelled</th>
-                    <th className={styles.right}>No-Shows</th>
-                    <th className={styles.right}>Completion Rate</th>
-                    <th className={styles.right}>Pay</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {driverPerformance.map((driver) => (
-                    <tr key={driver.driverId}>
-                      <td>
-                        <div className={styles.driverName}>
-                          {driver.driverName}
-                        </div>
-                        <span className='miniNote'>{driver.driverEmail}</span>
-                      </td>
-                      <td className={styles.right}>{driver.trips}</td>
-                      <td className={styles.right}>{driver.completed}</td>
-                      <td className={styles.right}>{driver.upcoming}</td>
-                      <td className={styles.right}>{driver.notClosedOut}</td>
-                      <td className={styles.right}>{driver.cancelled}</td>
-                      <td className={styles.right}>{driver.noShows}</td>
-                      <td className={styles.right}>
-                        {driver.completionRate == null ? (
-                          <span className='miniNote'>—</span>
-                        ) : (
-                          <span
-                            className={
-                              driver.completionRate >= 90
-                                ? styles.rateBadgeGood
-                                : driver.completionRate >= 70
-                                  ? styles.rateBadgeWarn
-                                  : styles.rateBadgeBad
-                            }
-                          >
-                            {driver.completionRate}%
-                          </span>
-                        )}
-                      </td>
-                      <td className={styles.right}>
-                        {tz.formatMoneyShort(driver.payCents, currency)}
-                        {driver.payMissing > 0 ? (
-                          <div className='miniNote'>
-                            {driver.payMissing} not recorded
-                          </div>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-      </section>
+      <DriverPerformanceSection
+        drivers={driverPerformance}
+        rangeLabel={rangeLabel}
+        basisLabel={basisLabel}
+        currency={currency}
+      />
     </section>
   );
 }
@@ -792,35 +560,3 @@ export default async function AdminReportsPage({
 // ============================================
 // KPI CARD COMPONENT
 // ============================================
-
-function KpiCard({
-  label,
-  value,
-  sub,
-  tone = "neutral",
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  tone?: "neutral" | "good" | "warn";
-}) {
-  const { value: numericValue, prefix, suffix } = parseValue(value);
-
-  return (
-    <div className={`${styles.kpiCard} ${styles[`tone_${tone}`]}`}>
-      <div className='emptyTitle underline'>{label}</div>
-      <div className={styles.kpiValue}>
-        {prefix && <span>{prefix}</span>}
-        <CountUp
-          from={0}
-          to={numericValue}
-          duration={1.5}
-          separator=','
-          delay={0.1}
-        />
-        {suffix && <span>{suffix}</span>}
-      </div>
-      <div className={styles.kpiSub}>{sub}</div>
-    </div>
-  );
-}

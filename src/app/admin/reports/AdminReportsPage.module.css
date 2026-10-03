@@ -601,3 +601,32 @@
   gap: 6px;
   min-width: 220px;
 }
+
+/* Report builder dialog */
+.builderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 1.2rem 1.6rem;
+  margin-bottom: 1.2rem;
+}
+
+.builderField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.builderChecks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.6rem;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1.2rem;
+}

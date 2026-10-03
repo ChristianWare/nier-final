@@ -3,6 +3,8 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
+import { syncDriverPaySafely } from "@/lib/drivers/driverPay";
+import { getAdminUserId } from "@/lib/sessionUser";
 import { generateCorporateInvoiceForBooking } from "@/lib/corporate/generateCorporateInvoice";
 export async function adminUpdateBookingStatus({
   bookingId,
@@ -14,12 +16,16 @@ export async function adminUpdateBookingStatus({
   try {
     if (!bookingId) return { error: "Missing bookingId." };
     if (!status) return { error: "Missing status." };
+    if (!(await getAdminUserId())) return { error: "Unauthorized" };
 
     const booking = await db.booking.update({
       where: { id: bookingId },
       data: { status: status as any },
       select: { id: true, corporateAccountId: true },
     });
+
+    // Completed: fill in the driver's default pay and tips.
+    if (status === "COMPLETED") await syncDriverPaySafely([bookingId]);
 
     // Generate corporate invoice when ride completes
     if (status === "COMPLETED" && booking.corporateAccountId) {

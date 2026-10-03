@@ -3,6 +3,7 @@
 
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { syncDriverPaySafely } from "@/lib/drivers/driverPay";
 import { auth } from "../../auth";
 import { getStripe } from "@/lib/stripe";
 import { getAmountDue } from "@/lib/booking/getAmountDue";
@@ -955,6 +956,8 @@ export async function updateBookingStatus(formData: FormData) {
       },
     }),
   ]);
+  // Completed: fill in the driver's default pay and tips.
+  if (status === "COMPLETED") await syncDriverPaySafely([bookingId]);
   if (status === "CANCELLED")
     await queueAdminNotificationsForBookingEvent({
       event: "BOOKING_CANCELLED",
