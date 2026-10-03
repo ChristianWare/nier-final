@@ -30,10 +30,14 @@ function Field({
     <label className={styles.field}>
       <span className='miniNote'>{label}</span>
       {type === "date" ? (
-        <DatePicker className='selectBorder' name={name} defaultValue={value} />
+        <DatePicker
+          className={styles.textField}
+          name={name}
+          defaultValue={value}
+        />
       ) : (
         <input
-          className='selectBorder'
+          className={styles.textField}
           name={name}
           type={type}
           defaultValue={value}
@@ -122,7 +126,7 @@ export default function DriverProfileForm({
         </label>
       </div>
 
-      <h3 className='cardTitle h6'>For 1099s</h3>
+      <h3 className={`cardTitle h6 ${styles.formSection}`}>For 1099s</h3>
       <div className={styles.formGrid}>
         <Field label='Legal name' name='legalName' value={initial.legalName} />
         <Field
@@ -139,7 +143,7 @@ export default function DriverProfileForm({
         />
       </div>
 
-      <h3 className='cardTitle h6'>Documents</h3>
+      <h3 className={`cardTitle h6 ${styles.formSection}`}>Documents</h3>
       <div className={styles.formGrid}>
         <Field
           label='License number'
@@ -172,10 +176,10 @@ export default function DriverProfileForm({
         />
       </div>
 
-      <label className={styles.field} style={{ marginTop: "1.2rem" }}>
+      <label className={`${styles.field} ${styles.notesField}`}>
         <span className='miniNote'>Notes</span>
         <textarea
-          className='selectBorder'
+          className={styles.textField}
           name='notes'
           rows={3}
           defaultValue={initial.notes}

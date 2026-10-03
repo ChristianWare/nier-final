@@ -1,5 +1,6 @@
 "use client";
 
+import { useNavProgress } from "@/components/shared/NavProgress/useNavProgress";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition, type ReactNode } from "react";
 // Same field and select styles as the earnings page's controls.
@@ -63,6 +64,7 @@ export default function BookingsFilters({
   const pathname = usePathname();
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  useNavProgress(isPending);
 
   function nav(next: URLSearchParams) {
     next.delete("page");

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import { useNavProgress } from "@/components/shared/NavProgress/useNavProgress";
 import PeriodTabs from "@/components/admin/PeriodTabs/PeriodTabs";
 import { DatePicker } from "@/components/shared/DatePicker";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -82,6 +83,7 @@ export default function ReportsControls({
   const pathname = usePathname();
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  useNavProgress(isPending);
 
   const spKey = sp.toString();
   const activeView = cleanView(sp.get("view"));

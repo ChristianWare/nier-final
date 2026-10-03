@@ -211,13 +211,13 @@
 .formGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
-  gap: 1.2rem 1.6rem;
+  gap: 2.2rem 2rem;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.8rem;
 }
 
 .field input,
@@ -228,15 +228,15 @@
 .checkRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 1.6rem;
-  margin: 1.2rem 0;
+  gap: 1.6rem 2.4rem;
+  margin: 2.4rem 0;
 }
 
 .formFoot {
   display: flex;
   align-items: center;
   gap: 1.2rem;
-  margin-top: 1.4rem;
+  margin-top: 3rem;
 }
 
 .downloads {
@@ -273,4 +273,35 @@
 .td :global(.badge) {
   white-space: nowrap;
   display: inline-block;
+}
+
+/* Driver details form */
+.formSection {
+  margin: 3.2rem 0 1.8rem;
+}
+
+.notesField {
+  margin-top: 2.4rem;
+}
+
+/* Text fields look like the dropdowns, without the arrow. */
+.textField {
+  width: 100%;
+  border: 3px solid var(--stroke);
+  border-radius: 7px;
+  padding: 0.75rem 1rem;
+  background: var(--white, #fff);
+  color: var(--black);
+  font-family: inherit;
+  font-size: 1.6rem;
+  font-weight: 500;
+}
+
+/* Upcoming schedule: each ride gets room to breathe */
+.upcomingCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.8rem 1.6rem !important;
 }

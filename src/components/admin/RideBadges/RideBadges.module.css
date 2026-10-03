@@ -1,0 +1,89 @@
+.badges {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Sits above the rows' full-cell links, so hovering a badge explains it. */
+.tipTarget {
+  position: relative;
+  z-index: 6;
+  display: inline-flex;
+  cursor: help;
+  border-radius: 999px;
+}
+
+.tipTarget:focus-visible {
+  outline: 2px solid var(--black, #111);
+  outline-offset: 2px;
+}
+
+/* Status tones not in the global badge set */
+.tone_moving {
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+}
+
+.tone_done {
+  background: transparent;
+  border-color: var(--darkGreen, #166534);
+  color: var(--darkGreen, #166534);
+}
+
+.tone_draft {
+  border-style: dashed;
+}
+
+/* Payment tag: smaller than the status badge */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.tag_paid {
+  background: rgba(22, 163, 74, 0.16);
+  color: var(--darkGreen, #166534);
+}
+
+.tag_partial {
+  background: rgba(255, 200, 9, 0.28);
+  color: var(--darkYellow, #92400e);
+}
+
+.tag_unpaid {
+  background: var(--white, #fff);
+  border-color: rgba(220, 38, 38, 0.45);
+  color: var(--darkRed, #991b1b);
+}
+
+.tag_refunded {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--paragraph, #555);
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 1200;
+  max-width: 26rem;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #111;
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: normal;
+  text-transform: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}

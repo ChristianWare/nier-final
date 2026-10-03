@@ -894,3 +894,12 @@ th {
     font-size: 35px;
   }
 }
+
+/* While a page loads (see NavProgress), the admin content fades slightly. */
+[data-refresh-area] {
+  transition: opacity 0.2s ease;
+}
+
+html[data-nav-loading="1"] [data-refresh-area] {
+  opacity: 0.6;
+}

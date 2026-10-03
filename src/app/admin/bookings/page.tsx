@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { paymentTag, statusBadge } from "@/lib/booking/rideBadges";
+import RideBadges from "@/components/admin/RideBadges/RideBadges";
 import styles from "./BookingsPage.module.css";
 import Link from "next/link";
 import { db } from "@/lib/db";
@@ -138,8 +140,6 @@ type SearchParams = {
   flight?: string;
 };
 
-type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
-
 const PAGE_SIZE = 25;
 
 function getConfirmationCode(bookingId: string): string {
@@ -165,41 +165,6 @@ function clampPage(raw: string | undefined) {
   const n = Number(raw);
   if (!Number.isFinite(n) || n <= 1) return 1;
   return Math.floor(n);
-}
-
-function statusLabel(status: BookingStatus) {
-  switch (status) {
-    case "PENDING_REVIEW":
-      return "Pending review";
-    case "DECLINED":
-      return "Declined";
-    case "PENDING_PAYMENT":
-      return "Payment due";
-    case "CONFIRMED":
-      return "Confirmed";
-    case "ASSIGNED":
-      return "Driver assigned";
-    case "EN_ROUTE":
-      return "Driver en route";
-    case "ARRIVED":
-      return "Driver arrived";
-    case "IN_PROGRESS":
-      return "In progress";
-    case "COMPLETED":
-      return "Completed";
-    case "CANCELLED":
-      return "Cancelled";
-    case "NO_SHOW":
-      return "No-show";
-    case "REFUNDED":
-      return "Refunded";
-    case "PARTIALLY_REFUNDED":
-      return "Partially refunded";
-    case "DRAFT":
-      return "Draft";
-    default:
-      return String(status).replaceAll("_", " ");
-  }
 }
 
 function statusTabLabel(status: StatusFilter): string {
@@ -251,20 +216,6 @@ function statusTabLabel(status: StatusFilter): string {
     default:
       return String(status).replaceAll("_", " ");
   }
-}
-
-function badgeTone(status: BookingStatus): BadgeTone {
-  if (status === "PENDING_PAYMENT") return "warn";
-  if (status === "PENDING_REVIEW" || status === "DRAFT") return "neutral";
-  if (status === "DECLINED") return "bad";
-  if (status === "CONFIRMED" || status === "ASSIGNED") return "good";
-  if (status === "EN_ROUTE" || status === "ARRIVED" || status === "IN_PROGRESS")
-    return "accent";
-  if (status === "CANCELLED" || status === "NO_SHOW") return "bad";
-  if (status === "COMPLETED") return "good";
-  if (status === "REFUNDED" || status === "PARTIALLY_REFUNDED")
-    return "neutral";
-  return "neutral";
 }
 
 type BookingRow = Prisma.BookingGetPayload<{
@@ -566,6 +517,8 @@ export default async function AdminBookingsPage({
       tripGroup: {
         select: {
           legCount: true,
+          paymentStatus: true,
+          amountPaidCents: true,
           bookings: {
             select: { id: true },
             orderBy: { pickupAt: "asc" },
@@ -1142,29 +1095,19 @@ export default async function AdminBookingsPage({
 
                     const driverName = b.assignment?.driver?.name?.trim() || "";
                     const driverEmail = b.assignment?.driver?.email ?? "";
-                    const payStatus = b.payment?.status ?? null;
-
-                    const statusDisplay =
-                      payStatus === "PARTIALLY_PAID"
-                        ? "Partially paid"
-                        : payStatus === "PAID" &&
-                            (b.status === "CONFIRMED" ||
-                              b.status === "PENDING_PAYMENT")
-                          ? "Paid"
-                          : payStatus === "PAID" && b.status === "COMPLETED"
-                            ? "Completed · Paid"
-                            : statusLabel(b.status);
-
-                    const statusTone: BadgeTone =
-                      payStatus === "PARTIALLY_PAID"
-                        ? "warn"
-                        : payStatus === "PAID" &&
-                            (b.status === "CONFIRMED" ||
-                              b.status === "PENDING_PAYMENT")
-                          ? "good"
-                          : payStatus === "PAID" && b.status === "COMPLETED"
-                            ? "good"
-                            : badgeTone(b.status);
+                    // Where the ride is, and whether it's paid (for a ride
+                    // in a trip: the whole trip).
+                    const statusInfo = statusBadge(b.status);
+                    const payInfo = paymentTag({
+                      status: b.status,
+                      paymentStatus: b.payment?.status ?? null,
+                      trip: tripGroup
+                        ? {
+                            paymentStatus: tripGroup.paymentStatus,
+                            amountPaidCents: tripGroup.amountPaidCents ?? 0,
+                          }
+                        : null,
+                    });
 
                     const createdEvent = b.statusEvents?.[0] ?? null;
                     const actor = createdEvent?.createdBy ?? null;
@@ -1285,9 +1228,7 @@ export default async function AdminBookingsPage({
                             }}
                           />
                           <div className={styles.pickupMeta}>
-                            <span className={`badge badge_${statusTone}`}>
-                              {statusDisplay}
-                            </span>
+                            <RideBadges status={statusInfo} payment={payInfo} />
                             {tripGroup && legNumber > 0 && (
                               <TripGroupBadge
                                 legNumber={legNumber}

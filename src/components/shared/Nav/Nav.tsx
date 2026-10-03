@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
+import NavProgress from "@/components/shared/NavProgress/NavProgress";
 import Link from "next/link";
 import styles from "./Nav.module.css";
 import Button from "../Button/Button";
@@ -524,6 +525,7 @@ export default function Nav({
           ></span>
         </span>
       </nav>
+      <NavProgress />
     </header>
   );
 }

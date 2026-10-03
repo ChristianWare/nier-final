@@ -1,5 +1,6 @@
 "use client";
 
+import { useNavProgress } from "@/components/shared/NavProgress/useNavProgress";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 
@@ -15,6 +16,7 @@ export default function TaxYearSelect({
   const pathname = usePathname();
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  useNavProgress(isPending);
   return (
     <select
       className='selectBorder emptySmall'

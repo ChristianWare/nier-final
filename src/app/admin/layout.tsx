@@ -49,7 +49,9 @@ export default async function AdminLayout({
                 />
               </div>
             </div>
-            <div className={styles.right}>{children}</div>
+            <div className={styles.right} data-refresh-area>
+              {children}
+            </div>
           </div>
         </section>
       </LayoutWrapper>

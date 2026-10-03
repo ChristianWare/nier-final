@@ -1,3 +1,7 @@
+import { formatClock, formatMdy } from "@/lib/booking/statusBadge";
+import Button from "@/components/shared/Button/Button";
+import { paymentTag, statusBadge } from "@/lib/booking/rideBadges";
+import RideBadges from "@/components/admin/RideBadges/RideBadges";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { BookingStatus } from "@prisma/client";
@@ -132,6 +136,8 @@ export default async function AdminDriverPage({
         pickupAddress: true,
         dropoffAddress: true,
         serviceType: { select: { name: true } },
+        payment: { select: { status: true } },
+        tripGroup: { select: { paymentStatus: true, amountPaidCents: true } },
       },
     }),
   ]);
@@ -275,6 +281,10 @@ export default async function AdminDriverPage({
                   <th className={`${styles.th} ${styles.num}`}>Pay</th>
                   <th className={`${styles.th} ${styles.num}`}>Tip</th>
                   <th className={`${styles.th} ${styles.num}`}>Total</th>
+                  <th
+                    className={`${styles.th} ${styles.num}`}
+                    aria-label='Details'
+                  />
                 </tr>
               </thead>
               <tbody>
@@ -285,15 +295,27 @@ export default async function AdminDriverPage({
                   return (
                     <tr key={r.id} className={styles.tr}>
                       <td className={styles.td}>
-                        {tz.formatDateTime(r.pickupAt, timezone)}
+                        <div className={styles.dateCell}>
+                          {formatMdy(r.pickupAt, timezone)}
+                        </div>
+                        <div className='miniNote'>
+                          {formatClock(r.pickupAt, timezone)}
+                        </div>
                       </td>
                       <td className={styles.td}>
-                        <Link href={`/admin/bookings/${r.id}`}>
-                          {r.id.slice(0, 7).toUpperCase()}
-                        </Link>
+                        <span className={styles.code}>
+                          #{r.id.slice(0, 8).toUpperCase()}
+                        </span>
                       </td>
                       <td className={styles.td}>
-                        {tz.statusLabel(r.status)}
+                        <RideBadges
+                          status={statusBadge(r.status)}
+                          payment={paymentTag({
+                            status: r.status,
+                            paymentStatus: r.ridePaymentStatus ?? null,
+                            trip: r.trip ?? null,
+                          })}
+                        />
                         {open ? (
                           <div className={`miniNote ${styles.doc_warn}`}>
                             Not closed out
@@ -317,6 +339,13 @@ export default async function AdminDriverPage({
                       <td className={`${styles.td} ${styles.num}`}>
                         {pay + tip > 0 ? money(pay + tip) : "—"}
                       </td>
+                      <td className={`${styles.td} ${styles.num}`}>
+                        <Button
+                          href={`/admin/bookings/${r.id}`}
+                          text='More Details'
+                          btnType='blackReg'
+                        />
+                      </td>
                     </tr>
                   );
                 })}
@@ -339,6 +368,7 @@ export default async function AdminDriverPage({
                   <td className={`${styles.td} ${styles.num}`}>
                     <strong>{money(totals.pay + totals.tip)}</strong>
                   </td>
+                  <td className={styles.td} />
                 </tr>
               </tfoot>
             </table>
@@ -361,18 +391,33 @@ export default async function AdminDriverPage({
                 <tbody>
                   {upcoming.map((b) => (
                     <tr key={b.id} className={styles.tr}>
-                      <td className={styles.td}>
-                        <Link href={`/admin/bookings/${b.id}`}>
-                          <strong>
-                            {tz.formatDateTime(b.pickupAt, timezone)}
-                          </strong>
-                        </Link>
-                        <div className='miniNote'>
-                          {b.serviceType?.name ?? "Ride"} ·{" "}
-                          {tz.statusLabel(b.status)}
+                      <td className={`${styles.td} ${styles.upcomingCell}`}>
+                        <div>
+                          <div className={styles.dateCell}>
+                            {formatMdy(b.pickupAt, timezone)}
+                          </div>
+                          <div className='miniNote'>
+                            {formatClock(b.pickupAt, timezone)} ·{" "}
+                            {b.serviceType?.name ?? "Ride"}
+                          </div>
                         </div>
+                        <RideBadges
+                          status={statusBadge(b.status)}
+                          payment={paymentTag({
+                            status: b.status,
+                            paymentStatus: b.payment?.status ?? null,
+                            trip: b.tripGroup ?? null,
+                          })}
+                        />
                         <div className='miniNote'>
                           {b.pickupAddress} → {b.dropoffAddress}
+                        </div>
+                        <div>
+                          <Button
+                            href={`/admin/bookings/${b.id}`}
+                            text='More Details'
+                            btnType='blackReg'
+                          />
                         </div>
                       </td>
                     </tr>

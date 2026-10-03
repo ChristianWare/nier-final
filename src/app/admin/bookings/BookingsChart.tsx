@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useNavProgress } from "@/components/shared/NavProgress/useNavProgress";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
 import {
@@ -41,6 +42,7 @@ export default function BookingsChart({
   const pathname = usePathname();
   const sp = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  useNavProgress(isPending);
   const { buckets, series, granularity, todayKey } = data;
 
   function nav(next: URLSearchParams) {

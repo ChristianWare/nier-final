@@ -5,7 +5,7 @@
 // Prisma, so trashed and draft bookings never count, and every date is read
 // in the company's time zone.
 
-import type { BookingStatus } from "@prisma/client";
+import type { BookingStatus, PaymentStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import * as tz from "@/lib/timezone";
 import { isPayMissing } from "@/lib/drivers/driverPay";
@@ -24,6 +24,9 @@ export type ReportRide = {
   driverPayPercent: number | null;
   serviceName: string | null;
   vehicleName: string | null;
+  /** This ride's own payment record, and its trip's (for the payment tag). */
+  ridePaymentStatus?: PaymentStatus | null;
+  trip?: { paymentStatus: PaymentStatus; amountPaidCents: number } | null;
 };
 
 /** Rides (not drafts) whose pickup date, or booked date, is in the window.
@@ -69,6 +72,8 @@ export async function loadReportRides({
       },
       serviceType: { select: { name: true } },
       vehicle: { select: { name: true } },
+      payment: { select: { status: true } },
+      tripGroup: { select: { paymentStatus: true, amountPaidCents: true } },
     },
   });
   return rows.map((r) => ({
@@ -90,6 +95,8 @@ export async function loadReportRides({
     driverPayPercent: r.assignment?.driver?.driverProfile?.payPercent ?? null,
     serviceName: r.serviceType?.name ?? null,
     vehicleName: r.vehicle?.name ?? null,
+    ridePaymentStatus: r.payment?.status ?? null,
+    trip: r.tripGroup ?? null,
   }));
 }
 

@@ -1,6 +1,8 @@
+import { paymentTag, statusBadge } from "@/lib/booking/rideBadges";
+import RideBadges from "@/components/admin/RideBadges/RideBadges";
 import Link from "next/link";
 import Button from "@/components/shared/Button/Button";
-import { formatClock, formatMdy, statusTone } from "@/lib/booking/statusBadge";
+import { formatClock, formatMdy } from "@/lib/booking/statusBadge";
 import type { BookingStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import * as tz from "@/lib/timezone";
@@ -299,9 +301,14 @@ export default async function AdminDriversPage({
                     </td>
                     <td className={styles.td}>{r.serviceName ?? "—"}</td>
                     <td className={styles.td}>
-                      <span className={`badge badge_${statusTone(r.status)}`}>
-                        {tz.statusLabel(r.status)}
-                      </span>
+                      <RideBadges
+                        status={statusBadge(r.status)}
+                        payment={paymentTag({
+                          status: r.status,
+                          paymentStatus: r.ridePaymentStatus ?? null,
+                          trip: r.trip ?? null,
+                        })}
+                      />
                     </td>
                     <td className={styles.td}>
                       <span className={styles.code}>

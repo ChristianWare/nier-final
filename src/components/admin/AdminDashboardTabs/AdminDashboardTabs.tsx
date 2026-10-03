@@ -1,5 +1,6 @@
 "use client";
 
+import { navProgress } from "@/components/shared/NavProgress/navProgress";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AdminDashboardTabs.module.css";
@@ -122,6 +123,7 @@ export default function AdminDashboardTabs({
   const setActive = (id: TabId) => {
     setActiveTab(id);
     if (id === "reporting" && reportingHref) {
+      navProgress.start();
       router.push(reportingHref, { scroll: false });
     }
   };
