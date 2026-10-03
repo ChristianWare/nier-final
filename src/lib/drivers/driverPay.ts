@@ -66,6 +66,8 @@ export type PayRide = {
   tripGroupId: string | null;
   /** Tip recorded on this ride's own payment record. */
   tipCents: number;
+  /** A discount code's amount: drivers are paid on the price before it. */
+  codeDiscountCents?: number;
   assignment: {
     id: string;
     driverId: string;
@@ -143,7 +145,10 @@ export function planDriverPay(
     else if (payPercent == null) pay = "no_rate";
     else {
       pay = "fill";
-      newPayCents = defaultDriverPayCents(r.totalCents, payPercent);
+      newPayCents = defaultDriverPayCents(
+        r.totalCents + (r.codeDiscountCents ?? 0),
+        payPercent,
+      );
     }
 
     rows.push({
@@ -167,6 +172,8 @@ const RIDE_SELECT = {
   status: true,
   totalCents: true,
   tripGroupId: true,
+  discountCents: true,
+  discountCodeId: true,
   payment: { select: { tipCents: true } },
   assignment: {
     select: {
@@ -188,6 +195,8 @@ type RideRow = {
   status: BookingStatus;
   totalCents: number;
   tripGroupId: string | null;
+  discountCents?: number | null;
+  discountCodeId?: string | null;
   payment: { tipCents: number } | null;
   assignment: {
     id: string;
@@ -207,6 +216,7 @@ function toPayRide(r: RideRow): PayRide {
     totalCents: r.totalCents,
     tripGroupId: r.tripGroupId,
     tipCents: r.payment?.tipCents ?? 0,
+    codeDiscountCents: r.discountCodeId ? (r.discountCents ?? 0) : 0,
     assignment: r.assignment
       ? {
           id: r.assignment.id,

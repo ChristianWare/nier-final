@@ -19,7 +19,15 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.niertransportation.com/book" },
 };
 
-export default async function BookPage() {
+export default async function BookPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  // A share link (/book?code=SMOKEN26) fills in the discount code.
+  const sp = (await searchParams) ?? {};
+  const initialDiscountCode =
+    typeof sp.code === "string" ? sp.code.slice(0, 30) : undefined;
   // ✅ Get current user session
   const session = await auth();
   const userId = (session?.user as { id?: string } | null)?.id ?? null;
@@ -148,6 +156,7 @@ export default async function BookPage() {
           userPhone={userPhone}
           companyTimezone={companySettings.timezone}
           companyTimezoneLabel={companyTimezoneLabel}
+          initialDiscountCode={initialDiscountCode}
         />
       </main>
     </DirtyFormProvider>

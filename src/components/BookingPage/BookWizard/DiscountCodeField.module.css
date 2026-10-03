@@ -1,0 +1,84 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 1.4rem;
+}
+
+.row {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  border: 3px solid var(--stroke);
+  border-radius: 7px;
+  background: var(--white, #fff);
+}
+
+.apply {
+  flex: none;
+  font: inherit;
+  font-weight: 700;
+  padding: 0 1.6rem;
+  border: none;
+  border-radius: 7px;
+  background: var(--black, #111);
+  color: var(--white, #fff);
+  cursor: pointer;
+}
+
+.apply:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.error {
+  margin: 0;
+  color: var(--darkRed, #991b1b);
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem 1.6rem;
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+  background: rgba(22, 163, 74, 0.12);
+  color: var(--darkGreen, #166534);
+  font-size: 1.4rem;
+}
+
+.remove {
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1.6rem 0;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}

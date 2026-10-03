@@ -543,6 +543,7 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
     include: {
+      discountCode: { select: { code: true } },
       serviceType: { select: { name: true } },
       vehicle: { select: { name: true } },
       user: { select: { name: true, email: true, phone: true } },
@@ -572,6 +573,7 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
               pickupAddress: true,
               dropoffAddress: true,
               totalCents: true,
+              discountCents: true,
               serviceType: { select: { name: true } },
             },
             orderBy: { pickupAt: "asc" as const },
@@ -639,6 +641,10 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
     isGroupBooking = true;
     const siblings = booking.tripGroup.bookings;
     const groupTotal = siblings.reduce((sum, b) => sum + b.totalCents, 0);
+    const groupDiscountCents = siblings.reduce(
+      (sum, b) => sum + ((b as any).discountCents ?? 0),
+      0,
+    );
     const groupInvoiceNumber = booking.tripGroup.id.slice(0, 8).toUpperCase();
 
     groupLegs = siblings.map((sibling, idx) => ({
@@ -680,10 +686,21 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
         distanceMiles: null,
         durationMinutes: null,
       },
-      lineItems: siblings.map((sibling, idx) => ({
-        description: `Ride ${idx + 1}: ${sibling.serviceType.name} — ${formatTripDateTime(sibling.pickupAt, companyTz)}`,
-        amount: sibling.totalCents,
-      })),
+      lineItems: [
+        ...siblings.map((sibling, idx) => ({
+          description: `Ride ${idx + 1}: ${sibling.serviceType.name} — ${formatTripDateTime(sibling.pickupAt, companyTz)}`,
+          // Before the discount, which gets its own line below.
+          amount: sibling.totalCents + ((sibling as any).discountCents ?? 0),
+        })),
+        ...(groupDiscountCents > 0
+          ? [
+              {
+                description: `Discount${(booking as any).discountCode?.code ? ` (${(booking as any).discountCode.code})` : ""}`,
+                amount: -groupDiscountCents,
+              },
+            ]
+          : []),
+      ],
       legs: groupLegs,
       subtotalCents: groupTotal,
       feesCents: 0,
@@ -700,7 +717,13 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
     const stopCount = booking.stops?.length ?? 0;
     const stopSurchargeCents =
       (booking as any).stopSurchargeCents ?? stopCount * 1500;
-    const baseFareCents = booking.subtotalCents - stopSurchargeCents;
+    // The ride is listed at its price before a discount code; the discount
+    // gets its own line.
+    const codeDiscountCents = (booking as any).discountCodeId
+      ? ((booking as any).discountCents ?? 0)
+      : 0;
+    const baseFareCents =
+      booking.subtotalCents + codeDiscountCents - stopSurchargeCents;
 
     const lineItems: InvoiceLineItem[] = [
       {
@@ -708,6 +731,12 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
         amount: baseFareCents,
       },
     ];
+    if (codeDiscountCents > 0) {
+      lineItems.push({
+        description: `Discount${(booking as any).discountCode?.code ? ` (${(booking as any).discountCode.code})` : ""}`,
+        amount: -codeDiscountCents,
+      });
+    }
 
     if (stopCount > 0 && stopSurchargeCents > 0) {
       lineItems.push({

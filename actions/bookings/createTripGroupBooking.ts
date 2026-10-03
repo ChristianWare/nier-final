@@ -4,6 +4,7 @@
 // ═══════════════════════════════════════════════════════════════════
 "use server";
 
+import { evaluateCodeForRides } from "@/lib/discounts/discountCodes";
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
@@ -72,6 +73,8 @@ export type CreateTripGroupInput = {
 
   // Optional group label
   label?: string | null;
+  /** A discount code the customer applied in the booking tool. */
+  discountCode?: string | null;
   /** WeKoPa-only: skip the active check for intentionally-inactive vehicle categories */
   skipVehicleActiveCheck?: boolean;
 };
@@ -241,9 +244,32 @@ export async function createTripGroupBooking(input: CreateTripGroupInput) {
     });
   }
 
+  // ─── Discount code: checked again on the server's own prices ───
+  let legDiscounts: number[] = legData.map(() => 0);
+  let discountCodeId: string | null = null;
+  if (input.discountCode?.trim()) {
+    const disc = await evaluateCodeForRides({
+      code: input.discountCode,
+      rides: legData.map((d) => ({
+        pickupAt: d.pickupAtDate,
+        rideCents: d.quote.totalCents - d.quote.breakdown.totalFeesCents,
+      })),
+      customer: {
+        userId,
+        email: guestEmail || null,
+        phone: guestPhone || null,
+      },
+    });
+    if (!disc.ok) {
+      return { error: `Discount code: ${disc.error}` } as const;
+    }
+    legDiscounts = disc.perRideCents;
+    discountCodeId = disc.codeId;
+  }
+
   // ─── Calculate group total ───
   const groupTotalCents = legData.reduce(
-    (sum, d) => sum + d.quote.totalCents,
+    (sum, d, i) => sum + d.quote.totalCents - (legDiscounts[i] ?? 0),
     0,
   );
 
@@ -323,8 +349,11 @@ export async function createTripGroupBooking(input: CreateTripGroupInput) {
           stopCount,
           stopSurchargeCents: d.stopSurchargeCents,
 
-          subtotalCents: d.quote.breakdown.subtotalCents,
-          totalCents: d.quote.totalCents,
+          subtotalCents:
+            d.quote.breakdown.subtotalCents - (legDiscounts[i] ?? 0),
+          totalCents: d.quote.totalCents - (legDiscounts[i] ?? 0),
+          discountCents: (legDiscounts[i] ?? 0) > 0 ? legDiscounts[i] : null,
+          discountCodeId: (legDiscounts[i] ?? 0) > 0 ? discountCodeId : null,
 
           stops: {
             create: d.validStops.map((stop, idx) => ({

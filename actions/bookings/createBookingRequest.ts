@@ -1,5 +1,6 @@
 "use server";
 
+import { evaluateCodeForRides } from "@/lib/discounts/discountCodes";
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { calcQuoteCents, EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
@@ -63,6 +64,8 @@ type CreateBookingRequestInput = {
   eventType?: string | null;
   /** WeKoPa-only: skip the active check for intentionally-inactive vehicle categories */
   skipVehicleActiveCheck?: boolean;
+  /** A discount code the customer applied in the booking tool. */
+  discountCode?: string | null;
 };
 
 function isValidEmail(v: string) {
@@ -202,6 +205,32 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     vehiclePerHourCents: vehicle?.perHourCents ?? 0,
   });
 
+  // Discount code: checked again here, on the server's own price. It comes
+  // off the ride price only (never fees).
+  let discountCents = 0;
+  let discountCodeId: string | null = null;
+  if (input.discountCode?.trim()) {
+    const disc = await evaluateCodeForRides({
+      code: input.discountCode,
+      rides: [
+        {
+          pickupAt: pickupAtDate,
+          rideCents: quote.totalCents - quote.breakdown.totalFeesCents,
+        },
+      ],
+      customer: {
+        userId,
+        email: guestEmail || null,
+        phone: guestPhone || null,
+      },
+    });
+    if (!disc.ok) {
+      return { error: `Discount code: ${disc.error}` } as const;
+    }
+    discountCents = disc.perRideCents[0] ?? 0;
+    discountCodeId = disc.codeId;
+  }
+
   const claimToken = userId ? null : randomUUID();
 
   // Parse flight scheduled time if provided
@@ -260,8 +289,10 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
       stopCount,
       stopSurchargeCents,
 
-      subtotalCents: quote.breakdown.subtotalCents,
-      totalCents: quote.totalCents,
+      subtotalCents: quote.breakdown.subtotalCents - discountCents,
+      totalCents: quote.totalCents - discountCents,
+      discountCents: discountCents > 0 ? discountCents : null,
+      discountCodeId,
 
       // Create stops as nested records
       stops: {

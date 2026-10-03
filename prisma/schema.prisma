@@ -514,6 +514,9 @@ model Booking {
   eventType String?
 
   discountCents Int?
+  /// The discount code used, if any (discountCents is the amount it took off).
+  discountCodeId String?
+  discountCode   DiscountCode? @relation(fields: [discountCodeId], references: [id], onDelete: SetNull)
 
   // Deposit settings
   depositMode    Boolean   @default(false)
@@ -539,6 +542,8 @@ model Booking {
   @@index([corporatePassengerId])
   @@index([tripGroupId])
   @@index([deletedAt])
+
+  @@index([discountCodeId])
 }
 
 model BookingNote {
@@ -1287,4 +1292,48 @@ model DriverProfile {
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum DiscountKind {
+  PERCENT
+  AMOUNT
+}
+
+/// A discount code set up by the admin (for example for an event partner).
+/// Customers enter it in the booking tool. It comes off the ride price, never
+/// fees, taxes or tips.
+model DiscountCode {
+  id      String  @id @default(cuid())
+  /// Stored in capitals; customers can type it in any case.
+  code    String  @unique
+  name    String
+  partner String?
+
+  kind           DiscountKind
+  /// PERCENT: e.g. 15 for 15% off.
+  percentOff     Float?
+  /// AMOUNT: the amount off, in cents.
+  amountOffCents Int?
+  /// PERCENT only: the most it can take off, in cents.
+  maxDiscountCents Int?
+  /// The ride price needed to use it, in cents.
+  minFareCents     Int?
+
+  /// When it can be used to book: start of the first day to the end of the last.
+  bookFrom  DateTime?
+  bookUntil DateTime?
+  /// Which ride (pickup) dates it covers.
+  rideFrom  DateTime?
+  rideUntil DateTime?
+
+  maxUses            Int?
+  maxUsesPerCustomer Int?
+  active             Boolean @default(true)
+  notes              String?
+
+  createdById String?
+  updatedById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  bookings    Booking[]
 }

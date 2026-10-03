@@ -4,6 +4,8 @@
 "use client";
 
 import styles from "./BookingWizard.module.css";
+import DiscountCodeField, { type AppliedDiscount } from "./DiscountCodeField";
+import discountStyles from "./DiscountCodeField.module.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -261,7 +263,10 @@ export default function BookingWizard({
   userPhone,
   companyTimezone,
   companyTimezoneLabel,
+  initialDiscountCode,
 }: {
+  /** From a share link (/book?code=…). */
+  initialDiscountCode?: string;
   serviceTypes: ServiceTypeDTO[];
   vehicles: VehicleDTO[];
   userPhone?: string | null;
@@ -275,6 +280,7 @@ export default function BookingWizard({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [discount, setDiscount] = useState<AppliedDiscount | null>(null);
   const [savedLegs, setSavedLegs] = useState<SavedLeg[]>([]);
   const [removeLegId, setRemoveLegId] = useState<string | null>(null);
   const [flightDepIata, setFlightDepIata] = useState<string | null>(null);
@@ -730,6 +736,41 @@ export default function BookingWizard({
   const savedLegsTotal = savedLegs.reduce((sum, l) => sum + l.estimateCents, 0);
   const groupEstimateTotal = savedLegsTotal + estimateCents;
 
+  // Discount code: the rides it would come off. Each estimate includes the
+  // service's fees, which a code never comes off.
+  const feesOf = (serviceId: string) =>
+    (serviceTypes.find((st) => st.id === serviceId)?.fees ?? []).reduce(
+      (sum, f) => sum + f.amountCents,
+      0,
+    );
+  const discountRides = [
+    ...savedLegs.map((l) => ({
+      pickupAt: l.pickupAt,
+      fareCents: l.callForPricing ? 0 : l.estimateCents,
+      feesCents: feesOf(l.serviceTypeId),
+    })),
+    ...(selectedService &&
+    pickupAtDate &&
+    pickupAtTime &&
+    !selectedVehicle?.callForPricing
+      ? [
+          {
+            pickupAt: localToUtcIso(
+              pickupAtDate,
+              pickupAtTime,
+              companyTimezone,
+            ),
+            fareCents: estimateCents,
+            feesCents: feesOf(selectedService.id),
+          },
+        ]
+      : []),
+  ];
+  const discountKey = JSON.stringify(discountRides);
+  const activeDiscount =
+    discount && discount.key === discountKey ? discount : null;
+  const guestPhoneForDiscount = watch("guestPhone");
+
   const wizardTopRef = useRef<HTMLDivElement | null>(null);
   const didMountRef = useRef(false);
 
@@ -1166,6 +1207,7 @@ export default function BookingWizard({
         ];
 
         const groupInput: CreateTripGroupInput = {
+          discountCode: activeDiscount?.code ?? null,
           legs: allLegs,
           guestName: isAuthed ? null : v.guestName.trim(),
           guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
@@ -1195,6 +1237,7 @@ export default function BookingWizard({
 
       // ─── Single ride: existing flow ───
       const res = await createBookingRequest({
+        discountCode: activeDiscount?.code ?? null,
         serviceTypeId: selectedService.id,
         vehicleId: v.vehicleId,
         pickupAt: pickupAtIso,
@@ -2735,6 +2778,44 @@ export default function BookingWizard({
                       </div>
                     </div>
                   )}
+
+                  {discountRides.some((r) => r.fareCents > 0) ? (
+                    <div className={discountStyles.block}>
+                      <DiscountCodeField
+                        rides={discountRides}
+                        ridesKey={discountKey}
+                        email={isAuthed ? null : guestEmail}
+                        phone={isAuthed ? null : guestPhoneForDiscount}
+                        initialCode={initialDiscountCode}
+                        applied={discount}
+                        onApplied={setDiscount}
+                      />
+                      {activeDiscount ? (
+                        <>
+                          <SummaryRow
+                            label={`Discount (${activeDiscount.code})`}
+                            value={`−$${centsToUsd(activeDiscount.totalCents)}`}
+                          />
+                          <SummaryRow
+                            label={
+                              savedLegs.length > 0
+                                ? "Trip total after discount"
+                                : "Estimate after discount"
+                            }
+                            value={`$${centsToUsd(
+                              Math.max(
+                                0,
+                                (savedLegs.length > 0
+                                  ? groupEstimateTotal
+                                  : estimateCents) - activeDiscount.totalCents,
+                              ),
+                            )}`}
+                            strong
+                          />
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
 
                   {!isAuthed ? (
                     <div

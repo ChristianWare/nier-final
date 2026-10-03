@@ -47,6 +47,11 @@ const NAV_ITEMS = [
   { title: "Airports", href: "/admin/airports", icon: <Plane /> },
   { title: "Reports", href: "/admin/reports", icon: <Report /> },
   { title: "Invoices", href: "/admin/invoices", icon: <Receipt /> },
+  {
+    title: "Discount Codes",
+    href: "/admin/discount-codes",
+    icon: <Listing />,
+  },
   { title: "Company", href: "/admin/company", icon: <Company /> },
   { title: "Website Analytics", href: "/admin/analytics", icon: <Analytics /> },
   { title: "Notifications", href: "/admin/notifications", icon: <Cog /> },
