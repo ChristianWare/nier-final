@@ -10,6 +10,7 @@ import { DayPicker, type Matcher } from "react-day-picker";
 import PickerShell from "./PickerShell";
 import {
   changeEvent,
+  formatMdyYmd,
   formatYmd,
   parseTypedDate,
   parseYmd,
@@ -64,6 +65,8 @@ export type DatePickerProps = {
   placeholder?: string;
   title?: string;
   "aria-label"?: string;
+  /** How the chosen date shows: "Oct 1, 2026" (default) or "10/01/2026". */
+  displayFormat?: "medium" | "mdy";
   /** Years offered in the year dropdown. */
   fromYear?: number;
   toYear?: number;
@@ -86,6 +89,8 @@ export default function DatePicker(props: DatePickerProps) {
   if (minDate) disabled.push({ before: minDate });
   if (maxDate) disabled.push({ after: maxDate });
   const year = new Date().getFullYear();
+  const shown =
+    props.displayFormat === "mdy" ? formatMdyYmd(current) : formatYmd(current);
 
   function commit(v: string) {
     if (!controlled) setInner(v);
@@ -96,7 +101,7 @@ export default function DatePicker(props: DatePickerProps) {
   return (
     <span className={styles.field}>
       <PickerShell
-        label={formatYmd(current)}
+        label={shown}
         valueText={formatYmd(current)}
         placeholder={props.placeholder ?? "Select date"}
         isEmpty={!selected}

@@ -59,3 +59,45 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ── Discount code pages ── */
+.page {
+  gap: 2rem;
+}
+
+.page > header {
+  gap: 2rem;
+}
+
+.page :global(.miniNote) {
+  font-size: 1.6rem;
+}
+
+.subcopy {
+  max-width: 500px;
+}
+
+/* Confirmation modals */
+.modalTitle {
+  font-weight: 800;
+  font-size: 2rem;
+  color: var(--black, #111);
+}
+
+.modalBody {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.modalBody :global(.miniNote) {
+  font-size: 1.6rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}

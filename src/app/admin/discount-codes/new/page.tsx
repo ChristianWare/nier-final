@@ -1,3 +1,4 @@
+import own from "../DiscountCodes.module.css";
 import Link from "next/link";
 import DiscountCodeForm from "../DiscountCodeForm";
 import styles from "../../drivers/AdminDriversPage.module.css";
@@ -6,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default function NewDiscountCodePage() {
   return (
-    <section className={styles.container}>
+    <section className={`${styles.container} ${own.page}`}>
       <header className={styles.header}>
         <div className='miniNote'>
           <Link href='/admin/discount-codes'>← All discount codes</Link>

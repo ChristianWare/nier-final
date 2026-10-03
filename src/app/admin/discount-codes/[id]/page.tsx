@@ -55,7 +55,7 @@ export default async function DiscountCodePage({
   const money = (c: number) => tz.formatMoney(c, "USD");
 
   return (
-    <section className={styles.container}>
+    <section className={`${styles.container} ${own.page}`}>
       <header className={styles.header}>
         <div className='miniNote'>
           <Link href='/admin/discount-codes'>← All discount codes</Link>
@@ -68,7 +68,7 @@ export default async function DiscountCodePage({
             <span className={`badge ${status.cls}`}>{status.label}</span>
           </Tip>
         </div>
-        <p className={styles.subcopy}>
+        <p className={`${styles.subcopy} ${own.subcopy}`}>
           {code.name}
           {code.partner ? ` · ${code.partner}` : ""} · {describeDiscount(code)}
         </p>

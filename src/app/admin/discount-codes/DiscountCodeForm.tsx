@@ -1,5 +1,8 @@
 "use client";
 
+import { celebrate } from "@/lib/celebrate";
+import Button from "@/components/shared/Button/Button";
+import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 import { DatePicker } from "@/components/shared/DatePicker";
@@ -54,13 +57,19 @@ export default function DiscountCodeForm({
       const res = await saveDiscountCode(v);
       if ("error" in res) {
         setError({ text: res.error, field: res.field });
+        toast.error(
+          res.field ? "Please check the highlighted field." : res.error,
+        );
         return;
       }
       if (!v.id) {
+        celebrate();
+        toast.success(`${v.code.trim().toUpperCase()} is ready to use.`);
         router.push(`/admin/discount-codes/${res.id}`);
         return;
       }
       setSaved(true);
+      toast.success("Changes saved.");
       router.refresh();
     });
   }
@@ -92,6 +101,7 @@ export default function DiscountCodeForm({
         value={String(v[k] ?? "")}
         onValueChange={(val) => set(k)(val)}
         aria-label={label}
+        displayFormat='mdy'
       />
       {err(k)}
     </label>
@@ -233,9 +243,12 @@ export default function DiscountCodeForm({
         <p className={own.fieldError}>{error.text}</p>
       ) : null}
       <div className={styles.formFoot}>
-        <button className='rangeSubmitBtn' type='submit' disabled={isPending}>
-          {isPending ? "Saving…" : v.id ? "Save changes" : "Create code"}
-        </button>
+        <Button
+          type='submit'
+          btnType='greenReg'
+          text={isPending ? "Saving…" : v.id ? "Save changes" : "Create code"}
+          disabled={isPending}
+        />
         {saved ? <span className='miniNote'>Saved.</span> : null}
       </div>
     </form>

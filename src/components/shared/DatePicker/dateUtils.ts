@@ -31,6 +31,13 @@ export function formatYmd(v: string): string {
     : "";
 }
 
+/** "YYYY-MM-DD" → "10/01/2026" */
+export function formatMdyYmd(v: string): string {
+  return parseYmd(v)
+    ? `${v.slice(5, 7)}/${v.slice(8, 10)}/${v.slice(0, 4)}`
+    : "";
+}
+
 export function formatYm(v: string): string {
   if (!/^\d{4}-\d{2}$/.test(v)) return "";
   const [y, m] = v.split("-").map(Number);

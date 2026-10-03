@@ -1,3 +1,4 @@
+import { formatMdy } from "@/lib/booking/statusBadge";
 import Button from "@/components/shared/Button/Button";
 import * as tz from "@/lib/timezone";
 import { describeDiscount } from "@/lib/discounts/discountRules";
@@ -11,10 +12,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function range(from: Date | null, until: Date | null, timezone: string) {
-  const f = from ? tz.formatDateMedium(from, timezone) : null;
-  const t = until
-    ? tz.formatDateMedium(new Date(until.getTime() - 1), timezone)
-    : null;
+  const f = from ? formatMdy(from, timezone) : null;
+  const t = until ? formatMdy(new Date(until.getTime() - 1), timezone) : null;
   if (f && t) return f === t ? f : `${f} – ${t}`;
   if (f) return `From ${f}`;
   if (t) return `Through ${t}`;
@@ -29,7 +28,7 @@ export default async function DiscountCodesPage() {
   const money = (c: number) => tz.formatMoney(c, "USD");
 
   return (
-    <section className={styles.container}>
+    <section className={`${styles.container} ${own.page}`}>
       <header className={styles.header}>
         <div className={own.headerRow}>
           <h1 className={`${styles.heading} h2`}>Discount Codes</h1>
@@ -39,7 +38,7 @@ export default async function DiscountCodesPage() {
             btnType='greenReg'
           />
         </div>
-        <p className={styles.subcopy}>
+        <p className={`${styles.subcopy} ${own.subcopy}`}>
           Codes customers can enter in the booking tool. You set the discount,
           the dates it works, and how many times it can be used. It comes off
           the ride price only, never fees, taxes or tips.
