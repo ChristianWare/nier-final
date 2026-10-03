@@ -413,7 +413,7 @@
 }
 
 /* Labels above the two card groups: money in (by payment date) and rides
-   with pickups in the period (by pickup date). */
+with pickups in the period (by pickup date). */
 .kpiGroupLabel {
   font-size: 1.3rem;
   font-weight: 600;
@@ -421,4 +421,20 @@
   text-transform: uppercase;
   color: var(--paragraph, #555);
   margin-bottom: -8px;
+}
+
+@media screen and (max-width: 568px) {
+  .rangeForm {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rangeForm button[type="submit"] {
+    width: 100%;
+    grid-column: 1 / -1;
+  }
+
+  .rangeField {
+    min-width: 0;
+  }
 }

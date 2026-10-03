@@ -106,3 +106,10 @@
     transform: none;
   }
 }
+
+@media screen and (max-width: 568px) {
+  .filterBar {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
