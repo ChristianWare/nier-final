@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./AdminDashboardTabs.module.css";
 
 type TabId =
@@ -10,7 +11,8 @@ type TabId =
   | "incompleteApprovals"
   | "paymentsReceived"
   | "outstandingBalances"
-  | "invoices";
+  | "invoices"
+  | "reporting";
 
 type Props = {
   bookingRequests: React.ReactNode;
@@ -20,6 +22,12 @@ type Props = {
   paymentsReceived: React.ReactNode;
   outstandingBalances: React.ReactNode;
   invoices: React.ReactNode;
+  /** Reporting charts. Loaded only when the tab is opened (see reportingHref). */
+  reporting?: React.ReactNode;
+  /** Open this tab first (e.g. after loading the Reporting tab). */
+  initialTab?: TabId;
+  /** Where to go to load the Reporting tab's data, if it isn't loaded yet. */
+  reportingHref?: string;
   countBookingRequests: number;
   countIncompleteRides: number;
   countAlerts: number;
@@ -37,6 +45,7 @@ const TAB_ORDER: TabId[] = [
   "paymentsReceived",
   "outstandingBalances",
   "invoices",
+  "reporting",
 ];
 
 const TAB_LABELS: Record<TabId, string> = {
@@ -47,6 +56,7 @@ const TAB_LABELS: Record<TabId, string> = {
   paymentsReceived: "Payments",
   outstandingBalances: "Balances",
   invoices: "Invoices",
+  reporting: "Reporting",
 };
 
 const TAB_URGENCY: Record<TabId, "danger" | "warning" | "neutral"> = {
@@ -57,6 +67,7 @@ const TAB_URGENCY: Record<TabId, "danger" | "warning" | "neutral"> = {
   paymentsReceived: "neutral",
   outstandingBalances: "warning",
   invoices: "warning",
+  reporting: "neutral",
 };
 
 export default function AdminDashboardTabs({
@@ -67,6 +78,9 @@ export default function AdminDashboardTabs({
   paymentsReceived,
   outstandingBalances,
   invoices,
+  reporting,
+  initialTab,
+  reportingHref,
   countBookingRequests,
   countIncompleteRides,
   countAlerts,
@@ -83,6 +97,7 @@ export default function AdminDashboardTabs({
     paymentsReceived: countPaymentsReceived,
     outstandingBalances: countOutstandingBalances,
     invoices: countInvoices,
+    reporting: 0,
   };
 
   const panels: Record<TabId, React.ReactNode> = {
@@ -93,13 +108,23 @@ export default function AdminDashboardTabs({
     paymentsReceived,
     outstandingBalances,
     invoices,
+    reporting: reporting ?? null,
   };
 
   const defaultTab =
+    initialTab ??
     (TAB_ORDER.find((id) => counts[id] > 0) as TabId | undefined) ??
     "bookingRequests";
 
-  const [active, setActive] = useState<TabId>(defaultTab);
+  const [active, setActiveTab] = useState<TabId>(defaultTab);
+  const router = useRouter();
+  // The Reporting tab loads its data on demand.
+  const setActive = (id: TabId) => {
+    setActiveTab(id);
+    if (id === "reporting" && reportingHref) {
+      router.push(reportingHref, { scroll: false });
+    }
+  };
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 

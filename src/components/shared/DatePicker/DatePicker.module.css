@@ -1,0 +1,367 @@
+/* Date, month and time pickers used across the app. Desktop: a dropdown
+   under the field. Phones: a bottom sheet with large tap targets. */
+
+.field,
+.wrap {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.field {
+  flex-direction: column;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 15rem;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  background: var(--white, #fff);
+  color: var(--black, #111);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--black, #111);
+  outline-offset: 2px;
+}
+
+.placeholder {
+  color: var(--paragraph, #777);
+}
+
+.value {
+  white-space: nowrap;
+}
+
+.icon {
+  width: 1.6rem;
+  height: 1.6rem;
+  flex: none;
+  fill: currentColor;
+  opacity: 0.7;
+}
+
+/* Keeps form submission and "required" working; never seen. */
+.proxy {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  padding: 0;
+}
+
+.backdrop {
+  display: none;
+}
+
+.popover {
+  position: fixed;
+  z-index: 1100;
+  background: var(--white, #fff);
+  border: 1px solid var(--stroke, #ddd);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  padding: 1.2rem;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.typeInput {
+  font: inherit;
+  font-size: 1.4rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--stroke, #ddd);
+  border-radius: 8px;
+}
+
+.typeInputError {
+  border-color: var(--red, #dc2626);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.footBtn {
+  font: inherit;
+  font-size: 1.4rem;
+  background: none;
+  border: none;
+  color: var(--accentBlue, #2563eb);
+  cursor: pointer;
+  padding: 0.6rem 0.4rem;
+}
+
+.footBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Calendar (react-day-picker, our classes only) ── */
+.rdp {
+  --day: 4rem;
+  font-size: 1.4rem;
+}
+
+.months {
+  position: relative;
+}
+
+.month {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.caption {
+  display: flex;
+  align-items: center;
+  height: 3.6rem;
+  padding-right: 8rem;
+}
+
+.dropdowns {
+  display: inline-flex;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.dropdownRoot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The real select sits invisibly over its label, so phones get their
+   native wheel while the look stays ours. */
+.dropdown {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+  width: 100%;
+}
+
+.captionLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+}
+
+.dropdownRoot:hover .captionLabel {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.nav {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: 0.4rem;
+  height: 3.6rem;
+  align-items: center;
+}
+
+.navBtn {
+  display: inline-grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  border: 1px solid var(--stroke, #ddd);
+  border-radius: 8px;
+  background: var(--white, #fff);
+  cursor: pointer;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.chevron {
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: currentColor;
+}
+
+.grid {
+  border-collapse: collapse;
+}
+
+.weekday {
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--paragraph, #777);
+  height: 2.8rem;
+  width: var(--day);
+}
+
+.day {
+  padding: 1px;
+  text-align: center;
+}
+
+.dayButton {
+  width: var(--day);
+  height: var(--day);
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+.dayButton:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.today .dayButton {
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--black, #111);
+}
+
+.selected .dayButton,
+.selected .dayButton:hover {
+  background: var(--black, #111);
+  color: var(--white, #fff);
+}
+
+.outside .dayButton {
+  color: #aaa;
+}
+
+.disabled .dayButton {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+.focused .dayButton {
+  outline: 2px solid var(--accentBlue, #2563eb);
+  outline-offset: 1px;
+}
+
+/* ── Month picker ── */
+.monthHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 1.5rem;
+}
+
+.monthGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(7rem, 1fr));
+  gap: 0.6rem;
+}
+
+.monthBtn {
+  font: inherit;
+  font-size: 1.4rem;
+  padding: 1rem 0.6rem;
+  border: 1px solid var(--stroke, #ddd);
+  border-radius: 8px;
+  background: var(--white, #fff);
+  cursor: pointer;
+}
+
+.monthBtnActive {
+  background: var(--black, #111);
+  border-color: var(--black, #111);
+  color: var(--white, #fff);
+}
+
+/* ── Time picker (hour : minute AM/PM) ── */
+.timeGroup {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.timeGroup select {
+  min-width: 0;
+  width: auto;
+}
+
+.timeSep {
+  font-weight: 700;
+}
+
+.dateTime {
+  position: relative;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+/* ── Phones: bottom sheet ── */
+@media (max-width: 640px) {
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1099;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  .popover {
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 1.6rem 1.6rem calc(1.6rem + env(safe-area-inset-bottom, 0px));
+    max-height: 85vh;
+    overflow: auto;
+  }
+
+  .rdp {
+    --day: calc((100vw - 4.8rem) / 7);
+    font-size: 1.6rem;
+  }
+
+  .dayButton {
+    height: 4.4rem;
+  }
+
+  .typeInput,
+  .footBtn,
+  .monthBtn {
+    font-size: 1.6rem;
+  }
+}

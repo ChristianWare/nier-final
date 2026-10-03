@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/lib/email/sendInvoiceLinkEmail.ts
+import { companyDisplayName } from "@/lib/companyName";
 import { Resend } from "resend";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
 import { renderInvoicePdfBuffer } from "@/lib/invoice/buildInvoicePdfData";
@@ -54,7 +55,7 @@ export async function sendInvoiceLinkEmail(args: InvoiceLinkArgs): Promise<void>
   const from = requireEnv("RESEND_FROM");
 
   const settings = await getCompanySettings();
-  const companyName = settings.companyName ?? "Nier Transportation";
+  const companyName = companyDisplayName(settings);
   const supportEmail = settings.supportEmail ?? settings.emailReplyTo ?? "";
   const dispatchPhone = settings.dispatchPhone ?? "";
   const footerText = settings.emailFooterText ?? "";

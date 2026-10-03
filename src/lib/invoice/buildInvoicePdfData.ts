@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/lib/invoice/buildInvoicePdfData.ts
+import { companyDisplayName } from "@/lib/companyName";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { db } from "@/lib/db";
@@ -74,7 +75,7 @@ export async function buildInvoicePdfData(
     paidDate: fmtDate(invoice.paidAt),
     status: invoice.status,
     company: {
-      name: settings.companyName ?? "Nier Transportation",
+      name: companyDisplayName(settings),
       address: settings.officeAddress ?? "",
       city: settings.officeCity ?? "",
       phone: settings.dispatchPhone ?? "",

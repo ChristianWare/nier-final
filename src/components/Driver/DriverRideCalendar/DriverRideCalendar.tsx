@@ -1,5 +1,6 @@
 "use client";
 
+import { MonthPicker } from "@/components/shared/DatePicker";
 import styles from "./DriverRideCalendar.module.css";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -223,8 +224,7 @@ export default function DriverRideCalendar({
             >
               ‹
             </button>
-            <input
-              type='month'
+            <MonthPicker
               value={mobileMonthValue}
               onChange={onPickMonthMobile}
               className={styles.monthPicker}

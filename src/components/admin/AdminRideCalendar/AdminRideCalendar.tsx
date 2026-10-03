@@ -1,5 +1,6 @@
 "use client";
 
+import { MonthPicker } from "@/components/shared/DatePicker";
 import styles from "./AdminRideCalendar.module.css";
 import { useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -246,8 +247,7 @@ export default function AdminRideCalendar({
             >
               ‹
             </button>
-            <input
-              type='month'
+            <MonthPicker
               value={mobileMonthValue}
               onChange={onPickMonthMobile}
               className={styles.monthPicker}

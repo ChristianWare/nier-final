@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { DatePicker, TimePicker } from "@/components/shared/DatePicker";
 import styles from "./WekoPaBookingWizard.module.css";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -1302,8 +1303,7 @@ export default function WekoPaBookingWizard({
                               ? "Arrival date"
                               : "Departure date"}
                           </label>
-                          <input
-                            type='date'
+                          <DatePicker
                             value={flightScheduledAtDate}
                             onChange={(e) =>
                               setValue(
@@ -1321,8 +1321,7 @@ export default function WekoPaBookingWizard({
                               ? "Arrival time"
                               : "Departure time"}
                           </label>
-                          <input
-                            type='time'
+                          <TimePicker
                             value={flightScheduledAtTime}
                             onChange={(e) =>
                               setValue(

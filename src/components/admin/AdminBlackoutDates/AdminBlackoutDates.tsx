@@ -1,5 +1,6 @@
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import styles from "./AdminBlackoutDates.module.css";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -97,9 +98,8 @@ export default function AdminBlackoutDates({
         </header>
 
         <form className={styles.form} onSubmit={onAdd}>
-          <input
+          <DatePicker
             className={styles.input}
-            type='date'
             value={ymd}
             onChange={(e) => setYmd(e.target.value)}
             required

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { DatePicker } from "@/components/shared/DatePicker";
 import { useState, useTransition, type FormEvent } from "react";
 import {
   saveDriverProfile,
@@ -28,13 +29,17 @@ function Field({
   return (
     <label className={styles.field}>
       <span className='miniNote'>{label}</span>
-      <input
-        className='selectBorder'
-        name={name}
-        type={type}
-        defaultValue={value}
-        placeholder={placeholder}
-      />
+      {type === "date" ? (
+        <DatePicker className='selectBorder' name={name} defaultValue={value} />
+      ) : (
+        <input
+          className='selectBorder'
+          name={name}
+          type={type}
+          defaultValue={value}
+          placeholder={placeholder}
+        />
+      )}
       {hint ? <span className='miniNote'>{hint}</span> : null}
     </label>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./NewInvoiceForm.module.css";
@@ -422,9 +423,8 @@ export default function NewInvoiceForm() {
         <div className={styles.optionsGrid}>
           <div className={styles.field}>
             <label className={styles.label}>Due date (optional)</label>
-            <input
+            <DatePicker
               className={styles.input}
-              type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
             />

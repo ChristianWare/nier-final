@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import { useState, useMemo } from "react";
 import styles from "./CorporateReports.module.css";
 
@@ -258,16 +259,14 @@ export default function ReportsClient({
 
         {period === "CUSTOM" && (
           <div className={styles.dateRange}>
-            <input
-              type='date'
+            <DatePicker
               value={customFrom}
               onChange={(e) => setCustomFrom(e.target.value)}
               className={`formInput ${styles.dateInput}`}
               title='From date'
             />
             <span className={styles.dateSep}>to</span>
-            <input
-              type='date'
+            <DatePicker
               value={customTo}
               onChange={(e) => setCustomTo(e.target.value)}
               className={`formInput ${styles.dateInput}`}

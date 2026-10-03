@@ -1,5 +1,6 @@
 "use client";
 
+import { DateTimePicker } from "@/components/shared/DatePicker";
 import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -429,8 +430,7 @@ export default function EditTripDetailsClient({
             <div className={styles.editFormRow}>
               <label className={`${styles.editLabel} emptyTitle`}>
                 Pickup Date &amp; Time
-                <input
-                  type='datetime-local'
+                <DateTimePicker
                   name='pickupAt'
                   value={formData.pickupAt}
                   onChange={handleChange}
@@ -631,8 +631,7 @@ export default function EditTripDetailsClient({
             <div className={styles.editFormRow}>
               <label className={`${styles.editLabel} emptyTitle`}>
                 Scheduled Arrival/Departure
-                <input
-                  type='datetime-local'
+                <DateTimePicker
                   name='flightScheduledAt'
                   value={formData.flightScheduledAt || ""}
                   onChange={handleChange}

@@ -1,5 +1,6 @@
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./UserTripsPage.module.css";
@@ -58,24 +59,20 @@ export default function UserCustomRangeFormClient({
     <form className={styles.rangeForm} onSubmit={onSubmit}>
       <label className={styles.rangeField}>
         <span className='miniNote'>From</span>
-        <input
+        <DatePicker
           className='inputBorder'
-          type='date'
           value={from}
           onChange={(e) => setFrom(e.target.value)}
-          onClick={(e) => (e.target as HTMLInputElement).showPicker()}
           style={{ minWidth: "175px", cursor: "pointer" }}
         />
       </label>
 
       <label className={styles.rangeField}>
         <span className='miniNote'>To</span>
-        <input
+        <DatePicker
           className='inputBorder'
-          type='date'
           value={to}
           onChange={(e) => setTo(e.target.value)}
-          onClick={(e) => (e.target as HTMLInputElement).showPicker()}
           style={{ minWidth: "175px", cursor: "pointer" }}
         />
       </label>

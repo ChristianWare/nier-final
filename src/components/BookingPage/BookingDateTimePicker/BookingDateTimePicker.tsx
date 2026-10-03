@@ -1,5 +1,6 @@
 "use client";
 
+import { MonthPicker } from "@/components/shared/DatePicker";
 import styles from "./BookingDateTimePicker.module.css";
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
@@ -256,8 +257,7 @@ export default function BookingDateTimePicker({
             >
               ‹
             </button>
-            <input
-              type='month'
+            <MonthPicker
               value={mobileMonthValue}
               onChange={onPickMonthMobile}
               className={styles.monthPicker}

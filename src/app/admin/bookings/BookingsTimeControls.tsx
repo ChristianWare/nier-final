@@ -1,5 +1,6 @@
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition, type FormEvent } from "react";
 // Same tabs, pill and forms as the earnings page.
@@ -250,9 +251,8 @@ export default function BookingsTimeControls({
         >
           <label className={earnings.rangeField}>
             <span className='miniNote'>From</span>
-            <input
+            <DatePicker
               className='selectBorder'
-              type='date'
               name='from'
               defaultValue={from}
               disabled={isPending}
@@ -261,9 +261,8 @@ export default function BookingsTimeControls({
 
           <label className={earnings.rangeField}>
             <span className='miniNote'>To</span>
-            <input
+            <DatePicker
               className='selectBorder'
-              type='date'
               name='to'
               defaultValue={to}
               disabled={isPending}

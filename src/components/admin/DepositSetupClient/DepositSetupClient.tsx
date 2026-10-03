@@ -1,5 +1,6 @@
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
@@ -246,9 +247,8 @@ export default function DepositSetupClient({
               <label className='emptyTitle' htmlFor={`dep-due-${bookingId}`}>
                 {is100 ? "Payment due by" : "Deposit due by"}
               </label>
-              <input
+              <DatePicker
                 id={`dep-due-${bookingId}`}
-                type='date'
                 value={depositDue}
                 onChange={(e) => setDepositDue(e.target.value)}
                 className='input emptySmall'
@@ -259,9 +259,8 @@ export default function DepositSetupClient({
                 <label className='emptyTitle' htmlFor={`bal-due-${bookingId}`}>
                   Balance due by
                 </label>
-                <input
+                <DatePicker
                   id={`bal-due-${bookingId}`}
-                  type='date'
                   value={balanceDue}
                   onChange={(e) => setBalanceDue(e.target.value)}
                   className='input emptySmall'

@@ -43,6 +43,7 @@ import AdminIncompleteRides, {
   IncompleteRideItem,
 } from "@/components/admin/AdminIncompleteRides/AdminIncompleteRides";
 import AdminDashboardTabs from "@/components/admin/AdminDashboardTabs/AdminDashboardTabs";
+import DashboardReporting from "./DashboardReporting";
 import AdminInvoicesSnapshot, {
   AdminInvoiceItem,
 } from "@/components/admin/AdminInvoicesSnapshot/AdminInvoicesSnapshot";
@@ -209,8 +210,14 @@ function transformPayment(p: any, isLink = false): PaymentItem {
   };
 }
 
-export default async function AdminHome() {
+export default async function AdminHome({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | undefined>>;
+}) {
   noStore();
+  const sp = (await searchParams) ?? {};
+  const showReporting = sp.tab === "reporting";
 
   const { timezone: companyTz } = await getCompanySettings();
 
@@ -2184,6 +2191,16 @@ export default async function AdminHome() {
         // Outstanding balances: total unpaid/partial items
         countOutstandingBalances={outstandingBalanceItems.length}
         countInvoices={outstandingInvoiceCount}
+        // ── Reporting tab: its charts load only when the tab is opened ──
+        initialTab={showReporting ? "reporting" : undefined}
+        reportingHref={showReporting ? undefined : "/admin?tab=reporting"}
+        reporting={
+          showReporting ? (
+            <DashboardReporting sp={sp} timezone={companyTz} />
+          ) : (
+            <p className='miniNote'>Loading reports…</p>
+          )
+        }
         // ── Panel content — server components passed as ReactNode slots ──
         bookingRequests={
           <AdminRecentBookingRequests

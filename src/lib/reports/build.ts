@@ -375,7 +375,7 @@ function refundsCsv(
 
 // ── Driver pay ───────────────────────────────────────────────────────────────
 
-type DriverPayGroup = {
+export type DriverPayGroup = {
   driverId: string;
   name: string;
   email: string;
@@ -389,7 +389,7 @@ type DriverPayGroup = {
   missing: number;
 };
 
-async function loadDriverPay(
+export async function loadDriverPay(
   period: Period,
   driverId?: string,
 ): Promise<DriverPayGroup[]> {
@@ -800,7 +800,7 @@ export async function buildOperationsReport(
 
 // ── Corporate invoices ───────────────────────────────────────────────────────
 
-async function loadCorporateInvoices(period: Period) {
+export async function loadCorporateInvoices(period: Period) {
   const invoices = await db.corporateInvoice.findMany({
     where:
       period.fromUtc && period.toUtc

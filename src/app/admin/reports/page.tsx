@@ -6,10 +6,15 @@ import ReportsControls from "./Reportscontrols";
 import RevenueChart from "./Revenuechart";
 import StatusPieChart from "./StatusPieChart";
 import KpiCard from "./KpiCard";
-import DriverPerformanceSection from "./DriverPerformanceSection";
+import {
+  CorporateSection,
+  Downloads,
+  DriverPaySection,
+  OperationsSummarySection,
+  TaxPackageSection,
+} from "./ReportSections";
+import type { Period } from "@/lib/reports/period";
 import ReportBuilder from "./ReportBuilder";
-import LeadTimePieChart from "./LeadTimePieChart";
-import PeakTimesPieChart from "./PeakTimesPieChart";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import {
@@ -20,13 +25,7 @@ import {
   kpisFromChartData,
 } from "@/lib/earnings/moneyIn";
 import { findTripCashPayments } from "@/lib/earnings/tripCash";
-import {
-  driverStats,
-  leadTimeBuckets,
-  loadReportRides,
-  operationalStats,
-  peakTimes,
-} from "@/lib/reports/rideStats";
+import { loadReportRides } from "@/lib/reports/rideStats";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -128,25 +127,6 @@ function chartHeadingFromData(view: ViewMode, data: { key: string }[]) {
 // ============================================
 // OPERATIONAL METRICS DATA AGGREGATION
 // ============================================
-
-function formatStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    DRAFT: "Draft",
-    PENDING_REVIEW: "Pending Review",
-    PENDING_PAYMENT: "Pending Payment",
-    CONFIRMED: "Confirmed",
-    ASSIGNED: "Assigned",
-    EN_ROUTE: "En Route",
-    ARRIVED: "Arrived",
-    IN_PROGRESS: "In Progress",
-    COMPLETED: "Completed",
-    CANCELLED: "Cancelled",
-    REFUNDED: "Refunded",
-    PARTIALLY_REFUNDED: "Partial Refund",
-    NO_SHOW: "No Show",
-  };
-  return labels[status] || status;
-}
 
 // ============================================
 // DRIVER PERFORMANCE DATA AGGREGATION
@@ -298,7 +278,39 @@ export default async function AdminReportsPage({
   const revenueByService = [...serviceRows, ...cashSlice];
   const revenueByVehicle = [...vehicleRows, ...cashSlice];
 
-  const ops = operationalStats(rides, todayStart);
+  const lastDay = tz.formatIsoDate(new Date(toUtc.getTime() - 1), companyTz);
+  const firstDay = tz.formatIsoDate(fromUtc, companyTz);
+  const sectionPeriod: Period =
+    view === "all"
+      ? {
+          kind: "all",
+          fromUtc: null,
+          toUtc: null,
+          label: "All time",
+          fileLabel: "all-time",
+        }
+      : {
+          kind: "range",
+          fromUtc,
+          toUtc,
+          label: rangeLabel,
+          fileLabel:
+            firstDay === lastDay ? firstDay : `${firstDay}_to_${lastDay}`,
+        };
+  const exportParams: Record<string, string> =
+    view === "all"
+      ? { period: "all" }
+      : { period: "range", from: firstDay, to: lastDay };
+  const dashboardHref =
+    view === "all"
+      ? "/admin?tab=reporting&range=all"
+      : `/admin?tab=reporting&range=range&from=${firstDay}&to=${lastDay}${basis === "created" ? "&basis=created" : ""}`;
+  const taxYearParam = spGet(sp, "taxYear");
+  const taxYear =
+    taxYearParam && years.includes(taxYearParam)
+      ? taxYearParam
+      : String(tz.toLocalParts(now, companyTz).y);
+  const reportCtx = { timezone: companyTz, companyName: "", now };
   const reportDrivers = (
     await db.user.findMany({
       where: { roles: { has: "DRIVER" } },
@@ -306,28 +318,10 @@ export default async function AdminReportsPage({
       select: { id: true, name: true, email: true },
     })
   ).map((d) => ({ id: d.id, name: d.name?.trim() || d.email }));
-  const bookingsByStatus = ops.byStatus.map((x) => ({
-    name: formatStatusLabel(x.status),
-    value: x.count,
-    status: x.status,
-  }));
-  const leadTimeData = leadTimeBuckets(rides);
-  const peakTimesData = peakTimes(rides, companyTz);
-  const driverPerformance = driverStats(rides, now, todayStart);
 
   const kpi = kpisFromChartData(revenueChartData);
   const netTone: "good" | "warn" = kpi.netSumCents >= 0 ? "good" : "warn";
   const revenueChartTitle = chartHeadingFromData(view, revenueChartData);
-
-  // Operational KPIs. Rates only look at rides before today, so upcoming
-  // rides don't drag them down.
-  const totalBookings = ops.total;
-  const completedBookings = ops.completed;
-  const cancelledBookings = ops.cancelled;
-  const noShowBookings = ops.noShows;
-  const completionRate = ops.completionRate ?? 0;
-  const cancellationRate = ops.cancellationRate ?? 0;
-  const noShowRate = ops.noShowRate ?? 0;
 
   return (
     <section className={`${base.content} ${styles.container}`}>
@@ -372,6 +366,10 @@ export default async function AdminReportsPage({
           <span className={styles.sectionBadge}>
             {rangeLabel} · by payment date
           </span>
+          <Downloads
+            params={{ type: "income", ...exportParams }}
+            label='Income summary:'
+          />
         </div>
 
         <div className={styles.kpiGrid}>
@@ -444,114 +442,21 @@ export default async function AdminReportsPage({
         </div>
       </section>
 
-      {/* ============================================ */}
-      {/* OPERATIONAL METRICS SECTION */}
-      {/* ============================================ */}
-      <section className={styles.section}>
-        <div className='header'>
-          <h2 className={`cardTitle h4`}>Operational Metrics</h2>
-          <span className={styles.sectionBadge}>
-            {rangeLabel} · {basisLabel}
-          </span>
-        </div>
-
-        <div className={styles.kpiGrid}>
-          <KpiCard
-            label='Total Bookings'
-            value={String(totalBookings)}
-            sub={`Rides ${basisLabel}`}
-          />
-          <KpiCard
-            label='Completion Rate'
-            value={`${completionRate}%`}
-            sub={`${completedBookings} completed · ${ops.notClosedOut} not closed out`}
-            tone={completionRate >= 80 ? "good" : "warn"}
-          />
-          <KpiCard
-            label='Cancellation Rate'
-            value={`${cancellationRate}%`}
-            sub={`${cancelledBookings} cancelled`}
-            tone={cancellationRate <= 10 ? "good" : "warn"}
-          />
-          <KpiCard
-            label='No-Show Rate'
-            value={`${noShowRate}%`}
-            sub={`${noShowBookings} no-shows`}
-            tone={noShowRate <= 5 ? "good" : "warn"}
-          />
-        </div>
-
-        <div className={styles.chartsRow}>
-          <div className={styles.chartCard}>
-            <div className={styles.chartHeader}>
-              <h3 className={`cardTitle h6`}>Bookings by Status</h3>
-              <span className='miniNote'>Distribution</span>
-            </div>
-            <div className={styles.chartBodyPie}>
-              <StatusPieChart
-                data={bookingsByStatus}
-                dataKey='value'
-                colors={[
-                  "#10b981",
-                  "#3b82f6",
-                  "#8b5cf6",
-                  "#f59e0b",
-                  "#ef4444",
-                  "#6b7280",
-                  "#ec4899",
-                  "#06b6d4",
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className={styles.chartCard}>
-            <div className={styles.chartHeader}>
-              <h3 className={`cardTitle h6`}>Lead Time Distribution</h3>
-              <span className='miniNote'>
-                How far in advance customers book
-              </span>
-            </div>
-            <div className={styles.chartBodyPie}>
-              <LeadTimePieChart data={leadTimeData} />
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.chartsRow}>
-          <div className={styles.chartCard}>
-            <div className={styles.chartHeader}>
-              <h3 className={`cardTitle h6`}>Peak Days</h3>
-              <span className='miniNote'>Busiest days of the week</span>
-            </div>
-            <div className={styles.chartBodyPie}>
-              <PeakTimesPieChart data={peakTimesData.dayData} />
-            </div>
-          </div>
-
-          <div className={styles.chartCard}>
-            <div className={styles.chartHeader}>
-              <h3 className={`cardTitle h6`}>Peak Hours</h3>
-              <span className='miniNote'>Busiest times of day</span>
-            </div>
-            <div className={styles.chartBodyPie}>
-              <PeakTimesPieChart
-                data={peakTimesData.hourData}
-                colors={["#fbbf24", "#f97316", "#8b5cf6", "#1e3a5f"]}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* DRIVER PERFORMANCE SECTION (shared with the Drivers page) */}
-      {/* ============================================ */}
-      <DriverPerformanceSection
-        drivers={driverPerformance}
+      <TaxPackageSection year={taxYear} years={years} ctx={reportCtx} />
+      <DriverPaySection period={sectionPeriod} exportParams={exportParams} />
+      <OperationsSummarySection
+        rides={rides}
+        todayStart={todayStart}
         rangeLabel={rangeLabel}
         basisLabel={basisLabel}
-        currency={currency}
+        basis={basis}
+        exportParams={exportParams}
+        dashboardHref={dashboardHref}
+      />
+      <CorporateSection
+        period={sectionPeriod}
+        exportParams={exportParams}
+        ctx={reportCtx}
       />
     </section>
   );

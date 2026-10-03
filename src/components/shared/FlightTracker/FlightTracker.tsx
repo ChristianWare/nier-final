@@ -1,5 +1,6 @@
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import { useEffect, useState } from "react";
 import { getFlightStatus } from "../../../../actions/flight/getFlightStatus";
 import type { FlightStatusResponse } from "../../../../actions/flight/getFlightStatus";
@@ -446,9 +447,8 @@ export default function FlightTracker({
           <label htmlFor='flightDate' className={styles.label}>
             Date
           </label>
-          <input
+          <DatePicker
             id='flightDate'
-            type='date'
             value={date}
             onChange={(e) => {
               setDate(e.target.value);

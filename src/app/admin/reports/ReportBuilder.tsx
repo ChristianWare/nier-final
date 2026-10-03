@@ -1,5 +1,6 @@
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import { useState } from "react";
 import ReportModal from "@/components/admin/ReportModal/ReportModal";
 import styles from "./AdminReportsPage.module.css";
@@ -250,18 +251,16 @@ export default function ReportBuilder({
                 <>
                   {field(
                     "From",
-                    <input
+                    <DatePicker
                       className='selectBorder'
-                      type='date'
                       value={from}
                       onChange={(e) => setFrom(e.target.value)}
                     />,
                   )}
                   {field(
                     "To",
-                    <input
+                    <DatePicker
                       className='selectBorder'
-                      type='date'
                       value={to}
                       onChange={(e) => setTo(e.target.value)}
                     />,

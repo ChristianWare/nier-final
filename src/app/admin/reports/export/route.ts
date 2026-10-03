@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { getAdminUserId } from "@/lib/sessionUser";
+import { companyDisplayName } from "@/lib/companyName";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import { resolvePeriod } from "@/lib/reports/period";
 import {
@@ -45,7 +46,7 @@ export async function GET(req: Request) {
   const settings = await getCompanySettings();
   const ctx: ReportContext = {
     timezone: settings.timezone,
-    companyName: settings.officeName || "Company",
+    companyName: companyDisplayName(settings),
     now,
   };
   const type = q.get("type") ?? "income";

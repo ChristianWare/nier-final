@@ -1,5 +1,6 @@
 "use client";
 
+import { MonthPicker } from "@/components/shared/DatePicker";
 import styles from "./AdminDriversCalendarPanel.module.css";
 import { useState, useCallback, useMemo } from "react";
 import Image from "next/image";
@@ -376,8 +377,7 @@ export default function AdminDriversCalendarPanel({
                     >
                       ‹
                     </button>
-                    <input
-                      type='month'
+                    <MonthPicker
                       value={mobileMonthValue}
                       onChange={onPickMonthMobile}
                       className={styles.monthPicker}

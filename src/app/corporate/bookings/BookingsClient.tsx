@@ -1,5 +1,6 @@
 "use client";
 
+import { DatePicker } from "@/components/shared/DatePicker";
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./CorporateBookings.module.css";
@@ -283,15 +284,13 @@ export default function BookingsClient({
             ))}
           </select>
 
-          <input
-            type='date'
+          <DatePicker
             value={dateFrom}
             onChange={(e) => updateFilter(setDateFrom)(e.target.value)}
             className='inputBorder'
             title='From date'
           />
-          <input
-            type='date'
+          <DatePicker
             value={dateTo}
             onChange={(e) => updateFilter(setDateTo)(e.target.value)}
             className='inputBorder'
