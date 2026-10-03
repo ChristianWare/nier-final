@@ -26,12 +26,16 @@ import ImageIcon from "@/components/shared/icons/ImageIcon/ImageIcon";
 import Modal from "@/components/shared/Modal/Modal";
 import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
 import Receipt from "@/components/shared/icons/Receipt/Receipt";
+import Driver from "@/components/shared/icons/Driver/Driver";
+
 
 const NAV_ITEMS = [
   { title: "Dashboard", href: "/admin", icon: <House /> },
   { title: "Earnings", href: "/admin/earnings", icon: <Money /> },
-  { title: "Invoices", href: "/admin/invoices", icon: <Receipt /> },
   { title: "Bookings", href: "/admin/bookings", icon: <Appointments /> },
+  { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
+  { title: "Drivers", href: "/admin/drivers", icon: <Driver /> },
+  { title: "Users", href: "/admin/users", icon: <Users /> },
   { title: "Services", href: "/admin/services", icon: <Bell /> },
   {
     title: "Vehicle Categories",
@@ -39,12 +43,10 @@ const NAV_ITEMS = [
     icon: <Listing />,
   },
   { title: "Vehicles", href: "/admin/vehicles", icon: <Car /> },
-  { title: "Users", href: "/admin/users", icon: <Users /> },
-  { title: "Drivers", href: "/admin/drivers", icon: <Car /> },
   { title: "Corporate Acct's", href: "/admin/corporate", icon: <Business /> },
   { title: "Airports", href: "/admin/airports", icon: <Plane /> },
-  { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
   { title: "Reports", href: "/admin/reports", icon: <Report /> },
+  { title: "Invoices", href: "/admin/invoices", icon: <Receipt /> },
   { title: "Company", href: "/admin/company", icon: <Company /> },
   { title: "Website Analytics", href: "/admin/analytics", icon: <Analytics /> },
   { title: "Notifications", href: "/admin/notifications", icon: <Cog /> },

@@ -140,7 +140,7 @@ type SearchParams = {
 
 type BadgeTone = "neutral" | "warn" | "good" | "accent" | "bad";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 25;
 
 function getConfirmationCode(bookingId: string): string {
   return bookingId.slice(0, 8).toUpperCase();
@@ -814,23 +814,12 @@ export default async function AdminBookingsPage({
           <div className={styles.top}>
             <h1 className={`${styles.heading} h2`}>Bookings</h1>
           </div>
-
           <div className={styles.headerActions}>
             <Button
               href='/admin/bookings/new'
               text='New Booking +'
               btnType='greenReg'
             />
-          </div>
-
-          <div className={styles.meta}>
-            <strong style={{ fontSize: "1.4rem" }}>{totalCount}</strong> total
-            {totalCount > 0 ? (
-              <span className={styles.metaSep}>
-                • Page <strong className='emptyTitleSmall'>{safePage}</strong>{" "}
-                of <strong className='emptyTitleSmall'>{totalPages}</strong>
-              </span>
-            ) : null}
           </div>
         </div>
 
@@ -1019,7 +1008,6 @@ export default async function AdminBookingsPage({
           />
         </div>
       ) : null}
-
       <Pagination
         totalCount={totalCount}
         page={safePage}
@@ -1544,7 +1532,8 @@ function Pagination({
     <div className={styles.pagination}>
       <div className={styles.paginationLeft}>
         <span className={styles.paginationMeta}>
-          Page <strong>{page}</strong> of <strong>{totalPages}</strong>
+          <strong>{totalCount}</strong> total • Page <strong>{page}</strong> of{" "}
+          <strong>{totalPages}</strong>
         </span>
       </div>
 
