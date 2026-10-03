@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import PeriodTabs from "@/components/admin/PeriodTabs/PeriodTabs";
 import { DatePicker } from "@/components/shared/DatePicker";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition, type FormEvent } from "react";
@@ -166,56 +167,26 @@ export default function UserEarningsControls({
 
   return (
     <div className={styles.controls}>
-      <div className={styles.tabs}>
-        <button
-          type='button'
-          className={`tab ${activeView === "daily" ? "tabActive" : ""}`}
-          onClick={() => setView("daily")}
-          disabled={isPending}
-        >
-          Daily
-        </button>
-
-        <button
-          type='button'
-          className={`tab ${activeView === "monthly" ? "tabActive" : ""}`}
-          onClick={() => setView("monthly")}
-          disabled={isPending}
-        >
-          Monthly
-        </button>
-
-        <button
-          type='button'
-          className={`tab ${activeView === "ytd" ? "tabActive" : ""}`}
-          onClick={() => setView("ytd")}
-          disabled={isPending}
-        >
-          Year to date
-        </button>
-
-        <button
-          type='button'
-          className={`tab ${activeView === "all" ? "tabActive" : ""}`}
-          onClick={() => setView("all")}
-          disabled={isPending}
-        >
-          All time
-        </button>
-
-        <button
-          type='button'
-          className={`tab ${activeView === "range" ? "tabActive" : ""}`}
-          onClick={() => setView("range")}
-          disabled={isPending}
-        >
-          Date range
-        </button>
-
-        <div className={styles.rangePill}>
-          <span className='miniNote'>{rangeLabel}</span>
-        </div>
-      </div>
+      <PeriodTabs
+        className={styles.tabs}
+        pillClassName={styles.rangePill}
+        groups={[
+          {
+            label: "Period",
+            tabs: [
+              { value: "daily", label: "Daily" },
+              { value: "monthly", label: "Monthly" },
+              { value: "ytd", label: "Year to date" },
+              { value: "all", label: "All time" },
+              { value: "range", label: "Date range" },
+            ],
+          },
+        ]}
+        active={activeView}
+        onSelect={(v) => setView(v as ViewMode)}
+        disabled={isPending}
+        rangeLabel={rangeLabel}
+      />
 
       {activeView === "daily" ? (
         <form

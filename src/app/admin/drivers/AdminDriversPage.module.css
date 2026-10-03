@@ -1,5 +1,8 @@
 .container {
   display: grid;
+  /* One column that never grows past the screen; wide tables scroll inside
+     their cards instead of stretching the page. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
 }
 
@@ -22,7 +25,7 @@
 .tableCard {
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 14px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .table {

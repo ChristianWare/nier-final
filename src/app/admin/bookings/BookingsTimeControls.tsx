@@ -1,11 +1,11 @@
 "use client";
 
+import PeriodTabs from "@/components/admin/PeriodTabs/PeriodTabs";
 import { DatePicker } from "@/components/shared/DatePicker";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition, type FormEvent } from "react";
 // Same tabs, pill and forms as the earnings page.
 import earnings from "../earnings/AdminEarningsPage.module.css";
-import styles from "./BookingsChart.module.css";
 
 const MAIN_TABS = [
   { value: "month", label: "Daily" },
@@ -167,37 +167,18 @@ export default function BookingsTimeControls({
         </label>
       </div>
 
-      <div className={earnings.tabs}>
-        {MAIN_TABS.map((t) => (
-          <button
-            key={t.value}
-            type='button'
-            className={`tab ${activeRange === t.value ? "tabActive" : ""}`}
-            onClick={() => setRange(t.value)}
-            disabled={isPending}
-          >
-            {t.label}
-          </button>
-        ))}
-
-        <span className={styles.tabDivider} aria-hidden='true' />
-
-        {UPCOMING_TABS.map((t) => (
-          <button
-            key={t.value}
-            type='button'
-            className={`tab ${activeRange === t.value ? "tabActive" : ""}`}
-            onClick={() => setRange(t.value)}
-            disabled={isPending}
-          >
-            {t.label}
-          </button>
-        ))}
-
-        <div className={earnings.rangePill}>
-          <span className='miniNote'>{rangeLabel}</span>
-        </div>
-      </div>
+      <PeriodTabs
+        className={earnings.tabs}
+        pillClassName={earnings.rangePill}
+        groups={[
+          { label: "Looking back", tabs: MAIN_TABS },
+          { label: "Coming up", tabs: UPCOMING_TABS },
+        ]}
+        active={activeRange}
+        onSelect={setRange}
+        disabled={isPending}
+        rangeLabel={rangeLabel}
+      />
 
       {activeRange === "month" ? (
         <form

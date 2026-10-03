@@ -23,14 +23,6 @@
   height: 100%;
 }
 
-.tabDivider {
-  width: 1px;
-  align-self: stretch;
-  min-height: 28px;
-  background: var(--stroke);
-  margin: 0 0.4rem;
-}
-
 /* Red card for lost rides, alongside the earnings tones. */
 .tone_bad {
   border: 1px solid rgba(239, 68, 68, 0.25);
