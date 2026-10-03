@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Button from "@/components/shared/Button/Button";
+import { formatClock, formatMdy, statusTone } from "@/lib/booking/statusBadge";
 import type { BookingStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import * as tz from "@/lib/timezone";
@@ -271,29 +273,47 @@ export default async function AdminDriversPage({
                   <th className={styles.th}>Service</th>
                   <th className={styles.th}>Status</th>
                   <th className={styles.th}>Booking</th>
+                  <th
+                    className={`${styles.th} ${styles.num}`}
+                    aria-label='Details'
+                  />
                 </tr>
               </thead>
               <tbody>
                 {notClosedOut.map((r) => (
                   <tr key={r.id} className={styles.tr}>
                     <td className={styles.td}>
-                      {tz.formatDateTime(r.pickupAt, timezone)}
+                      <div className={styles.dateCell}>
+                        {formatMdy(r.pickupAt, timezone)}
+                      </div>
+                      <div className='miniNote'>
+                        {formatClock(r.pickupAt, timezone)}
+                      </div>
                     </td>
                     <td className={styles.td}>
                       {r.driver ? (
-                        <Link href={`/admin/drivers/${r.driver.id}`}>
-                          {r.driver.name || r.driver.email}
-                        </Link>
+                        <strong>{r.driver.name || r.driver.email}</strong>
                       ) : (
-                        "Unassigned"
+                        <span className={styles.muted}>Unassigned</span>
                       )}
                     </td>
                     <td className={styles.td}>{r.serviceName ?? "—"}</td>
-                    <td className={styles.td}>{tz.statusLabel(r.status)}</td>
                     <td className={styles.td}>
-                      <Link href={`/admin/bookings/${r.id}`}>
-                        {r.id.slice(0, 7).toUpperCase()}
-                      </Link>
+                      <span className={`badge badge_${statusTone(r.status)}`}>
+                        {tz.statusLabel(r.status)}
+                      </span>
+                    </td>
+                    <td className={styles.td}>
+                      <span className={styles.code}>
+                        #{r.id.slice(0, 8).toUpperCase()}
+                      </span>
+                    </td>
+                    <td className={`${styles.td} ${styles.num}`}>
+                      <Button
+                        href={`/admin/bookings/${r.id}`}
+                        text='More details'
+                        btnType='blackReg'
+                      />
                     </td>
                   </tr>
                 ))}

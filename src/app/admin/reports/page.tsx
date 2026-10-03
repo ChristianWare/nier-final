@@ -10,6 +10,7 @@ import {
   Downloads,
   DriverPaySection,
   OperationsSummarySection,
+  SectionHead,
   TaxPackageSection,
 } from "./ReportSections";
 import type { Period } from "@/lib/reports/period";
@@ -358,16 +359,13 @@ export default async function AdminReportsPage({
       {/* REVENUE & FINANCIAL SECTION */}
       {/* ============================================ */}
       <section className={styles.section}>
-        <div className='header'>
-          <h2 className={`cardTitle h4`}>Revenue &amp; Financial</h2>
-          <span className={styles.sectionBadge}>
-            {rangeLabel} · by payment date
-          </span>
-          <Downloads
-            params={{ type: "income", ...exportParams }}
-            label='Income summary:'
-          />
-        </div>
+        <SectionHead
+          title='Revenue & Financial'
+          badge={`${rangeLabel} · by payment date`}
+        >
+          <span className='miniNote'>Income summary:</span>
+          <Downloads params={{ type: "income", ...exportParams }} />
+        </SectionHead>
 
         <div className={styles.kpiGrid}>
           <KpiCard

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { PUBLIC_VEHICLE_WHERE } from "@/lib/booking/partnerVehicles";
 import Script from "next/script";
 import dynamic from "next/dynamic";
 import Hero from "@/components/HomePage/Hero/Hero";
@@ -178,7 +179,7 @@ export default async function HomePage() {
 
   // ── Vehicles ──────────────────────────────────────────────────────────────
   const vehicles = await db.vehicle.findMany({
-    where: { active: true },
+    where: PUBLIC_VEHICLE_WHERE,
     orderBy: { sortOrder: "asc" },
     select: {
       id: true,

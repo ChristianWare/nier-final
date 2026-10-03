@@ -247,3 +247,25 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Rides not closed out */
+.dateCell {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.muted {
+  color: var(--paragraph, #666);
+}
+
+.code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.3rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.td :global(.badge) {
+  white-space: nowrap;
+  display: inline-block;
+}

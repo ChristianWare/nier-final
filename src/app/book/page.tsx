@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { PUBLIC_VEHICLE_WHERE } from "@/lib/booking/partnerVehicles";
 import { db } from "@/lib/db";
 import { auth } from "../../../auth";
 import BookingWizard from "@/components/BookingPage/BookWizard/BookWizard";
@@ -112,7 +113,7 @@ export default async function BookPage() {
   }));
 
   const vehicles = await db.vehicle.findMany({
-    where: { active: true },
+    where: PUBLIC_VEHICLE_WHERE,
     orderBy: { sortOrder: "asc" },
     select: {
       id: true,

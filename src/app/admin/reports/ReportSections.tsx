@@ -31,25 +31,27 @@ function exportHref(params: Record<string, string>) {
 /** "Download PDF / CSV" for a report, for the given period. */
 export function Downloads({
   params,
-  label,
+  compact = false,
 }: {
   params: Record<string, string>;
-  label?: string;
+  /** Short "PDF / CSV" labels, for table rows. */
+  compact?: boolean;
 }) {
   return (
     <span className={styles.downloads}>
-      {label ? <span className='miniNote'>{label}</span> : null}
       <a className='tab' href={exportHref({ ...params, format: "pdf" })}>
-        PDF
+        {compact ? "PDF" : "Download PDF"}
       </a>
       <a className='tab' href={exportHref({ ...params, format: "csv" })}>
-        CSV
+        {compact ? "CSV" : "Download CSV"}
       </a>
     </span>
   );
 }
 
-function SectionHead({
+/** A report section's heading: title and period on the left, actions on
+ *  the right (they drop below on small screens). */
+export function SectionHead({
   title,
   badge,
   children,
@@ -59,17 +61,35 @@ function SectionHead({
   children?: React.ReactNode;
 }) {
   return (
-    <div className={`header ${styles.sectionHead}`}>
-      <div>
+    <div className={styles.sectionTop}>
+      <div className={styles.sectionTopText}>
         <h2 className={`cardTitle h4`}>{title}</h2>
         <span className={styles.sectionBadge}>{badge}</span>
       </div>
-      {children}
+      {children ? (
+        <div className={styles.sectionActions}>{children}</div>
+      ) : null}
     </div>
   );
 }
 
 // ── Tax year package ─────────────────────────────────────────────────────────
+
+const PACKAGE_FILES = [
+  [
+    "summary.pdf",
+    "The year by month, driver pay by driver, and notes for your accountant",
+  ],
+  ["monthly-summary.csv", "Fares, tips, refunds and net, month by month"],
+  ["payments.csv", "Every payment received"],
+  ["refunds.csv", "Every refund"],
+  [
+    "driver-pay-by-driver.csv",
+    "Each driver's pay and tips, with their 1099 details",
+  ],
+  ["driver-pay-by-ride.csv", "Driver pay and tips on every ride"],
+  ["corporate-invoices.csv", "Corporate invoices issued in the year"],
+] as const;
 
 export async function TaxPackageSection({
   year,
@@ -100,17 +120,25 @@ export async function TaxPackageSection({
   );
   const missingDetails = paid.filter((g) => !g.legalName || !g.w9ReceivedAt);
   const unpaid = invoices.filter((i) => i.status !== "VOID" && i.balance > 0);
+  const unpaidTotal = unpaid.reduce((s, i) => s + i.balance, 0);
   const driverPay = drivers.reduce((s, g) => s + g.payCents + g.tipCents, 0);
   const yearRange = `range=range&from=${year}-01-01&to=${year}-12-31`;
+  const plural = (n: number, one: string, many: string) =>
+    n === 1 ? one : many;
 
-  const checks = [
+  const checks: {
+    ok: boolean;
+    text: string;
+    people?: { href: string; label: string }[];
+    action?: { href: string; label: string };
+  }[] = [
     {
       ok: missingDetails.length === 0,
       text:
         missingDetails.length === 0
           ? "Every driver you paid has a legal name and W-9 date on file"
-          : `${missingDetails.length} paid ${missingDetails.length === 1 ? "driver is" : "drivers are"} missing a legal name or W-9 date:`,
-      links: missingDetails.map((g) => ({
+          : `${missingDetails.length} paid ${plural(missingDetails.length, "driver is", "drivers are")} missing a legal name or W-9 date`,
+      people: missingDetails.map((g) => ({
         href: `/admin/drivers/${g.driverId}`,
         label: g.name,
       })),
@@ -120,61 +148,56 @@ export async function TaxPackageSection({
       text:
         missingPay === 0
           ? "Driver pay is recorded on every completed ride"
-          : `${missingPay} completed ${missingPay === 1 ? "ride has" : "rides have"} no driver pay recorded`,
-      links: missingPay
-        ? [
-            {
-              href: `/admin/drivers?${yearRange}#missing-pay`,
-              label: "Fill in missing pay",
-            },
-          ]
-        : [],
+          : `${missingPay} completed ${plural(missingPay, "ride has", "rides have")} no driver pay recorded`,
+      action: missingPay
+        ? {
+            href: `/admin/drivers?${yearRange}#missing-pay`,
+            label: "Fill in missing pay",
+          }
+        : undefined,
     },
     {
       ok: notClosedOut === 0,
       text:
         notClosedOut === 0
           ? "Every past ride is closed out"
-          : `${notClosedOut} past ${notClosedOut === 1 ? "ride isn't" : "rides aren't"} closed out`,
-      links: notClosedOut
-        ? [
-            {
-              href: `/admin/drivers?${yearRange}#not-closed-out`,
-              label: "Review rides",
-            },
-          ]
-        : [],
+          : `${notClosedOut} past ${plural(notClosedOut, "ride isn't", "rides aren't")} closed out`,
+      action: notClosedOut
+        ? {
+            href: `/admin/drivers?${yearRange}#not-closed-out`,
+            label: "Review rides",
+          }
+        : undefined,
     },
     {
       ok: unpaid.length === 0,
       text:
         unpaid.length === 0
           ? "Every corporate invoice from the year is paid"
-          : `${unpaid.length} corporate ${unpaid.length === 1 ? "invoice is" : "invoices are"} unpaid (${short(unpaid.reduce((s, i) => s + i.balance, 0))})`,
-      links: unpaid.length
-        ? [{ href: "/admin/corporate", label: "Corporate accounts" }]
-        : [],
+          : `${unpaid.length} corporate ${plural(unpaid.length, "invoice is", "invoices are")} unpaid (${short(unpaidTotal)})`,
+      action: unpaid.length
+        ? { href: "/admin/corporate", label: "Corporate accounts" }
+        : undefined,
     },
   ];
 
   return (
     <section className={styles.section}>
       <SectionHead title='Tax year package' badge={`${year} · calendar year`}>
-        <span className={styles.downloads}>
-          <TaxYearSelect years={years} year={year} />
-          <a
-            className='rangeSubmitBtn'
-            href={exportHref({
-              type: "tax",
-              period: "year",
-              year,
-              format: "zip",
-            })}
-          >
-            Download {year} package (ZIP)
-          </a>
-        </span>
+        <TaxYearSelect years={years} year={year} />
+        <a
+          className={`rangeSubmitBtn ${styles.actionBtn}`}
+          href={exportHref({
+            type: "tax",
+            period: "year",
+            year,
+            format: "zip",
+          })}
+        >
+          Download {year} package (ZIP)
+        </a>
       </SectionHead>
+
       <div className={styles.kpiGrid}>
         <KpiCard
           label='Money received'
@@ -185,45 +208,56 @@ export async function TaxPackageSection({
         <KpiCard
           label='Driver pay + tips'
           value={short(driverPay)}
-          sub={`${paid.length} drivers paid per ride`}
+          sub={`${paid.length} ${plural(paid.length, "driver", "drivers")} paid per ride`}
         />
         <KpiCard
           label='Corporate outstanding'
-          value={short(unpaid.reduce((s, i) => s + i.balance, 0))}
-          sub={`${invoices.length} invoices issued`}
+          value={short(unpaidTotal)}
+          sub={`${invoices.length} ${plural(invoices.length, "invoice", "invoices")} issued`}
           tone={unpaid.length ? "warn" : "neutral"}
         />
       </div>
+
       <div className={styles.twoCols}>
-        <div>
-          <h3 className='cardTitle h6'>Before you send it</h3>
+        <div className={styles.panel}>
+          <h3 className={styles.panelTitle}>Before you send it</h3>
           <ul className={styles.checklist}>
             {checks.map((c, i) => (
               <li key={i} className={c.ok ? styles.checkOk : styles.checkWarn}>
-                <span aria-hidden='true'>{c.ok ? "✓" : "!"}</span>
-                <span>
-                  {c.text}{" "}
-                  {c.links.map((l, j) => (
-                    <span key={l.href}>
-                      {j > 0 ? ", " : ""}
-                      <Link href={l.href}>{l.label}</Link>
-                    </span>
-                  ))}
+                <span className={styles.checkIcon} aria-hidden='true'>
+                  {c.ok ? "✓" : "!"}
                 </span>
+                <div className={styles.checkBody}>
+                  <div>{c.text}</div>
+                  {c.people?.length ? (
+                    <div className={styles.checkPeople}>
+                      {c.people.map((p, j) => (
+                        <span key={p.href}>
+                          {j > 0 ? ", " : ""}
+                          <Link href={p.href}>{p.label}</Link>
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+                {c.action ? (
+                  <Link className={styles.checkAction} href={c.action.href}>
+                    {c.action.label} →
+                  </Link>
+                ) : null}
               </li>
             ))}
           </ul>
         </div>
-        <div>
-          <h3 className='cardTitle h6'>What&apos;s inside</h3>
-          <ul className={styles.contents}>
-            <li>
-              summary.pdf: the year by month, driver pay by driver, notes for
-              your accountant
-            </li>
-            <li>monthly-summary.csv, payments.csv, refunds.csv</li>
-            <li>driver-pay-by-driver.csv, driver-pay-by-ride.csv</li>
-            <li>corporate-invoices.csv</li>
+        <div className={styles.panel}>
+          <h3 className={styles.panelTitle}>What&apos;s inside</h3>
+          <ul className={styles.fileList}>
+            {PACKAGE_FILES.map(([file, about]) => (
+              <li key={file}>
+                <span className={styles.fileName}>{file}</span>
+                <span className='miniNote'>{about}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
@@ -247,15 +281,15 @@ export async function DriverPaySection({
         title='Driver pay statements'
         badge={`${period.label} · completed rides by pickup date`}
       >
+        <span className='miniNote'>All drivers:</span>
         <Downloads
           params={{ type: "drivers", driver: "all", ...exportParams }}
-          label='All drivers:'
         />
       </SectionHead>
       {drivers.length === 0 ? (
-        <div className={styles.emptyState}>
+        <p className={styles.emptyNote}>
           No completed rides with a driver in this period.
-        </div>
+        </p>
       ) : (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -295,6 +329,7 @@ export async function DriverPaySection({
                   <td>{g.w9ReceivedAt ? "On file" : "—"}</td>
                   <td className={styles.right}>
                     <Downloads
+                      compact
                       params={{
                         type: "drivers",
                         driver: g.driverId,
@@ -362,13 +397,17 @@ export function OperationsSummarySection({
         <KpiCard
           label='No-show rate'
           value={pct(ops.noShowRate)}
-          sub={`${ops.noShows} no-shows`}
+          sub={
+            ops.noShowRate == null
+              ? "No past rides yet"
+              : `${ops.noShows} no-shows`
+          }
         />
       </div>
-      <p className='miniNote'>
-        The status, lead-time, peak-time and driver charts are on the dashboard:{" "}
-        <Link href={dashboardHref}>open the Reporting tab →</Link>
-      </p>
+      <Link className={styles.inlineLink} href={dashboardHref}>
+        Status, lead-time, peak-time and driver charts are on the
+        dashboard&apos;s Reporting tab →
+      </Link>
     </section>
   );
 }
@@ -409,7 +448,7 @@ export async function CorporateSection({
           label='Paid'
           value={short(paid)}
           sub='Received so far'
-          tone='good'
+          tone={paid > 0 ? "good" : "neutral"}
         />
         <KpiCard
           label='Outstanding'
@@ -418,7 +457,11 @@ export async function CorporateSection({
           tone={open.length ? "warn" : "neutral"}
         />
       </div>
-      {open.length > 0 ? (
+      {live.length === 0 ? (
+        <p className={styles.emptyNote}>
+          No corporate invoices were issued in this period.
+        </p>
+      ) : open.length > 0 ? (
         <div className={styles.tableWrap}>
           <table className={styles.table}>
             <thead>

@@ -37,21 +37,27 @@ export default function KpiCard({
   tone?: "neutral" | "good" | "warn";
 }) {
   const { value: numericValue, prefix, suffix } = parseValue(value);
+  // No number to count up to (e.g. "—" when there's nothing to measure yet).
+  const hasNumber = /\d/.test(value);
 
   return (
     <div className={`${styles.kpiCard} ${styles[`tone_${tone}`]}`}>
       <div className='emptyTitle underline'>{label}</div>
-      <div className={styles.kpiValue}>
-        {prefix && <span>{prefix}</span>}
-        <CountUp
-          from={0}
-          to={numericValue}
-          duration={1.5}
-          separator=','
-          delay={0.1}
-        />
-        {suffix && <span>{suffix}</span>}
-      </div>
+      {!hasNumber ? (
+        <div className={styles.kpiValue}>{value}</div>
+      ) : (
+        <div className={styles.kpiValue}>
+          {prefix && <span>{prefix}</span>}
+          <CountUp
+            from={0}
+            to={numericValue}
+            duration={1.5}
+            separator=','
+            delay={0.1}
+          />
+          {suffix && <span>{suffix}</span>}
+        </div>
+      )}
       <div className={styles.kpiSub}>{sub}</div>
     </div>
   );

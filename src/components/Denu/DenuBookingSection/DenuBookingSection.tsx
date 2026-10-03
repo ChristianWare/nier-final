@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { DENU_VEHICLE_NAMES } from "@/lib/booking/partnerVehicles";
 import { db } from "@/lib/db";
 import { auth } from "../../../../auth";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
@@ -17,7 +18,7 @@ const TIMEZONE_SHORT_LABELS: Record<string, string> = {
 };
 
 const SERVICE_SLUG = "airport-pickups";
-const VEHICLE_NAMES = ["Denu SUV", "Denu Van", "Denu Mesa SUV", "Denu Mesa Van"];
+const VEHICLE_NAMES = DENU_VEHICLE_NAMES;
 
 export default async function DenuBookingSection() {
   // ─── Auth ────────────────────────────────────────────────────────────────
