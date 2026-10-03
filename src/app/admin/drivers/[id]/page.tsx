@@ -191,7 +191,7 @@ export default async function AdminDriverPage({
         <BookingsTimeControls
           activeRange={range}
           basis={basis}
-          basisTitle='Showing rides by'
+          basisTitle='Showing'
           years={years}
           monthOptions={MONTH_OPTIONS}
           selectedYear={selectedMonthKey.slice(0, 4)}

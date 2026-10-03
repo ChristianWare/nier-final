@@ -240,11 +240,12 @@ export default async function AdminReportsPage({
   const currency = "USD";
 
   // Fetch all data in parallel
-  // "Showing bookings by": pickup date (default) or booked date. Money is
+  // "Showing": rides happening in the period (pickup date, the default) or
+  // bookings made in it (booked date). Money is
   // always counted by payment date, with the same math as the earnings page.
   const basis: "pickup" | "created" =
     spGet(sp, "basis") === "created" ? "created" : "pickup";
-  const basisLabel = basis === "created" ? "by booked date" : "by pickup date";
+  const basisLabel = basis === "created" ? "bookings made" : "rides happening";
   const todayStart = tz.startOfDay(now, companyTz);
 
   const [revenueChartData, rides, serviceRows, vehicleRows, tripCash] =

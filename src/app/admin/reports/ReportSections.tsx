@@ -345,7 +345,7 @@ export function OperationsSummarySection({
         <KpiCard
           label='Rides'
           value={String(ops.total)}
-          sub={`Rides ${basisLabel}`}
+          sub={`${basisLabel.charAt(0).toUpperCase()}${basisLabel.slice(1)} in this period`}
         />
         <KpiCard
           label='Completion rate'

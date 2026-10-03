@@ -77,7 +77,7 @@ export default function OperationalMetricsSection({
           <KpiCard
             label='Total Bookings'
             value={String(totalBookings)}
-            sub={`Rides ${basisLabel}`}
+            sub={`${basisLabel.charAt(0).toUpperCase()}${basisLabel.slice(1)} in this period`}
           />
           <KpiCard
             label='Completion Rate'

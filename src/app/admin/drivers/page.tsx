@@ -93,7 +93,7 @@ export default async function AdminDriversPage({
     sp.basis === "created" && !PICKUP_ONLY.includes(range)
       ? "created"
       : "pickup";
-  const basisLabel = basis === "created" ? "by booked date" : "by pickup date";
+  const basisLabel = basis === "created" ? "bookings made" : "rides happening";
 
   const now = new Date();
   const { timezone } = await getCompanySettings();
@@ -202,7 +202,7 @@ export default async function AdminDriversPage({
         <BookingsTimeControls
           activeRange={range}
           basis={basis}
-          basisTitle='Showing rides by'
+          basisTitle='Showing'
           years={years}
           monthOptions={MONTH_OPTIONS}
           selectedYear={selectedMonthKey.slice(0, 4)}

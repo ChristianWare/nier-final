@@ -52,7 +52,7 @@ export default function DriverPerformanceSection({
           <KpiCard
             label='Total Trips'
             value={String(drivers.reduce((sum, d) => sum + d.trips, 0))}
-            sub={`Rides ${basisLabel}`}
+            sub={`${basisLabel.charAt(0).toUpperCase()}${basisLabel.slice(1)} in this period`}
           />
           <KpiCard
             label='Avg Trips per Driver'

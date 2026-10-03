@@ -288,14 +288,18 @@ export default function ReportBuilder({
             <div className={styles.builderGrid}>
               {type === "operations"
                 ? field(
-                    "Count rides by",
+                    "Showing",
                     <select
                       className='selectBorder emptySmall'
                       value={basis}
                       onChange={(e) => setBasis(e.target.value)}
                     >
-                      <option value='pickup'>Pickup date</option>
-                      <option value='created'>Booked date</option>
+                      <option value='pickup'>
+                        Rides happening in this period
+                      </option>
+                      <option value='created'>
+                        Bookings made in this period
+                      </option>
                     </select>,
                   )
                 : field(

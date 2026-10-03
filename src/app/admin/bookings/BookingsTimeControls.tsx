@@ -37,7 +37,7 @@ export default function BookingsTimeControls({
   from,
   to,
   rangeLabel,
-  basisTitle = "Showing bookings by",
+  basisTitle = "Showing",
 }: {
   /** Label above the pickup/booked date switch. */
   basisTitle?: string;
@@ -161,8 +161,8 @@ export default function BookingsTimeControls({
                 : undefined
             }
           >
-            <option value='pickup'>Pickup date</option>
-            <option value='created'>Booked date</option>
+            <option value='pickup'>Rides happening in this period</option>
+            <option value='created'>Bookings made in this period</option>
           </select>
         </label>
       </div>

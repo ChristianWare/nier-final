@@ -176,15 +176,15 @@ export default function ReportsControls({
     <div className={styles.controlsWrapper}>
       <div className={styles.basisRow}>
         <label className={styles.basisLabel}>
-          <span className='miniNote'>Showing bookings by</span>
+          <span className='miniNote'>Showing</span>
           <select
             className='selectBorder emptySmall'
             value={basis}
             onChange={onBasisChange}
             disabled={isPending}
           >
-            <option value='pickup'>Pickup date</option>
-            <option value='created'>Booked date</option>
+            <option value='pickup'>Rides happening in this period</option>
+            <option value='created'>Bookings made in this period</option>
           </select>
         </label>
         <span className='miniNote'>

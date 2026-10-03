@@ -659,7 +659,10 @@ export async function buildOperationsReport(
   const sorted = [...rides].sort(
     (a, b) => a[dateField].getTime() - b[dateField].getTime(),
   );
-  const basisLabel = basis === "created" ? "by booked date" : "by pickup date";
+  const basisLabel =
+    basis === "created"
+      ? "Bookings made in this period"
+      : "Rides happening in this period";
   const pct = (v: number | null) => (v == null ? "—" : `${v}%`);
 
   const sections: ReportSection[] = [
