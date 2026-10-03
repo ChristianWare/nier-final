@@ -1,4 +1,3 @@
-import Link from "next/link";
 import styles from "./AdminReportsPage.module.css";
 import { db } from "@/lib/db";
 import base from "../AdminStyles.module.css";
@@ -337,9 +336,6 @@ export default async function AdminReportsPage({
             defaultMonth={resolvedMY.month}
             drivers={reportDrivers}
           />
-          <Link className='tab' href='/admin/drivers'>
-            Drivers page
-          </Link>
         </div>
 
         <ReportsControls

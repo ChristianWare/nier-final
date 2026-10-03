@@ -605,7 +605,7 @@
 /* Report builder dialog */
 .builderGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.2rem 1.6rem;
   margin-bottom: 1.2rem;
 }
@@ -623,13 +623,12 @@
   gap: 1rem 1.6rem;
 }
 
-.headerActions {
+/* .headerActions {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
-  margin-top: 1.2rem;
-}
+} */
 
 /* Report sections: heading row with downloads */
 .sectionHead {
@@ -695,8 +694,14 @@
   font-size: 1.4rem;
 }
 
-@media (max-width: 900px) {
+@media screen and (max-width: 900px) {
   .twoCols {
     grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .builderGrid {
+    grid-template-columns: repeat(1, 1fr);
   }
 }

@@ -106,7 +106,7 @@ export default function Hero({
                   <div className={styles.btnDesktop}>
                     <Button
                       href='/book'
-                      text='Book your Ride'
+                      text='Book your ride'
                       btnType='underlinedWhite'
                       arrow
                     />

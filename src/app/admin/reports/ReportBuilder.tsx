@@ -4,6 +4,7 @@ import { DatePicker } from "@/components/shared/DatePicker";
 import { useState } from "react";
 import ReportModal from "@/components/admin/ReportModal/ReportModal";
 import styles from "./AdminReportsPage.module.css";
+import Button from "@/components/shared/Button/Button";
 
 type ReportType = "income" | "tax" | "drivers" | "operations" | "corporate";
 
@@ -117,28 +118,31 @@ export default function ReportBuilder({
 
   return (
     <>
-      <button
-        type='button'
-        className='rangeSubmitBtn'
+      <Button
+        text='Build a custom report'
+        btnType='greenReg'
         onClick={() => setOpen(true)}
-      >
-        Build a report
-      </button>
+      />
 
       {open ? (
         <ReportModal
-          title='Build a report'
+          title='Build a custom report'
           onClose={() => setOpen(false)}
           footer={
             <>
-              <button
+              {/* <button
                 type='button'
                 className='tab'
                 onClick={() => setOpen(false)}
-              >
+                >
                 Cancel
-              </button>
-              <button
+                </button> */}
+              <Button
+                text='Cancel'
+                btnType='grayReg'
+                onClick={() => setOpen(false)}
+              />
+              {/* <button
                 type='button'
                 className='rangeSubmitBtn'
                 onClick={generate}
@@ -147,7 +151,17 @@ export default function ReportBuilder({
                 {isTax
                   ? "Download tax package (ZIP)"
                   : `Generate ${format.toUpperCase()}`}
-              </button>
+              </button> */}
+              <Button
+                btnType='blackReg'
+                onClick={generate}
+                disabled={rangeIncomplete}
+                text={
+                  isTax
+                    ? "Download tax package (ZIP)"
+                    : `Generate ${format.toUpperCase()}`
+                }
+              />
             </>
           }
         >
