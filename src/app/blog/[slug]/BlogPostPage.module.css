@@ -353,7 +353,6 @@
 .ptStrong {
   color: var(--black);
   font-weight: 700;
-  /* white-space: nowrap; */
 }
 
 .ptEm {
