@@ -181,7 +181,15 @@ export default function DiscountCodeForm({
           { inputMode: "decimal" },
         )}
       </div>
-      <p className='miniNote'>
+      <p
+        className='miniNote'
+        style={{
+          maxWidth: "500px",
+          marginTop: "2rem",
+          color: "var(--blue)",
+          fontWeight: "700",
+        }}
+      >
         It comes off the ride price only, never fees, taxes or tips. Drivers are
         paid on the price before the discount.
       </p>
@@ -193,7 +201,15 @@ export default function DiscountCodeForm({
         {dateInput("rideFrom", "Covers rides from")}
         {dateInput("rideUntil", "Covers rides through")}
       </div>
-      <p className='miniNote'>
+      <p
+        className='miniNote'
+        style={{
+          maxWidth: "500px",
+          marginTop: "2rem",
+          color: "var(--blue)",
+          fontWeight: "700",
+        }}
+      >
         All optional. Leave a date blank for no limit. Dates are in Phoenix time
         and include the whole day.
       </p>
