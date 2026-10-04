@@ -286,26 +286,23 @@
   list-style: none;
   margin: 0;
 }
-
 .ptUl li,
 .ptOl li {
-  display: flex;
-  gap: 1.2rem;
+  position: relative;
+  padding-left: 2.4rem;
   font-size: 1.65rem;
   line-height: 1.7;
-  align-items: center;
 }
 
 .ptUl li::before {
   content: "";
-  display: inline-block;
+  position: absolute;
+  left: 0.4rem;
+  top: 1.1rem; /* centers the dot on the first line */
   width: 6px;
   height: 6px;
-  min-width: 6px;
   border-radius: 50%;
   background-color: var(--accent);
-  margin-top: 0.8rem;
-  flex-shrink: 0;
 }
 
 .ptOl {
@@ -314,23 +311,24 @@
 
 .ptOl li {
   counter-increment: ol-counter;
+  padding-left: 3.4rem;
 }
 
 .ptOl li::before {
   content: counter(ol-counter);
+  position: absolute;
+  left: 0;
+  top: 0.3rem; /* centers the number on the first line */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 2.2rem;
   height: 2.2rem;
-  min-width: 2.2rem;
   border-radius: 50%;
   background-color: var(--lighterBlue);
   color: var(--blue);
   font-size: 1.2rem;
   font-weight: 700;
-  margin-top: 0.25rem;
-  flex-shrink: 0;
 }
 
 .ptLink {
