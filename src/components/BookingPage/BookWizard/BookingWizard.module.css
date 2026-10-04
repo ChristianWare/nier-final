@@ -3,6 +3,7 @@
   grid-template-columns: 2fr 4fr;
   grid-gap: 15rem;
   align-items: start;
+  padding-bottom: 10rem;
 }
 
 .checklistContainer,
