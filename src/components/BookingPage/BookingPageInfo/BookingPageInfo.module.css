@@ -1,92 +1,251 @@
+/* Laid out like the About page's Story section. */
+
 .container {
-  padding: 8rem 0 2rem;
+  background-color: var(--cream);
+  padding: 10rem 0rem;
 }
 
-.grid {
+.top {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6rem;
-  align-items: start;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-gap: 10rem;
+}
+
+.left,
+.leftii {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+.leftii {
+  display: none;
+}
+
+.headingMain {
+  margin: 0;
+  background: var(--lighterBlue);
+  padding: 2rem;
+  border-radius: 10px;
+  border: 1px solid var(--blue);
+}
+
+.right {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 5rem;
+  min-width: 0;
 }
 
 .heading {
-  margin: 0 0 2rem;
+  width: 90%;
+  margin: 0;
 }
 
-.heading:not(:first-child) {
-  margin-top: 4rem;
+.copy {
+  max-width: 700px;
+  font-size: 1.6rem;
+  margin: 0;
 }
 
-.steps,
-.included,
-.links {
+.block {
+  width: 100%;
+}
+
+.label {
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--stroke);
+  padding-bottom: 1rem;
+}
+
+/* How booking works: three cards */
+.bottom {
+  list-style: none;
+  margin: 3rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-gap: 2rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-right: 1px solid var(--stroke);
+  padding-right: 2rem;
+}
+
+.card:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stepNum {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 50%;
+  background-color: var(--accent);
+  color: var(--cream);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.desc {
+  margin: 0;
+  color: var(--paragraph);
+  font-size: 1.4rem;
+}
+
+.imgContainer {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  margin-top: 2rem;
+}
+
+.img {
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Every ride includes */
+.included {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 1.6rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.2rem 3rem;
 }
 
-.step {
-  display: grid;
-  grid-template-columns: 3.6rem minmax(0, 1fr);
-  gap: 1.4rem;
-  align-items: start;
+.includedItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 1px solid var(--stroke);
+  color: var(--paragraph);
+  font-size: 1.5rem;
+  line-height: 1.5;
 }
 
-.stepNum {
+.check {
+  flex: none;
+  width: 1.8rem;
+  height: 1.8rem;
+  margin-top: 0.2rem;
+  color: var(--accent);
+}
+
+/* Popular rides */
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.chip {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 3.6rem;
-  height: 3.6rem;
-  border-radius: 50%;
-  background: var(--black, #111);
-  color: var(--white, #fff);
-  font-weight: 700;
+  gap: 0.8rem;
+  background-color: var(--white);
+  padding: 1rem 1.4rem;
+  border-radius: 5px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--black);
+  text-decoration: none;
+  transition: background-color 0.2s ease;
 }
 
-.stepTitle {
-  font-weight: 700;
-  font-size: 1.8rem;
-  margin-bottom: 0.4rem;
+.chip:hover,
+.chip:focus-visible {
+  background-color: var(--lighterBlue);
 }
 
-.copy {
-  margin: 0;
-  font-size: 1.6rem;
-  line-height: 1.6;
-}
+@media screen and (max-width: 1268px) {
+  .top {
+    grid-template-columns: minmax(0, 1fr);
+    grid-gap: 2rem;
+  }
 
-.included li {
-  position: relative;
-  padding-left: 2.4rem;
-}
+  .left {
+    display: none;
+  }
 
-.included li::before {
-  content: "";
-  position: absolute;
-  left: 0.4rem;
-  top: 1rem;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent, #c41e3a);
-}
+  .leftii {
+    display: flex;
+  }
 
-.link {
-  font-size: 1.6rem;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  .right {
+    grid-column: auto;
+  }
+
+  .heading {
+    width: 100%;
+  }
 }
 
 @media screen and (max-width: 768px) {
   .container {
-    padding-top: 5rem;
+    padding: 6rem 0rem;
   }
-  .grid {
+
+  .bottom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card:nth-child(2) {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .card:last-child {
+    grid-column: span 2;
+  }
+
+  .included {
     grid-template-columns: minmax(0, 1fr);
-    gap: 4rem;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .bottom {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .card:last-child {
+    grid-column: span 1;
+  }
+
+  .imgContainer {
+    height: 215px;
   }
 }

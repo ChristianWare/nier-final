@@ -44,6 +44,10 @@
   color: var(--cream);
 }
 
+.copy {
+  max-width: 500px;
+}
+
 @media screen and (max-width: 768px) {
   .container {
     padding: 5rem 0rem;

@@ -1863,8 +1863,8 @@ export const servicesData = [
     copy: "Chauffeured stretch limousine service for weddings, proms, anniversaries, birthdays and nights out across Phoenix and Scottsdale.",
     marketingCopy:
       "Make the entrance. A professional chauffeur, an immaculate stretch limousine, and a timeline built around your night.",
-    src: LimoInterior,
-    src2: LimoExterior,
+    src: LimoExterior,
+    src2: LimoInterior,
     description:
       "Limo service in Phoenix and Scottsdale: a chauffeured stretch limousine for weddings, proms, anniversaries, birthdays and VIP nights out, plus SUVs and Sprinters when the group is bigger.",
     whoThisIsFor: [
