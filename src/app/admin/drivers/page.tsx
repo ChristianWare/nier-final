@@ -271,10 +271,11 @@ export default async function AdminDriversPage({
               <thead>
                 <tr className={styles.theadRow}>
                   <th className={styles.th}>Pickup</th>
+                  <th className={styles.th}>Customer</th>
                   <th className={styles.th}>Driver</th>
                   <th className={styles.th}>Service</th>
                   <th className={styles.th}>Status</th>
-                  <th className={styles.th}>Booking</th>
+                  <th className={`${styles.th} ${styles.num}`}>Amount</th>
                   <th
                     className={`${styles.th} ${styles.num}`}
                     aria-label='Details'
@@ -291,6 +292,9 @@ export default async function AdminDriversPage({
                       <div className='miniNote'>
                         {formatClock(r.pickupAt, timezone)}
                       </div>
+                    </td>
+                    <td className={styles.td}>
+                      <strong>{r.customerName ?? "Customer"}</strong>
                     </td>
                     <td className={styles.td}>
                       {r.driver ? (
@@ -310,10 +314,8 @@ export default async function AdminDriversPage({
                         })}
                       />
                     </td>
-                    <td className={styles.td}>
-                      <span className={styles.code}>
-                        #{r.id.slice(0, 8).toUpperCase()}
-                      </span>
+                    <td className={`${styles.td} ${styles.num}`}>
+                      {tz.formatMoney(r.totalCents, "USD")}
                     </td>
                     <td className={`${styles.td} ${styles.num}`}>
                       <Button

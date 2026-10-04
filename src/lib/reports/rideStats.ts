@@ -24,6 +24,7 @@ export type ReportRide = {
   driverPayPercent: number | null;
   serviceName: string | null;
   vehicleName: string | null;
+  customerName?: string | null;
   /** This ride's own payment record, and its trip's (for the payment tag). */
   ridePaymentStatus?: PaymentStatus | null;
   trip?: { paymentStatus: PaymentStatus; amountPaidCents: number } | null;
@@ -74,6 +75,9 @@ export async function loadReportRides({
       vehicle: { select: { name: true } },
       payment: { select: { status: true } },
       tripGroup: { select: { paymentStatus: true, amountPaidCents: true } },
+      guestName: true,
+      user: { select: { name: true, email: true } },
+      corporatePassenger: { select: { name: true } },
     },
   });
   return rows.map((r) => ({
@@ -96,6 +100,12 @@ export async function loadReportRides({
     serviceName: r.serviceType?.name ?? null,
     vehicleName: r.vehicle?.name ?? null,
     ridePaymentStatus: r.payment?.status ?? null,
+    customerName:
+      r.user?.name?.trim() ||
+      r.guestName?.trim() ||
+      r.corporatePassenger?.name?.trim() ||
+      r.user?.email ||
+      null,
     trip: r.tripGroup ?? null,
   }));
 }

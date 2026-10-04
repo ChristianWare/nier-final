@@ -1,0 +1,111 @@
+.wrap {
+  position: relative;
+}
+
+.list {
+  position: absolute;
+  z-index: 40;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--white, #fff);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14);
+  max-height: 36rem;
+  overflow-y: auto;
+}
+
+.option,
+.guestBtn {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.optionActive,
+.option:hover,
+.guestBtn:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.tag {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.14);
+  color: var(--darkGreen, #166534);
+}
+
+.meta {
+  font-size: 1.3rem;
+  color: var(--paragraph, #555);
+}
+
+.history {
+  font-size: 1.2rem;
+  color: var(--paragraph, #777);
+}
+
+.pastGuests {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.guestBtn {
+  font: inherit;
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--white, #fff);
+}
+
+.note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(22, 163, 74, 0.1);
+  color: var(--darkGreen, #166534);
+  font-size: 1.4rem;
+}
+
+.noteBtn,
+.lastTrip {
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: left;
+}
+
+.lastTrip {
+  color: var(--black, #111);
+  justify-self: start;
+}

@@ -168,6 +168,8 @@ export async function generateCorporateInvoice(
         serviceType: { select: { name: true } },
         corporatePassenger: { select: { name: true } },
         corporateAccount: true,
+        payment: { select: { status: true } },
+        tripGroup: { select: { paymentStatus: true } },
       },
     });
 
@@ -177,6 +179,17 @@ export async function generateCorporateInvoice(
 
     if (!booking.corporateAccountId || !booking.corporateAccount) {
       return { ok: false, error: "Not a corporate booking." };
+    }
+
+    // Paid separately (cash, or a card payment link): nothing to invoice.
+    if (
+      booking.payment?.status === "PAID" ||
+      booking.tripGroup?.paymentStatus === "PAID"
+    ) {
+      return {
+        ok: false,
+        error: "Already paid by cash or card link, so no invoice is needed.",
+      };
     }
 
     // Check if an invoice already exists for this booking

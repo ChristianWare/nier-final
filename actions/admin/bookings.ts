@@ -692,7 +692,14 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { user: true, serviceType: true, vehicle: true, payment: true },
+    include: {
+      user: true,
+      serviceType: true,
+      vehicle: true,
+      payment: true,
+      corporatePassenger: { select: { name: true, email: true } },
+      corporateAccount: { select: { name: true, billingEmail: true } },
+    },
   });
 
   const bookingWithDeposit = await db.booking.findUnique({
@@ -722,9 +729,26 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
     return { error: "This booking is cancelled/no-show. Don't send payment." };
   }
 
+  // Corporate rides: the passenger, or the account's billing email.
   const recipientEmail =
-    overrideEmail || (b.user?.email ?? b.guestEmail ?? "").trim().toLowerCase();
-  const recipientName = (b.user?.name ?? b.guestName ?? "").trim() || null;
+    overrideEmail ||
+    (
+      b.user?.email ??
+      b.guestEmail ??
+      b.corporatePassenger?.email ??
+      b.corporateAccount?.billingEmail ??
+      ""
+    )
+      .trim()
+      .toLowerCase();
+  const recipientName =
+    (
+      b.user?.name ??
+      b.guestName ??
+      b.corporatePassenger?.name ??
+      b.corporateAccount?.name ??
+      ""
+    ).trim() || null;
   if (!recipientEmail) return { error: "Customer email missing." };
   if (!b.totalCents || b.totalCents <= 0)
     return { error: "Set a total price before sending payment link." };

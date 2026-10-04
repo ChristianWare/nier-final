@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/admin/bookings/[id]/page.tsx
+import RemindersSent from "./RemindersSent";
 import styles from "./AdminBookingDetailPage.module.css";
 import { getStripePublishableKey } from "@/lib/stripe";
 import type { ReactNode } from "react";
@@ -409,6 +410,7 @@ export default async function AdminBookingDetailPage({
       },
       corporateAccount: {
         select: {
+          billingEmail: true,
           id: true,
           name: true,
           billingCycle: true,
@@ -1536,6 +1538,84 @@ export default async function AdminBookingDetailPage({
                   Project code: <strong>{booking.projectCode}</strong>
                 </div>
               )}
+              {/* Corporate rides can also be paid by card or cash, whatever
+                  the account's billing setup. A ride paid this way isn't
+                  invoiced again. */}
+              <div className={styles.sectionDivider} />
+              <div className='cardTitle h5'>Pay by card (email link)</div>
+              <div
+                className='miniNote'
+                style={{ marginTop: 6, marginBottom: 12 }}
+              >
+                Send a payment link so this ride can be paid by card, whatever
+                the account&apos;s billing setup. A ride paid this way
+                isn&apos;t billed again on the account&apos;s invoice.
+              </div>
+              <SendPaymentLinkButton
+                bookingId={booking.id}
+                totalCents={
+                  isGroupBooking ? groupTotalCents : booking.totalCents
+                }
+                amountPaidCents={
+                  isGroupBooking ? groupAmountPaidCents : amountPaidCents
+                }
+                currency={booking.currency}
+                isApproved={isApproved}
+                customerEmail={
+                  booking.user?.email ??
+                  booking.guestEmail ??
+                  booking.corporatePassenger?.email ??
+                  booking.corporateAccount?.billingEmail ??
+                  null
+                }
+                depositMode={booking.depositMode}
+                depositCents={
+                  booking.depositMode && booking.depositPercent
+                    ? Math.round(
+                        ((isGroupBooking
+                          ? groupTotalCents
+                          : booking.totalCents) *
+                          booking.depositPercent) /
+                          100,
+                      )
+                    : (booking.depositCents ?? null)
+                }
+                balanceCents={
+                  booking.depositMode && booking.depositPercent
+                    ? (isGroupBooking ? groupTotalCents : booking.totalCents) -
+                      Math.round(
+                        ((isGroupBooking
+                          ? groupTotalCents
+                          : booking.totalCents) *
+                          booking.depositPercent) /
+                          100,
+                      )
+                    : (booking.balanceCents ?? null)
+                }
+                depositDueDate={booking.depositDueDate?.toISOString() ?? null}
+                balanceDueDate={booking.balanceDueDate?.toISOString() ?? null}
+                paymentLinkSentEvents={paymentLinkSentEvents}
+              />
+              <div style={{ marginTop: 18 }}>
+                <div className='cardTitle h5'>Record cash payment</div>
+                <div
+                  className='miniNote'
+                  style={{ marginTop: 6, marginBottom: "30px" }}
+                >
+                  Customer paid in person with cash. Marks booking as confirmed
+                  and paid.
+                </div>
+                <AdminCashPaymentButton
+                  bookingId={booking.id}
+                  amountCents={
+                    isGroupBooking
+                      ? Math.max(0, groupTotalCents - groupAmountPaidCents)
+                      : booking.totalCents
+                  }
+                  currency={booking.currency}
+                  isPaid={isPaid}
+                />
+              </div>
             </div>
           ) : (
             <div className={styles.paymentBlock}>
@@ -2182,6 +2262,13 @@ export default async function AdminBookingDetailPage({
               <BookingDetailTabs tabs={bookingTabs} />
 
               {/* ── Always-visible cards below tabs ── */}
+              <Card title='Reminders Sent'>
+                <RemindersSent
+                  events={booking.statusEvents}
+                  timezone={companyTz}
+                />
+              </Card>
+
               <Card title='Activity Timeline'>
                 {booking.statusEvents.length === 0 ? (
                   <div className={styles.muted}>No activity yet.</div>
@@ -2248,6 +2335,18 @@ export default async function AdminBookingDetailPage({
                       } else if (eventType === "BALANCE_REMINDER_SENT") {
                         tone = "accent";
                         label = "Balance reminder sent";
+                      } else if (eventType === "TRIP_REMINDER_SENT") {
+                        tone = "accent";
+                        label =
+                          metadata?.kind === "2h"
+                            ? "Trip reminder sent (2 hours before)"
+                            : "Trip reminder sent (24 hours before)";
+                      } else if (eventType === "PAYMENT_REMINDER_SENT") {
+                        tone = "accent";
+                        label = "Payment reminder sent";
+                      } else if (eventType === "ADMIN_ALERT_SENT") {
+                        tone = "warn";
+                        label = "Admin alert sent (needs attention)";
                       } else if (eventType === "DEPOSIT_CONFIGURED") {
                         tone = metadata?.depositPercent ? "accent" : "neutral";
                         label = metadata?.depositPercent

@@ -4,6 +4,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import type { CustomerMatch } from "../../../../actions/admin/customers/adminSearchCustomers";
+import lookupStyles from "@/components/admin/CustomerLookup/CustomerLookup.module.css";
+import CustomerLookupInput, {
+  PastGuests,
+} from "@/components/admin/CustomerLookup/CustomerLookup";
 import styles from "./AdminNewBookingWizard.module.css";
 import stepperStyles from "@/components/BookingPage/Stepper/Stepper.module.css";
 import {
@@ -390,6 +395,12 @@ export default function AdminNewBookingWizard({
   const [userResults, setUserResults] = useState<UserLite[]>([]);
   const [userSearching, setUserSearching] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserLite | null>(null);
+  // Customer lookup: who was picked, and a guest's details waiting to be
+  // filled in once the switch to "Guest" has cleared the fields.
+  const [pickedCustomer, setPickedCustomer] = useState<CustomerMatch | null>(
+    null,
+  );
+  const pendingGuestFill = useRef<CustomerMatch | null>(null);
 
   const [serviceTypeId, setServiceTypeId] = useState<string>("");
   const [pickupAtDate, setPickupAtDate] = useState<string>("");
@@ -573,6 +584,16 @@ export default function AdminNewBookingWizard({
     }
   }, [customerKind, selectedUser]);
 
+  // A past guest was picked while another customer type was showing.
+  useEffect(() => {
+    const p = pendingGuestFill.current;
+    if (!p || customerKind !== "guest") return;
+    pendingGuestFill.current = null;
+    setCustomerName(p.name ?? "");
+    setCustomerEmail(p.email ?? "");
+    setCustomerPhone(formatPhone(p.phone ?? ""));
+  }, [customerKind]);
+
   // user search
   useEffect(() => {
     if (customerKind !== "account") return;
@@ -750,8 +771,59 @@ export default function AdminNewBookingWizard({
     setCustomerName((u.name ?? "").trim());
   }
 
+  // A past customer was picked from the lookup. Someone with an account is
+  // booked on their account (so it shows in their dashboard).
+  function pickCustomer(p: CustomerMatch) {
+    resetCreatedBooking();
+    setPickedCustomer(p);
+    if (p.userId) {
+      setCustomerKind("account");
+      setSelectedUser({
+        id: p.userId,
+        name: p.name,
+        email: p.email ?? "",
+        emailVerified: p.emailVerified,
+        phone: p.phone,
+      });
+      return;
+    }
+    if (customerKind === "guest") {
+      setCustomerName(p.name ?? "");
+      setCustomerEmail(p.email ?? "");
+      setCustomerPhone(formatPhone(p.phone ?? ""));
+    } else {
+      pendingGuestFill.current = p;
+      setCustomerKind("guest");
+    }
+  }
+
+  function bookAsGuestInstead() {
+    if (!pickedCustomer) return;
+    const p = { ...pickedCustomer, userId: null };
+    setPickedCustomer(p);
+    pendingGuestFill.current = p;
+    setCustomerKind("guest");
+  }
+
+  function applyLastTrip() {
+    const t = pickedCustomer?.lastTrip;
+    if (!t) return;
+    resetCreatedBooking();
+    setRoute({
+      pickup: t.pickup,
+      dropoff: t.dropoff,
+      stops: [],
+      miles: null,
+      minutes: null,
+      distanceMiles: null,
+      durationMinutes: null,
+    });
+    toast.success("Filled in their last trip's pickup and dropoff.");
+  }
+
   function clearSelectedUser() {
     resetCreatedBooking();
+    setPickedCustomer(null);
     setSelectedUser(null);
     setCustomerEmail("");
     setCustomerName("");
@@ -1792,6 +1864,37 @@ export default function AdminNewBookingWizard({
                       <option value='corporate'>Corporate account</option>
                     )}
                   </select>
+                  {pickedCustomer?.userId &&
+                  customerKind === "account" &&
+                  selectedUser?.id === pickedCustomer.userId ? (
+                    <div className={lookupStyles.note}>
+                      <span>
+                        Linked to {pickedCustomer.name ?? pickedCustomer.email}
+                        &apos;s account. This booking will show in their
+                        customer dashboard.
+                      </span>
+                      <button
+                        type='button'
+                        className={lookupStyles.noteBtn}
+                        onClick={bookAsGuestInstead}
+                      >
+                        Book as a guest instead
+                      </button>
+                    </div>
+                  ) : null}
+                  {pickedCustomer?.lastTrip &&
+                  (customerKind === "guest" ||
+                    selectedUser?.id === pickedCustomer.userId) ? (
+                    <button
+                      type='button'
+                      className={lookupStyles.lastTrip}
+                      onClick={applyLastTrip}
+                    >
+                      Use their last trip:{" "}
+                      {pickedCustomer.lastTrip.pickup.address.split(",")[0]} →{" "}
+                      {pickedCustomer.lastTrip.dropoff.address.split(",")[0]}
+                    </button>
+                  ) : null}
                   {customerKind === "account" ? (
                     <div style={{ display: "grid", gap: 10 }}>
                       <label
@@ -1868,8 +1971,10 @@ export default function AdminNewBookingWizard({
                           {userQuery.trim().length >= 2 &&
                           !userSearching &&
                           userResults.length === 0 ? (
-                            <div className='miniNote'>No users found.</div>
+                            <div className='miniNote'>No accounts found.</div>
                           ) : null}
+
+                          <PastGuests query={userQuery} onPick={pickCustomer} />
 
                           {userResults.length > 0 ? (
                             <div
@@ -2172,15 +2277,17 @@ export default function AdminNewBookingWizard({
                               >
                                 Customer email
                               </label>
-                              <input
+                              <CustomerLookupInput
                                 className='input emptySmall'
                                 value={customerEmail}
-                                onChange={(e) => {
+                                onChange={(v) => {
                                   resetCreatedBooking();
-                                  setCustomerEmail(e.target.value);
+                                  setCustomerEmail(v);
                                 }}
+                                onPick={pickCustomer}
                                 placeholder='customer@email.com'
                                 inputMode='email'
+                                aria-label='Customer email'
                               />
                             </div>
 
@@ -2193,14 +2300,16 @@ export default function AdminNewBookingWizard({
                               >
                                 Customer name
                               </label>
-                              <input
+                              <CustomerLookupInput
                                 className='input emptySmall'
                                 value={customerName}
-                                onChange={(e) => {
+                                onChange={(v) => {
                                   resetCreatedBooking();
-                                  setCustomerName(e.target.value);
+                                  setCustomerName(v);
                                 }}
-                                placeholder='Required for guest'
+                                onPick={pickCustomer}
+                                placeholder='Start typing a name…'
+                                aria-label='Customer name'
                               />
                             </div>
                           </Grid2>
@@ -2214,15 +2323,17 @@ export default function AdminNewBookingWizard({
                             >
                               Customer phone
                             </label>
-                            <input
+                            <CustomerLookupInput
                               className='input emptySmall'
                               value={customerPhone}
-                              onChange={(e) => {
+                              onChange={(v) => {
                                 resetCreatedBooking();
-                                setCustomerPhone(formatPhone(e.target.value));
+                                setCustomerPhone(formatPhone(v));
                               }}
+                              onPick={pickCustomer}
                               placeholder='(602) 555-1234'
                               inputMode='tel'
+                              aria-label='Customer phone'
                             />
                           </div>
                         </>

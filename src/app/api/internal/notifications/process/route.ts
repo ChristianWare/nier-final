@@ -1,3 +1,4 @@
+import { processRideReminders } from "@/lib/reminders/rideReminders";
 import { NextResponse } from "next/server";
 import { processPendingNotificationJobs } from "@/lib/notifications/process";
 
@@ -26,7 +27,16 @@ async function handle(req: Request) {
   }
 
   const res = await processPendingNotificationJobs({ limit: 50 });
-  return NextResponse.json({ ok: true, ...res });
+
+  // Trip and payment reminders for customers, and "needs attention" alerts
+  // for admins. A failure here never stops the notifications above.
+  let reminders: Record<string, number> | { error: true } = { error: true };
+  try {
+    reminders = await processRideReminders();
+  } catch (e) {
+    console.error("Ride reminders failed:", e);
+  }
+  return NextResponse.json({ ok: true, ...res, reminders });
 }
 
 // ✅ Vercel Cron uses GET
