@@ -1,6 +1,7 @@
 // src/components/shared/DirtyFormProvider/DirtyFormProvider.tsx
 "use client";
 
+import { navProgress } from "@/components/shared/NavProgress/navProgress";
 import {
   createContext,
   useContext,
@@ -20,6 +21,7 @@ type DirtyFormContextType = {
     dirty: boolean,
     scrollTo?: string,
     changedFields?: string[],
+    message?: string,
   ) => void;
   unregister: (id: string) => void;
 };
@@ -34,6 +36,9 @@ export function useDirtyForm(
   isDirty: boolean,
   scrollTo?: string,
   changedFields?: string[],
+  /** Replaces the "unsaved changes" wording, e.g. when work is saved but
+   *  not finished. */
+  message?: string,
 ) {
   const { register, unregister } = useContext(DirtyFormContext);
 
@@ -41,10 +46,10 @@ export function useDirtyForm(
   const fieldsKey = changedFields?.join("|") ?? "";
 
   useEffect(() => {
-    register(id, isDirty, scrollTo, changedFields);
+    register(id, isDirty, scrollTo, changedFields, message);
     return () => unregister(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, isDirty, scrollTo, fieldsKey, register, unregister]);
+  }, [id, isDirty, scrollTo, fieldsKey, message, register, unregister]);
 }
 
 export default function DirtyFormProvider({
@@ -55,7 +60,12 @@ export default function DirtyFormProvider({
   const [dirtyMap, setDirtyMap] = useState<
     Record<
       string,
-      { dirty: boolean; scrollTo?: string; changedFields?: string[] }
+      {
+        dirty: boolean;
+        scrollTo?: string;
+        changedFields?: string[];
+        message?: string;
+      }
     >
   >({});
   const [showModal, setShowModal] = useState(false);
@@ -68,10 +78,11 @@ export default function DirtyFormProvider({
       dirty: boolean,
       scrollTo?: string,
       changedFields?: string[],
+      message?: string,
     ) => {
       setDirtyMap((prev) => ({
         ...prev,
-        [id]: { dirty, scrollTo, changedFields },
+        [id]: { dirty, scrollTo, changedFields, message },
       }));
     },
     [],
@@ -89,6 +100,7 @@ export default function DirtyFormProvider({
     ([, entry]) => entry.dirty,
   );
   const hasDirty = dirtyForms.length > 0;
+  const customMessage = dirtyForms.find(([, e]) => e.message)?.[1].message;
   const hasDirtyRef = useRef(hasDirty);
 
   useEffect(() => {
@@ -127,9 +139,11 @@ export default function DirtyFormProvider({
 
       if (!isInternal || isNewTab) return;
 
-      // Block navigation and show modal
+      // Block navigation and show modal (and stop the nav's loading bar,
+      // which starts on every link click).
       e.preventDefault();
       e.stopPropagation();
+      navProgress.done();
       pendingHref.current = href;
       setShowModal(true);
     }
@@ -165,6 +179,7 @@ export default function DirtyFormProvider({
     setShowModal(false);
 
     if (pendingHref.current) {
+      navProgress.start();
       router.push(pendingHref.current);
     } else {
       // Browser back — skip past the guard entries we pushed
@@ -202,12 +217,18 @@ export default function DirtyFormProvider({
 
       <Modal isOpen={showModal} onClose={handleStay}>
         <div className={styles.modalContent}>
-          <div className='cardTitle h5'>Unsaved Changes</div>
+          <div className='cardTitle h5'>
+            {customMessage ? "Leave without finishing?" : "Unsaved Changes"}
+          </div>
 
-          <p className='paragraph'>
-            You made changes but <strong>did not save</strong>. These will be
-            lost if you leave this page.
-          </p>
+          {customMessage ? (
+            <p className='paragraph'>{customMessage}</p>
+          ) : (
+            <p className='paragraph'>
+              You made changes but <strong>did not save</strong>. These will be
+              lost if you leave this page.
+            </p>
+          )}
 
           <div className={styles.warningBox}>
             <strong>⚠️ Unsaved forms:</strong>

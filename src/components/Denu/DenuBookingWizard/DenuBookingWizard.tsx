@@ -348,7 +348,10 @@ export default function DenuBookingWizard({
     pickupAtDate ||
     pickupAtTime ||
     passengers > 0 ||
-    savedLegs.length > 0,
+    savedLegs.length > 0 ||
+    guestName?.trim() ||
+    guestEmail?.trim() ||
+    guestPhone?.trim(),
   );
   useDirtyForm("denu-booking-wizard", wizardHasInput && !submitted);
 

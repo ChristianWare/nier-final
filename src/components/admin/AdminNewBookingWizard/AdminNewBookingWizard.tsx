@@ -460,9 +460,25 @@ export default function AdminNewBookingWizard({
     vehicleId ||
     route?.pickup ||
     route?.dropoff ||
-    savedLegs.length > 0,
+    savedLegs.length > 0 ||
+    customerName.trim() ||
+    customerEmail.trim() ||
+    customerPhone.trim() ||
+    selectedUser ||
+    corporateAccountId,
   );
-  useDirtyForm("admin-booking-wizard", wizardHasInput && !bookingId);
+  // Protected until the admin clicks Finish (or opens the booking): once the
+  // booking is created, leaving early still skips the setup steps.
+  const [wizardFinished, setWizardFinished] = useState(false);
+  useDirtyForm(
+    "admin-booking-wizard",
+    (wizardHasInput || Boolean(bookingId)) && !wizardFinished,
+    undefined,
+    undefined,
+    bookingId
+      ? "This booking is saved, but you haven't finished setting it up. You can finish it later from the booking's page."
+      : undefined,
+  );
 
   const selectedService = useMemo(() => {
     if (!serviceTypeId) return null;
@@ -531,6 +547,12 @@ export default function AdminNewBookingWizard({
       block: "start",
     });
   }, [step]);
+
+  /** Leave the form on purpose (Finish, or opening the booking). */
+  function finishTo(href: string) {
+    setWizardFinished(true);
+    router.push(href);
+  }
 
   const resetCreatedBooking = useCallback(() => {
     if (!bookingId && !bookingData) return;
@@ -3142,9 +3164,7 @@ export default function AdminNewBookingWizard({
                       <button
                         type='button'
                         className='secondaryBtn'
-                        onClick={() =>
-                          router.push(`/admin/bookings/${bookingId}`)
-                        }
+                        onClick={() => finishTo(`/admin/bookings/${bookingId}`)}
                       >
                         Open booking
                       </button>
@@ -3271,9 +3291,7 @@ export default function AdminNewBookingWizard({
                       <button
                         type='button'
                         className='secondaryBtn'
-                        onClick={() =>
-                          router.push(`/admin/bookings/${bookingId}`)
-                        }
+                        onClick={() => finishTo(`/admin/bookings/${bookingId}`)}
                       >
                         Open booking
                       </button>
@@ -3724,9 +3742,7 @@ export default function AdminNewBookingWizard({
                       <button
                         type='button'
                         className='secondaryBtn'
-                        onClick={() =>
-                          router.push(`/admin/bookings/${bookingId}`)
-                        }
+                        onClick={() => finishTo(`/admin/bookings/${bookingId}`)}
                       >
                         Open booking
                       </button>
@@ -3801,7 +3817,7 @@ export default function AdminNewBookingWizard({
                           type='button'
                           className='secondaryBtn'
                           onClick={() =>
-                            router.push(`/admin/bookings/${bookingId}`)
+                            finishTo(`/admin/bookings/${bookingId}`)
                           }
                         >
                           Open booking
@@ -3866,7 +3882,7 @@ export default function AdminNewBookingWizard({
                     btnType='greenReg'
                     onClick={() => {
                       if (!bookingId) return;
-                      router.push(`/admin/bookings/${bookingId}`);
+                      finishTo(`/admin/bookings/${bookingId}`);
                     }}
                   />
                 </div>

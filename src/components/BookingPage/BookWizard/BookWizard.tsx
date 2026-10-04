@@ -386,7 +386,10 @@ export default function BookingWizard({
     vehicleId ||
     route?.pickup ||
     route?.dropoff ||
-    savedLegs.length > 0,
+    savedLegs.length > 0 ||
+    guestName?.trim() ||
+    guestEmail?.trim() ||
+    guestPhone?.trim(),
   );
   useDirtyForm("booking-wizard", wizardHasInput && !submitted);
 

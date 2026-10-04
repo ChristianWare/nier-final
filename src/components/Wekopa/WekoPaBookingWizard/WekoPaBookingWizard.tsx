@@ -352,7 +352,10 @@ export default function WekoPaBookingWizard({
     pickupAtDate ||
     pickupAtTime ||
     passengers > 0 ||
-    savedLegs.length > 0,
+    savedLegs.length > 0 ||
+    guestName?.trim() ||
+    guestEmail?.trim() ||
+    guestPhone?.trim(),
   );
   useDirtyForm("wekopa-booking-wizard", wizardHasInput && !submitted);
 

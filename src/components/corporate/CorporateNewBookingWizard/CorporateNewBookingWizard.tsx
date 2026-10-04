@@ -277,7 +277,11 @@ export default function CorporateNewBookingWizard({
     vehicleId ||
     route?.pickup ||
     route?.dropoff ||
-    savedLegs.length > 0,
+    savedLegs.length > 0 ||
+    corporatePassengerId ||
+    newPassengerName.trim() ||
+    newPassengerEmail.trim() ||
+    newPassengerPhone.trim(),
   );
   useDirtyForm("corporate-booking-wizard", wizardHasInput && !bookingId);
 
