@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import type { LinkPrefill } from "@/lib/booking/linkPrefill";
 import styles from "./BookingWizard.module.css";
 import DiscountCodeField, { type AppliedDiscount } from "./DiscountCodeField";
 import discountStyles from "./DiscountCodeField.module.css";
@@ -264,9 +265,12 @@ export default function BookingWizard({
   companyTimezone,
   companyTimezoneLabel,
   initialDiscountCode,
+  initialPrefill,
 }: {
   /** From a share link (/book?code=…). */
   initialDiscountCode?: string;
+  /** From a link like /book?trip=from-airport&airport=PHX. */
+  initialPrefill?: LinkPrefill;
   serviceTypes: ServiceTypeDTO[];
   vehicles: VehicleDTO[];
   userPhone?: string | null;
@@ -409,14 +413,16 @@ export default function BookingWizard({
   }, [vehicleOptions, passengers]);
 
   const BOOKING_PREFILL_KEY = "booking_prefill";
+  const initialPrefillRef = useRef(initialPrefill);
 
   useEffect(() => {
     try {
+      // The home page's quote widget, or a link from another page.
       const raw = sessionStorage.getItem(BOOKING_PREFILL_KEY);
-      if (!raw) return;
-      sessionStorage.removeItem(BOOKING_PREFILL_KEY);
+      if (raw) sessionStorage.removeItem(BOOKING_PREFILL_KEY);
+      if (!raw && !initialPrefillRef.current) return;
 
-      const prefill = JSON.parse(raw) as {
+      const prefill = (raw ? JSON.parse(raw) : initialPrefillRef.current) as {
         serviceTypeId?: string;
         pickupAtDate?: string;
         pickupAtTime?: string;

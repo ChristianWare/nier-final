@@ -1,3 +1,5 @@
+import LimoExterior from "../../public/images/other/weddingLimo.jpg";
+import LimoInterior from "../../public/images/other/wedding.jpg";
 import Airport from "../../public/images/other/airport4.jpg";
 import Airport2 from "../../public/images/other/airport2.jpg";
 import Golf from "../../public/images/other/golf.jpg";
@@ -19,6 +21,8 @@ export type ServiceShape = {
   id: number;
   title: string;
   slug: string;
+  /** The page's main heading, when it should differ from the menu title. */
+  h1?: string;
   copy?: string;
   marketingCopy?: string;
   description?: string;
@@ -246,6 +250,7 @@ export const servicesData = [
     id: 2,
     title: "Hourly Chauffeur",
     slug: "hourly-chauffeur",
+    h1: "Hourly Chauffeur Service in Phoenix",
     copy: "Private chauffeur by the hour for errands, meetings, or nights out. Stay flexible with on-demand stops and real-time itinerary changes.",
     marketingCopy:
       "Your schedule, our wheel. Reserve a dedicated chauffeur by the hour for absolute flexibility—multiple stops, wait time included, and elite service throughout.",
@@ -1829,6 +1834,125 @@ export const servicesData = [
       {
         q: "Where do you offer black truck service?",
         a: "Across the entire Valley — Phoenix, Scottsdale, Glendale, Tempe, and the East and West Valley — plus long-distance trips to Sedona, Tucson, Flagstaff, and Prescott.",
+      },
+    ],
+  },
+  {
+    id: 13,
+    title: "Limo Service",
+    slug: "limo-service",
+    h1: "Limo Service in Phoenix & Scottsdale",
+    features: [
+      {
+        id: 13.1,
+        title: "Stretch limousine",
+        details:
+          "Seats 10 to 18 with fiber-optic lighting and a privacy partition.",
+      },
+      {
+        id: 13.2,
+        title: "Your timeline",
+        details: "Booked by the hour, with as many stops as your night needs.",
+      },
+      {
+        id: 13.3,
+        title: "Professional chauffeur",
+        details: "Uniformed, on time, and focused on your group.",
+      },
+    ],
+    copy: "Chauffeured stretch limousine service for weddings, proms, anniversaries, birthdays and nights out across Phoenix and Scottsdale.",
+    marketingCopy:
+      "Make the entrance. A professional chauffeur, an immaculate stretch limousine, and a timeline built around your night.",
+    src: LimoInterior,
+    src2: LimoExterior,
+    description:
+      "Limo service in Phoenix and Scottsdale: a chauffeured stretch limousine for weddings, proms, anniversaries, birthdays and VIP nights out, plus SUVs and Sprinters when the group is bigger.",
+    whoThisIsFor: [
+      "Couples planning wedding day transportation",
+      "Prom and homecoming groups",
+      "Anniversary and birthday celebrations",
+      "Bachelor and bachelorette parties",
+      "VIP arrivals, concerts and big nights out",
+    ],
+    coverageAndAirports: [
+      "Old Town Scottsdale, Paradise Valley and Phoenix resorts",
+      "Downtown Phoenix arenas and State Farm Stadium in Glendale",
+      "Wedding venues and desert estates across the Valley",
+      "VIP pickups at PHX Sky Harbor and Scottsdale Airport",
+    ],
+    whatsIncluded: [
+      "Professional Chauffeur – Uniformed and on time",
+      "Stretch Limousine – Seats 10 to 18, depending on configuration",
+      "Cabin – Fiber-optic lighting, privacy partition, premium sound with Bluetooth",
+      "Comforts – Bottled water, ice and phone chargers",
+      "Your Timeline – Booked by the hour, with your stops",
+    ],
+    vehicleClasses: [
+      "Stretch Limousine – The classic grand entrance (10–18 seats)",
+      "Executive SUV – Smaller groups and getaway cars",
+      "Sprinter-Style Van – Bigger groups that want headroom",
+      "Party Bus – The whole party on wheels",
+    ],
+    pickupOptions: [
+      "Homes, hotels and resorts across the Valley",
+      "Venue-side staging for weddings and events",
+      "Multiple stops on one booking",
+    ],
+    bookingAndPayment: [
+      "Instant online quote, or call for a custom timeline",
+      "Booked by the hour, with the total shown before you confirm",
+      "Secure card payment link once your ride is confirmed",
+      "Itemized receipt after the ride",
+    ],
+    policies: [
+      "Weddings & Prom: Book a few weeks ahead for peak dates",
+      "Timeline: Share your stops and timing before the day",
+      "Changes: Call us or reply to your confirmation email",
+    ],
+    familiesAccessibilitySpecial: [
+      "ADA assistance for older family members",
+      "Child seats for family celebrations",
+      "Service animals welcome",
+    ],
+    safetyAndStandards: [
+      "Commercial insurance and vetted chauffeurs",
+      "White-glove etiquette and presentation",
+      "Clean, fragrance-light interiors",
+    ],
+    communicationAndTracking: [
+      "Driver details shared in advance",
+      "Live timing updates on the day",
+    ],
+    whatToExpect: [
+      "Before: We plan your stops, timing and pickup points with you",
+      "Arrival: Your chauffeur arrives early and stages the limo",
+      "During: Stops and photo moments on your timeline",
+      "After: Everyone home safely",
+    ],
+    faqs: [
+      {
+        q: "How many people fit in your stretch limousine?",
+        a: "Our stretch limousine seats 10 to 18, depending on configuration. For bigger groups we pair it with a Sprinter or a party bus.",
+      },
+      {
+        q: "How is limo service priced?",
+        a: "Limo service is booked by the hour. Get an instant quote on our booking page, or call us for a custom timeline with multiple stops.",
+      },
+      {
+        q: "Can we make multiple stops?",
+        a: "Yes. Tell us your stops when you book, and your chauffeur follows your timeline.",
+      },
+      {
+        q: "Do you provide limos for prom?",
+        a: "Yes. Prom is one of the most popular uses for our stretch limousine.",
+      },
+      {
+        q: "How far in advance should we book a limo?",
+        a: "For weddings, prom season and holiday weekends, book a few weeks ahead. Other nights, we take last-minute bookings whenever a vehicle is available.",
+      },
+      {
+        q: "Is gratuity included?",
+        a: "Gratuity is optional and can be added at checkout or after the ride.",
       },
     ],
   },

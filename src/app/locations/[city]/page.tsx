@@ -28,9 +28,9 @@ const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 const descriptionOverrides: Partial<Record<string, string>> = {
   scottsdale:
-    "Scottsdale's trusted black car service since 2004. Airport transfers to PHX & SDL, hourly chauffeur, golf course transportation, corporate rides, and weddings. Flat rates, no surge pricing.",
+    "Car service in Scottsdale since 2004: airport transfers to PHX and SDL, hourly chauffeurs, golf outings, weddings and limo service. Flat rates, no surge pricing.",
   phoenix:
-    "Phoenix car service trusted since 2004 — black car and airport transfers to Sky Harbor, hourly chauffeur, corporate transport, and events. Flat rates, 24/7.",
+    "Private car service in Phoenix since 2004: town cars, black SUVs and Sprinters for business travel, nights out and airport runs. Flat rates, no surge pricing, 24/7.",
   tempe:
     "Black car service in Tempe, AZ — airport transfers to PHX & AZA, hourly chauffeur near ASU and Tempe Marketplace, and corporate rides. Flat rates, no surge pricing.",
   chandler:
@@ -60,7 +60,10 @@ const descriptionOverrides: Partial<Record<string, string>> = {
 
 const titleOverrides: Partial<Record<string, string>> = {
   glendale: "Airport Transportation & Car Service in Glendale, AZ | Nier",
-  phoenix: "Phoenix Car Service — Black Car & Airport Transfers | Nier",
+  // The home page owns "black car service phoenix"; the Sky Harbor page owns
+  // the airport searches.
+  phoenix: "Phoenix Car Service: Private Town Car & Chauffeur | Nier",
+  scottsdale: "Scottsdale Car Service & Chauffeur | Nier Transportation",
 };
 
 export function generateStaticParams() {

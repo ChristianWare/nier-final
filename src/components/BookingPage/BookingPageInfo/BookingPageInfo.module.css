@@ -1,0 +1,92 @@
+.container {
+  padding: 8rem 0 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6rem;
+  align-items: start;
+}
+
+.heading {
+  margin: 0 0 2rem;
+}
+
+.heading:not(:first-child) {
+  margin-top: 4rem;
+}
+
+.steps,
+.included,
+.links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.6rem;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 3.6rem minmax(0, 1fr);
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.stepNum {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 50%;
+  background: var(--black, #111);
+  color: var(--white, #fff);
+  font-weight: 700;
+}
+
+.stepTitle {
+  font-weight: 700;
+  font-size: 1.8rem;
+  margin-bottom: 0.4rem;
+}
+
+.copy {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.6;
+}
+
+.included li {
+  position: relative;
+  padding-left: 2.4rem;
+}
+
+.included li::before {
+  content: "";
+  position: absolute;
+  left: 0.4rem;
+  top: 1rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent, #c41e3a);
+}
+
+.link {
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding-top: 5rem;
+  }
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4rem;
+  }
+}

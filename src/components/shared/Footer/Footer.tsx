@@ -53,6 +53,7 @@ const data: Section[] = [
       },
       { id: 1.5, option: "Party Bus", href: "/services/party-bus" },
       { id: 1.6, option: "Weddings", href: "/services/weddings" },
+      { id: 1.7, option: "Limo Service", href: "/services/limo-service" },
     ],
   },
   {

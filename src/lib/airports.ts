@@ -41,11 +41,11 @@ export const airportsData: readonly AirportData[] = [
     code: "PHX",
     name: "Phoenix Sky Harbor International Airport",
     shortName: "Sky Harbor",
-    h1: "PHX Sky Harbor Airport Car Service",
+    h1: "Black Car Service to Phoenix Sky Harbor Airport",
     heroImage: SkyHarborImg,
-    metaTitle: "PHX Sky Harbor Airport Car Service | Nier Transportation",
+    metaTitle: "Black Car Service to Phoenix Sky Harbor (PHX) | Nier",
     metaDescription:
-      "Private car service to and from Phoenix Sky Harbor (PHX) — flight-tracked pickups at Terminals 3 & 4, meet & greet or curbside, flat rates, available 24/7. Serving Scottsdale, Paradise Valley, and the entire Valley since 2004.",
+      "Phoenix airport car service to and from Sky Harbor (PHX): flight-tracked pickups at Terminals 3 & 4, meet & greet or curbside, flat rates, 24/7. Serving the whole Valley since 2004.",
     heroLine:
       "Flight-tracked, flat-rate car service to and from Sky Harbor — meet & greet at baggage claim or curbside pickup timed to the minute you land. Available 24/7 across the entire Valley.",
     terminals: "Terminals 3 & 4",

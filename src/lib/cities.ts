@@ -17,6 +17,7 @@ export const serviceAreaCities = [
   {
     name: "Scottsdale",
     slug: "scottsdale",
+    h1: "Scottsdale car service, tailored to every journey.",
     note: "Home to world-class golf courses like TPC Scottsdale and Troon North",
     src: Scottsdale,
     airportNote:
@@ -109,6 +110,7 @@ export const serviceAreaCities = [
   {
     name: "Phoenix",
     slug: "phoenix",
+    h1: "Phoenix car service, tailored to every journey.",
     note: "Served by Sky Harbor International Airport (PHX)",
     src: Phoenix,
     airportNote:
@@ -2511,6 +2513,8 @@ for (const c of serviceAreaCities) {
 export type CityData = {
   name: string;
   slug: string;
+  /** The page's main heading, when it should say more than the default. */
+  h1?: string;
   note: string;
   src: StaticImageData;
   airportNote?: string;

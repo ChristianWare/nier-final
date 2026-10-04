@@ -31,7 +31,9 @@ export default function ServiceSlugPageIntro({
       <div className={styles.content}>
         <div className={styles.top}>
           {/* <SectionHeading text='service' dot /> */}
-          <h1 className={`${styles.heading} underline`}>{service.title}</h1>
+          <h1 className={`${styles.heading} underline`}>
+            {service.h1 ?? service.title}
+          </h1>
           {/* <p className={styles.copy}>{service.copy}</p> */}
           {service.src && (
             <div className={styles.imgContainer}>

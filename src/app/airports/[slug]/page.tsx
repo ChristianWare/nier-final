@@ -5,6 +5,7 @@
 // src/app/airports/[slug]/AirportPage.module.css — every class used
 // below already exists in that file.
 
+import { bookingLink } from "@/lib/booking/linkPrefill";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { airportsData } from "@/lib/airports";
@@ -183,8 +184,8 @@ export default async function AirportPage({
               <p className={styles.lead}>{airport.heroLine}</p>
               <div className={styles.ctas}>
                 <Button
-                  href='/book'
-                  text='Book airport transfer'
+                  href={bookingLink("from-airport", airport.code)}
+                  text={`Book a pickup at ${airport.code}`}
                   btnType='black'
                   arrow
                 />
@@ -250,8 +251,8 @@ export default async function AirportPage({
               <div className={styles.bookCard}>
                 <p className={styles.bookCardCopy}>{airport.bookCardCopy}</p>
                 <Button
-                  href='/book'
-                  text='Book airport transfer'
+                  href={bookingLink("to-airport", airport.code)}
+                  text={`Book a ride to ${airport.code}`}
                   btnType='white'
                   arrow
                 />

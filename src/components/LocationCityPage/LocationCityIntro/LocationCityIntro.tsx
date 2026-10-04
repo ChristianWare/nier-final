@@ -14,8 +14,12 @@ export default function LocationCityIntro({ city }: { city: CityData }) {
             <div className={styles.left}>
               <SectionHeading text={`${city.name}, Arizona`} dot />
               <h1 className={styles.heading}>
-                Chauffeur services tailored <br className={styles.br} /> to
-                every journey in {city.name}, AZ.
+                {city.h1 ?? (
+                  <>
+                    Chauffeur services tailored <br className={styles.br} /> to
+                    every journey in {city.name}, AZ.
+                  </>
+                )}
               </h1>
             </div>
             <div className={styles.right}>

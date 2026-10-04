@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import BookingPageInfo from "@/components/BookingPage/BookingPageInfo/BookingPageInfo";
+import { bookingLinkPrefill } from "@/lib/booking/linkPrefill";
 import { PUBLIC_VEHICLE_WHERE } from "@/lib/booking/partnerVehicles";
 import { db } from "@/lib/db";
 import { auth } from "../../../auth";
@@ -13,9 +15,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Book Your Ride | Nier Transportation",
+  title: "Book a Black Car in Phoenix: Instant Flat-Rate Quote | Nier",
   description:
-    "Book your black car, SUV, or Sprinter online in minutes — flat rates, flight tracking, available 24/7 across Phoenix, Scottsdale, and the Valley.",
+    "Book a black car, SUV or Sprinter in Phoenix online: an instant flat-rate quote, flight tracking on airport rides and a professional chauffeur. Phoenix, Scottsdale and the Valley, 24/7.",
   alternates: { canonical: "https://www.niertransportation.com/book" },
 };
 
@@ -120,6 +122,9 @@ export default async function BookPage({
     fees: s.fees ?? [],
   }));
 
+  // A link like /book?trip=from-airport&airport=PHX opens the tool filled in.
+  const initialPrefill = bookingLinkPrefill(sp, serviceTypes);
+
   const vehicles = await db.vehicle.findMany({
     where: PUBLIC_VEHICLE_WHERE,
     orderBy: { sortOrder: "asc" },
@@ -157,7 +162,9 @@ export default async function BookPage({
           companyTimezone={companySettings.timezone}
           companyTimezoneLabel={companyTimezoneLabel}
           initialDiscountCode={initialDiscountCode}
+          initialPrefill={initialPrefill}
         />
+        <BookingPageInfo />
       </main>
     </DirtyFormProvider>
   );

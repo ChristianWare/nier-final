@@ -24,13 +24,25 @@ const intercityRoutes = routesData.filter(
 /* Per-service overrides for search-targeted titles/descriptions.
    Default pattern still applies to any slug not listed here. */
 const titleOverrides: Partial<Record<string, string>> = {
+  // The Sky Harbor airport page owns "black car service phoenix airport".
   "airport-transfers":
-    "Black Car Service to Phoenix Sky Harbor Airport | Nier Transportation",
+    "Airport Transfers in Phoenix: PHX, Scottsdale & Mesa Gateway | Nier",
+  "hourly-chauffeur":
+    "Phoenix Chauffeur Service: Hourly Chauffeur | Nier Transportation",
+  "limo-service": "Limo Service Phoenix & Scottsdale | Limousine Rental | Nier",
+  "long-distance-drives":
+    "Long-Distance Car Service from Phoenix | Nier Transportation",
+  "party-bus": "Party Bus Rental in Phoenix | Nier Transportation",
+  weddings: "Wedding Transportation Phoenix | Wedding Limos & Shuttles | Nier",
   "group-transportation": "Group Transportation Phoenix | Nier Transportation",
   "black-truck-service": "Black Truck Service Phoenix | Nier Transportation",
 };
 
 const descriptionOverrides: Partial<Record<string, string>> = {
+  "hourly-chauffeur":
+    "Phoenix chauffeur service by the hour: a professional chauffeur with a sedan, SUV or Sprinter on standby for meetings, events and nights out. Flat hourly rates, 24/7.",
+  "limo-service":
+    "Limo service in Phoenix & Scottsdale: a chauffeured stretch limousine for weddings, proms, anniversaries and nights out. Instant quotes and professional chauffeurs.",
   "airport-transfers":
     "Flat-rate airport black car service to PHX Sky Harbor, Scottsdale (SDL) & Mesa Gateway (AZA). Real-time flight tracking, 60-minute grace period, and meet & greet. Book in minutes.",
   "group-transportation":
@@ -54,8 +66,7 @@ export async function generateMetadata({
   if (!svc) return { title: "Service Not Found" };
 
   const title =
-    titleOverrides[svc.slug] ??
-    `${svc.title} | Luxury Black Car Service Phoenix`;
+    titleOverrides[svc.slug] ?? `${svc.title} in Phoenix | Nier Transportation`;
   const description =
     descriptionOverrides[svc.slug] ??
     svc.description ??

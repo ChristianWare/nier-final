@@ -651,7 +651,7 @@ export default async function UserTripsPage({
               ? "Try adjusting your filters or search."
               : "You haven't booked any trips yet."}
           </p>
-          <Link href='/booking' className='primaryBtn'>
+          <Link href='/book' className='primaryBtn'>
             Book a Ride →
           </Link>
         </div>
