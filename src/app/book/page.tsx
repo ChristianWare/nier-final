@@ -10,6 +10,8 @@ import Nav from "@/components/shared/Nav/Nav";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import type { Metadata } from "next";
+import MissionValues from "@/components/AboutPage/MissionValues/MissionValues";
+import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -164,7 +166,9 @@ export default async function BookPage({
           initialDiscountCode={initialDiscountCode}
           initialPrefill={initialPrefill}
         />
-        <BookingPageInfo />
+        {/* <BookingPageInfo /> */}
+        <MissionValues />
+        <AboutNumbers />
       </main>
     </DirtyFormProvider>
   );
