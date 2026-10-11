@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { navProgress } from "./navProgress";
+import { navProgress } from "./navProgressStore";
 
 /** Runs the nav's loading bar while a page update (a React transition) is in
  *  progress: it starts the moment the update starts and finishes exactly

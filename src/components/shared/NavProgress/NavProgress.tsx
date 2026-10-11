@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { navProgress } from "./navProgress";
+import { navProgress } from "./navProgressStore";
 import styles from "./NavProgress.module.css";
 
 const SHOW_AFTER_MS = 120; // quick updates never flash the bar

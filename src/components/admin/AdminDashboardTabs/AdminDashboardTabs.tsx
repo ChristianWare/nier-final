@@ -1,6 +1,6 @@
 "use client";
 
-import { navProgress } from "@/components/shared/NavProgress/navProgress";
+import { navProgress } from "@/components/shared/NavProgress/navProgressStore";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import styles from "./AdminDashboardTabs.module.css";

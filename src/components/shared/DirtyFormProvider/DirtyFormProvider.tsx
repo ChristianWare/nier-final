@@ -1,7 +1,7 @@
 // src/components/shared/DirtyFormProvider/DirtyFormProvider.tsx
 "use client";
 
-import { navProgress } from "@/components/shared/NavProgress/navProgress";
+import { navProgress } from "@/components/shared/NavProgress/navProgressStore";
 import {
   createContext,
   useContext,
