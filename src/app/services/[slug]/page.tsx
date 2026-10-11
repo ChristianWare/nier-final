@@ -8,6 +8,7 @@ import { routesData } from "@/lib/routes";
 import ServiceDetailsClient from "./components/ServiceDetailsClient/ServiceDetailsClient";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import promoStyles from "./PopularRoutes.module.css";
+import { BUSINESS_REF } from "@/lib/schema";
 
 type Params = { slug: string };
 
@@ -123,20 +124,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
       "@type": "State",
       name: "Arizona",
     },
-    provider: {
-      "@type": "LocalBusiness",
-      name: "Nier Transportation",
-      telephone: "+1-480-300-6003",
-      url: SITE_URL,
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "10105 E Via Linda, Ste A-105",
-        addressLocality: "Scottsdale",
-        addressRegion: "AZ",
-        postalCode: "85258",
-        addressCountry: "US",
-      },
-    },
+    provider: BUSINESS_REF,
   };
 
   const faqJsonLd =

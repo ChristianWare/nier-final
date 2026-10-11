@@ -12,6 +12,7 @@ import SimplifyCTA from "@/components/corporate/SimplifyCTA/SimplifyCTA";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import PastClients from "@/components/corporate/PastClients/PastClients";
 import type { Metadata } from "next";
+import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Corporate Accounts | Black Car Service Phoenix & Scottsdale",
@@ -26,11 +27,7 @@ const corporateSchema = {
   url: "https://www.niertransportation.com/corporate",
   description:
     "Centralized corporate ground transportation accounts for businesses in Phoenix, Scottsdale, and greater Metro Phoenix. Dedicated billing, reporting, and priority booking.",
-  provider: {
-    "@type": "LocalBusiness",
-    name: "Nier Transportation",
-    url: "https://www.niertransportation.com",
-  },
+  provider: BUSINESS_REF,
   areaServed: {
     "@type": "State",
     name: "Arizona",

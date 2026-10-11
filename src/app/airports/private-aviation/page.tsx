@@ -13,6 +13,7 @@ import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import { arizonaAirportsDirectory } from "@/lib/arizonaAirports"; 
 import { SITE_URL } from "@/lib/site";
 import styles from "./PrivateAviation.module.css";
+import { BUSINESS_REF } from "@/lib/schema";
 
 
 const canonical = `${SITE_URL}/airports/private-aviation`;
@@ -87,20 +88,7 @@ const serviceSchema = {
     name: a.name,
     ...(a.iata && { iataCode: a.iata }),
   })),
-  provider: {
-    "@type": "LocalBusiness",
-    name: "Nier Transportation",
-    telephone: "+1-480-300-6003",
-    url: SITE_URL,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "10105 E Via Linda, Ste A-105",
-      addressLocality: "Scottsdale",
-      addressRegion: "AZ",
-      postalCode: "85258",
-      addressCountry: "US",
-    },
-  },
+  provider: BUSINESS_REF,
 };
 
 const faqSchema = {

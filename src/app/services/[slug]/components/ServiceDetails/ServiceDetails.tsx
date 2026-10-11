@@ -12,6 +12,7 @@ import ServiceSlugPageIntro from "../ServiceSlugPageIntro/ServiceSlugPageIntro";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import Logo from "@/components/shared/Logo/Logo";
 import ServicesPreview from "@/components/HomePage/ServicesPreview/ServicesPreview";
+import { BUSINESS_REF } from "@/lib/schema";
 
 type AddOnItem = { id: number | string; title: string; description?: string };
 
@@ -118,20 +119,7 @@ export default function ServiceDetails({ service }: { service: Service }) {
       service.description || service.marketingCopy || service.copy || "",
     url: `https://www.niertransportation.com/services/${service.slug}`,
     serviceType: "Ground Transportation",
-    provider: {
-      "@type": "LocalBusiness",
-      name: "Nier Transportation",
-      url: "https://www.niertransportation.com",
-      telephone: "+1-480-300-6003",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "10105 E Via Linda, Ste A-105",
-        addressLocality: "Scottsdale",
-        addressRegion: "AZ",
-        postalCode: "85258",
-        addressCountry: "US",
-      },
-    },
+    provider: BUSINESS_REF,
     areaServed: {
       "@type": "State",
       name: "Arizona",

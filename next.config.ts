@@ -22,6 +22,30 @@ const nextConfig: NextConfig = {
         destination: "/services/airport-transfers",
         permanent: true,
       },
+      // ── Deleted posts Google still ranks (Semrush, Oct 2026) ──
+      // Each now 404s ("Post not found"). Send them to the live page that
+      // answers the same search so the rankings carry over.
+      {
+        // 19 keywords, best #12 ("phoenix bus charters")
+        source:
+          "/blog/the-best-charter-bus-rental-in-phoenix-your-complete-guide-to-group-transportation-in-the-valley-of-the-sun",
+        destination: "/charter-bus-rental-phoenix",
+        permanent: true,
+      },
+      {
+        // 5 keywords ("javelina leap winery" #30)
+        source:
+          "/blog/sedona-wine-tasting-tour-at-javelina-leap-winery-winery-tour-barrel-tasting-and-wine-tasting-your-wine-tour-gateway-to-arizona-wineries-oct-25-2025",
+        destination: "/routes/phoenix-to-sedona",
+        permanent: true,
+      },
+      {
+        // "john legend phoenix" #8; the concert has passed
+        source:
+          "/blog/john-legend-brings-soul-and-celebration-to-phoenix-on-november-15",
+        destination: "/services/special-events",
+        permanent: true,
+      },
       // ── Legacy URL cleanup (GSC soft-404s + stale crawl paths) ──
       {
         source: "/services/charter-bus-rental-phoenix",

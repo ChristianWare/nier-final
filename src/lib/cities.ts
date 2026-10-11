@@ -114,7 +114,7 @@ export const serviceAreaCities = [
     note: "Served by Sky Harbor International Airport (PHX)",
     src: Phoenix,
     airportNote:
-      "Black car service to the Phoenix airport is the ride we run most. Sky Harbor International sits at the center of the city — Terminals 3 and 4 handle all commercial flights — and we monitor every inbound flight and adjust pickup timing automatically, so your driver is staged when you land, not when you were scheduled to land.",
+      "Sky Harbor runs are the trip Phoenix riders book with us most. Sky Harbor International sits at the center of the city — Terminals 3 and 4 handle all commercial flights — and we monitor every inbound flight and adjust pickup timing automatically, so your driver is staged when you land, not when you were scheduled to land.",
     corporateNote:
       "Downtown Phoenix is home to major law firms, financial institutions, and the Phoenix Convention Center. Biltmore and Camelback corridors house dozens of Fortune 500 regional offices. We serve corporate accounts across all of them with centralized billing and consistent chauffeurs.",
     localContext:
@@ -135,9 +135,9 @@ export const serviceAreaCities = [
     airportMinutes: "10–20",
     topServices: [
       {
-        title: "Airport Transfers",
-        copy: "Black car service to Phoenix Sky Harbor is the ride we run most — flight-tracked pickups, flat rates, and chauffeurs staged to wheels-down, not the schedule.",
-        href: "/services/airport-transfers",
+        title: "Sky Harbor Transfers",
+        copy: "Our most-booked Phoenix ride — flight-tracked pickups at Terminals 3 and 4, flat rates, and chauffeurs staged to wheels-down, not the schedule.",
+        href: "/airports/phx-sky-harbor",
       },
       {
         title: "Corporate & Event Logistics",

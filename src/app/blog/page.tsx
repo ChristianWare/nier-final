@@ -4,6 +4,7 @@ import Nav from "@/components/shared/Nav/Nav";
 import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
+import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Blog | Luxury Transportation Tips & Travel Guides",
@@ -23,12 +24,7 @@ const blogSchema = {
     "Tips, guides, and insights on luxury ground transportation, airport travel, and getting around Scottsdale and Phoenix in style.",
   url: "https://www.niertransportation.com/blog",
   inLanguage: "en-US",
-  publisher: {
-    "@type": "Organization",
-    name: "Nier Transportation",
-    url: "https://www.niertransportation.com",
-    logo: "https://www.niertransportation.com/nierLogo.png",
-  },
+  publisher: BUSINESS_REF,
 };
 
 export default function BlogPage() {

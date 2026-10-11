@@ -15,6 +15,7 @@ import ScrollToSectionButton from "@/components/shared/ScrollToSectionButton/Scr
 import ClearHash from "@/components/shared/ClearHash/ClearHash";
 import FlightTrackerSection from "@/components/HomePage/FlightTrackerSection/FlightTrackerSection";
 import { SITE_URL } from "@/lib/site";
+import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title:
@@ -39,11 +40,7 @@ const wekopaServiceSchema = {
   url: `${SITE_URL}/wekopa`,
   description:
     "Private flat-rate transfers between Phoenix Sky Harbor International Airport and We-Ko-Pa Golf Club & Casino Resort in Fort McDowell, Arizona. Sedans, SUVs, and Sprinter vans with fare and gratuity included in every rate.",
-  provider: {
-    "@type": "LocalBusiness",
-    name: "Nier Transportation",
-    url: SITE_URL,
-  },
+  provider: BUSINESS_REF,
   areaServed: ["Phoenix", "Scottsdale", "Fountain Hills", "Fort McDowell"],
 };
 

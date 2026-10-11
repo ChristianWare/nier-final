@@ -1,0 +1,44 @@
+/* In-article booking box. Sits in the blog's article column, between
+   paragraphs, so it uses the column's width and the post's type scale. */
+
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin: 1.6rem 0;
+  padding: 2.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  background: var(--cream);
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -1px;
+  color: var(--black);
+}
+
+.copy {
+  color: var(--paragraph);
+  line-height: 1.5em;
+}
+
+.link {
+  color: var(--black);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media screen and (max-width: 568px) {
+  .box {
+    padding: 1.6rem;
+  }
+}

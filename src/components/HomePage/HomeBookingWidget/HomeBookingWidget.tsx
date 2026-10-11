@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
+import { usePlausible } from "next-plausible";
 import styles from "./HomeBookingWidget.module.css";
 import Button from "@/components/shared/Button/Button";
 
@@ -202,13 +203,20 @@ function usePlacesAutocomplete(
 export default function HomeBookingWidget({
   serviceTypes,
   companyTimezoneLabel,
+  fluid = false,
+  source,
 }: {
   serviceTypes: WidgetServiceTypeDTO[];
   vehicles: WidgetVehicleDTO[];
   companyTimezone: string;
   companyTimezoneLabel: string;
+  /** Fill the parent's width (article columns) instead of the fixed 450px hero card. */
+  fluid?: boolean;
+  /** Where the widget sits (e.g. "blog:topgolf-scottsdale"); sent to Plausible on submit. */
+  source?: string;
 }) {
   const router = useRouter();
+  const plausible = usePlausible();
 
   const [mapsReady, setMapsReady] = useState(false);
   useEffect(() => {
@@ -519,12 +527,16 @@ export default function HomeBookingWidget({
       // sessionStorage unavailable — wizard starts fresh
     }
 
+    if (source) {
+      plausible("Booking Widget", { props: { source } });
+    }
+
     router.push("/book");
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className={styles.card}>
+    <div className={fluid ? `${styles.card} ${styles.fluid}` : styles.card}>
       {/* ── Header: "Book your Ride" left, auth links right ── */}
       <div className={styles.cardHeader}>
         <span className={styles.headerTitle}>Book your Ride</span>

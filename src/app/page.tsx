@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { PUBLIC_VEHICLE_WHERE } from "@/lib/booking/partnerVehicles";
 import Script from "next/script";
 import dynamic from "next/dynamic";
 import Hero from "@/components/HomePage/Hero/Hero";
@@ -9,8 +7,7 @@ import Stats from "@/components/HomePage/Stats/Stats";
 import { homeQuestions } from "@/lib/data";
 import { Metadata } from "next";
 import ServicesMarquee from "@/components/shared/ServicesMarquee/ServicesMarquee";
-import { db } from "@/lib/db";
-import { getCompanySettings } from "../../actions/admin/companySettings";
+import { getBookingWidgetData } from "@/lib/booking/widgetData";
 import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
 
 const HowItWorks = dynamic(
@@ -54,58 +51,6 @@ export const metadata: Metadata = {
   },
 };
 
-const localBusinessSchema = {
-  "@context": "https://schema.org",
-  "@type": "LimousineBusService",
-  name: "Nier Transportation",
-  url: "https://www.niertransportation.com",
-  logo: "https://www.niertransportation.com/nierLogo.png",
-  image: "https://www.niertransportation.com/nierLogo.png",
-  telephone: "+1-480-300-6003",
-  email: "info@niertransportation.com",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "10105 E Via Linda, Ste A-105",
-    addressLocality: "Scottsdale",
-    addressRegion: "AZ",
-    postalCode: "85258",
-    addressCountry: "US",
-  },
-  geo: {
-    "@type": "GeoCoordinates",
-    latitude: 33.5611,
-    longitude: -111.8896,
-  },
-  openingHoursSpecification: {
-    "@type": "OpeningHoursSpecification",
-    dayOfWeek: [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ],
-    opens: "00:00",
-    closes: "23:59",
-  },
-  areaServed: [
-    "Phoenix, AZ",
-    "Scottsdale, AZ",
-    "Tempe, AZ",
-    "Mesa, AZ",
-    "Chandler, AZ",
-    "Gilbert, AZ",
-    "Peoria, AZ",
-    "Glendale, AZ",
-    "Paradise Valley, AZ",
-    "Cave Creek, AZ",
-    "Fountain Hills, AZ",
-  ],
-  priceRange: "$$",
-};
-
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -119,91 +64,13 @@ const faqSchema = {
   })),
 };
 
-// Module-level constant is fine here — no await needed
-const TIMEZONE_SHORT_LABELS: Record<string, string> = {
-  "America/Phoenix": "Phoenix, AZ (MST)",
-  "America/New_York": "Eastern (ET)",
-  "America/Chicago": "Central (CT)",
-  "America/Denver": "Mountain (MT)",
-  "America/Los_Angeles": "Pacific (PT)",
-  "America/Anchorage": "Alaska (AKT)",
-  "Pacific/Honolulu": "Hawaii (HST)",
-};
-
-// ── async so DB queries work inside the component ─────────────────────────────
 export default async function HomePage() {
-  // ── Company settings ──────────────────────────────────────────────────────
-  const companySettings = await getCompanySettings();
-  const companyTimezoneLabel =
-    TIMEZONE_SHORT_LABELS[companySettings.timezone] ?? companySettings.timezone;
-
-  // ── Service types ─────────────────────────────────────────────────────────
-  const serviceTypesRaw = await db.serviceType.findMany({
-    where: { active: true },
-    orderBy: { sortOrder: "asc" },
-    select: {
-      id: true,
-      name: true,
-      pricingStrategy: true,
-      minFareCents: true,
-      baseFeeCents: true,
-      perMileCents: true,
-      perMinuteCents: true,
-      perHourCents: true,
-      minHours: true,
-      active: true,
-      airportLeg: true,
-
-      // ── NEW: airports for airport service dropdowns in the widget ──
-      airports: {
-        where: { active: true },
-        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-        select: {
-          id: true,
-          name: true,
-          iata: true,
-        },
-      },
-
-      fees: {
-        where: { active: true },
-        orderBy: { sortOrder: "asc" },
-        select: {
-          id: true,
-          label: true,
-          amountCents: true,
-        },
-      },
-    },
-  });
-
-  // ── Vehicles ──────────────────────────────────────────────────────────────
-  const vehicles = await db.vehicle.findMany({
-    where: PUBLIC_VEHICLE_WHERE,
-    orderBy: { sortOrder: "asc" },
-    select: {
-      id: true,
-      name: true,
-      capacity: true,
-      minHours: true,
-      baseFareCents: true,
-      perMileCents: true,
-      perMinuteCents: true,
-      perHourCents: true,
-      active: true,
-      callForPricing: true,
-    },
-  });
+  // Booking widget data (services, airports, fees, vehicles, timezone)
+  const widget = await getBookingWidgetData();
 
   return (
     <main>
       {/* ── Structured data ── */}
-      <script
-        type='application/ld+json'
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(localBusinessSchema),
-        }}
-      />
       <script
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
@@ -215,11 +82,10 @@ export default async function HomePage() {
       />
       <Nav />
       <Hero
-        serviceTypes={serviceTypesRaw as any}
-
-        vehicles={vehicles as any}
-        companyTimezone={companySettings.timezone}
-        companyTimezoneLabel={companyTimezoneLabel}
+        serviceTypes={widget.serviceTypes}
+        vehicles={widget.vehicles}
+        companyTimezone={widget.companyTimezone}
+        companyTimezoneLabel={widget.companyTimezoneLabel}
       />
       <AboutUsIntro />
       <Stats />

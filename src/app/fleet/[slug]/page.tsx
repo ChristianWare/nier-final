@@ -8,6 +8,7 @@ import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import Nav from "@/components/shared/Nav/Nav";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
+import { BUSINESS_REF } from "@/lib/schema";
 
 type Params = { slug: string };
 
@@ -43,29 +44,14 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     vehicleConfiguration: vehicle.class,
     seatingCapacity: vehicle.seats,
     url: `https://www.niertransportation.com/fleet/${vehicle.slug}`,
-    provider: {
-      "@type": "LocalBusiness",
-      name: "Nier Transportation",
-      telephone: "+1-480-300-6003",
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "10105 E Via Linda, Ste A-105",
-        addressLocality: "Scottsdale",
-        addressRegion: "AZ",
-        postalCode: "85258",
-        addressCountry: "US",
-      },
-    },
+    provider: BUSINESS_REF,
     ...(vehicle.rateRules?.hourlyFromUSD && {
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
         price: vehicle.rateRules.hourlyFromUSD,
         unitText: "per hour",
-        seller: {
-          "@type": "Organization",
-          name: "Nier Transportation",
-        },
+        seller: BUSINESS_REF,
         areaServed: "Phoenix Metro, Arizona",
       },
     }),

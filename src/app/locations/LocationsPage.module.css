@@ -36,6 +36,13 @@
   color: var(--paragraph);
 }
 
+.lead a {
+  font-weight: 600;
+  color: var(--black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .citiesSection {
   padding: 10rem 0rem;
   background-color: var(--white);

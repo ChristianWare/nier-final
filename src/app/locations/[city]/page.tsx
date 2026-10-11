@@ -20,6 +20,7 @@ import LocationCityTopServices from "@/components/LocationCityPage/LocationCityT
 import LocationCityNeighborhoods from "@/components/LocationCityPage/LocationCityNeighborhoods/LocationCityNeighborhoods";
 import LocationCityTestimonials from "@/components/LocationCityPage/LocationCityTestimonials/LocationCityTestimonials";
 import styles from "./LocationCityPage.module.css";
+import { BUSINESS_REF } from "@/lib/schema";
 
 type Params = { city: string };
 
@@ -144,55 +145,11 @@ export default async function LocationCityPage({
         name: `${service.title} in ${city.name}`,
         description: service.description,
         url: `${SITE_URL}/services/${service.slug}`,
-        provider: {
-          "@type": "LocalBusiness",
-          name: "Nier Transportation",
-          url: SITE_URL,
-        },
+        provider: BUSINESS_REF,
         areaServed: { "@type": "City", name: city.name },
         serviceType: "Ground Transportation",
       },
     })),
-  };
-
-  const localBusinessSchema = {
-    "@context": "https://schema.org",
-    "@type": "LimousineBusService",
-    name: "Nier Transportation",
-    url: pageUrl,
-    telephone: "+1-480-300-6003",
-    email: "info@niertransportation.com",
-    logo: `${SITE_URL}/nierLogo.png`,
-    image: `${SITE_URL}/nierLogo.png`,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "10105 E Via Linda, Ste A-105",
-      addressLocality: "Scottsdale",
-      addressRegion: "AZ",
-      postalCode: "85258",
-      addressCountry: "US",
-    },
-    areaServed: {
-      "@type": "City",
-      name: city.name,
-      containedInPlace: { "@type": "State", name: "Arizona" },
-    },
-    priceRange: "$$",
-    openingHoursSpecification: {
-      "@type": "OpeningHoursSpecification",
-      dayOfWeek: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
-      opens: "00:00",
-      closes: "23:59",
-    },
-    sameAs: ["https://www.instagram.com/niertransportation"],
   };
 
   const faqJsonLd =
@@ -213,12 +170,6 @@ export default async function LocationCityPage({
       <script
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
-      />
-      <script
-        type='application/ld+json'
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(localBusinessSchema),
-        }}
       />
       {faqJsonLd && (
         <script

@@ -23,6 +23,7 @@ import styles from "./AirportPage.module.css";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
 import Image from "next/image";
+import { BUSINESS_REF } from "@/lib/schema";
 
 type Params = { slug: string };
 
@@ -128,20 +129,7 @@ export default async function AirportPage({
       { "@type": "City", name: "Phoenix" },
       { "@type": "City", name: "Scottsdale" },
     ],
-    provider: {
-      "@type": "LocalBusiness",
-      name: "Nier Transportation",
-      telephone: "+1-480-300-6003",
-      url: SITE_URL,
-      address: {
-        "@type": "PostalAddress",
-        streetAddress: "10105 E Via Linda, Ste A-105",
-        addressLocality: "Scottsdale",
-        addressRegion: "AZ",
-        postalCode: "85258",
-        addressCountry: "US",
-      },
-    },
+    provider: BUSINESS_REF,
   };
 
   const faqJsonLd = {

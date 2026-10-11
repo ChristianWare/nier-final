@@ -7,6 +7,7 @@ import Faq from "@/components/shared/Faq/Faq";
 import Nav from "@/components/shared/Nav/Nav";
 import { fleetData, fleetQuestions } from "@/lib/data";
 import type { Metadata } from "next";
+import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Fleet | Luxury Black Car & Limo Vehicles Phoenix",
@@ -33,11 +34,7 @@ const fleetSchema = {
       url: `https://www.niertransportation.com/fleet/${vehicle.slug}`,
       offers: {
         "@type": "Offer",
-        seller: {
-          "@type": "LocalBusiness",
-          name: "Nier Transportation",
-          url: "https://www.niertransportation.com",
-        },
+        seller: BUSINESS_REF,
         areaServed: {
           "@type": "State",
           name: "Arizona",

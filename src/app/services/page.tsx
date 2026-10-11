@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import Faq from "@/components/shared/Faq/Faq";
 import Img2 from "../../../public/images/people/linda.jpg";
 import Img1 from "../../../public/images/other/services.jpg";
+import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Services | Luxury Black Car & Limo Service Phoenix",
@@ -32,11 +33,7 @@ const servicesSchema = {
       name: service.title,
       description: service.description,
       url: `https://www.niertransportation.com/services/${service.slug}`,
-      provider: {
-        "@type": "LocalBusiness",
-        name: "Nier Transportation",
-        url: "https://www.niertransportation.com",
-      },
+      provider: BUSINESS_REF,
       areaServed: {
         "@type": "State",
         name: "Arizona",

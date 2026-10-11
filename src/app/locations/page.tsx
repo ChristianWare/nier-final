@@ -14,7 +14,7 @@ import HeroImg from "../../../public/images/vehicles/sub.png";
 export const metadata: Metadata = {
   title: "Service Areas | Nier Transportation",
   description:
-    "Nier Transportation provides luxury black car service across Scottsdale, Phoenix, and greater Metro Phoenix. Browse all service areas and book your ride today.",
+    "The 40 Arizona cities Nier Transportation serves, from Scottsdale and Phoenix to Sedona and Tucson. Pick your city to see local services, airport times and rates.",
   alternates: {
     canonical: "https://www.niertransportation.com/locations",
   },
@@ -53,20 +53,27 @@ export default function LocationsPage() {
             <div className={styles.left}>
               <SectionHeading text='Service Areas' dot />
               <h1 className={`${styles.heading} h1`}>
-                Luxury Black Car Service Across Metro Phoenix
+                40 Arizona Cities, One Chauffeur Team
               </h1>
               <p className={styles.lead}>
-                Nier Transportation serves Scottsdale, Phoenix, and 40+ cities
-                across the Valley and greater Arizona. Select your city below to
-                explore available services in your area.
+                Our{" "}
+                <Link href='/'>
+                  black car service in Phoenix &amp; Scottsdale
+                </Link>{" "}
+                reaches 40 cities across the Valley and greater Arizona, with{" "}
+                <Link href='/airports/phx-sky-harbor'>
+                  Sky Harbor transfers
+                </Link>{" "}
+                from every one. Select your city below to see the services,
+                airport times and neighborhoods we cover there.
               </p>
             </div>
             <div className={styles.right}>
               <div className={styles.imgContainerMain}>
                 <Image
                   src={HeroImg}
-                  alt='Luxury Black Car Service'
-                  title='Luxury Black Car Service'
+                  alt='Nier Transportation chauffeured SUV'
+                  title='Nier Transportation chauffeured SUV'
                   fill
                   className={styles.imgMain}
                 />

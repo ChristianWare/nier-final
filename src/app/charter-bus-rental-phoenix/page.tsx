@@ -12,6 +12,7 @@ import Nav from "@/components/shared/Nav/Nav";
 import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
 import { charterQuestions } from "@/lib/data";
 import type { Metadata } from "next";
+import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Charter Bus & Motor Coach Rental Phoenix | Nier Transportation",
@@ -29,20 +30,7 @@ const charterServiceSchema = {
   url: "https://www.niertransportation.com/charter-bus-rental-phoenix",
   description:
     "Luxury 56-passenger charter bus rental serving Phoenix, Scottsdale, and the greater Metro Phoenix area. Available for corporate events, weddings, airport group transfers, and private group outings.",
-  provider: {
-    "@type": "LocalBusiness",
-    name: "Nier Transportation",
-    url: "https://www.niertransportation.com",
-    telephone: "+14803006003",
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: "Phoenix",
-      addressRegion: "AZ",
-      addressCountry: "US",
-    },
-    priceRange: "$$",
-    image: "https://www.niertransportation.com/images/other/charter-bus.jpg",
-  },
+  provider: BUSINESS_REF,
   areaServed: [
     {
       "@type": "City",

@@ -16,6 +16,7 @@ import ScrollToSectionButton from "@/components/shared/ScrollToSectionButton/Scr
 import ClearHash from "@/components/shared/ClearHash/ClearHash";
 import FlightTrackerSection from "@/components/HomePage/FlightTrackerSection/FlightTrackerSection";
 import { SITE_URL } from "@/lib/site";
+import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title:
@@ -40,11 +41,7 @@ const denuServiceSchema = {
   url: `${SITE_URL}/denu-hotel`,
   description:
     "Private flat-rate transfers between Phoenix Sky Harbor International Airport, Mesa Gateway Airport, and Denū Hotel & Spa at 1 E Adams St in Downtown Phoenix. SUVs and Sprinter vans with gratuity included in every rate.",
-  provider: {
-    "@type": "LocalBusiness",
-    name: "Nier Transportation",
-    url: SITE_URL,
-  },
+  provider: BUSINESS_REF,
   areaServed: ["Phoenix", "Scottsdale", "Glendale", "Mesa"],
 };
 

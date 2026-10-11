@@ -14,6 +14,12 @@
   /* No overflow:hidden — keeps Google Places pac-container unclipped */
 }
 
+/* In-article use (blog RideBox): take the column's width, never overflow it */
+.fluid {
+  min-width: 0;
+  width: 100%;
+}
+
 /* ── Header ────────────────────────────────────────────────────────── */
 .cardHeader {
   display: flex;

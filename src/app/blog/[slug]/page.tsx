@@ -16,6 +16,9 @@ import type { MDXComponents } from "mdx/types";
 import type { ReactNode } from "react";
 import { getAllPosts, getPostBySlug, slugify } from "@/lib/blog";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
+import RideBox from "@/components/BlogPage/RideBox/RideBox";
+import { getBookingWidgetData } from "@/lib/booking/widgetData";
+import { BUSINESS_REF } from "@/lib/schema";
 
 const CLIENT_NAME = process.env.CLIENT_NAME || "Nier Transportation";
 
@@ -171,6 +174,23 @@ export default async function BlogPostPage({
   if (!post || (process.env.NODE_ENV === "production" && post.draft))
     notFound();
 
+  // Posts that place <RideBox /> in their MDX get the live booking widget.
+  // Only those posts query the database; the rest render as before.
+  const rideBoxData = post.content.includes("<RideBox")
+    ? await getBookingWidgetData()
+    : null;
+  const components: MDXComponents = {
+    ...mdxComponents,
+    RideBox: (props: { title?: string; copy?: string }) =>
+      rideBoxData ? (
+        <RideBox
+          {...props}
+          data={rideBoxData}
+          source={`blog:${post.slug.current}`}
+        />
+      ) : null,
+  };
+
   const prettyDate = new Date(post.publishedAt).toLocaleDateString("en-US", {
     month: "long",
     day: "2-digit",
@@ -200,16 +220,9 @@ export default async function BlogPostPage({
       "@type": "Person",
       name: "Barry LaNier",
       jobTitle: "Owner, CEO",
-      worksFor: { "@type": "Organization", name: CLIENT_NAME },
+      worksFor: BUSINESS_REF,
     },
-    publisher: {
-      "@type": "Organization",
-      name: CLIENT_NAME,
-      logo: {
-        "@type": "ImageObject",
-        url: "https://www.niertransportation.com/nierLogo.png",
-      },
-    },
+    publisher: BUSINESS_REF,
     ...(post.coverImage && {
       image: {
         "@type": "ImageObject",
@@ -349,7 +362,7 @@ export default async function BlogPostPage({
           <article className={styles.articleBody}>
             <MDXRemote
               source={post.content}
-              components={mdxComponents}
+              components={components}
               options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
             />
             <div className={styles.sideCta}>

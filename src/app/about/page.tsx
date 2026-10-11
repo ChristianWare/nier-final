@@ -16,33 +16,6 @@ export const metadata: Metadata = {
     "Family-owned since 2004, Nier Transportation provides luxury black car and limousine service throughout Phoenix and Scottsdale. Learn our story and values.",
 };
 
-const localBusinessSchema = {
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  "@id": "https://www.niertransportation.com/#business",
-  name: "Nier Transportation",
-  url: "https://www.niertransportation.com",
-  logo: "https://www.niertransportation.com/nierLogo.png",
-  telephone: "+1-480-300-6003",
-  email: "info@niertransportation.com",
-  foundingDate: "2004",
-  description:
-    "Family-owned luxury black car and limousine service serving Phoenix, Scottsdale, and greater Metro Phoenix since 2004.",
-  address: {
-    "@type": "PostalAddress",
-    streetAddress: "10105 E Via Linda, Ste A-105",
-    addressLocality: "Scottsdale",
-    addressRegion: "AZ",
-    postalCode: "85258",
-    addressCountry: "US",
-  },
-  areaServed: {
-    "@type": "State",
-    name: "Arizona",
-  },
-  priceRange: "$$$",
-};
-
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -59,12 +32,6 @@ const faqSchema = {
 export default function AboutPage() {
   return (
     <main>
-      <script
-        type='application/ld+json'
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(localBusinessSchema),
-        }}
-      />
       <script
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
