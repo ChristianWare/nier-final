@@ -186,6 +186,11 @@
 } */
 
 @media screen and (max-width: 768px) {
+  .container,
+  .content {
+    min-height: 95vh;
+  }
+
   .cc2 {
     grid-template-columns: repeat(1, 1fr);
     grid-gap: 2rem;
@@ -199,15 +204,29 @@
 
   .heading {
     max-width: 100%;
-    width: 80%;
+    width: 100%;
   }
 
   .break {
     display: block;
   }
+
+  .btnDesktop {
+    display: none;
+  }
+
+  .btnMobile {
+    display: block;
+  }
+
+  .btnContainerii {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    width: 50%;
+  }
 }
 
-@media screen and (max-width: 568px) {
+/* @media screen and (max-width: 568px) {
   .container,
   .content {
     min-height: 95vh;
@@ -268,7 +287,7 @@
     padding-bottom: 0;
     margin-top: -10rem;
   }
-}
+} */
 
 /* Mobile image: shown below breakpoint, hidden above */
 .mobileMedia {

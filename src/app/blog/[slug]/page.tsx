@@ -14,7 +14,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import type { MDXComponents } from "mdx/types";
 import type { ReactNode } from "react";
-import { getAllPosts, getPostBySlug, slugify } from "@/lib/blog";
+import { getAllPosts, getPostBySlug, isEventPost, slugify } from "@/lib/blog";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import RideBox from "@/components/BlogPage/RideBox/RideBox";
 import { getBookingWidgetData } from "@/lib/booking/widgetData";
@@ -149,7 +149,9 @@ const mdxComponents: MDXComponents = {
           className={styles.ptImageEl}
           style={{ width: "100%", height: "auto" }}
         />
-        {alt ? <figcaption className={styles.ptCaption}>{alt}</figcaption> : null}
+        {alt ? (
+          <figcaption className={styles.ptCaption}>{alt}</figcaption>
+        ) : null}
       </figure>
     );
   },
@@ -174,11 +176,17 @@ export default async function BlogPostPage({
   if (!post || (process.env.NODE_ENV === "production" && post.draft))
     notFound();
 
-  // Posts that place <RideBox /> in their MDX get the live booking widget.
-  // Only those posts query the database; the rest render as before.
-  const rideBoxData = post.content.includes("<RideBox")
-    ? await getBookingWidgetData()
-    : null;
+  // The live booking widget (RideBox) appears on:
+  //  - any post that places <RideBox /> in its MDX, where the author put it
+  //  - every event post (tagged "Events"); if the author didn't place one,
+  //    it goes at the end of the article in place of the "Book your Ride" button
+  // Only these posts query the database; the rest render as before.
+  const hasManualRideBox = post.content.includes("<RideBox");
+  const autoRideBox = isEventPost(post) && !hasManualRideBox;
+  const rideBoxData =
+    hasManualRideBox || autoRideBox ? await getBookingWidgetData() : null;
+  // "Smoke 'N The Desert 2026: Schedule…" → "Smoke 'N The Desert 2026"
+  const eventName = post.title.split(":")[0].trim();
   const components: MDXComponents = {
     ...mdxComponents,
     RideBox: (props: { title?: string; copy?: string }) =>
@@ -365,12 +373,26 @@ export default async function BlogPostPage({
               components={components}
               options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
             />
-            <div className={styles.sideCta}>
-              <p className={styles.sideCtaText}>
-                Ready to book your ride with Nier Transportation?
-              </p>
-              <Button href='/book' text='Book your Ride' btnType='red' arrow />
-            </div>
+            {autoRideBox && rideBoxData ? (
+              <RideBox
+                data={rideBoxData}
+                source={`blog:${post.slug.current}`}
+                title={`Getting to ${eventName}?`}
+                copy='Get dropped at the door and picked up when you are ready, with no parking and no surge pricing.'
+              />
+            ) : (
+              <div className={styles.sideCta}>
+                <p className={styles.sideCtaText}>
+                  Ready to book your ride with Nier Transportation?
+                </p>
+                <Button
+                  href='/book'
+                  text='Book your Ride'
+                  btnType='red'
+                  arrow
+                />
+              </div>
+            )}
           </article>
 
           {/* Col 3: More insights */}
@@ -384,8 +406,8 @@ export default async function BlogPostPage({
           </aside>
         </div>
       </LayoutWrapper>
-      <div style={{ marginBottom: '20rem' }} />
-        <AboutNumbers />
+      <div style={{ marginBottom: "20rem" }} />
+      <AboutNumbers />
     </main>
   );
 }
