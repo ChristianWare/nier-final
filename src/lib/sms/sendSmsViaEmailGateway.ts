@@ -13,8 +13,8 @@
 // arrive out of order (hence the part markers). Treat this as an interrupt,
 // not a system of record — the email notification remains the reliable copy.
 //
-// The Twilio sender at ./sendSms.ts is intentionally left in place. To
-// upgrade later, swap the call in src/lib/notifications/queue.ts.
+// This is the app's only way of sending a text, and it is used for admin
+// alerts only; riders are always emailed. No SMS vendor is configured.
 
 import "server-only";
 import { Resend } from "resend";

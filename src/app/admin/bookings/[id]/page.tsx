@@ -2344,6 +2344,11 @@ export default async function AdminBookingDetailPage({
                       } else if (eventType === "PAYMENT_REMINDER_SENT") {
                         tone = "accent";
                         label = "Payment reminder sent";
+                      } else if (eventType === "REVIEW_REQUEST_SENT") {
+                        tone = metadata?.failed ? "warn" : "accent";
+                        label = metadata?.failed
+                          ? "Review request failed"
+                          : "Review request emailed";
                       } else if (eventType === "ADMIN_ALERT_SENT") {
                         tone = "warn";
                         label = "Admin alert sent (needs attention)";

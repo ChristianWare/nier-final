@@ -179,16 +179,16 @@ export async function driverUpdateTripStatus(input: UpdateTripStatusInput) {
       });
     });
 
-    // Send customer notification (non-blocking)
-    const customerPhone = booking.user?.phone || booking.guestPhone;
+    // Send customer notification by email (non-blocking)
+    const customerEmail = booking.user?.email || booking.guestEmail;
     const customerName =
       booking.user?.name?.trim() || booking.guestName?.trim() || "Customer";
 
-    if (customerPhone) {
+    if (customerEmail) {
       // Fire and forget - don't block the response
       sendCustomerTripNotification({
         status: newStatus,
-        customerPhone,
+        customerEmail,
         customerName,
         pickupAddress: booking.pickupAddress,
         driverName: session.user.name || "Your driver",

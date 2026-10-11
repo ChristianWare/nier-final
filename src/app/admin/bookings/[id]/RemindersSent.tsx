@@ -44,6 +44,11 @@ function describe(e: Event): { what: string; to: string } | null {
         what: `Payment reminder · ${kinds.map((k) => (k === "after_link" ? "24 hours after the link" : "48 hours before pickup")).join(" + ") || "unpaid"}`,
         to,
       };
+    case "REVIEW_REQUEST_SENT":
+      return {
+        what: `Google review request${m.failed ? " · failed to send" : ""}`,
+        to,
+      };
     case "BALANCE_REMINDER_SENT":
       return { what: "Balance reminder · sent by an admin", to };
     case "ADMIN_ALERT_SENT": {
@@ -75,6 +80,8 @@ export default function RemindersSent({
         pickup, and a payment reminder if a payment link is still unpaid 24
         hours after it was sent and again 48 hours before pickup. Admins get an
         alert 24 hours before pickup if the ride is unpaid or has no driver.
+        About 2 hours after a ride is completed, the rider gets one Google
+        review request (at most once every 90 days).
       </p>
     );
   }

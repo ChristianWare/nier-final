@@ -1,4 +1,5 @@
 import { processRideReminders } from "@/lib/reminders/rideReminders";
+import { processReviewRequests } from "@/lib/reminders/reviewRequests";
 import { NextResponse } from "next/server";
 import { processPendingNotificationJobs } from "@/lib/notifications/process";
 
@@ -36,7 +37,19 @@ async function handle(req: Request) {
   } catch (e) {
     console.error("Ride reminders failed:", e);
   }
-  return NextResponse.json({ ok: true, ...res, reminders });
+
+  // Google review request ~2 hours after a ride is completed. Off until
+  // GOOGLE_REVIEW_URL is set; a failure never stops anything above.
+  let reviews:
+    Awaited<ReturnType<typeof processReviewRequests>> | { error: true } = {
+    error: true,
+  };
+  try {
+    reviews = await processReviewRequests();
+  } catch (e) {
+    console.error("Review requests failed:", e);
+  }
+  return NextResponse.json({ ok: true, ...res, reminders, reviews });
 }
 
 // ✅ Vercel Cron uses GET

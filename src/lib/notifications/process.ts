@@ -1,16 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/lib/db";
 import { sendAdminNotificationEmail } from "@/lib/email/sendAdminNotificationEmail";
-import { sendSms } from "@/lib/sms/sendSms";
-import { getSmsFromNumber } from "../../../actions/admin/companySettings";
+import { sendSmsViaEmailGateway } from "@/lib/sms/sendSmsViaEmailGateway";
 
 export async function processPendingNotificationJobs(args?: {
   limit?: number;
 }) {
   const limit = Math.max(1, Math.min(args?.limit ?? 25, 100));
-
-  // Get the client's SMS from number (or null to use env default)
-  const smsFromNumber = await getSmsFromNumber();
 
   // claim jobs (simple v1 claim; good enough for single worker)
   const jobs = await db.notificationJob.findMany({
@@ -37,11 +33,8 @@ export async function processPendingNotificationJobs(args?: {
           text: j.body,
         });
       } else if (j.channel === "SMS") {
-        await sendSms({
-          to: j.to,
-          body: j.body,
-          from: smsFromNumber || undefined, // Use client's number or env default
-        });
+        // `to` is a carrier email-to-SMS gateway address (see queue.ts).
+        await sendSmsViaEmailGateway({ to: j.to, body: j.body });
       }
 
       await db.notificationJob.update({

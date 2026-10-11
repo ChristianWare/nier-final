@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { sendSms } from "../sms/sendSms";
+import { sendSmsViaEmailGateway } from "../sms/sendSmsViaEmailGateway";
 import { sendAdminNotificationEmail } from "../email/sendAdminNotificationEmail";
 
 const MAX_ATTEMPTS = 3;
@@ -50,10 +50,8 @@ export async function processNotificationJobs() {
           text: job.body,
         });
       } else if (job.channel === "SMS") {
-        await sendSms({
-          to: job.to,
-          body: job.body,
-        });
+        // `to` is a carrier email-to-SMS gateway address (see queue.ts).
+        await sendSmsViaEmailGateway({ to: job.to, body: job.body });
       }
 
       // Mark as sent
@@ -133,10 +131,7 @@ export async function processNotificationJobById(jobId: string) {
         text: job.body,
       });
     } else if (job.channel === "SMS") {
-      await sendSms({
-        to: job.to,
-        body: job.body,
-      });
+      await sendSmsViaEmailGateway({ to: job.to, body: job.body });
     }
 
     await db.notificationJob.update({

@@ -212,3 +212,65 @@ export function adminRideAlertEmail(a: {
   ].join("\n");
   return { subject, html, text };
 }
+
+/** After a completed ride: a short thank-you with the Google review link.
+ *  Worded neutrally on purpose: Google's policy forbids asking only happy
+ *  customers ("review gating"), so every rider gets the same ask. */
+export function reviewRequestEmail(a: {
+  company: string;
+  name?: string | null;
+  reviewUrl: string;
+}): EmailContent {
+  const subject = `How was your ride? | ${a.company}`;
+  const hi = a.name ? `Hi ${a.name.split(" ")[0]},` : "Hi,";
+  const ask = `Thank you for riding with ${a.company}. If you have a minute, a Google review helps other travelers find us and tells our chauffeurs how they did.`;
+  const html = layout(
+    a.company,
+    "How was your ride?",
+    `<p>${esc(hi)}</p><p>${esc(ask)}</p>`,
+    { href: a.reviewUrl, label: "Leave a Google review" },
+    `You're receiving this because you rode with ${a.company}. We only ask once.`,
+  );
+  const text = [hi, ask, `Leave a review: ${a.reviewUrl}`].join("\n\n");
+  return { subject, html, text };
+}
+
+/** Trip-status update for the rider when the driver taps En route, Arrived
+ *  or No-show. Null for statuses that don't warrant an email. */
+export function tripStatusEmail(a: {
+  company: string;
+  name?: string | null;
+  status: "EN_ROUTE" | "ARRIVED" | "NO_SHOW" | string;
+  pickupAddress: string;
+  driverName: string;
+  supportPhone?: string | null;
+}): EmailContent | null {
+  const hi = a.name ? `Hi ${a.name.split(" ")[0]},` : "Hi,";
+  const call = a.supportPhone ? ` or call ${a.supportPhone}` : "";
+  let title: string, body: string;
+  switch (a.status) {
+    case "EN_ROUTE":
+      title = "Your chauffeur is on the way";
+      body = `${a.driverName} is on the way to pick you up at ${a.pickupAddress}. You'll get another email when they arrive.`;
+      break;
+    case "ARRIVED":
+      title = "Your chauffeur has arrived";
+      body = `${a.driverName} has arrived at ${a.pickupAddress} and is waiting for you.`;
+      break;
+    case "NO_SHOW":
+      title = "We couldn't find you at pickup";
+      body = `Your chauffeur waited at ${a.pickupAddress} but wasn't able to locate you. If you still need a ride, reply to this email${call} and we'll sort it out.`;
+      break;
+    default:
+      return null;
+  }
+  const subject = `${title} | ${a.company}`;
+  const html = layout(
+    a.company,
+    title,
+    `<p>${esc(hi)}</p><p>${esc(body)}</p>`,
+    undefined,
+    `You're receiving this because you booked a ride with ${a.company}.`,
+  );
+  return { subject, html, text: `${hi}\n\n${body}` };
+}
