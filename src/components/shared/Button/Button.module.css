@@ -148,7 +148,7 @@
 .underlinedBlack:visited {
   background-color: transparent;
   color: var(--black);
-  font-size: 2rem;
+  /* font-size: 2rem; */
   /* border-bottom: 3px solid var(--stroke); */
   border-radius: 0px;
   padding: 5px 0px;

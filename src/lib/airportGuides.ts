@@ -34,10 +34,14 @@ export type AirportGuide = {
   h1: string;
   lead: string;
   facts: readonly GuideFact[];
+  /** Hero video (under /public). Pages without one fall back to the
+   *  Sky Harbor clip in the page file. */
+  hero?: { video: string; poster: string; alt: string };
   sections: readonly GuideSection[];
   /** Booking box words, shown mid-page. */
   rideBox: { title: string; copy: string };
   faqs: readonly { q: string; a: string }[];
+
   sources: readonly { label: string; href: string }[];
 };
 
@@ -198,6 +202,11 @@ export const airportGuides: readonly AirportGuide[] = [
         a: "At one of Sky Harbor's three free cell phone waiting lots, until you're outside with your bags. The curb is enforced and circling drivers are moved along.",
       },
     ],
+    hero: {
+      video: "/videos/terminal3.mp4",
+      poster: "/images/other/skyHarborii.jpg",
+      alt: "PHX Sky Train car arriving at a Sky Harbor station",
+    },
     sources: [
       SRC_AIRLINES,
       SRC_SKYTRAIN,
@@ -227,6 +236,11 @@ export const airportGuides: readonly AirportGuide[] = [
       { label: "Sky Train", value: "Level 3, walk straight to security" },
       { label: "Opened", value: "1990; eighth concourse added 2022" },
     ],
+    hero: {
+      video: "/videos/terminal4.mp4",
+      poster: "/images/other/skyHarbor.png",
+      alt: "PHX Sky Train car arriving at a Sky Harbor station",
+    },
     sections: [
       {
         heading: "Which airlines fly from Terminal 4?",
@@ -319,6 +333,11 @@ export const airportGuides: readonly AirportGuide[] = [
       { label: "Frequency", value: "Every 3½–7 min, 5 am–10 pm" },
       { label: "Stations", value: "6" },
     ],
+    hero: {
+      video: "/videos/skyTram.mp4",
+      poster: "/images/other/skytram.jpg",
+      alt: "PHX Sky Train car arriving at a Sky Harbor station",
+    },
     sections: [
       {
         heading: "Sky Train stations",

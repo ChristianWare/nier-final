@@ -1,0 +1,192 @@
+.hero {
+  padding: 6rem 0rem 0rem;
+  background-color: var(--cream);
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+  max-width: 900px;
+  margin-top: 3rem;
+}
+
+.heading {
+  max-width: 600px;
+}
+
+.lead {
+  color: var(--paragraph);
+  max-width: 720px;
+}
+
+/* Buttons on the left, "scroll down" link on the right */
+.actions {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem 4rem;
+  flex-wrap: wrap;
+  margin: 3rem 0rem 4rem;
+}
+
+.ctas {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.scroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--black);
+  font-size: 1.5rem;
+  font-weight: 500;
+  white-space: nowrap;
+  padding-bottom: 0.8rem;
+}
+
+.scroll svg {
+  width: 1.6rem;
+  height: 1.6rem;
+  transition: transform 0.2s ease;
+}
+
+.scroll:hover svg {
+  transform: translateY(3px);
+}
+
+/* ── Video card ───────────────────────────────────────────────────── */
+
+.media {
+  position: relative;
+  width: 100%;
+  min-height: 570px;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.mobileMedia,
+.desktopMedia {
+  position: absolute;
+  inset: 0;
+}
+
+.mobileMedia {
+  display: none;
+}
+
+.mobileImg {
+  object-fit: cover;
+}
+
+/* Sits above the video and photo, below the pause button (z-index 3) */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+/* ── Quick facts under the video ──────────────────────────────────── */
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  margin-top: 2rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 2.4rem 2rem 2.4rem 0rem;
+}
+
+.fact + .fact {
+  padding-left: 2.4rem;
+  border-left: 1px solid var(--stroke);
+}
+
+.factLabel {
+  color: var(--paragraph);
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.factValue {
+  color: var(--black);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────── */
+
+@media screen and (max-width: 1068px) {
+  .facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Two per row: only the second column gets a divider */
+  .fact + .fact {
+    padding-left: 0rem;
+    border-left: none;
+  }
+
+  .fact:nth-child(even) {
+    padding-left: 2.4rem;
+    border-left: 1px solid var(--stroke);
+  }
+
+  .fact:nth-child(n + 3) {
+    border-top: 1px solid var(--stroke);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .hero {
+    padding-top: 5rem;
+  }
+
+  /* Phones get the still frame, not the video */
+  .mobileMedia {
+    display: block;
+  }
+
+  .desktopMedia {
+    display: none;
+  }
+
+  .media {
+    aspect-ratio: 4 / 3;
+    min-height: 0;
+  }
+
+  .scroll {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 568px) {
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .fact,
+  .fact:nth-child(even) {
+    padding: 1.8rem 0rem;
+    border-left: none;
+  }
+
+  .fact + .fact {
+    border-top: 1px solid var(--stroke);
+  }
+}

@@ -7,10 +7,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Nav from "@/components/shared/Nav/Nav";
-import Button from "@/components/shared/Button/Button";
 import Faq from "@/components/shared/Faq/Faq";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
-import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
+import GuideHero from "@/components/shared/GuideHero/GuideHero";
 import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import RideBox from "@/components/BlogPage/RideBox/RideBox";
@@ -64,6 +63,13 @@ export async function generateMetadata({
     },
   };
 }
+
+/** Hero video for guides that don't set their own. */
+const DEFAULT_HERO = {
+  video: "/videos/phx.mp4",
+  poster: "/videos/phx-poster.png",
+  alt: "Black car waiting at the curb at Phoenix Sky Harbor",
+};
 
 const checkedLabel = new Date(`${CHECKED_ON}T12:00:00Z`).toLocaleDateString(
   "en-US",
@@ -157,39 +163,24 @@ export default async function AirportGuidePage({
         ]}
       />
 
-      <section className={styles.intro}>
-        <LayoutWrapper>
-          <div className={styles.introContent}>
-            <SectionHeading text={`${airport.code} · Airport Guide`} dot />
-            <h1 className={`${styles.heading} h1`}>{g.h1}</h1>
-            <p className={styles.lead}>{g.lead}</p>
-            <dl className={styles.facts}>
-              {g.facts.map((f) => (
-                <div key={f.label} className={styles.fact}>
-                  <dt className={styles.factLabel}>{f.label}</dt>
-                  <dd className={styles.factValue}>{f.value}</dd>
-                </div>
-              ))}
-            </dl>
-            <div className={styles.ctas}>
-              <Button
-                href={bookingLink("from-airport", airport.code)}
-                text={`Book a pickup at ${airport.code}`}
-                btnType='black'
-                arrow
-              />
-              <Button
-                href={bookingLink("to-airport", airport.code)}
-                text={`Book a ride to ${airport.code}`}
-                btnType='underlinedBlack'
-                arrow
-              />
-            </div>
-          </div>
-        </LayoutWrapper>
-      </section>
+      <GuideHero
+        eyebrow={`${airport.code} · Airport Guide`}
+        heading={g.h1}
+        lead={g.lead}
+        media={g.hero ?? DEFAULT_HERO}
+        primaryCta={{
+          href: bookingLink("from-airport", airport.code),
+          text: `Book a pickup at ${airport.code}`,
+        }}
+        secondaryCta={{
+          href: bookingLink("to-airport", airport.code),
+          text: `Book a ride to ${airport.code}`,
+        }}
+        scrollTo='guide-body'
+        facts={g.facts}
+      />
 
-      <section className={styles.body}>
+      <section id='guide-body' className={styles.body}>
         <LayoutWrapper>
           <article className={styles.article}>
             {g.sections.map((s, i) => (
