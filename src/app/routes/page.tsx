@@ -49,7 +49,7 @@ export default function RoutesPage() {
         <LayoutWrapper>
           <div className={styles.introContent}>
             <SectionHeading text='Popular Routes' dot />
-            <h1 className={`${styles.heading} h1`}>
+            <h1 className={`${styles.heading} h2`}>
               Flat-Rate Car Service on Arizona&apos;s Busiest Routes
             </h1>
             <p className={styles.lead}>

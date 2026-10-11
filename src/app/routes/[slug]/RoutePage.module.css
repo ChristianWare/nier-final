@@ -19,6 +19,10 @@
   color: var(--accent);
 }
 
+.heading {
+  max-width: 500px;
+}
+
 .lead {
   max-width: 500px;
   color: var(--paragraph);

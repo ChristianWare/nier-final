@@ -172,7 +172,7 @@ export default async function RoutePage({
               text={`${route.origin} to ${route.destination}`}
               color='cream'
             />
-            <h1 className={`${styles.heading} h1`}>
+            <h1 className={`${styles.heading} h2`}>
               {route.h1 ??
                 `${route.origin} to ${route.destination} Car Service`}
             </h1>
