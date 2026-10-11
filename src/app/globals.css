@@ -96,7 +96,7 @@ h2,
 .h2 {
   font-size: 4rem;
   font-weight: 500;
-  line-height: 1.1em;
+  line-height: 1.2;
   letter-spacing: -2.2px;
 }
 
@@ -238,9 +238,9 @@ select:focus {
 
   h2,
   .h2 {
-    letter-spacing: -2.2px;
+    letter-spacing: -2px;
     font-size: 34px;
-    line-height: 1em;
+    /* line-height: 1em; */
   }
 
   h3,

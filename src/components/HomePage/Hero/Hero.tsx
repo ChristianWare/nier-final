@@ -90,7 +90,7 @@ export default function Hero({
             {/* ── Existing headline block (unchanged) ── */}
             <div className={styles.cc1}>
               <div className={styles.left}>
-                <h1 className={styles.heading}>
+                <h1 className={`${styles.heading} h2`}>
                   Black Car &amp; Chauffeur Service in Phoenix &amp; Scottsdale
                 </h1>
               </div>
