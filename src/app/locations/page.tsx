@@ -4,7 +4,7 @@ import Nav from "@/components/shared/Nav/Nav";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
-import { serviceAreaCities } from "@/lib/cities";
+import { cityPageHref, serviceAreaCities } from "@/lib/cities";
 import { servicesData as services } from "@/lib/services";
 import styles from "./LocationsPage.module.css";
 import Button from "@/components/shared/Button/Button";
@@ -32,7 +32,7 @@ const locationSchema = {
     item: {
       "@type": "City",
       name: city.name,
-      url: `https://www.niertransportation.com/locations/${city.slug}`,
+      url: `https://www.niertransportation.com${cityPageHref(city.slug)}`,
     },
   })),
 };
@@ -117,7 +117,7 @@ export default function LocationsPage() {
                   ))}
                 </ul>
                 <Button
-                  href={`/locations/${city.slug}`}
+                  href={cityPageHref(city.slug)}
                   text={`View all services in ${city.name} →`}
                   btnType='black'
                   arrow

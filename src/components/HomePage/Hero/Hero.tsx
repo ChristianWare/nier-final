@@ -91,14 +91,13 @@ export default function Hero({
             <div className={styles.cc1}>
               <div className={styles.left}>
                 <h1 className={styles.heading}>
-                  Your trusted Black Car Service in Phoenix &amp; Scottsdale,
-                  AZ.
+                  Black Car &amp; Chauffeur Service in Phoenix &amp; Scottsdale
                 </h1>
               </div>
               <div className={styles.right}>
                 <p className={styles.copy}>
-                  At Nier Transportation, we&apos;re more than a car service;
-                  we&apos;re your trusted partner in high end transportation.
+                  Family-owned since 2004. Flat-rate Sky Harbor transfers and
+                  hourly chauffeurs, with no surge pricing, 24/7.
                 </p>
 
                 <div className={styles.btnContainerii}>

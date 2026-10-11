@@ -3,32 +3,32 @@ import dynamic from "next/dynamic";
 import Hero from "@/components/HomePage/Hero/Hero";
 import Nav from "@/components/shared/Nav/Nav";
 import AboutUsIntro from "@/components/HomePage/AboutUsIntro/AboutUsIntro";
+import QuoteBand from "@/components/HomePage/QuoteBand/QuoteBand";
 import Stats from "@/components/HomePage/Stats/Stats";
-import { homeQuestions } from "@/lib/data";
+import { homepageFaqs } from "@/lib/data";
 import { Metadata } from "next";
 import ServicesMarquee from "@/components/shared/ServicesMarquee/ServicesMarquee";
 import { getBookingWidgetData } from "@/lib/booking/widgetData";
 import { googleMapsSrc } from "@/lib/googleMaps";
 import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
 
-const HowItWorks = dynamic(
-  () => import("@/components/shared/HowItWorks/HowItWorks"),
+const AirportCarService = dynamic(
+  () => import("@/components/HomePage/AirportCarService/AirportCarService"),
+);
+const ChauffeurLimo = dynamic(
+  () => import("@/components/HomePage/ChauffeurLimo/ChauffeurLimo"),
+);
+const Neighborhoods = dynamic(
+  () => import("@/components/HomePage/Neighborhoods/Neighborhoods"),
 );
 const ServiceAreas = dynamic(
   () => import("@/components/HomePage/ServiceAreas/ServiceAreas"),
 );
-// const FlightTrackerSection = dynamic(
-//   () =>
-//     import("@/components/HomePage/FlightTrackerSection/FlightTrackerSection"),
-// );
 const CorporateIntro = dynamic(
   () => import("@/components/HomePage/CorporateIntro/CorporateIntro"),
 );
-const WekopaIntro = dynamic(
-  () => import("@/components/HomePage/WekopaIntro/WekopaIntro"),
-);
-const CharterIntro = dynamic(
-  () => import("@/components/HomePage/CharterIntro/CharterIntro"),
+const GroupsIntro = dynamic(
+  () => import("@/components/HomePage/GroupsIntro/GroupsIntro"),
 );
 const Fleet = dynamic(() => import("@/components/HomePage/Fleet/Fleet"));
 const Testimonials = dynamic(
@@ -39,23 +39,47 @@ const Faq = dynamic(() => import("@/components/shared/Faq/Faq"));
 const BlogSection = dynamic(
   () => import("@/components/shared/BlogSection/BlogSection"),
 );
-const AboutNumbers = dynamic(
-  () => import("@/components/shared/AboutNumbers/AboutNumbers"),
-);
+
+// The homepage is the Phoenix + Scottsdale money page: it targets "black car
+// service Phoenix", "chauffeur service Phoenix" and "Phoenix car service".
+// /locations/phoenix redirects here (next.config.ts).
+const TITLE = "Black Car & Chauffeur Service Phoenix & Scottsdale | Nier";
+const DESCRIPTION =
+  "Phoenix and Scottsdale black car and chauffeur service since 2004. Flat-rate Sky Harbor transfers, hourly chauffeurs, limos and Sprinters. No surge pricing, 24/7.";
 
 export const metadata: Metadata = {
-  title: "Black Car Service Phoenix & Scottsdale | Nier Transportation",
-  description:
-    "Phoenix and Scottsdale's trusted black car service since 2004. Flat-rate airport transfers, hourly chauffeur, corporate rides, and weddings. No surge pricing, available 24/7.",
+  title: TITLE,
+  description: DESCRIPTION,
   alternates: {
     canonical: "https://www.niertransportation.com",
+  },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "/",
+    siteName: "Nier Transportation",
+    type: "website",
+    images: [
+      {
+        url: "https://www.niertransportation.com/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Nier Transportation: black car and chauffeur service in Phoenix & Scottsdale",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ["https://www.niertransportation.com/og-image.png"],
   },
 };
 
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: homeQuestions.map((item) => ({
+  mainEntity: homepageFaqs.map((item) => ({
     "@type": "Question",
     name: item.question,
     acceptedAnswer: {
@@ -90,21 +114,21 @@ export default async function HomePage() {
         companyTimezone={widget.companyTimezone}
         companyTimezoneLabel={widget.companyTimezoneLabel}
       />
+      <QuoteBand widget={widget} />
       <AboutUsIntro />
       <Stats />
+      <AirportCarService />
+      <ChauffeurLimo />
       <ServicesMarquee />
-      <HowItWorks />
-      <ServiceAreas />
-      {/* <FlightTrackerSection /> */}
-      <CorporateIntro />
-      <WekopaIntro />
-      <CharterIntro />
       <Fleet />
+      <Neighborhoods />
+      <ServiceAreas />
+      <CorporateIntro />
+      <GroupsIntro />
       <Testimonials />
       <Events />
-      <Faq items={homeQuestions} />
+      <Faq items={homepageFaqs} />
       <BlogSection />
-      {/* <AboutNumbers /> */}
       <FinalCTA />
     </main>
   );

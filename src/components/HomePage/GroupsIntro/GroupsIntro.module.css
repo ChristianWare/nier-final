@@ -1,0 +1,82 @@
+.container {
+  padding: 10rem 0rem;
+  background-color: var(--cream);
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.heading {
+  max-width: 720px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 3rem;
+}
+
+.card {
+  background-color: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 14px;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.6rem;
+}
+
+.stat {
+  color: var(--accent);
+  font-size: 6rem;
+  font-weight: 900;
+  letter-spacing: -3px;
+  line-height: 1;
+  margin-top: 1rem;
+}
+
+.statNote {
+  color: var(--paragraph);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.title {
+  font-size: 2.2rem;
+  letter-spacing: -0.5px;
+}
+
+.copy {
+  color: var(--paragraph);
+}
+
+.btnContainer {
+  margin-top: 1rem;
+}
+
+@media screen and (max-width: 1068px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 6rem 0rem;
+  }
+
+  .card {
+    padding: 2.4rem;
+  }
+
+  .stat {
+    font-size: 4.8rem;
+  }
+}

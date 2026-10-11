@@ -5,9 +5,10 @@ import Button from "@/components/shared/Button/Button";
 import Logo from "@/components/shared/Logo/Logo";
 import Link from "next/link";
 
+// Phoenix isn't listed: its page is the homepage now.
 const cities = [
-  { name: "Phoenix", slug: "phoenix" },
   { name: "Scottsdale", slug: "scottsdale" },
+  { name: "Mesa", slug: "mesa" },
   { name: "Tempe", slug: "tempe" },
   { name: "Chandler", slug: "chandler" },
   { name: "Gilbert", slug: "gilbert" },

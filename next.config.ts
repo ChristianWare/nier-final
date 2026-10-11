@@ -72,6 +72,13 @@ const nextConfig: NextConfig = {
         destination: "/services/party-bus",
         permanent: true,
       },
+      // Phoenix's location page was folded into the homepage (Oct 2026):
+      // two pages were splitting the Phoenix searches.
+      {
+        source: "/locations/phoenix",
+        destination: "/",
+        permanent: true,
+      },
       {
         source: "/california",
         destination: "/locations",

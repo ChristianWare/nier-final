@@ -2532,3 +2532,20 @@ export type CityData = {
   topServices?: readonly { title: string; copy: string; href: string }[];
   neighborhoods?: readonly { name: string; copy: string; img?: string }[];
 };
+
+/**
+ * Phoenix's location page was folded into the homepage (Oct 2026), and
+ * /locations/phoenix 301s to "/" (next.config.ts). Its entry above stays as
+ * the source for the homepage's Phoenix content and drive times.
+ */
+export const HOMEPAGE_CITY_SLUG = "phoenix";
+
+/** Where a city's page lives: the homepage for Phoenix, else /locations/<slug>. */
+export function cityPageHref(slug: string): string {
+  return slug === HOMEPAGE_CITY_SLUG ? "/" : `/locations/${slug}`;
+}
+
+/** Cities that get their own /locations/<slug> page. */
+export const locationPageCities = serviceAreaCities.filter(
+  (c) => c.slug !== HOMEPAGE_CITY_SLUG,
+);

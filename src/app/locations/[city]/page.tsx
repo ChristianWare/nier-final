@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { serviceAreaCities } from "@/lib/cities";
+import { locationPageCities } from "@/lib/cities";
 import type { CityData } from "@/lib/cities";
 import { servicesData as services } from "@/lib/services";
 import type { Metadata } from "next";
@@ -30,8 +30,6 @@ const OG_IMAGE = `${SITE_URL}/og-image.png`;
 const descriptionOverrides: Partial<Record<string, string>> = {
   scottsdale:
     "Car service in Scottsdale since 2004: airport transfers to PHX and SDL, hourly chauffeurs, golf outings, weddings and limo service. Flat rates, no surge pricing.",
-  phoenix:
-    "Private car service in Phoenix since 2004: town cars, black SUVs and Sprinters for business travel, nights out and airport runs. Flat rates, no surge pricing, 24/7.",
   tempe:
     "Black car service in Tempe, AZ — airport transfers to PHX & AZA, hourly chauffeur near ASU and Tempe Marketplace, and corporate rides. Flat rates, no surge pricing.",
   chandler:
@@ -61,14 +59,11 @@ const descriptionOverrides: Partial<Record<string, string>> = {
 
 const titleOverrides: Partial<Record<string, string>> = {
   glendale: "Airport Transportation & Car Service in Glendale, AZ | Nier",
-  // The home page owns "black car service phoenix"; the Sky Harbor page owns
-  // the airport searches.
-  phoenix: "Phoenix Car Service: Private Town Car & Chauffeur | Nier",
   scottsdale: "Scottsdale Car Service & Chauffeur | Nier Transportation",
 };
 
 export function generateStaticParams() {
-  return serviceAreaCities.map((city) => ({ city: city.slug }));
+  return locationPageCities.map((city) => ({ city: city.slug }));
 }
 
 export async function generateMetadata({
@@ -77,7 +72,7 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { city: citySlug } = await params;
-  const city = serviceAreaCities.find((c) => c.slug === citySlug) as
+  const city = locationPageCities.find((c) => c.slug === citySlug) as
     CityData | undefined;
   if (!city) return {};
 
@@ -124,7 +119,7 @@ export default async function LocationCityPage({
 }) {
   const resolvedParams = await params;
   const citySlug = resolvedParams.city;
-  const city = serviceAreaCities.find((c) => c.slug === citySlug) as
+  const city = locationPageCities.find((c) => c.slug === citySlug) as
     CityData | undefined;
 
   if (!city) notFound();

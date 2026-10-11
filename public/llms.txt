@@ -15,7 +15,7 @@
 
 ## Locations
 
-- [Phoenix](https://www.niertransportation.com/locations/phoenix): Home market since 2004 — Sky Harbor, downtown venues, and corporate corridors
+- [Phoenix](https://www.niertransportation.com/): Home market since 2004 — Sky Harbor, downtown venues, and corporate corridors (the homepage is the Phoenix page)
 - [Scottsdale](https://www.niertransportation.com/locations/scottsdale): Headquarters — Old Town, resorts, golf, and Scottsdale Airport (SDL)
 - [Glendale](https://www.niertransportation.com/locations/glendale): State Farm Stadium, Desert Diamond Arena, and Westgate event transportation
 - [All Service Areas](https://www.niertransportation.com/locations)

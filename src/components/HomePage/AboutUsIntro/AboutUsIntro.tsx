@@ -24,14 +24,14 @@ const data = [
   },
   {
     id: 3,
-    title: "Luxury Fleet",
+    title: "Executive Sedans to Sprinters",
     description:
       "Late-model sedans, SUVs, and Sprinter vans — each maintained above DOT standards with bottled water, phone chargers, and climate control set before you arrive.",
     icon: <Cups className={styles.icon} />,
   },
   {
     id: 4,
-    title: "24/7 Customer Support",
+    title: "24/7 Dispatch",
     description:
       "Red-eye flight? Early morning meeting? Last-minute change of plans? Our team is available around the clock for bookings, questions, and real-time support.",
     icon: <SquareCircle className={styles.icon} />,
@@ -45,18 +45,20 @@ export default function AboutUsIntro() {
         <div className={styles.content}>
           <div className={styles.left}>
             <div className={styles.l1}>
-              <SectionHeading text='About Us' dot />
+              <SectionHeading text='About Nier' dot />
             </div>
             <div className={styles.l2}>
               <h2 className={styles.heading}>
-                Phoenix&apos;s trusted black car service for over 20 years.
+                Private Car Service in Phoenix &amp; Scottsdale, Since 2004
               </h2>
               <p className={styles.copy}>
-                For over 20 years, Nier Transportation has been the go-to black
-                car service for executives, families, and travelers across the
-                Valley. Whether it&apos;s a 5 AM airport pickup or a full-day
-                chauffeur for your corporate team, we treat every ride like
-                it&apos;s our reputation on the line — because it is.
+                Nier Transportation is a family-owned black car service based in
+                Scottsdale. For more than 20 years we&apos;ve driven executives,
+                families and visitors across the Valley in late-model sedans,
+                SUVs and Sprinter vans: the 5 am Sky Harbor run, the client
+                dinner on Camelback, the full day of meetings downtown. Every
+                chauffeur is uniformed and background-checked, every fare is
+                flat, and there&apos;s no surge pricing at 2 am or on game day.
               </p>
               <div className={styles.btnContanier}>
                 <Button btnType='black' text='About us' href='/about' arrow />

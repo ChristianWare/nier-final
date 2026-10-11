@@ -87,7 +87,7 @@ const data: Section[] = [
       {
         id: 4.2,
         option: "Phoenix",
-        href: "/locations/phoenix",
+        href: "/",
       },
       {
         id: 4.3,

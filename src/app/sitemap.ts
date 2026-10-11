@@ -1,6 +1,6 @@
 import { MetadataRoute } from "next";
 import { servicesData } from "@/lib/services";
-import { serviceAreaCities } from "@/lib/cities";
+import { locationPageCities } from "@/lib/cities";
 import { routesData } from "@/lib/routes";
 import { airportsData } from "@/lib/airports";
 import { fleetData } from "@/lib/data";
@@ -82,7 +82,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  const locationPages = serviceAreaCities.map((city) => ({
+  // Phoenix is excluded: its page is the homepage (/locations/phoenix 301s).
+  const locationPages = locationPageCities.map((city) => ({
     url: `${baseUrl}/locations/${city.slug}`,
     lastModified: lastMod(`/locations/${city.slug}`, LOCATIONS_LAST_MOD),
     changeFrequency: "monthly" as const,

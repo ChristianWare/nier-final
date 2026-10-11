@@ -447,6 +447,69 @@ export const ServiceAreas = [
   },
 ] as const;
 
+/**
+ * The homepage FAQ: the eight questions Phoenix and Scottsdale riders ask
+ * most. Also drives the homepage FAQPage schema. (homeQuestions below is the
+ * longer list still used on the booking confirmation page.)
+ */
+export const homepageFaqs = [
+  {
+    id: "sky-harbor-price",
+    question:
+      "How much is a black car from Scottsdale or Phoenix to Sky Harbor?",
+    answer:
+      "Every airport ride is a flat rate, quoted when you book and unchanged by traffic or flight delays. Sky Harbor transfers start at $55; book online for an exact quote from your address.",
+    link: { href: "/airports/phx-sky-harbor", label: "Sky Harbor car service" },
+  },
+  {
+    id: "vs-rideshare",
+    question: "How is Nier different from Uber Black?",
+    answer:
+      "Your car is confirmed ahead of time with a professional chauffeur, the price is fixed with no surge, and we track your flight. A rideshare may not have a black car nearby at 5 am in North Scottsdale; we will.",
+  },
+  {
+    id: "flight-delays",
+    question: "What happens if my flight is early or delayed?",
+    answer:
+      "We track your flight and adjust the pickup at no extra charge. If it lands early, your chauffeur is already there; if it's delayed, we wait up to 60 minutes after landing.",
+  },
+  {
+    id: "hourly",
+    question: "Do you offer hourly chauffeur service?",
+    answer:
+      "Yes. Sedans, SUVs and Sprinters by the hour, with a 2-hour minimum, for meetings, events, weddings and nights out. Your chauffeur waits with the car and moves when you do.",
+    link: {
+      href: "/services/hourly-chauffeur",
+      label: "Hourly chauffeur service",
+    },
+  },
+  {
+    id: "gratuity",
+    question: "Is gratuity included?",
+    answer:
+      "Our fares are the total cost of the ride. Tips are always welcome but never expected.",
+  },
+  {
+    id: "areas",
+    question: "What areas do you serve?",
+    answer:
+      "All of metro Phoenix, including Scottsdale, Paradise Valley, Tempe, Mesa, Chandler, Gilbert, Glendale and Peoria, plus long-distance trips to Sedona, Flagstaff, Prescott and Tucson.",
+    link: { href: "/locations", label: "All service areas" },
+  },
+  {
+    id: "how-far-ahead",
+    question: "How far ahead should I book?",
+    answer:
+      "24 hours ahead for standard rides and 48 hours or more for event nights and holiday weekends. Same-day rides are often possible; call (480) 300-6003.",
+  },
+  {
+    id: "local",
+    question: "Are you locally owned?",
+    answer:
+      "Yes. Nier Transportation is family-owned and has been based in Scottsdale since 2004.",
+  },
+];
+
 export const homeQuestions = [
   {
     id: 1,
