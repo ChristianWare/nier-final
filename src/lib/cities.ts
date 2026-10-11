@@ -198,6 +198,49 @@ export const serviceAreaCities = [
   {
     name: "Tempe",
     slug: "tempe",
+    faqs: [
+      {
+        q: "How long is the drive from Tempe to Sky Harbor?",
+        a: "About 10–15 minutes via SR-143. Tempe sits right next to the airport, so it's one of the shortest airport runs in the Valley.",
+        link: {
+          href: "/routes/tempe-to-sky-harbor",
+          label: "Tempe to Sky Harbor car service",
+        },
+      },
+      {
+        q: "How much is a car from Tempe to Sky Harbor?",
+        a: "Sky Harbor transfers are a flat rate starting at $55, set by your exact Tempe pickup address and the vehicle you choose. The drive is about 10–15 minutes, and the fare doesn't change with traffic, flight delays or time of day. Book online or call (480) 300-6003 for an exact quote.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you handle ASU game days, move-in and graduation?",
+        a: "Yes. Sprinters and coaches for ASU game days at Mountain America Stadium, move-in weekends and graduation, with drop-off and pickup points planned around the crowds.",
+        link: {
+          href: "/services/group-transportation",
+          label: "Group transportation",
+        },
+      },
+      {
+        q: "Do you offer corporate accounts for Tempe businesses?",
+        a: "Yes. Companies along Rio Salado, Marina Heights and the Novus corridor use corporate accounts for airport runs and client rides, billed on one invoice.",
+        link: {
+          href: "/corporate-accounts",
+          label: "Corporate accounts",
+        },
+      },
+      {
+        q: "Can you pick us up on Mill Avenue after a night out?",
+        a: "Yes. Book a ride home or a chauffeur by the hour, and your car waits near Mill Avenue or Tempe Town Lake instead of you circling for a rideshare.",
+      },
+    ],
+    routePromo: {
+      href: "/routes/tempe-to-sky-harbor",
+      anchor: "book a flat-rate Tempe to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
     airportMinutes: "10–15",
     topServices: [
       {
@@ -258,6 +301,44 @@ export const serviceAreaCities = [
   {
     name: "Mesa",
     slug: "mesa",
+    faqs: [
+      {
+        q: "Should I fly from Sky Harbor or Mesa Gateway?",
+        a: "Choose by flight: Mesa Gateway (AZA) is on Mesa's east side with one easy terminal, and Sky Harbor is about 20–30 minutes west with far more routes. We drive to both at a flat rate.",
+        link: {
+          href: "/blog/mesa-gateway-airport-airlines-2026",
+          label: "Every airline at Mesa Gateway",
+        },
+      },
+      {
+        q: "How much is a car from Mesa to Sky Harbor?",
+        a: "Sky Harbor transfers are a flat rate starting at $55, set by your exact Mesa pickup address and the vehicle you choose. The drive is about 20–30 minutes, and the fare doesn't change with traffic, flight delays or time of day. Book online or call (480) 300-6003 for an exact quote.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you run spring training trips to Sloan Park?",
+        a: "Yes. Sprinters and mini coaches for Cubs spring training at Sloan Park, with a staged pickup after the game so your group leaves together.",
+        link: {
+          href: "/services/group-transportation",
+          label: "Group transportation",
+        },
+      },
+      {
+        q: "Can you take us to a show at the Mesa Arts Center?",
+        a: "Yes. A point-to-point ride there and back, or a chauffeur by the hour if dinner comes first.",
+      },
+      {
+        q: "Do Mesa businesses use corporate accounts?",
+        a: "Yes. Employers in the Banner Gateway medical corridor, around Falcon Field and near Mesa Gateway use corporate accounts for executive rides and airport runs on one invoice.",
+        link: {
+          href: "/corporate-accounts",
+          label: "Corporate accounts",
+        },
+      },
+    ],
     airportMinutes: "20–30",
     topServices: [
       {
@@ -323,6 +404,48 @@ export const serviceAreaCities = [
   {
     name: "Chandler",
     slug: "chandler",
+    faqs: [
+      {
+        q: "How long is the drive from Chandler to Sky Harbor?",
+        a: "About 25–30 minutes via the Loop 202. We time pickups from live traffic so you're not leaving earlier than you need to.",
+        link: {
+          href: "/routes/chandler-to-sky-harbor",
+          label: "Chandler to Sky Harbor car service",
+        },
+      },
+      {
+        q: "How much is a car from Chandler to Sky Harbor?",
+        a: "Sky Harbor transfers are a flat rate starting at $55, set by your exact Chandler pickup address and the vehicle you choose. The drive is about 25–30 minutes, and the fare doesn't change with traffic, flight delays or time of day. Book online or call (480) 300-6003 for an exact quote.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you serve the Price Road corridor employers?",
+        a: "Yes. Corporate accounts along the Price Road corridor and the Ocotillo campuses use us for airport runs, visiting executives and team events, with consolidated billing.",
+        link: {
+          href: "/corporate-accounts",
+          label: "Corporate accounts",
+        },
+      },
+      {
+        q: "Can you drive us to a concert or night out at Wild Horse Pass?",
+        a: "Yes. We stage near the venue and pick you up when the show lets out, for Wild Horse Pass concerts and casino nights, Chandler Center for the Arts, and downtown Chandler festivals.",
+        link: {
+          href: "/services/special-events",
+          label: "Special event transportation",
+        },
+      },
+      {
+        q: "Do you also go to Mesa Gateway Airport?",
+        a: "Yes. We serve both Sky Harbor and Phoenix-Mesa Gateway (AZA), so you can pick your airport by flight rather than by how to get there.",
+        link: {
+          href: "/airports/mesa-gateway",
+          label: "Mesa Gateway car service",
+        },
+      },
+    ],
     airportMinutes: "25–30",
     topServices: [
       {
@@ -388,6 +511,53 @@ export const serviceAreaCities = [
   {
     name: "Gilbert",
     slug: "gilbert",
+    faqs: [
+      {
+        q: "How long is the drive from Gilbert to Sky Harbor?",
+        a: "About 25–35 minutes via the Loop 202, depending on where in Gilbert you start. We track your flight and adjust the pickup if it changes.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "How much is a car from Gilbert to Sky Harbor?",
+        a: "Sky Harbor transfers are a flat rate starting at $55, set by your exact Gilbert pickup address and the vehicle you choose. The drive is about 25–35 minutes, and the fare doesn't change with traffic, flight delays or time of day. Book online or call (480) 300-6003 for an exact quote.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Is Mesa Gateway closer to Gilbert than Sky Harbor?",
+        a: "For much of Gilbert, yes: Phoenix-Mesa Gateway (AZA) sits just to the southeast. We drive to either airport at a flat rate, so choose whichever has your flight.",
+        link: {
+          href: "/airports/mesa-gateway",
+          label: "Mesa Gateway car service",
+        },
+      },
+      {
+        q: "Do you do wedding transportation in Gilbert?",
+        a: "Yes. Wedding party cars and guest shuttles for Heritage District venues, barn weddings and resort ceremonies, timed to your schedule.",
+        link: {
+          href: "/services/weddings",
+          label: "Wedding transportation",
+        },
+      },
+      {
+        q: "Can you move a church group or sports team?",
+        a: "Yes. Sprinters seat up to 14, and larger groups ride in mini coaches or several vehicles under one booking.",
+        link: {
+          href: "/services/group-transportation",
+          label: "Group transportation",
+        },
+      },
+    ],
+    routePromo: {
+      href: "/airports/mesa-gateway",
+      anchor: "see Mesa Gateway car service",
+      blurb: "Flying out of the East Valley?",
+    },
     airportMinutes: "25–35",
     topServices: [
       {
@@ -448,6 +618,49 @@ export const serviceAreaCities = [
   {
     name: "Peoria",
     slug: "peoria",
+    faqs: [
+      {
+        q: "How long is the drive from Peoria to Sky Harbor?",
+        a: "About 30–35 minutes via the Loop 101. We build the full drive into your pickup time so early flights aren't a scramble.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "How much is a car from Peoria to Sky Harbor?",
+        a: "Sky Harbor transfers are a flat rate starting at $55, set by your exact Peoria pickup address and the vehicle you choose. The drive is about 30–35 minutes, and the fare doesn't change with traffic, flight delays or time of day. Book online or call (480) 300-6003 for an exact quote.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you run spring training trips to the Peoria Sports Complex?",
+        a: "Yes. Group rides to Padres and Mariners spring training games, with a staged pickup after the last out.",
+        link: {
+          href: "/services/special-events",
+          label: "Special event transportation",
+        },
+      },
+      {
+        q: "Can you take us to Lake Pleasant?",
+        a: "Yes. Rides to Lake Pleasant Regional Park for a day on the water, with a pickup time set for the trip home.",
+      },
+      {
+        q: "Do Peoria businesses use corporate accounts?",
+        a: "Yes. Employers along the Loop 101 corridor use corporate accounts for daily rides and airport runs, billed on one invoice.",
+        link: {
+          href: "/corporate-accounts",
+          label: "Corporate accounts",
+        },
+      },
+    ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor/terminal-4",
+      anchor: "see our Sky Harbor Terminal 4 guide",
+      blurb: "Flying American or Southwest?",
+    },
     airportMinutes: "30–35",
     topServices: [
       {
@@ -508,6 +721,11 @@ export const serviceAreaCities = [
   {
     name: "Glendale",
     slug: "glendale",
+    routePromo: {
+      href: "/airports/phx-sky-harbor/terminal-4",
+      anchor: "see our Sky Harbor Terminal 4 guide",
+      blurb: "Flying American or Southwest?",
+    },
     note: "Home to State Farm Stadium and Desert Diamond Arena",
     src: Glendale,
     airportNote:
@@ -594,6 +812,40 @@ export const serviceAreaCities = [
   {
     name: "Paradise Valley",
     slug: "paradise-valley",
+    faqs: [
+      {
+        q: "How far is Paradise Valley from Sky Harbor?",
+        a: "About 15–20 minutes via SR-51, one of the most direct airport runs in the Valley. Scottsdale Airport, for private and charter flights, is only minutes away too.",
+        link: {
+          href: "/routes/paradise-valley-to-sky-harbor",
+          label: "Paradise Valley to Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you pick up at The Phoenician, Sanctuary and Camelback Inn?",
+        a: "Yes. We run transfers to and from the Camelback corridor resorts every week, including The Phoenician, Sanctuary Camelback Mountain, Mountain Shadows, Andaz Scottsdale and JW Marriott Camelback Inn.",
+      },
+      {
+        q: "Can you arrange a discreet, low-profile pickup?",
+        a: "Yes. Unmarked vehicles are available on request, and our chauffeurs are used to the privacy Paradise Valley residents and resort guests expect.",
+      },
+      {
+        q: "How much is a car from Paradise Valley to Sky Harbor?",
+        a: "Sky Harbor transfers are a flat rate starting at $55, set by your exact Paradise Valley pickup address and the vehicle you choose. The drive is about 15–20 minutes, and the fare doesn't change with traffic, flight delays or time of day. Book online or call (480) 300-6003 for an exact quote.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Can we book a chauffeur by the hour for a dinner or event?",
+        a: "Yes. Hourly chauffeur service has a 2-hour minimum: dinner in Old Town Scottsdale, an evening at the resort, or a day of meetings across the Valley, with your chauffeur waiting between stops.",
+        link: {
+          href: "/services/hourly-chauffeur",
+          label: "Hourly chauffeur service",
+        },
+      },
+    ],
     airportMinutes: "15–20",
     topServices: [
       {
@@ -659,6 +911,49 @@ export const serviceAreaCities = [
   {
     name: "Cave Creek",
     slug: "cave-creek",
+    faqs: [
+      {
+        q: "How long is the drive from Cave Creek to Sky Harbor?",
+        a: "About 35–40 minutes via SR-51 or Cave Creek Road. For early flights we build that lead time in and confirm your pickup the night before.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "How much is a car from Cave Creek to Sky Harbor?",
+        a: "Sky Harbor transfers are a flat rate starting at $55, set by your exact Cave Creek pickup address and the vehicle you choose. The drive is about 35–40 minutes, and the fare doesn't change with traffic, flight delays or time of day. Book online or call (480) 300-6003 for an exact quote.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Is Scottsdale Airport closer for private flights?",
+        a: "Yes. Scottsdale Airport in the Airpark is a shorter drive from Cave Creek than Sky Harbor, and we meet private, charter and JSX flights there.",
+        link: {
+          href: "/airports/scottsdale-airport",
+          label: "Scottsdale Airport car service",
+        },
+      },
+      {
+        q: "Can you get us home from a night out on Cave Creek Road?",
+        a: "Yes. A ride home from the Buffalo Chip, Binkley's or Frontier Town, or a chauffeur by the hour so the whole group can stay out.",
+      },
+      {
+        q: "Do you drive into Scottsdale or Phoenix for dinner and games?",
+        a: "Yes. Point-to-point rides from Cave Creek to anywhere in the Valley, with the return pickup set before you leave.",
+        link: {
+          href: "/services/point-to-point",
+          label: "Point-to-point rides",
+        },
+      },
+    ],
+    routePromo: {
+      href: "/airports/scottsdale-airport",
+      anchor: "see Scottsdale Airport car service",
+      blurb: "Flying private or JSX out of the Airpark?",
+    },
     airportMinutes: "35–40",
     topServices: [
       {
@@ -719,6 +1014,49 @@ export const serviceAreaCities = [
   {
     name: "Fountain Hills",
     slug: "fountain-hills",
+    faqs: [
+      {
+        q: "How long is the drive from Fountain Hills to Sky Harbor?",
+        a: "About 35–40 minutes via SR-87 and the Loop 202. We plan the buffer in and confirm early pickups the night before.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "How much is a car from Fountain Hills to Sky Harbor?",
+        a: "Sky Harbor transfers are a flat rate starting at $55, set by your exact Fountain Hills pickup address and the vehicle you choose. The drive is about 35–40 minutes, and the fare doesn't change with traffic, flight delays or time of day. Book online or call (480) 300-6003 for an exact quote.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you drive to We-Ko-Pa and the Fort McDowell casino?",
+        a: "Yes. We-Ko-Pa transfers are one of our most-requested runs, and we stage pickups for casino and concert nights at We-Ko-Pa Casino Resort.",
+        link: {
+          href: "/wekopa",
+          label: "We-Ko-Pa transfers",
+        },
+      },
+      {
+        q: "Can you take a golf group to Eagle Mountain or FireRock?",
+        a: "Yes. SUVs and Sprinters with room for clubs for Eagle Mountain, FireRock, SunRidge Canyon and We-Ko-Pa, timed to your tee time.",
+        link: {
+          href: "/services/golf-outing-transportation",
+          label: "Golf outing transportation",
+        },
+      },
+      {
+        q: "Do you run rides for Fountain Park festivals?",
+        a: "Yes. Drop-off and staged pickups for Fountain Park events, so nobody has to fight for parking near the Avenue of the Fountains.",
+      },
+    ],
+    routePromo: {
+      href: "/wekopa",
+      anchor: "book a flat-rate We-Ko-Pa transfer",
+      blurb: "Headed to We-Ko-Pa?",
+    },
     airportMinutes: "35–40",
     topServices: [
       {
@@ -899,6 +1237,48 @@ export const serviceAreaCities = [
   {
     name: "Sedona",
     slug: "sedona",
+    faqs: [
+      {
+        q: "How long is the drive from Sky Harbor to Sedona?",
+        a: "About two hours for the roughly 115 miles, via I-17 and SR-179. We track your flight and drive straight from your terminal to your resort or rental.",
+        link: {
+          href: "/routes/phoenix-to-sedona",
+          label: "Private Phoenix to Sedona shuttle",
+        },
+      },
+      {
+        q: "Do you drive around Sedona once we're there?",
+        a: "Yes. Day trips to Oak Creek Canyon, the Verde Valley wineries or Flagstaff, and rides to Tlaquepaque and dinner, with a chauffeur for the day so everyone can enjoy it.",
+        link: {
+          href: "/services/point-to-point",
+          label: "Point-to-point rides",
+        },
+      },
+      {
+        q: "Do you provide wedding transportation in Sedona?",
+        a: "Yes. Wedding party cars and guest shuttles for red-rock weddings at L'Auberge, Enchantment and Sedona's chapel venues, including transfers from Phoenix.",
+        link: {
+          href: "/services/weddings",
+          label: "Wedding transportation",
+        },
+      },
+      {
+        q: "Can you move a corporate retreat group from Phoenix to Sedona?",
+        a: "Yes. Multi-vehicle transfers from Sky Harbor to Sedona's resorts for retreats and off-sites, under one booking and one invoice.",
+        link: {
+          href: "/corporate-accounts",
+          label: "Corporate accounts",
+        },
+      },
+      {
+        q: "Can we continue from Sedona to the Grand Canyon?",
+        a: "Yes. We can add the Grand Canyon's South Rim to your trip as a day trip or an overnight, quoted as one flat rate.",
+        link: {
+          href: "/routes/phoenix-to-grand-canyon",
+          label: "Phoenix to Grand Canyon private car",
+        },
+      },
+    ],
     airportMinutes: "120",
     topServices: [
       {
@@ -964,11 +1344,45 @@ export const serviceAreaCities = [
   {
     name: "Tucson",
     slug: "tucson",
-    airportMinutes: "90–100",
+    faqs: [
+      {
+        q: "How long is the drive from Tucson to Phoenix?",
+        a: "About 1¾ to 2 hours for the 115 miles on I-10, depending on your exact pickup and drop-off and traffic.",
+        link: {
+          href: "/routes/tucson-to-phoenix",
+          label: "Private Tucson to Phoenix shuttle",
+        },
+      },
+      {
+        q: "Can you take me from Tucson to a flight at Sky Harbor?",
+        a: "Yes. We time your pickup around your flight, with buffer for I-10 and security lines, and drop you at your terminal.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Is this a shared shuttle?",
+        a: "No. It's a private car or Sprinter for your party only, from your door, with no other passengers and no stops along the way.",
+      },
+      {
+        q: "Do you pick up at Tucson International Airport?",
+        a: "Yes. We meet flights at Tucson International (TUS) and drive you to Phoenix, or anywhere else in Arizona.",
+      },
+      {
+        q: "Do you handle University of Arizona game days and graduation?",
+        a: "Yes. Sprinters and coaches for UA game days, graduation and team travel between Tucson and Phoenix.",
+        link: {
+          href: "/services/group-transportation",
+          label: "Group transportation",
+        },
+      },
+    ],
+    airportMinutes: "105–120",
     topServices: [
       {
         title: "Long-Distance Drives",
-        copy: "Phoenix to Tucson in a private car — 115 miles and about 90 minutes on I-10, flat rate, with connections between Sky Harbor and Tucson International.",
+        copy: "Phoenix to Tucson in a private car — 115 miles and about 1¾–2 hours on I-10, flat rate, with connections between Sky Harbor and Tucson International.",
         href: "/services/long-distance-drives",
       },
       {
@@ -1007,7 +1421,7 @@ export const serviceAreaCities = [
     note: "Arizona's second-largest city, about 115 miles south of Phoenix",
     src: Phoenix,
     airportNote:
-      "Tucson is about 115 miles and 90 minutes from Phoenix via I-10. For travelers who need to connect between the two cities without flying — or who prefer to skip the Tucson airport entirely — we offer direct, door-to-door intercity transfers. No shuttles, no shared vans, no stops.",
+      "Tucson is about 115 miles and 1¾ to 2 hours from Phoenix via I-10. For travelers who need to connect between the two cities without flying — or who prefer to skip the Tucson airport entirely — we offer direct, door-to-door intercity transfers. No shuttles, no shared vans, no stops.",
     corporateNote:
       "The Phoenix-to-Tucson corridor is one of the most traveled business routes in Arizona. University of Arizona, Raytheon, Caterpillar, and Tucson's growing biotech and defense sectors generate consistent executive travel between the two cities. We run this route regularly with flat-rate intercity pricing.",
     localContext:

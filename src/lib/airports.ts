@@ -34,6 +34,18 @@ export const airportsData: readonly AirportData[] = [
     slug: "phx-sky-harbor",
     relatedPosts: [
       {
+        label: "Sky Harbor Terminal 3 guide: airlines & pickup",
+        href: "/airports/phx-sky-harbor/terminal-3",
+      },
+      {
+        label: "Sky Harbor Terminal 4 guide: airlines & pickup doors",
+        href: "/airports/phx-sky-harbor/terminal-4",
+      },
+      {
+        label: "PHX Sky Train: stations & hours",
+        href: "/airports/phx-sky-harbor/sky-train",
+      },
+      {
         label: "Sky Harbor guide 2026: terminals, pickup doors & what's new",
         href: "/blog/sky-harbor-airport-guide",
       },
@@ -85,7 +97,7 @@ export const airportsData: readonly AirportData[] = [
       },
       {
         q: "How much does a car service to Sky Harbor cost?",
-        a: "It's a flat rate based on your exact pickup point — no surge pricing, no meter running in traffic. Book online or call (480) 300-6003 for an instant quote from anywhere in the Valley.",
+        a: "Flat-rate Sky Harbor transfers start at $55, and the exact fare depends on your pickup point — no surge pricing, no meter running in traffic. Book online or call (480) 300-6003 for an instant quote from anywhere in the Valley.",
       },
       {
         q: "Do you handle group or flight-crew pickups?",

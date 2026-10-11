@@ -124,6 +124,17 @@ export default async function RoutePage({
       { "@type": "City", name: route.destination },
     ],
     provider: BUSINESS_REF,
+    ...(route.fromPriceUSD && {
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "USD",
+        priceSpecification: {
+          "@type": "PriceSpecification",
+          minPrice: route.fromPriceUSD,
+          priceCurrency: "USD",
+        },
+      },
+    }),
   };
 
   const faqJsonLd = {
@@ -162,7 +173,8 @@ export default async function RoutePage({
               color='cream'
             />
             <h1 className={`${styles.heading} h1`}>
-              {route.origin} to {route.destination} Car Service
+              {route.h1 ??
+                `${route.origin} to ${route.destination} Car Service`}
             </h1>
             <p className={styles.lead}>{route.heroLine}</p>
             <div className={styles.ctas}>
@@ -210,6 +222,14 @@ export default async function RoutePage({
                   <span className={styles.specLabel}>Vehicles</span>
                   <span className={styles.specValue}>{route.vehicles}</span>
                 </div>
+                {route.fromPriceUSD ? (
+                  <div className={styles.specItem}>
+                    <span className={styles.specLabel}>Starting at</span>
+                    <span className={styles.specValue}>
+                      ${route.fromPriceUSD} one way
+                    </span>
+                  </div>
+                ) : null}
               </div>
             </div>
             <div className={styles.overviewRight}>

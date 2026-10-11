@@ -3,6 +3,7 @@ import { servicesData } from "@/lib/services";
 import { locationPageCities } from "@/lib/cities";
 import { routesData } from "@/lib/routes";
 import { airportsData } from "@/lib/airports";
+import { airportGuides, CHECKED_ON } from "@/lib/airportGuides";
 import { fleetData } from "@/lib/data";
 import { getAllPosts } from "@/lib/blog";
 
@@ -29,6 +30,28 @@ const LAST_MOD: Partial<Record<string, string>> = {
   "/airports/deer-valley": "2026-09-12",
   "/airports/tucson-international": "2026-09-12",
   "/denu-hotel": "2026-09-12",
+  // Oct 11 2026: terminal guides linked, shuttle wording, city FAQs.
+  "/airports/phx-sky-harbor": "2026-10-11",
+  "/routes/tucson-to-phoenix": "2026-10-11",
+  "/routes/phoenix-to-sedona": "2026-10-11",
+  "/routes/flagstaff-to-phoenix": "2026-10-11",
+  "/routes/phoenix-to-grand-canyon": "2026-10-11",
+  "/partners": "2026-10-11",
+  ...Object.fromEntries(
+    [
+      "paradise-valley",
+      "tempe",
+      "chandler",
+      "mesa",
+      "gilbert",
+      "glendale",
+      "peoria",
+      "cave-creek",
+      "fountain-hills",
+      "sedona",
+      "tucson",
+    ].map((c) => [`/locations/${c}`, "2026-10-11"]),
+  ),
 };
 
 function lastMod(path: string, fallback: string = DEFAULT_LAST_MOD): Date {
@@ -54,6 +77,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/locations",
     "/wekopa",
     "/denu-hotel",
+    "/partners",
     "/charter-bus-rental-phoenix",
     "/corporate-accounts",
     "/book",
@@ -104,6 +128,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  // Sky Harbor terminal guides; lastmod = the date the facts were checked.
+  const airportGuidePages = airportGuides.map((g) => ({
+    url: `${baseUrl}/airports/${g.airportSlug}/${g.slug}`,
+    lastModified: new Date(CHECKED_ON),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }));
+
   // Vehicle pages
   const fleetPages = fleetData.map((vehicle) => ({
     url: `${baseUrl}/fleet/${vehicle.slug}`,
@@ -122,6 +154,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...locationPages,
     ...routePages,
     ...airportPages,
+    ...airportGuidePages,
     ...fleetPages,
   ];
 }

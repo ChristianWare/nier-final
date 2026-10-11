@@ -156,6 +156,11 @@ const data: Section[] = [
         href: "/routes/flagstaff-to-phoenix",
       },
       {
+        id: 5.45,
+        option: "Phoenix to Grand Canyon",
+        href: "/routes/phoenix-to-grand-canyon",
+      },
+      {
         id: 5.5,
         option: "Phoenix to Prescott",
         href: "/routes/phoenix-to-prescott",
@@ -214,6 +219,7 @@ const data: Section[] = [
     options: [
       { id: 7.1, option: "We-Ko-Pa Golf Club", href: "/wekopa" },
       { id: 7.2, option: "Denū Hotel & Spa", href: "/denu-hotel" },
+      { id: 7.3, option: "Become a partner →", href: "/partners" },
     ],
   },
 ];

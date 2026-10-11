@@ -9,6 +9,12 @@ export type RouteData = {
   slug: string;
   origin: string;
   destination: string;
+  /** Page heading when it should say more than "<origin> to <destination>
+   *  Car Service" (e.g. the "shuttle" wording riders search for). */
+  h1?: string;
+  /** Starting one-way flat rate in USD for the cheapest vehicle. Shown on the
+   *  page only when set; leave unset until the price is confirmed. */
+  fromPriceUSD?: number;
   metaTitle: string;
   metaDescription: string;
   heroLine: string;
@@ -80,13 +86,14 @@ export const routesData: readonly RouteData[] = [
     slug: "tucson-to-phoenix",
     origin: "Tucson",
     destination: "Phoenix",
-    metaTitle: "Tucson to Phoenix Car Service | Nier Transportation",
+    h1: "Private Tucson to Phoenix Shuttle & Car Service",
+    metaTitle: "Tucson to Phoenix Shuttle: Private Car Service | Nier",
     metaDescription:
-      "Private car service between Tucson and Phoenix — 115 miles door-to-door in about 90 minutes. The comfortable alternative to shared shuttles: flat rates, no stops, no strangers. Sky Harbor transfers included.",
+      "A private Tucson to Phoenix shuttle: 115 miles door to door in about 1¾–2 hours, with Sky Harbor drop-offs timed to your flight. Flat rates, no shared stops, both directions.",
     heroLine:
-      "Direct, private car service between Tucson and Phoenix — about 115 miles and 90 minutes on I-10, door to door. No shared shuttles, no stops, no strangers.",
+      "Direct, private car service between Tucson and Phoenix — about 115 miles and 1¾ to 2 hours on I-10, door to door. No shared shuttles, no stops, no strangers.",
     distance: "About 115 miles",
-    driveTime: "About 90 minutes",
+    driveTime: "About 1¾–2 hours",
     vehicles: "Sedans, SUVs & Sprinters",
     overview: [
       "The Tucson–Phoenix run is one of the most traveled corridors in Arizona, and we cover it daily in both directions. Your chauffeur picks you up at your door — home, hotel, the University of Arizona, or Tucson International — and takes you straight through on I-10 with no shared stops.",
@@ -96,7 +103,7 @@ export const routesData: readonly RouteData[] = [
     whyPrivate: [
       "Private door-to-door — not a shared shuttle with multiple stops",
       "Flat intercity rate quoted before you book",
-      "About 90 minutes of quiet, productive cabin time",
+      "Nearly two hours of quiet, productive cabin time",
       "Sky Harbor and Tucson International transfers with flight tracking",
       "Sedans, SUVs, and sprinters for groups",
       "Both directions, any day, any hour",
@@ -104,6 +111,10 @@ export const routesData: readonly RouteData[] = [
     bookCardCopy:
       "Skip the shared shuttle — ride private between Tucson and Phoenix at a flat rate. Book online or call (480) 300-6003 for an instant quote.",
     faqs: [
+      {
+        q: "Is there a shuttle from Tucson to Phoenix Sky Harbor airport?",
+        a: "Shared shuttle vans run on fixed schedules with set pickup points and stops along the way. Ours is the private version: a car or Sprinter picks you up at your door at the time you choose and drives straight to your Sky Harbor terminal, timed to your flight.",
+      },
       {
         q: "Do you run a shared shuttle from Tucson to Phoenix?",
         a: "No — and that's the point. Every ride is a private vehicle, door to door, with no shared stops and no strangers. You leave on your schedule and ride straight through.",
@@ -114,14 +125,14 @@ export const routesData: readonly RouteData[] = [
       },
       {
         q: "How long does the drive take?",
-        a: "About 90 minutes for the 115-mile run on I-10, depending on your exact endpoints and traffic. We monitor conditions in real time and plan your departure around your arrival time.",
+        a: "About 1¾ to 2 hours for the 115-mile run on I-10, depending on your exact endpoints and traffic. We monitor conditions in real time and plan your departure around your arrival time.",
       },
       {
         q: "Can you take me straight to Sky Harbor for a flight?",
         a: "Yes — Tucson-to-Sky-Harbor transfers are a core part of this route. We build in an appropriate buffer for check-in and security, and adjust your pickup if I-10 conditions change.",
       },
       {
-        q: "Do you also run Phoenix to Tucson?",
+        q: "Do you also run a Phoenix to Tucson shuttle?",
         a: "Yes — both directions at the same flat rate, including pickups anywhere in the Valley and drop-offs at the University of Arizona, downtown Tucson, or Tucson International (TUS).",
       },
       {
@@ -134,9 +145,10 @@ export const routesData: readonly RouteData[] = [
     slug: "phoenix-to-sedona",
     origin: "Phoenix",
     destination: "Sedona",
-    metaTitle: "Phoenix to Sedona Car Service | Nier Transportation",
+    h1: "Private Phoenix to Sedona Shuttle & Car Service",
+    metaTitle: "Phoenix to Sedona Shuttle: Private Car from Sky Harbor | Nier",
     metaDescription:
-      "Private door-to-door car service from Phoenix to Sedona — about two hours through Oak Creek Canyon country without renting a car. Flat rates, resort drop-offs, photo stops on request.",
+      "A private Phoenix to Sedona shuttle: Sky Harbor or Valley pickup, about two hours door to door to your Sedona resort, no shared stops. Flat rates, photo stops on request.",
     heroLine:
       "Private, door-to-door transfers between Phoenix and Sedona — about 115 miles and two hours via I-17 and SR-89A, with a chauffeur who knows every switchback and scenic pull-off.",
     distance: "About 115 miles",
@@ -158,6 +170,10 @@ export const routesData: readonly RouteData[] = [
     bookCardCopy:
       "Ride to the red rocks without the drive — flat-rate private transfers between Phoenix and Sedona. Book online or call (480) 300-6003.",
     faqs: [
+      {
+        q: "Is there a shuttle from Phoenix Sky Harbor to Sedona?",
+        a: "Shared shuttle vans run between the airport and Sedona on fixed schedules, with other passengers and set stops. Ours is a private shuttle: your own car or Sprinter, leaving when your flight lands, straight to your resort or rental's front door.",
+      },
       {
         q: "How much is a private car from Phoenix to Sedona?",
         a: "It's a flat rate for the route, quoted before you book — no meter running for two hours. Call (480) 300-6003 or book online for an instant quote, one-way or round trip.",
@@ -188,7 +204,9 @@ export const routesData: readonly RouteData[] = [
     slug: "flagstaff-to-phoenix",
     origin: "Flagstaff",
     destination: "Phoenix",
-    metaTitle: "Flagstaff to Phoenix Airport Car Service | Nier Transportation",
+    h1: "Private Phoenix to Flagstaff Shuttle & Airport Car Service",
+    metaTitle:
+      "Phoenix to Flagstaff Shuttle: Private Airport Car Service | Nier",
     metaDescription:
       "Private car service between Flagstaff and Phoenix Sky Harbor — about 145 miles and two hours on I-17, door to door. Flat rates, flight-timed departures, chauffeurs comfortable on mountain grades in all conditions.",
     heroLine:
@@ -213,6 +231,10 @@ export const routesData: readonly RouteData[] = [
       "Make the mountain run easy — flat-rate private transfers between Flagstaff and Phoenix, timed to your flight. Book online or call (480) 300-6003.",
     faqs: [
       {
+        q: "Is there a shuttle from Phoenix airport to Flagstaff?",
+        a: "Shared shuttles run between Sky Harbor and Flagstaff on a fixed timetable with other riders. Ours is a private shuttle: one car or Sprinter for your party, leaving when you land, door to door in about two hours — including NAU, Snowbowl and Grand Canyon-bound drop-offs.",
+      },
+      {
         q: "How much is a car from Flagstaff to Phoenix Sky Harbor?",
         a: "It's a flat intercity rate quoted before you book — no meter for the two-hour drive. Call (480) 300-6003 or book online for an instant quote in either direction.",
       },
@@ -235,6 +257,61 @@ export const routesData: readonly RouteData[] = [
       {
         q: "Can you take a group?",
         a: "Yes — executive sprinters seat up to 14, and larger groups run as multi-vehicle bookings under one coordinator and one invoice.",
+      },
+    ],
+  },
+  {
+    slug: "phoenix-to-grand-canyon",
+    origin: "Phoenix",
+    destination: "Grand Canyon",
+    h1: "Phoenix to Grand Canyon Private Car & Day Trips",
+    metaTitle: "Phoenix to Grand Canyon Private Car & Day Trips | Nier",
+    metaDescription:
+      "A private car from Phoenix or Sky Harbor to the Grand Canyon South Rim: about 230 miles and 4 hours, one-way, overnight or as a same-day trip with your chauffeur waiting. Optional Sedona stop.",
+    heroLine:
+      "Private, door-to-door rides between Phoenix and the Grand Canyon's South Rim — about 230 miles and 4 hours each way, as a one-way transfer, an overnight trip, or a full day with your chauffeur waiting.",
+    distance: "About 230 miles",
+    driveTime: "About 4 hours each way",
+    vehicles: "Sedans, SUVs & Sprinters",
+    overview: [
+      "The South Rim is the Grand Canyon most visitors mean, and from Phoenix it's a straight run north: I-17 up the Mogollon Rim to Flagstaff, then on to Grand Canyon Village. We pick you up anywhere in the Valley, or straight off your flight at Sky Harbor, and drive you to your hotel inside the park or in Tusayan, or to the rim itself.",
+      "It's a long day for one driver, which is exactly why people hire one. As a same-day trip, your chauffeur drives up in the morning, waits while you walk the rim, and drives you home that night, so nobody in your group spends eight hours behind the wheel. As an overnight, we drop you off and come back on the day you choose.",
+      "Want to see Sedona on the way? The red rock route through Sedona adds about 30 minutes of driving, plus however long you'd like to stop. Tell us when you book and we'll quote the whole itinerary as one flat rate.",
+    ],
+    whyPrivate: [
+      "Door-to-door from anywhere in the Valley or Sky Harbor",
+      "Same-day round trips with your chauffeur waiting",
+      "Optional Sedona stop on the way up or back",
+      "Overnight drop-offs in the park or Tusayan, with a scheduled return",
+      "Flat rate for the whole itinerary, quoted before you book",
+      "Sprinters for families and groups of up to 14",
+    ],
+    bookCardCopy:
+      "See the Grand Canyon without the eight-hour drive — a private car from Phoenix to the South Rim, one-way or round trip. Book online or call (480) 300-6003.",
+    faqs: [
+      {
+        q: "How far is the Grand Canyon from Phoenix?",
+        a: "The South Rim (Grand Canyon Village) is about 230 miles from Phoenix, roughly 4 hours each way via I-17 through Flagstaff. Going through Sedona adds about 30 minutes.",
+      },
+      {
+        q: "Can we do the Grand Canyon as a day trip from Phoenix?",
+        a: "Yes, and a private car is the easiest way to do it: about 8 hours of round-trip driving that nobody in your group has to do. Your chauffeur waits while you visit and drives you home the same night.",
+      },
+      {
+        q: "Is this a guided Grand Canyon tour?",
+        a: "No. We're your private transportation, not a tour guide: you choose the stops and the schedule, and your chauffeur gets you there and back. If you've booked a guided hike, helicopter flight or park tour, we'll drive you to it.",
+      },
+      {
+        q: "Are Grand Canyon park entrance fees included?",
+        a: "No. National park entrance fees are paid separately at the park. We'll tell you what to expect for your group when you book.",
+      },
+      {
+        q: "Do you go to the North Rim?",
+        a: "The North Rim is much farther from Phoenix, about 350 miles and 7 hours, and open only part of the year. Call (480) 300-6003 and we'll plan it with you.",
+      },
+      {
+        q: "Can you pick us up at Sky Harbor and go straight to the Grand Canyon?",
+        a: "Yes. We track your flight, meet you at your terminal, and drive straight to your Grand Canyon hotel. It's the simplest way to start the trip without renting a car.",
       },
     ],
   },

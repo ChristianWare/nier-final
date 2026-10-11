@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
 import Logo from "../Logo/Logo";
 import { useSession } from "next-auth/react";
 import { servicesData as services } from "@/lib/services";
+import { partners as partnerList } from "@/lib/partners";
 
 export interface NavProps {
   navItemColor?: string;
@@ -183,16 +184,17 @@ export default function Nav({
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
+  // Partner pages come from src/lib/partners.ts, plus the program page.
   const partners = [
+    ...partnerList.map((p) => ({
+      text: p.name,
+      href: p.href,
+      copy: p.navCopy,
+    })),
     {
-      text: "We-Ko-Pa Golf Club",
-      href: "/wekopa",
-      copy: "Sky Harbor & Mesa Gateway transfers",
-    },
-    {
-      text: "Denū Hotel & Spa",
-      href: "/denu-hotel",
-      copy: "Downtown Phoenix airport transfers",
+      text: "Partner program",
+      href: "/partners",
+      copy: "For hotels, venues & planners",
     },
   ];
   const partnersActive = partners.some((p) => isActive(p.href));
@@ -203,7 +205,7 @@ export default function Nav({
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
     { text: "Corporate", href: "/corporate-accounts" },
-    { text: "Partners", href: "/wekopa", hasPartnersDropdown: true },
+    { text: "Partners", href: "/partners", hasPartnersDropdown: true },
     { text: "Charter", href: "/charter-bus-rental-phoenix" },
     { text: "Contact", href: "/contact", isLast: true },
   ];
