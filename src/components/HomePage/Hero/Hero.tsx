@@ -57,20 +57,19 @@ export default function Hero({
         <div className={styles.imgOverlay} />
         <div className={styles.marqueeWrap}>
           <LayoutWrapper>
-
-          <div className={styles.cc2}>
-            <div className={styles.left2}>
-              <p className={styles.copyii}>
-                Executive sedans, luxury SUVs, Sprinter vans, and 56 passenger
-                Motor Coach Buses — available 24/7 across the Phoenix metro.
-                Book your ride in under two minutes.
-              </p>
+            <div className={styles.cc2}>
+              <div className={styles.left2}>
+                <p className={styles.copyii}>
+                  Executive sedans, luxury SUVs, Sprinter vans, and 56 passenger
+                  Motor Coach Buses — available 24/7 across the Phoenix metro.
+                  Book your ride in under two minutes.
+                </p>
+              </div>
+              <div className={styles.right2}>
+                <p className={styles.copyiii}>Discover more</p>
+                <Arrow className={styles.arrow} />
+              </div>
             </div>
-            <div className={styles.right2}>
-              <p className={styles.copyiii}>Discover more</p>
-              <Arrow className={styles.arrow} />
-            </div>
-          </div>
           </LayoutWrapper>
           <Marquee
             words={[
@@ -120,6 +119,11 @@ export default function Hero({
                     />
                   </div>
                 </div>
+                {/* <p className={styles.copyiv}>
+                  Executive sedans, luxury SUVs, Sprinter vans, and 56 passenger
+                  Motor Coach Buses — available 24/7 across the Phoenix metro.
+                  Book your ride in under two minutes.
+                </p> */}
                 {/* <div className={styles.widgetRow}>
                   <HomeBookingWidget
                     serviceTypes={serviceTypes}
