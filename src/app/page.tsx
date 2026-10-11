@@ -8,6 +8,7 @@ import { homeQuestions } from "@/lib/data";
 import { Metadata } from "next";
 import ServicesMarquee from "@/components/shared/ServicesMarquee/ServicesMarquee";
 import { getBookingWidgetData } from "@/lib/booking/widgetData";
+import { googleMapsSrc } from "@/lib/googleMaps";
 import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
 
 const HowItWorks = dynamic(
@@ -77,7 +78,9 @@ export default async function HomePage() {
       />
       {/* ── Google Maps script for Places autocomplete in the booking widget ── */}
       <Script
-        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY}&libraries=places`}
+        id='google-maps'
+        src={googleMapsSrc()}
+        data-google-maps='1'
         strategy='lazyOnload'
       />
       <Nav />

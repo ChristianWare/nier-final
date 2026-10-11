@@ -3,6 +3,7 @@ import Script from "next/script";
 import HomeBookingWidget from "@/components/HomePage/HomeBookingWidget/HomeBookingWidget";
 import type { BookingWidgetData } from "@/lib/booking/widgetData";
 import styles from "./RideBox.module.css";
+import { googleMapsSrc } from "@/lib/googleMaps";
 
 /**
  * In-article booking box for blog posts. Used from MDX:
@@ -28,7 +29,9 @@ export default function RideBox({
       {/* Places autocomplete for the pickup/drop-off fields. next/script
           loads it once per page even if a post uses RideBox twice. */}
       <Script
-        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY}&libraries=places`}
+        id='google-maps'
+        src={googleMapsSrc()}
+        data-google-maps='1'
         strategy='lazyOnload'
       />
       <div className={styles.intro}>

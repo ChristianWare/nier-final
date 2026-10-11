@@ -5,6 +5,7 @@
 
 import styles from "./RoutePicker.module.css";
 import { RefObject, useEffect, useRef, useState } from "react";
+import { googleMapsSrc, GOOGLE_MAPS_SCRIPT_ATTR } from "@/lib/googleMaps";
 
 type LatLng = { lat: number; lng: number };
 
@@ -38,29 +39,59 @@ declare global {
   }
 }
 
+const mapsReady = () =>
+  !!(window.google?.maps?.places && window.google?.maps?.geometry);
+
+/**
+ * Resolve once Maps is loaded with `places` and `geometry`.
+ * Maps may already be on the page (the homepage or a blog post loads it for
+ * the booking widget). It must never be loaded a second time, so:
+ *  - already complete → done
+ *  - loaded but missing a library → add it with importLibrary
+ *  - our script tag is still loading → wait for it
+ *  - nothing on the page yet → add the script
+ */
 const loadGoogleMaps = (browserKey: string) => {
   return new Promise<void>((resolve, reject) => {
-    if (window.google?.maps?.places && window.google?.maps?.geometry) {
-      return resolve();
+    if (mapsReady()) return resolve();
+
+    if (window.google?.maps?.importLibrary) {
+      Promise.all([
+        window.google.maps.importLibrary("places"),
+        window.google.maps.importLibrary("geometry"),
+      ])
+        .then(() => resolve())
+        .catch(() => reject(new Error("Failed to load Google Maps libraries")));
+      return;
     }
 
     const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-google-maps="1"]',
+      `script[${GOOGLE_MAPS_SCRIPT_ATTR}]`,
     );
 
     if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () =>
-        reject(new Error("Failed to load Google Maps")),
-      );
+      // The tag may finish loading before or after we attach a listener,
+      // so poll as well as listen; give up after 20 seconds.
+      const started = Date.now();
+      const poll = window.setInterval(() => {
+        if (mapsReady()) {
+          window.clearInterval(poll);
+          resolve();
+        } else if (Date.now() - started > 20000) {
+          window.clearInterval(poll);
+          reject(new Error("Failed to load Google Maps"));
+        }
+      }, 100);
+      existing.addEventListener("error", () => {
+        window.clearInterval(poll);
+        reject(new Error("Failed to load Google Maps"));
+      });
       return;
     }
 
     const script = document.createElement("script");
-    script.dataset.googleMaps = "1";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      browserKey,
-    )}&libraries=places,geometry`;
+    script.setAttribute(GOOGLE_MAPS_SCRIPT_ATTR, "1");
+    script.src = googleMapsSrc(browserKey);
     script.async = true;
     script.defer = true;
 
@@ -107,6 +138,10 @@ export default function RoutePicker({
 
   const [error, setError] = useState("");
   const [loadingRoute, setLoadingRoute] = useState(false);
+  // Flips once the map exists. Markers and the route calculation re-run on
+  // it, so a pickup/drop-off that arrived before the map (a prefill from the
+  // homepage or a blog post) still gets drawn and measured.
+  const [mapReady, setMapReady] = useState(false);
 
   const latestValueRef = useRef<RoutePickerValue | null>(value);
   useEffect(() => {
@@ -152,6 +187,7 @@ export default function RoutePicker({
             streetViewControl: false,
             fullscreenControl: false,
           });
+          setMapReady(true);
         }
 
         // Attach pickup autocomplete
@@ -317,7 +353,7 @@ export default function RoutePicker({
       allPoints.forEach((p) => bounds.extend(p));
       map.fitBounds(bounds, 70);
     }
-  }, [pickupKey, dropoffKey, stopsKey, pickup, dropoff, stops]);
+  }, [pickupKey, dropoffKey, stopsKey, pickup, dropoff, stops, mapReady]);
 
   // Route compute + polyline draw
   useEffect(() => {
@@ -421,7 +457,7 @@ export default function RoutePicker({
     return () => {
       cancelled = true;
     };
-  }, [pickupKey, dropoffKey, stopsKey, pickup, dropoff]);
+  }, [pickupKey, dropoffKey, stopsKey, pickup, dropoff, mapReady]);
 
   const displayMiles = value?.miles ?? value?.distanceMiles ?? null;
   const displayMinutes = value?.minutes ?? value?.durationMinutes ?? null;
