@@ -1,53 +1,104 @@
+import Image from "next/image";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import HomeBookingWidget from "@/components/HomePage/HomeBookingWidget/HomeBookingWidget";
 import type { BookingWidgetData } from "@/lib/booking/widgetData";
+import { reviews } from "@/lib/data";
+import ChauffeurImg from "../../../../public/images/other/phxLandscape.jpg";
 import styles from "./QuoteBand.module.css";
 
-const points = [
-  "Flat rates, quoted before you book",
-  "No surge pricing, day or night",
-  "Free flight tracking on every airport ride",
-  "Uniformed, background-checked chauffeurs",
-];
+/** The review quoted on the photo, by id from `reviews` in lib/data.ts,
+ *  and which of its sentences to show (0 = first). Quoted word for word. */
+const FEATURED_REVIEW_ID = 9;
+const FEATURED_SENTENCE = 1;
+/** Reviewers shown in the avatar row, by id. */
+const AVATAR_REVIEW_IDS = [8, 9, 145];
 
-/**
- * Instant quote, directly under the hero. Visitors arriving from Google or
- * the Maps listing usually have a trip in mind ("Scottsdale to Sky Harbor,
- * Tuesday 5 am"); the widget takes it and hands it to /book pre-filled.
- */
+const featured = reviews.find((r) => r.id === FEATURED_REVIEW_ID);
+const avatars = AVATAR_REVIEW_IDS.map((id) =>
+  reviews.find((r) => r.id === id),
+).filter((r): r is NonNullable<typeof r> => !!r);
+
+function sentence(text: string, index: number): string {
+  const parts = text.trim().split(/(?<=[.!?])\s+/);
+  return parts[index] ?? parts[0] ?? text;
+}
+
 export default function QuoteBand({ widget }: { widget: BookingWidgetData }) {
   return (
     <section className={styles.container} aria-labelledby='quote-heading'>
       <LayoutWrapper>
         <div className={styles.content}>
-          <div className={styles.left}>
-            <SectionHeading text='Instant Quote' dot />
-            <h2 id='quote-heading' className={`${styles.heading} h3`}>
-              Get a flat-rate quote in under two minutes.
-            </h2>
-            <ul className={styles.points}>
-              {points.map((p) => (
-                <li key={p}>{p}</li>
-              ))}
-            </ul>
-            <p className={styles.call}>
-              Prefer to talk to a person?{" "}
-              <a href='tel:+14803006003' className={styles.phone}>
-                Call (480) 300-6003
-              </a>
-              , 24/7.
-            </p>
-          </div>
-          <div className={styles.right}>
-            <HomeBookingWidget
-              serviceTypes={widget.serviceTypes}
-              vehicles={widget.vehicles}
-              companyTimezone={widget.companyTimezone}
-              companyTimezoneLabel={widget.companyTimezoneLabel}
-              source='home:quote-band'
-              fluid
+          <figure className={styles.photoCard}>
+            <Image
+              src={ChauffeurImg}
+              alt='Nier Transportation chauffeur opening the car door for a client'
+              fill
+              placeholder='blur'
+              sizes='(max-width: 1068px) 100vw, 45vw'
+              className={styles.photo}
             />
+            <div className={styles.overlay} aria-hidden='true' />
+            <div className={styles.photoCardTop}>
+              <h2 id='quote-heading' className={`${styles.heading} h3`}>
+                Your flat rate, quoted before you book. No surge, no surprises.
+              </h2>
+              <div className={styles.trust}>
+                {avatars.length > 0 && (
+                  <ul className={styles.avatars} aria-label='Nier riders'>
+                    {avatars.map((r) => (
+                      <li key={r.id} className={styles.avatar}>
+                        <Image
+                          src={r.person}
+                          alt={r.reviewer}
+                          fill
+                          sizes='48px'
+                          className={styles.avatarImg}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className={styles.copy}>
+                  Executives, families and frequent flyers across the Valley
+                  have booked with us since 2004. Free flight tracking on every
+                  airport ride. Prefer to talk?{" "}
+                  <a href='tel:+14803006003' className={styles.phone}>
+                    (480) 300-6003
+                  </a>
+                  24/7.
+                </p>
+              </div>
+            </div>
+            {featured && (
+              <div className={styles.quoteWrap}>
+                <blockquote className={styles.quote}>
+                  &ldquo;{sentence(featured.review, FEATURED_SENTENCE)}&rdquo;
+                </blockquote>
+                <figcaption className={styles.author}>
+                  <span className={styles.rule} aria-hidden='true' />
+                  {featured.reviewer}, {featured.company}
+                </figcaption>
+              </div>
+            )}
+          </figure>
+
+          {/* ── Right: pitch on top, booking widget below ── */}
+          <div className={styles.right}>
+            <div className={styles.top}>
+              <SectionHeading text='Instant Quote' dot />
+            </div>
+
+            <div className={styles.widget}>
+              <HomeBookingWidget
+                serviceTypes={widget.serviceTypes}
+                vehicles={widget.vehicles}
+                companyTimezone={widget.companyTimezone}
+                companyTimezoneLabel={widget.companyTimezoneLabel}
+                source='home:quote-band'
+                fluid
+              />
+            </div>
           </div>
         </div>
       </LayoutWrapper>
