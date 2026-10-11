@@ -103,32 +103,34 @@ export default function AirportCarService() {
         </LayoutWrapper>
       </div>
 
-      {/* ── Panel: video left, pitch + stats right ── */}
+      {/* ── Panel: full-width video card with the copy on top of it ── */}
       <div className={styles.panel}>
-        <LayoutWrapper>
-          <div className={styles.panelContent}>
-            <div className={styles.media}>
-              {/* Phones: the poster photo (no video download on mobile data) */}
-              <div className={styles.mobileMedia}>
-                <Image
-                  src={PosterImg}
-                  alt='Chauffeured black car waiting on the airport tarmac'
-                  fill
-                  placeholder='blur'
-                  sizes='100vw'
-                  className={styles.mobileImg}
-                />
-              </div>
-              <div className={styles.desktopMedia}>
-                <AirportVideo
-                  src={VIDEO_SRC}
-                  poster={PosterImg.src}
-                  label='Nier Transportation airport pickup'
-                />
-              </div>
-            </div>
+        {/* <LayoutWrapper999> */}
+        <div className={styles.media}>
+          {/* Phones: the poster photo (no video download on mobile data) */}
+          <div className={styles.mobileMedia}>
+            <Image
+              src={PosterImg}
+              alt='Chauffeured black car waiting on the airport tarmac'
+              fill
+              placeholder='blur'
+              sizes='100vw'
+              className={styles.mobileImg}
+            />
+          </div>
+          <div className={styles.desktopMedia}>
+            <AirportVideo
+              src={VIDEO_SRC}
+              poster={PosterImg.src}
+              label='Nier Transportation airport pickup'
+            />
+          </div>
 
-            <div className={styles.copyCol}>
+          {/* Darkens the video so the white text stays readable */}
+          <div className={styles.overlay} aria-hidden='true' />
+
+          <div className={styles.copyCol}>
+            <div className={styles.left}>
               <p className={styles.eyebrow}>
                 Sky Harbor · Scottsdale · Mesa Gateway
               </p>
@@ -161,16 +163,17 @@ export default function AirportCarService() {
                 <Button
                   href='/book'
                   text='Book an airport ride'
-                  btnType='black'
+                  btnType='white'
                   arrow
                 />
               </div>
-
+            </div>
+            <div className={styles.right}>
               <ul className={styles.links}>
                 {airportLinks.map((l) => (
                   <li key={l.href}>
                     <Link href={l.href} className={styles.link}>
-                      {l.label}
+                      {l.label} →
                     </Link>
                   </li>
                 ))}
@@ -203,7 +206,8 @@ export default function AirportCarService() {
               </div>
             </div>
           </div>
-        </LayoutWrapper>
+        </div>
+        {/* </LayoutWrapper999> */}
       </div>
     </section>
   );

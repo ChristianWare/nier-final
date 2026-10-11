@@ -5,7 +5,6 @@
 /* ── Strip: headline + three promises ─────────────────────────────── */
 
 .strip {
-  /* padding: 6rem 0rem; */
   background-color: var(--white);
 }
 
@@ -66,26 +65,19 @@
   line-height: 1.5;
 }
 
-/* ── Panel: video left, pitch + stats right ───────────────────────── */
+/* ── Panel: full-width video card, copy sits on top of it ─────────── */
 
-.panel {
+/* .panel {
   padding: 2rem 0rem;
   background-color: var(--accent);
-}
+} */
 
-.panelContent {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-gap: 8rem;
-  align-items: center;
-}
-
+/* The card. Its height comes from .copyCol; the video fills behind it. */
 .media {
   position: relative;
   width: 100%;
   min-height: 600px;
-  height: 100%;
-  border-radius: 14px;
+  /* border-radius: 14px; */
   overflow: hidden;
   background-color: var(--black);
 }
@@ -111,10 +103,24 @@
   display: block;
 }
 
+/* Slight darkening, heavier on the left where the text sits. */
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.6) 0%,
+    rgba(0, 0, 0, 0.45) 55%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+}
+
 .playToggle {
   position: absolute;
   right: 2rem;
   bottom: 2rem;
+  z-index: 3;
   width: 4.4rem;
   height: 4.4rem;
   border-radius: 50%;
@@ -143,12 +149,24 @@
   fill: currentColor;
 }
 
+/* Sits above the overlay; keeps to the left so the video still shows. */
 .copyCol {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5rem;
+  padding: 6rem;
+}
+
+.left,
+.right {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2rem;
-  padding: 6rem 0rem;
+  justify-content: flex-start;
+  gap: 3rem;
+  width: 100%;
 }
 
 .eyebrow {
@@ -216,16 +234,23 @@
 .links {
   list-style: none;
   display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 1rem 2.4rem;
-  margin-top: 1rem;
+  gap: 2rem;
+  /* margin-top: 1rem; */
 }
 
 .link {
-  color: var(--white);
+  color: var(--accent);
+  background-color: var(--white);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
   font-size: 1.4rem;
-  font-weight: 500;
-  text-decoration: underline;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: uppercase;
+  /* text-decoration: underline; */
   text-underline-offset: 3px;
   opacity: 0.9;
 }
@@ -269,7 +294,7 @@
 
 .driveArea {
   color: var(--white);
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 500;
 }
 
@@ -303,9 +328,11 @@ a.driveArea:hover {
   .statValue {
     font-size: 4.8rem;
   }
+}
 
-  .panelContent {
-    grid-gap: 5rem;
+@media screen and (max-width: 1068px) {
+  .copyCol {
+    grid-template-columns: repeat(1, 1fr);
   }
 }
 
@@ -315,31 +342,18 @@ a.driveArea:hover {
     grid-gap: 4rem;
   }
 
-  .panel {
-    padding: 4rem 0rem 0rem;
-  }
-
-  .panelContent {
-    grid-template-columns: 1fr;
-    grid-gap: 0rem;
-  }
-
-  .media {
-    min-height: 0;
-    height: auto;
-    aspect-ratio: 4 / 3;
-  }
-
   .copyCol {
-    padding: 5rem 0rem 6rem;
+    max-width: none;
+    padding: 5rem 4rem 8rem;
+  }
+
+  /* Text covers more of the card here, so darken it evenly */
+  .overlay {
+    background: rgba(0, 0, 0, 0.55);
   }
 }
 
 @media screen and (max-width: 768px) {
-  /* .strip {
-    padding: 5rem 0rem;
-  } */
-
   .features {
     grid-template-columns: 1fr;
     grid-gap: 3rem;
@@ -352,6 +366,10 @@ a.driveArea:hover {
 
   .desktopMedia {
     display: none;
+  }
+
+  .copyCol {
+    padding: 4rem 2.4rem 5rem;
   }
 
   .stats {
@@ -374,5 +392,9 @@ a.driveArea:hover {
 
   .driveList {
     grid-template-columns: 1fr;
+  }
+  .left,
+  .right {
+    gap: 2rem;
   }
 }
