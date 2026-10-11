@@ -22,6 +22,8 @@ export type GuideSection = {
   paragraphs?: readonly string[];
   bullets?: readonly string[];
   table?: GuideTable;
+  /** Airline names, shown as a logo grid. */
+  airlines?: readonly string[];
 };
 
 export type AirportGuide = {
@@ -75,6 +77,19 @@ const T4_AIRLINES = [
   "WestJet",
 ] as const;
 
+/** Placeholder until each airline's logo is in /public/images/airlines. */
+export const AIRLINE_LOGO_PLACEHOLDER = "/images/other/airport.png";
+
+/** Airline name → logo file under /public. Add an entry as each logo arrives;
+ *  any airline missing here shows the placeholder. */
+export const AIRLINE_LOGOS: Readonly<Record<string, string>> = {
+  // "Delta Air Lines": "/images/airlines/delta.png",
+};
+
+export function airlineLogo(name: string): string {
+  return AIRLINE_LOGOS[name] ?? AIRLINE_LOGO_PLACEHOLDER;
+}
+
 const SRC_AIRLINES = {
   label: "Phoenix Sky Harbor: Airlines",
   href: "https://www.skyharbor.com/flights/airlines",
@@ -92,33 +107,29 @@ const SRC_CELL_LOTS = {
   href: "https://www.skyharbor.com/about-phx/news-media/phx-check-in/2024/december-2024/have-you-heard-phx-has-three-free-cell-phone-waiting-lots/",
 };
 
-/** The three free cell phone lots, shared by every guide. */
-const CELL_LOT_SECTION: GuideSection = {
+/** The three free cell phone lots, shown on every guide (own section). */
+export const CELL_LOTS = {
   heading: "Free cell phone waiting lots",
-  paragraphs: [
+  intro:
     "Sky Harbor has three free cell phone waiting lots, all open 24 hours. Anyone picking you up should wait there until you're outside with your bags; the terminal curbs are enforced and drivers who circle get moved along. The airport asks drivers to stay with their vehicle and keep waits to 30 minutes or less.",
+  lots: [
+    {
+      name: "East Cell Phone Lot",
+      spaces: 90,
+      amenities: "Flight information displays, portable restrooms",
+    },
+    {
+      name: "West Cell Phone Lot",
+      spaces: 90,
+      amenities: "Flight information displays, portable restrooms",
+    },
+    {
+      name: "44th Street PHX Sky Train Station",
+      spaces: 25,
+      amenities: "Restrooms inside the station",
+    },
   ],
-  table: {
-    head: ["Lot", "Spaces", "Amenities"],
-    rows: [
-      [
-        "East Cell Phone Lot",
-        "90",
-        "Flight information displays, portable restrooms",
-      ],
-      [
-        "West Cell Phone Lot",
-        "90",
-        "Flight information displays, portable restrooms",
-      ],
-      [
-        "44th Street PHX Sky Train Station",
-        "25",
-        "Restrooms inside the station",
-      ],
-    ],
-  },
-};
+} as const;
 
 export const airportGuides: readonly AirportGuide[] = [
   {
@@ -149,11 +160,7 @@ export const airportGuides: readonly AirportGuide[] = [
         paragraphs: [
           "Fourteen airlines operate from Terminal 3. If you're flying American or Southwest, you want Terminal 4 instead.",
         ],
-        table: {
-          caption: "Terminal 3 airlines (from skyharbor.com)",
-          head: ["Airline"],
-          rows: T3_AIRLINES.map((a) => [a]),
-        },
+        airlines: T3_AIRLINES,
       },
       {
         heading: "Where pickups happen at Terminal 3",
@@ -174,7 +181,6 @@ export const airportGuides: readonly AirportGuide[] = [
           "Sky Harbor is building a second North Concourse at Terminal 3: about 173,000 square feet with six new gates, a mezzanine lounge and an outdoor terrace. The airport puts the budget at $368 million and expects completion in 2027. Until then, check the airport's roadway restrictions page before driving in, and leave a little extra time.",
         ],
       },
-      CELL_LOT_SECTION,
     ],
     rideBox: {
       title: "Flying in or out of Terminal 3?",
@@ -247,11 +253,7 @@ export const airportGuides: readonly AirportGuide[] = [
         paragraphs: [
           "Ten airlines operate from Terminal 4, including the two biggest at Phoenix, American and Southwest, plus most of the international carriers. Delta, United and Alaska are in Terminal 3.",
         ],
-        table: {
-          caption: "Terminal 4 airlines (from skyharbor.com)",
-          head: ["Airline"],
-          rows: T4_AIRLINES.map((a) => [a]),
-        },
+        airlines: T4_AIRLINES,
       },
       {
         heading: "Where pickups happen at Terminal 4",
@@ -273,7 +275,6 @@ export const airportGuides: readonly AirportGuide[] = [
           "In September 2026 the city named American Airlines the primary carrier for a future West Terminal, west of Terminal 3. Construction is scheduled to start in 2029, with opening expected in 2033. For now, American stays in Terminal 4.",
         ],
       },
-      CELL_LOT_SECTION,
     ],
     rideBox: {
       title: "Flying American or Southwest out of PHX?",
@@ -390,7 +391,6 @@ export const airportGuides: readonly AirportGuide[] = [
           "Heading to a Scottsdale resort or home with luggage: a private car meeting you at the terminal is simpler, with no transfers and one flat fare.",
         ],
       },
-      CELL_LOT_SECTION,
     ],
     rideBox: {
       title: "Skip the train and the rental car",

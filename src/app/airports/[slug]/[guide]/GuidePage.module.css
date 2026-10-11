@@ -3,6 +3,25 @@
   background-color: var(--white);
 }
 
+/* The article is split around the booking band: tighten the padding
+   next to it so the band doesn't float in a sea of white. */
+.bodyTop {
+  padding-bottom: 0rem;
+}
+
+.bodyBottom {
+  padding-top: 0rem;
+}
+
+.bodyBottom:has(.article:empty) {
+  display: none;
+}
+
+.sourcesSection {
+  padding: 6rem 0rem;
+  background-color: var(--white);
+}
+
 .article {
   max-width: 820px;
   display: flex;
@@ -68,13 +87,7 @@
   font-weight: 500;
 }
 
-.rideBox {
-  margin-top: 2rem;
-}
-
 .sources {
-  border-top: 1px solid var(--stroke);
-  padding-top: 2.4rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -106,5 +119,17 @@
 @media screen and (max-width: 568px) {
   .body {
     padding: 5rem 0rem;
+  }
+
+  .bodyTop {
+    padding-bottom: 0rem;
+  }
+
+  .bodyBottom {
+    padding-top: 0rem;
+  }
+
+  .sourcesSection {
+    padding: 4rem 0rem;
   }
 }

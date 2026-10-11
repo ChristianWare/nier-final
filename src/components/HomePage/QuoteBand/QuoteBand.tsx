@@ -24,9 +24,34 @@ function sentence(text: string, index: number): string {
   return parts[index] ?? parts[0] ?? text;
 }
 
-export default function QuoteBand({ widget }: { widget: BookingWidgetData }) {
+const DEFAULT_HEADING =
+  "Your flat rate, quoted before you book. No surge, no surprises.";
+const DEFAULT_COPY =
+  "Executives, families and frequent flyers across the Valley have booked with us since 2004. Free flight tracking on every airport ride.";
+
+/**
+ * Photo card with a rider quote on the left, booking widget on the right.
+ * The homepage uses the defaults; other pages (e.g. airport guides) pass
+ * their own heading, copy and tracking source.
+ */
+export default function QuoteBand({
+  widget,
+  heading = DEFAULT_HEADING,
+  copy = DEFAULT_COPY,
+  source = "home:quote-band",
+  headingId = "quote-heading",
+}: {
+  widget: BookingWidgetData;
+  heading?: string;
+  /** Sentence(s) under the avatars; the phone line is added after it. */
+  copy?: string;
+  /** Where the booking came from, passed to the widget. */
+  source?: string;
+  /** Unique id for the heading when the band appears more than once. */
+  headingId?: string;
+}) {
   return (
-    <section className={styles.container} aria-labelledby='quote-heading'>
+    <section className={styles.container} aria-labelledby={headingId}>
       <LayoutWrapper>
         <div className={styles.content}>
           <figure className={styles.photoCard}>
@@ -40,8 +65,8 @@ export default function QuoteBand({ widget }: { widget: BookingWidgetData }) {
             />
             <div className={styles.overlay} aria-hidden='true' />
             <div className={styles.photoCardTop}>
-              <h2 id='quote-heading' className={`${styles.heading} h3`}>
-                Your flat rate, quoted before you book. No surge, no surprises.
+              <h2 id={headingId} className={`${styles.heading} h3`}>
+                {heading}
               </h2>
               <div className={styles.trust}>
                 {avatars.length > 0 && (
@@ -60,9 +85,7 @@ export default function QuoteBand({ widget }: { widget: BookingWidgetData }) {
                   </ul>
                 )}
                 <p className={styles.copy}>
-                  Executives, families and frequent flyers across the Valley
-                  have booked with us since 2004. Free flight tracking on every
-                  airport ride. Prefer to talk?{" "}
+                  {copy} Prefer to talk?{" "}
                   <a href='tel:+14803006003' className={styles.phone}>
                     (480) 300-6003
                   </a>
@@ -95,7 +118,7 @@ export default function QuoteBand({ widget }: { widget: BookingWidgetData }) {
                 vehicles={widget.vehicles}
                 companyTimezone={widget.companyTimezone}
                 companyTimezoneLabel={widget.companyTimezoneLabel}
-                source='home:quote-band'
+                source={source}
                 fluid
               />
             </div>

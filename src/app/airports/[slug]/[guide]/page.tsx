@@ -5,6 +5,7 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 import { notFound } from "next/navigation";
 import Nav from "@/components/shared/Nav/Nav";
 import Faq from "@/components/shared/Faq/Faq";
@@ -12,16 +13,20 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import GuideHero from "@/components/shared/GuideHero/GuideHero";
 import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
-import RideBox from "@/components/BlogPage/RideBox/RideBox";
+import QuoteBand from "@/components/HomePage/QuoteBand/QuoteBand";
+import AirlineGrid from "@/components/AirportGuide/AirlineGrid/AirlineGrid";
+import CellPhoneLots from "@/components/AirportGuide/CellPhoneLots/CellPhoneLots";
 import { airportsData } from "@/lib/airports";
 import {
   airportGuides,
   CHECKED_ON,
   getAirportGuide,
   guidesForAirport,
+  type GuideSection,
 } from "@/lib/airportGuides";
 import { bookingLink } from "@/lib/booking/linkPrefill";
 import { getBookingWidgetData } from "@/lib/booking/widgetData";
+import { googleMapsSrc } from "@/lib/googleMaps";
 import { BUSINESS_REF } from "@/lib/schema";
 import { SITE_URL } from "@/lib/site";
 import styles from "./GuidePage.module.css";
@@ -75,6 +80,55 @@ const checkedLabel = new Date(`${CHECKED_ON}T12:00:00Z`).toLocaleDateString(
   "en-US",
   { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" },
 );
+
+/** One article section: heading, then whichever content it has. */
+function Section({ s, terminal }: { s: GuideSection; terminal: string }) {
+  return (
+    <div className={styles.section}>
+      <h2 className={`${styles.sectionHeading} h3`}>{s.heading}</h2>
+      {s.paragraphs?.map((p) => (
+        <p key={p.slice(0, 40)} className={styles.p}>
+          {p}
+        </p>
+      ))}
+      {s.bullets && (
+        <ul className={styles.bullets}>
+          {s.bullets.map((b) => (
+            <li key={b}>{b}</li>
+          ))}
+        </ul>
+      )}
+      {s.airlines && <AirlineGrid airlines={s.airlines} terminal={terminal} />}
+      {s.table && (
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            {s.table.caption && (
+              <caption className={styles.caption}>{s.table.caption}</caption>
+            )}
+            <thead>
+              <tr>
+                {s.table.head.map((h) => (
+                  <th key={h} scope='col'>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {s.table.rows.map((r) => (
+                <tr key={r.join("|")}>
+                  {r.map((c, ci) => (
+                    <td key={ci}>{c}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default async function AirportGuidePage({
   params,
@@ -140,9 +194,11 @@ export default async function AirportGuidePage({
     },
   ];
 
-  // Booking box after the second section: readers who got the answer they
+  // Booking band after the second section: readers who got the answer they
   // came for are deciding how to get to (or from) the terminal.
-  const boxAfter = Math.min(1, g.sections.length - 1);
+  const splitAt = Math.min(2, g.sections.length);
+  const firstSections = g.sections.slice(0, splitAt);
+  const restSections = g.sections.slice(splitAt);
 
   return (
     <main>
@@ -180,66 +236,46 @@ export default async function AirportGuidePage({
         facts={g.facts}
       />
 
-      <section id='guide-body' className={styles.body}>
+      <section id='guide-body' className={`${styles.body} ${styles.bodyTop}`}>
         <LayoutWrapper>
           <article className={styles.article}>
-            {g.sections.map((s, i) => (
-              <div key={s.heading} className={styles.section}>
-                <h2 className={`${styles.sectionHeading} h3`}>{s.heading}</h2>
-                {s.paragraphs?.map((p) => (
-                  <p key={p.slice(0, 40)} className={styles.p}>
-                    {p}
-                  </p>
-                ))}
-                {s.bullets && (
-                  <ul className={styles.bullets}>
-                    {s.bullets.map((b) => (
-                      <li key={b}>{b}</li>
-                    ))}
-                  </ul>
-                )}
-                {s.table && (
-                  <div className={styles.tableWrap}>
-                    <table className={styles.table}>
-                      {s.table.caption && (
-                        <caption className={styles.caption}>
-                          {s.table.caption}
-                        </caption>
-                      )}
-                      <thead>
-                        <tr>
-                          {s.table.head.map((h) => (
-                            <th key={h} scope='col'>
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {s.table.rows.map((r) => (
-                          <tr key={r.join("|")}>
-                            {r.map((c, ci) => (
-                              <td key={ci}>{c}</td>
-                            ))}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-                {i === boxAfter && (
-                  <div className={styles.rideBox}>
-                    <RideBox
-                      data={widget}
-                      source={`airport-guide:${g.slug}`}
-                      title={g.rideBox.title}
-                      copy={g.rideBox.copy}
-                    />
-                  </div>
-                )}
-              </div>
+            {firstSections.map((sec) => (
+              <Section key={sec.heading} s={sec} terminal={g.shortName} />
             ))}
+          </article>
+        </LayoutWrapper>
+      </section>
 
+      {/* Places autocomplete for the booking widget's address fields */}
+      <Script
+        id='google-maps'
+        src={googleMapsSrc()}
+        data-google-maps='1'
+        strategy='lazyOnload'
+      />
+      <QuoteBand
+        widget={widget}
+        heading={g.rideBox.title}
+        copy={g.rideBox.copy}
+        source={`airport-guide:${g.slug}`}
+        headingId='guide-quote-heading'
+      />
+
+      <section className={`${styles.body} ${styles.bodyBottom}`}>
+        <LayoutWrapper>
+          <div className={styles.article}>
+            {restSections.map((sec) => (
+              <Section key={sec.heading} s={sec} terminal={g.shortName} />
+            ))}
+          </div>
+        </LayoutWrapper>
+      </section>
+
+      <CellPhoneLots />
+
+      <section className={styles.sourcesSection}>
+        <LayoutWrapper>
+          <div className={styles.article}>
             <div className={styles.sources}>
               <p className={styles.sourcesTitle}>
                 Sources, checked {checkedLabel}
@@ -262,7 +298,7 @@ export default async function AirportGuidePage({
                 .
               </p>
             </div>
-          </article>
+          </div>
         </LayoutWrapper>
       </section>
 

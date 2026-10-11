@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import Nav from "@/components/shared/Nav/Nav";
 import Button from "@/components/shared/Button/Button";
@@ -6,6 +7,8 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import Faq from "@/components/shared/Faq/Faq";
+import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
+import AboutPageIntro from "@/components/AboutPage/AboutPageIntro/AboutPageIntro";
 import { partners } from "@/lib/partners";
 import { BUSINESS_REF } from "@/lib/schema";
 import { SITE_URL } from "@/lib/site";
@@ -50,15 +53,18 @@ const whoWeWorkWith = [
 const steps = [
   {
     title: "Tell us about your property",
-    copy: "Your address, the airports and places your guests go most, and how they usually arrive.",
+    description:
+      "Your address, the airports and places your guests go most, and how they usually arrive.",
   },
   {
     title: "We build your guest page",
-    copy: "A page on our site with flat rates from your address and booking built in, like the ones for We-Ko-Pa and Denū.",
+    description:
+      "A page on our site with flat rates from your address and booking built in, like the ones for We-Ko-Pa and Denū.",
   },
   {
     title: "Share the link",
-    copy: 'Put it on your website\'s "Getting here" page, in confirmation emails, and at the concierge desk. Guests book directly; we handle the rest.',
+    description:
+      'Put it on your website\'s "Getting here" page, in confirmation emails, and at the concierge desk. Guests book directly; we handle the rest.',
   },
 ];
 
@@ -110,42 +116,23 @@ export default function PartnersPage() {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
-      <Nav background='cream' />
-      <Breadcrumbs items={[{ name: "Partners" }]} />
+      <Nav background='white' />
 
-      <section className={styles.intro}>
-        <LayoutWrapper>
-          <div className={styles.introContent}>
-            <SectionHeading text='Partner Program' dot />
-            <h1 className={`${styles.heading} h1`}>
-              Transportation Partners for Hotels, Venues &amp; Planners
-            </h1>
-            <p className={styles.lead}>
-              We give Phoenix and Scottsdale businesses a dependable car service
-              to send their guests to: a dedicated booking page with flat rates
-              from your address, flight-tracked airport pickups, and 24/7
-              dispatch. Family-owned and based in Scottsdale since 2004.
-            </p>
-            <div className={styles.ctas}>
-              <Button
-                href='/contact'
-                text='Become a partner'
-                btnType='black'
-                arrow
-              />
-              <Button
-                href='tel:+14803006003'
-                text='Call (480) 300-6003'
-                btnType='underlinedBlack'
-                arrow
-              />
-            </div>
-          </div>
-        </LayoutWrapper>
-      </section>
+      <AboutPageIntro
+        eyebrow={<SectionHeading text='Partner Program' dot />}
+        heading='Transportation Partners for Hotels, Venues & Planners'
+        copy='We give Phoenix and Scottsdale businesses a dependable car service to send their guests to: a dedicated booking page with flat rates from your address, flight-tracked airport pickups, and 24/7 dispatch.'
+        primaryCta={{ text: "Become a partner", href: "/contact" }}
+        secondaryCta={{ text: "Call (480) 300-6003", href: "tel:+14803006003" }}
+        bottomCopy='Family-owned and based in Scottsdale since 2004.'
+        video='/videos/handshake.mp4'
+      />
 
       <section className={styles.section}>
         <LayoutWrapper>
+          <div className={styles.crumbs}>
+            <Breadcrumbs items={[{ name: "Partners" }]} />
+          </div>
           <SectionHeading text='Current Partners' dot />
           <h2 className={`${styles.h2} h3`}>
             Guest transfer pages already live
@@ -153,21 +140,39 @@ export default function PartnersPage() {
           <ul className={styles.partnerGrid}>
             {partners.map((p) => (
               <li key={p.href} className={styles.partnerCard}>
-                <p className={styles.kind}>
-                  {p.kind} · {p.location}
-                </p>
-                <h3 className={styles.partnerName}>
-                  <Link href={p.href} className={styles.partnerLink}>
-                    {p.name}
-                  </Link>
-                </h3>
-                <p className={styles.copy}>{p.blurb}</p>
-                <Button
+                <Link
                   href={p.href}
-                  text={`See the ${p.name} page`}
-                  btnType='underlinedBlack'
-                  arrow
-                />
+                  className={styles.partnerMedia}
+                  tabIndex={-1}
+                  aria-hidden='true'
+                >
+                  <Image
+                    src={p.image}
+                    alt=''
+                    fill
+                    placeholder='blur'
+                    sizes='(max-width: 768px) 100vw, 50vw'
+                    className={styles.partnerImg}
+                  />
+                  <span className={styles.partnerTag}>{p.location}</span>
+                </Link>
+                <div className={styles.partnerBody}>
+                  <p className={styles.kind}>
+                    {p.kind} · {p.location}
+                  </p>
+                  <h3 className={styles.partnerName}>
+                    <Link href={p.href} className={styles.partnerLink}>
+                      {p.name}
+                    </Link>
+                  </h3>
+                  <p className={styles.copy}>{p.blurb}</p>
+                  <Button
+                    href={p.href}
+                    text={`See the ${p.name} page`}
+                    btnType='underlinedBlack'
+                    arrow
+                  />
+                </div>
               </li>
             ))}
           </ul>
@@ -191,23 +196,14 @@ export default function PartnersPage() {
         </LayoutWrapper>
       </section>
 
-      <section className={styles.section}>
-        <LayoutWrapper>
-          <SectionHeading text='How It Works' dot />
-          <h2 className={`${styles.h2} h3`}>Three steps to a guest page</h2>
-          <ol className={styles.steps}>
-            {steps.map((s, i) => (
-              <li key={s.title} className={styles.step}>
-                <span className={styles.stepNum}>{i + 1}</span>
-                <h3 className={styles.cellTitle}>{s.title}</h3>
-                <p className={styles.copy}>{s.copy}</p>
-              </li>
-            ))}
-          </ol>
-        </LayoutWrapper>
-      </section>
+      <HowItWorks
+        heading='Three steps to a guest page'
+        headingTag='h2'
+        cta={{ text: "Become a partner", href: "/contact" }}
+        steps={steps}
+      />
 
-      <section className={`${styles.section} ${styles.cream}`}>
+      <section className={styles.section}>
         <LayoutWrapper>
           <div className={styles.linkBlock}>
             <div>
