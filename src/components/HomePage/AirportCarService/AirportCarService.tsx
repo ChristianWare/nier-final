@@ -15,7 +15,7 @@ import styles from "./AirportCarService.module.css";
 export const SKY_HARBOR_FROM_USD = 55;
 
 /** Video file in /public/videos. Phones get the poster photo instead. */
-const VIDEO_SRC = "/videos/airport.mp4";
+const VIDEO_SRC = "/videos/skyTram.mp4";
 
 const features = [
   {

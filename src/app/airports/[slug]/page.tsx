@@ -168,7 +168,7 @@ export default async function AirportPage({
                 text={`${airport.code} · ${airport.shortName}`}
                 color='cream'
               />
-              <h1 className={`${styles.heading} h1`}>{airport.h1}</h1>
+              <h1 className={`${styles.heading} h2`}>{airport.h1}</h1>
               <p className={styles.lead}>{airport.heroLine}</p>
               <div className={styles.ctas}>
                 <Button
