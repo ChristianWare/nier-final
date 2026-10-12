@@ -50,8 +50,8 @@
 /* Logo sits on a soft cream tile so mixed logo colours look uniform */
 .logo {
   flex-shrink: 0;
-  width: 5.2rem;
-  height: 5.2rem;
+  width: 10rem;
+  height: 10rem;
   border-radius: 12px;
   background-color: var(--cream);
   display: flex;
@@ -67,8 +67,8 @@
 }
 
 .logoImg {
-  width: 3.4rem;
-  height: 3.4rem;
+  width: 7rem;
+  height: 7rem;
   object-fit: contain;
 }
 

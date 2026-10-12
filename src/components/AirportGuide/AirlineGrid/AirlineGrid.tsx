@@ -27,8 +27,8 @@ export default function AirlineGrid({
               <Image
                 src={airlineLogo(name)}
                 alt=''
-                width={44}
-                height={44}
+                width={150}
+                height={150}
                 className={styles.logoImg}
               />
             </span>

@@ -23,9 +23,9 @@
 }
 
 .article {
-  max-width: 820px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(1m 1fr);
+
   gap: 5rem;
 }
 

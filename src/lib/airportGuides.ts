@@ -83,7 +83,32 @@ export const AIRLINE_LOGO_PLACEHOLDER = "/images/other/airport.png";
 /** Airline name → logo file under /public. Add an entry as each logo arrives;
  *  any airline missing here shows the placeholder. */
 export const AIRLINE_LOGOS: Readonly<Record<string, string>> = {
-  // "Delta Air Lines": "/images/airlines/delta.png",
+  // Terminal 3
+  "Advanced Airlines": "/images/airlines/advancedAir.png",
+  "Air Canada": "/images/airlines/airCanada.png",
+  "Alaska Airlines": "/images/airlines/alaska.webp",
+  Allegiant: "/images/airlines/allegiantAir.png",
+  "Breeze Airways": "/images/airlines/breezeAirways.webp",
+  "Delta Air Lines": "/images/airlines/delta.png",
+  "Denver Air Connection": "/images/airlines/denverAirConnection.png",
+  "Frontier Airlines": "/images/airlines/frontierAirlines.png",
+  "Hawaiian Airlines": "/images/airlines/hawaiianAirlines.png",
+  "JetBlue Airways": "/images/airlines/jetBlueAirways.png",
+  "Porter Airlines": "/images/airlines/porterAirlines.png",
+  "Southern Airways Express": "/images/airlines/SouthernAirwayExpress.webp",
+  "Sun Country Airlines": "/images/airlines/sunCountry.png",
+  "United Airlines": "/images/airlines/unitedAirlines.png",
+  // Terminal 4
+  Aeroméxico: "/images/airlines/Aeromexico.png",
+  "Air France": "/images/airlines/airFrance.png",
+  "American Airlines": "/images/airlines/americanAirlines.png",
+  "British Airways": "/images/airlines/britishAirways.png",
+  "China Airlines": "/images/airlines/chinaAirlines.png",
+  "Contour Airlines": "/images/airlines/Contour.webp",
+  "Southwest Airlines": "/images/airlines/southwest.png",
+  "STARLUX Airlines": "/images/airlines/starlux.png",
+  Volaris: "/images/airlines/volaris.webp",
+  WestJet: "/images/airlines/westJet.png",
 };
 
 export function airlineLogo(name: string): string {
