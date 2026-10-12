@@ -4,7 +4,7 @@ import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Car from "@/components/shared/icons/Car/Car";
 import Location from "@/components/shared/icons/Location/Location";
 import { CELL_LOTS } from "@/lib/airportGuides";
-import LotImg from "../../../../public/images/other/airport3.jpg";
+import LotImg from "../../../../public/images/other/parking.jpg";
 import styles from "./CellPhoneLots.module.css";
 
 const icons = [Car, Car, Location];

@@ -85,12 +85,14 @@ const checkedLabel = new Date(`${CHECKED_ON}T12:00:00Z`).toLocaleDateString(
 function Section({ s, terminal }: { s: GuideSection; terminal: string }) {
   return (
     <div className={styles.section}>
-      <h2 className={`${styles.sectionHeading} h3`}>{s.heading}</h2>
-      {s.paragraphs?.map((p) => (
-        <p key={p.slice(0, 40)} className={styles.p}>
-          {p}
-        </p>
-      ))}
+      <div className={styles.top}>
+        <h2 className={`${styles.sectionHeading} h2`}>{s.heading}</h2>
+        {s.paragraphs?.map((p) => (
+          <p key={p.slice(0, 40)} className={styles.p}>
+            {p}
+          </p>
+        ))}
+      </div>
       {s.bullets && (
         <ul className={styles.bullets}>
           {s.bullets.map((b) => (
