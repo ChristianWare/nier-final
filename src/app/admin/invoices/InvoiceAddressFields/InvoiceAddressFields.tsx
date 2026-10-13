@@ -104,6 +104,10 @@ function composeAddress(p: AddressParts): string {
   return `${street}\n${city}, ${p.state} ${zip}`;
 }
 
+function isBlank(p: AddressParts): boolean {
+  return !p.street.trim() && !p.city.trim() && !p.state && !p.zip.trim();
+}
+
 function missingParts(p: AddressParts): string[] {
   const missing: string[] = [];
   if (!p.street.trim()) missing.push("street");
@@ -111,6 +115,138 @@ function missingParts(p: AddressParts): string[] {
   if (!p.state) missing.push("state");
   if (!/^\d{5}(-\d{4})?$/.test(p.zip.trim())) missing.push("5-digit ZIP");
   return missing;
+}
+
+/**
+ * Street / city / state / ZIP fields that read and write one address string.
+ * The string stays empty until every field is filled in.
+ */
+function AddressPartsInput({
+  idPrefix,
+  value,
+  onChange,
+  optional = false,
+  completeHint,
+  blankHint,
+}: {
+  idPrefix: string;
+  value: string;
+  onChange: (v: string) => void;
+  /** Blank is fine; a half-filled address shows a warning instead. */
+  optional?: boolean;
+  completeHint?: string;
+  /** Shown while an optional address is left blank. */
+  blankHint?: string;
+}) {
+  // The fields, plus the last text we handed up. When the prop changes from
+  // outside (e.g. the edit dialog opening), re-read it into the fields.
+  const [parts, setParts] = useState<AddressParts>(() => parseAddress(value));
+  const [emitted, setEmitted] = useState(value);
+  if (value !== emitted) {
+    setEmitted(value);
+    setParts(parseAddress(value));
+  }
+
+  function updatePart(patch: Partial<AddressParts>) {
+    const next = { ...parts, ...patch };
+    setParts(next);
+    const text = composeAddress(next);
+    setEmitted(text);
+    onChange(text);
+  }
+
+  const blank = isBlank(parts);
+  const missing = missingParts(parts);
+
+  let hint: string | null = null;
+  let warn = false;
+  if (missing.length === 0) {
+    hint = completeHint ?? null;
+  } else if (optional && blank) {
+    hint = blankHint ?? null;
+  } else if (optional) {
+    hint = `Finish the address or clear it. A partial address won't be printed (still needed: ${missing.join(", ")}).`;
+    warn = true;
+  } else {
+    hint = `Still needed: ${missing.join(", ")}.`;
+  }
+
+  return (
+    <>
+      <div className={styles.addressGrid}>
+        <div className={`${styles.subField} ${styles.streetField}`}>
+          <label className={styles.subLabel} htmlFor={`${idPrefix}Street`}>
+            Street address
+          </label>
+          <input
+            id={`${idPrefix}Street`}
+            className={styles.input}
+            value={parts.street}
+            onChange={(e) => updatePart({ street: e.target.value })}
+            placeholder='123 Main St, Suite 200'
+            autoComplete='off'
+          />
+        </div>
+
+        <div className={styles.subField}>
+          <label className={styles.subLabel} htmlFor={`${idPrefix}City`}>
+            City
+          </label>
+          <input
+            id={`${idPrefix}City`}
+            className={styles.input}
+            value={parts.city}
+            onChange={(e) => updatePart({ city: e.target.value })}
+            placeholder='Phoenix'
+            autoComplete='off'
+          />
+        </div>
+
+        <div className={styles.subField}>
+          <label className={styles.subLabel} htmlFor={`${idPrefix}State`}>
+            State
+          </label>
+          <select
+            id={`${idPrefix}State`}
+            className={styles.select}
+            value={parts.state}
+            onChange={(e) => updatePart({ state: e.target.value })}
+          >
+            <option value=''>Select…</option>
+            {US_STATES.map((st) => (
+              <option key={st.code} value={st.code}>
+                {st.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.subField}>
+          <label className={styles.subLabel} htmlFor={`${idPrefix}Zip`}>
+            ZIP
+          </label>
+          <input
+            id={`${idPrefix}Zip`}
+            className={styles.input}
+            inputMode='numeric'
+            value={parts.zip}
+            onChange={(e) =>
+              updatePart({
+                zip: e.target.value.replace(/[^\d-]/g, "").slice(0, 10),
+              })
+            }
+            placeholder='85004'
+            autoComplete='off'
+          />
+        </div>
+      </div>
+      {hint && (
+        <span className={warn ? `${styles.hint} ${styles.warn}` : styles.hint}>
+          {hint}
+        </span>
+      )}
+    </>
+  );
 }
 
 /**
@@ -136,37 +272,13 @@ export default function InvoiceAddressFields({
 }) {
   const defaultLines = addressLines(defaultFromAddress);
 
-  // The fields, plus the last text we handed up. When the prop changes from
-  // outside (e.g. the edit dialog opening), re-read it into the fields.
-  const [parts, setParts] = useState<AddressParts>(() =>
-    parseAddress(fromAddress),
-  );
-  const [emitted, setEmitted] = useState(fromAddress);
-  if (fromAddress !== emitted) {
-    setEmitted(fromAddress);
-    setParts(parseAddress(fromAddress));
-  }
-
-  function emit(next: AddressParts) {
-    setParts(next);
-    const text = composeAddress(next);
-    setEmitted(text);
-    onFromAddressChange(text);
-  }
-
-  function updatePart(patch: Partial<AddressParts>) {
-    emit({ ...parts, ...patch });
-  }
-
   function chooseCustom() {
     // Start from the default so a small change (new suite) is quick.
     if (!fromAddress.trim() && defaultFromAddress) {
-      emit(parseAddress(defaultFromAddress));
+      onFromAddressChange(composeAddress(parseAddress(defaultFromAddress)));
     }
     onFromAddressModeChange("custom");
   }
-
-  const missing = missingParts(parts);
 
   return (
     <div className={styles.wrap}>
@@ -219,102 +331,26 @@ export default function InvoiceAddressFields({
             </p>
           )
         ) : (
-          <>
-            <div className={styles.addressGrid}>
-              <div className={`${styles.subField} ${styles.streetField}`}>
-                <label className={styles.subLabel} htmlFor='fromStreet'>
-                  Street address
-                </label>
-                <input
-                  id='fromStreet'
-                  className={styles.input}
-                  value={parts.street}
-                  onChange={(e) => updatePart({ street: e.target.value })}
-                  placeholder='123 Main St, Suite 200'
-                  autoComplete='off'
-                />
-              </div>
-
-              <div className={styles.subField}>
-                <label className={styles.subLabel} htmlFor='fromCity'>
-                  City
-                </label>
-                <input
-                  id='fromCity'
-                  className={styles.input}
-                  value={parts.city}
-                  onChange={(e) => updatePart({ city: e.target.value })}
-                  placeholder='Phoenix'
-                  autoComplete='off'
-                />
-              </div>
-
-              <div className={styles.subField}>
-                <label className={styles.subLabel} htmlFor='fromState'>
-                  State
-                </label>
-                <select
-                  id='fromState'
-                  className={styles.select}
-                  value={parts.state}
-                  onChange={(e) => updatePart({ state: e.target.value })}
-                >
-                  <option value=''>Select…</option>
-                  {US_STATES.map((s) => (
-                    <option key={s.code} value={s.code}>
-                      {s.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.subField}>
-                <label className={styles.subLabel} htmlFor='fromZip'>
-                  ZIP
-                </label>
-                <input
-                  id='fromZip'
-                  className={styles.input}
-                  inputMode='numeric'
-                  value={parts.zip}
-                  onChange={(e) =>
-                    updatePart({
-                      zip: e.target.value.replace(/[^\d-]/g, "").slice(0, 10),
-                    })
-                  }
-                  placeholder='85004'
-                  autoComplete='off'
-                />
-              </div>
-            </div>
-            <span className={styles.hint}>
-              {missing.length > 0
-                ? `Still needed: ${missing.join(", ")}.`
-                : "Your phone and email still print underneath."}
-            </span>
-          </>
+          <AddressPartsInput
+            idPrefix='from'
+            value={fromAddress}
+            onChange={onFromAddressChange}
+            completeHint='Your phone and email still print underneath.'
+          />
         )}
       </div>
 
       {/* ── Recipient address ── */}
       <div className={styles.field}>
-        <label className={styles.label} htmlFor='billToAddress'>
-          Customer&apos;s address (optional)
-        </label>
-        <textarea
-          id='billToAddress'
-          className={styles.textarea}
+        <span className={styles.label}>Customer&apos;s address (optional)</span>
+        <AddressPartsInput
+          idPrefix='billTo'
           value={billToAddress}
-          onChange={(e) => onBillToAddressChange(e.target.value)}
-          placeholder={
-            "Company or attention line\nStreet address\nCity, State ZIP"
-          }
-          rows={3}
+          onChange={onBillToAddressChange}
+          optional
+          completeHint="Printed under the customer's name in the Bill To section."
+          blankHint='Leave blank to show just their name and contact details.'
         />
-        <span className={styles.hint}>
-          Printed under the customer&apos;s name in the Bill To section. Leave
-          blank to show just their name and contact details.
-        </span>
       </div>
     </div>
   );

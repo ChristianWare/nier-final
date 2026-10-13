@@ -78,7 +78,7 @@
   border-color: var(--black);
 }
 
-/* ── Custom sender address: street / city / state / ZIP ── */
+/* ── Address fields: street / city / state / ZIP ── */
 .addressGrid {
   display: grid;
   grid-template-columns: 2fr 1.4fr 1fr;
@@ -137,6 +137,11 @@
 .hint {
   font-size: 1.3rem;
   opacity: 0.6;
+}
+
+.warn {
+  color: var(--red);
+  opacity: 1;
 }
 
 .link {
