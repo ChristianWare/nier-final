@@ -7,6 +7,8 @@ import styles from "./NewInvoiceForm.module.css";
 import Button from "@/components/shared/Button/Button";
 import { adminCreateInvoice } from "../../../../../actions/admin/invoices/adminCreateInvoice";
 import { adminSearchUsers } from "../../../../../actions/admin/users/adminSearchUsers";
+import InvoiceAddressFields from "../InvoiceAddressFields/InvoiceAddressFields";
+import type { FromAddressMode } from "@/lib/invoice/invoiceAddress";
 
 type UserLite = {
   id: string;
@@ -46,7 +48,12 @@ const emptyLine = (): LineItem => ({
   unitPrice: "",
 });
 
-export default function NewInvoiceForm() {
+export default function NewInvoiceForm({
+  defaultFromAddress,
+}: {
+  /** Current Company Settings address, shown as the "default" preview. */
+  defaultFromAddress: string;
+}) {
   const router = useRouter();
 
   const [customerKind, setCustomerKind] = useState<"account" | "guest">(
@@ -63,6 +70,12 @@ export default function NewInvoiceForm() {
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
+
+  // Addresses
+  const [fromAddressMode, setFromAddressMode] =
+    useState<FromAddressMode>("default");
+  const [fromAddress, setFromAddress] = useState("");
+  const [billToAddress, setBillToAddress] = useState("");
 
   // Line items
   const [lineItems, setLineItems] = useState<LineItem[]>([emptyLine()]);
@@ -155,6 +168,10 @@ export default function NewInvoiceForm() {
       setError("Enter a guest email.");
       return;
     }
+    if (fromAddressMode === "custom" && !fromAddress.trim()) {
+      setError("Enter the address to show on the invoice, or use the default.");
+      return;
+    }
     const hasItem = lineItems.some(
       (li) => li.description.trim().length > 0 && dollarsToCents(li.unitPrice) > 0,
     );
@@ -171,6 +188,9 @@ export default function NewInvoiceForm() {
         guestName: customerKind === "guest" ? guestName : null,
         guestEmail: customerKind === "guest" ? guestEmail : null,
         guestPhone: customerKind === "guest" ? guestPhone : null,
+        fromAddressMode,
+        fromAddress: fromAddressMode === "custom" ? fromAddress : null,
+        billToAddress,
         lineItems: lineItems.map((li) => ({
           description: li.description,
           quantity: Math.max(1, Math.floor(Number(li.quantity) || 0)),
@@ -312,6 +332,20 @@ export default function NewInvoiceForm() {
             </div>
           </div>
         )}
+      </section>
+
+      {/* ── Addresses ── */}
+      <section className={styles.card}>
+        <h2 className={styles.cardTitle}>Addresses</h2>
+        <InvoiceAddressFields
+          defaultFromAddress={defaultFromAddress}
+          fromAddressMode={fromAddressMode}
+          onFromAddressModeChange={setFromAddressMode}
+          fromAddress={fromAddress}
+          onFromAddressChange={setFromAddress}
+          billToAddress={billToAddress}
+          onBillToAddressChange={setBillToAddress}
+        />
       </section>
 
       {/* ── Line items ── */}

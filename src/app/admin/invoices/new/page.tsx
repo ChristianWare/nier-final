@@ -1,9 +1,13 @@
 import NewInvoiceForm from "./NewInvoiceForm";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import { defaultFromAddress } from "@/lib/invoice/invoiceAddress";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function AdminNewInvoicePage() {
+  const settings = await getCompanySettings();
+
   return (
     <section className="container" aria-label="New invoice">
       <header className="header">
@@ -15,7 +19,7 @@ export default async function AdminNewInvoicePage() {
         </p>
       </header>
 
-      <NewInvoiceForm />
+      <NewInvoiceForm defaultFromAddress={defaultFromAddress(settings)} />
     </section>
   );
 }

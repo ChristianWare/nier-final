@@ -5,6 +5,12 @@ import { db } from "@/lib/db";
 import { auth } from "../../../auth";
 import { revalidatePath } from "next/cache";
 import { sendInvoiceLinkEmail } from "@/lib/email/sendInvoiceLinkEmail";
+import { getCompanySettings } from "../companySettings";
+import {
+  cleanAddress,
+  resolveFromAddress,
+  type FromAddressMode,
+} from "@/lib/invoice/invoiceAddress";
 
 async function requireAdmin() {
   const session = await auth();
@@ -112,6 +118,84 @@ export async function adminSendInvoice(input: {
   revalidatePath(`/admin/invoices/${invoice.id}`);
   revalidatePath("/admin/invoices");
   return { ok: true, recipient };
+}
+
+/* ── Edit the sender / bill-to addresses (unpaid, non-void invoices) ── */
+export async function adminUpdateInvoiceAddresses(input: {
+  invoiceId: string;
+  fromAddressMode: FromAddressMode;
+  fromAddress?: string | null;
+  billToAddress?: string | null;
+}): Promise<{ ok: true } | { error: string }> {
+  const admin = await requireAdmin();
+  if (!admin) return { error: "Not authorized." };
+
+  const invoice = await db.invoice.findUnique({
+    where: { id: input.invoiceId },
+    select: {
+      id: true,
+      status: true,
+      totalCents: true,
+      amountPaidCents: true,
+      fromAddress: true,
+      fromAddressCustom: true,
+      billToAddress: true,
+    },
+  });
+  if (!invoice) return { error: "Invoice not found." };
+  if (invoice.status === "VOID") {
+    return { error: "This invoice is voided and can't be edited." };
+  }
+  if (
+    invoice.status === "PAID" ||
+    invoice.totalCents - invoice.amountPaidCents <= 0
+  ) {
+    return { error: "This invoice is paid and can't be edited." };
+  }
+
+  const settings = await getCompanySettings();
+  const from = resolveFromAddress(
+    input.fromAddressMode === "custom" ? "custom" : "default",
+    input.fromAddress,
+    settings,
+  );
+  if ("error" in from) return { error: from.error };
+
+  const billTo = cleanAddress(input.billToAddress);
+  if ("error" in billTo) return { error: billTo.error };
+
+  await db.$transaction(async (tx) => {
+    await tx.invoice.update({
+      where: { id: invoice.id },
+      data: {
+        fromAddress: from.fromAddress,
+        fromAddressCustom: from.fromAddressCustom,
+        billToAddress: billTo.value,
+      },
+    });
+    await tx.invoiceEvent.create({
+      data: {
+        invoiceId: invoice.id,
+        eventType: "ADDRESS_UPDATED",
+        createdById: admin.actorId,
+        metadata: {
+          before: {
+            fromAddress: invoice.fromAddress,
+            fromAddressCustom: invoice.fromAddressCustom,
+            billToAddress: invoice.billToAddress,
+          },
+          after: {
+            fromAddress: from.fromAddress,
+            fromAddressCustom: from.fromAddressCustom,
+            billToAddress: billTo.value,
+          },
+        },
+      },
+    });
+  });
+
+  revalidatePath(`/admin/invoices/${invoice.id}`);
+  return { ok: true };
 }
 
 /* ── Void an invoice ── */

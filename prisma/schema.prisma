@@ -1115,6 +1115,18 @@ model Invoice {
   guestEmail String?
   guestPhone String?
 
+  // Sender address printed under the company name on the PDF, one line per
+  // line. Saved when the invoice is created (the Company Settings address,
+  // or a custom one) so later settings edits don't rewrite issued invoices.
+  // Null only on invoices created before this field existed; those fall back
+  // to the live Company Settings address.
+  fromAddress       String? @db.Text
+  // True when the admin typed a different address instead of the default.
+  fromAddressCustom Boolean @default(false)
+
+  // Optional recipient address printed in the BILL TO block.
+  billToAddress String? @db.Text
+
   status InvoiceStatus @default(DRAFT)
 
   // Customer-facing memo (shown on the invoice) + admin-only notes.
@@ -1185,7 +1197,7 @@ model InvoiceEvent {
   invoiceId String
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
-  eventType String // "CREATED", "SENT", "VIEWED", "PARTIALLY_PAID", "PAID", "VOIDED", "REMINDER_SENT"
+  eventType String // "CREATED", "SENT", "VIEWED", "PARTIALLY_PAID", "PAID", "VOIDED", "REMINDER_SENT", "ADDRESS_UPDATED"
 
   metadata Json? // { amount: 50000, tip: 1000, note: "..." }
 

@@ -6,6 +6,9 @@ import { notFound } from "next/navigation";
 import { formatMoney } from "@/lib/timezone";
 import InvoiceActions from "./InvoiceActions";
 import InvoicePdfPanel from "./InvoicePdfPanel";
+import InvoiceAddressCard from "./InvoiceAddressCard";
+import { getCompanySettings } from "../../../../../actions/admin/companySettings";
+import { defaultFromAddress } from "@/lib/invoice/invoiceAddress";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +37,7 @@ const EVENT_LABEL: Record<string, string> = {
   PAID: "Marked paid",
   VOIDED: "Voided",
   REMINDER_SENT: "Reminder sent",
+  ADDRESS_UPDATED: "Addresses updated",
 };
 
 function fmtDateTime(d: Date | null | undefined): string {
@@ -61,73 +65,80 @@ type Props = { params: Promise<{ id: string }> };
 export default async function AdminInvoiceDetailPage({ params }: Props) {
   const { id } = await params;
 
-  const invoice = await db.invoice.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      invoiceNumber: true,
-      status: true,
-      memo: true,
-      internalNotes: true,
-      subtotalCents: true,
-      totalCents: true,
-      amountPaidCents: true,
-      tipCents: true,
-      allowTip: true,
-      currency: true,
-      dueDate: true,
-      sentAt: true,
-      paidAt: true,
-      createdAt: true,
-      receiptUrl: true,
-      user: { select: { id: true, name: true, email: true, phone: true } },
-      guestName: true,
-      guestEmail: true,
-      guestPhone: true,
-      createdBy: { select: { name: true, email: true } },
-      lineItems: {
-        orderBy: { position: "asc" },
-        select: {
-          id: true,
-          description: true,
-          quantity: true,
-          unitAmountCents: true,
+  const [invoice, settings] = await Promise.all([
+    db.invoice.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        invoiceNumber: true,
+        status: true,
+        memo: true,
+        internalNotes: true,
+        subtotalCents: true,
+        totalCents: true,
+        amountPaidCents: true,
+        tipCents: true,
+        allowTip: true,
+        currency: true,
+        dueDate: true,
+        sentAt: true,
+        paidAt: true,
+        createdAt: true,
+        receiptUrl: true,
+        user: { select: { id: true, name: true, email: true, phone: true } },
+        guestName: true,
+        guestEmail: true,
+        guestPhone: true,
+        fromAddress: true,
+        fromAddressCustom: true,
+        billToAddress: true,
+        createdBy: { select: { name: true, email: true } },
+        lineItems: {
+          orderBy: { position: "asc" },
+          select: {
+            id: true,
+            description: true,
+            quantity: true,
+            unitAmountCents: true,
+          },
+        },
+        events: {
+          orderBy: { createdAt: "desc" },
+          select: {
+            id: true,
+            eventType: true,
+            metadata: true,
+            createdAt: true,
+            createdBy: { select: { name: true, email: true } },
+          },
         },
       },
-      events: {
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          eventType: true,
-          metadata: true,
-          createdAt: true,
-          createdBy: { select: { name: true, email: true } },
-        },
-      },
-    },
-  });
+    }),
+    getCompanySettings(),
+  ]);
 
   if (!invoice) notFound();
+
+  const settingsFromAddress = defaultFromAddress(settings);
 
   const currency = (invoice.currency ?? "usd").toUpperCase();
   const balanceDueCents = invoice.totalCents - invoice.amountPaidCents;
   const isGuest = !invoice.user;
-  const customerName =
-    invoice.user?.name || invoice.guestName || "—";
+  const customerName = invoice.user?.name || invoice.guestName || "—";
   const customerEmail = invoice.user?.email || invoice.guestEmail || "";
   const customerPhone = invoice.user?.phone || invoice.guestPhone || "";
 
   return (
-    <section className={styles.container} aria-label="Invoice detail">
+    <section className={styles.container} aria-label='Invoice detail'>
       {/* ── Header ── */}
       <header className={styles.header}>
         <div className={styles.headerTop}>
           <div>
-            <Link href="/admin/invoices" className={styles.backLink}>
+            <Link href='/admin/invoices' className={styles.backLink}>
               ← All invoices
             </Link>
             <div className={styles.titleRow}>
-              <h1 className="heading h2">{invoice.invoiceNumber}</h1>
+              <h1 className='heading h2'>{invoice.invoiceNumber}</h1>
               <span
                 className={`badge ${STATUS_BADGE[invoice.status] ?? "badge_neutral"}`}
               >
@@ -136,9 +147,7 @@ export default async function AdminInvoiceDetailPage({ params }: Props) {
             </div>
             <p className={styles.createdMeta}>
               Created {fmtDate(invoice.createdAt)}
-              {invoice.createdBy?.name
-                ? ` by ${invoice.createdBy.name}`
-                : ""}
+              {invoice.createdBy?.name ? ` by ${invoice.createdBy.name}` : ""}
             </p>
           </div>
 
@@ -200,9 +209,7 @@ export default async function AdminInvoiceDetailPage({ params }: Props) {
               {invoice.amountPaidCents > 0 && (
                 <div className={styles.totalRow}>
                   <span>Paid</span>
-                  <span>
-                    −{formatMoney(invoice.amountPaidCents, currency)}
-                  </span>
+                  <span>−{formatMoney(invoice.amountPaidCents, currency)}</span>
                 </div>
               )}
               <div className={`${styles.totalRow} ${styles.grand}`}>
@@ -311,6 +318,19 @@ export default async function AdminInvoiceDetailPage({ params }: Props) {
               </div>
             </div>
           </div>
+
+          <InvoiceAddressCard
+            invoiceId={invoice.id}
+            fromAddress={invoice.fromAddress ?? settingsFromAddress}
+            fromAddressCustom={invoice.fromAddressCustom}
+            billToAddress={invoice.billToAddress}
+            defaultFromAddress={settingsFromAddress}
+            editable={
+              invoice.status !== "VOID" &&
+              invoice.status !== "PAID" &&
+              balanceDueCents > 0
+            }
+          />
 
           <div className={styles.card}>
             <h2 className={styles.cardTitle}>Actions</h2>

@@ -1,0 +1,90 @@
+/* Matches NewInvoiceForm.module.css so the fields sit in either form. */
+
+.wrap {
+  display: grid;
+  gap: 2rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.toggle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.4rem;
+  background: var(--cream);
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.toggleBtn {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 0.7rem 1.6rem;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--black400);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.toggleActive {
+  background: var(--white);
+  color: var(--black);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.preview {
+  display: grid;
+  gap: 0.2rem;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  background: var(--cream);
+  font-size: 1.5rem;
+}
+
+.preview .hint {
+  margin-top: 0.6rem;
+}
+
+.textarea {
+  width: 100%;
+  font-size: 1.5rem;
+  line-height: 1.5;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--black);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+.hint {
+  font-size: 1.3rem;
+  opacity: 0.6;
+}
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

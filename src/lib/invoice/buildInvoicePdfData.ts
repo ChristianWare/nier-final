@@ -5,6 +5,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { createElement } from "react";
 import { db } from "@/lib/db";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
+import { addressLines, defaultFromAddress } from "@/lib/invoice/invoiceAddress";
 import InvoiceDocumentPDF, {
   type InvoiceDocData,
 } from "@/lib/invoice/InvoiceDocumentPDF";
@@ -48,6 +49,8 @@ export async function buildInvoicePdfData(
         guestName: true,
         guestEmail: true,
         guestPhone: true,
+        fromAddress: true,
+        billToAddress: true,
         lineItems: {
           orderBy: { position: "asc" },
           select: {
@@ -76,8 +79,10 @@ export async function buildInvoicePdfData(
     status: invoice.status,
     company: {
       name: companyDisplayName(settings),
-      address: settings.officeAddress ?? "",
-      city: settings.officeCity ?? "",
+      // Saved on the invoice; older invoices fall back to Company Settings.
+      addressLines: addressLines(
+        invoice.fromAddress ?? defaultFromAddress(settings),
+      ),
       phone: settings.dispatchPhone ?? "",
       email: settings.supportEmail ?? settings.emailReplyTo ?? "",
     },
@@ -85,6 +90,7 @@ export async function buildInvoicePdfData(
       name: invoice.user?.name ?? invoice.guestName ?? "Customer",
       email: invoice.user?.email ?? invoice.guestEmail ?? "",
       phone: invoice.user?.phone ?? invoice.guestPhone ?? null,
+      addressLines: addressLines(invoice.billToAddress),
     },
     lineItems: invoice.lineItems,
     subtotalCents: invoice.subtotalCents,

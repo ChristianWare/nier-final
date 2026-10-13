@@ -20,8 +20,8 @@ export type InvoiceDocData = {
   status: string; // DRAFT | SENT | PARTIALLY_PAID | PAID | VOID
   company: {
     name: string;
-    address: string;
-    city: string;
+    /** Sender address, one entry per printed line. */
+    addressLines: string[];
     phone: string;
     email: string;
   };
@@ -29,6 +29,8 @@ export type InvoiceDocData = {
     name: string;
     email: string;
     phone: string | null;
+    /** Optional recipient address, one entry per printed line. */
+    addressLines: string[];
   };
   lineItems: InvoiceDocLineItem[];
   subtotalCents: number;
@@ -75,12 +77,11 @@ export default function InvoiceDocumentPDF({
               <Text style={s.companyName}>{data.company.name}</Text>
             </View>
             <View style={{ marginTop: 6 }}>
-              {data.company.address ? (
-                <Text style={s.companyDetails}>{data.company.address}</Text>
-              ) : null}
-              {data.company.city ? (
-                <Text style={s.companyDetails}>{data.company.city}</Text>
-              ) : null}
+              {data.company.addressLines.map((line, i) => (
+                <Text key={i} style={s.companyDetails}>
+                  {line}
+                </Text>
+              ))}
               {data.company.phone ? (
                 <Text style={s.companyDetails}>{data.company.phone}</Text>
               ) : null}
@@ -125,6 +126,11 @@ export default function InvoiceDocumentPDF({
         <View style={s.billToSection}>
           <Text style={s.sectionLabel}>BILL TO</Text>
           <Text style={s.customerName}>{data.customer.name}</Text>
+          {data.customer.addressLines.map((line, i) => (
+            <Text key={i} style={s.customerDetail}>
+              {line}
+            </Text>
+          ))}
           {data.customer.email ? (
             <Text style={s.customerDetail}>{data.customer.email}</Text>
           ) : null}

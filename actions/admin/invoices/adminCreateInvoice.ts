@@ -4,6 +4,12 @@
 import { db } from "@/lib/db";
 import { auth } from "../../../auth";
 import { revalidatePath } from "next/cache";
+import { getCompanySettings } from "../companySettings";
+import {
+  cleanAddress,
+  resolveFromAddress,
+  type FromAddressMode,
+} from "@/lib/invoice/invoiceAddress";
 
 /* ─────────────────────────────────────────────
    Generate next invoice number: INV-2026-0001
@@ -49,6 +55,12 @@ type AdminCreateInvoiceInput = {
   guestName?: string | null;
   guestEmail?: string | null;
   guestPhone?: string | null;
+
+  // Sender address: the Company Settings address, or a custom one.
+  fromAddressMode?: FromAddressMode;
+  fromAddress?: string | null;
+  // Optional recipient address for the BILL TO block.
+  billToAddress?: string | null;
 
   lineItems: LineItemInput[];
 
@@ -121,6 +133,18 @@ export async function adminCreateInvoice(
     guestPhone = (input.guestPhone ?? "").trim() || null;
   }
 
+  // ── Addresses ──
+  const settings = await getCompanySettings();
+  const from = resolveFromAddress(
+    input.fromAddressMode === "custom" ? "custom" : "default",
+    input.fromAddress,
+    settings,
+  );
+  if ("error" in from) return { error: from.error };
+
+  const billTo = cleanAddress(input.billToAddress);
+  if ("error" in billTo) return { error: billTo.error };
+
   // ── Optional due date ──
   let dueDate: Date | null = null;
   if (input.dueDate) {
@@ -141,6 +165,9 @@ export async function adminCreateInvoice(
           guestName,
           guestEmail,
           guestPhone,
+          fromAddress: from.fromAddress,
+          fromAddressCustom: from.fromAddressCustom,
+          billToAddress: billTo.value,
           memo: (input.memo ?? "").trim() || null,
           internalNotes: (input.internalNotes ?? "").trim() || null,
           subtotalCents,
