@@ -28,6 +28,16 @@ type LineItem = {
 function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
+function formatPhoneInput(raw: string): string {
+  const d = raw
+    .replace(/\D/g, "")
+    .replace(/^1(?=\d{10})/, "")
+    .slice(0, 10);
+  if (d.length === 0) return "";
+  if (d.length < 4) return `(${d}`;
+  if (d.length < 7) return `(${d.slice(0, 3)}) ${d.slice(3)}`;
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
 
 function dollarsToCents(s: string): number {
   const n = parseFloat(String(s).replace(/[^0-9.]/g, ""));
@@ -173,7 +183,8 @@ export default function NewInvoiceForm({
       return;
     }
     const hasItem = lineItems.some(
-      (li) => li.description.trim().length > 0 && dollarsToCents(li.unitPrice) > 0,
+      (li) =>
+        li.description.trim().length > 0 && dollarsToCents(li.unitPrice) > 0,
     );
     if (!hasItem || subtotalCents <= 0) {
       setError("Add at least one line item with a description and amount.");
@@ -223,14 +234,14 @@ export default function NewInvoiceForm({
 
         <div className={styles.toggle}>
           <button
-            type="button"
+            type='button'
             className={`${styles.toggleBtn} ${customerKind === "account" ? styles.toggleActive : ""}`}
             onClick={() => setCustomerKind("account")}
           >
             Account holder
           </button>
           <button
-            type="button"
+            type='button'
             className={`${styles.toggleBtn} ${customerKind === "guest" ? styles.toggleActive : ""}`}
             onClick={() => setCustomerKind("guest")}
           >
@@ -252,7 +263,7 @@ export default function NewInvoiceForm({
                   </div>
                 </div>
                 <button
-                  type="button"
+                  type='button'
                   className={styles.linkBtn}
                   onClick={clearUser}
                 >
@@ -267,7 +278,7 @@ export default function NewInvoiceForm({
                   value={userQuery}
                   onChange={(e) => setUserQuery(e.target.value)}
                   placeholder="Start typing a customer's name or email…"
-                  autoComplete="off"
+                  autoComplete='off'
                 />
                 {userSearching && (
                   <div className={styles.searchHint}>Searching…</div>
@@ -277,7 +288,7 @@ export default function NewInvoiceForm({
                     {userResults.map((u) => (
                       <li key={u.id}>
                         <button
-                          type="button"
+                          type='button'
                           className={styles.resultBtn}
                           onClick={() => selectUser(u)}
                         >
@@ -294,7 +305,8 @@ export default function NewInvoiceForm({
                   !userSearching &&
                   userResults.length === 0 && (
                     <div className={styles.searchHint}>
-                      No matches. They may not have an account — switch to Guest.
+                      No matches. They may not have an account — switch to
+                      Guest.
                     </div>
                   )}
               </div>
@@ -308,26 +320,30 @@ export default function NewInvoiceForm({
                 className={styles.input}
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Jane Smith"
+                placeholder='Jane Smith'
               />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Email (required)</label>
               <input
                 className={styles.input}
-                type="email"
+                type='email'
                 value={guestEmail}
                 onChange={(e) => setGuestEmail(e.target.value)}
-                placeholder="jane@example.com"
+                placeholder='jane@example.com'
               />
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Phone (optional)</label>
               <input
                 className={styles.input}
+                type='tel'
+                inputMode='tel'
                 value={guestPhone}
-                onChange={(e) => setGuestPhone(e.target.value)}
-                placeholder="(602) 555-0142"
+                onChange={(e) =>
+                  setGuestPhone(formatPhoneInput(e.target.value))
+                }
+                placeholder='(602) 555-0142'
               />
             </div>
           </div>
@@ -371,11 +387,11 @@ export default function NewInvoiceForm({
                 onChange={(e) =>
                   updateLine(li.key, { description: e.target.value })
                 }
-                placeholder="e.g. Cleaning fee, wait time, damage…"
+                placeholder='e.g. Cleaning fee, wait time, damage…'
               />
               <input
                 className={`${styles.input} ${styles.qtyCol}`}
-                type="number"
+                type='number'
                 min={1}
                 step={1}
                 value={li.quantity}
@@ -387,21 +403,21 @@ export default function NewInvoiceForm({
                 <span className={styles.dollar}>$</span>
                 <input
                   className={`${styles.input} ${styles.priceInput}`}
-                  inputMode="decimal"
+                  inputMode='decimal'
                   value={li.unitPrice}
                   onChange={(e) =>
                     updateLine(li.key, { unitPrice: e.target.value })
                   }
-                  placeholder="0.00"
+                  placeholder='0.00'
                 />
               </div>
               <span className={styles.totalCol}>{fmt(lineTotal)}</span>
               <button
-                type="button"
+                type='button'
                 className={styles.removeBtn}
                 onClick={() => removeLine(li.key)}
                 disabled={lineItems.length === 1}
-                aria-label="Remove line item"
+                aria-label='Remove line item'
               >
                 ×
               </button>
@@ -409,7 +425,7 @@ export default function NewInvoiceForm({
           );
         })}
 
-        <button type="button" className={styles.addBtn} onClick={addLine}>
+        <button type='button' className={styles.addBtn} onClick={addLine}>
           + Add line item
         </button>
 
@@ -429,14 +445,12 @@ export default function NewInvoiceForm({
         <h2 className={styles.cardTitle}>Details</h2>
 
         <div className={styles.field}>
-          <label className={styles.label}>
-            Memo to customer (optional)
-          </label>
+          <label className={styles.label}>Memo to customer (optional)</label>
           <textarea
             className={styles.textarea}
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
-            placeholder="Shown on the invoice and receipt, e.g. “Thanks for your business.”"
+            placeholder='Shown on the invoice and receipt, e.g. “Thanks for your business.”'
             rows={2}
           />
         </div>
@@ -449,7 +463,7 @@ export default function NewInvoiceForm({
             className={styles.textarea}
             value={internalNotes}
             onChange={(e) => setInternalNotes(e.target.value)}
-            placeholder="Not visible to the customer."
+            placeholder='Not visible to the customer.'
             rows={2}
           />
         </div>
@@ -466,7 +480,7 @@ export default function NewInvoiceForm({
 
           <label className={styles.checkRow}>
             <input
-              type="checkbox"
+              type='checkbox'
               checked={allowTip}
               onChange={(e) => setAllowTip(e.target.checked)}
             />
@@ -478,13 +492,13 @@ export default function NewInvoiceForm({
       {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.actions}>
-        <Button href="/admin/invoices" btnType="grayReg" text="Cancel" />
+        <Button href='/admin/invoices' btnType='grayReg' text='Cancel' />
         <Button
-          btnType="greenReg"
+          btnType='greenReg'
           text={submitting ? "Creating…" : "Create invoice"}
           onClick={handleSubmit}
           disabled={submitting}
-          as="button"
+          as='button'
           // checkIcon
         />
       </div>

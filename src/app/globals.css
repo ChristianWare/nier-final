@@ -151,6 +151,10 @@ textarea {
   color: var(--black);
 }
 
+textarea {
+  letter-spacing: normal;
+}
+
 input:focus,
 textarea:focus,
 select:focus {

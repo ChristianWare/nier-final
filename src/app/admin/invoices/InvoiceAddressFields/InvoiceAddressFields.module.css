@@ -78,6 +78,62 @@
   border-color: var(--black);
 }
 
+/* ── Custom sender address: street / city / state / ZIP ── */
+.addressGrid {
+  display: grid;
+  grid-template-columns: 2fr 1.4fr 1fr;
+  gap: 1.2rem;
+}
+
+.streetField {
+  grid-column: 1 / -1;
+}
+
+.subField {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.subLabel {
+  font-size: 1.2rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.input,
+.select {
+  width: 100%;
+  font-size: 1.5rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--black);
+  font-family: inherit;
+  letter-spacing: normal;
+}
+
+.select {
+  cursor: pointer;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--black);
+}
+
+@media (max-width: 720px) {
+  .addressGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .addressGrid .subField:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+}
+
 .hint {
   font-size: 1.3rem;
   opacity: 0.6;
