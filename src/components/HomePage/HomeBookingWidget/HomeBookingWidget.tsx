@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
@@ -10,6 +10,10 @@ import toast from "react-hot-toast";
 import { usePlausible } from "next-plausible";
 import styles from "./HomeBookingWidget.module.css";
 import Button from "@/components/shared/Button/Button";
+import RoutePicker, {
+  type RoutePickerPlace,
+  type RoutePickerValue,
+} from "@/components/BookingPage/RoutePicker/RoutePicker";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,6 +23,10 @@ export type WidgetAirportDTO = {
   id: string;
   name: string;
   iata: string;
+  address?: string | null;
+  placeId?: string | null;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 export type WidgetServiceTypeDTO = {
@@ -76,6 +84,38 @@ function toNumber(v: any): number | null {
   if (v == null) return null;
   const n = typeof v === "number" ? v : Number(v);
   return Number.isFinite(n) ? n : null;
+}
+
+function toRoutePlace(p: PlaceResult | null): RoutePickerPlace | null {
+  if (!p || p.lat == null || p.lng == null) return null;
+  return {
+    address: p.address,
+    placeId: p.placeId ?? "",
+    location: { lat: p.lat, lng: p.lng },
+  };
+}
+
+function airportToRoutePlace(
+  a: WidgetAirportDTO | undefined,
+): RoutePickerPlace | null {
+  const lat = toNumber(a?.lat);
+  const lng = toNumber(a?.lng);
+  if (!a || lat == null || lng == null) return null;
+  return {
+    address: a.address || `${a.name} (${a.iata})`,
+    placeId: a.placeId || a.id,
+    location: { lat, lng },
+  };
+}
+
+function samePlace(a: PlaceResult | null, b: RoutePickerPlace | null) {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return (
+    (a.placeId ?? "") === (b.placeId ?? "") &&
+    a.lat === b.location.lat &&
+    a.lng === b.location.lng
+  );
 }
 
 function buildDateString(month: string, day: string, year: string): string {
@@ -204,6 +244,7 @@ export default function HomeBookingWidget({
   serviceTypes,
   companyTimezoneLabel,
   fluid = false,
+  showMap = false,
   source,
 }: {
   serviceTypes: WidgetServiceTypeDTO[];
@@ -212,6 +253,8 @@ export default function HomeBookingWidget({
   companyTimezoneLabel: string;
   /** Fill the parent's width (article columns) instead of the fixed 450px hero card. */
   fluid?: boolean;
+  /** Split the card 2fr / 1fr with a live route map on the right. */
+  showMap?: boolean;
   /** Where the widget sits (e.g. "blog:topgolf-scottsdale"); sent to Plausible on submit. */
   source?: string;
 }) {
@@ -245,8 +288,21 @@ export default function HomeBookingWidget({
     () => (r: PlaceResult) => setDropoffPlace(r),
     [],
   );
-  usePlacesAutocomplete(pickupInputRef, handlePickupPlace, mapsReady);
-  usePlacesAutocomplete(dropoffInputRef, handleDropoffPlace, mapsReady);
+  // With the map on, RoutePicker attaches autocomplete to these same inputs.
+  usePlacesAutocomplete(
+    pickupInputRef,
+    handlePickupPlace,
+    mapsReady && !showMap,
+  );
+  usePlacesAutocomplete(
+    dropoffInputRef,
+    handleDropoffPlace,
+    mapsReady && !showMap,
+  );
+
+  // Distance / duration from the map's route calculation
+  const [routeMiles, setRouteMiles] = useState<number | null>(null);
+  const [routeMinutes, setRouteMinutes] = useState<number | null>(null);
 
   // Airport selection — lives inline with the service field
   const [selectedPickupAirportId, setSelectedPickupAirportId] = useState("");
@@ -311,11 +367,86 @@ export default function HomeBookingWidget({
     setSelectedDropoffAirportId("");
     setPickupPlace(null);
     setDropoffPlace(null);
+    setRouteMiles(null);
+    setRouteMinutes(null);
+    if (pickupInputRef.current) pickupInputRef.current.value = "";
+    if (dropoffInputRef.current) dropoffInputRef.current.value = "";
     setFlightNumber("");
     setFlightDateYear("");
     setFlightDateMonth("");
     setFlightDateDay("");
   }, [serviceTypeId]);
+
+  // ── Map route (pickup/dropoff → RoutePicker) ──────────────────────────
+  const pickupAirport = serviceAirports.find(
+    (a) => a.id === selectedPickupAirportId,
+  );
+  const dropoffAirport = serviceAirports.find(
+    (a) => a.id === selectedDropoffAirportId,
+  );
+  const routePickup = useMemo(
+    () =>
+      usesPickupAirport
+        ? airportToRoutePlace(pickupAirport)
+        : toRoutePlace(pickupPlace),
+    [usesPickupAirport, pickupAirport, pickupPlace],
+  );
+  const routeDropoff = useMemo(
+    () =>
+      usesDropoffAirport
+        ? airportToRoutePlace(dropoffAirport)
+        : toRoutePlace(dropoffPlace),
+    [usesDropoffAirport, dropoffAirport, dropoffPlace],
+  );
+  const routeValue = useMemo<RoutePickerValue>(
+    () => ({
+      pickup: routePickup,
+      dropoff: routeDropoff,
+      stops: [],
+      miles: routeMiles,
+      minutes: routeMinutes,
+      distanceMiles: routeMiles,
+      durationMinutes: routeMinutes,
+    }),
+    [routePickup, routeDropoff, routeMiles, routeMinutes],
+  );
+
+  // RoutePicker keeps the first onChange it is given inside its Places
+  // listeners, so hand it a stable function that reads the latest state.
+  const routeChangeRef = useRef<(v: RoutePickerValue) => void>(() => {});
+  routeChangeRef.current = (next: RoutePickerValue) => {
+    if (!usesPickupAirport && !samePlace(pickupPlace, next.pickup)) {
+      setPickupPlace(
+        next.pickup
+          ? {
+              address: next.pickup.address,
+              placeId: next.pickup.placeId || null,
+              lat: next.pickup.location.lat,
+              lng: next.pickup.location.lng,
+            }
+          : null,
+      );
+    }
+    if (!usesDropoffAirport && !samePlace(dropoffPlace, next.dropoff)) {
+      setDropoffPlace(
+        next.dropoff
+          ? {
+              address: next.dropoff.address,
+              placeId: next.dropoff.placeId || null,
+              lat: next.dropoff.location.lat,
+              lng: next.dropoff.location.lng,
+            }
+          : null,
+      );
+    }
+    setRouteMiles(toNumber(next.miles ?? next.distanceMiles ?? null));
+    setRouteMinutes(toNumber(next.minutes ?? next.durationMinutes ?? null));
+  };
+  const handleRouteChange = useCallback(
+    (v: RoutePickerValue) => routeChangeRef.current(v),
+    [],
+  );
+  const routeInputsKey = `${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}`;
 
   // Pickup date options
   const availableMonths = useMemo(
@@ -428,15 +559,6 @@ export default function HomeBookingWidget({
     }
     // ───────────────────────────────────────────────────────────────────
 
-    if (usesPickupAirport && !selectedPickupAirportId) {
-      toast.error("Please select a pickup airport.");
-      return;
-    }
-    if (usesDropoffAirport && !selectedDropoffAirportId) {
-      toast.error("Please select a dropoff airport.");
-      return;
-    }
-
     if (selectedService?.pricingStrategy === "HOURLY" && hoursRequested < 2) {
       toast.error("Please select the number of hours.");
       return;
@@ -485,10 +607,21 @@ export default function HomeBookingWidget({
                 }
               : null,
             stops: [],
-            miles: null,
-            minutes: null,
-            distanceMiles: null,
-            durationMinutes: null,
+            // Only send the distance when it was measured for this exact
+            // pair of addresses (no airport leg — /book re-measures those).
+            ...(hasValidPickup && hasValidDropoff && routeMiles != null
+              ? {
+                  miles: routeMiles,
+                  minutes: routeMinutes,
+                  distanceMiles: routeMiles,
+                  durationMinutes: routeMinutes,
+                }
+              : {
+                  miles: null,
+                  minutes: null,
+                  distanceMiles: null,
+                  durationMinutes: null,
+                }),
           }
         : null;
 
@@ -519,7 +652,7 @@ export default function HomeBookingWidget({
           hoursRequested:
             selectedService?.pricingStrategy === "HOURLY"
               ? hoursRequested
-              : undefined, // ← add
+              : undefined,
           startStep: 1,
         }),
       );
@@ -536,7 +669,15 @@ export default function HomeBookingWidget({
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className={fluid ? `${styles.card} ${styles.fluid}` : styles.card}>
+    <div
+      className={[
+        styles.card,
+        fluid || showMap ? styles.fluid : "",
+        showMap ? styles.withMap : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {/* ── Header: "Book your Ride" left, auth links right ── */}
       <div className={styles.cardHeader}>
         <span className={styles.headerTitle}>Book your Ride</span>
@@ -554,6 +695,7 @@ export default function HomeBookingWidget({
         </div>
       </div>
 
+      <div className={showMap ? styles.split : undefined}>
       <div className={styles.cardBody}>
         {/* ── Service ── */}
         <div className={styles.field}>
@@ -951,6 +1093,21 @@ export default function HomeBookingWidget({
             onClick={handleSubmit}
           />
         </div>
+      </div>
+
+      {/* ── Live route map (right column) ── */}
+      {showMap && (
+        <div className={styles.mapCol}>
+          <RoutePicker
+            value={routeValue}
+            onChange={handleRouteChange}
+            pickupInputRef={pickupInputRef}
+            dropoffInputRef={dropoffInputRef}
+            inputsKey={routeInputsKey}
+            fill
+          />
+        </div>
+      )}
       </div>
     </div>
   );

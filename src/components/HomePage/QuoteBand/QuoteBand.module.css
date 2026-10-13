@@ -12,6 +12,11 @@
   margin: 0 auto;
 }
 
+/* Homepage: the widget carries a map, so give the band the full width. */
+.contentWide {
+  width: 100%;
+}
+
 /* ── Left: photo card ─────────────────────────────────────────────── */
 
 .photoCard {

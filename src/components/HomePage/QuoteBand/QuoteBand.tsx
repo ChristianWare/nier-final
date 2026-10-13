@@ -40,6 +40,7 @@ export default function QuoteBand({
   copy = DEFAULT_COPY,
   source = "home:quote-band",
   headingId = "quote-heading",
+  showMap = false,
 }: {
   widget: BookingWidgetData;
   heading?: string;
@@ -49,11 +50,17 @@ export default function QuoteBand({
   source?: string;
   /** Unique id for the heading when the band appears more than once. */
   headingId?: string;
+  /** Show the live route map beside the widget and run the band full width. */
+  showMap?: boolean;
 }) {
   return (
     <section className={styles.container} aria-labelledby={headingId}>
       <LayoutWrapper>
-        <div className={styles.content}>
+        <div
+          className={
+            showMap ? `${styles.content} ${styles.contentWide}` : styles.content
+          }
+        >
           <figure className={styles.photoCard}>
             <Image
               src={ChauffeurImg}
@@ -120,6 +127,7 @@ export default function QuoteBand({
                 companyTimezoneLabel={widget.companyTimezoneLabel}
                 source={source}
                 fluid
+                showMap={showMap}
               />
             </div>
           </div>

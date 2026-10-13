@@ -20,6 +20,30 @@
   width: 100%;
 }
 
+/* ── Map layout: form left (2fr), route map right (1fr) ───────────── */
+.withMap {
+  min-width: 0;
+  width: 100%;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  align-items: stretch; /* map column matches the form's height */
+}
+
+.split > .cardBody {
+  min-width: 0;
+}
+
+.mapCol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 2rem;
+  border-left: 1px solid var(--stroke);
+}
+
 /* ── Header ────────────────────────────────────────────────────────── */
 .cardHeader {
   display: flex;
@@ -108,6 +132,17 @@
 
 .buttonWrap > * {
   width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .mapCol {
+    padding: 0 2rem 2rem;
+    border-left: none;
+  }
 }
 
 @media screen and (max-width: 568px) {

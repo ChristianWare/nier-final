@@ -108,12 +108,15 @@ export default function RoutePicker({
   pickupInputRef,
   dropoffInputRef,
   inputsKey,
+  fill = false,
 }: {
   value: RoutePickerValue | null;
   onChange: (v: RoutePickerValue) => void;
   pickupInputRef?: RefObject<HTMLInputElement | null>;
   dropoffInputRef?: RefObject<HTMLInputElement | null>;
   inputsKey?: any;
+  /** Stretch the map to fill its parent's height (homepage quote widget). */
+  fill?: boolean;
 }) {
   const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
 
@@ -463,7 +466,10 @@ export default function RoutePicker({
   const displayMinutes = value?.minutes ?? value?.durationMinutes ?? null;
 
   return (
-    <div style={{ display: "grid", gap: 10 }}>
+    <div
+      className={fill ? styles.fillRoot : undefined}
+      style={fill ? undefined : { display: "grid", gap: 10 }}
+    >
       <div className={styles.infoItemContainer}>
         {/* {loadingRoute && <div style={{ opacity: 0.7 }}>Calculating route…</div>} */}
         {error && <div style={{ color: "crimson", fontSize: 14 }}>{error}</div>}
@@ -471,12 +477,10 @@ export default function RoutePicker({
 
       <div
         ref={mapRef}
-        style={{
-          
-        }}
-        className={styles.map}
+        className={fill ? `${styles.map} ${styles.mapFill}` : styles.map}
       />
 
+      <div className={fill ? styles.fillStats : undefined}>
       <div className={styles.infoItem}>
         <div className='emptyTitleSmall'>Total Distance</div>
         <div className='subheading'>
@@ -501,6 +505,7 @@ export default function RoutePicker({
             </span>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

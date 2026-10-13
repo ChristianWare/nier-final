@@ -59,6 +59,10 @@ export async function getBookingWidgetData(): Promise<BookingWidgetData> {
           id: true,
           name: true,
           iata: true,
+          address: true,
+          placeId: true,
+          lat: true,
+          lng: true,
         },
       },
 
@@ -92,8 +96,18 @@ export async function getBookingWidgetData(): Promise<BookingWidgetData> {
     },
   });
 
+  // Prisma Decimals can't cross into Client Components — convert to numbers.
+  const serviceTypes = serviceTypesRaw.map((s) => ({
+    ...s,
+    airports: s.airports.map((a) => ({
+      ...a,
+      lat: a.lat == null ? null : Number(a.lat),
+      lng: a.lng == null ? null : Number(a.lng),
+    })),
+  }));
+
   return {
-    serviceTypes: serviceTypesRaw as unknown as WidgetServiceTypeDTO[],
+    serviceTypes: serviceTypes as unknown as WidgetServiceTypeDTO[],
     vehicles: vehicles as unknown as WidgetVehicleDTO[],
     companyTimezone: companySettings.timezone,
     companyTimezoneLabel,

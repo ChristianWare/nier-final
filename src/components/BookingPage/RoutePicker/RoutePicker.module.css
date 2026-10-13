@@ -24,6 +24,28 @@
   outline: 2px solid #4e94ec33;
 }
 
+/* ── Fill mode: map stretches to the parent's height ── */
+.fillRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.mapFill {
+  flex: 1;
+  height: auto;
+  min-height: 320px;
+}
+
+.fillStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
 /* ============================================
    ADD THESE STYLES TO RoutePicker.module.css
    ============================================ */
@@ -139,5 +161,11 @@
 @media screen and (max-width: 768px) {
   .map {
     height: 300px;
+  }
+
+  .mapFill {
+    flex: none;
+    height: 300px;
+    min-height: 0;
   }
 }
