@@ -5,7 +5,7 @@
 
 .content {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 2fr;
   grid-gap: 4rem;
   align-items: stretch;
   width: 80%;

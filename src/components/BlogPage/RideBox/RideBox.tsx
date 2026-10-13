@@ -26,7 +26,7 @@ export default function RideBox({
 }) {
   return (
     <aside className={styles.box} aria-label={title}>
-      {/* Places autocomplete for the pickup/drop-off fields. next/script
+      {/* Maps for the route map and pickup/drop-off search. next/script
           loads it once per page even if a post uses RideBox twice. */}
       <Script
         id='google-maps'
@@ -52,6 +52,7 @@ export default function RideBox({
         companyTimezoneLabel={data.companyTimezoneLabel}
         source={source}
         fluid
+        showMap
       />
     </aside>
   );

@@ -24,11 +24,14 @@
 .withMap {
   min-width: 0;
   width: 100%;
+  /* Stack by the widget's own width, not the screen's: in a blog column
+     the widget is far narrower than the viewport. */
+  container-type: inline-size;
 }
 
 .split {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1.5fr;
   align-items: stretch; /* map column matches the form's height */
 }
 
@@ -134,7 +137,7 @@
   width: 100%;
 }
 
-@media screen and (max-width: 768px) {
+@container (max-width: 620px) {
   .split {
     grid-template-columns: 1fr;
   }
