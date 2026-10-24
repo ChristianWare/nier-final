@@ -41,11 +41,12 @@ const BlogSection = dynamic(
 );
 
 // The homepage is the Phoenix + Scottsdale money page: it targets "black car
-// service Phoenix", "chauffeur service Phoenix" and "Phoenix car service".
+// service Phoenix", "limo service Phoenix" and "Phoenix car service".
+// "Chauffeur service Phoenix" belongs to /services/hourly-chauffeur.
 // /locations/phoenix redirects here (next.config.ts).
-const TITLE = "Black Car & Chauffeur Service Phoenix & Scottsdale | Nier";
+const TITLE = "Black Car & Limo Service in Phoenix & Scottsdale | Nier";
 const DESCRIPTION =
-  "Phoenix and Scottsdale black car and chauffeur service since 2004. Flat-rate Sky Harbor transfers, hourly chauffeurs, limos and Sprinters. No surge pricing, 24/7.";
+  "Phoenix and Scottsdale black car, chauffeur and limo service since 2004. Flat-rate Sky Harbor car service, hourly chauffeurs, stretch limos and Sprinters. No surge pricing, 24/7.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
         url: "https://www.niertransportation.com/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Nier Transportation: black car and chauffeur service in Phoenix & Scottsdale",
+        alt: "Nier Transportation: black car and limo service in Phoenix & Scottsdale",
       },
     ],
   },

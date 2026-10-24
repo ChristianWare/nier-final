@@ -91,7 +91,7 @@ export default function Hero({
             <div className={styles.cc1}>
               <div className={styles.left}>
                 <h1 className={`${styles.heading} h2`}>
-                  Black Car &amp; Chauffeur Service in Phoenix &amp; Scottsdale
+                  Black Car &amp; Limo Service in Phoenix &amp; Scottsdale
                 </h1>
               </div>
               <div className={styles.right}>

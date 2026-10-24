@@ -29,7 +29,7 @@ const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 const descriptionOverrides: Partial<Record<string, string>> = {
   scottsdale:
-    "Car service in Scottsdale since 2004: airport transfers to PHX and SDL, hourly chauffeurs, golf outings, weddings and limo service. Flat rates, no surge pricing.",
+    "Scottsdale car service and limo service since 2004: airport limo and car service to PHX and SDL, hourly chauffeurs, golf outings and weddings. Flat rates, no surge pricing.",
   tempe:
     "Black car service in Tempe, AZ — airport transfers to PHX & AZA, hourly chauffeur near ASU and Tempe Marketplace, and corporate rides. Flat rates, no surge pricing.",
   chandler:
@@ -59,7 +59,7 @@ const descriptionOverrides: Partial<Record<string, string>> = {
 
 const titleOverrides: Partial<Record<string, string>> = {
   glendale: "Airport Transportation & Car Service in Glendale, AZ | Nier",
-  scottsdale: "Scottsdale Car Service & Chauffeur | Nier Transportation",
+  scottsdale: "Scottsdale Car Service & Limo Service | Nier Transportation",
 };
 
 export function generateStaticParams() {
@@ -180,10 +180,12 @@ export default async function LocationCityPage({
       <LocationCityMission city={city} />
       <LocationCityStats city={city} />
 
-      {/* City-specific unique content — critical for Google indexing */}
+      {/* City-specific unique content: the words that make each city page
+          different from the others, plus the link to its airport route.
+          Without it Google sees near-identical pages and ranks none. */}
       {(city.localContext || city.airportNote || city.corporateNote) && (
         <section className={styles.cityContext}>
-          {/* <LayoutWrapper>
+          <LayoutWrapper>
             <div className={styles.cityContextGrid}>
               <div className={styles.cityContextLeft}>
                 <h2 className={styles.cityContextHeading}>
@@ -232,7 +234,7 @@ export default async function LocationCityPage({
                 </div>
               )}
             </div>
-          </LayoutWrapper> */}
+          </LayoutWrapper>
         </section>
       )}
 

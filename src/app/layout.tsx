@@ -103,6 +103,9 @@ export default async function RootLayout({
         <ScrollToTop />
         <PlausibleProvider
           domain='niertransportation.com'
+          // Staff and signed-in areas aren't site traffic: Barry, the
+          // drivers and account holders would otherwise count as visitors.
+          exclude='/admin, /admin/**, /driver-dashboard, /driver-dashboard/**, /dashboard, /dashboard/**, /account, /account/**, /corporate, /corporate/**, /studio, /studio/**'
           trackLocalhost={false}
           enabled={true}
         >

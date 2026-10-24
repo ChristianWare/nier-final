@@ -15,16 +15,21 @@ import type { Metadata } from "next";
 import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "Corporate Accounts | Black Car Service Phoenix & Scottsdale",
+  // Owns "corporate car service" and "executive car service Phoenix"; the
+  // homepage owns "black car service Phoenix".
+  title: "Corporate & Executive Car Service Phoenix | Accounts | Nier",
   description:
-    "Streamline your company's ground transportation with Nier Transportation. Centralized billing, dedicated support, and negotiated rates for businesses in Phoenix and Scottsdale.",
+    "Corporate car service in Phoenix and Scottsdale: executive black cars on one account, with centralized billing, dedicated support and negotiated rates. Since 2004.",
+  alternates: {
+    canonical: "https://www.niertransportation.com/corporate-accounts",
+  },
 };
 
 const corporateSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
   name: "Corporate Transportation Accounts",
-  url: "https://www.niertransportation.com/corporate",
+  url: "https://www.niertransportation.com/corporate-accounts",
   description:
     "Centralized corporate ground transportation accounts for businesses in Phoenix, Scottsdale, and greater Metro Phoenix. Dedicated billing, reporting, and priority booking.",
   provider: BUSINESS_REF,

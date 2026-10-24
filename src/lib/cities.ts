@@ -17,7 +17,7 @@ export const serviceAreaCities = [
   {
     name: "Scottsdale",
     slug: "scottsdale",
-    h1: "Scottsdale car service, tailored to every journey.",
+    h1: "Scottsdale car & limo service, tailored to every journey.",
     note: "Home to world-class golf courses like TPC Scottsdale and Troon North",
     src: Scottsdale,
     airportNote:
