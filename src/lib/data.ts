@@ -938,7 +938,10 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     ],
     availabilityNotes: "Black exterior, black interior.",
     images: [
-      { src: MercedesSedan, alt: "Executive sedan exterior" },
+      {
+        src: MercedesSedan,
+        alt: "Black Mercedes executive sedan with chauffeur in Phoenix, AZ",
+      },
       { src: "/images/fleet/eclass-2.jpg", alt: "Executive sedan interior" },
     ],
     rateRules: {
@@ -984,7 +987,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
     ],
     seo: {
-      metaTitle: "Executive Sedan | Nier Transportation Fleet",
+      metaTitle: "Executive Sedan Car Service in Phoenix | Nier Transportation",
       metaDescription:
         "Executive sedan for efficient city travel and airport transfers. Comfortable, quiet, and discreet.",
     },
@@ -1040,7 +1043,10 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     ],
     availabilityNotes: "Black exterior standard.",
     images: [
-      { src: Suburban, alt: "7-passenger SUV exterior" },
+      {
+        src: Suburban,
+        alt: "Black 7-passenger Chevy SUV for airport transfers in Phoenix, AZ",
+      },
       { src: "/images/fleet/suburban-2.jpg", alt: "7-passenger SUV interior" },
     ],
     rateRules: {
@@ -1087,7 +1093,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
     ],
     seo: {
-      metaTitle: "7-Passenger SUV | Nier Transportation Fleet",
+      metaTitle: "7-Passenger SUV Service in Phoenix | Nier Transportation",
       metaDescription:
         "Book a spacious 7-passenger SUV with professional chauffeur—ideal for families, golf trips, and airport transfers.",
     },
@@ -1139,7 +1145,10 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     ],
     availabilityNotes: "Black exterior, black interior.",
     images: [
-      { src: Escalade, alt: "Luxury SUV exterior" },
+      {
+        src: Escalade,
+        alt: "Black Cadillac Escalade ESV chauffeured SUV in Phoenix, AZ",
+      },
       { src: "/images/fleet/escalade-2.jpg", alt: "Luxury SUV interior" },
     ],
     rateRules: {
@@ -1186,7 +1195,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
     ],
     seo: {
-      metaTitle: "Luxury SUV | Nier Transportation Fleet",
+      metaTitle: "Cadillac Escalade ESV with Chauffeur in Phoenix | Nier",
       metaDescription:
         "Arrive in style in our extended luxury SUV. Premium comfort for VIP travel, events, and executive transport in Phoenix.",
     },
@@ -1237,7 +1246,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     ],
     availabilityNotes: "Black exterior; conference layout varies by unit.",
     images: [
-      { src: Sprinter, alt: "Executive sprinter van exterior" },
+      { src: Sprinter, alt: "Black Mercedes Sprinter executive van with chauffeur in Phoenix, AZ" },
       {
         src: "/images/fleet/sprinter-exec-2.jpg",
         alt: "Executive sprinter van interior",
@@ -1286,7 +1295,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
     ],
     seo: {
-      metaTitle: "Executive Sprinter Van | Nier Transportation Fleet",
+      metaTitle: "Sprinter Van with Chauffeur in Phoenix | Nier Transportation",
       metaDescription:
         "Executive sprinter van with captain's chairs and power at every seat—premium group travel for teams and events in Phoenix.",
     },
@@ -1335,7 +1344,12 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     ],
     availabilityNotes:
       "Black exterior standard. Alcohol policy varies by event — confirm at booking. No glass containers.",
-    images: [{ src: Suburban, alt: "Stretch limousine exterior" }],
+    images: [
+      {
+        src: Limo,
+        alt: "Black stretch limousine for weddings and proms in Phoenix, AZ",
+      },
+    ],
     rateRules: {
       minimumHours: 3,
       hourlyFromUSD: 175,
@@ -1379,12 +1393,12 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
     ],
     seo: {
-      metaTitle: "Stretch Limousine | Nier Transportation Fleet",
+      metaTitle: "Stretch Limo Rental in Phoenix & Scottsdale | Nier",
       metaDescription:
         "Arrive in classic style with a stretch limousine — perfect for weddings, proms, anniversaries, and special occasions in Phoenix.",
     },
     desc: "The classic stretch limo with fiber-optic lighting, privacy partition, and a premium sound system. The iconic choice for weddings, proms, and any occasion that deserves a grand entrance.",
-    src: Limo, // replace with your limo image import
+    src: Limo,
   },
   {
     id: 6,
@@ -1427,7 +1441,10 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     availabilityNotes:
       "Alcohol policy varies by event—confirm at booking. No glass containers permitted.",
     images: [
-      { src: PartyBus, alt: "Party bus exterior" },
+      {
+        src: PartyBus,
+        alt: "Mini party bus for 20 to 40 passengers in Phoenix, AZ",
+      },
       { src: "/images/fleet/partybus-2.jpg", alt: "Party bus interior" },
     ],
     rateRules: {
@@ -1473,7 +1490,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
     ],
     seo: {
-      metaTitle: "Party Bus | Nier Transportation Fleet",
+      metaTitle: "Mini Party Bus, 20–40 Passengers, Phoenix | Nier",
       metaDescription:
         "Celebrate safely with a party bus—perfect for weddings, concerts, and group nights out in Phoenix.",
     },
@@ -1530,7 +1547,10 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     availabilityNotes:
       "Black or white exterior available. Confirm color preference at booking.",
     images: [
-      { src: Bus, alt: "Motorcoach exterior" },
+      {
+        src: Bus,
+        alt: "56-passenger motorcoach charter bus in Phoenix, AZ",
+      },
       { src: "/images/fleet/motorcoach-2.jpg", alt: "Motorcoach interior" },
     ],
     rateRules: {
@@ -1576,7 +1596,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
     ],
     seo: {
-      metaTitle: "Full-Size Motorcoach | Nier Transportation Fleet",
+      metaTitle: "56-Passenger Motorcoach in Phoenix | Nier Transportation",
       metaDescription:
         "Full-size motorcoach for 40+ passengers. Reclining seats, luggage bays, and a smooth ride—ideal for corporate shuttles and large group events in Phoenix.",
     },
