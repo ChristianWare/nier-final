@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 import Footer from "@/components/shared/Footer/Footer";
@@ -10,10 +10,45 @@ import PlausibleProvider from "next-plausible";
 import { buildBusinessSchema } from "@/lib/schema";
 import { getCompanySettings } from "../../actions/admin/companySettings";
 
-const inter = Inter({
+// Inter is served from our own files (src/app/fonts) instead of being
+// downloaded from Google Fonts at build time: Google changed its font links in
+// Nov 2026 and next/font/google in Next 16.1.1 can no longer read them, which
+// broke every build. Same font, weights and CSS variable as before.
+const inter = localFont({
   variable: "--inter",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "800", "900"],
+  display: "swap",
+  src: [
+    {
+      path: "./fonts/inter-latin-300-normal.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "./fonts/inter-latin-400-normal.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "./fonts/inter-latin-500-normal.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "./fonts/inter-latin-600-normal.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "./fonts/inter-latin-800-normal.woff2",
+      weight: "800",
+      style: "normal",
+    },
+    {
+      path: "./fonts/inter-latin-900-normal.woff2",
+      weight: "900",
+      style: "normal",
+    },
+  ],
 });
 
 export const metadata: Metadata = {
@@ -59,7 +94,6 @@ export default async function RootLayout({
   return (
     <html lang='en'>
       <head>
-      
         {/* ── Cloudinary preconnect ── */}
         {/* <link rel='preconnect' href='https://res.cloudinary.com' /> */}
         {/* <link
