@@ -85,11 +85,11 @@ export default async function CheckoutPage({ params, searchParams }: Props) {
       ? (booking as any).balanceDueDate.toISOString()
       : ((booking as any).balanceDueDate ?? null);
 
-  // Deposit is considered paid if the customer has already paid at least the deposit amount
-  const isDepositAlreadyPaid =
-    depositMode &&
-    depositCents != null &&
-    effectiveAmountPaidCents >= depositCents;
+  // Any payment counts as the deposit being received. Denise paid $76 (10%
+  // of the original $760); after the price rose to $965 the deposit became
+  // $96.50 and the old ">= deposit" check sent her back to the "pay deposit
+  // or pay in full" screen. Once something is paid, only the rest is owed.
+  const isDepositAlreadyPaid = depositMode && effectiveAmountPaidCents > 0;
 
   // ── Payment state ──
   const amountPaidCents = effectiveAmountPaidCents;

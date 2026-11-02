@@ -17,6 +17,7 @@ import {
   isCheckoutPaymentRecorded,
 } from "../../../../actions/payments/chargeCardOnFileForCheckout";
 import Modal from "@/components/shared/Modal/Modal";
+import { formatDueDate } from "@/lib/booking/dueDates";
 
 type Stop = {
   id: string;
@@ -102,16 +103,9 @@ function formatTime(isoString: string, tz: string) {
   });
 }
 
+// Due dates are calendar days; see src/lib/booking/dueDates.ts
 function formatLocalDate(iso: string) {
-  try {
-    return new Date(iso).toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  } catch {
-    return iso;
-  }
+  return formatDueDate(iso) ?? iso;
 }
 
 function CheckoutForm({
@@ -518,13 +512,17 @@ export default function CheckoutClient({
         <div className={styles.content}>
           <div className={styles.header}>
             <h1 className={`${styles.heading} underline`}>
-              Complete Your Payment
+              {isBalancePayment && !isThisDepositPayment
+                ? "Pay Remaining Balance"
+                : "Complete Your Payment"}
             </h1>
             <p className={styles.subtitle}>
               {isThisDepositPayment
                 ? `Paying ${depositPercent}% deposit — balance of ${formatMoney(balanceCents ?? 0, currency)} due later`
                 : isBalancePayment
-                  ? "Pay the remaining balance for your trip"
+                  ? depositMode
+                    ? `We received your deposit of ${formatMoney(amountPaidCents, currency)}. Pay the remaining balance for your trip.`
+                    : "Pay the remaining balance for your trip"
                   : "Secure payment for your upcoming trip"}
             </p>
             {/* Allow going back to choice screen */}
@@ -779,7 +777,9 @@ export default function CheckoutClient({
                 <div className={styles.priceBreakdown}>
                   {isBalancePayment && !isThisDepositPayment && (
                     <div className={styles.priceRow}>
-                      <span className={styles.priceLabel}>Previously Paid</span>
+                      <span className={styles.priceLabel}>
+                        {depositMode ? "Deposit Received" : "Previously Paid"}
+                      </span>
                       <span className={styles.priceValue}>
                         {formatMoney(amountPaidCents, currency)}
                       </span>
@@ -798,7 +798,9 @@ export default function CheckoutClient({
                       {isThisDepositPayment
                         ? `Deposit (${depositPercent}%)`
                         : isBalancePayment
-                          ? "Balance Due"
+                          ? depositMode
+                            ? "Remaining Balance"
+                            : "Balance Due"
                           : "Base Fare"}
                     </span>
                     <span className={styles.priceValue}>

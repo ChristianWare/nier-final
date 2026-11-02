@@ -50,7 +50,16 @@ function describe(e: Event): { what: string; to: string } | null {
         to,
       };
     case "BALANCE_REMINDER_SENT":
-      return { what: "Balance reminder · sent by an admin", to };
+      return {
+        what: kinds.includes("due_date")
+          ? "Balance reminder · on the balance due date"
+          : kinds.includes("before_pickup")
+            ? "Balance reminder · 48 hours before pickup"
+            : "Balance reminder · sent by an admin",
+        to,
+      };
+    case "DEPOSIT_REMINDER_SENT":
+      return { what: "Deposit reminder · on the deposit due date (unpaid)", to };
     case "ADMIN_ALERT_SENT": {
       const reasons = Array.isArray(m.reasons)
         ? (m.reasons as string[]).map((r) => REASONS[r] ?? r).join(", ")
@@ -78,7 +87,10 @@ export default function RemindersSent({
       <p className='miniNote'>
         None yet. Customers get a trip reminder 24 hours and 2 hours before
         pickup, and a payment reminder if a payment link is still unpaid 24
-        hours after it was sent and again 48 hours before pickup. Admins get an
+        hours after it was sent and again 48 hours before pickup. Bookings that
+        take a deposit instead get a deposit reminder on the deposit due date
+        if nothing is paid, and a balance reminder on the balance due date and
+        48 hours before pickup while a balance is owed. Admins get an
         alert 24 hours before pickup if the ride is unpaid or has no driver.
         About 2 hours after a ride is completed, the rider gets one Google
         review request (at most once every 90 days).

@@ -110,11 +110,13 @@ export async function resolveCheckoutCharge({
     booking.depositMode && booking.depositPercent != null
       ? Math.round((due.totalCents * booking.depositPercent) / 100)
       : (booking.depositCents ?? null);
+  // Once anything has been paid, the deposit counts as received (even if the
+  // price went up afterwards) and only the remaining balance can be paid.
   const depositIsOpen =
     booking.depositMode &&
     depositCents != null &&
     depositCents > 0 &&
-    due.paidCents < depositCents;
+    due.paidCents <= 0;
 
   let fareCents: number;
   if (isDepositPayment) {

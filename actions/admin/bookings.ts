@@ -8,6 +8,7 @@ import { auth } from "../../auth";
 import { getStripe } from "@/lib/stripe";
 import { getAmountDue } from "@/lib/booking/getAmountDue";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
+import { sendBalanceDueEmail } from "@/lib/email/sendBalanceDueEmail";
 import { queueAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import { revalidatePath } from "next/cache";
 import { BookingStatus } from "@prisma/client";
@@ -684,8 +685,8 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   const { actorId } = await requireAdmin();
   const parsed = SendPaymentSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: "Invalid request." };
-  const { bookingId, isBalancePayment, isDepositPayment, depositAmountCents } =
-    parsed.data;
+  const { bookingId, depositAmountCents } = parsed.data;
+  let { isBalancePayment, isDepositPayment } = parsed.data;
   const overrideEmail =
     (formData.get("overrideEmail") as string | null)?.trim().toLowerCase() ||
     null;
@@ -768,6 +769,17 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
   // from (which is why the email used to show the full trip total).
   const due = await getAmountDue(b.id);
   const amountPaidCents = due?.paidCents ?? b.payment?.amountPaidCents ?? 0;
+
+  // Once anything has been paid, a link can only ever collect the rest. This
+  // used to send a "Deposit Due" email (and reset the payment to PENDING)
+  // after the customer had already paid their deposit.
+  if (amountPaidCents > 0) {
+    isBalancePayment = true;
+    isDepositPayment = false;
+  }
+  const isDepositBalance =
+    isBalancePayment && !!bookingWithDeposit?.depositMode;
+
   const amountToCharge = isBalancePayment
     ? effectiveTotalCents - amountPaidCents
     : effectiveTotalCents;
@@ -841,6 +853,26 @@ export async function createPaymentLinkAndEmail(formData: FormData) {
         currency: b.currency,
         payUrl: customCheckoutUrl,
         bookingId: b.id,
+        groupLegs: depositGroupLegs.length > 1 ? depositGroupLegs : undefined,
+      });
+    } else if (isDepositBalance) {
+      // Deposit received, balance still owed.
+      await sendBalanceDueEmail({
+        to: recipientEmail,
+        name: recipientName,
+        pickupAtISO: b.pickupAt.toISOString(),
+        pickupAddress: b.pickupAddress,
+        dropoffAddress: b.dropoffAddress,
+        totalCents: effectiveTotalCents,
+        paidCents: amountPaidCents,
+        balanceCents: amountToCharge,
+        balanceDueDate:
+          bookingWithDeposit?.balanceDueDate?.toISOString() ?? null,
+        currency: b.currency,
+        payUrl: customCheckoutUrl,
+        bookingId: b.id,
+        kind: "manual",
+        groupLegs: depositGroupLegs.length > 1 ? depositGroupLegs : undefined,
       });
     } else {
       await sendPaymentLinkEmail({

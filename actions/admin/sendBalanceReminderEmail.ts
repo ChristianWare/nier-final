@@ -8,6 +8,7 @@ import { auth } from "../../auth";
 import { revalidatePath } from "next/cache";
 import { sendPaymentLinkEmail } from "@/lib/email/sendPaymentLink";
 import { getAmountDue } from "@/lib/booking/getAmountDue";
+import { sendBalanceDueEmail } from "@/lib/email/sendBalanceDueEmail";
 
 const Schema = z.object({
   bookingId: z.string().min(1),
@@ -80,18 +81,37 @@ export async function sendBalanceReminderEmail(formData: FormData) {
   // (pickup date, addresses, amount, pay button). The subject line and
   // intro copy make it clear this is a reminder for an outstanding balance.
   try {
-    await sendPaymentLinkEmail({
-      to: recipientEmail,
-      name: recipientName,
-      pickupAtISO: booking.pickupAt.toISOString(),
-      pickupAddress: booking.pickupAddress,
-      dropoffAddress: booking.dropoffAddress,
-      // Show the outstanding amount, not the full total, when partially paid
-      totalCents: amountPaidCents > 0 ? outstandingCents : totalCents,
-      currency: booking.currency,
-      payUrl: checkoutUrl,
-      bookingId: booking.id,
-    });
+    if (booking.depositMode && amountPaidCents > 0 && outstandingCents > 0) {
+      // Deposit received: say so, and ask only for what's left.
+      await sendBalanceDueEmail({
+        to: recipientEmail,
+        name: recipientName,
+        pickupAtISO: booking.pickupAt.toISOString(),
+        pickupAddress: booking.pickupAddress,
+        dropoffAddress: booking.dropoffAddress,
+        totalCents,
+        paidCents: amountPaidCents,
+        balanceCents: outstandingCents,
+        balanceDueDate: booking.balanceDueDate?.toISOString() ?? null,
+        currency: booking.currency,
+        payUrl: checkoutUrl,
+        bookingId: booking.id,
+        kind: "manual",
+      });
+    } else {
+      await sendPaymentLinkEmail({
+        to: recipientEmail,
+        name: recipientName,
+        pickupAtISO: booking.pickupAt.toISOString(),
+        pickupAddress: booking.pickupAddress,
+        dropoffAddress: booking.dropoffAddress,
+        // Show the outstanding amount, not the full total, when partially paid
+        totalCents: amountPaidCents > 0 ? outstandingCents : totalCents,
+        currency: booking.currency,
+        payUrl: checkoutUrl,
+        bookingId: booking.id,
+      });
+    }
   } catch (e) {
     console.error("sendBalanceReminderEmail: email send failed", e);
     return { error: "Failed to send the reminder email. Please try again." };

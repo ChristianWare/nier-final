@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
+import { formatDueDate } from "@/lib/booking/dueDates";
 
 function requireEnv(name: string) {
   const v = process.env[name];
@@ -38,14 +39,9 @@ function formatPickupTime(iso: string, timeZone: string) {
   }).format(d);
 }
 
+// Due dates are calendar days; see src/lib/booking/dueDates.ts
 function formatDateShort(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(d);
+  return formatDueDate(iso) ?? iso;
 }
 
 type GroupLeg = {
@@ -73,6 +69,11 @@ export async function sendDepositLinkEmail(args: {
   payUrl: string;
   bookingId: string;
   groupLegs?: GroupLeg[];
+  /**
+   * Sent automatically on the deposit due date because nothing has been paid
+   * yet. Same content, reminder wording.
+   */
+  reminder?: boolean;
 }) {
   const resend = new Resend(requireEnv("RESEND_API_KEY"));
   const from = requireEnv("RESEND_FROM");
@@ -97,7 +98,10 @@ export async function sendDepositLinkEmail(args: {
   const is100 = args.depositPercent === 100;
   const isMultiTrip = args.groupLegs && args.groupLegs.length > 1;
 
-  const subject = `\u2705 Booking Approved \u2013 ${is100 ? "Complete Your Payment" : `Deposit of ${depositFormatted} Due`} | ${companyName}`;
+  const reminder = args.reminder === true;
+  const subject = reminder
+    ? `Reminder: ${is100 ? `Payment of ${depositFormatted}` : `Deposit of ${depositFormatted}`} Due Today | ${companyName}`
+    : `\u2705 Booking Approved \u2013 ${is100 ? "Complete Your Payment" : `Deposit of ${depositFormatted} Due`} | ${companyName}`;
 
   const colors = {
     black: "#000000",
@@ -313,7 +317,7 @@ export async function sendDepositLinkEmail(args: {
               <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
                 <tr>
                   <td style="background-color:${colors.lightGreen};border:1px solid ${colors.green};border-radius:50px;padding:12px 24px;">
-                    <span style="color:${colors.darkGreen};font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">\u2713 Booking Approved</span>
+                    <span style="color:${colors.darkGreen};font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">${reminder ? (is100 ? "Payment Due Today" : "Deposit Due Today") : "\u2713 Booking Approved"}</span>
                   </td>
                 </tr>
               </table>
@@ -325,7 +329,11 @@ export async function sendDepositLinkEmail(args: {
               <h2 style="margin:0 0 12px 0;color:${colors.black};font-size:26px;font-weight:600;letter-spacing:-1px;line-height:1.2;">Hi ${firstName}!</h2>
               <p style="margin:0;color:${colors.paragraph};font-size:16px;line-height:1.5;">
                 ${
-                  is100
+                  reminder
+                    ? is100
+                      ? `A friendly reminder that your payment of <strong>${depositFormatted}</strong> is due today to confirm your ride${isMultiTrip ? "s" : ""}.`
+                      : `A friendly reminder that your <strong>${args.depositPercent}% deposit of ${depositFormatted}</strong> is due today to secure your ride${isMultiTrip ? "s" : ""}. The remaining ${balanceFormatted} will be due later.`
+                    : is100
                     ? "Your reservation has been approved. Complete your payment below to confirm your ride."
                     : `Your reservation has been approved. A <strong>${args.depositPercent}% deposit of ${depositFormatted}</strong> is required to secure your ride${isMultiTrip ? "s" : ""}. The remaining ${balanceFormatted} will be due later.`
                 }
@@ -434,7 +442,9 @@ export async function sendDepositLinkEmail(args: {
     "",
     `Hi ${firstName}!`,
     "",
-    is100
+    reminder
+      ? `A friendly reminder that your ${is100 ? "payment" : "deposit"} of ${depositFormatted} is due today.`
+      : is100
       ? `Your reservation has been approved. Pay ${depositFormatted} to confirm your ride.`
       : `Your reservation has been approved. A ${args.depositPercent}% deposit of ${depositFormatted} is required to secure your booking.`,
     "",

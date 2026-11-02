@@ -7,6 +7,7 @@ import { createPaymentLinkAndEmail } from "../../../../actions/admin/bookings";
 import Button from "@/components/shared/Button/Button";
 import Modal from "@/components/shared/Modal/Modal";
 import styles from "./SendPaymentLinkButton.module.css";
+import { formatDueDate } from "@/lib/booking/dueDates";
 
 function formatMoney(cents: number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
@@ -16,12 +17,9 @@ function formatMoney(cents: number, currency = "USD") {
   }).format(cents / 100);
 }
 
+// Due dates are calendar days; see src/lib/booking/dueDates.ts
 function formatDate(iso: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(iso));
+  return formatDueDate(iso, "short") ?? iso;
 }
 
 function isValidEmail(v: string) {
@@ -77,10 +75,10 @@ export default function SendPaymentLinkButton({
 
   const effectiveDepositCents = depositCents ?? 0;
   const balanceDueCents = totalCents - amountPaidCents;
-  const isDepositPaid =
-    depositMode &&
-    effectiveDepositCents > 0 &&
-    amountPaidCents >= effectiveDepositCents;
+  // Any payment counts as the deposit received, even when the price went up
+  // after it was paid (e.g. $76 paid on $760, total now $965). From then on
+  // only the remaining balance is requested.
+  const isDepositPaid = depositMode && amountPaidCents > 0;
   const isFullyPaid = amountPaidCents >= totalCents && totalCents > 0;
   // How much remains after the deposit is paid
   const balanceAfterDeposit = totalCents - effectiveDepositCents;

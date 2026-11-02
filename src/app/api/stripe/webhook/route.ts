@@ -11,6 +11,7 @@ import {
   sendPaymentConfirmationEmail,
 } from "@/lib/email/sendPaymentConfirmationEmail";
 import { finalizeInvoicePaid } from "@/lib/invoice/finalizeInvoicePaid";
+import { formatDueDate } from "@/lib/booking/dueDates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -422,18 +423,9 @@ async function finalizePaid(args: {
         await buildInvoiceDataForBooking(bookingId);
 
       // Format balance due date for the email if applicable
-      const balanceDueDateFormatted = bookingForEmail?.balanceDueDate
-        ? new Intl.DateTimeFormat("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          }).format(
-            new Date(
-              (bookingForEmail.balanceDueDate as any).toISOString?.() ??
-                bookingForEmail.balanceDueDate,
-            ),
-          )
-        : null;
+      const balanceDueDateFormatted = formatDueDate(
+        bookingForEmail?.balanceDueDate,
+      );
 
       await sendPaymentConfirmationEmail({
         to: customerEmail,

@@ -7,6 +7,7 @@ import { getCompanySettings } from "../../../actions/admin/companySettings";
 import InvoicePDF from "@/lib/invoice/InvoicePDF";
 import type { InvoiceData, InvoiceLineItem } from "@/lib/invoice/types";
 import { formatInvoiceDate, formatTripDateTime } from "@/lib/invoice/types";
+import { formatDueDate } from "@/lib/booking/dueDates";
 
 function requireEnv(name: string) {
   const v = process.env[name];
@@ -619,18 +620,9 @@ export async function buildInvoiceDataForBooking(bookingId: string): Promise<{
   };
 
   // Helper to format a date field from booking as a readable string
+  // Due dates are calendar days; see src/lib/booking/dueDates.ts
   function fmtBookingDate(raw: any): string | null {
-    if (!raw) return null;
-    try {
-      const d = typeof raw.toISOString === "function" ? raw : new Date(raw);
-      return new Intl.DateTimeFormat("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }).format(d);
-    } catch {
-      return null;
-    }
+    return formatDueDate(raw);
   }
 
   let invoiceData: InvoiceData | null = null;
