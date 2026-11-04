@@ -10,6 +10,7 @@ import { serviceAreaCities } from "@/lib/cities";
 import AirportVideo from "./AirportVideo";
 import PosterImg from "../../../../public/images/other/airport4.jpg";
 import styles from "./AirportCarService.module.css";
+import { FREE_WAIT_MINUTES } from "@/lib/booking/rules";
 
 /** Starting flat rate for a Sky Harbor transfer, cheapest vehicle. */
 export const SKY_HARBOR_FROM_USD = 55;
@@ -25,8 +26,8 @@ const features = [
   },
   {
     icon: Clock,
-    title: "60-minute grace period",
-    copy: "Your chauffeur waits up to 60 minutes after landing, so slow bags cost you nothing.",
+    title: `${FREE_WAIT_MINUTES} minutes of free wait time`,
+    copy: `Your pickup moves with your flight, and you get ${FREE_WAIT_MINUTES} minutes of free wait time after landing.`,
   },
   {
     icon: Money,
@@ -40,7 +41,11 @@ const stats = [
     value: `$${SKY_HARBOR_FROM_USD}`,
     label: "Flat-rate Sky Harbor transfers from",
   },
-  { value: "60", unit: "min", label: "Free wait after your flight lands" },
+  {
+    value: String(FREE_WAIT_MINUTES),
+    unit: "min",
+    label: "Free wait after your flight lands",
+  },
   { value: "24/7", label: "Pickups at any hour, every day" },
 ];
 

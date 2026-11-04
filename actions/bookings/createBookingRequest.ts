@@ -10,6 +10,15 @@ import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue
 import { sendBookingRequestedEmail } from "@/lib/email/sendBookingRequestedEmail";
 import { getCompanySettings } from "../../actions/admin/companySettings";
 import { formatIsoDate } from "@/lib/timezone";
+import {
+  LEAD_TIME_MESSAGE_WITH_CALL,
+  hoursRequestedError,
+  isTooSoonForOnlineBooking,
+} from "@/lib/booking/rules";
+import {
+  vehicleAllowedForTool,
+  type PartnerTool,
+} from "@/lib/booking/partnerVehicles";
 
 // ✅ Stop input type
 type StopInput = {
@@ -62,8 +71,10 @@ type CreateBookingRequestInput = {
   // Phone for logged-in users
   contactPhone?: string | null;
   eventType?: string | null;
-  /** WeKoPa-only: skip the active check for intentionally-inactive vehicle categories */
+  /** @deprecated Ignored. Partner forms send partnerTool instead. */
   skipVehicleActiveCheck?: boolean;
+  /** Set by the We-Ko-Pa and Denū booking forms: only their vehicles. */
+  partnerTool?: PartnerTool | null;
   /** A discount code the customer applied in the booking tool. */
   discountCode?: string | null;
 };
@@ -112,13 +123,9 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     };
   }
 
-  // ✅ 36-hour minimum booking window
-  const minBookingTime = new Date(Date.now() + 36 * 60 * 60 * 1000);
-  if (pickupAtDate < minBookingTime) {
-    return {
-      error:
-        "Bookings must be made at least 36 hours in advance. Please select a later date/time, or call for bookings." as const,
-    };
+  // Minimum booking window (src/lib/booking/rules.ts)
+  if (isTooSoonForOnlineBooking(pickupAtDate)) {
+    return { error: LEAD_TIME_MESSAGE_WITH_CALL };
   }
 
   // ✅ UPDATED: Fetch service WITH fees
@@ -144,9 +151,10 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
     ? await db.vehicle.findUnique({ where: { id: input.vehicleId } })
     : null;
 
+  // Partner vehicles only from their partner's form; others must be active.
   if (
     input.vehicleId &&
-    (!vehicle || (!vehicle.active && !input.skipVehicleActiveCheck))
+    !vehicleAllowedForTool(vehicle, input.partnerTool ?? null)
   ) {
     return { error: "Vehicle not available" as const };
   }
@@ -155,6 +163,10 @@ export async function createBookingRequest(input: CreateBookingRequestInput) {
   const distanceMiles = numOrNull(input.distanceMiles);
   const durationMinutes = numOrNull(input.durationMinutes);
   const hoursRequested = numOrNull(input.hoursRequested);
+  if (service.pricingStrategy === ServicePricingStrategy.HOURLY) {
+    const hoursError = hoursRequestedError(hoursRequested ?? NaN);
+    if (hoursError) return { error: hoursError };
+  }
 
   // Process stops
   const stopsInput = input.stops ?? [];

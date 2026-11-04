@@ -41,6 +41,10 @@ import PartyBus from "../../public/images/vehicles/partyBusii.png";
 import Bus from "../../public/images/vehicles/bus.png";
 import Limo from "../../public/images/vehicles/limo.png";
 import { VehicleData } from "./types/fleet";
+import {
+  CANCELLATION_FREE_HOURS,
+  FREE_WAIT_MINUTES,
+} from "@/lib/booking/rules";
 
 export const reviews = [
   {
@@ -106,7 +110,7 @@ export const services = [
         id: 1.2,
         title: "Meet & Greet Service",
         details:
-          "Your chauffeur will be waiting inside the terminal with a personalized name sign for a smooth handoff.",
+          "Free on airport pickups: your chauffeur will be waiting inside the terminal with a personalized name sign for a smooth handoff.",
       },
       {
         id: 1.3,
@@ -117,8 +121,7 @@ export const services = [
       {
         id: 1.4,
         title: "Complimentary Wait Time",
-        details:
-          "Enjoy up to 60 minutes of free wait time after landing without any additional fees.",
+        details: `Enjoy ${FREE_WAIT_MINUTES} minutes of free wait time after landing without any additional fees.`,
       },
     ],
   },
@@ -486,13 +489,12 @@ export const homepageFaqs = [
     question:
       "What's the difference between black car, executive car and town car service?",
     answer:
-      "They're the same thing: a pre-booked luxury sedan or SUV with a professional chauffeur. \"Town car\" comes from the old Lincoln Town Car; today we run executive sedans, Suburbans and Escalades, plus Sprinters for groups.",
+      'They\'re the same thing: a pre-booked luxury sedan or SUV with a professional chauffeur. "Town car" comes from the old Lincoln Town Car; today we run executive sedans, Suburbans and Escalades, plus Sprinters for groups.',
   },
   {
     id: "flight-delays",
     question: "What happens if my flight is early or delayed?",
-    answer:
-      "We track your flight and adjust the pickup at no extra charge. If it lands early, your chauffeur is already there; if it's delayed, we wait up to 60 minutes after landing.",
+    answer: `We track your flight and adjust the pickup at no extra charge. If it lands early, your chauffeur is already there; if it's delayed, the pickup moves with it, and you get ${FREE_WAIT_MINUTES} minutes of free wait time after landing.`,
   },
   {
     id: "hourly",
@@ -535,14 +537,12 @@ export const homeQuestions = [
   {
     id: 1,
     question: "How do you handle flight delays or early arrivals?",
-    answer:
-      "We monitor your flight in real time and automatically adjust your pickup window at no extra charge. If your flight arrives early, your chauffeur will be standing by; if it’s delayed, we’ll wait up to 60 minutes after landing before any fees apply.",
+    answer: `We monitor your flight in real time and automatically adjust your pickup window at no extra charge. If your flight arrives early, your chauffeur will be standing by; if it’s delayed, the pickup moves with it. You get ${FREE_WAIT_MINUTES} minutes of free wait time after landing before any fees apply.`,
   },
   {
     id: 1.1,
     question: "What is your cancellation policy?",
-    answer:
-      "You can cancel or modify your reservation free of charge up to 24 hours before your scheduled pickup. Cancellations made within 24 hours may incur a fee equal to one hour of service or 50% of the trip fare, whichever is less.",
+    answer: `You can cancel or modify your reservation free of charge up to ${CANCELLATION_FREE_HOURS} hours before your scheduled pickup. Cancellations made within ${CANCELLATION_FREE_HOURS} hours may incur a fee equal to one hour of service or 50% of the trip fare, whichever is less.`,
   },
   {
     id: 1.2,
@@ -965,22 +965,9 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
       { src: "/images/fleet/eclass-2.jpg", alt: "Executive sedan interior" },
     ],
-    rateRules: {
-      minimumHours: 2,
-      hourlyFromUSD: 95,
-      airportTransferFromUSD: 125,
-      meetAndGreetUSD: 20,
-      afterHoursSurchargePct: 20,
-      waitTimeGraceMin: 15,
-      extraStopUSD: 20,
-    },
-    policy: {
-      summary: "Free cancellation up to 12 hours before pickup.",
-      details: [
-        "Within 12 hours, cancellation fees may apply.",
-        "No-show billed in full.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: ["No-show billed in full."],
     faqs: [
       {
         q: "Is there trunk space for larger suitcases?",
@@ -988,7 +975,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
       {
         q: "Is meet-and-greet available?",
-        a: "Yes—add it at checkout for a curbside sign or terminal meet per airport policy.",
+        a: "Yes, and it's free on airport pickups. Choose meet & greet when you book and your chauffeur waits inside baggage claim with a name sign.",
       },
       {
         q: "Can three adults ride comfortably?",
@@ -1070,23 +1057,12 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
       { src: "/images/fleet/suburban-2.jpg", alt: "7-passenger SUV interior" },
     ],
-    rateRules: {
-      minimumHours: 2,
-      hourlyFromUSD: 115,
-      airportTransferFromUSD: 145,
-      meetAndGreetUSD: 25,
-      afterHoursSurchargePct: 20,
-      waitTimeGraceMin: 15,
-      extraStopUSD: 25,
-    },
-    policy: {
-      summary: "Free cancellation up to 12 hours before pickup.",
-      details: [
-        "Cancellations within 12 hours may incur up to 100% charge.",
-        "No-show billed in full.",
-        "Non-refundable deposits may apply for peak dates.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: [
+      "No-show billed in full.",
+      "Non-refundable deposits may apply for peak dates.",
+    ],
     faqs: [
       {
         q: "Can you fit golf bags and luggage together?",
@@ -1102,7 +1078,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
       {
         q: "Is meet-and-greet service available inside the terminal?",
-        a: "Yes—add Meet & Greet at checkout and your chauffeur will greet you with a sign in baggage claim or at the designated area.",
+        a: "Yes, at no extra charge. Choose meet & greet when you book and your chauffeur will greet you with a sign in baggage claim or at the designated area.",
       },
       {
         q: "What if my group or luggage exceeds expectations on the day?",
@@ -1172,23 +1148,12 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
       { src: "/images/fleet/escalade-2.jpg", alt: "Luxury SUV interior" },
     ],
-    rateRules: {
-      minimumHours: 2,
-      hourlyFromUSD: 145,
-      airportTransferFromUSD: 185,
-      meetAndGreetUSD: 35,
-      afterHoursSurchargePct: 20,
-      waitTimeGraceMin: 15,
-      extraStopUSD: 35,
-    },
-    policy: {
-      summary: "Free cancellation up to 24 hours before pickup.",
-      details: [
-        "Within 24 hours, cancellation fees may apply up to the full fare.",
-        "No-show billed in full.",
-        "Peak and event dates may require a non-refundable deposit.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: [
+      "No-show billed in full.",
+      "Peak and event dates may require a non-refundable deposit.",
+    ],
     faqs: [
       {
         q: "Is this suitable for red-carpet or black-tie events?",
@@ -1267,28 +1232,20 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     ],
     availabilityNotes: "Black exterior; conference layout varies by unit.",
     images: [
-      { src: Sprinter, alt: "Black Mercedes Sprinter executive van with chauffeur in Phoenix, AZ" },
+      {
+        src: Sprinter,
+        alt: "Black Mercedes Sprinter executive van with chauffeur in Phoenix, AZ",
+      },
       {
         src: "/images/fleet/sprinter-exec-2.jpg",
         alt: "Executive sprinter van interior",
       },
     ],
-    rateRules: {
-      minimumHours: 3,
-      hourlyFromUSD: 165,
-      airportTransferFromUSD: 225,
-      meetAndGreetUSD: 45,
-      afterHoursSurchargePct: 25,
-      waitTimeGraceMin: 15,
-      extraStopUSD: 45,
-    },
-    policy: {
-      summary: "Free cancellation up to 48 hours before pickup.",
-      details: [
-        "Within 48 hours, cancellation fees may apply up to the full fare.",
-        "Event dates and peak weekends may require non-refundable deposits.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: [
+      "Event dates and peak weekends may require non-refundable deposits.",
+    ],
     faqs: [
       {
         q: "Can we hold a brief meeting onboard?",
@@ -1371,22 +1328,12 @@ export const fleetData: ReadonlyArray<VehicleData> = [
         alt: "Black stretch limousine for weddings and proms in Phoenix, AZ",
       },
     ],
-    rateRules: {
-      minimumHours: 3,
-      hourlyFromUSD: 175,
-      meetAndGreetUSD: 0,
-      afterHoursSurchargePct: 25,
-      waitTimeGraceMin: 10,
-      extraStopUSD: 40,
-    },
-    policy: {
-      summary: "Free cancellation up to 72 hours before pickup.",
-      details: [
-        "Within 72 hours, cancellation fees may apply up to the full fare.",
-        "Security deposit may be required for events.",
-        "Cleaning fees apply if needed.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: [
+      "Security deposit may be required for events.",
+      "Cleaning fees apply if needed.",
+    ],
     faqs: [
       {
         q: "Is this available for weddings?",
@@ -1468,22 +1415,12 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
       { src: "/images/fleet/partybus-2.jpg", alt: "Party bus interior" },
     ],
-    rateRules: {
-      minimumHours: 4,
-      hourlyFromUSD: 195,
-      meetAndGreetUSD: 0,
-      afterHoursSurchargePct: 25,
-      waitTimeGraceMin: 10,
-      extraStopUSD: 45,
-    },
-    policy: {
-      summary: "Free cancellation up to 72 hours before pickup.",
-      details: [
-        "Within 72 hours, cancellation fees may apply up to the full fare.",
-        "Security deposit may be required.",
-        "Spill/cleaning fees may apply if needed.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: [
+      "Security deposit may be required.",
+      "Spill/cleaning fees may apply if needed.",
+    ],
     faqs: [
       {
         q: "Can we bring drinks onboard?",
@@ -1574,22 +1511,9 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
       { src: "/images/fleet/motorcoach-2.jpg", alt: "Motorcoach interior" },
     ],
-    rateRules: {
-      minimumHours: 4,
-      hourlyFromUSD: 275,
-      meetAndGreetUSD: 0,
-      afterHoursSurchargePct: 25,
-      waitTimeGraceMin: 15,
-      extraStopUSD: 65,
-    },
-    policy: {
-      summary: "Free cancellation up to 7 days before pickup.",
-      details: [
-        "Within 7 days, cancellation fees may apply up to 50% of the fare.",
-        "Within 48 hours, full fare may be charged.",
-        "Non-refundable deposit required at booking for peak dates.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: ["Non-refundable deposit required at booking for peak dates."],
     faqs: [
       {
         q: "How many passengers can the motorcoach hold?",
@@ -1671,22 +1595,12 @@ export const fleetDataii: ReadonlyArray<VehicleData> = [
       { src: PartyBus, alt: "Party bus exterior" },
       { src: "/images/fleet/partybus-2.jpg", alt: "Party bus interior" },
     ],
-    rateRules: {
-      minimumHours: 4,
-      hourlyFromUSD: 195,
-      meetAndGreetUSD: 0,
-      afterHoursSurchargePct: 25,
-      waitTimeGraceMin: 10,
-      extraStopUSD: 45,
-    },
-    policy: {
-      summary: "Free cancellation up to 72 hours before pickup.",
-      details: [
-        "Within 72 hours, cancellation fees may apply up to the full fare.",
-        "Security deposit may be required.",
-        "Spill/cleaning fees may apply if needed.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: [
+      "Security deposit may be required.",
+      "Spill/cleaning fees may apply if needed.",
+    ],
     faqs: [
       {
         q: "Can we bring drinks onboard?",
@@ -1774,22 +1688,9 @@ export const fleetDataii: ReadonlyArray<VehicleData> = [
       { src: Bus, alt: "Motorcoach exterior" },
       { src: "/images/fleet/motorcoach-2.jpg", alt: "Motorcoach interior" },
     ],
-    rateRules: {
-      minimumHours: 4,
-      hourlyFromUSD: 275,
-      meetAndGreetUSD: 0,
-      afterHoursSurchargePct: 25,
-      waitTimeGraceMin: 15,
-      extraStopUSD: 65,
-    },
-    policy: {
-      summary: "Free cancellation up to 7 days before pickup.",
-      details: [
-        "Within 7 days, cancellation fees may apply up to 50% of the fare.",
-        "Within 48 hours, full fare may be charged.",
-        "Non-refundable deposit required at booking for peak dates.",
-      ],
-    },
+    // Cancellation timing is the same for every vehicle: see
+    // CANCELLATION_POLICY in lib/booking/rules.ts.
+    policyNotes: ["Non-refundable deposit required at booking for peak dates."],
     faqs: [
       {
         q: "How many passengers can the motorcoach hold?",

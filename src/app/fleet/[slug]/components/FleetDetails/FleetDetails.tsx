@@ -8,10 +8,26 @@ import Faq from "@/components/shared/Faq/Faq";
 import Button from "@/components/shared/Button/Button";
 import Image from "next/image";
 import ImgFallback from "../../../../../../public/images/other/vip.jpg";
+import type { FleetRates } from "@/lib/booking/publicRates";
+import {
+  CANCELLATION_POLICY,
+  CANCELLATION_POLICY_DETAIL,
+  EXTRA_STOP_FEE_LABEL,
+  FREE_WAIT_MINUTES,
+  HOURLY_MIN_HOURS,
+  usdShort,
+} from "@/lib/booking/rules";
 
 type Vehicle = (typeof fleetData)[number];
 
-export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
+export default function FleetDetails({
+  vehicle,
+  rates,
+}: {
+  vehicle: Vehicle;
+  /** From Admin → Vehicle Categories; null until a category is linked. */
+  rates?: FleetRates | null;
+}) {
   const heroImg =
     (vehicle.images?.[0]?.src as any) || (vehicle.src as any) || ImgFallback;
   const heroAlt = vehicle.images?.[0]?.alt ?? vehicle.title;
@@ -44,9 +60,7 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
               </ul>
             </article>
             <article className={styles.section}>
-              <h3 className={`cardTitle h5`}>
-                Safety & Driver Tech
-              </h3>
+              <h3 className={`cardTitle h5`}>Safety & Driver Tech</h3>
               <ul>
                 {(vehicle.safetyTech ?? []).map((s) => (
                   <li key={s}>
@@ -99,76 +113,88 @@ export default function FleetDetails({ vehicle }: { vehicle: Vehicle }) {
                 </ul>
               </article>
             ) : null}
-            {vehicle.rateRules && (
-              <article className={styles.section}>
-                <h3 className={`cardTitle h5`}>
-                  Rates & Booking Rules
-                </h3>
-                <ul>
-                  {vehicle.rateRules.hourlyFromUSD && (
-                    <li>
-                      <span className={styles.dot} />
-                      Hourly from ${vehicle.rateRules.hourlyFromUSD}/hr
-                    </li>
-                  )}
-                  {vehicle.rateRules.airportTransferFromUSD && (
-                    <li>
-                      <span className={styles.dot} />
-                      Airport transfers from $
-                      {vehicle.rateRules.airportTransferFromUSD}
-                    </li>
-                  )}
-                  {vehicle.rateRules.minimumHours && (
-                    <li>
-                      <span className={styles.dot} />
-                      Minimum {vehicle.rateRules.minimumHours} hours (hourly)
-                    </li>
-                  )}
-                  {vehicle.rateRules.meetAndGreetUSD && (
-                    <li>
-                      <span className={styles.dot} />
-                      Meet & greet: ${vehicle.rateRules.meetAndGreetUSD}
-                    </li>
-                  )}
-                  {vehicle.rateRules.afterHoursSurchargePct && (
-                    <li>
-                      <span className={styles.dot} />
-                      After-hours surcharge:{" "}
-                      {vehicle.rateRules.afterHoursSurchargePct}%
-                    </li>
-                  )}
-                  {vehicle.rateRules.waitTimeGraceMin && (
-                    <li>
-                      <span className={styles.dot} />
-                      Grace period: {vehicle.rateRules.waitTimeGraceMin} minutes
-                    </li>
-                  )}
-                  {vehicle.rateRules.extraStopUSD && (
-                    <li>
-                      <span className={styles.dot} />
-                      Extra stop: ${vehicle.rateRules.extraStopUSD}
-                    </li>
-                  )}
-                </ul>
-              </article>
-            )}
-            {vehicle.policy && (
-              <article className={styles.section}>
-                <h3 className={`cardTitle h5`}>Policies</h3>
-                <p>{vehicle.policy.summary}</p>
-                <ul>
-                  {(vehicle.policy.details ?? []).map((d, i) => (
-                    <li key={i}>
-                      <span className={styles.dot} />
-
-                      {d}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            )}
+            <article className={styles.section}>
+              <h3 className={`cardTitle h5`}>Rates & Booking Rules</h3>
+              <ul>
+                {rates?.callForPricing ? (
+                  <li>
+                    <span className={styles.dot} />
+                    {rates.callForPricingMessage || "Call for a custom quote"}
+                  </li>
+                ) : (
+                  <>
+                    {rates?.hourlyRateCents ? (
+                      <li>
+                        <span className={styles.dot} />
+                        By the hour from {usdShort(
+                          rates.hourlyRateCents,
+                        )}/hr, {rates.hourlyMinHours}-hour minimum
+                        {rates.hourlyMinimumCents
+                          ? ` (from ${usdShort(rates.hourlyMinimumCents)} total)`
+                          : ""}
+                      </li>
+                    ) : (
+                      <li>
+                        <span className={styles.dot} />
+                        Hourly bookings: {HOURLY_MIN_HOURS}-hour minimum
+                      </li>
+                    )}
+                    {rates?.oneWayFromCents ? (
+                      <li>
+                        <span className={styles.dot} />
+                        One-way rides from {usdShort(rates.oneWayFromCents)}
+                      </li>
+                    ) : null}
+                    {rates?.airportFromCents ? (
+                      <li>
+                        <span className={styles.dot} />
+                        Airport transfers from{" "}
+                        {usdShort(rates.airportFromCents)}
+                      </li>
+                    ) : null}
+                  </>
+                )}
+                <li>
+                  <span className={styles.dot} />
+                  {FREE_WAIT_MINUTES} minutes of free wait time
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  Meet & greet inside baggage claim: free
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  Extra stops: {EXTRA_STOP_FEE_LABEL}
+                </li>
+                <li>
+                  <span className={styles.dot} />
+                  No surge pricing. Your exact price shows in the booking tool
+                  before you book.
+                </li>
+              </ul>
+            </article>
+            <article className={styles.section}>
+              <h3 className={`cardTitle h5`}>Policies</h3>
+              <p>{CANCELLATION_POLICY}</p>
+              <ul>
+                {[
+                  CANCELLATION_POLICY_DETAIL,
+                  ...(vehicle.policyNotes ?? []),
+                ].map((d, i) => (
+                  <li key={i}>
+                    <span className={styles.dot} />
+                    {d}
+                  </li>
+                ))}
+              </ul>
+            </article>
             <div className={styles.btnContainerii}>
-              <Button href='/' text='Book this vehicle' btnType='black' arrow />
+              <Button
+                href='/book'
+                text='Book this vehicle'
+                btnType='black'
+                arrow
+              />
             </div>
           </div>
           <div className={styles.right}>

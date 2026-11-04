@@ -41,6 +41,28 @@ import { localToUtcIso, isPickupTooSoon } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Button from "@/components/shared/Button/Button";
 import FlightTracker from "@/components/shared/FlightTracker/FlightTracker";
+import {
+  BOOKING_LEAD_MINUTES,
+  LEAD_TIME_MESSAGE,
+  HOURLY_MIN_HOURS,
+  HOURLY_MIN_LABEL,
+  hoursRequestedError,
+  billableHours as billableHoursFor,
+  EXTRA_STOP_FEE_LABEL,
+  stopSurchargeCents,
+  formatUsd,
+  CANCELLATION_POLICY,
+  CANCELLATION_POLICY_DETAIL,
+  MEET_AND_GREET_NOTE,
+  FREE_WAIT_MINUTES,
+  classifyServices,
+  canAutoPickService,
+  pickOneWayService,
+  rideKindOf,
+  returnKindOf,
+  includedFor,
+  type RideKind,
+} from "@/lib/booking/rules";
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
 type AirportLeg = "NONE" | "PICKUP" | "DROPOFF";
@@ -309,6 +331,20 @@ export default function BookingWizard({
   );
   const hasNoServices = services.length === 0;
 
+  // ─── Simple first step ───
+  // "auto": the customer picks One-way or By the hour, and the service (and
+  // airport) is worked out from the addresses. "manual": the original service
+  // list, kept for services the simple step doesn't cover. Auto only turns on
+  // when there's a one-way and an hourly service to pick from.
+  const classified = useMemo(() => classifyServices(services), [services]);
+  const autoAvailable = canAutoPickService(classified);
+  const [serviceMode, setServiceMode] = useState<"auto" | "manual">(
+    autoAvailable ? "auto" : "manual",
+  );
+  const [tripType, setTripType] = useState<"oneWay" | "hourly">("oneWay");
+  const isAuto = serviceMode === "auto" && autoAvailable;
+  const [meetAndGreet, setMeetAndGreet] = useState(false);
+
   const pickupInputRef = useRef<HTMLInputElement | null>(null);
   const dropoffInputRef = useRef<HTMLInputElement | null>(null);
   const phoneWasPrefilled = useRef(Boolean(userPhone?.trim()));
@@ -361,7 +397,7 @@ export default function BookingWizard({
       pickupAtDate,
       pickupAtTime,
       companyTimezone,
-      36 * 60,
+      BOOKING_LEAD_MINUTES,
     );
   }, [pickupAtDate, pickupAtTime, companyTimezone]);
 
@@ -444,6 +480,23 @@ export default function BookingWizard({
           shouldDirty: true,
           shouldValidate: true,
         });
+        // A service the simple step can pick itself stays in the simple step;
+        // anything else opens the full service list with it selected.
+        const prefillSvc = services.find((s) => s.id === prefill.serviceTypeId);
+        const autoIds = [
+          classified.oneWay,
+          classified.hourly,
+          classified.airportPickup,
+          classified.airportDropoff,
+        ].map((s) => s?.id);
+        if (autoAvailable && prefillSvc && autoIds.includes(prefillSvc.id)) {
+          setServiceMode("auto");
+          setTripType(
+            prefillSvc.pricingStrategy === "HOURLY" ? "hourly" : "oneWay",
+          );
+        } else if (prefillSvc) {
+          setServiceMode("manual");
+        }
       }
       if (prefill.pickupAtDate) {
         setValue("pickupAtDate", prefill.pickupAtDate, { shouldDirty: true });
@@ -464,7 +517,10 @@ export default function BookingWizard({
         });
       }
 
-      if (prefill.hoursRequested != null && prefill.hoursRequested >= 2) {
+      if (
+        prefill.hoursRequested != null &&
+        prefill.hoursRequested >= HOURLY_MIN_HOURS
+      ) {
         setValue("hoursRequested", prefill.hoursRequested, {
           shouldDirty: true,
           shouldValidate: true,
@@ -549,6 +605,12 @@ export default function BookingWizard({
           };
           // Store so the post-prefillKey effect can re-apply it after RoutePicker remounts
           prefillDataRef.current.airportRoute = airportRoute;
+          // The simple step shows address boxes even for airports, so fill
+          // them with the airport's address.
+          if (!prefillDataRef.current.pickup && newPickup?.address)
+            prefillDataRef.current.pickup = newPickup.address;
+          if (!prefillDataRef.current.dropoff && newDropoff?.address)
+            prefillDataRef.current.dropoff = newDropoff.address;
           setValue("route", airportRoute, {
             shouldDirty: true,
             shouldValidate: true,
@@ -575,6 +637,16 @@ export default function BookingWizard({
         shouldDirty: true,
         shouldValidate: true,
       });
+      // Re-apply after RoutePicker settles (same reason as below): in the
+      // simple step the airport sits in a regular address box.
+      setTimeout(() => {
+        if (!getValues("route")?.pickup && !getValues("route")?.dropoff) {
+          setValue("route", airportRoute, {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+        }
+      }, 100);
     } else if (regularRoute) {
       // Delay needed — RoutePicker fires onChange(null) on remount after this
       // effect runs, overwriting the value. The timeout lets that fire first.
@@ -599,6 +671,79 @@ export default function BookingWizard({
   const usesPickupAirport = selectedService?.airportLeg === "PICKUP";
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
   const isAirportService = usesPickupAirport || usesDropoffAirport;
+  const rideKind: RideKind = rideKindOf(selectedService);
+  // The airport dropdowns only appear in the full service list. In the simple
+  // step the airport is typed like any address and recognized automatically.
+  const showPickupAirportSelect = !isAuto && usesPickupAirport;
+  const showDropoffAirportSelect = !isAuto && usesDropoffAirport;
+
+  // Simple step: pick the service (and airport) from the trip type and the
+  // addresses. Only changes what's needed, so the route and vehicle stay put.
+  const autoPickupKey = route?.pickup
+    ? `${route.pickup.placeId}|${route.pickup.address}`
+    : "";
+  const autoDropoffKey = route?.dropoff
+    ? `${route.dropoff.placeId}|${route.dropoff.address}`
+    : "";
+  useEffect(() => {
+    if (!isAuto) return;
+    const next =
+      tripType === "hourly"
+        ? {
+            service: classified.hourly,
+            pickupAirportId: "",
+            dropoffAirportId: "",
+          }
+        : pickOneWayService(classified, route?.pickup, route?.dropoff);
+    const nextId = next.service?.id ?? "";
+    const cur = getValues();
+    if (cur.serviceTypeId !== nextId) {
+      const prevKind = rideKindOf(
+        services.find((s) => s.id === cur.serviceTypeId),
+      );
+      const nextKind = rideKindOf(next.service);
+      setValue("serviceTypeId", nextId, { shouldDirty: true });
+      clearErrors(["serviceTypeId", "pickupAirportId", "dropoffAirportId"]);
+      if (cur.serviceTypeId && prevKind !== nextKind) {
+        setValue("flightAirline", "", { shouldDirty: true });
+        setValue("flightNumber", "", { shouldDirty: true });
+        setValue("flightScheduledAtDate", "", { shouldDirty: true });
+        setValue("flightScheduledAtTime", "", { shouldDirty: true });
+        setValue("flightTerminal", "", { shouldDirty: true });
+        setValue("flightGate", "", { shouldDirty: true });
+        setMeetAndGreet(false);
+      }
+      if (nextKind === "hourly") {
+        setValue(
+          "hoursRequested",
+          Math.max(cur.hoursRequested || HOURLY_MIN_HOURS, HOURLY_MIN_HOURS),
+          { shouldDirty: true },
+        );
+      }
+    }
+    if (cur.pickupAirportId !== next.pickupAirportId)
+      setValue("pickupAirportId", next.pickupAirportId, { shouldDirty: true });
+    if (cur.dropoffAirportId !== next.dropoffAirportId)
+      setValue("dropoffAirportId", next.dropoffAirportId, {
+        shouldDirty: true,
+      });
+  }, [
+    isAuto,
+    tripType,
+    autoPickupKey,
+    autoDropoffKey,
+    classified,
+    serviceTypeId,
+  ]);
+
+  const detectedPickupAirport =
+    isAuto && usesPickupAirport
+      ? (serviceAirports.find((a) => a.id === pickupAirportId) ?? null)
+      : null;
+  const detectedDropoffAirport =
+    isAuto && usesDropoffAirport
+      ? (serviceAirports.find((a) => a.id === dropoffAirportId) ?? null)
+      : null;
 
   useEffect(() => {
     register("serviceTypeId", { required: "Please select a service." });
@@ -634,11 +779,8 @@ export default function BookingWizard({
       valueAsNumber: true,
       validate: (v) => {
         if (selectedService?.pricingStrategy !== "HOURLY") return true;
-        if (!Number.isFinite(v)) return "Please enter hours.";
-        // Matches the homepage widget: hourly and charter bookings have a
-        // 2-hour minimum, so don't let someone book 1 and be billed for 2.
-        if (v < 2) return "Hourly bookings have a 2-hour minimum.";
-        return true;
+        // Same rule as every other form and the server (lib/booking/rules).
+        return hoursRequestedError(v) ?? true;
       },
     });
     register("vehicleId", { required: "Please choose a vehicle category." });
@@ -682,16 +824,16 @@ export default function BookingWizard({
   ]);
 
   const pickupLabelRed =
-    Boolean(errors.route) && !route?.pickup && !usesPickupAirport;
+    Boolean(errors.route) && !route?.pickup && !showPickupAirportSelect;
   const dropoffLabelRed =
-    Boolean(errors.route) && !route?.dropoff && !usesDropoffAirport;
+    Boolean(errors.route) && !route?.dropoff && !showDropoffAirportSelect;
   const minHours =
     selectedService?.pricingStrategy === "HOURLY"
       ? (selectedVehicle?.minHours ?? 0)
       : 0;
   const billableHours =
     selectedService?.pricingStrategy === "HOURLY"
-      ? Math.max(Math.ceil(hoursRequested || 0), Math.ceil(minHours || 0))
+      ? billableHoursFor(hoursRequested, minHours)
       : null;
   const distanceMiles = routeMiles(route);
   const durationMinutes = routeMinutes(route);
@@ -883,7 +1025,7 @@ export default function BookingWizard({
 
   async function goStep2() {
     if (pickupTooSoon) {
-      toast.error("Bookings must be made at least 36 hours in advance.");
+      toast.error(LEAD_TIME_MESSAGE);
       return;
     }
     if (
@@ -901,7 +1043,6 @@ export default function BookingWizard({
       "pickupAtDate",
       "pickupAtTime",
       "passengers",
-      "luggage",
       "route",
     ];
     if (usesPickupAirport) fields.push("pickupAirportId");
@@ -925,8 +1066,114 @@ export default function BookingWizard({
     setStep(3);
   }
 
+  /** Special requests plus the free meet & greet note, when it's ticked. */
+  function specialRequestsFor(v: FormValues): string | null {
+    const parts = [
+      v.specialRequests?.trim() || "",
+      meetAndGreet && rideKind === "airportPickup" ? MEET_AND_GREET_NOTE : "",
+    ].filter(Boolean);
+    return parts.length ? parts.join("\n") : null;
+  }
+
   /** Save current leg to the savedLegs array and reset wizard to step 1 */
   async function addAnotherRide() {
+    const saved = await saveCurrentLeg();
+    if (!saved) return;
+    toast.success(`Ride ${saved.count} added to your trip!`);
+    setStep(1);
+  }
+
+  /**
+   * One-tap return trip: saves this ride, then starts the next one with the
+   * addresses swapped and the same vehicle and party. An airport pickup comes
+   * back as an airport drop-off. Only the date and time are left to pick.
+   */
+  async function addReturnRide() {
+    const v = getValues();
+    const outbound = v.route;
+    const outboundService = selectedService;
+    const outboundKind = rideKind;
+    const keep = {
+      vehicleId: v.vehicleId,
+      passengers: v.passengers,
+      luggage: v.luggage,
+      hoursRequested: v.hoursRequested,
+      eventType: v.eventType,
+      pickupAirportId: v.pickupAirportId,
+      dropoffAirportId: v.dropoffAirportId,
+    };
+
+    const saved = await saveCurrentLeg();
+    if (!saved || !outbound?.pickup || !outbound?.dropoff) return;
+
+    const hasStops = (outbound.stops?.length ?? 0) > 0;
+    const reversed: RoutePickerValue = {
+      pickup: outbound.dropoff,
+      dropoff: outbound.pickup,
+      // Stops belong to the way out; add them again if the return needs them.
+      stops: [],
+      miles: hasStops ? null : (outbound.miles ?? null),
+      minutes: hasStops ? null : (outbound.minutes ?? null),
+      distanceMiles: hasStops ? null : (outbound.distanceMiles ?? null),
+      durationMinutes: hasStops ? null : (outbound.durationMinutes ?? null),
+    };
+
+    // Simple step: the service is worked out from the swapped addresses.
+    // Full service list: pick the matching return service, when the airport
+    // is set up on it, otherwise keep the same service.
+    if (!isAuto && outboundService) {
+      const returnKind = returnKindOf(outboundKind);
+      const candidate =
+        returnKind === outboundKind ? outboundService : classified[returnKind];
+      const airportId =
+        returnKind === "airportPickup"
+          ? keep.dropoffAirportId
+          : returnKind === "airportDropoff"
+            ? keep.pickupAirportId
+            : "";
+      const fits =
+        candidate &&
+        (!airportId || candidate.airports.some((a) => a.id === airportId));
+      const svc = fits ? candidate : outboundService;
+      setValue("serviceTypeId", svc.id, { shouldDirty: true });
+      if (svc.airportLeg === "PICKUP")
+        setValue("pickupAirportId", airportId || keep.dropoffAirportId, {
+          shouldDirty: true,
+        });
+      if (svc.airportLeg === "DROPOFF")
+        setValue("dropoffAirportId", airportId || keep.pickupAirportId, {
+          shouldDirty: true,
+        });
+    }
+
+    setValue("passengers", keep.passengers, { shouldDirty: true });
+    setValue("luggage", keep.luggage, { shouldDirty: true });
+    setValue("vehicleId", keep.vehicleId, { shouldDirty: true });
+    if (outboundKind === "hourly") {
+      setValue("hoursRequested", keep.hoursRequested, { shouldDirty: true });
+      setValue("eventType", keep.eventType, { shouldDirty: true });
+    }
+    setValue("route", reversed, { shouldDirty: true });
+
+    prefillDataRef.current = {
+      pickup: reversed.pickup?.address,
+      dropoff: reversed.dropoff?.address,
+      flightNumber: undefined,
+      regularRoute: reversed,
+    };
+    setPrefillKey((k) => k + 1);
+
+    toast.success(
+      `Ride ${saved.count} saved. Now pick the date and time for your return.`,
+    );
+    setStep(1);
+  }
+
+  /**
+   * Validates the current ride, adds it to the trip and clears the form.
+   * Returns the trip's ride count, or null when something needs fixing.
+   */
+  async function saveCurrentLeg(): Promise<{ count: number } | null> {
     const fields: (keyof FormValues)[] = [
       "serviceTypeId",
       "pickupAtDate",
@@ -944,20 +1191,20 @@ export default function BookingWizard({
     const ok = await trigger(fields, { shouldFocus: false });
     if (!ok) {
       toast.error(firstErrorMessage());
-      return;
+      return null;
     }
 
     const v = getValues();
     if (!selectedService || !v.route?.pickup || !v.route?.dropoff) {
       toast.error("Please complete pickup and dropoff.");
-      return;
+      return null;
     }
 
     if (selectedService.pricingStrategy === "POINT_TO_POINT") {
       const miles = routeMiles(v.route);
       if (!miles || miles <= 0) {
         toast.error("Route estimate missing. Please re-check the route.");
-        return;
+        return null;
       }
     }
 
@@ -1013,7 +1260,7 @@ export default function BookingWizard({
       ),
       hoursRequested:
         selectedService.pricingStrategy === "HOURLY" ? v.hoursRequested : null,
-      specialRequests: v.specialRequests || null,
+      specialRequests: specialRequestsFor(v),
       flightAirline: v.flightAirline || null,
       flightNumber: v.flightNumber || null,
       flightScheduledAt: flightScheduledAtIso,
@@ -1035,7 +1282,7 @@ export default function BookingWizard({
     setValue("luggage", 0, { shouldDirty: false });
     setValue("pickupAirportId", "", { shouldDirty: false });
     setValue("dropoffAirportId", "", { shouldDirty: false });
-    setValue("hoursRequested", 2, { shouldDirty: false });
+    setValue("hoursRequested", HOURLY_MIN_HOURS, { shouldDirty: false });
     setValue("route", null, { shouldDirty: false });
     setValue("vehicleId", "", { shouldDirty: false });
     setValue("specialRequests", "", { shouldDirty: false });
@@ -1046,10 +1293,10 @@ export default function BookingWizard({
     setValue("flightTerminal", "", { shouldDirty: false });
     setValue("flightGate", "", { shouldDirty: false });
     setValue("eventType", "", { shouldDirty: false });
+    setMeetAndGreet(false);
     clearErrors();
 
-    toast.success(`Ride ${savedLegs.length + 1} added to your trip!`);
-    setStep(1);
+    return { count: savedLegs.length + 1 };
   }
 
   function confirmRemoveLeg() {
@@ -1178,7 +1425,7 @@ export default function BookingWizard({
             selectedService!.pricingStrategy === "HOURLY"
               ? v.hoursRequested
               : null,
-          specialRequests: v.specialRequests || null,
+          specialRequests: specialRequestsFor(v),
           flightAirline: v.flightAirline || null,
           flightNumber: v.flightNumber || null,
           flightScheduledAt: flightScheduledAtIsoGroup,
@@ -1277,7 +1524,7 @@ export default function BookingWizard({
           selectedService.pricingStrategy === "HOURLY"
             ? v.hoursRequested
             : null,
-        specialRequests: v.specialRequests || null,
+        specialRequests: specialRequestsFor(v),
         flightAirline: v.flightAirline || null,
         flightNumber: v.flightNumber || null,
         flightScheduledAt: flightScheduledAtIso,
@@ -1310,7 +1557,12 @@ export default function BookingWizard({
     }
   }
 
-  const inputsKey = `${step}-${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}-${prefillKey}`;
+  // In the simple step the address boxes never swap for airport dropdowns, so
+  // the service changing underneath must not re-key them (that would wipe
+  // what the customer typed).
+  const inputsKey = isAuto
+    ? `${step}-auto-${prefillKey}`
+    : `${step}-${serviceTypeId || "none"}-${showPickupAirportSelect ? "P" : ""}${showDropoffAirportSelect ? "D" : ""}-${prefillKey}`;
   const hasFlightInfo =
     flightAirline ||
     flightNumber ||
@@ -1328,10 +1580,10 @@ export default function BookingWizard({
   }, []);
 
   // ─── Checklist props (computed from form state) ───
-  const hasPickup = usesPickupAirport
+  const hasPickup = showPickupAirportSelect
     ? Boolean(pickupAirportId)
     : Boolean(route?.pickup?.address);
-  const hasDropoff = usesDropoffAirport
+  const hasDropoff = showDropoffAirportSelect
     ? Boolean(dropoffAirportId)
     : Boolean(route?.dropoff?.address);
 
@@ -1384,19 +1636,19 @@ export default function BookingWizard({
       hasPassengersLuggage={passengers >= 1}
       passengersLuggageLabel={
         passengers >= 1
-          ? `${passengers} passenger${passengers !== 1 ? "s" : ""}, ${luggage} bag${luggage !== 1 ? "s" : ""}`
+          ? `${passengers} passenger${passengers !== 1 ? "s" : ""}${luggage > 0 ? `, ${luggage} bag${luggage !== 1 ? "s" : ""}` : ""}`
           : null
       }
       hasPickup={hasPickup}
       pickupLabel={shortAddress(
-        usesPickupAirport
+        showPickupAirportSelect
           ? (serviceAirports.find((a) => a.id === pickupAirportId)?.name ??
               null)
           : (route?.pickup?.address ?? null),
       )}
       hasDropoff={hasDropoff}
       dropoffLabel={shortAddress(
-        usesDropoffAirport
+        showDropoffAirportSelect
           ? (serviceAirports.find((a) => a.id === dropoffAirportId)?.name ??
               null)
           : (route?.dropoff?.address ?? null),
@@ -1582,175 +1834,170 @@ export default function BookingWizard({
                     }}
                     className={styles.sectionBox}
                   >
-                    <label className={labelCx(Boolean(errors.serviceTypeId))}>
-                      Service
-                    </label>
-                    <select
-                      value={serviceTypeId}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        setValue("pickupAirportId", "", { shouldDirty: true });
-                        setValue("dropoffAirportId", "", { shouldDirty: true });
-                        setValue("route", null, { shouldDirty: true });
-                        setValue("vehicleId", "", { shouldDirty: true });
-                        setValue("flightAirline", "", { shouldDirty: true });
-                        setValue("flightNumber", "", { shouldDirty: true });
-                        setValue("flightScheduledAtDate", "", {
-                          shouldDirty: true,
-                        });
-                        setValue("flightScheduledAtTime", "", {
-                          shouldDirty: true,
-                        });
-                        setValue("flightTerminal", "", { shouldDirty: true });
-                        setValue("flightGate", "", { shouldDirty: true });
-                        setValue("serviceTypeId", next, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                        clearErrors([
-                          "serviceTypeId",
-                          "pickupAirportId",
-                          "dropoffAirportId",
-                          "route",
-                          "vehicleId",
-                        ]);
-                        const svc = services.find((s) => s.id === next);
-                        if (svc?.pricingStrategy === "HOURLY") {
-                          setValue(
-                            "hoursRequested",
-                            Math.max(getValues("hoursRequested") || 2, 2),
-                            { shouldDirty: true, shouldValidate: true },
-                          );
-                        }
-                      }}
-                      // className='input emptySmall'
-                      className='selectBorder emptySmall'
-                      disabled={hasNoServices}
-                    >
-                      <option value=''>Select a service...</option>
-                      {services.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div id='wizard-field-datetime' className={styles.sectionBox}>
-                    {" "}
-                    <label
-                      className={labelCx(
-                        Boolean(errors.pickupAtDate) ||
-                          Boolean(errors.pickupAtTime),
-                      )}
-                    >
-                      Pickup date & time
-                    </label>
-                    <BookingDateTimeWithBlackouts
-                      key={`dt-${prefillKey}`}
-                      date={pickupAtDate}
-                      time={pickupAtTime}
-                      onChangeDate={(d) => {
-                        setValue("pickupAtDate", d, {
-                          shouldDirty: true,
-                          shouldValidate: false,
-                        });
-                        clearErrors("pickupAtDate");
-                      }}
-                      onChangeTime={(t) => {
-                        setValue("pickupAtTime", t, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                        clearErrors("pickupAtTime");
-                      }}
-                      timeZone={companyTimezone}
-                    />
-                    <div className='miniNote' style={{ marginTop: 8 }}>
-                      🕐 All times are in {companyTimezoneLabel}
-                    </div>
-                    {pickupTooSoon && (
-                      <div
-                        className='miniNote'
-                        style={{
-                          color: "rgba(180,0,0,0.85)",
-                          marginTop: 8,
-                          fontWeight: 700,
-                          fontSize: 16,
-                          letterSpacing: "normal",
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        Bookings must be made at least 36 hours in advance.
-                        Please choose a later date or time.
-                      </div>
+                    {isAuto ? (
+                      <>
+                        <label className='cardTitle h5'>Trip type</label>
+                        <div
+                          className={styles.tripTypeToggle}
+                          role='radiogroup'
+                          aria-label='Trip type'
+                        >
+                          {(
+                            [
+                              [
+                                "oneWay",
+                                "One-way",
+                                "Airport rides and point to point",
+                              ],
+                              [
+                                "hourly",
+                                "By the hour",
+                                `Chauffeur stays with you, ${HOURLY_MIN_LABEL}`,
+                              ],
+                            ] as const
+                          ).map(([value, label, hint]) => (
+                            <button
+                              key={value}
+                              type='button'
+                              role='radio'
+                              aria-checked={tripType === value}
+                              className={`${styles.tripTypeOption}${tripType === value ? ` ${styles.tripTypeOptionActive}` : ""}`}
+                              onClick={() => {
+                                if (tripType === value) return;
+                                setTripType(value);
+                                // Hourly trips don't take extra stops.
+                                if (value === "hourly") {
+                                  const r = getValues("route");
+                                  if (r?.stops?.length) {
+                                    setValue(
+                                      "route",
+                                      {
+                                        ...r,
+                                        stops: [],
+                                        miles: null,
+                                        minutes: null,
+                                        distanceMiles: null,
+                                        durationMinutes: null,
+                                      },
+                                      { shouldDirty: true },
+                                    );
+                                  }
+                                }
+                              }}
+                            >
+                              <span className={styles.tripTypeLabel}>
+                                {label}
+                              </span>
+                              <span className={styles.tripTypeHint}>
+                                {hint}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          type='button'
+                          className={styles.serviceModeLink}
+                          onClick={() => setServiceMode("manual")}
+                        >
+                          Choose a specific service instead
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <label
+                          className={labelCx(Boolean(errors.serviceTypeId))}
+                        >
+                          Service
+                        </label>
+                        <select
+                          value={serviceTypeId}
+                          onChange={(e) => {
+                            const next = e.target.value;
+                            setValue("pickupAirportId", "", {
+                              shouldDirty: true,
+                            });
+                            setValue("dropoffAirportId", "", {
+                              shouldDirty: true,
+                            });
+                            setValue("route", null, { shouldDirty: true });
+                            setValue("vehicleId", "", { shouldDirty: true });
+                            setValue("flightAirline", "", {
+                              shouldDirty: true,
+                            });
+                            setValue("flightNumber", "", { shouldDirty: true });
+                            setValue("flightScheduledAtDate", "", {
+                              shouldDirty: true,
+                            });
+                            setValue("flightScheduledAtTime", "", {
+                              shouldDirty: true,
+                            });
+                            setValue("flightTerminal", "", {
+                              shouldDirty: true,
+                            });
+                            setValue("flightGate", "", { shouldDirty: true });
+                            setValue("serviceTypeId", next, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                            clearErrors([
+                              "serviceTypeId",
+                              "pickupAirportId",
+                              "dropoffAirportId",
+                              "route",
+                              "vehicleId",
+                            ]);
+                            const svc = services.find((s) => s.id === next);
+                            if (svc?.pricingStrategy === "HOURLY") {
+                              setValue(
+                                "hoursRequested",
+                                Math.max(
+                                  getValues("hoursRequested") ||
+                                    HOURLY_MIN_HOURS,
+                                  HOURLY_MIN_HOURS,
+                                ),
+                                { shouldDirty: true, shouldValidate: true },
+                              );
+                            }
+                          }}
+                          // className='input emptySmall'
+                          className='selectBorder emptySmall'
+                          disabled={hasNoServices}
+                        >
+                          <option value=''>Select a service...</option>
+                          {services.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                        {autoAvailable && (
+                          <button
+                            type='button'
+                            className={styles.serviceModeLink}
+                            onClick={() => {
+                              setTripType(
+                                selectedService?.pricingStrategy === "HOURLY"
+                                  ? "hourly"
+                                  : "oneWay",
+                              );
+                              setServiceMode("auto");
+                            }}
+                          >
+                            ← Back to the simple booking
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
-                  <div
-                    id='wizard-field-passengers-luggage'
-                    className={styles.sectionBox}
-                  >
-                    <Grid2>
-                      <div style={{ display: "grid", gap: 20 }}>
-                        <label className={labelCx(Boolean(errors.passengers))}>
-                          Passengers
-                        </label>
-                        <select
-                          value={passengers}
-                          onChange={(e) => {
-                            setValue("passengers", Number(e.target.value), {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            });
-                            clearErrors("passengers");
-                          }}
-                          className='selectBorder emptySmall'
-                        >
-                          <option value={0}>Select...</option>
-                          {Array.from({ length: 56 }, (_, i) => i + 1).map(
-                            (n) => (
-                              <option key={n} value={n}>
-                                {n}
-                              </option>
-                            ),
-                          )}
-                        </select>
-                      </div>
-                      <div style={{ display: "grid", gap: 20 }}>
-                        <label className={labelCx(Boolean(errors.luggage))}>
-                          Luggage
-                        </label>
-                        <select
-                          value={luggage}
-                          onChange={(e) => {
-                            setValue("luggage", Number(e.target.value), {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            });
-                            clearErrors("luggage");
-                          }}
-                          className='selectBorder emptySmall'
-                        >
-                          <option value={0}>Select...</option>
-                          {Array.from({ length: 56 }, (_, i) => i + 1).map(
-                            (n) => (
-                              <option key={n} value={n}>
-                                {n}
-                              </option>
-                            ),
-                          )}
-                        </select>
-                      </div>
-                    </Grid2>
-                  </div>
+
                   <div className={styles.pickupDropoffContainer}>
                     <div id='wizard-field-pickup' className={styles.sectionBox}>
                       <label
-                        className={`cardTitle h5${usesPickupAirport ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
+                        className={`cardTitle h5${showPickupAirportSelect ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
                       >
-                        {usesPickupAirport ? "Pickup airport" : "Pickup"}
+                        {showPickupAirportSelect ? "Pickup airport" : "Pickup"}
                       </label>
-                      {usesPickupAirport ? (
+                      {showPickupAirportSelect ? (
                         <select
                           value={pickupAirportId}
                           onChange={(e) => {
@@ -1775,11 +2022,22 @@ export default function BookingWizard({
                         <input
                           key={`pickup-input-${step}-${prefillKey}`}
                           ref={pickupInputRef}
-                          placeholder='Enter pickup address'
+                          placeholder={
+                            isAuto
+                              ? "Address, hotel or airport"
+                              : "Enter pickup address"
+                          }
                           autoComplete='off'
                           className='input emptySmall'
                           defaultValue={route?.pickup?.address ?? ""}
                         />
+                      )}
+                      {detectedPickupAirport && (
+                        <div className={styles.airportBadge}>
+                          ✈️ Airport pickup at {detectedPickupAirport.name} (
+                          {detectedPickupAirport.iata}). We&apos;ll track your
+                          flight.
+                        </div>
                       )}
                     </div>
 
@@ -1935,7 +2193,7 @@ export default function BookingWizard({
                       >
                         <span>➕</span> Add a stop
                         <span className={styles.addStopFeeWizard}>
-                          (+$15.00 per stop)
+                          ({EXTRA_STOP_FEE_LABEL})
                         </span>
                       </button>
                     )}
@@ -1945,11 +2203,13 @@ export default function BookingWizard({
                       className={styles.sectionBox}
                     >
                       <label
-                        className={`cardTitle h5${usesDropoffAirport ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
+                        className={`cardTitle h5${showDropoffAirportSelect ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
                       >
-                        {usesDropoffAirport ? "Dropoff airport" : "Dropoff"}
+                        {showDropoffAirportSelect
+                          ? "Dropoff airport"
+                          : "Dropoff"}
                       </label>
-                      {usesDropoffAirport ? (
+                      {showDropoffAirportSelect ? (
                         <select
                           value={dropoffAirportId}
                           onChange={(e) => {
@@ -1974,11 +2234,21 @@ export default function BookingWizard({
                         <input
                           key={`dropoff-input-${step}-${prefillKey}`}
                           ref={dropoffInputRef}
-                          placeholder='Enter dropoff address'
+                          placeholder={
+                            isAuto
+                              ? "Address, hotel or airport"
+                              : "Enter dropoff address"
+                          }
                           autoComplete='off'
                           className='input emptySmall'
                           defaultValue={route?.dropoff?.address ?? ""}
                         />
+                      )}
+                      {detectedDropoffAirport && (
+                        <div className={styles.airportBadge}>
+                          ✈️ Airport drop-off at {detectedDropoffAirport.name} (
+                          {detectedDropoffAirport.iata}).
+                        </div>
                       )}
                     </div>
                   </div>
@@ -1991,9 +2261,9 @@ export default function BookingWizard({
                           {(route?.stops?.length ?? 0) > 1 ? "s" : ""}
                         </span>
                         <span className={styles.stopSurchargeAmount}>
-                          +$
-                          {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
-                            2,
+                          +
+                          {formatUsd(
+                            stopSurchargeCents(route?.stops?.length ?? 0),
                           )}{" "}
                           surcharge
                         </span>
@@ -2039,16 +2309,95 @@ export default function BookingWizard({
                     />
                   </div>
 
+                  <div id='wizard-field-datetime' className={styles.sectionBox}>
+                    {" "}
+                    <label
+                      className={labelCx(
+                        Boolean(errors.pickupAtDate) ||
+                          Boolean(errors.pickupAtTime),
+                      )}
+                    >
+                      Pickup date & time
+                    </label>
+                    <BookingDateTimeWithBlackouts
+                      key={`dt-${prefillKey}`}
+                      date={pickupAtDate}
+                      time={pickupAtTime}
+                      onChangeDate={(d) => {
+                        setValue("pickupAtDate", d, {
+                          shouldDirty: true,
+                          shouldValidate: false,
+                        });
+                        clearErrors("pickupAtDate");
+                      }}
+                      onChangeTime={(t) => {
+                        setValue("pickupAtTime", t, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors("pickupAtTime");
+                      }}
+                      timeZone={companyTimezone}
+                    />
+                    <div className='miniNote' style={{ marginTop: 8 }}>
+                      🕐 All times are in {companyTimezoneLabel}
+                    </div>
+                    {pickupTooSoon && (
+                      <div
+                        className='miniNote'
+                        style={{
+                          color: "rgba(180,0,0,0.85)",
+                          marginTop: 8,
+                          fontWeight: 700,
+                          fontSize: 16,
+                          letterSpacing: "normal",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {LEAD_TIME_MESSAGE} Please choose a later date or time.
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    id='wizard-field-passengers-luggage'
+                    className={styles.sectionBox}
+                  >
+                    <div style={{ display: "grid", gap: 20 }}>
+                      <label className={labelCx(Boolean(errors.passengers))}>
+                        Passengers
+                      </label>
+                      <select
+                        value={passengers}
+                        onChange={(e) => {
+                          setValue("passengers", Number(e.target.value), {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                          clearErrors("passengers");
+                        }}
+                        className='selectBorder emptySmall'
+                      >
+                        <option value={0}>Select...</option>
+                        {Array.from({ length: 56 }, (_, i) => i + 1).map(
+                          (n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                    </div>
+                  </div>
                   {selectedService?.pricingStrategy === "HOURLY" ? (
                     <div style={{ display: "grid", gap: 8 }}>
                       <label
                         className={labelCx(Boolean(errors.hoursRequested))}
                       >
-                        Hours needed (2 hour minimum)
+                        Hours needed ({HOURLY_MIN_LABEL})
                       </label>
                       <input
                         type='number'
-                        min={2}
+                        min={HOURLY_MIN_HOURS}
                         step={1}
                         value={hoursRequested}
                         onChange={(e) => {
@@ -2070,7 +2419,7 @@ export default function BookingWizard({
                   {selectedService?.pricingStrategy === "HOURLY" ? (
                     <div style={{ display: "grid", gap: 8 }}>
                       <label className='cardTitle h5'>
-                        Event type (optional)
+                        Occasion (optional)
                       </label>
                       <select
                         value={
@@ -2261,10 +2610,7 @@ export default function BookingWizard({
                             : null;
                         const rowBillable =
                           selectedService?.pricingStrategy === "HOURLY"
-                            ? Math.max(
-                                Math.ceil(hoursRequested || 0),
-                                Math.ceil(v.minHours || 0),
-                              )
+                            ? billableHoursFor(hoursRequested, v.minHours)
                             : null;
                         return (
                           <button
@@ -2282,7 +2628,7 @@ export default function BookingWizard({
                                 setValue(
                                   "hoursRequested",
                                   Math.max(
-                                    hoursRequested || 1,
+                                    hoursRequested || HOURLY_MIN_HOURS,
                                     v.minHours || 0,
                                   ),
                                   { shouldDirty: true, shouldValidate: true },
@@ -2416,7 +2762,10 @@ export default function BookingWizard({
                       }
                     />
                     <SummaryRow label='Passengers' value={String(passengers)} />
-                    <SummaryRow label='Luggage' value={String(luggage)} />
+                    <SummaryRow
+                      label='Luggage'
+                      value={luggage > 0 ? String(luggage) : "None"}
+                    />
                     <SummaryRow
                       label='Phone'
                       value={
@@ -2459,11 +2808,13 @@ export default function BookingWizard({
                         ))}
                         <SummaryRow
                           label='Stop surcharge'
-                          value={`$${(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(2)}`}
+                          value={formatUsd(
+                            stopSurchargeCents(route?.stops?.length ?? 0),
+                          )}
                         />
                         <SummaryRow
                           label='Est. wait time'
-                          value={`+${(route?.stops?.length ?? 0) * 5} min`}
+                          value={`+${(route?.stops?.length ?? 0) * STOP_WAIT_TIME_MINUTES} min`}
                         />
                       </>
                     )}
@@ -2647,22 +2998,87 @@ export default function BookingWizard({
                       </div>
                     ) : (
                       <div className='miniNote'>
-                        This is an estimate. Dispatch may adjust for special
-                        dates, late night, extra stops, etc.
+                        This is an estimate. We confirm your final price when we
+                        approve your request, before you pay anything.
                         {(route?.stops?.length ?? 0) > 0 && (
                           <strong>
                             {" "}
-                            Includes $
-                            {(
-                              ((route?.stops?.length ?? 0) * 1500) /
-                              100
-                            ).toFixed(2)}{" "}
+                            Includes{" "}
+                            {formatUsd(
+                              stopSurchargeCents(route?.stops?.length ?? 0),
+                            )}{" "}
                             surcharge for {route?.stops?.length ?? 0} extra stop
                             {(route?.stops?.length ?? 0) > 1 ? "s" : ""}.
                           </strong>
                         )}
                       </div>
                     )}
+                  </div>
+
+                  {/* ─── Luggage (asked here, not up front) ─── */}
+                  <div className={styles.sectionBox}>
+                    <label className='cardTitle h5'>
+                      Luggage{" "}
+                      <span style={{ fontWeight: 400, opacity: 0.7 }}>
+                        (optional)
+                      </span>
+                    </label>
+                    <select
+                      value={luggage}
+                      onChange={(e) => {
+                        setValue("luggage", Number(e.target.value), {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                        clearErrors("luggage");
+                      }}
+                      className='selectBorder emptySmall'
+                    >
+                      <option value={0}>None</option>
+                      {Array.from({ length: 56 }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n}>
+                          {n} bag{n !== 1 ? "s" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedVehicle &&
+                      selectedVehicle.luggageCapacity > 0 &&
+                      luggage > selectedVehicle.luggageCapacity && (
+                        <div className='miniNote'>
+                          That&apos;s more bags than the {selectedVehicle.name}{" "}
+                          usually fits ({selectedVehicle.luggageCapacity}). We
+                          can confirm when we review your request, or you can go
+                          back and choose a larger vehicle.
+                        </div>
+                      )}
+                  </div>
+
+                  {/* ─── Included with your ride ─── */}
+                  <div className={`box ${styles.includedBox}`}>
+                    <div className='cardTitle h5' style={{ marginBottom: 12 }}>
+                      Included with your ride
+                    </div>
+                    <ul className={styles.includedList}>
+                      {includedFor(rideKind).map((line) => (
+                        <li key={line}>{line}</li>
+                      ))}
+                    </ul>
+                    {rideKind === "airportPickup" && (
+                      <label className={styles.meetGreetRow}>
+                        <input
+                          type='checkbox'
+                          checked={meetAndGreet}
+                          onChange={(e) => setMeetAndGreet(e.target.checked)}
+                        />
+                        <span>
+                          <strong>Add meet &amp; greet (free).</strong> Your
+                          chauffeur waits inside baggage claim with a name sign.
+                        </span>
+                      </label>
+                    )}
+                    <div className='miniNote' style={{ marginTop: 12 }}>
+                      {CANCELLATION_POLICY} {CANCELLATION_POLICY_DETAIL}
+                    </div>
                   </div>
 
                   {/* ─── Saved legs summary (multi-day trip) ─── */}
@@ -2966,11 +3382,30 @@ export default function BookingWizard({
                   >
                     ➕ Add another ride to this trip
                   </button> */}
+                  {rideKind !== "hourly" && (
+                    <Button
+                      type='button'
+                      text={
+                        rideKind === "airportPickup"
+                          ? "Add my return ride to the airport"
+                          : rideKind === "airportDropoff"
+                            ? "Add my ride back from the airport"
+                            : "Add a return ride"
+                      }
+                      btnType='greenii'
+                      onClick={() => {
+                        void addReturnRide();
+                      }}
+                      plus
+                    />
+                  )}
                   <Button
                     type='button'
                     text='Add another ride to this trip'
                     btnType='greenii'
-                    onClick={addAnotherRide}
+                    onClick={() => {
+                      void addAnotherRide();
+                    }}
                     plus
                   />
                   {savedLegs.length === 0 && (
@@ -2978,8 +3413,11 @@ export default function BookingWizard({
                       className='miniNote'
                       style={{ textAlign: "center", marginTop: -4 }}
                     >
-                      Need rides on multiple days? Add them all here and submit
-                      as one trip.
+                      {rideKind !== "hourly"
+                        ? "A return ride swaps the addresses and keeps your vehicle. You just pick the date and time. "
+                        : ""}
+                      Need rides on other days? Add them all here and submit as
+                      one trip.
                     </div>
                   )}
 

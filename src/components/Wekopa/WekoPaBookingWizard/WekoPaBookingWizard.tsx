@@ -693,7 +693,7 @@ export default function WekoPaBookingWizard({
           guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
           guestPhone: isAuthed ? null : v.guestPhone.trim(),
           contactPhone: isAuthed ? v.contactPhone?.trim() : null,
-          skipVehicleActiveCheck: true,
+          partnerTool: "wekopa",
         };
 
         const groupRes = (await createTripGroupBooking(groupInput)) as any;
@@ -744,7 +744,7 @@ export default function WekoPaBookingWizard({
         guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
         guestPhone: isAuthed ? null : v.guestPhone.trim(),
         eventType: "Golf Transfer — We-Ko-Pa",
-        skipVehicleActiveCheck: true,
+        partnerTool: "wekopa",
       })) as any;
 
       if (res?.error) {

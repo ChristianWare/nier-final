@@ -14,6 +14,9 @@ import { charterQuestions } from "@/lib/data";
 import type { Metadata } from "next";
 import { BUSINESS_REF } from "@/lib/schema";
 
+// The pricing cards read Admin → Vehicle Categories (refreshed on save).
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: "Charter Bus Phoenix: Motor Coach & Coach Bus Rental | Nier",
   description:

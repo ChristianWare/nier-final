@@ -2,6 +2,7 @@
 
 import styles from "./PriceBreakdownCard.module.css";
 import { ServicePricingStrategy } from "@prisma/client";
+import { EXTRA_STOP_FEE_CENTS, formatUsd } from "@/lib/booking/rules";
 
 type Props = {
   pricingStrategy: ServicePricingStrategy;
@@ -151,7 +152,7 @@ function buildBreakdown(props: Props): BreakdownRow[] {
     if (stopCount > 0 && stopSurchargeCents > 0) {
       rows.push({
         label: "Extra stop surcharge",
-        detail: `${stopCount} stop${stopCount > 1 ? "s" : ""} × $15.00`,
+        detail: `${stopCount} stop${stopCount > 1 ? "s" : ""} × ${formatUsd(EXTRA_STOP_FEE_CENTS)}`,
         cents: stopSurchargeCents,
         highlight: "surcharge",
       });
@@ -211,7 +212,7 @@ function buildBreakdown(props: Props): BreakdownRow[] {
     if (stopCount > 0 && stopSurchargeCents > 0) {
       rows.push({
         label: "Extra stop surcharge",
-        detail: `${stopCount} stop${stopCount > 1 ? "s" : ""} × $15.00`,
+        detail: `${stopCount} stop${stopCount > 1 ? "s" : ""} × ${formatUsd(EXTRA_STOP_FEE_CENTS)}`,
         cents: stopSurchargeCents,
         highlight: "surcharge",
       });
@@ -227,7 +228,7 @@ function buildBreakdown(props: Props): BreakdownRow[] {
     if (stopCount > 0 && stopSurchargeCents > 0) {
       rows.push({
         label: "Extra stop surcharge",
-        detail: `${stopCount} stop${stopCount > 1 ? "s" : ""} × $15.00`,
+        detail: `${stopCount} stop${stopCount > 1 ? "s" : ""} × ${formatUsd(EXTRA_STOP_FEE_CENTS)}`,
         cents: stopSurchargeCents,
         highlight: "surcharge",
       });

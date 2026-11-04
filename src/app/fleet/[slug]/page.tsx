@@ -9,6 +9,11 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import Nav from "@/components/shared/Nav/Nav";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import { BUSINESS_REF } from "@/lib/schema";
+import { getFleetRates } from "@/lib/booking/publicRates";
+
+// Prices come from Admin → Vehicle Categories. Saving a category refreshes
+// these pages right away; this is the fallback refresh.
+export const revalidate = 3600;
 
 type Params = { slug: string };
 
@@ -35,6 +40,11 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     (f) => f.slug === slug,
   );
   if (!vehicle) notFound();
+  const rates = await getFleetRates(vehicle.slug);
+  const hourlyFromUsd =
+    rates && !rates.callForPricing && rates.hourlyRateCents
+      ? rates.hourlyRateCents / 100
+      : null;
 
   const vehicleSchema = {
     "@context": "https://schema.org",
@@ -45,11 +55,11 @@ export default async function Page({ params }: { params: Promise<Params> }) {
     seatingCapacity: vehicle.seats,
     url: `https://www.niertransportation.com/fleet/${vehicle.slug}`,
     provider: BUSINESS_REF,
-    ...(vehicle.rateRules?.hourlyFromUSD && {
+    ...(hourlyFromUsd && {
       offers: {
         "@type": "Offer",
         priceCurrency: "USD",
-        price: vehicle.rateRules.hourlyFromUSD,
+        price: hourlyFromUsd,
         unitText: "per hour",
         seller: BUSINESS_REF,
         areaServed: "Phoenix Metro, Arizona",
@@ -90,7 +100,7 @@ export default async function Page({ params }: { params: Promise<Params> }) {
         items={[{ name: "Fleet", href: "/fleet" }, { name: vehicle.title }]}
       />
       <FleetSlugPageIntro vehicle={vehicle} />
-      <FleetDetails vehicle={vehicle} />
+      <FleetDetails vehicle={vehicle} rates={rates} />
       <BlogSection />
       <AboutNumbers />
     </main>

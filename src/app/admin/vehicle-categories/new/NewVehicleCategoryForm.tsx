@@ -6,10 +6,15 @@ import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { createVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
+import type { FleetPageOption } from "@/lib/fleetPages";
 
 const OVERAGE_INCREMENT_OPTIONS = [15, 30, 45, 60];
 
-export default function NewVehicleCategoryForm() {
+export default function NewVehicleCategoryForm({
+  fleetPages,
+}: {
+  fleetPages: FleetPageOption[];
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [callForPricing, setCallForPricing] = useState(false);
@@ -219,6 +224,25 @@ export default function NewVehicleCategoryForm() {
           </div>
         </Field>
       )}
+
+      <Field
+        label='Website fleet page'
+        hint="The fleet page that shows this category's rates. Partner vehicles (We-Ko-Pa, Denū) are never shown on the website."
+      >
+        <select
+          name='fleetSlug'
+          defaultValue=''
+          className='selectBorder emptySmall'
+          disabled={isPending}
+        >
+          <option value=''>Not shown on the website</option>
+          {fleetPages.map((p) => (
+            <option key={p.slug} value={p.slug}>
+              {p.title} (/fleet/{p.slug})
+            </option>
+          ))}
+        </select>
+      </Field>
 
       <label className={styles.labelinputcheckbox}>
         <input

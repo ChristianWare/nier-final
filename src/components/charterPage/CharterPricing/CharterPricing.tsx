@@ -4,8 +4,27 @@ import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Image from "next/image";
 import Img1 from "../../../../public/images/vehicles/charter.jpg";
 import Link from "next/link";
+import { fleetData } from "@/lib/data";
+import { getFleetRatesBySlug } from "@/lib/booking/publicRates";
+import { HOURLY_MIN_HOURS, usdShort } from "@/lib/booking/rules";
 
-export default function CharterPricing() {
+// The fleet pages these cards price. Rates come from the vehicle categories
+// linked to these pages in Admin → Vehicle Categories.
+const CHARTER_FLEET_SLUGS = ["motorcoach", "mini-party-bus-20-40"] as const;
+
+export default async function CharterPricing() {
+  const rates = await getFleetRatesBySlug();
+  const vehicles = CHARTER_FLEET_SLUGS.map((slug) => {
+    const page = fleetData.find((f) => f.slug === slug);
+    const r = rates.get(slug) ?? null;
+    return {
+      slug,
+      title: page?.title ?? slug,
+      seats: page?.seats ?? "",
+      rates: r,
+    };
+  });
+
   return (
     <section className={styles.container}>
       <LayoutWrapper>
@@ -23,8 +42,9 @@ export default function CharterPricing() {
               shuttle, a straight airport run to Phoenix Sky Harbor, or a
               full-day excursion. At Nier Transportation, we believe in
               transparent, upfront pricing — no surprise fees, no vague
-              estimates. Charters have a 2-hour minimum, and typical
-              full-size motor coach charters run about $1,000–$1,500. See our{" "}
+              estimates. Charters have a {HOURLY_MIN_HOURS}-hour minimum, and
+              typical full-size motor coach charters run about $1,000–$1,500.
+              See our{" "}
               <Link href='/blog/limo-black-car-prices-phoenix'>
                 Phoenix limo and black car price guide
               </Link>{" "}
@@ -73,33 +93,50 @@ export default function CharterPricing() {
                     <p className={styles.vehicleSeats}>{vehicle.seats}</p>
                   </div>
                   <div className={styles.rateCardRates}>
-                    {vehicle.hourlyFromUSD && (
+                    {vehicle.rates?.callForPricing ||
+                    !vehicle.rates?.hourlyRateCents ? (
                       <div className={styles.rateRow}>
-                        <span className={styles.rateLabel}>Hourly from</span>
+                        <span className={styles.rateLabel}>Pricing</span>
                         <span className={styles.rateValue}>
-                          ${vehicle.hourlyFromUSD}
-                          <span className={styles.rateUnit}>/hr</span>
+                          <Link href='/book'>Get your price</Link>
                         </span>
                       </div>
-                    )}
-                    {vehicle.airportTransferFromUSD && (
-                      <div className={styles.rateRow}>
-                        <span className={styles.rateLabel}>Airport from</span>
-                        <span className={styles.rateValue}>
-                          ${vehicle.airportTransferFromUSD}
-                        </span>
-                      </div>
+                    ) : (
+                      <>
+                        <div className={styles.rateRow}>
+                          <span className={styles.rateLabel}>Hourly from</span>
+                          <span className={styles.rateValue}>
+                            {usdShort(vehicle.rates.hourlyRateCents)}
+                            <span className={styles.rateUnit}>/hr</span>
+                          </span>
+                        </div>
+                        <div className={styles.rateRow}>
+                          <span className={styles.rateLabel}>Minimum</span>
+                          <span className={styles.rateValue}>
+                            {vehicle.rates.hourlyMinHours} hours
+                          </span>
+                        </div>
+                        {vehicle.rates.airportFromCents ? (
+                          <div className={styles.rateRow}>
+                            <span className={styles.rateLabel}>
+                              Airport from
+                            </span>
+                            <span className={styles.rateValue}>
+                              {usdShort(vehicle.rates.airportFromCents)}
+                            </span>
+                          </div>
+                        ) : null}
+                      </>
                     )}
                   </div>
                 </div>
               ))}
             </div>
             <p className={styles.disclaimer}>
-              * Rates shown are starting prices for Phoenix charter bus rental.
-              Final fare confirmed at booking. Our 56-passenger full-size
-              charter bus pricing starts at a competitive hourly rate — contact
-              us for a custom bus rental quote tailored to your group and
-              itinerary. Gratuity optional.
+              * Rates shown are starting prices for Phoenix charter bus rental,
+              from the same rates our booking tool uses. Your exact total shows
+              before you book and is confirmed when we approve your request.
+              Gratuity optional.
             </p>
             <div className={styles.imgContainer}>
               <Image
@@ -116,20 +153,3 @@ export default function CharterPricing() {
     </section>
   );
 }
-
-const vehicles = [
-  {
-    slug: "56-passenger-charter-bus",
-    title: "56-Passenger Charter Bus",
-    seats: "Up to 56 passengers",
-    hourlyFromUSD: 250,
-    airportTransferFromUSD: 295,
-  },
-  {
-    slug: "minibus",
-    title: "Minibus Rental",
-    seats: "18–35 passengers",
-    hourlyFromUSD: 210,
-    airportTransferFromUSD: 275,
-  },
-];

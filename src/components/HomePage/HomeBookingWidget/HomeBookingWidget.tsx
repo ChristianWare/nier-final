@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { usePlausible } from "next-plausible";
 import styles from "./HomeBookingWidget.module.css";
 import Button from "@/components/shared/Button/Button";
+import { HOURLY_MIN_HOURS, HOURLY_MIN_LABEL } from "@/lib/booking/rules";
 import RoutePicker, {
   type RoutePickerPlace,
   type RoutePickerValue,
@@ -559,7 +560,10 @@ export default function HomeBookingWidget({
     }
     // ───────────────────────────────────────────────────────────────────
 
-    if (selectedService?.pricingStrategy === "HOURLY" && hoursRequested < 2) {
+    if (
+      selectedService?.pricingStrategy === "HOURLY" &&
+      hoursRequested < HOURLY_MIN_HOURS
+    ) {
       toast.error("Please select the number of hours.");
       return;
     }
@@ -994,7 +998,7 @@ export default function HomeBookingWidget({
         {selectedService?.pricingStrategy === "HOURLY" && (
           <div className={styles.field}>
             <label className={labelCx(submitAttempted && !hoursRequested)}>
-              Hours needed (2 hour minimum)
+              Hours needed ({HOURLY_MIN_LABEL})
             </label>
             <select
               value={hoursRequested}
@@ -1002,7 +1006,10 @@ export default function HomeBookingWidget({
               className='selectBorder emptySmall'
             >
               <option value={0}>Choose hours...</option>
-              {Array.from({ length: 23 }, (_, i) => i + 2).map((n) => (
+              {Array.from(
+                { length: 25 - HOURLY_MIN_HOURS },
+                (_, i) => i + HOURLY_MIN_HOURS,
+              ).map((n) => (
                 <option key={n} value={n}>
                   {n} hours
                 </option>

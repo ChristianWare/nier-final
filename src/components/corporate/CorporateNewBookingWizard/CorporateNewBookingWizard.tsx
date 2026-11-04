@@ -36,6 +36,15 @@ import { localToUtcIso } from "@/lib/timezone";
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Button from "@/components/shared/Button/Button";
+import {
+  BOOKING_LEAD_MINUTES,
+  EXTRA_STOP_FEE_LABEL,
+  HOURLY_MIN_HOURS,
+  HOURLY_MIN_LABEL,
+  LEAD_TIME_MESSAGE_WITH_CALL,
+  formatUsd,
+  stopSurchargeCents,
+} from "@/lib/booking/rules";
 // ───────────── Types ─────────────
 
 type PricingStrategy = "POINT_TO_POINT" | "HOURLY" | "FLAT";
@@ -478,7 +487,7 @@ export default function CorporateNewBookingWizard({
 
     if (hasDateTime && !e.dateTime) {
       const selectedDt = new Date(`${pickupAtDate}T${pickupAtTime}:00`);
-      const minAllowed = new Date(Date.now() + 36 * 60 * 60 * 1000);
+      const minAllowed = new Date(Date.now() + BOOKING_LEAD_MINUTES * 60 * 1000);
       if (selectedDt < minAllowed) e.tooSoon = true;
     }
 
@@ -1366,8 +1375,7 @@ export default function CorporateNewBookingWizard({
                     className='miniNote'
                     style={{ color: "rgba(180,0,0,0.85)" }}
                   >
-                    Bookings must be made at least 36 hours in advance. Please
-                    select a later date/time, or call for bookings.
+                    {LEAD_TIME_MESSAGE_WITH_CALL}
                   </div>
                 )}
 
@@ -1580,7 +1588,7 @@ export default function CorporateNewBookingWizard({
                   >
                     <span>➕</span> Add a stop
                     <span className={styles.addStopFee}>
-                      (+$15.00 per stop)
+                      ({EXTRA_STOP_FEE_LABEL})
                     </span>
                   </button>
 
@@ -1592,7 +1600,7 @@ export default function CorporateNewBookingWizard({
                       </span>
                       <span className={styles.stopSurchargeAmount}>
                         +$
-                        {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
+                        {(stopSurchargeCents(route?.stops?.length ?? 0) / 100).toFixed(
                           2,
                         )}{" "}
                         surcharge
@@ -1644,17 +1652,21 @@ export default function CorporateNewBookingWizard({
                 {selectedService?.pricingStrategy === "HOURLY" && (
                   <>
                     <div style={{ display: "grid", gap: 8 }}>
-                      <label className='cardTitle h5'>Hours</label>
+                      <label className='cardTitle h5'>
+                        Hours needed ({HOURLY_MIN_LABEL})
+                      </label>
                       <input
                         type='number'
-                        min={1}
+                        min={HOURLY_MIN_HOURS}
                         step={1}
                         value={hoursRequested}
                         onChange={(e) =>
                           setHoursRequested(
                             Math.max(
-                              1,
-                              Math.floor(Number(e.target.value) || 1),
+                              HOURLY_MIN_HOURS,
+                              Math.floor(
+                                Number(e.target.value) || HOURLY_MIN_HOURS,
+                              ),
                             ),
                           )
                         }
@@ -2062,7 +2074,7 @@ export default function CorporateNewBookingWizard({
                       ))}
                       <SummaryRow
                         label='Stop surcharge'
-                        value={`$${(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(2)}`}
+                        value={formatUsd(stopSurchargeCents(route?.stops?.length ?? 0))}
                       />
                     </>
                   )}

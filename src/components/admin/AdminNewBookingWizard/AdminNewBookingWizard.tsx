@@ -54,6 +54,11 @@ import {
 } from "@stripe/react-stripe-js";
 
 import { calcQuoteCents } from "@/lib/pricing/calcQuote";
+import {
+  EXTRA_STOP_FEE_LABEL,
+  formatUsd,
+  stopSurchargeCents,
+} from "@/lib/booking/rules";
 import Link from "next/link";
 import FlightTracker from "@/components/shared/FlightTracker/FlightTracker";
 import BookingWizardChecklist from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
@@ -2686,7 +2691,7 @@ export default function AdminNewBookingWizard({
                   >
                     <span>➕</span> Add a stop
                     <span className={styles.addStopFeeWizard}>
-                      (+$15.00 per stop)
+                      ({EXTRA_STOP_FEE_LABEL})
                     </span>
                   </button>
 
@@ -2699,7 +2704,7 @@ export default function AdminNewBookingWizard({
                       </span>
                       <span className={styles.stopSurchargeAmount}>
                         +$
-                        {(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(
+                        {(stopSurchargeCents(route?.stops?.length ?? 0) / 100).toFixed(
                           2,
                         )}{" "}
                         surcharge
@@ -3483,7 +3488,7 @@ export default function AdminNewBookingWizard({
                         ))}
                         <SummaryRow
                           label='Stop surcharge'
-                          value={`$${(((route?.stops?.length ?? 0) * 1500) / 100).toFixed(2)}`}
+                          value={formatUsd(stopSurchargeCents(route?.stops?.length ?? 0))}
                         />
                         <SummaryRow
                           label='Est. wait time'

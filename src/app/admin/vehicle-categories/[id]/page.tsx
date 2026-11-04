@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { updateVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
 import EditVehicleCategoryForm from "./EditVehicleCategoryForm";
+import { FLEET_PAGE_OPTIONS } from "@/lib/fleetPages";
 import VehicleUsageChart from "@/components/admin/VehicleUsageChart/VehicleUsageChart";
 import styles from "./EditVehicleCategoryPage.module.css";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
@@ -690,7 +691,9 @@ export default async function EditVehicleCategoryPage({
                   active: category.active,
                   callForPricing: category.callForPricing,
                   callForPricingMessage: category.callForPricingMessage,
+                  fleetSlug: category.fleetSlug ?? null,
                 }}
+                fleetPages={FLEET_PAGE_OPTIONS}
               />
             </div>
           </div>

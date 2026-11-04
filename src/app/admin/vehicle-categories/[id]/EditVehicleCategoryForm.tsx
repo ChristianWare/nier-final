@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { updateVehicleCategory } from "../../../../../actions/admin/vehicleCategories";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Button from "@/components/shared/Button/Button";
+import type { FleetPageOption } from "@/lib/fleetPages";
 
 type Category = {
   id: string;
@@ -27,6 +28,7 @@ type Category = {
   active: boolean;
   callForPricing: boolean;
   callForPricingMessage: string | null;
+  fleetSlug: string | null;
 };
 
 const CAPACITY_OPTIONS = Array.from({ length: 60 }, (_, i) => i + 1);
@@ -36,8 +38,10 @@ const OVERAGE_INCREMENT_OPTIONS = [15, 30, 45, 60];
 
 export default function EditVehicleCategoryForm({
   category,
+  fleetPages,
 }: {
   category: Category;
+  fleetPages: FleetPageOption[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -77,6 +81,7 @@ export default function EditVehicleCategoryForm({
   const [callForPricingMessage, setCallForPricingMessage] = useState(
     category.callForPricingMessage ?? "",
   );
+  const [fleetSlug, setFleetSlug] = useState(category.fleetSlug ?? "");
 
   // Track which fields changed for the dirty form modal
   const changedFields = useMemo(() => {
@@ -104,6 +109,8 @@ export default function EditVehicleCategoryForm({
       fields.push("Call for Pricing");
     if (callForPricingMessage !== (category.callForPricingMessage ?? ""))
       fields.push("Pricing Message");
+    if (fleetSlug !== (category.fleetSlug ?? ""))
+      fields.push("Website Fleet Page");
     return fields;
   }, [
     name,
@@ -120,6 +127,7 @@ export default function EditVehicleCategoryForm({
     active,
     callForPricing,
     callForPricingMessage,
+    fleetSlug,
     category,
   ]);
 
@@ -155,6 +163,7 @@ export default function EditVehicleCategoryForm({
     setActive(category.active);
     setCallForPricing(category.callForPricing);
     setCallForPricingMessage(category.callForPricingMessage ?? "");
+    setFleetSlug(category.fleetSlug ?? "");
     setIsEditing(false);
   }, [category]);
 
@@ -174,6 +183,7 @@ export default function EditVehicleCategoryForm({
     if (active) fd.set("active", "on");
     if (callForPricing) fd.set("callForPricing", "on");
     fd.set("callForPricingMessage", callForPricingMessage.trim());
+    fd.set("fleetSlug", fleetSlug);
 
     startTransition(() => {
       void (async () => {
@@ -439,6 +449,32 @@ export default function EditVehicleCategoryForm({
           />
         </Field>
       )}
+
+      {/* ── Website fleet page ── */}
+      <div style={{ display: "grid", gap: 10 }}>
+        <label className='h4 underline'>Website</label>
+        <div className='miniNote' style={{ marginTop: -2 }}>
+          The fleet page that shows this category&apos;s rates. The page reads
+          the prices above, so a rate change here updates the website too.
+          Partner vehicles (We-Ko-Pa, Denū) are never shown on the website.
+        </div>
+      </div>
+
+      <Field label='Website fleet page'>
+        <select
+          value={fleetSlug}
+          onChange={(e) => setFleetSlug(e.target.value)}
+          className='selectBorder emptySmall'
+          disabled={fieldsDisabled}
+        >
+          <option value=''>Not shown on the website</option>
+          {fleetPages.map((p) => (
+            <option key={p.slug} value={p.slug}>
+              {p.title} (/fleet/{p.slug})
+            </option>
+          ))}
+        </select>
+      </Field>
 
       <label className={styles.labelinputcheckbox}>
         <input

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { getCompanySettings } from "../admin/companySettings";
 import { formatInvoiceDate, formatTripDateTime } from "@/lib/invoice/types";
 import type { InvoiceData, InvoiceLineItem } from "@/lib/invoice/types";
+import { EXTRA_STOP_FEE_CENTS, formatUsd } from "@/lib/booking/rules";
 
 function decimalToNumber(val: unknown): number | null {
   if (val == null) return null;
@@ -173,7 +174,7 @@ export async function getBookingEstimateData(
 
   // ── Single booking ──
   const stopCount = booking.stops?.length ?? 0;
-  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
+  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * EXTRA_STOP_FEE_CENTS;
   const baseFareCents = booking.subtotalCents - stopSurchargeCents;
 
   const isHourly = booking.serviceType?.pricingStrategy === "HOURLY";
@@ -189,7 +190,7 @@ export async function getBookingEstimateData(
 
   if (stopCount > 0 && stopSurchargeCents > 0) {
     lineItems.push({
-      description: `Extra Stop${stopCount > 1 ? "s" : ""} (${stopCount} × $15.00)`,
+      description: `Extra Stop${stopCount > 1 ? "s" : ""} (${stopCount} × ${formatUsd(EXTRA_STOP_FEE_CENTS)})`,
       amount: stopSurchargeCents,
     });
   }

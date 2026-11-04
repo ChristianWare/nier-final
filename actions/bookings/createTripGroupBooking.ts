@@ -14,6 +14,15 @@ import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue
 import { sendBookingRequestedEmail } from "@/lib/email/sendBookingRequestedEmail";
 import { getCompanySettings } from "../../actions/admin/companySettings";
 import { formatIsoDate } from "@/lib/timezone";
+import {
+  LEAD_TIME_MESSAGE,
+  hoursRequestedError,
+  isTooSoonForOnlineBooking,
+} from "@/lib/booking/rules";
+import {
+  vehicleAllowedForTool,
+  type PartnerTool,
+} from "@/lib/booking/partnerVehicles";
 
 // ─── Types ───
 
@@ -75,8 +84,10 @@ export type CreateTripGroupInput = {
   label?: string | null;
   /** A discount code the customer applied in the booking tool. */
   discountCode?: string | null;
-  /** WeKoPa-only: skip the active check for intentionally-inactive vehicle categories */
+  /** @deprecated Ignored. Partner forms send partnerTool instead. */
   skipVehicleActiveCheck?: boolean;
+  /** Set by the We-Ko-Pa and Denū booking forms: only their vehicles. */
+  partnerTool?: PartnerTool | null;
 };
 
 function isValidEmail(v: string) {
@@ -148,12 +159,9 @@ export async function createTripGroupBooking(input: CreateTripGroupInput) {
       };
     }
 
-    // 36-hour minimum
-    const minBookingTime = new Date(Date.now() + 36 * 60 * 60 * 1000);
-    if (pickupAtDate < minBookingTime) {
-      return {
-        error: `${legLabel}: Bookings must be made at least 36 hours in advance.`,
-      };
+    // Minimum booking window (src/lib/booking/rules.ts)
+    if (isTooSoonForOnlineBooking(pickupAtDate)) {
+      return { error: `${legLabel}: ${LEAD_TIME_MESSAGE}` };
     }
 
     // Fetch service with fees
@@ -176,9 +184,10 @@ export async function createTripGroupBooking(input: CreateTripGroupInput) {
       ? await db.vehicle.findUnique({ where: { id: leg.vehicleId } })
       : null;
 
+    // Partner vehicles only from their partner's form; others must be active.
     if (
       leg.vehicleId &&
-      (!vehicle || (!vehicle.active && !input.skipVehicleActiveCheck))
+      !vehicleAllowedForTool(vehicle, input.partnerTool ?? null)
     ) {
       return { error: `${legLabel}: Vehicle not available.` };
     }
@@ -186,6 +195,10 @@ export async function createTripGroupBooking(input: CreateTripGroupInput) {
     const distanceMiles = numOrNull(leg.distanceMiles);
     const durationMinutes = numOrNull(leg.durationMinutes);
     const hoursRequested = numOrNull(leg.hoursRequested);
+    if (service.pricingStrategy === ServicePricingStrategy.HOURLY) {
+      const hoursError = hoursRequestedError(hoursRequested ?? NaN);
+      if (hoursError) return { error: `${legLabel}: ${hoursError}` };
+    }
 
     const validStops = (leg.stops ?? []).filter(
       (s) => s.address && s.lat != null && s.lng != null,

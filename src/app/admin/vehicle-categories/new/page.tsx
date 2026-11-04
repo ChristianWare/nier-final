@@ -1,5 +1,6 @@
 import Link from "next/link";
 import NewVehicleCategoryForm from "./NewVehicleCategoryForm";
+import { FLEET_PAGE_OPTIONS } from "@/lib/fleetPages";
 import styles from "./NewVehicleCategoryPage.module.css";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 
@@ -12,9 +13,9 @@ export default function NewVehicleCategoryPage() {
       <div className={styles.header}>
         <h1 className={`${styles.heading} h2`}>New vehicle category</h1>
         <Link href='/admin/vehicle-categories' className='backBtn'>
-        <Arrow className="backArrow" /> Back
+          <Arrow className='backArrow' /> Back
         </Link>
-        <NewVehicleCategoryForm />
+        <NewVehicleCategoryForm fleetPages={FLEET_PAGE_OPTIONS} />
       </div>
     </section>
   );

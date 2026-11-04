@@ -11,6 +11,10 @@ import { BookingStatus, ServicePricingStrategy } from "@prisma/client";
 import { sendAdminNotificationsForBookingEvent } from "@/lib/notifications/queue";
 import { getCompanySettings } from "../../actions/admin/companySettings";
 import { formatIsoDate } from "@/lib/timezone";
+import {
+  BOOKING_LEAD_MINUTES,
+  LEAD_TIME_MESSAGE,
+} from "@/lib/booking/rules";
 
 // ✅ Corporate bookings go straight to CONFIRMED (same as corporateCreateBooking)
 const CORPORATE_BOOKING_STATUS: BookingStatus = "CONFIRMED";
@@ -200,11 +204,11 @@ export async function corporateCreateTripGroupBooking(
     if (!Number.isFinite(pickupAtDate.getTime()))
       return { error: `${legLabel}: Invalid pickup time.` };
 
-    // 36-hour advance booking requirement
-    const minPickupAt = new Date(Date.now() + 36 * 60 * 60 * 1000);
+    // Advance booking requirement (src/lib/booking/rules.ts)
+    const minPickupAt = new Date(Date.now() + BOOKING_LEAD_MINUTES * 60 * 1000);
     if (pickupAtDate < minPickupAt) {
       return {
-        error: `${legLabel}: Bookings must be made at least 36 hours in advance.`,
+        error: `${legLabel}: ${LEAD_TIME_MESSAGE}`,
       };
     }
 

@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { revalidatePath } from "next/cache";
 import { BookingStatus } from "@prisma/client";
+import { EXTRA_STOP_FEE_CENTS } from "@/lib/booking/rules";
 
 async function requireAdmin() {
   const session = await auth();
@@ -79,7 +80,7 @@ export async function updateHoursRequested(formData: FormData): Promise<{
   const rideCharge = Math.max(timeCharge, vehicleBaseFareCents);
 
   const stopCount = booking.stops?.length ?? 0;
-  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
+  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * EXTRA_STOP_FEE_CENTS;
 
   let subtotalCents = rideCharge + serviceBaseFeeCents + stopSurchargeCents;
   if (subtotalCents < serviceMinFareCents) subtotalCents = serviceMinFareCents;

@@ -4,6 +4,7 @@
 import { db } from "@/lib/db";
 import { auth } from "../../auth";
 import { revalidatePath } from "next/cache";
+import { FLEET_PAGE_OPTIONS } from "@/lib/fleetPages";
 
 type AppRole = "USER" | "DRIVER" | "ADMIN";
 
@@ -20,6 +21,18 @@ function toCents(v: FormDataEntryValue | null, fallback = 0) {
 function toString(v: FormDataEntryValue | null) {
   const s = (v ?? "").toString().trim();
   return s.length ? s : null;
+}
+
+/** Website fleet page slug, only if it's one of the real fleet pages. */
+function toFleetSlug(v: FormDataEntryValue | null) {
+  const s = toString(v);
+  return s && FLEET_PAGE_OPTIONS.some((o) => o.slug === s) ? s : null;
+}
+
+/** The website pages that show vehicle category rates. */
+function revalidateWebsiteRates() {
+  revalidatePath("/fleet", "layout");
+  revalidatePath("/charter-bus-rental-phoenix");
 }
 
 function getActorId(session: any) {
@@ -64,6 +77,7 @@ export async function createVehicleCategory(formData: FormData) {
   const active = formData.get("active") === "on";
   const callForPricing = formData.get("callForPricing") === "on";
   const callForPricingMessage = toString(formData.get("callForPricingMessage"));
+  const fleetSlug = toFleetSlug(formData.get("fleetSlug"));
 
   const baseFareCents = toCents(formData.get("baseFareCents"), 0);
   const perMileCents = toCents(formData.get("perMileCents"), 0);
@@ -89,6 +103,7 @@ export async function createVehicleCategory(formData: FormData) {
       active,
       callForPricing,
       callForPricingMessage,
+      fleetSlug,
       baseFareCents,
       perMileCents,
       perMinuteCents,
@@ -99,6 +114,7 @@ export async function createVehicleCategory(formData: FormData) {
   });
 
   revalidatePath("/admin/vehicle-categories");
+  revalidateWebsiteRates();
   return { success: true as const };
 }
 
@@ -120,6 +136,7 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
   const active = formData.get("active") === "on";
   const callForPricing = formData.get("callForPricing") === "on";
   const callForPricingMessage = toString(formData.get("callForPricingMessage"));
+  const fleetSlug = toFleetSlug(formData.get("fleetSlug"));
 
   const baseFareCents = toCents(formData.get("baseFareCents"), 0);
   const perMileCents = toCents(formData.get("perMileCents"), 0);
@@ -146,6 +163,7 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
       active,
       callForPricing,
       callForPricingMessage,
+      fleetSlug,
       baseFareCents,
       perMileCents,
       perMinuteCents,
@@ -157,6 +175,7 @@ export async function updateVehicleCategory(id: string, formData: FormData) {
 
   revalidatePath("/admin/vehicle-categories");
   revalidatePath(`/admin/vehicle-categories/${id}`);
+  revalidateWebsiteRates();
   return { success: true as const };
 }
 
@@ -170,5 +189,6 @@ export async function toggleVehicleCategory(id: string, active: boolean) {
   });
 
   revalidatePath("/admin/vehicle-categories");
+  revalidateWebsiteRates();
   return { success: true as const };
 }

@@ -49,7 +49,7 @@ const descriptionOverrides: Partial<Record<string, string>> = {
   weddings:
     "Wedding limo service in Phoenix & Scottsdale: stretch limousines for the couple, Sprinters and party buses for the wedding party, and guest shuttles, all on one timeline.",
   "airport-transfers":
-    "Flat-rate airport black car service to PHX Sky Harbor, Scottsdale (SDL) & Mesa Gateway (AZA). Real-time flight tracking, 60-minute grace period, and meet & greet. Book in minutes.",
+    "Flat-rate airport black car service to PHX Sky Harbor, Scottsdale (SDL) & Mesa Gateway (AZA). Real-time flight tracking, free wait time, and free meet & greet. Book in minutes.",
   "group-transportation":
     "Group transportation in Phoenix: executive Sprinters for up to 14, mini party buses for 20–40 and full-size motorcoaches for up to 56. One coordinator, one invoice, no surge pricing.",
   "black-truck-service":

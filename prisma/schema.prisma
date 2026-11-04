@@ -317,6 +317,10 @@ model Vehicle {
   callForPricing        Boolean @default(false)
   callForPricingMessage String? // e.g. "Contact us for a custom quote"
 
+  // Which website fleet page (/fleet/<slug>) shows this category's rates.
+  // Set in Admin → Vehicle Categories. Null = not shown on the website.
+  fleetSlug String?
+
   units VehicleUnit[] @relation("VehicleCategoryUnits")
 
   bookings Booking[]
@@ -329,6 +333,7 @@ model Vehicle {
 
   @@index([active])
   @@index([sortOrder])
+  @@index([fleetSlug])
 }
 
 model VehicleUnit {

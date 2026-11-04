@@ -4,7 +4,7 @@ import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import styles from "./ChauffeurLimo.module.css";
 
 /** Minimum booking for hourly chauffeur service. */
-export const HOURLY_MINIMUM_HOURS = 2;
+import { HOURLY_MIN_HOURS as HOURLY_MINIMUM_HOURS } from "@/lib/booking/rules";
 
 /**
  * Chauffeur and limo, side by side. Short on purpose: each block sends

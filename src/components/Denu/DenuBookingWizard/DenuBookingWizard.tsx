@@ -689,7 +689,7 @@ export default function DenuBookingWizard({
           guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
           guestPhone: isAuthed ? null : v.guestPhone.trim(),
           contactPhone: isAuthed ? v.contactPhone?.trim() : null,
-          skipVehicleActiveCheck: true,
+          partnerTool: "denu",
         };
 
         const groupRes = (await createTripGroupBooking(groupInput)) as any;
@@ -740,7 +740,7 @@ export default function DenuBookingWizard({
         guestEmail: isAuthed ? null : v.guestEmail.trim().toLowerCase(),
         guestPhone: isAuthed ? null : v.guestPhone.trim(),
         eventType: "Hotel Transfer — Denū Hotel & Spa",
-        skipVehicleActiveCheck: true,
+        partnerTool: "denu",
       })) as any;
 
       if (res?.error) {
