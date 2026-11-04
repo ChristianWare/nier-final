@@ -54,10 +54,7 @@ import {
   CANCELLATION_POLICY,
   CANCELLATION_POLICY_DETAIL,
   MEET_AND_GREET_NOTE,
-  FREE_WAIT_MINUTES,
   classifyServices,
-  canAutoPickService,
-  pickOneWayService,
   rideKindOf,
   returnKindOf,
   includedFor,
@@ -331,18 +328,9 @@ export default function BookingWizard({
   );
   const hasNoServices = services.length === 0;
 
-  // ─── Simple first step ───
-  // "auto": the customer picks One-way or By the hour, and the service (and
-  // airport) is worked out from the addresses. "manual": the original service
-  // list, kept for services the simple step doesn't cover. Auto only turns on
-  // when there's a one-way and an hourly service to pick from.
+  // Which service is the airport pickup / drop-off / one-way, for the
+  // one-tap return ride.
   const classified = useMemo(() => classifyServices(services), [services]);
-  const autoAvailable = canAutoPickService(classified);
-  const [serviceMode, setServiceMode] = useState<"auto" | "manual">(
-    autoAvailable ? "auto" : "manual",
-  );
-  const [tripType, setTripType] = useState<"oneWay" | "hourly">("oneWay");
-  const isAuto = serviceMode === "auto" && autoAvailable;
   const [meetAndGreet, setMeetAndGreet] = useState(false);
 
   const pickupInputRef = useRef<HTMLInputElement | null>(null);
@@ -480,23 +468,6 @@ export default function BookingWizard({
           shouldDirty: true,
           shouldValidate: true,
         });
-        // A service the simple step can pick itself stays in the simple step;
-        // anything else opens the full service list with it selected.
-        const prefillSvc = services.find((s) => s.id === prefill.serviceTypeId);
-        const autoIds = [
-          classified.oneWay,
-          classified.hourly,
-          classified.airportPickup,
-          classified.airportDropoff,
-        ].map((s) => s?.id);
-        if (autoAvailable && prefillSvc && autoIds.includes(prefillSvc.id)) {
-          setServiceMode("auto");
-          setTripType(
-            prefillSvc.pricingStrategy === "HOURLY" ? "hourly" : "oneWay",
-          );
-        } else if (prefillSvc) {
-          setServiceMode("manual");
-        }
       }
       if (prefill.pickupAtDate) {
         setValue("pickupAtDate", prefill.pickupAtDate, { shouldDirty: true });
@@ -605,12 +576,6 @@ export default function BookingWizard({
           };
           // Store so the post-prefillKey effect can re-apply it after RoutePicker remounts
           prefillDataRef.current.airportRoute = airportRoute;
-          // The simple step shows address boxes even for airports, so fill
-          // them with the airport's address.
-          if (!prefillDataRef.current.pickup && newPickup?.address)
-            prefillDataRef.current.pickup = newPickup.address;
-          if (!prefillDataRef.current.dropoff && newDropoff?.address)
-            prefillDataRef.current.dropoff = newDropoff.address;
           setValue("route", airportRoute, {
             shouldDirty: true,
             shouldValidate: true,
@@ -637,16 +602,6 @@ export default function BookingWizard({
         shouldDirty: true,
         shouldValidate: true,
       });
-      // Re-apply after RoutePicker settles (same reason as below): in the
-      // simple step the airport sits in a regular address box.
-      setTimeout(() => {
-        if (!getValues("route")?.pickup && !getValues("route")?.dropoff) {
-          setValue("route", airportRoute, {
-            shouldDirty: true,
-            shouldValidate: true,
-          });
-        }
-      }, 100);
     } else if (regularRoute) {
       // Delay needed — RoutePicker fires onChange(null) on remount after this
       // effect runs, overwriting the value. The timeout lets that fire first.
@@ -672,78 +627,29 @@ export default function BookingWizard({
   const usesDropoffAirport = selectedService?.airportLeg === "DROPOFF";
   const isAirportService = usesPickupAirport || usesDropoffAirport;
   const rideKind: RideKind = rideKindOf(selectedService);
-  // The airport dropdowns only appear in the full service list. In the simple
-  // step the airport is typed like any address and recognized automatically.
-  const showPickupAirportSelect = !isAuto && usesPickupAirport;
-  const showDropoffAirportSelect = !isAuto && usesDropoffAirport;
 
-  // Simple step: pick the service (and airport) from the trip type and the
-  // addresses. Only changes what's needed, so the route and vehicle stay put.
-  const autoPickupKey = route?.pickup
-    ? `${route.pickup.placeId}|${route.pickup.address}`
-    : "";
-  const autoDropoffKey = route?.dropoff
-    ? `${route.dropoff.placeId}|${route.dropoff.address}`
-    : "";
+  // Services with a single airport: select it, so there's nothing to tap.
   useEffect(() => {
-    if (!isAuto) return;
-    const next =
-      tripType === "hourly"
-        ? {
-            service: classified.hourly,
-            pickupAirportId: "",
-            dropoffAirportId: "",
-          }
-        : pickOneWayService(classified, route?.pickup, route?.dropoff);
-    const nextId = next.service?.id ?? "";
-    const cur = getValues();
-    if (cur.serviceTypeId !== nextId) {
-      const prevKind = rideKindOf(
-        services.find((s) => s.id === cur.serviceTypeId),
-      );
-      const nextKind = rideKindOf(next.service);
-      setValue("serviceTypeId", nextId, { shouldDirty: true });
-      clearErrors(["serviceTypeId", "pickupAirportId", "dropoffAirportId"]);
-      if (cur.serviceTypeId && prevKind !== nextKind) {
-        setValue("flightAirline", "", { shouldDirty: true });
-        setValue("flightNumber", "", { shouldDirty: true });
-        setValue("flightScheduledAtDate", "", { shouldDirty: true });
-        setValue("flightScheduledAtTime", "", { shouldDirty: true });
-        setValue("flightTerminal", "", { shouldDirty: true });
-        setValue("flightGate", "", { shouldDirty: true });
-        setMeetAndGreet(false);
-      }
-      if (nextKind === "hourly") {
-        setValue(
-          "hoursRequested",
-          Math.max(cur.hoursRequested || HOURLY_MIN_HOURS, HOURLY_MIN_HOURS),
-          { shouldDirty: true },
-        );
-      }
+    if (usesPickupAirport && serviceAirports.length === 1 && !pickupAirportId) {
+      const id = serviceAirports[0].id;
+      setValue("pickupAirportId", id, { shouldDirty: true });
+      applyAirportToRoute("pickup", id);
     }
-    if (cur.pickupAirportId !== next.pickupAirportId)
-      setValue("pickupAirportId", next.pickupAirportId, { shouldDirty: true });
-    if (cur.dropoffAirportId !== next.dropoffAirportId)
-      setValue("dropoffAirportId", next.dropoffAirportId, {
-        shouldDirty: true,
-      });
+    if (
+      usesDropoffAirport &&
+      serviceAirports.length === 1 &&
+      !dropoffAirportId
+    ) {
+      const id = serviceAirports[0].id;
+      setValue("dropoffAirportId", id, { shouldDirty: true });
+      applyAirportToRoute("dropoff", id);
+    }
   }, [
-    isAuto,
-    tripType,
-    autoPickupKey,
-    autoDropoffKey,
-    classified,
     serviceTypeId,
+    usesPickupAirport,
+    usesDropoffAirport,
+    serviceAirports.length,
   ]);
-
-  const detectedPickupAirport =
-    isAuto && usesPickupAirport
-      ? (serviceAirports.find((a) => a.id === pickupAirportId) ?? null)
-      : null;
-  const detectedDropoffAirport =
-    isAuto && usesDropoffAirport
-      ? (serviceAirports.find((a) => a.id === dropoffAirportId) ?? null)
-      : null;
 
   useEffect(() => {
     register("serviceTypeId", { required: "Please select a service." });
@@ -824,9 +730,9 @@ export default function BookingWizard({
   ]);
 
   const pickupLabelRed =
-    Boolean(errors.route) && !route?.pickup && !showPickupAirportSelect;
+    Boolean(errors.route) && !route?.pickup && !usesPickupAirport;
   const dropoffLabelRed =
-    Boolean(errors.route) && !route?.dropoff && !showDropoffAirportSelect;
+    Boolean(errors.route) && !route?.dropoff && !usesDropoffAirport;
   const minHours =
     selectedService?.pricingStrategy === "HOURLY"
       ? (selectedVehicle?.minHours ?? 0)
@@ -1043,6 +949,7 @@ export default function BookingWizard({
       "pickupAtDate",
       "pickupAtTime",
       "passengers",
+      "luggage",
       "route",
     ];
     if (usesPickupAirport) fields.push("pickupAirportId");
@@ -1084,9 +991,10 @@ export default function BookingWizard({
   }
 
   /**
-   * One-tap return trip: saves this ride, then starts the next one with the
-   * addresses swapped and the same vehicle and party. An airport pickup comes
-   * back as an airport drop-off. Only the date and time are left to pick.
+   * One-tap return trip (airport rides): saves this ride, then starts the
+   * next one with the addresses swapped and the same vehicle and party. An
+   * airport pickup comes back as an airport drop-off with the same airport.
+   * Only the date and time are left to pick.
    */
   async function addReturnRide() {
     const v = getValues();
@@ -1097,8 +1005,6 @@ export default function BookingWizard({
       vehicleId: v.vehicleId,
       passengers: v.passengers,
       luggage: v.luggage,
-      hoursRequested: v.hoursRequested,
-      eventType: v.eventType,
       pickupAirportId: v.pickupAirportId,
       dropoffAirportId: v.dropoffAirportId,
     };
@@ -1118,13 +1024,12 @@ export default function BookingWizard({
       durationMinutes: hasStops ? null : (outbound.durationMinutes ?? null),
     };
 
-    // Simple step: the service is worked out from the swapped addresses.
-    // Full service list: pick the matching return service, when the airport
-    // is set up on it, otherwise keep the same service.
-    if (!isAuto && outboundService) {
+    // The trip back uses the matching airport service (pickup ↔ drop-off)
+    // with the same airport selected. If that service doesn't have this
+    // airport, it falls back to a regular one-way ride with both addresses.
+    if (outboundService) {
       const returnKind = returnKindOf(outboundKind);
-      const candidate =
-        returnKind === outboundKind ? outboundService : classified[returnKind];
+      const candidate = classified[returnKind];
       const airportId =
         returnKind === "airportPickup"
           ? keep.dropoffAirportId
@@ -1133,26 +1038,19 @@ export default function BookingWizard({
             : "";
       const fits =
         candidate &&
-        (!airportId || candidate.airports.some((a) => a.id === airportId));
-      const svc = fits ? candidate : outboundService;
+        Boolean(airportId) &&
+        candidate.airports.some((a) => a.id === airportId);
+      const svc = fits ? candidate : (classified.oneWay ?? outboundService);
       setValue("serviceTypeId", svc.id, { shouldDirty: true });
       if (svc.airportLeg === "PICKUP")
-        setValue("pickupAirportId", airportId || keep.dropoffAirportId, {
-          shouldDirty: true,
-        });
+        setValue("pickupAirportId", airportId, { shouldDirty: true });
       if (svc.airportLeg === "DROPOFF")
-        setValue("dropoffAirportId", airportId || keep.pickupAirportId, {
-          shouldDirty: true,
-        });
+        setValue("dropoffAirportId", airportId, { shouldDirty: true });
     }
 
     setValue("passengers", keep.passengers, { shouldDirty: true });
     setValue("luggage", keep.luggage, { shouldDirty: true });
     setValue("vehicleId", keep.vehicleId, { shouldDirty: true });
-    if (outboundKind === "hourly") {
-      setValue("hoursRequested", keep.hoursRequested, { shouldDirty: true });
-      setValue("eventType", keep.eventType, { shouldDirty: true });
-    }
     setValue("route", reversed, { shouldDirty: true });
 
     prefillDataRef.current = {
@@ -1557,12 +1455,7 @@ export default function BookingWizard({
     }
   }
 
-  // In the simple step the address boxes never swap for airport dropdowns, so
-  // the service changing underneath must not re-key them (that would wipe
-  // what the customer typed).
-  const inputsKey = isAuto
-    ? `${step}-auto-${prefillKey}`
-    : `${step}-${serviceTypeId || "none"}-${showPickupAirportSelect ? "P" : ""}${showDropoffAirportSelect ? "D" : ""}-${prefillKey}`;
+  const inputsKey = `${step}-${serviceTypeId || "none"}-${usesPickupAirport ? "P" : ""}${usesDropoffAirport ? "D" : ""}-${prefillKey}`;
   const hasFlightInfo =
     flightAirline ||
     flightNumber ||
@@ -1580,10 +1473,10 @@ export default function BookingWizard({
   }, []);
 
   // ─── Checklist props (computed from form state) ───
-  const hasPickup = showPickupAirportSelect
+  const hasPickup = usesPickupAirport
     ? Boolean(pickupAirportId)
     : Boolean(route?.pickup?.address);
-  const hasDropoff = showDropoffAirportSelect
+  const hasDropoff = usesDropoffAirport
     ? Boolean(dropoffAirportId)
     : Boolean(route?.dropoff?.address);
 
@@ -1641,14 +1534,14 @@ export default function BookingWizard({
       }
       hasPickup={hasPickup}
       pickupLabel={shortAddress(
-        showPickupAirportSelect
+        usesPickupAirport
           ? (serviceAirports.find((a) => a.id === pickupAirportId)?.name ??
               null)
           : (route?.pickup?.address ?? null),
       )}
       hasDropoff={hasDropoff}
       dropoffLabel={shortAddress(
-        showDropoffAirportSelect
+        usesDropoffAirport
           ? (serviceAirports.find((a) => a.id === dropoffAirportId)?.name ??
               null)
           : (route?.dropoff?.address ?? null),
@@ -1659,6 +1552,441 @@ export default function BookingWizard({
       hasContactInfo={hasContactInfo}
       contactLabel={contactLabel}
     />
+  );
+
+  // Step 1 field groups. Their order depends on the service (see step 1).
+  const routeFields = (
+    <>
+      <div className={styles.pickupDropoffContainer}>
+        <div id='wizard-field-pickup' className={styles.sectionBox}>
+          <label
+            className={`cardTitle h5${usesPickupAirport ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
+          >
+            {usesPickupAirport ? "Pickup airport" : "Pickup"}
+          </label>
+          {usesPickupAirport ? (
+            <div
+              className={styles.airportOptions}
+              role='radiogroup'
+              aria-label='Pickup airport'
+            >
+              {serviceAirports.map((a) => (
+                <label
+                  key={a.id}
+                  className={`${styles.airportOption}${pickupAirportId === a.id ? ` ${styles.airportOptionActive}` : ""}`}
+                >
+                  <input
+                    type='radio'
+                    name='pickupAirport'
+                    value={a.id}
+                    checked={pickupAirportId === a.id}
+                    onChange={() => {
+                      setValue("pickupAirportId", a.id, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                      clearErrors("pickupAirportId");
+                      applyAirportToRoute("pickup", a.id);
+                    }}
+                  />
+                  <span className={styles.airportOptionText}>
+                    <span className={styles.airportOptionName}>
+                      {a.name} ({a.iata})
+                    </span>
+                    {a.address ? (
+                      <span className={styles.airportOptionAddress}>
+                        {a.address}
+                      </span>
+                    ) : null}
+                  </span>
+                </label>
+              ))}
+              <div className='miniNote'>
+                Don&apos;t see your airport? Call{" "}
+                <a href='tel:+14803006003' className='inlineLink'>
+                  (480) 300-6003
+                </a>
+                .
+              </div>
+            </div>
+          ) : (
+            <input
+              key={`pickup-input-${step}-${prefillKey}`}
+              ref={pickupInputRef}
+              placeholder='Enter pickup address'
+              autoComplete='off'
+              className='input emptySmall'
+              defaultValue={route?.pickup?.address ?? ""}
+            />
+          )}
+        </div>
+
+        {/* STOPS SECTION */}
+        {(route?.stops?.length ?? 0) > 0 &&
+          selectedService?.pricingStrategy !== "HOURLY" && (
+            <div className={styles.stopsListWizard}>
+              {route?.stops?.map((stop, index) => (
+                <div key={stop.id} className={styles.stopRowWizard}>
+                  <div className={styles.stopBadgeWizard}>{index + 1}</div>
+                  <input
+                    type='text'
+                    placeholder={`Stop ${index + 1} address...`}
+                    defaultValue={stop.address}
+                    className='input emptySmall'
+                    style={{ flex: 1 }}
+                    ref={(el) => {
+                      if (el && window.google?.maps?.places) {
+                        const existingAC = (el as any).__stopAC;
+                        if (!existingAC) {
+                          const ac = new window.google.maps.places.Autocomplete(
+                            el,
+                            {
+                              fields: [
+                                "place_id",
+                                "formatted_address",
+                                "geometry",
+                              ],
+                              componentRestrictions: {
+                                country: "us",
+                              },
+                            },
+                          );
+                          ac.addListener("place_changed", () => {
+                            const place = ac.getPlace();
+                            const loc = place?.geometry?.location;
+                            if (
+                              !place?.place_id ||
+                              !place?.formatted_address ||
+                              !loc
+                            )
+                              return;
+
+                            const currentRoute = getValues("route");
+                            const currentStops = [
+                              ...(currentRoute?.stops ?? []),
+                            ];
+                            const stopIdx = currentStops.findIndex(
+                              (s) => s.id === stop.id,
+                            );
+
+                            if (stopIdx >= 0) {
+                              currentStops[stopIdx] = {
+                                ...currentStops[stopIdx],
+                                address: String(place.formatted_address),
+                                placeId: String(place.place_id),
+                                location: {
+                                  lat: loc.lat(),
+                                  lng: loc.lng(),
+                                },
+                              };
+
+                              setValue(
+                                "route",
+                                {
+                                  pickup: currentRoute?.pickup ?? null,
+                                  dropoff: currentRoute?.dropoff ?? null,
+                                  stops: currentStops,
+                                  miles: null,
+                                  minutes: null,
+                                  distanceMiles: null,
+                                  durationMinutes: null,
+                                },
+                                {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                },
+                              );
+                            }
+                          });
+                          (el as any).__stopAC = ac;
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type='button'
+                    onClick={() => {
+                      const currentRoute = getValues("route");
+                      const newStops = (currentRoute?.stops ?? []).filter(
+                        (s) => s.id !== stop.id,
+                      );
+                      setValue(
+                        "route",
+                        {
+                          pickup: currentRoute?.pickup ?? null,
+                          dropoff: currentRoute?.dropoff ?? null,
+                          stops: newStops,
+                          miles: null,
+                          minutes: null,
+                          distanceMiles: null,
+                          durationMinutes: null,
+                        },
+                        { shouldDirty: true, shouldValidate: true },
+                      );
+                    }}
+                    className={styles.removeStopBtnWizard}
+                    title='Remove stop'
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+        {/* ADD STOP BUTTON — hidden for hourly/charter services */}
+        {selectedService?.pricingStrategy !== "HOURLY" && (
+          <button
+            type='button'
+            onClick={() => {
+              const currentRoute = getValues("route");
+              const newStop = {
+                id: `stop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+                address: "",
+                placeId: "",
+                location: { lat: 0, lng: 0 },
+              };
+              setValue(
+                "route",
+                {
+                  pickup: currentRoute?.pickup ?? null,
+                  dropoff: currentRoute?.dropoff ?? null,
+                  stops: [...(currentRoute?.stops ?? []), newStop],
+                  miles: currentRoute?.miles ?? null,
+                  minutes: currentRoute?.minutes ?? null,
+                  distanceMiles: currentRoute?.distanceMiles ?? null,
+                  durationMinutes: currentRoute?.durationMinutes ?? null,
+                },
+                { shouldDirty: true, shouldValidate: true },
+              );
+            }}
+            className={styles.addStopBtnWizard}
+          >
+            <span>➕</span> Add a stop
+            <span className={styles.addStopFeeWizard}>
+              ({EXTRA_STOP_FEE_LABEL})
+            </span>
+          </button>
+        )}
+
+        <div
+          id='wizard-field-dropoff'
+          className={styles.sectionBox}
+          // Airport drop-off: the airport list comes first.
+          style={usesDropoffAirport ? { order: -1 } : undefined}
+        >
+          <label
+            className={`cardTitle h5${usesDropoffAirport ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
+          >
+            {usesDropoffAirport ? "Dropoff airport" : "Dropoff"}
+          </label>
+          {usesDropoffAirport ? (
+            <div
+              className={styles.airportOptions}
+              role='radiogroup'
+              aria-label='Dropoff airport'
+            >
+              {serviceAirports.map((a) => (
+                <label
+                  key={a.id}
+                  className={`${styles.airportOption}${dropoffAirportId === a.id ? ` ${styles.airportOptionActive}` : ""}`}
+                >
+                  <input
+                    type='radio'
+                    name='dropoffAirport'
+                    value={a.id}
+                    checked={dropoffAirportId === a.id}
+                    onChange={() => {
+                      setValue("dropoffAirportId", a.id, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      });
+                      clearErrors("dropoffAirportId");
+                      applyAirportToRoute("dropoff", a.id);
+                    }}
+                  />
+                  <span className={styles.airportOptionText}>
+                    <span className={styles.airportOptionName}>
+                      {a.name} ({a.iata})
+                    </span>
+                    {a.address ? (
+                      <span className={styles.airportOptionAddress}>
+                        {a.address}
+                      </span>
+                    ) : null}
+                  </span>
+                </label>
+              ))}
+              <div className='miniNote'>
+                Don&apos;t see your airport? Call{" "}
+                <a href='tel:+14803006003' className='inlineLink'>
+                  (480) 300-6003
+                </a>
+                .
+              </div>
+            </div>
+          ) : (
+            <input
+              key={`dropoff-input-${step}-${prefillKey}`}
+              ref={dropoffInputRef}
+              placeholder='Enter dropoff address'
+              autoComplete='off'
+              className='input emptySmall'
+              defaultValue={route?.dropoff?.address ?? ""}
+            />
+          )}
+        </div>
+      </div>
+
+      {(route?.stops?.length ?? 0) > 0 &&
+        selectedService?.pricingStrategy !== "HOURLY" && (
+          <div className={styles.stopSurchargeInfo}>
+            <span>
+              🛑 {route?.stops?.length} extra stop
+              {(route?.stops?.length ?? 0) > 1 ? "s" : ""}
+            </span>
+            <span className={styles.stopSurchargeAmount}>
+              +{formatUsd(stopSurchargeCents(route?.stops?.length ?? 0))}{" "}
+              surcharge
+            </span>
+          </div>
+        )}
+
+      {/* ✅ ROUTE PICKER — now inline under dropoff */}
+      <div className={styles.routePickerInline}>
+        <Controller
+          name='route'
+          control={control}
+          rules={{
+            validate: (v) => {
+              if (!v?.pickup || !v?.dropoff)
+                return "Please select pickup and dropoff.";
+              if (selectedService?.pricingStrategy === "POINT_TO_POINT") {
+                const miles = toNumber(v.miles ?? v.distanceMiles ?? null);
+                if (!miles || miles <= 0)
+                  return "Route estimate missing (miles). Please re-check the route.";
+              }
+              return true;
+            },
+          }}
+          render={({ field }) => (
+            <RoutePicker
+              value={field.value}
+              onChange={(next) => {
+                const prev = getValues("route");
+                if (routeEquals(prev, next)) return;
+                field.onChange(next);
+                clearErrors("route");
+              }}
+              pickupInputRef={pickupInputRef}
+              dropoffInputRef={dropoffInputRef}
+              inputsKey={inputsKey}
+            />
+          )}
+        />
+      </div>
+    </>
+  );
+
+  const whenFields = (
+    <>
+      <div id='wizard-field-datetime' className={styles.sectionBox}>
+        {" "}
+        <label
+          className={labelCx(
+            Boolean(errors.pickupAtDate) || Boolean(errors.pickupAtTime),
+          )}
+        >
+          Pickup date & time
+        </label>
+        <BookingDateTimeWithBlackouts
+          key={`dt-${prefillKey}`}
+          date={pickupAtDate}
+          time={pickupAtTime}
+          onChangeDate={(d) => {
+            setValue("pickupAtDate", d, {
+              shouldDirty: true,
+              shouldValidate: false,
+            });
+            clearErrors("pickupAtDate");
+          }}
+          onChangeTime={(t) => {
+            setValue("pickupAtTime", t, {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+            clearErrors("pickupAtTime");
+          }}
+          timeZone={companyTimezone}
+        />
+        <div className='miniNote' style={{ marginTop: 8 }}>
+          🕐 All times are in {companyTimezoneLabel}
+        </div>
+        {pickupTooSoon && (
+          <div
+            className='miniNote'
+            style={{
+              color: "rgba(180,0,0,0.85)",
+              marginTop: 8,
+              fontWeight: 700,
+              fontSize: 16,
+              letterSpacing: "normal",
+              lineHeight: 1.2,
+            }}
+          >
+            {LEAD_TIME_MESSAGE} Please choose a later date or time.
+          </div>
+        )}
+      </div>
+      <div id='wizard-field-passengers-luggage' className={styles.sectionBox}>
+        <Grid2>
+          <div style={{ display: "grid", gap: 20 }}>
+            <label className={labelCx(Boolean(errors.passengers))}>
+              Passengers
+            </label>
+            <select
+              value={passengers}
+              onChange={(e) => {
+                setValue("passengers", Number(e.target.value), {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+                clearErrors("passengers");
+              }}
+              className='selectBorder emptySmall'
+            >
+              <option value={0}>Select...</option>
+              {Array.from({ length: 56 }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: "grid", gap: 20 }}>
+            <label className={labelCx(Boolean(errors.luggage))}>Luggage</label>
+            <select
+              value={luggage}
+              onChange={(e) => {
+                setValue("luggage", Number(e.target.value), {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+                clearErrors("luggage");
+              }}
+              className='selectBorder emptySmall'
+            >
+              <option value={0}>None</option>
+              {Array.from({ length: 56 }, (_, i) => i + 1).map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+          </div>
+        </Grid2>
+      </div>
+    </>
   );
 
   return (
@@ -1834,560 +2162,85 @@ export default function BookingWizard({
                     }}
                     className={styles.sectionBox}
                   >
-                    {isAuto ? (
-                      <>
-                        <label className='cardTitle h5'>Trip type</label>
-                        <div
-                          className={styles.tripTypeToggle}
-                          role='radiogroup'
-                          aria-label='Trip type'
-                        >
-                          {(
-                            [
-                              [
-                                "oneWay",
-                                "One-way",
-                                "Airport rides and point to point",
-                              ],
-                              [
-                                "hourly",
-                                "By the hour",
-                                `Chauffeur stays with you, ${HOURLY_MIN_LABEL}`,
-                              ],
-                            ] as const
-                          ).map(([value, label, hint]) => (
-                            <button
-                              key={value}
-                              type='button'
-                              role='radio'
-                              aria-checked={tripType === value}
-                              className={`${styles.tripTypeOption}${tripType === value ? ` ${styles.tripTypeOptionActive}` : ""}`}
-                              onClick={() => {
-                                if (tripType === value) return;
-                                setTripType(value);
-                                // Hourly trips don't take extra stops.
-                                if (value === "hourly") {
-                                  const r = getValues("route");
-                                  if (r?.stops?.length) {
-                                    setValue(
-                                      "route",
-                                      {
-                                        ...r,
-                                        stops: [],
-                                        miles: null,
-                                        minutes: null,
-                                        distanceMiles: null,
-                                        durationMinutes: null,
-                                      },
-                                      { shouldDirty: true },
-                                    );
-                                  }
-                                }
-                              }}
-                            >
-                              <span className={styles.tripTypeLabel}>
-                                {label}
-                              </span>
-                              <span className={styles.tripTypeHint}>
-                                {hint}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                        <button
-                          type='button'
-                          className={styles.serviceModeLink}
-                          onClick={() => setServiceMode("manual")}
-                        >
-                          Choose a specific service instead
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <label
-                          className={labelCx(Boolean(errors.serviceTypeId))}
-                        >
-                          Service
-                        </label>
-                        <select
-                          value={serviceTypeId}
-                          onChange={(e) => {
-                            const next = e.target.value;
-                            setValue("pickupAirportId", "", {
-                              shouldDirty: true,
-                            });
-                            setValue("dropoffAirportId", "", {
-                              shouldDirty: true,
-                            });
-                            setValue("route", null, { shouldDirty: true });
-                            setValue("vehicleId", "", { shouldDirty: true });
-                            setValue("flightAirline", "", {
-                              shouldDirty: true,
-                            });
-                            setValue("flightNumber", "", { shouldDirty: true });
-                            setValue("flightScheduledAtDate", "", {
-                              shouldDirty: true,
-                            });
-                            setValue("flightScheduledAtTime", "", {
-                              shouldDirty: true,
-                            });
-                            setValue("flightTerminal", "", {
-                              shouldDirty: true,
-                            });
-                            setValue("flightGate", "", { shouldDirty: true });
-                            setValue("serviceTypeId", next, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            });
-                            clearErrors([
-                              "serviceTypeId",
-                              "pickupAirportId",
-                              "dropoffAirportId",
-                              "route",
-                              "vehicleId",
-                            ]);
-                            const svc = services.find((s) => s.id === next);
-                            if (svc?.pricingStrategy === "HOURLY") {
-                              setValue(
-                                "hoursRequested",
-                                Math.max(
-                                  getValues("hoursRequested") ||
-                                    HOURLY_MIN_HOURS,
-                                  HOURLY_MIN_HOURS,
-                                ),
-                                { shouldDirty: true, shouldValidate: true },
-                              );
-                            }
-                          }}
-                          // className='input emptySmall'
-                          className='selectBorder emptySmall'
-                          disabled={hasNoServices}
-                        >
-                          <option value=''>Select a service...</option>
-                          {services.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.name}
-                            </option>
-                          ))}
-                        </select>
-                        {autoAvailable && (
-                          <button
-                            type='button'
-                            className={styles.serviceModeLink}
-                            onClick={() => {
-                              setTripType(
-                                selectedService?.pricingStrategy === "HOURLY"
-                                  ? "hourly"
-                                  : "oneWay",
-                              );
-                              setServiceMode("auto");
-                            }}
-                          >
-                            ← Back to the simple booking
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-
-                  <div className={styles.pickupDropoffContainer}>
-                    <div id='wizard-field-pickup' className={styles.sectionBox}>
-                      <label
-                        className={`cardTitle h5${showPickupAirportSelect ? (errors.pickupAirportId ? " redBorder" : "") : pickupLabelRed ? " redBorder" : ""}`}
-                      >
-                        {showPickupAirportSelect ? "Pickup airport" : "Pickup"}
-                      </label>
-                      {showPickupAirportSelect ? (
-                        <select
-                          value={pickupAirportId}
-                          onChange={(e) => {
-                            const id = e.target.value;
-                            setValue("pickupAirportId", id, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            });
-                            clearErrors("pickupAirportId");
-                            applyAirportToRoute("pickup", id);
-                          }}
-                          className='selectBorder emptySmall'
-                        >
-                          <option value=''>Select an airport...</option>
-                          {serviceAirports.map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.name} ({a.iata})
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          key={`pickup-input-${step}-${prefillKey}`}
-                          ref={pickupInputRef}
-                          placeholder={
-                            isAuto
-                              ? "Address, hotel or airport"
-                              : "Enter pickup address"
-                          }
-                          autoComplete='off'
-                          className='input emptySmall'
-                          defaultValue={route?.pickup?.address ?? ""}
-                        />
-                      )}
-                      {detectedPickupAirport && (
-                        <div className={styles.airportBadge}>
-                          ✈️ Airport pickup at {detectedPickupAirport.name} (
-                          {detectedPickupAirport.iata}). We&apos;ll track your
-                          flight.
-                        </div>
-                      )}
-                    </div>
-
-                    {/* STOPS SECTION */}
-                    {(route?.stops?.length ?? 0) > 0 &&
-                      selectedService?.pricingStrategy !== "HOURLY" && (
-                        <div className={styles.stopsListWizard}>
-                          {route?.stops?.map((stop, index) => (
-                            <div key={stop.id} className={styles.stopRowWizard}>
-                              <div className={styles.stopBadgeWizard}>
-                                {index + 1}
-                              </div>
-                              <input
-                                type='text'
-                                placeholder={`Stop ${index + 1} address...`}
-                                defaultValue={stop.address}
-                                className='input emptySmall'
-                                style={{ flex: 1 }}
-                                ref={(el) => {
-                                  if (el && window.google?.maps?.places) {
-                                    const existingAC = (el as any).__stopAC;
-                                    if (!existingAC) {
-                                      const ac =
-                                        new window.google.maps.places.Autocomplete(
-                                          el,
-                                          {
-                                            fields: [
-                                              "place_id",
-                                              "formatted_address",
-                                              "geometry",
-                                            ],
-                                            componentRestrictions: {
-                                              country: "us",
-                                            },
-                                          },
-                                        );
-                                      ac.addListener("place_changed", () => {
-                                        const place = ac.getPlace();
-                                        const loc = place?.geometry?.location;
-                                        if (
-                                          !place?.place_id ||
-                                          !place?.formatted_address ||
-                                          !loc
-                                        )
-                                          return;
-
-                                        const currentRoute = getValues("route");
-                                        const currentStops = [
-                                          ...(currentRoute?.stops ?? []),
-                                        ];
-                                        const stopIdx = currentStops.findIndex(
-                                          (s) => s.id === stop.id,
-                                        );
-
-                                        if (stopIdx >= 0) {
-                                          currentStops[stopIdx] = {
-                                            ...currentStops[stopIdx],
-                                            address: String(
-                                              place.formatted_address,
-                                            ),
-                                            placeId: String(place.place_id),
-                                            location: {
-                                              lat: loc.lat(),
-                                              lng: loc.lng(),
-                                            },
-                                          };
-
-                                          setValue(
-                                            "route",
-                                            {
-                                              pickup:
-                                                currentRoute?.pickup ?? null,
-                                              dropoff:
-                                                currentRoute?.dropoff ?? null,
-                                              stops: currentStops,
-                                              miles: null,
-                                              minutes: null,
-                                              distanceMiles: null,
-                                              durationMinutes: null,
-                                            },
-                                            {
-                                              shouldDirty: true,
-                                              shouldValidate: true,
-                                            },
-                                          );
-                                        }
-                                      });
-                                      (el as any).__stopAC = ac;
-                                    }
-                                  }
-                                }}
-                              />
-                              <button
-                                type='button'
-                                onClick={() => {
-                                  const currentRoute = getValues("route");
-                                  const newStops = (
-                                    currentRoute?.stops ?? []
-                                  ).filter((s) => s.id !== stop.id);
-                                  setValue(
-                                    "route",
-                                    {
-                                      pickup: currentRoute?.pickup ?? null,
-                                      dropoff: currentRoute?.dropoff ?? null,
-                                      stops: newStops,
-                                      miles: null,
-                                      minutes: null,
-                                      distanceMiles: null,
-                                      durationMinutes: null,
-                                    },
-                                    { shouldDirty: true, shouldValidate: true },
-                                  );
-                                }}
-                                className={styles.removeStopBtnWizard}
-                                title='Remove stop'
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                    {/* ADD STOP BUTTON — hidden for hourly/charter services */}
-                    {selectedService?.pricingStrategy !== "HOURLY" && (
-                      <button
-                        type='button'
-                        onClick={() => {
-                          const currentRoute = getValues("route");
-                          const newStop = {
-                            id: `stop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-                            address: "",
-                            placeId: "",
-                            location: { lat: 0, lng: 0 },
-                          };
-                          setValue(
-                            "route",
-                            {
-                              pickup: currentRoute?.pickup ?? null,
-                              dropoff: currentRoute?.dropoff ?? null,
-                              stops: [...(currentRoute?.stops ?? []), newStop],
-                              miles: currentRoute?.miles ?? null,
-                              minutes: currentRoute?.minutes ?? null,
-                              distanceMiles:
-                                currentRoute?.distanceMiles ?? null,
-                              durationMinutes:
-                                currentRoute?.durationMinutes ?? null,
-                            },
-                            { shouldDirty: true, shouldValidate: true },
-                          );
-                        }}
-                        className={styles.addStopBtnWizard}
-                      >
-                        <span>➕</span> Add a stop
-                        <span className={styles.addStopFeeWizard}>
-                          ({EXTRA_STOP_FEE_LABEL})
-                        </span>
-                      </button>
-                    )}
-
-                    <div
-                      id='wizard-field-dropoff'
-                      className={styles.sectionBox}
-                    >
-                      <label
-                        className={`cardTitle h5${showDropoffAirportSelect ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
-                      >
-                        {showDropoffAirportSelect
-                          ? "Dropoff airport"
-                          : "Dropoff"}
-                      </label>
-                      {showDropoffAirportSelect ? (
-                        <select
-                          value={dropoffAirportId}
-                          onChange={(e) => {
-                            const id = e.target.value;
-                            setValue("dropoffAirportId", id, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            });
-                            clearErrors("dropoffAirportId");
-                            applyAirportToRoute("dropoff", id);
-                          }}
-                          className='selectBorder emptySmall'
-                        >
-                          <option value=''>Select an airport...</option>
-                          {serviceAirports.map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.name} ({a.iata})
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <input
-                          key={`dropoff-input-${step}-${prefillKey}`}
-                          ref={dropoffInputRef}
-                          placeholder={
-                            isAuto
-                              ? "Address, hotel or airport"
-                              : "Enter dropoff address"
-                          }
-                          autoComplete='off'
-                          className='input emptySmall'
-                          defaultValue={route?.dropoff?.address ?? ""}
-                        />
-                      )}
-                      {detectedDropoffAirport && (
-                        <div className={styles.airportBadge}>
-                          ✈️ Airport drop-off at {detectedDropoffAirport.name} (
-                          {detectedDropoffAirport.iata}).
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {(route?.stops?.length ?? 0) > 0 &&
-                    selectedService?.pricingStrategy !== "HOURLY" && (
-                      <div className={styles.stopSurchargeInfo}>
-                        <span>
-                          🛑 {route?.stops?.length} extra stop
-                          {(route?.stops?.length ?? 0) > 1 ? "s" : ""}
-                        </span>
-                        <span className={styles.stopSurchargeAmount}>
-                          +
-                          {formatUsd(
-                            stopSurchargeCents(route?.stops?.length ?? 0),
-                          )}{" "}
-                          surcharge
-                        </span>
-                      </div>
-                    )}
-
-                  {/* ✅ ROUTE PICKER — now inline under dropoff */}
-                  <div className={styles.routePickerInline}>
-                    <Controller
-                      name='route'
-                      control={control}
-                      rules={{
-                        validate: (v) => {
-                          if (!v?.pickup || !v?.dropoff)
-                            return "Please select pickup and dropoff.";
-                          if (
-                            selectedService?.pricingStrategy ===
-                            "POINT_TO_POINT"
-                          ) {
-                            const miles = toNumber(
-                              v.miles ?? v.distanceMiles ?? null,
-                            );
-                            if (!miles || miles <= 0)
-                              return "Route estimate missing (miles). Please re-check the route.";
-                          }
-                          return true;
-                        },
-                      }}
-                      render={({ field }) => (
-                        <RoutePicker
-                          value={field.value}
-                          onChange={(next) => {
-                            const prev = getValues("route");
-                            if (routeEquals(prev, next)) return;
-                            field.onChange(next);
-                            clearErrors("route");
-                          }}
-                          pickupInputRef={pickupInputRef}
-                          dropoffInputRef={dropoffInputRef}
-                          inputsKey={inputsKey}
-                        />
-                      )}
-                    />
-                  </div>
-
-                  <div id='wizard-field-datetime' className={styles.sectionBox}>
-                    {" "}
-                    <label
-                      className={labelCx(
-                        Boolean(errors.pickupAtDate) ||
-                          Boolean(errors.pickupAtTime),
-                      )}
-                    >
-                      Pickup date & time
+                    <label className={labelCx(Boolean(errors.serviceTypeId))}>
+                      Service
                     </label>
-                    <BookingDateTimeWithBlackouts
-                      key={`dt-${prefillKey}`}
-                      date={pickupAtDate}
-                      time={pickupAtTime}
-                      onChangeDate={(d) => {
-                        setValue("pickupAtDate", d, {
+                    <select
+                      value={serviceTypeId}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        setValue("pickupAirportId", "", {
                           shouldDirty: true,
-                          shouldValidate: false,
                         });
-                        clearErrors("pickupAtDate");
-                      }}
-                      onChangeTime={(t) => {
-                        setValue("pickupAtTime", t, {
+                        setValue("dropoffAirportId", "", {
+                          shouldDirty: true,
+                        });
+                        setValue("route", null, { shouldDirty: true });
+                        setValue("vehicleId", "", { shouldDirty: true });
+                        setValue("flightAirline", "", {
+                          shouldDirty: true,
+                        });
+                        setValue("flightNumber", "", { shouldDirty: true });
+                        setValue("flightScheduledAtDate", "", {
+                          shouldDirty: true,
+                        });
+                        setValue("flightScheduledAtTime", "", {
+                          shouldDirty: true,
+                        });
+                        setValue("flightTerminal", "", {
+                          shouldDirty: true,
+                        });
+                        setValue("flightGate", "", { shouldDirty: true });
+                        setValue("serviceTypeId", next, {
                           shouldDirty: true,
                           shouldValidate: true,
                         });
-                        clearErrors("pickupAtTime");
+                        clearErrors([
+                          "serviceTypeId",
+                          "pickupAirportId",
+                          "dropoffAirportId",
+                          "route",
+                          "vehicleId",
+                        ]);
+                        const svc = services.find((s) => s.id === next);
+                        if (svc?.pricingStrategy === "HOURLY") {
+                          setValue(
+                            "hoursRequested",
+                            Math.max(
+                              getValues("hoursRequested") || HOURLY_MIN_HOURS,
+                              HOURLY_MIN_HOURS,
+                            ),
+                            { shouldDirty: true, shouldValidate: true },
+                          );
+                        }
                       }}
-                      timeZone={companyTimezone}
-                    />
-                    <div className='miniNote' style={{ marginTop: 8 }}>
-                      🕐 All times are in {companyTimezoneLabel}
-                    </div>
-                    {pickupTooSoon && (
-                      <div
-                        className='miniNote'
-                        style={{
-                          color: "rgba(180,0,0,0.85)",
-                          marginTop: 8,
-                          fontWeight: 700,
-                          fontSize: 16,
-                          letterSpacing: "normal",
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        {LEAD_TIME_MESSAGE} Please choose a later date or time.
-                      </div>
-                    )}
+                      // className='input emptySmall'
+                      className='selectBorder emptySmall'
+                      disabled={hasNoServices}
+                    >
+                      <option value=''>Select a service...</option>
+                      {services.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <div
-                    id='wizard-field-passengers-luggage'
-                    className={styles.sectionBox}
-                  >
-                    <div style={{ display: "grid", gap: 20 }}>
-                      <label className={labelCx(Boolean(errors.passengers))}>
-                        Passengers
-                      </label>
-                      <select
-                        value={passengers}
-                        onChange={(e) => {
-                          setValue("passengers", Number(e.target.value), {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          });
-                          clearErrors("passengers");
-                        }}
-                        className='selectBorder emptySmall'
-                      >
-                        <option value={0}>Select...</option>
-                        {Array.from({ length: 56 }, (_, i) => i + 1).map(
-                          (n) => (
-                            <option key={n} value={n}>
-                              {n}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                    </div>
-                  </div>
+
+                  {/* Airport services: the airport list and the other
+                      address come first. Everything else: when, then where. */}
+                  {isAirportService ? (
+                    <>
+                      {routeFields}
+                      {whenFields}
+                    </>
+                  ) : (
+                    <>
+                      {whenFields}
+                      {routeFields}
+                    </>
+                  )}
+
                   {selectedService?.pricingStrategy === "HOURLY" ? (
                     <div style={{ display: "grid", gap: 8 }}>
                       <label
@@ -3015,71 +2868,39 @@ export default function BookingWizard({
                     )}
                   </div>
 
-                  {/* ─── Luggage (asked here, not up front) ─── */}
-                  <div className={styles.sectionBox}>
-                    <label className='cardTitle h5'>
-                      Luggage{" "}
-                      <span style={{ fontWeight: 400, opacity: 0.7 }}>
-                        (optional)
-                      </span>
-                    </label>
-                    <select
-                      value={luggage}
-                      onChange={(e) => {
-                        setValue("luggage", Number(e.target.value), {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        });
-                        clearErrors("luggage");
-                      }}
-                      className='selectBorder emptySmall'
-                    >
-                      <option value={0}>None</option>
-                      {Array.from({ length: 56 }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={n}>
-                          {n} bag{n !== 1 ? "s" : ""}
-                        </option>
-                      ))}
-                    </select>
-                    {selectedVehicle &&
-                      selectedVehicle.luggageCapacity > 0 &&
-                      luggage > selectedVehicle.luggageCapacity && (
-                        <div className='miniNote'>
-                          That&apos;s more bags than the {selectedVehicle.name}{" "}
-                          usually fits ({selectedVehicle.luggageCapacity}). We
-                          can confirm when we review your request, or you can go
-                          back and choose a larger vehicle.
-                        </div>
+                  {/* ─── Included with your ride (airport rides) ─── */}
+                  {isAirportService && (
+                    <div className={`box ${styles.includedBox}`}>
+                      <div
+                        className='cardTitle h5'
+                        style={{ marginBottom: 12 }}
+                      >
+                        Included with your ride
+                      </div>
+                      <ul className={styles.includedList}>
+                        {includedFor(rideKind).map((line) => (
+                          <li key={line}>{line}</li>
+                        ))}
+                      </ul>
+                      {rideKind === "airportPickup" && (
+                        <label className={styles.meetGreetRow}>
+                          <input
+                            type='checkbox'
+                            checked={meetAndGreet}
+                            onChange={(e) => setMeetAndGreet(e.target.checked)}
+                          />
+                          <span>
+                            <strong>Add meet &amp; greet (free).</strong> Your
+                            chauffeur waits inside baggage claim with a name
+                            sign.
+                          </span>
+                        </label>
                       )}
-                  </div>
-
-                  {/* ─── Included with your ride ─── */}
-                  <div className={`box ${styles.includedBox}`}>
-                    <div className='cardTitle h5' style={{ marginBottom: 12 }}>
-                      Included with your ride
+                      <div className='miniNote' style={{ marginTop: 12 }}>
+                        {CANCELLATION_POLICY} {CANCELLATION_POLICY_DETAIL}
+                      </div>
                     </div>
-                    <ul className={styles.includedList}>
-                      {includedFor(rideKind).map((line) => (
-                        <li key={line}>{line}</li>
-                      ))}
-                    </ul>
-                    {rideKind === "airportPickup" && (
-                      <label className={styles.meetGreetRow}>
-                        <input
-                          type='checkbox'
-                          checked={meetAndGreet}
-                          onChange={(e) => setMeetAndGreet(e.target.checked)}
-                        />
-                        <span>
-                          <strong>Add meet &amp; greet (free).</strong> Your
-                          chauffeur waits inside baggage claim with a name sign.
-                        </span>
-                      </label>
-                    )}
-                    <div className='miniNote' style={{ marginTop: 12 }}>
-                      {CANCELLATION_POLICY} {CANCELLATION_POLICY_DETAIL}
-                    </div>
-                  </div>
+                  )}
 
                   {/* ─── Saved legs summary (multi-day trip) ─── */}
                   {savedLegs.length > 0 && (
@@ -3382,15 +3203,13 @@ export default function BookingWizard({
                   >
                     ➕ Add another ride to this trip
                   </button> */}
-                  {rideKind !== "hourly" && (
+                  {isAirportService && (
                     <Button
                       type='button'
                       text={
                         rideKind === "airportPickup"
-                          ? "Add my return ride to the airport"
-                          : rideKind === "airportDropoff"
-                            ? "Add my ride back from the airport"
-                            : "Add a return ride"
+                          ? "Add my ride back to the airport"
+                          : "Add my ride back from the airport"
                       }
                       btnType='greenii'
                       onClick={() => {
@@ -3413,8 +3232,8 @@ export default function BookingWizard({
                       className='miniNote'
                       style={{ textAlign: "center", marginTop: -4 }}
                     >
-                      {rideKind !== "hourly"
-                        ? "A return ride swaps the addresses and keeps your vehicle. You just pick the date and time. "
+                      {isAirportService
+                        ? "The ride back keeps your airport and vehicle. You just pick the date and time. "
                         : ""}
                       Need rides on other days? Add them all here and submit as
                       one trip.

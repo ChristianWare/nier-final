@@ -41,10 +41,7 @@ import PartyBus from "../../public/images/vehicles/partyBusii.png";
 import Bus from "../../public/images/vehicles/bus.png";
 import Limo from "../../public/images/vehicles/limo.png";
 import { VehicleData } from "./types/fleet";
-import {
-  CANCELLATION_FREE_HOURS,
-  FREE_WAIT_MINUTES,
-} from "@/lib/booking/rules";
+import { CANCELLATION_FREE_HOURS } from "@/lib/booking/rules";
 
 export const reviews = [
   {
@@ -121,7 +118,8 @@ export const services = [
       {
         id: 1.4,
         title: "Complimentary Wait Time",
-        details: `Enjoy ${FREE_WAIT_MINUTES} minutes of free wait time after landing without any additional fees.`,
+        details:
+          "Enjoy up to 60 minutes of free wait time after landing without any additional fees.",
       },
     ],
   },
@@ -494,7 +492,8 @@ export const homepageFaqs = [
   {
     id: "flight-delays",
     question: "What happens if my flight is early or delayed?",
-    answer: `We track your flight and adjust the pickup at no extra charge. If it lands early, your chauffeur is already there; if it's delayed, the pickup moves with it, and you get ${FREE_WAIT_MINUTES} minutes of free wait time after landing.`,
+    answer:
+      "We track your flight and adjust the pickup at no extra charge. If it lands early, your chauffeur is already there; if it's delayed, we wait up to 60 minutes after landing.",
   },
   {
     id: "hourly",
@@ -537,7 +536,8 @@ export const homeQuestions = [
   {
     id: 1,
     question: "How do you handle flight delays or early arrivals?",
-    answer: `We monitor your flight in real time and automatically adjust your pickup window at no extra charge. If your flight arrives early, your chauffeur will be standing by; if it’s delayed, the pickup moves with it. You get ${FREE_WAIT_MINUTES} minutes of free wait time after landing before any fees apply.`,
+    answer:
+      "We monitor your flight in real time and automatically adjust your pickup window at no extra charge. If your flight arrives early, your chauffeur will be standing by; if it’s delayed, we’ll wait up to 60 minutes after landing before any fees apply.",
   },
   {
     id: 1.1,
@@ -1070,7 +1070,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
       },
       {
         q: "Do you track inbound flights?",
-        a: "Yes. We monitor flight changes and include a 15-minute grace period for deplaning.",
+        a: "Yes. We monitor flight changes and wait up to 60 minutes after landing at no extra charge.",
       },
       {
         q: "Can you provide child seats?",

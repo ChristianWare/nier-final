@@ -9,8 +9,6 @@
 // Airlines move between terminals: re-check the airline list each spring
 // and fall, update CHECKED_ON, and bump the sitemap date.
 
-import { FREE_WAIT_MINUTES } from "@/lib/booking/rules";
-
 export const CHECKED_ON = "2026-10-11";
 
 export type GuideFact = { label: string; value: string };
@@ -211,7 +209,7 @@ export const airportGuides: readonly AirportGuide[] = [
     ],
     rideBox: {
       title: "Flying in or out of Terminal 3?",
-      copy: `Book a flat-rate ride to or from Terminal 3, from $55. We track your flight, and you get ${FREE_WAIT_MINUTES} minutes of free wait time after landing.`,
+      copy: "Book a flat-rate ride to or from Terminal 3, from $55. We track your flight and wait up to 60 minutes after landing.",
     },
     faqs: [
       {
@@ -305,7 +303,7 @@ export const airportGuides: readonly AirportGuide[] = [
     ],
     rideBox: {
       title: "Flying American or Southwest out of PHX?",
-      copy: `Book a flat-rate ride to or from Terminal 4, from $55. We track your flight, and you get ${FREE_WAIT_MINUTES} minutes of free wait time after landing.`,
+      copy: "Book a flat-rate ride to or from Terminal 4, from $55. We track your flight and wait up to 60 minutes after landing.",
     },
     faqs: [
       {

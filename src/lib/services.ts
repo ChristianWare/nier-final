@@ -16,7 +16,6 @@ import Point from "../../public/images/other/point.jpg";
 import Distance from "../../public/images/other/longdistanceii.jpg";
 
 import type { StaticImageData } from "next/image";
-import { FREE_WAIT_MINUTES } from "@/lib/booking/rules";
 
 export type ServiceShape = {
   id: number;
@@ -65,10 +64,12 @@ export const servicesData = [
     title: "Airport Transfers",
     slug: "airport-transfers",
     copy: "Reliable black car service to Scottsdale, Sky Harbor, and Gateway airports. Professional chauffeurs ensure punctual, stress-free travel.",
-    marketingCopy: `On-time, every time. Seamless airport transfers to PHX, Scottsdale, and Gateway with real-time flight tracking, a ${FREE_WAIT_MINUTES}-minute grace period, and free meet-and-greet. Reserve your black car in minutes.`,
+    marketingCopy:
+      "On-time, every time. Seamless airport transfers to PHX, Scottsdale, and Gateway with real-time flight tracking, 60-minute grace period, and free meet-and-greet. Reserve your black car in minutes.",
     src: Airport,
     src2: Airport2,
-    description: `Phoenix airport transportation with real-time flight tracking, a ${FREE_WAIT_MINUTES}-minute grace period, and door-to-door black car service to PHX, SDL, and AZA across Metro Phoenix.`,
+    description:
+      "Phoenix airport transportation with real-time flight tracking, a 60-minute grace period, and door-to-door black car service to PHX, SDL, and AZA across Metro Phoenix.",
     whoThisIsFor: [
       "Business travelers who need on-time pickups and quiet, climate-controlled rides to work in transit",
       "Families with luggage, strollers, and child seats who want hands-on help from curb to door",
@@ -86,7 +87,7 @@ export const servicesData = [
       "Real-Time Flight Monitoring – We track your flight and auto-adjust dispatch and pickup times for delays or early arrivals.",
       "Meet & Greet – Free inside-terminal greeting with a name sign for a smooth handoff.",
       "Luggage Assistance – From carousel to curb, and from curb to your door.",
-      `Complimentary Wait Time – ${FREE_WAIT_MINUTES} minutes after your flight lands to deplane and collect bags.`,
+      "Complimentary Wait Time – Up to 60 minutes after wheels-down to deplane and collect bags.",
       "Door-to-Door – Private ride, no shared stops.",
       "Quiet Cabin – Climate-controlled vehicles with water and phone charging on request.",
     ],
@@ -107,7 +108,7 @@ export const servicesData = [
       "Receipts & invoices – Emailed automatically; monthly statements available for corporate accounts.",
     ],
     policies: [
-      `Complimentary Wait Time: ${FREE_WAIT_MINUTES} minutes from actual landing. After the grace period, wait time may apply in 15-minute increments.`,
+      "Complimentary Wait Time: 60 minutes domestic/international from actual landing. After the grace period, wait time may apply in 15-minute increments.",
       "Advance reservations: Recommended for all flights; required for very early/late arrivals.",
       "Same-day bookings: Subject to availability—call or book online to check live inventory.",
       "Cancellations & Changes: Free changes up to a reasonable pre-dispatch window; once the chauffeur is en route or on location, standard fees may apply.",
@@ -132,7 +133,7 @@ export const servicesData = [
     ],
     whatToExpect: [
       "Booking Confirmation: You’ll receive a confirmation with pickup details and your chauffeur’s contact closer to arrival.",
-      `Landing & Grace Period: We start your ${FREE_WAIT_MINUTES}-minute complimentary window once the flight lands.`,
+      "Landing & Grace Period: We start your 60-minute complimentary window once the flight lands.",
       "Bags & Meet Point: Text us when you reach baggage claim; for Meet & Greet, your chauffeur is already inside with a sign.",
       "Load & Go: We handle luggage and route selection—fastest route factoring traffic and closures.",
       "Arrival: Door-to-door drop-off with a final luggage handoff.",
@@ -160,7 +161,7 @@ export const servicesData = [
       },
       {
         q: "How much does airport transportation cost in Phoenix?",
-        a: `It's a flat rate based on your pickup point and vehicle — no meter, no surge pricing, and the rate includes flight tracking and ${FREE_WAIT_MINUTES} minutes of free wait time after landing. Book online or call (480) 300-6003 for an instant quote in either direction.`,
+        a: "It's a flat rate based on your pickup point and vehicle — no meter, no surge pricing, and the rate includes flight tracking and up to 60 minutes of wait time after landing. Book online or call (480) 300-6003 for an instant quote in either direction.",
       },
       {
         q: "Is a black car better than a taxi or shuttle from Sky Harbor?",
@@ -227,7 +228,8 @@ export const servicesData = [
       {
         id: 1.4,
         title: "Complimentary Wait Time",
-        details: `${FREE_WAIT_MINUTES} minutes after your flight lands to deplane and collect bags.`,
+        details:
+          "Up to 60 minutes after wheels-down to deplane and collect bags.",
       },
       {
         id: 1.5,
@@ -467,7 +469,7 @@ export const servicesData = [
       "Receipts auto-emailed; monthly billing for approved accounts",
     ],
     policies: [
-      `Grace Period: ${FREE_WAIT_MINUTES} minutes at pickup before wait time applies`,
+      "Grace Period: Standard 10–15 minutes at pickup before wait time applies",
       "Changes: Free if made pre-dispatch; billed if driver is en route or on site",
       "Same-day bookings: Subject to availability",
       "No-Shows: Marked 15–30 minutes after scheduled pickup if unreachable",

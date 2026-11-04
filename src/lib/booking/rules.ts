@@ -78,8 +78,11 @@ export function stopSurchargeCents(stopCount: number) {
 
 // ─── Policies shown to customers ────────────────────────────────────────────
 
-/** Free wait time at pickup, including after an airport flight lands. */
-export const FREE_WAIT_MINUTES = 15;
+/** Free wait time on airport pickups, counted from when the flight lands. */
+export const AIRPORT_FREE_WAIT_MINUTES = 60;
+
+/** Free wait time at any other pickup (hotel, home, office). */
+export const PICKUP_GRACE_MINUTES = 15;
 
 /** Free cancellation window. */
 export const CANCELLATION_FREE_HOURS = 72;
@@ -113,8 +116,9 @@ export function rideKindOf(service: ServiceLike | null | undefined): RideKind {
 
 /**
  * The service to use for each kind of ride, picked from the active services
- * (lowest sort order wins when two qualify). A kind is missing when no
- * service fits it, in which case the form falls back to the service list.
+ * (lowest sort order wins when two qualify). A kind is null when no service
+ * fits it. Used for the return ride (airport pickup → airport drop-off) and
+ * the website prices.
  */
 export function classifyServices<S extends ServiceLike>(services: S[]) {
   const sorted = [...services]
@@ -139,145 +143,6 @@ export type ClassifiedServices<S extends ServiceLike> = ReturnType<
   typeof classifyServices<S>
 >;
 
-/** True when every kind the simple first step needs has a service. */
-export function canAutoPickService<S extends ServiceLike>(
-  c: ClassifiedServices<S>,
-) {
-  return Boolean(c.oneWay && c.hourly);
-}
-
-// ─── Airport detection ──────────────────────────────────────────────────────
-
-export type PlaceLike = {
-  address?: string | null;
-  placeId?: string | null;
-  location?: { lat: number; lng: number } | null;
-};
-
-export type AirportLike = {
-  id: string;
-  name: string;
-  iata: string;
-  address: string;
-  placeId: string | null;
-  lat: unknown;
-  lng: unknown;
-};
-
-/** Within this distance of an airport's saved location counts as that airport. */
-export const AIRPORT_MATCH_MILES = 0.75;
-
-function num(v: unknown): number | null {
-  const n = typeof v === "number" ? v : Number(v);
-  return v == null || !Number.isFinite(n) ? null : n;
-}
-
-export function milesBetween(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-) {
-  const R = 3958.8;
-  const toRad = (d: number) => (d * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(h));
-}
-
-/** First line of an address, normalized: "3400 E Sky Harbor Blvd". */
-function streetLine(address: string | null | undefined) {
-  return (address ?? "")
-    .split(",")[0]
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-}
-
-/**
- * The airport a picked address is at, or null. Matches the airport's Google
- * place, its street address, or anything within AIRPORT_MATCH_MILES of its
- * saved location (terminals, rental car center).
- */
-export function matchAirport<A extends AirportLike>(
-  place: PlaceLike | null | undefined,
-  airports: readonly A[],
-): A | null {
-  if (!place) return null;
-  for (const a of airports) {
-    if (place.placeId && a.placeId && place.placeId === a.placeId) return a;
-  }
-  const line = streetLine(place.address);
-  if (line) {
-    for (const a of airports) {
-      const aLine = streetLine(a.address);
-      if (aLine && aLine === line) return a;
-    }
-  }
-  const loc = place.location;
-  if (loc && Number.isFinite(loc.lat) && Number.isFinite(loc.lng)) {
-    let best: { a: A; d: number } | null = null;
-    for (const a of airports) {
-      const lat = num(a.lat);
-      const lng = num(a.lng);
-      if (lat == null || lng == null) continue;
-      const d = milesBetween(loc, { lat, lng });
-      if (d <= AIRPORT_MATCH_MILES && (!best || d < best.d)) best = { a, d };
-    }
-    if (best) return best.a;
-  }
-  return null;
-}
-
-/**
- * The service and airport for a one-way ride, worked out from the addresses:
- * an airport pickup when the pickup is an airport, an airport drop-off when
- * the dropoff is, otherwise a regular one-way ride. Only airports assigned to
- * the airport service count.
- */
-export function pickOneWayService<
-  S extends ServiceLike & { airports?: readonly AirportLike[] },
->(
-  c: ClassifiedServices<S>,
-  pickup: PlaceLike | null | undefined,
-  dropoff: PlaceLike | null | undefined,
-): {
-  service: S | null;
-  kind: RideKind;
-  pickupAirportId: string;
-  dropoffAirportId: string;
-} {
-  const pickupAirport = c.airportPickup
-    ? matchAirport(pickup, c.airportPickup.airports ?? [])
-    : null;
-  if (pickupAirport && c.airportPickup) {
-    return {
-      service: c.airportPickup,
-      kind: "airportPickup",
-      pickupAirportId: pickupAirport.id,
-      dropoffAirportId: "",
-    };
-  }
-  const dropoffAirport = c.airportDropoff
-    ? matchAirport(dropoff, c.airportDropoff.airports ?? [])
-    : null;
-  if (dropoffAirport && c.airportDropoff) {
-    return {
-      service: c.airportDropoff,
-      kind: "airportDropoff",
-      pickupAirportId: "",
-      dropoffAirportId: dropoffAirport.id,
-    };
-  }
-  return {
-    service: c.oneWay,
-    kind: "oneWay",
-    pickupAirportId: "",
-    dropoffAirportId: "",
-  };
-}
-
 /** The ride kind for the trip back: an airport pickup returns as a drop-off. */
 export function returnKindOf(kind: RideKind): RideKind {
   if (kind === "airportPickup") return "airportDropoff";
@@ -297,14 +162,14 @@ export function includedFor(kind: RideKind): string[] {
     case "airportPickup":
       return [
         "Flight tracking: your pickup adjusts to your actual landing time",
-        `${FREE_WAIT_MINUTES} minutes of free wait time after your flight lands`,
+        `Up to ${AIRPORT_FREE_WAIT_MINUTES} minutes of free wait time after your flight lands`,
         "Curbside pickup, or free meet & greet inside baggage claim",
         ...common,
       ];
     case "airportDropoff":
       return [
         "Pickup timed around traffic and your terminal's security lines",
-        `${FREE_WAIT_MINUTES} minutes of free wait time at pickup`,
+        `${PICKUP_GRACE_MINUTES} minutes of free wait time at pickup`,
         "Help with your luggage",
         ...common,
       ];
@@ -316,7 +181,7 @@ export function includedFor(kind: RideKind): string[] {
       ];
     default:
       return [
-        `${FREE_WAIT_MINUTES} minutes of free wait time at pickup`,
+        `${PICKUP_GRACE_MINUTES} minutes of free wait time at pickup`,
         "Door-to-door, with help with your luggage",
         ...common,
       ];

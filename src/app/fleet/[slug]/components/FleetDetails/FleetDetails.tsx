@@ -13,7 +13,7 @@ import {
   CANCELLATION_POLICY,
   CANCELLATION_POLICY_DETAIL,
   EXTRA_STOP_FEE_LABEL,
-  FREE_WAIT_MINUTES,
+  AIRPORT_FREE_WAIT_MINUTES,
   HOURLY_MIN_HOURS,
   usdShort,
 } from "@/lib/booking/rules";
@@ -156,7 +156,8 @@ export default function FleetDetails({
                 )}
                 <li>
                   <span className={styles.dot} />
-                  {FREE_WAIT_MINUTES} minutes of free wait time
+                  Airport pickups: up to {AIRPORT_FREE_WAIT_MINUTES} minutes of
+                  free wait time after your flight lands
                 </li>
                 <li>
                   <span className={styles.dot} />
