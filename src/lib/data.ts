@@ -466,6 +466,27 @@ export const homepageFaqs = [
     question: "How is Nier different from Uber Black?",
     answer:
       "Your car is confirmed ahead of time with a professional chauffeur, the price is fixed with no surge, and we track your flight. A rideshare may not have a black car nearby at 5 am in North Scottsdale; we will.",
+    link: {
+      href: "/blog/black-car-vs-uber-black-vs-taxi-sky-harbor",
+      label: "Black car vs. Uber Black vs. taxi from Sky Harbor",
+    },
+  },
+  {
+    id: "pricing",
+    question: "How much does a private car service cost in Phoenix?",
+    answer:
+      "Point-to-point rides start at $55, and airport rides in a black SUV typically run $55–$120 depending on distance. Hourly chauffeur service and charters have a 2-hour minimum. You see the exact price before you book, with no surge pricing.",
+    link: {
+      href: "/blog/limo-black-car-prices-phoenix",
+      label: "Phoenix limo & black car price guide",
+    },
+  },
+  {
+    id: "town-car",
+    question:
+      "What's the difference between black car, executive car and town car service?",
+    answer:
+      "They're the same thing: a pre-booked luxury sedan or SUV with a professional chauffeur. \"Town car\" comes from the old Lincoln Town Car; today we run executive sedans, Suburbans and Escalades, plus Sprinters for groups.",
   },
   {
     id: "flight-delays",
@@ -582,7 +603,7 @@ export const charterQuestions = [
   },
   {
     id: 5,
-    question: "Do you service routes outside of Phoenix?",
+    question: "Do you run Arizona charter bus trips outside of Phoenix?",
     answer:
       "Yes. While our home base is Phoenix, we regularly run charter bus service to Scottsdale, Tempe, Mesa, Chandler, Tucson, Sedona, Flagstaff, and beyond. Long-distance and out-of-state trips are available — just let us know your destination when requesting a quote.",
   },
@@ -747,7 +768,7 @@ export const corporateQuestions = [
     id: "m3",
     question: "How much does it cost to rent a charter bus in Phoenix?",
     answer:
-      "Pricing depends on hours, distance, vehicle size, and date — most trips are quoted as a flat rate with an hourly minimum, locked in at booking with no surge pricing. Split across 40–56 passengers, a full-size coach often costs less per person than the same group would spend on rideshares and parking. Call (480) 300-6003 or request a quote online for an exact number.",
+      "Pricing depends on hours, distance, vehicle size, and date. Charters have a 2-hour minimum, and typical full-size motor coach charters run about $1,000–$1,500, with mini-bus charters about $630–$1,080. Your price is locked in at booking with no surge pricing, and split across 40–56 passengers a coach often costs less per person than rideshares and parking. Call (480) 300-6003 or request a quote online for an exact number.",
   },
 ] as const;
 
@@ -1311,7 +1332,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     shortDesc:
       "The iconic stretch limo — perfect for weddings, proms, anniversaries, and VIP arrivals that demand a grand entrance.",
     longDesc:
-      "Nothing signals a special occasion quite like a stretch limousine. With a plush extended cabin, ambient lighting, and a dedicated chauffeur, it's the classic choice for weddings, anniversaries, milestone birthdays, and any event where the arrival is part of the experience.",
+      "Nothing signals a special occasion quite like a stretch limousine. With a plush extended cabin, ambient lighting, and a dedicated chauffeur, our stretch limo rental is the classic choice in Phoenix and Scottsdale for weddings, anniversaries, milestone birthdays, and any event where the arrival is part of the experience.",
     seats: "10–18 seater",
     luggage: "Light luggage and personal items",
     cargo: "Limited — designed for passengers",
@@ -1395,7 +1416,7 @@ export const fleetData: ReadonlyArray<VehicleData> = [
     seo: {
       metaTitle: "Stretch Limo Rental in Phoenix & Scottsdale | Nier",
       metaDescription:
-        "Arrive in classic style with a stretch limousine — perfect for weddings, proms, anniversaries, and special occasions in Phoenix.",
+        "Stretch limo rental in Phoenix and Scottsdale with a professional chauffeur: rent a limo for weddings, proms, anniversaries and nights out. Booked by the hour, instant quotes.",
     },
     desc: "The classic stretch limo with fiber-optic lighting, privacy partition, and a premium sound system. The iconic choice for weddings, proms, and any occasion that deserves a grand entrance.",
     src: Limo,

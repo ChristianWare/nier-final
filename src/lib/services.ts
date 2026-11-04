@@ -250,14 +250,14 @@ export const servicesData = [
     id: 2,
     title: "Hourly Chauffeur",
     slug: "hourly-chauffeur",
-    h1: "Hourly Chauffeur Service in Phoenix",
+    h1: "Chauffeur Service in Phoenix, by the Hour",
     copy: "Private chauffeur by the hour for errands, meetings, or nights out. Stay flexible with on-demand stops and real-time itinerary changes.",
     marketingCopy:
       "Your schedule, our wheel. Reserve a dedicated chauffeur by the hour for absolute flexibility—multiple stops, wait time included, and elite service throughout.",
     src: Hourly,
     src2: Hourly2,
     description:
-      "Keep a dedicated chauffeur and vehicle on-call by the hour. Perfect for back-to-back meetings, shopping days, and nights out across Phoenix and Scottsdale.",
+      "Chauffeur service in Phoenix and Scottsdale: keep a dedicated chauffeur and vehicle on call by the hour. Car service by the hour is perfect for back-to-back meetings, shopping days and nights out, with a 2-hour minimum.",
     whoThisIsFor: [
       "Executives with back-to-back meetings across town",
       "Visitors who want seamless transport between attractions and dining",
@@ -324,6 +324,14 @@ export const servicesData = [
       "Wrap-Up: Final drop-off and receipt automatically emailed",
     ],
     faqs: [
+      {
+        q: "How much does a chauffeur service cost in Phoenix?",
+        a: "Hourly chauffeur service has a 2-hour minimum, and the rate depends on the vehicle you choose. Our booking page shows the exact total for your hours before you confirm.",
+      },
+      {
+        q: "Can I book a car service by the hour?",
+        a: "Yes. Choose the hours you need when you book. Your chauffeur stays with you for the whole booking and waits between stops.",
+      },
       {
         q: "Is there a mileage cap?",
         a: "Hourly bookings include local mileage; additional mileage may be billed if travel extends beyond the service area.",
@@ -1039,13 +1047,14 @@ export const servicesData = [
     id: 7,
     title: "Party Bus",
     slug: "party-bus",
+    h1: "Party Bus Rentals in Phoenix & Scottsdale",
     copy: "Group nights out with room to move—music-ready cabins, coordinated venue stops, and safe returns.",
     marketingCopy:
       "Bring the whole crew. Sprinter-style and mini-coach options with coordinated pickup windows, venue staging, and end-of-night returns.",
     src: Party,
     src2: Wedding,
     description:
-      "Ideal for birthdays, bachelor/ette parties, and concert groups. We plan multi-stop routes, keep timing tight, and ensure everyone gets home safely.",
+      "Party bus rentals in Phoenix and Scottsdale for birthdays, bachelor and bachelorette parties, concerts, game days and nights out. Our mini party bus carries 20–40 people with a professional driver, and we plan the stops, keep the timing tight, and get everyone home safely. Need a party bus for hire on short notice? Call (480) 300-6003.",
     whoThisIsFor: [
       "Groups celebrating birthdays or milestones",
       "Bachelor/ette parties planning multiple venues",
@@ -1067,9 +1076,10 @@ export const servicesData = [
       "No-Surge Pricing – Clear quotes in advance",
     ],
     vehicleClasses: [
-      "Sprinter-Style Van (8–14 passengers)",
-      "Mini-Coach (on request, when available)",
-      "Executive SUVs for overflow or split groups",
+      "Mini Party Bus (20–40 passengers) – The limo party bus for big nights out",
+      "Executive Sprinter (up to 14 passengers) – Smaller groups that still want to ride together",
+      "Full-Size Motorcoach (up to 56 passengers) – The largest groups and game-day runs",
+      "Executive SUVs – Overflow or split groups",
     ],
     pickupOptions: [
       "Single meeting-point pickup",
@@ -1078,7 +1088,7 @@ export const servicesData = [
     ],
     bookingAndPayment: [
       "Quote and confirm online",
-      "Hourly charter with minimums for weekend nights",
+      "Booked by the hour, with a 2-hour minimum",
       "Deposit to secure popular dates",
       "Itemized receipts for group splits",
     ],
@@ -1122,6 +1132,22 @@ export const servicesData = [
       {
         q: "Bluetooth available?",
         a: "Yes—most vehicles support Bluetooth or AUX.",
+      },
+      {
+        q: "How much does a party bus rental cost in Phoenix?",
+        a: "Party buses are booked by the hour with a 2-hour minimum, so the total depends on how long you need it, the night and your route. Typical mini-bus nights run about $630–$1,080. Get an exact quote in our booking tool before you confirm.",
+      },
+      {
+        q: "How many people fit on the party bus?",
+        a: "Our mini party bus carries 20–40 passengers. For up to 14, an executive Sprinter is the better fit, and for bigger groups we have a 56-passenger motorcoach.",
+      },
+      {
+        q: "Is a limo party bus the same as a stretch limo?",
+        a: "No. A limo party bus is a bus with a limo-style interior, so you can stand up and move around, and it fits a much bigger group. A stretch limousine is lower and seats fewer people. Both come with a professional chauffeur.",
+      },
+      {
+        q: "How far ahead should we book a party bus?",
+        a: "For Friday and Saturday nights, prom season and big event weekends, book a few weeks ahead. For other nights, we can often help on short notice, so call (480) 300-6003.",
       },
     ],
     addOns: [
@@ -1488,13 +1514,14 @@ export const servicesData = [
     id: 10,
     title: "Weddings",
     slug: "weddings",
+    h1: "Wedding Limo Service & Wedding Transportation in Phoenix",
     copy: "Elegant, stress-free wedding transportation—from bridal party movements to guest shuttles and getaway cars.",
     marketingCopy:
       "Your timeline, perfectly executed. Professional chauffeurs, clean vehicles, and staging plans that make every transition effortless.",
     src: Wedding,
     src2: Wedding,
     description:
-      "Elegant wedding transportation for bridal parties, guest shuttles, and getaway cars. We manage your timeline so every transition is picture-perfect.",
+      "Wedding limo service and wedding transportation across Phoenix and Scottsdale: a stretch limousine for the couple, Sprinters and party buses for the wedding party, guest shuttles between hotels and the venue, and the getaway car at the end of the night. We manage your timeline so every transition is picture-perfect.",
     whoThisIsFor: [
       "Couples wanting a polished, reliable experience",
       "Planners coordinating multi-location timelines",
@@ -1516,9 +1543,11 @@ export const servicesData = [
       "Getaway Car – Classic exit timing",
     ],
     vehicleClasses: [
+      "Stretch Limousine – The classic wedding limo for the couple and bridal party",
       "Luxury Sedan – Getaway and VIP moves",
       "Executive SUV – Bridal party and family groups",
-      "Sprinter-Style Van – Guest shuttles and larger parties",
+      "Executive Sprinter (up to 14) – Wedding parties and guest shuttles",
+      "Mini Party Bus (20–40) – The whole wedding party, together",
     ],
     pickupOptions: [
       "Hotel suites, prep houses, and ceremony sites",
@@ -1571,6 +1600,18 @@ export const servicesData = [
       {
         q: "What if the ceremony runs late?",
         a: "We adapt with built-in buffers; overage may apply if significantly delayed.",
+      },
+      {
+        q: "How much does a wedding limo cost in Phoenix?",
+        a: "Wedding limo rental is booked by the hour with a 2-hour minimum, so the total depends on your timeline and how many vehicles you need. Share your schedule and you'll see an exact quote before you confirm.",
+      },
+      {
+        q: "Can we rent a wedding limo just for the getaway?",
+        a: "Yes. Many couples book the limo for photos and the arrival, then a separate pickup for the grand exit. Each booking has a 2-hour minimum.",
+      },
+      {
+        q: "How do we choose the best wedding limo company?",
+        a: "Ask for an itemized quote for the same vehicles and timeline, check when the clock starts, confirm the exact vehicle, and read recent reviews. We give you all of that in writing before you book.",
       },
     ],
     addOns: [
@@ -1652,6 +1693,7 @@ export const servicesData = [
     id: 11,
     title: "Group Transportation",
     slug: "group-transportation",
+    h1: "Group Transportation in Phoenix",
     copy: "Private group transportation across Phoenix — executive sprinters, mini party buses, and full-size motorcoaches with one coordinator and one invoice.",
     marketingCopy:
       "Moving a group in Phoenix? One coordinator, one invoice, and the right vehicles for your headcount — from 14-passenger executive sprinters to full-size motorcoaches. Corporate teams, weddings, conventions, and events, handled door to door.",
@@ -1725,11 +1767,11 @@ export const servicesData = [
     faqs: [
       {
         q: "How much does group transportation cost in Phoenix?",
-        a: "Group rides are quoted as a flat rate based on headcount, vehicle type, and itinerary — no surge pricing, no per-app math. Tell us your group size, dates, and stops, and we'll send an all-in quote. Book online or call (480) 300-6003.",
+        a: "Group rides are quoted up front based on headcount, vehicle and itinerary, with no surge pricing. Charters have a 2-hour minimum; typical mini-bus charters run about $630–$1,080 and full-size motorcoach charters about $1,000–$1,500. Tell us your group size, dates and stops for an exact quote, or call (480) 300-6003.",
       },
       {
         q: "What group sizes can you handle?",
-        a: "Anything from a 6-person leadership team to full conventions. Executive sprinters carry up to 14, mini party buses handle 20–40, and full-size motorcoaches cover the largest groups. For big events we run multiple vehicles under one coordinator.",
+        a: "Anything from a 6-person leadership team to full conventions. Executive sprinters carry up to 14, mini party buses handle 20–40, and full-size motorcoaches carry up to 56. For big events we run multiple vehicles under one coordinator.",
       },
       {
         q: "Do you do group airport transfers to Sky Harbor?",
@@ -1866,7 +1908,7 @@ export const servicesData = [
     src: LimoExterior,
     src2: LimoInterior,
     description:
-      "Limo service in Phoenix and Scottsdale: a chauffeured stretch limousine for weddings, proms, anniversaries, birthdays and VIP nights out, plus SUVs and Sprinters when the group is bigger.",
+      "Limo service and limo rental in Phoenix and Scottsdale: rent a chauffeured stretch limousine for weddings, proms, anniversaries, birthdays and VIP nights out, plus SUVs and Sprinters when the group is bigger. Stretch limo rental is booked by the hour, and you see the total before you confirm.",
     whoThisIsFor: [
       "Couples planning wedding day transportation",
       "Prom and homecoming groups",
@@ -1935,8 +1977,12 @@ export const servicesData = [
         a: "Our stretch limousine seats 10 to 18, depending on configuration. For bigger groups we pair it with a Sprinter or a party bus.",
       },
       {
-        q: "How is limo service priced?",
-        a: "Limo service is booked by the hour. Get an instant quote on our booking page, or call us for a custom timeline with multiple stops.",
+        q: "How much does it cost to rent a limo in Phoenix?",
+        a: "Limo rental is booked by the hour with a 2-hour minimum. The total depends on the hours, the date and your stops, and our booking page shows the exact price before you confirm. Call us for a custom timeline with multiple stops.",
+      },
+      {
+        q: "Do you offer stretch limo rental in Scottsdale?",
+        a: "Yes. We're based in Scottsdale, and our stretch limousine serves Old Town, the resorts and North Scottsdale as well as all of Phoenix.",
       },
       {
         q: "Can we make multiple stops?",

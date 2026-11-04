@@ -3,6 +3,7 @@ import styles from "./CharterPricing.module.css";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Image from "next/image";
 import Img1 from "../../../../public/images/vehicles/charter.jpg";
+import Link from "next/link";
 
 export default function CharterPricing() {
   return (
@@ -22,7 +23,12 @@ export default function CharterPricing() {
               shuttle, a straight airport run to Phoenix Sky Harbor, or a
               full-day excursion. At Nier Transportation, we believe in
               transparent, upfront pricing — no surprise fees, no vague
-              estimates.
+              estimates. Charters have a 2-hour minimum, and typical
+              full-size motor coach charters run about $1,000–$1,500. See our{" "}
+              <Link href='/blog/limo-black-car-prices-phoenix'>
+                Phoenix limo and black car price guide
+              </Link>{" "}
+              for every vehicle.
             </p>
             <p className={styles.copy}>
               When you request a charter bus price quote from Nier

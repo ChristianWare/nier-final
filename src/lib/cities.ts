@@ -17,7 +17,7 @@ export const serviceAreaCities = [
   {
     name: "Scottsdale",
     slug: "scottsdale",
-    h1: "Scottsdale car & limo service, tailored to every journey.",
+    h1: "Scottsdale car service & limousine service, tailored to every journey.",
     note: "Home to world-class golf courses like TPC Scottsdale and Troon North",
     src: Scottsdale,
     airportNote:
@@ -100,6 +100,18 @@ export const serviceAreaCities = [
       {
         q: "Can I book an hourly chauffeur for a night in Old Town Scottsdale?",
         a: "Yes — flat hourly service keeps your chauffeur with you all evening: dinner, Old Town, and a safe ride home, with no surge pricing at closing time. Book online or call for current hourly rates.",
+      },
+      {
+        q: "Do you offer limo service in Scottsdale?",
+        a: "Yes. Our stretch limousine covers Old Town, the resorts, Paradise Valley and North Scottsdale for weddings, proms, anniversaries and nights out, with Sprinters and party buses for bigger groups.",
+        link: {
+          href: "/services/limo-service",
+          label: "Limo service in Scottsdale & Phoenix",
+        },
+      },
+      {
+        q: "What makes Nier a good car service in Scottsdale?",
+        a: "We're based in Scottsdale and have driven here since 2004. Every ride is pre-booked with a uniformed, background-checked chauffeur, the price is set before you ride with no surge pricing, and we track every flight.",
       },
       {
         q: "Where is Nier Transportation based?",

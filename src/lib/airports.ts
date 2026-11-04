@@ -49,22 +49,26 @@ export const airportsData: readonly AirportData[] = [
         label: "Sky Harbor guide 2026: terminals, pickup doors & what's new",
         href: "/blog/sky-harbor-airport-guide",
       },
+      {
+        label: "Black car vs. Uber Black vs. taxi from Sky Harbor",
+        href: "/blog/black-car-vs-uber-black-vs-taxi-sky-harbor",
+      },
     ],
     code: "PHX",
     name: "Phoenix Sky Harbor International Airport",
     shortName: "Sky Harbor",
-    h1: "Black Car & Limo Service to Phoenix Sky Harbor Airport",
+    h1: "Phoenix Airport Car Service & Limo Service at Sky Harbor",
     heroImage: SkyHarborImg,
-    metaTitle: "Black Car & Limo Service to Phoenix Sky Harbor (PHX) | Nier",
+    metaTitle: "Phoenix Airport Car Service & Limo | Sky Harbor (PHX) | Nier",
     metaDescription:
-      "Phoenix airport car and limo service to and from Sky Harbor (PHX): flight-tracked pickups at Terminals 3 & 4, meet & greet or curbside, flat rates, 24/7. Serving the whole Valley since 2004.",
+      "Phoenix airport car service and limo service to and from Sky Harbor (PHX): black cars, SUVs and stretch limos, flight-tracked pickups at Terminals 3 & 4, flat rates from $55, 24/7. Since 2004.",
     heroLine:
       "Flight-tracked, flat-rate car service to and from Sky Harbor — meet & greet at baggage claim or curbside pickup timed to the minute you land. Available 24/7 across the entire Valley.",
     terminals: "Terminals 3 & 4",
     driveTime: "15–30 min from most of the Valley",
     vehicles: "Sedans, SUVs & Sprinters",
     overview: [
-      "Sky Harbor is the busiest airport in Arizona, and it's the run we've made more than any other since 2004. We serve both passenger terminals — Terminal 4 for American, Southwest, and most international arrivals, Terminal 3 for Delta, United, and the rest — with chauffeurs who stage by terminal, not by the cell phone lot.",
+      "Sky Harbor is the busiest airport in Arizona, and car service to Sky Harbor Airport is the run we've made more than any other since 2004. We serve both passenger terminals — Terminal 4 for American, Southwest, and most international arrivals, Terminal 3 for Delta, United, and the rest — with chauffeurs who stage by terminal, not by the cell phone lot.",
       "Arrivals are simple: we track your flight from wheels-up, so a delay never strands you and an early landing never catches us off guard. Choose meet & greet — your chauffeur inside baggage claim with a name sign — or curbside, where we coordinate by text and pull to your terminal's passenger pickup curb the moment you're out the door. No circling, no confusion about which level you're on.",
       "Departures get the same treatment in reverse. We build your pickup time around live traffic and your terminal's security lines, which matters most for the 4am and 5am departures rideshare drivers routinely decline. Early flights, red-eyes, corporate accounts, and full flight-crew transfers — all covered, every day of the year.",
     ],
@@ -98,6 +102,10 @@ export const airportsData: readonly AirportData[] = [
       {
         q: "How much does a car service to Sky Harbor cost?",
         a: "Flat-rate Sky Harbor transfers start at $55, and the exact fare depends on your pickup point — no surge pricing, no meter running in traffic. Book online or call (480) 300-6003 for an instant quote from anywhere in the Valley.",
+      },
+      {
+        q: "Do you offer limo service at Sky Harbor?",
+        a: "Yes. Most travelers book a black sedan or SUV, but for VIP arrivals, wedding parties and special occasions we also run stretch limousine pickups and drop-offs at both terminals.",
       },
       {
         q: "Do you handle group or flight-crew pickups?",

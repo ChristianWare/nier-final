@@ -29,7 +29,7 @@ const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 const descriptionOverrides: Partial<Record<string, string>> = {
   scottsdale:
-    "Scottsdale car service and limo service since 2004: airport limo and car service to PHX and SDL, hourly chauffeurs, golf outings and weddings. Flat rates, no surge pricing.",
+    "Scottsdale car service and limousine service since 2004: airport limo and car service to PHX and SDL, stretch limo service, hourly chauffeurs, golf outings and weddings. Flat rates, no surge pricing.",
   tempe:
     "Black car service in Tempe, AZ — airport transfers to PHX & AZA, hourly chauffeur near ASU and Tempe Marketplace, and corporate rides. Flat rates, no surge pricing.",
   chandler:

@@ -15,9 +15,9 @@ import type { Metadata } from "next";
 import { BUSINESS_REF } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "Charter Bus & Motor Coach Rental Phoenix | Nier Transportation",
+  title: "Charter Bus Phoenix: Motor Coach & Coach Bus Rental | Nier",
   description:
-    "Charter bus and motor coach rental in Phoenix — 56-passenger luxury coach, mini party bus, and Sprinters for corporate events, weddings, airport transfers, and group outings. Available 24/7 across the Valley.",
+    "Charter bus rental in Phoenix and across Arizona: a 56-passenger motor coach, mini buses and Sprinters for corporate events, weddings, airport transfers and group trips. Coach bus rental with a 2-hour minimum, 24/7.",
   alternates: {
     canonical: "https://www.niertransportation.com/charter-bus-rental-phoenix",
   },

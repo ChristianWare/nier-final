@@ -53,7 +53,9 @@ export default function AboutUsIntro() {
               </h2>
               <p className={styles.copy}>
                 Nier Transportation is a family-owned black car service based in
-                Scottsdale. For more than 20 years we&apos;ve driven executives,
+                Scottsdale: the executive car service, town car service and
+                luxury car service Phoenix books when the ride has to go right.
+                For more than 20 years we&apos;ve driven executives,
                 families and visitors across the Valley in late-model sedans,
                 SUVs and Sprinter vans: the 5 am Sky Harbor run, the client
                 dinner on Camelback, the full day of meetings downtown. Every

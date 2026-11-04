@@ -635,7 +635,9 @@ export default function BookingWizard({
       validate: (v) => {
         if (selectedService?.pricingStrategy !== "HOURLY") return true;
         if (!Number.isFinite(v)) return "Please enter hours.";
-        if (v < 1) return "Hours must be at least 1.";
+        // Matches the homepage widget: hourly and charter bookings have a
+        // 2-hour minimum, so don't let someone book 1 and be billed for 2.
+        if (v < 2) return "Hourly bookings have a 2-hour minimum.";
         return true;
       },
     });
@@ -2042,11 +2044,11 @@ export default function BookingWizard({
                       <label
                         className={labelCx(Boolean(errors.hoursRequested))}
                       >
-                        Hours
+                        Hours needed (2 hour minimum)
                       </label>
                       <input
                         type='number'
-                        min={1}
+                        min={2}
                         step={1}
                         value={hoursRequested}
                         onChange={(e) => {

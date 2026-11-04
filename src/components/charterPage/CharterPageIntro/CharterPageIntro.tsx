@@ -16,7 +16,9 @@ export default function CharterPageIntro() {
             <p className={styles.copy}>
               When your group needs to move through the Valley in comfort,
               style, and on schedule, Nier Transportation delivers the charter
-              bus rental in Phoenix that gets it done right. Since 2004,
+              bus rental in Phoenix that gets it done right, from motor coach
+              rental for conventions to Arizona charter bus trips to Sedona,
+              Tucson and beyond. Since 2004,
               we&apos;ve been the trusted name in luxury group transportation
               across the Phoenix metro area — and our 56-passenger motor coach
               is the flagship of our fleet. Whether you&apos;re coordinating a

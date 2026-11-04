@@ -369,7 +369,8 @@ export const routesData: readonly RouteData[] = [
     slug: "scottsdale-to-sky-harbor",
     origin: "Scottsdale",
     destination: "Sky Harbor",
-    metaTitle: "Scottsdale to Sky Harbor Car Service | Nier Transportation",
+    h1: "Scottsdale to Sky Harbor Car Service & Airport Limo",
+    metaTitle: "Scottsdale to Sky Harbor Car Service & Airport Limo | Nier",
     metaDescription:
       "Flat-rate car service between Scottsdale and Phoenix Sky Harbor Airport — as little as 15 minutes via the 101 and 202, flight tracked, available 24/7. Resort, Old Town, and North Scottsdale pickups, both directions.",
     heroLine:
@@ -379,7 +380,7 @@ export const routesData: readonly RouteData[] = [
     vehicles: "Sedans, SUVs & Sprinters",
     overview: [
       "Scottsdale to Sky Harbor is the single most requested route we run. Via the Loop 101 and Loop 202, South Scottsdale and Old Town reach the terminals in about 15 minutes; North Scottsdale, Kierland, and the Airpark run closer to 25–30 depending on the hour — and your chauffeur knows which corridor is moving before you're in the car.",
-      "We cover every kind of Scottsdale pickup this route produces: resort departures with bell-stand coordination, Old Town hotels, private residences and gated communities, and corporate rides out of the Airpark. Arrivals get flight tracking from wheels-up with meet & greet at baggage claim or curbside pickup timed by text.",
+      "Need an airport limo from Scottsdale? Alongside sedans, SUVs and Sprinters, we run airport limo service from Scottsdale resorts and homes for VIP arrivals, honeymoon departures and special occasions. We cover every kind of Scottsdale pickup this route produces: resort departures with bell-stand coordination, Old Town hotels, private residences and gated communities, and corporate rides out of the Airpark. Arrivals get flight tracking from wheels-up with meet & greet at baggage claim or curbside pickup timed by text.",
       "Both directions ride at the same flat rate, day or night. That matters most for the early departures — the 4am and 5am flights where a pre-confirmed chauffeur beats hoping a rideshare accepts, and where we build your pickup around live traffic and terminal security lines.",
     ],
     whyPrivate: [
@@ -412,6 +413,10 @@ export const routesData: readonly RouteData[] = [
       {
         q: "What happens if my arriving flight is delayed?",
         a: "Nothing you need to manage — we track the flight, not the clock, and your chauffeur's arrival adjusts to actual wheels-down time at no extra charge.",
+      },
+      {
+        q: "Do you offer airport limo service from Scottsdale?",
+        a: "Yes. Book a stretch limousine for a Scottsdale to Sky Harbor transfer when the trip is an occasion, or a black SUV or sedan for everyday flights. Both are flight-tracked and quoted up front.",
       },
       {
         q: "Do you also serve Scottsdale Airport (SDL)?",

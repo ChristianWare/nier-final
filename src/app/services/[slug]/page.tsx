@@ -33,21 +33,25 @@ const titleOverrides: Partial<Record<string, string>> = {
   "limo-service": "Limo Service Phoenix & Scottsdale | Limousine Rental | Nier",
   "long-distance-drives":
     "Long-Distance Car Service from Phoenix | Nier Transportation",
-  "party-bus": "Party Bus Rental in Phoenix | Nier Transportation",
-  weddings: "Wedding Transportation Phoenix | Wedding Limos & Shuttles | Nier",
+  "party-bus": "Party Bus Rentals in Phoenix & Scottsdale | Nier Transportation",
+  weddings: "Wedding Limo Service & Transportation in Phoenix | Nier",
   "group-transportation": "Group Transportation Phoenix | Nier Transportation",
   "black-truck-service": "Black Truck Service Phoenix | Nier Transportation",
 };
 
 const descriptionOverrides: Partial<Record<string, string>> = {
   "hourly-chauffeur":
-    "Phoenix chauffeur service by the hour: a professional chauffeur with a sedan, SUV or Sprinter on standby for meetings, events and nights out. Flat hourly rates, 24/7.",
+    "Chauffeur service in Phoenix by the hour: a professional chauffeur with a sedan, SUV or Sprinter on standby for meetings, events and nights out. Car service by the hour with a 2-hour minimum, 24/7.",
   "limo-service":
-    "Limo service in Phoenix & Scottsdale: a chauffeured stretch limousine for weddings, proms, anniversaries and nights out. Instant quotes and professional chauffeurs.",
+    "Limo service and limo rental in Phoenix & Scottsdale: rent a chauffeured stretch limousine by the hour for weddings, proms, anniversaries and nights out. Instant quotes, 2-hour minimum.",
+  "party-bus":
+    "Party bus rentals in Phoenix & Scottsdale: a 20–40 passenger mini party bus with a professional driver for birthdays, bachelorettes, concerts and game days. Party bus for hire by the hour.",
+  weddings:
+    "Wedding limo service in Phoenix & Scottsdale: stretch limousines for the couple, Sprinters and party buses for the wedding party, and guest shuttles, all on one timeline.",
   "airport-transfers":
     "Flat-rate airport black car service to PHX Sky Harbor, Scottsdale (SDL) & Mesa Gateway (AZA). Real-time flight tracking, 60-minute grace period, and meet & greet. Book in minutes.",
   "group-transportation":
-    "Group transportation in Phoenix — executive sprinters, mini party buses & full-size motorcoaches. One coordinator, one invoice, no surge pricing. Corporate, weddings & events.",
+    "Group transportation in Phoenix: executive Sprinters for up to 14, mini party buses for 20–40 and full-size motorcoaches for up to 56. One coordinator, one invoice, no surge pricing.",
   "black-truck-service":
     "Black truck service in Phoenix — chauffeured Cadillac Escalade ESV & luxury black SUVs. Flat rates, airport transfers, events & corporate. The blacked-out SUV, driven for you.",
 };
