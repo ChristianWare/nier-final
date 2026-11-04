@@ -204,9 +204,9 @@ export default function Nav({
     { text: "Services *", href: "/services", hasDropdown: true },
     { text: "Fleet", href: "/fleet" },
     { text: "About", href: "/about" },
-    { text: "Corporate", href: "/corporate-accounts" },
+    // { text: "Corporate", href: "/corporate-accounts" },
     { text: "Partners", href: "/partners", hasPartnersDropdown: true },
-    { text: "Charter", href: "/charter-bus-rental-phoenix" },
+    // { text: "Charter", href: "/charter-bus-rental-phoenix" },
     { text: "Contact", href: "/contact", isLast: true },
   ];
 
