@@ -89,12 +89,13 @@
 }
 
 .feature {
-  font-size: 1.6rem;
+  font-size: max(1.6rem, 16px);
   font-weight: 700;
   display: block;
 }
 
 .detail {
+  font-size: max(1.6rem, 16px);
   color: var(--paragraph);
   margin-top: 0.5rem;
 }

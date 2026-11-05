@@ -1,0 +1,171 @@
+/* Mirrors the homepage Stats section (flipped). */
+.container {
+  padding: 10rem 0rem;
+  background-color: var(--cream);
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 40% 60%;
+  grid-gap: 2rem;
+  align-items: stretch;
+}
+
+.panel {
+  background-color: var(--black);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 5rem;
+  padding: 3rem;
+  overflow: hidden;
+}
+
+.panelTop {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.heading {
+  color: var(--white);
+  margin-bottom: 1rem;
+}
+
+.btnContainer {
+  display: flex;
+}
+
+.trust {
+  display: grid;
+  gap: 2.4rem;
+}
+
+.trustItem {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.panelBottom {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.copy {
+  color: var(--cream);
+  font-size: max(1.6rem, 16px);
+  line-height: 1.6;
+}
+
+.link {
+  font-size: max(1.6rem, 16px);
+  color: var(--white);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  color: var(--accent100);
+}
+
+.media {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 4rem;
+  min-height: 100%;
+}
+
+.imgWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.img {
+  object-fit: cover;
+}
+
+.imgOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.statBoxContainer {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2rem;
+  width: 100%;
+  justify-items: start;
+}
+
+.statBox {
+  position: relative;
+  z-index: 2;
+  background: rgba(220, 36, 48, 0.4);
+  border-radius: 10px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5rem;
+  width: min(400px, 100%);
+}
+
+.statNumber {
+  color: var(--cream);
+  font-size: 6rem;
+  font-weight: 900;
+  letter-spacing: -3px;
+  line-height: 1;
+}
+
+.statUnit {
+  font-size: 3rem;
+  letter-spacing: -1px;
+  margin-left: 0.4rem;
+}
+
+.statText {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.statTitle {
+  color: var(--white);
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+
+@media screen and (max-width: 1268px) {
+  .content {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 6rem 0rem;
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+  }
+
+  .media {
+    min-height: 560px;
+    padding: 2rem;
+  }
+
+  .panel {
+    padding: 2.4rem;
+    gap: 4rem;
+  }
+}

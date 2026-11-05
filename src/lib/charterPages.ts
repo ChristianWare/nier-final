@@ -137,15 +137,58 @@ export const SCOTTSDALE_CHARTER_VENUES = [
   "Taliesin West",
 ];
 
-export const SCOTTSDALE_CHARTER_INTRO = {
+export const SCOTTSDALE_CHARTER_WHY = {
   eyebrow: "Why Scottsdale groups charter",
   heading: "Scottsdale moves in groups",
-  paragraphs: [
-    "Scottsdale's biggest weeks are group weeks. The WM Phoenix Open fills TPC Scottsdale every February, Barrett-Jackson takes over WestWorld in January, and spring training brings the Giants to Scottsdale Stadium and the Diamondbacks and Rockies to Salt River Fields. Parking at all of them is far, slow and expensive, and a charter bus drops the whole group at the gate and picks everyone up together.",
-    "The rest of the year it's resort conferences, weddings and golf. Conference groups shuttle between the Princess, the Phoenician, Kierland and Camelback Inn and the Sky Harbor terminals. Desert wedding venues in North Scottsdale often sit at the end of long, narrow private drives, which is where a 28- or 40-passenger mini bus fits better than a full-size coach. We check access with the venue before your date.",
-    "We're based in Scottsdale on Via Linda and have driven these roads since 2004, so we know which resorts load coaches at the front drive, which use a service entrance, and how long the 101 takes at 5 pm.",
+  lead: "Event weeks, resort conferences, weddings and golf. A charter bus drops the whole group at the door and picks everyone up together.",
+  points: [
+    {
+      title: "Event weeks",
+      copy: "The WM Phoenix Open fills TPC Scottsdale every February, Barrett-Jackson takes over WestWorld in January, and spring training brings the Giants to Scottsdale Stadium and the Diamondbacks and Rockies to Salt River Fields. Parking at all of them is far, slow and expensive.",
+    },
+    {
+      title: "Resorts, weddings & golf",
+      copy: "Conference groups shuttle between the Princess, the Phoenician, Kierland and Camelback Inn and the Sky Harbor terminals. Desert wedding venues in North Scottsdale often sit at the end of long, narrow private drives, where a 28- or 40-passenger mini bus fits better than a full-size coach. We check access with the venue before your date.",
+    },
+    {
+      title: "Local since 2004",
+      copy: "We're based in Scottsdale on Via Linda and have driven these roads since 2004, so we know which resorts load coaches at the front drive, which use a service entrance, and how long the 101 takes at 5 pm.",
+    },
   ],
 };
+
+export const SCOTTSDALE_MORE_LINKS = [
+  {
+    label: "Charter bus rental in Phoenix",
+    href: "/charter-bus-rental-phoenix",
+    copy: "Coach buses and mini buses across Phoenix, with Arizona trip times and live prices.",
+  },
+  {
+    label: "How much a charter bus costs",
+    href: "/blog/charter-bus-rental-cost-phoenix",
+    copy: "Typical totals, sample trips and the cost per person for Phoenix and Scottsdale charters.",
+  },
+  {
+    label: "Group transportation",
+    href: "/services/group-transportation",
+    copy: "Which vehicle fits your headcount, from a 14-seat Sprinter to several coaches.",
+  },
+  {
+    label: "Golf outing transportation",
+    href: "/services/golf-outing-transportation",
+    copy: "Group rides to TPC Scottsdale, Troon North and the resort courses, with room for clubs.",
+  },
+  {
+    label: "Scottsdale car service",
+    href: "/locations/scottsdale",
+    copy: "Sedans, SUVs and Sprinters for airport runs, dinners and nights out in Scottsdale.",
+  },
+  {
+    label: "Scottsdale to Sky Harbor",
+    href: "/routes/scottsdale-to-sky-harbor",
+    copy: "Flat-rate rides from Scottsdale to PHX, about 20–30 minutes, with flight tracking.",
+  },
+];
 
 export const SCOTTSDALE_CHARTER_FAQS = [
   {

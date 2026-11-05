@@ -1,0 +1,186 @@
+/* Mirrors LocationCityNeighborhoods.module.css */
+.container {
+  background-color: var(--white);
+  padding: 10rem 0rem;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.topLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  border-right: 1px solid var(--stroke);
+  padding-right: 5rem;
+  padding-bottom: 5rem;
+  height: 100%;
+}
+
+.topRight {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding-left: 5rem;
+  padding-bottom: 5rem;
+}
+
+.bigStat {
+  letter-spacing: -2.4px;
+  margin-bottom: 4rem;
+  font-size: 8rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.bigStatCopy {
+  font-size: max(1.6rem, 16px);
+  line-height: 1.7;
+  color: var(--paragraph);
+  max-width: 34ch;
+  margin: 0;
+}
+
+.callLink {
+  color: var(--black);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.callLink:hover {
+  color: var(--accent);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 4rem 2.4rem 4rem 2.4rem;
+  border-right: 1px solid var(--stroke);
+}
+
+.col:first-child {
+  padding-left: 0;
+}
+
+.col:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.num {
+  font-size: max(1.6rem, 16px);
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stepCopy {
+  font-size: max(1.6rem, 16px);
+  color: var(--paragraph);
+  padding-top: 1.6rem;
+}
+
+.btnContainer {
+  display: flex;
+  margin-top: 2rem;
+}
+
+@media screen and (max-width: 1268px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .col:nth-child(1) {
+    border-bottom: 1px solid var(--stroke);
+  }
+
+  .col:nth-child(2) {
+    border-right: none;
+    padding-right: 0;
+    border-bottom: 1px solid var(--stroke);
+  }
+
+  .col:nth-child(3) {
+    padding-left: 0;
+  }
+
+  .bigStat {
+    font-size: 5rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 6rem 0rem;
+  }
+
+  .top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    text-align: center;
+  }
+
+  .topLeft {
+    border-right: none;
+    padding-right: 0;
+    padding-bottom: 2rem;
+    height: auto;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .topRight {
+    padding: 0;
+    padding-bottom: 3rem;
+    align-items: center;
+  }
+
+  .bigStat {
+    margin-bottom: 0rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 4rem;
+    margin-top: 4rem;
+  }
+
+  .col,
+  .col:nth-child(1),
+  .col:nth-child(2),
+  .col:nth-child(3) {
+    border-right: none;
+    border-bottom: 1px solid var(--stroke);
+    padding: 0rem 0rem 4rem;
+    gap: 1.6rem;
+  }
+
+  .col:last-child {
+    border-bottom: none;
+  }
+
+  .stepCopy {
+    padding: 0rem;
+  }
+
+  .btnContainer {
+    display: grid;
+    width: 100%;
+  }
+}
