@@ -1554,7 +1554,8 @@ export default function BookingWizard({
     />
   );
 
-  // Step 1 field groups. Their order depends on the service (see step 1).
+  // Step 1 field groups, in this order for every service: passengers &
+  // luggage, pickup / dropoff / map, then date & time.
   const routeFields = (
     <>
       <div className={styles.pickupDropoffContainer}>
@@ -1769,12 +1770,7 @@ export default function BookingWizard({
           </button>
         )}
 
-        <div
-          id='wizard-field-dropoff'
-          className={styles.sectionBox}
-          // Airport drop-off: the airport list comes first.
-          style={usesDropoffAirport ? { order: -1 } : undefined}
-        >
+        <div id='wizard-field-dropoff' className={styles.sectionBox}>
           <label
             className={`cardTitle h5${usesDropoffAirport ? (errors.dropoffAirportId ? " redBorder" : "") : dropoffLabelRed ? " redBorder" : ""}`}
           >
@@ -1888,7 +1884,7 @@ export default function BookingWizard({
     </>
   );
 
-  const whenFields = (
+  const dateFields = (
     <>
       <div id='wizard-field-datetime' className={styles.sectionBox}>
         {" "}
@@ -1938,31 +1934,40 @@ export default function BookingWizard({
           </div>
         )}
       </div>
-      <div id='wizard-field-passengers-luggage' className={styles.sectionBox}>
+    </>
+  );
+
+  // Hourly charters (weddings, nights out, golf) don't ask about luggage.
+  const showLuggage = selectedService?.pricingStrategy !== "HOURLY";
+  const passengersSelect = (
+    <div style={{ display: "grid", gap: 20 }}>
+      <label className={labelCx(Boolean(errors.passengers))}>Passengers</label>
+      <select
+        value={passengers}
+        onChange={(e) => {
+          setValue("passengers", Number(e.target.value), {
+            shouldDirty: true,
+            shouldValidate: true,
+          });
+          clearErrors("passengers");
+        }}
+        className='selectBorder emptySmall'
+      >
+        <option value={0}>Select...</option>
+        {Array.from({ length: 56 }, (_, i) => i + 1).map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+
+  const partyFields = (
+    <div id='wizard-field-passengers-luggage' className={styles.sectionBox}>
+      {showLuggage ? (
         <Grid2>
-          <div style={{ display: "grid", gap: 20 }}>
-            <label className={labelCx(Boolean(errors.passengers))}>
-              Passengers
-            </label>
-            <select
-              value={passengers}
-              onChange={(e) => {
-                setValue("passengers", Number(e.target.value), {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                });
-                clearErrors("passengers");
-              }}
-              className='selectBorder emptySmall'
-            >
-              <option value={0}>Select...</option>
-              {Array.from({ length: 56 }, (_, i) => i + 1).map((n) => (
-                <option key={n} value={n}>
-                  {n}
-                </option>
-              ))}
-            </select>
-          </div>
+          {passengersSelect}
           <div style={{ display: "grid", gap: 20 }}>
             <label className={labelCx(Boolean(errors.luggage))}>Luggage</label>
             <select
@@ -1985,8 +1990,10 @@ export default function BookingWizard({
             </select>
           </div>
         </Grid2>
-      </div>
-    </>
+      ) : (
+        passengersSelect
+      )}
+    </div>
   );
 
   return (
@@ -2204,6 +2211,7 @@ export default function BookingWizard({
                         ]);
                         const svc = services.find((s) => s.id === next);
                         if (svc?.pricingStrategy === "HOURLY") {
+                          setValue("luggage", 0, { shouldDirty: true });
                           setValue(
                             "hoursRequested",
                             Math.max(
@@ -2227,19 +2235,9 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  {/* Airport services: the airport list and the other
-                      address come first. Everything else: when, then where. */}
-                  {isAirportService ? (
-                    <>
-                      {routeFields}
-                      {whenFields}
-                    </>
-                  ) : (
-                    <>
-                      {whenFields}
-                      {routeFields}
-                    </>
-                  )}
+                  {partyFields}
+                  {routeFields}
+                  {dateFields}
 
                   {selectedService?.pricingStrategy === "HOURLY" ? (
                     <div style={{ display: "grid", gap: 8 }}>
@@ -2615,10 +2613,12 @@ export default function BookingWizard({
                       }
                     />
                     <SummaryRow label='Passengers' value={String(passengers)} />
-                    <SummaryRow
-                      label='Luggage'
-                      value={luggage > 0 ? String(luggage) : "None"}
-                    />
+                    {showLuggage && (
+                      <SummaryRow
+                        label='Luggage'
+                        value={luggage > 0 ? String(luggage) : "None"}
+                      />
+                    )}
                     <SummaryRow
                       label='Phone'
                       value={
