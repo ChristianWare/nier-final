@@ -394,17 +394,16 @@ export default async function BlogPostPage({
               </div>
             )}
           </article>
-
-          {/* Col 3: More insights */}
-          <aside className={styles.insightsSidebar}>
-            <div className={styles.sidebarSticky}>
-              <span className={`${styles.insightsHeading} h4`}>
-                More Articles
-              </span>
-              <MoreInsights currentSlug={post.slug.current} />
-            </div>
-          </aside>
         </div>
+        {/* Col 3: More insights */}
+        <aside className={styles.insightsSidebar}>
+          <div className={styles.sidebarSticky}>
+            <span className={`${styles.insightsHeading} h4`}>
+              More Articles
+            </span>
+            <MoreInsights currentSlug={post.slug.current} />
+          </div>
+        </aside>
       </LayoutWrapper>
       <div style={{ marginBottom: "20rem" }} />
       <AboutNumbers />

@@ -140,7 +140,7 @@
 
 .threeCol {
   display: grid;
-  grid-template-columns: 400px 1fr 300px;
+  grid-template-columns: 2fr 4fr ;
   gap: 5rem;
   align-items: start;
 }
@@ -170,6 +170,7 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  /* display: none; */
 }
 
 .sideCtaText {
@@ -241,6 +242,7 @@
 .insightsSidebar {
   min-width: 0;
   align-self: stretch;
+  margin-top: 20rem;
 }
 
 .insightsHeading {
@@ -351,6 +353,7 @@
 .ptStrong {
   color: var(--black);
   font-weight: 700;
+  letter-spacing: -.5px;
 }
 
 .ptEm {
