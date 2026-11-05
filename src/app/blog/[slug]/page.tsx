@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import MoreInsights from "@/components/BlogPage/MoreInsights/MoreInsights";
 import type { Metadata } from "next";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
-import Button from "@/components/shared/Button/Button";
 import TableOfContents from "./TableOfContents";
 import { SITE_URL } from "@/lib/site";
 import Link from "next/link";
@@ -176,15 +175,12 @@ export default async function BlogPostPage({
   if (!post || (process.env.NODE_ENV === "production" && post.draft))
     notFound();
 
-  // The live booking widget (RideBox) appears on:
-  //  - any post that places <RideBox /> in its MDX, where the author put it
-  //  - every event post (tagged "Events"); if the author didn't place one,
-  //    it goes at the end of the article in place of the "Book your Ride" button
-  // Only these posts query the database; the rest render as before.
+  // Every post ends with the live booking widget (RideBox). Posts place it
+  // in their MDX with a title that fits the article; a post that doesn't
+  // gets one at the end of the article with a fallback title.
   const hasManualRideBox = post.content.includes("<RideBox");
-  const autoRideBox = isEventPost(post) && !hasManualRideBox;
-  const rideBoxData =
-    hasManualRideBox || autoRideBox ? await getBookingWidgetData() : null;
+  const autoRideBox = !hasManualRideBox;
+  const rideBoxData = await getBookingWidgetData();
   // "Smoke 'N The Desert 2026: Schedule…" → "Smoke 'N The Desert 2026"
   const eventName = post.title.split(":")[0].trim();
   const components: MDXComponents = {
@@ -374,25 +370,22 @@ export default async function BlogPostPage({
               options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }}
             />
             {autoRideBox && rideBoxData ? (
-              <RideBox
-                data={rideBoxData}
-                source={`blog:${post.slug.current}`}
-                title={`Getting to ${eventName}?`}
-                copy='Get dropped at the door and picked up when you are ready, with no parking and no surge pricing.'
-              />
-            ) : (
-              <div className={styles.sideCta}>
-                <p className={styles.sideCtaText}>
-                  Ready to book your ride with Nier Transportation?
-                </p>
-                <Button
-                  href='/book'
-                  text='Book your Ride'
-                  btnType='red'
-                  arrow
+              isEventPost(post) ? (
+                <RideBox
+                  data={rideBoxData}
+                  source={`blog:${post.slug.current}`}
+                  title={`Getting to ${eventName}?`}
+                  copy='Get dropped at the door and picked up when you are ready, with no parking and no surge pricing.'
                 />
-              </div>
-            )}
+              ) : (
+                <RideBox
+                  data={rideBoxData}
+                  source={`blog:${post.slug.current}`}
+                  title='Need a ride? See your price'
+                  copy='Pick your vehicle, pickup and time, and see the total before you book.'
+                />
+              )
+            ) : null}
           </article>
         </div>
         {/* Col 3: More insights */}
