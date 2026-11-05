@@ -82,7 +82,7 @@ export default function ServicesPreview() {
                 <div className={styles.btnContainer}>
                   <Button
                     text='Learn More'
-                    btnType='black'
+                    btnType='underlinedBlackii'
                     href={`/services/${x.slug}`}
                     arrow
                   />
