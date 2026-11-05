@@ -10,6 +10,9 @@ const CLIENT_NAME = process.env.CLIENT_NAME || "Nier Transportation";
 export async function GET() {
   const apiKey = process.env.RESEND_API_KEY;
   const from =
+    // RESEND_FROM first: it's the verified sender every other email uses.
+    // EMAIL_FROM is a leftover that pointed at an unverified subdomain.
+    process.env.RESEND_FROM ||
     process.env.EMAIL_FROM ||
     `${CLIENT_NAME} <no-reply@niertransportation.com>`;
 

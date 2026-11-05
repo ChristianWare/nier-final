@@ -7,6 +7,9 @@
 import { Resend } from "resend";
 
 const FROM =
+  // RESEND_FROM first: it's the verified sender every other email uses.
+  // EMAIL_FROM is a leftover that pointed at an unverified subdomain.
+  process.env.RESEND_FROM ||
   process.env.EMAIL_FROM ||
   "Nier Transportation <no-reply@niertransportation.com>";
 
