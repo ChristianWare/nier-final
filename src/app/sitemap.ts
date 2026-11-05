@@ -20,9 +20,10 @@ const DEFAULT_LAST_MOD = "2026-07-29";
 const LOCATIONS_LAST_MOD = "2026-09-12";
 
 const LAST_MOD: Partial<Record<string, string>> = {
-  "/charter-bus-rental-phoenix": "2026-08-12",
+  "/charter-bus-rental-phoenix": "2026-11-05",
+  "/charter-bus-rental-scottsdale": "2026-11-05",
   "/services/airport-transfers": "2026-08-12",
-  "/services/group-transportation": "2026-08-12",
+  "/services/group-transportation": "2026-11-05",
   "/routes/tempe-to-sky-harbor": "2026-08-11",
   "/routes/buckeye-to-sky-harbor": "2026-08-11",
   "/airports": "2026-09-12",
@@ -79,6 +80,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/denu-hotel",
     "/partners",
     "/charter-bus-rental-phoenix",
+    "/charter-bus-rental-scottsdale",
     "/corporate-accounts",
     "/book",
     "/blog",

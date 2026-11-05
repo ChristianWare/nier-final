@@ -1135,7 +1135,7 @@ export const servicesData = [
       },
       {
         q: "How much does a party bus rental cost in Phoenix?",
-        a: "Party buses are booked by the hour with a 2-hour minimum, so the total depends on how long you need it, the night and your route. Typical mini-bus nights run about $630–$1,080. Get an exact quote in our booking tool before you confirm.",
+        a: "Party buses are booked by the hour with a 2-hour minimum, so the total depends on how long you need it, the night and your route. Typical mini-bus nights run about $675–$1,400. Get an exact quote in our booking tool before you confirm.",
       },
       {
         q: "How many people fit on the party bus?",
@@ -1717,8 +1717,9 @@ export const servicesData = [
     ],
     vehicleClasses: [
       "Executive Sprinter Van (up to 14 passengers) – Ideal for corporate teams and airport group transfers",
-      "Mini Party Bus (20–40 passengers) – Weddings, celebrations, and group nights out",
-      "Full-Size Motorcoach – Conventions, large weddings, and the biggest groups",
+      "28-Passenger Mini Bus – Wedding parties, corporate teams, and group nights out",
+      "40-Passenger Mini Bus – Guest shuttles, conferences, and game days",
+      "56-Passenger Motor Coach – Conventions, large weddings, and day trips; add as many coaches as the group needs",
       "Executive Sedans & SUVs – Overflow vehicles for VIPs and smaller breakout groups",
     ],
     pickupOptions: [
@@ -1767,11 +1768,11 @@ export const servicesData = [
     faqs: [
       {
         q: "How much does group transportation cost in Phoenix?",
-        a: "Group rides are quoted up front based on headcount, vehicle and itinerary, with no surge pricing. Charters have a 2-hour minimum; typical mini-bus charters run about $630–$1,080 and full-size motorcoach charters about $1,000–$1,500. Tell us your group size, dates and stops for an exact quote, or call (480) 300-6003.",
+        a: "Group rides are quoted up front based on headcount, vehicle and itinerary, with no surge pricing. Charters have a 2-hour minimum; typical mini-bus charters run about $675–$1,400 and full-size motorcoach charters about $1,000–$1,500. Tell us your group size, dates and stops for an exact quote, or call (480) 300-6003.",
       },
       {
         q: "What group sizes can you handle?",
-        a: "Anything from a 6-person leadership team to full conventions. Executive sprinters carry up to 14, mini party buses handle 20–40, and full-size motorcoaches carry up to 56. For big events we run multiple vehicles under one coordinator.",
+        a: "Anything from a 6-person leadership team to full conventions. Executive Sprinters carry up to 14, our mini buses carry 28 or 40, and motor coaches carry up to 56. For bigger groups we send as many buses as you need, all on one booking with one coordinator.",
       },
       {
         q: "Do you do group airport transfers to Sky Harbor?",
@@ -1788,6 +1789,18 @@ export const servicesData = [
       {
         q: "Do you offer group transportation outside Phoenix?",
         a: "Yes — we serve the entire Valley, including Scottsdale, Tempe, Glendale, and the East and West Valley, plus long-distance group trips to Sedona, Tucson, and Flagstaff.",
+      },
+      {
+        q: "What vehicle do I need for my group?",
+        a: "Up to 14 people fit an executive Sprinter, 15–28 a 28-passenger mini bus, 29–40 a 40-passenger mini bus, and 41–56 a motor coach. For 57 or more we send two or more buses. On airport runs, leave a few seats free for luggage.",
+      },
+      {
+        q: "Can you shuttle a conference or event for several days?",
+        a: "Yes. Multi-day shuttles between hotels, the venue and Sky Harbor go on one booking, with one schedule and one invoice for every day and every vehicle.",
+      },
+      {
+        q: "Can I book group transportation online?",
+        a: "Yes. Choose Charter Services in the booking tool, pick the vehicle, pickup, stops and hours, and you'll see the price before you send the request. Need several days or vehicles? Add each ride to the same trip. Online bookings need at least 36 hours' notice; call (480) 300-6003 for anything sooner.",
       },
     ],
   },

@@ -73,7 +73,7 @@ const fleet = [
     id: 5,
     title: "Minibus Rental for Smaller Groups",
     description:
-      "Our minibus rental options seat between 18 and 35 passengers — ideal for corporate teams, intimate event groups, or airport transfers to Phoenix Sky Harbor International Airport where a full-size coach bus would be overkill.",
+      "Our 28- and 40-passenger mini buses are ideal for corporate teams, wedding parties, nights out, or group transfers to Phoenix Sky Harbor International Airport where a full-size coach bus would be more than you need.",
     icon: <Donut className={styles.icon} />,
   },
   {

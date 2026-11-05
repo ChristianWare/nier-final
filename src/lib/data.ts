@@ -617,7 +617,47 @@ export const charterQuestions = [
     id: 7,
     question: "How many passengers can your charter bus hold?",
     answer:
-      "Our full-size charter bus seats up to 56 passengers. For smaller groups, our minibus rental options accommodate between 18 and 35 passengers. Not sure which fits your group? We'll help you match the right vehicle based on your headcount and luggage needs.",
+      "Our full-size charter bus seats up to 56 passengers. For smaller groups, we have 28- and 40-passenger mini buses and 14-passenger executive Sprinters. Not sure which fits your group? We'll help you match the right vehicle based on your headcount and luggage needs.",
+  },
+  {
+    id: 8,
+    question: "How much does it cost to rent a charter bus in Phoenix?",
+    answer:
+      "Charters are booked by the hour with a 2-hour minimum. Recent charters with us have typically come to about $1,000–$1,500 for a 56-passenger motor coach, about $675–$1,400 for a 28- or 40-passenger mini bus, and about $360–$1,300 for an executive Sprinter. The total depends on hours, the date and your route, and your exact price shows in the booking tool before you book.",
+    link: {
+      href: "/blog/charter-bus-rental-cost-phoenix",
+      label: "Charter bus cost guide",
+    },
+  },
+  {
+    id: 9,
+    question: "What's the difference between a charter bus and a coach bus?",
+    answer:
+      "In practice, nothing. A coach bus, or motor coach, is the full-size bus with reclining seats, luggage bays and a restroom. Chartering means renting the whole bus and driver privately for your group, on your schedule. Mini buses and Sprinters can be chartered too.",
+  },
+  {
+    id: 10,
+    question: "Can you provide more than one bus?",
+    answer:
+      "Yes. For conventions, tournaments and big weddings we send as many coaches and mini buses as your group needs, all on one booking with one coordinator and one invoice.",
+  },
+  {
+    id: 11,
+    question: "Do you run multi-day conference and event shuttles?",
+    answer:
+      "Yes. Conferences and events often book a shuttle for several days, between hotels, the venue and Sky Harbor. Every day goes on one booking, so the schedule, the driver details and the invoice stay in one place.",
+  },
+  {
+    id: 12,
+    question: "How far can a charter bus go in one day?",
+    answer:
+      "Federal rules limit bus drivers to 10 hours of driving per shift. Sedona, Tucson and Prescott work as day trips. A Grand Canyon or Las Vegas round trip in one day may need a second driver or an overnight stay, and we plan that when we quote.",
+  },
+  {
+    id: 13,
+    question: "Can I book a charter bus online?",
+    answer:
+      "Yes. Choose Charter Services in the booking tool, pick your bus, pickup, stops and hours, and you'll see the price before you send the request. Online bookings need at least 36 hours' notice; for anything sooner, call (480) 300-6003.",
   },
 ] as const;
 
@@ -768,7 +808,7 @@ export const corporateQuestions = [
     id: "m3",
     question: "How much does it cost to rent a charter bus in Phoenix?",
     answer:
-      "Pricing depends on hours, distance, vehicle size, and date. Charters have a 2-hour minimum, and typical full-size motor coach charters run about $1,000–$1,500, with mini-bus charters about $630–$1,080. Your price is locked in at booking with no surge pricing, and split across 40–56 passengers a coach often costs less per person than rideshares and parking. Call (480) 300-6003 or request a quote online for an exact number.",
+      "Pricing depends on hours, distance, vehicle size, and date. Charters have a 2-hour minimum, and typical full-size motor coach charters run about $1,000–$1,500, with mini-bus charters about $675–$1,400. Your price is locked in at booking with no surge pricing, and split across 40–56 passengers a coach often costs less per person than rideshares and parking. Call (480) 300-6003 or request a quote online for an exact number.",
   },
 ] as const;
 

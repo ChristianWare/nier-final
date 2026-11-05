@@ -56,6 +56,16 @@ const data: Section[] = [
         option: "Group Transportation",
         href: "/services/group-transportation",
       },
+      {
+        id: 1.45,
+        option: "Charter Bus Rental Phoenix",
+        href: "/charter-bus-rental-phoenix",
+      },
+      {
+        id: 1.46,
+        option: "Charter Bus Scottsdale",
+        href: "/charter-bus-rental-scottsdale",
+      },
       { id: 1.5, option: "Party Bus", href: "/services/party-bus" },
       { id: 1.6, option: "Weddings", href: "/services/weddings" },
       { id: 1.7, option: "Limo Service Phoenix", href: "/services/limo-service" },

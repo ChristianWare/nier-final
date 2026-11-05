@@ -1,0 +1,165 @@
+.container {
+  padding: 8rem 0;
+}
+
+.content {
+  display: grid;
+  gap: 7rem;
+}
+
+.block {
+  display: grid;
+  gap: 1.6rem;
+  max-width: 1100px;
+}
+
+.heading {
+  letter-spacing: -1px;
+}
+
+.copy {
+  color: var(--paragraph);
+  line-height: 1.6;
+  max-width: 820px;
+}
+
+.note {
+  font-size: 1.4rem;
+  color: var(--paragraph);
+  line-height: 1.5;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: var(--white);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.5rem;
+  line-height: 1.4;
+  min-width: 640px;
+}
+
+.table th {
+  text-align: left;
+  font-weight: 600;
+  padding: 1.4rem 1.6rem;
+  background: var(--cream);
+  border-bottom: 1px solid var(--stroke);
+}
+
+.table td {
+  padding: 1.4rem 1.6rem;
+  border-bottom: 1px solid var(--stroke);
+  vertical-align: top;
+  color: var(--paragraph);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table .strong {
+  color: var(--black);
+  font-weight: 600;
+}
+
+.link {
+  color: var(--black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  color: var(--accent);
+}
+
+.venues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.venue {
+  padding: 0.8rem 1.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  background: var(--white);
+  font-size: 1.4rem;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.step {
+  display: flex;
+  gap: 1.4rem;
+  padding: 2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background: var(--white);
+}
+
+.stepNum {
+  flex-shrink: 0;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  background: var(--black);
+  color: var(--white);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.stepTitle {
+  margin-bottom: 0.6rem;
+}
+
+.btnRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.callLink {
+  color: var(--black);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 5rem 0;
+  }
+
+  .content {
+    gap: 5rem;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .table {
+    font-size: 1.4rem;
+  }
+}

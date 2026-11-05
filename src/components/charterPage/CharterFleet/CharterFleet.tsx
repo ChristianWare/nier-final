@@ -19,9 +19,10 @@ export default function CharterFleet() {
             vehicle: a 56-passenger full-size coach bus with onboard restroom,
             reclining seats, and entertainment — maintained above DOT standards
             and ready to move your group across the Valley on schedule. Need
-            something smaller? Our mini party bus covers groups of 20–40 and
-            executive Sprinters handle teams up to 14, so every coach bus rental
-            is matched to your actual headcount.
+            something smaller? Our 28- and 40-passenger mini buses cover
+            mid-size groups, and executive Sprinters handle teams up to 14, so
+            every coach bus rental is matched to your actual headcount. Bigger
+            group? We send as many buses as you need, on one booking.
           </p>
         </div>
         <div className={styles.content}>

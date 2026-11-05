@@ -9,6 +9,8 @@ import ServiceDetailsClient from "./components/ServiceDetailsClient/ServiceDetai
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import promoStyles from "./PopularRoutes.module.css";
 import { BUSINESS_REF } from "@/lib/schema";
+import { BUS_SIZE_GUIDE } from "@/components/charterPage/CharterGuide/CharterGuide";
+import guideStyles from "@/components/charterPage/CharterGuide/CharterGuide.module.css";
 
 type Params = { slug: string };
 
@@ -33,9 +35,11 @@ const titleOverrides: Partial<Record<string, string>> = {
   "limo-service": "Limo Service Phoenix & Scottsdale | Limousine Rental | Nier",
   "long-distance-drives":
     "Long-Distance Car Service from Phoenix | Nier Transportation",
-  "party-bus": "Party Bus Rentals in Phoenix & Scottsdale | Nier Transportation",
+  "party-bus":
+    "Party Bus Rentals in Phoenix & Scottsdale | Nier Transportation",
   weddings: "Wedding Limo Service & Transportation in Phoenix | Nier",
-  "group-transportation": "Group Transportation Phoenix | Nier Transportation",
+  "group-transportation":
+    "Group Transportation Phoenix, AZ: Buses, Sprinters & Shuttles | Nier",
   "black-truck-service": "Black Truck Service Phoenix | Nier Transportation",
 };
 
@@ -51,7 +55,7 @@ const descriptionOverrides: Partial<Record<string, string>> = {
   "airport-transfers":
     "Flat-rate airport black car service to PHX Sky Harbor, Scottsdale (SDL) & Mesa Gateway (AZA). Real-time flight tracking, 60-minute grace period, and meet & greet. Book in minutes.",
   "group-transportation":
-    "Group transportation in Phoenix: executive Sprinters for up to 14, mini party buses for 20–40 and full-size motorcoaches for up to 56. One coordinator, one invoice, no surge pricing.",
+    "Group transportation in Phoenix, AZ: Sprinters for up to 14, 28–40 passenger mini buses and 56-passenger motor coaches, with as many buses as you need. One coordinator, one invoice, no surge pricing.",
   "black-truck-service":
     "Black truck service in Phoenix — chauffeured Cadillac Escalade ESV & luxury black SUVs. Flat rates, airport transfers, events & corporate. The blacked-out SUV, driven for you.",
 };
@@ -206,6 +210,82 @@ export default async function Page({ params }: { params: Promise<Params> }) {
               <li className={promoStyles.item}>
                 <Link href='/airports' className={promoStyles.link}>
                   View all airports →
+                </Link>
+              </li>
+            </ul>
+          </LayoutWrapper>
+        </section>
+      )}
+
+      {svc.slug === "group-transportation" && (
+        <section className={promoStyles.section}>
+          <LayoutWrapper>
+            <h2 className={`${promoStyles.heading} h3`}>
+              Which vehicle fits your group?
+            </h2>
+            <p className={promoStyles.copy}>
+              Pick by headcount, then leave a few seats free for luggage on
+              airport runs. Totals are what recent group charters with us have
+              typically come to, with a 2-hour minimum. Your exact price shows
+              in the booking tool before you book.
+            </p>
+            <div className={guideStyles.tableWrap}>
+              <table className={guideStyles.table}>
+                <thead>
+                  <tr>
+                    <th scope='col'>Group size</th>
+                    <th scope='col'>Vehicle</th>
+                    <th scope='col'>Typical total</th>
+                    <th scope='col'>Best for</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {BUS_SIZE_GUIDE.map((row) => (
+                    <tr key={row.group}>
+                      <td className={guideStyles.strong}>{row.group}</td>
+                      <td>
+                        <Link href={row.href} className={guideStyles.link}>
+                          {row.bus}
+                        </Link>
+                      </td>
+                      <td>{row.typical}</td>
+                      <td>{row.bestFor}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <ul className={promoStyles.list} style={{ marginTop: "3rem" }}>
+              <li className={promoStyles.item}>
+                <Link
+                  href='/charter-bus-rental-phoenix'
+                  className={promoStyles.link}
+                >
+                  Charter bus rental in Phoenix
+                </Link>
+              </li>
+              <li className={promoStyles.item}>
+                <Link
+                  href='/charter-bus-rental-scottsdale'
+                  className={promoStyles.link}
+                >
+                  Charter bus rental in Scottsdale
+                </Link>
+              </li>
+              <li className={promoStyles.item}>
+                <Link
+                  href='/blog/charter-bus-rental-cost-phoenix'
+                  className={promoStyles.link}
+                >
+                  How much a charter bus costs
+                </Link>
+              </li>
+              <li className={promoStyles.item}>
+                <Link
+                  href='/services/corporate-and-event-logistics'
+                  className={promoStyles.link}
+                >
+                  Corporate and event logistics
                 </Link>
               </li>
             </ul>

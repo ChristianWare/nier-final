@@ -110,6 +110,14 @@ export const serviceAreaCities = [
         },
       },
       {
+        q: "Do you rent charter buses in Scottsdale?",
+        a: "Yes. We run 56-passenger coach buses and 28- and 40-passenger mini buses for resort conferences, weddings, golf groups, the WM Phoenix Open, Barrett-Jackson and spring training, plus day trips to Sedona.",
+        link: {
+          href: "/charter-bus-rental-scottsdale",
+          label: "Charter bus rental in Scottsdale",
+        },
+      },
+      {
         q: "What makes Nier a good car service in Scottsdale?",
         a: "We're based in Scottsdale and have driven here since 2004. Every ride is pre-booked with a uniformed, background-checked chauffeur, the price is set before you ride with no surge pricing, and we track every flight.",
       },
