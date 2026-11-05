@@ -1554,8 +1554,8 @@ export default function BookingWizard({
     />
   );
 
-  // Step 1 field groups, in this order for every service: passengers &
-  // luggage, pickup / dropoff / map, then date & time.
+  // Step 1 field groups, in this order for every service: pickup / dropoff /
+  // map, date & time, then passengers & luggage.
   const routeFields = (
     <>
       <div className={styles.pickupDropoffContainer}>
@@ -2235,9 +2235,9 @@ export default function BookingWizard({
                     </select>
                   </div>
 
-                  {partyFields}
                   {routeFields}
                   {dateFields}
+                  {partyFields}
 
                   {selectedService?.pricingStrategy === "HOURLY" ? (
                     <div style={{ display: "grid", gap: 8 }}>
