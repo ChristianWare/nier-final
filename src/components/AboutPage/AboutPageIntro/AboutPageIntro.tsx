@@ -11,7 +11,7 @@ type Cta = { text: string; href: string };
  * defaults; other pages (e.g. /partners) pass their own words and video.
  */
 export default function AboutPageIntro({
-  heading = "Scottsdale & Phoenix's premier black car service",
+  heading = "Phoenix & Scottsdale chauffeurs, family-owned since 2004",
   copy = "For over two decades, Nier Transportation has set the standard for luxury ground transportation across the Valley. We don't just get you there — we make the journey worth remembering.",
   primaryCta = { text: "Get in touch", href: "/contact" },
   secondaryCta = { text: "Our Solutions", href: "/services" },

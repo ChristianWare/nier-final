@@ -430,6 +430,7 @@ export const arizonaAirportsDirectory: readonly DirectoryAirport[] = [
     role: "General aviation",
     enplanements: 63,
     driveFromPhoenix: "3 hr",
+    note: "Had daily Grand Canyon Airlines flights to Sky Harbor from January 2025 until commercial service ended on September 14, 2025, when the city's funding for the flights ran out.",
   },
   {
     name: "Winslow–Lindbergh Regional Airport",

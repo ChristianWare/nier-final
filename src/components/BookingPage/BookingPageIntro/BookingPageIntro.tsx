@@ -20,7 +20,7 @@ export default function BookingPageIntro() {
           <div className={styles.overlay} />
           <div className={styles.content}>
             <SectionHeading text='Nier Transportation' color='cream' dot />
-            <h1 className={styles.heading}>Book a black car in Phoenix</h1>
+            <h1 className={styles.heading}>Book your ride</h1>
             <p className={styles.copy}>
               Get an instant flat-rate quote for a sedan, SUV or Sprinter. A
               dispatcher confirms your ride and emails a secure payment link.

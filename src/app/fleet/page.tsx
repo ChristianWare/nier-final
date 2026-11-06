@@ -13,8 +13,10 @@ import { getFleetRatesBySlug } from "@/lib/booking/publicRates";
 // Prices come from Admin → Vehicle Categories (refreshed on save).
 export const revalidate = 3600;
 
+// The homepage owns "black car service Phoenix"; this title stays off it
+// so the two pages don't compete.
 export const metadata: Metadata = {
-  title: "Fleet | Luxury Black Car & Limo Vehicles Phoenix",
+  title: "Our Fleet: Sedans, SUVs, Sprinters, Limos & Buses | Nier",
   description:
     "Explore Nier Transportation's luxury fleet — executive sedans, SUVs, Sprinter vans, stretch limos, and party buses serving Phoenix and Scottsdale. Book online.",
 };

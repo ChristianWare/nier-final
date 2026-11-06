@@ -10,8 +10,10 @@ import Nav from "@/components/shared/Nav/Nav";
 import { aboutQuestions } from "@/lib/data";
 import { Metadata } from "next";
 
+// The homepage owns "black car service Phoenix"; this title stays off it
+// so the two pages don't compete.
 export const metadata: Metadata = {
-  title: "About Nier Transportation | Luxury Black Car Service",
+  title: "About Nier Transportation | Phoenix Chauffeurs Since 2004",
   description:
     "Family-owned since 2004, Nier Transportation provides luxury black car and limousine service throughout Phoenix and Scottsdale. Learn our story and values.",
 };

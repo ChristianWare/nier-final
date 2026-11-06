@@ -57,18 +57,19 @@ export const airportsData: readonly AirportData[] = [
     code: "PHX",
     name: "Phoenix Sky Harbor International Airport",
     shortName: "Sky Harbor",
-    h1: "Phoenix Airport Car Service & Limo Service at Sky Harbor",
+    h1: "Sky Harbor Car Service: Phoenix Airport Black Car & Limo",
     heroImage: SkyHarborImg,
-    metaTitle: "Phoenix Airport Car Service & Limo | Sky Harbor (PHX) | Nier",
+    metaTitle:
+      "Sky Harbor Car Service | Phoenix Airport Black Car (PHX) | Nier",
     metaDescription:
-      "Phoenix airport car service and limo service to and from Sky Harbor (PHX): black cars, SUVs and stretch limos, flight-tracked pickups at Terminals 3 & 4, flat rates from $55, 24/7. Since 2004.",
+      "Sky Harbor car service and black car service to and from Phoenix airport (PHX): sedans, SUVs and limos, flight-tracked pickups at Terminals 3 & 4, flat rates from $55, 24/7. Since 2004.",
     heroLine:
       "Flight-tracked, flat-rate car service to and from Sky Harbor — meet & greet at baggage claim or curbside pickup timed to the minute you land. Available 24/7 across the entire Valley.",
     terminals: "Terminals 3 & 4",
     driveTime: "15–30 min from most of the Valley",
     vehicles: "Sedans, SUVs & Sprinters",
     overview: [
-      "Sky Harbor is the busiest airport in Arizona, and car service to Sky Harbor Airport is the run we've made more than any other since 2004. We serve both passenger terminals — Terminal 4 for American, Southwest, and most international arrivals, Terminal 3 for Delta, United, and the rest — with chauffeurs who stage by terminal, not by the cell phone lot.",
+      "Sky Harbor is the busiest airport in Arizona, and black car service to and from Phoenix Sky Harbor is the run we've made more than any other since 2004. We serve both passenger terminals — Terminal 4 for American, Southwest, and most international arrivals, Terminal 3 for Delta, United, and the rest — with chauffeurs who stage by terminal, not by the cell phone lot.",
       "Arrivals are simple: we track your flight from wheels-up, so a delay never strands you and an early landing never catches us off guard. Choose meet & greet — your chauffeur inside baggage claim with a name sign — or curbside, where we coordinate by text and pull to your terminal's passenger pickup curb the moment you're out the door. No circling, no confusion about which level you're on.",
       "Departures get the same treatment in reverse. We build your pickup time around live traffic and your terminal's security lines, which matters most for the 4am and 5am departures rideshare drivers routinely decline. Early flights, red-eyes, corporate accounts, and full flight-crew transfers — all covered, every day of the year.",
     ],
@@ -102,6 +103,10 @@ export const airportsData: readonly AirportData[] = [
       {
         q: "How much does a car service to Sky Harbor cost?",
         a: "Flat-rate Sky Harbor transfers start at $55, and the exact fare depends on your pickup point — no surge pricing, no meter running in traffic. Book online or call (480) 300-6003 for an instant quote from anywhere in the Valley.",
+      },
+      {
+        q: "Is a black car service at Phoenix airport better than Uber Black?",
+        a: "For a scheduled ride, usually. Your fare is locked when you book, with no surge pricing when a bank of flights lands. A professional chauffeur is assigned ahead of time, tracks your flight and waits inside baggage claim with a name sign. Early-morning departures are confirmed the night before instead of left to whoever accepts.",
       },
       {
         q: "Do you offer limo service at Sky Harbor?",
@@ -176,26 +181,25 @@ export const airportsData: readonly AirportData[] = [
     slug: "scottsdale-airport",
     relatedPosts: [
       {
-        label: "Can you fly into Scottsdale Airport? Flights, JSX & private aviation",
+        label: "Scottsdale Airport location, SCF code & JSX flights",
         href: "/blog/scottsdale-airport-flights",
       },
     ],
     code: "SDL",
     name: "Scottsdale Airport",
     shortName: "Scottsdale Airport",
-    h1: "Scottsdale Airport (SDL) Car Service",
+    h1: "Scottsdale Airport (SDL/SCF) Car Service",
     heroImage: ScottsdaleAirportImg,
-    metaTitle:
-      "Scottsdale Airport (SDL) Car Service | Private Aviation | Nier Transportation",
+    metaTitle: "Scottsdale Airport (SDL/SCF) Car Service: JSX & FBO | Nier",
     metaDescription:
-      "Discreet car service for Scottsdale Airport (SDL) private aviation — FBO and planeside coordination, unmarked vehicle options, corporate accounts. Serving the Scottsdale Airpark and all of Metro Phoenix.",
+      "Car service to and from Scottsdale Airport (SDL/SCF) in the Scottsdale Airpark: JSX flights, FBO and planeside pickups, unmarked vehicle options and corporate accounts. Flat rates, 24/7.",
     heroLine:
       "Discreet, planeside-coordinated car service for Scottsdale Airport's private aviation traffic — timed to your tail number, staged at your FBO, with unmarked vehicle options for low-profile arrivals.",
     terminals: "FBO / private aviation",
     driveTime: "Minutes from North Scottsdale & Paradise Valley",
     vehicles: "Sedans, SUVs & Sprinters",
     overview: [
-      "Scottsdale Airport (SDL) is general aviation only — no commercial airlines, just private jets, charters, and corporate flight departments moving through the FBOs at the heart of the Scottsdale Airpark. It's a different kind of airport run, and we've built the service to match it.",
+      "Scottsdale Airport (SDL, booked as SCF) sits at 15000 N. Airport Drive in the Scottsdale Airpark, about nine miles north of downtown Scottsdale. There's no traditional airline service: it's private jets, charters, corporate flight departments and JSX's semi-private jets, moving through the FBOs and private terminals. It's a different kind of airport run, and we've built the service to match it.",
       "We coordinate directly with your flight crew or broker around your tail number and ETA, stage at your FBO before wheels-down, and load planeside or at the FBO lobby — whichever the ramp allows. For clients who prefer a low-profile arrival, unmarked vehicle options are available, a courtesy our Paradise Valley clients use constantly.",
       "From SDL, most of our drop-offs are minutes away: North Scottsdale resorts, Paradise Valley estates, Airpark offices, and TPC Scottsdale. And when a commercial connection is part of the itinerary, we run the SDL ↔ Sky Harbor transfer with the same timing discipline.",
     ],
@@ -215,8 +219,20 @@ export const airportsData: readonly AirportData[] = [
         a: "Where the FBO and ramp rules allow, yes — otherwise your chauffeur is staged at the FBO lobby before wheels-down. Either way, we coordinate with your crew or broker around the tail number's actual ETA.",
       },
       {
+        q: "Where is Scottsdale Airport?",
+        a: "At 15000 N. Airport Drive in the Scottsdale Airpark, near the Loop 101 and Scottsdale Road, about nine miles north of downtown Scottsdale. It's about 10 minutes from Kierland, 15–20 minutes from Old Town and 25–35 minutes from Sky Harbor.",
+      },
+      {
+        q: "Is SCF the same airport as SDL?",
+        a: "Yes. SDL is the FAA code you'll see locally, and SCF is the code JSX and travel sites use for booking. Both mean Scottsdale Airport.",
+      },
+      {
         q: "Do commercial airlines fly into Scottsdale Airport?",
-        a: "No — SDL is general aviation only. Commercial flights use Sky Harbor (PHX) or Mesa Gateway (AZA), and we serve all three, including transfers between them on mixed itineraries.",
+        a: "No traditional airlines. JSX sells seats on semi-private jets from its own terminal, and everything else is private and charter aviation. Airline flights use Sky Harbor (PHX) or Mesa Gateway (AZA), and we serve all three, including transfers between them on mixed itineraries.",
+      },
+      {
+        q: "Do you pick up JSX passengers at Scottsdale?",
+        a: "Yes. We meet JSX arrivals at the private terminal and drop off for departures, timed to JSX's short check-in window. Tell us your flight number when you book and we'll track it.",
       },
       {
         q: "Do you offer unmarked vehicles?",

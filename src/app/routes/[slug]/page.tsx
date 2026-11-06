@@ -21,6 +21,7 @@ import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
 import styles from "./RoutePage.module.css";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import { BUSINESS_REF } from "@/lib/schema";
+import CharterTable from "@/components/charterPage/CharterTable/CharterTable";
 
 type Params = { slug: string };
 
@@ -121,7 +122,7 @@ export default async function RoutePage({
     ...(isAirportRun
       ? [
           {
-            label: "PHX Sky Harbor airport car service",
+            label: "Sky Harbor car service",
             href: "/airports/phx-sky-harbor",
           },
         ]
@@ -273,6 +274,71 @@ export default async function RoutePage({
           </div>
         </LayoutWrapper>
       </section>
+
+      {route.shuttle ? (
+        <CharterTable
+          eyebrow='Private vs. shared shuttle'
+          heading={`${route.origin} to ${route.destination} Shuttle: Private or Shared?`}
+          copy={route.shuttle.intro}
+          columns={["", "Nier private shuttle", "Shared shuttle van"]}
+          template='1fr 1.6fr 1.6fr'
+          rows={[
+            {
+              key: "pickup",
+              cells: [
+                "Pickup",
+                "Your door, hotel or airport terminal",
+                "Set pickup points",
+              ],
+            },
+            {
+              key: "dropoff",
+              cells: [
+                "Drop-off",
+                route.shuttle.privateDropoff,
+                route.shuttle.sharedDropoff,
+              ],
+            },
+            {
+              key: "time",
+              cells: [
+                "Departure",
+                "When you choose, timed to your flight",
+                "Fixed timetable",
+              ],
+            },
+            {
+              key: "stops",
+              cells: [
+                "Stops",
+                "None, unless you ask for one",
+                "Stops for other riders along the way",
+              ],
+            },
+            {
+              key: "riders",
+              cells: ["Who rides", "Only your party", "Other passengers"],
+            },
+            {
+              key: "price",
+              cells: [
+                "Price",
+                "One flat rate for the whole vehicle, quoted before you book",
+                "Per seat",
+              ],
+            },
+            {
+              key: "best",
+              cells: [
+                "Best for",
+                "Two or more travelers, early flights, lots of luggage, door-to-door",
+                "Solo travelers on a budget with a flexible schedule",
+              ],
+            },
+          ]}
+          note='Traveling with two or more people? Compare our flat rate for the whole vehicle with the total for every shared-shuttle seat. Your exact price shows in the booking tool before you book.'
+        />
+      ) : null}
 
       <HowItWorks />
 

@@ -62,7 +62,7 @@ export default function LocationsPage() {
                 </Link>{" "}
                 reaches 40 cities across the Valley and greater Arizona, with{" "}
                 <Link href='/airports/phx-sky-harbor'>
-                  Sky Harbor transfers
+                  Sky Harbor car service
                 </Link>{" "}
                 from every one. Select your city below to see the services,
                 airport times and neighborhoods we cover there.

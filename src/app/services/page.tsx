@@ -12,8 +12,10 @@ import Img2 from "../../../public/images/people/linda.jpg";
 import Img1 from "../../../public/images/other/services.jpg";
 import { BUSINESS_REF } from "@/lib/schema";
 
+// The homepage owns "black car service Phoenix"; this title stays off it
+// so the two pages don't compete.
 export const metadata: Metadata = {
-  title: "Services | Luxury Black Car & Limo Service Phoenix",
+  title: "Our Services: Airport, Hourly, Events & Group Rides | Nier",
   description:
     "Luxury ground transportation in Phoenix and Scottsdale — airport transfers, hourly chauffeur, corporate travel, weddings, and special events. Available 24/7.",
 };

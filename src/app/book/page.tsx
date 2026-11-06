@@ -16,8 +16,10 @@ import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// The homepage owns "black car service Phoenix"; this title stays off it
+// so the two pages don't compete.
 export const metadata: Metadata = {
-  title: "Book a Black Car in Phoenix: Instant Flat-Rate Quote | Nier",
+  title: "Book Your Ride: Instant Flat-Rate Quote | Nier Transportation",
   description:
     "Book a black car, SUV or Sprinter in Phoenix online: an instant flat-rate quote, flight tracking on airport rides and a professional chauffeur. Phoenix, Scottsdale and the Valley, 24/7.",
   alternates: { canonical: "https://www.niertransportation.com/book" },

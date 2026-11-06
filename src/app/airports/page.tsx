@@ -17,7 +17,7 @@ import { SITE_URL } from "@/lib/site";
 import styles from "./AirportsPage.module.css";
 
 export const metadata: Metadata = {
-  title: "Airports in Arizona — Commercial, Private & Regional Airports | Nier",
+  title: "Arizona Airports: Full List of Airports in Arizona (2026) | Nier",
   description:
     "Every airport in Arizona in one place: the 8 with airline service, the private-aviation reliever airports around Phoenix, and every regional field — with codes, drive times from Phoenix, and flat-rate car service to the ones that matter.",
   alternates: {
@@ -51,6 +51,10 @@ const faqs = [
   {
     q: "What is the closest airport to Scottsdale?",
     a: "Scottsdale Airport (SDL) sits in the Scottsdale Airpark — the closest for private jets and JSX flights. For commercial airlines, Sky Harbor is 20–35 minutes from most of Scottsdale by car.",
+  },
+  {
+    q: "Does Safford airport still have commercial flights?",
+    a: "No. Grand Canyon Airlines flew daily between Safford Regional Airport (SAD) and Phoenix Sky Harbor starting in January 2025, but the service ended on September 14, 2025, after the City of Safford didn't approve more funding to keep it going. Safford is about 3 hours from Phoenix by car, and we run private long-distance rides between the two.",
   },
   {
     q: "Can you fly commercial into Sedona?",
@@ -123,9 +127,9 @@ export default function AirportsPage() {
               national airport system — {commercialCount} with scheduled airline
               service, {relieverCount} private-aviation reliever airports around
               Phoenix and Tucson, and {regionalCount} regional fields — plus
-              about twenty smaller airstrips and the military bases. Here's all
-              of them with codes and drive times from Phoenix, starting with the
-              ones we drive to every day.
+              about twenty smaller airstrips and the military bases. Here&apos;s
+              all of them with codes and drive times from Phoenix, starting with
+              the ones we drive to every day.
             </p>
           </div>
         </LayoutWrapper>

@@ -25,6 +25,16 @@ export type RouteData = {
   whyPrivate: readonly string[];
   bookCardCopy: string;
   faqs: readonly { q: string; a: string }[];
+  /** Shows the "private vs. shared shuttle" comparison table. Set on the
+   *  routes riders search with "shuttle". */
+  shuttle?: {
+    /** One or two sentences above the table. */
+    intro: string;
+    /** Where the shared shuttle drops off on this route (table cell). */
+    sharedDropoff: string;
+    /** Where we drop off (table cell). */
+    privateDropoff: string;
+  };
 };
 
 export const routesData: readonly RouteData[] = [
@@ -140,6 +150,13 @@ export const routesData: readonly RouteData[] = [
         a: "Yes — executive sprinters seat up to 14, and multi-vehicle bookings run under one coordinator and one invoice for larger groups.",
       },
     ],
+    shuttle: {
+      intro:
+        "Most people searching for a Tucson to Phoenix shuttle are choosing between a shared shuttle van and a private ride. Here's how they compare, so you can pick the one that fits your trip.",
+      sharedDropoff: "Sky Harbor terminals and a few set stops",
+      privateDropoff:
+        "Your Sky Harbor terminal, hotel, office or home, anywhere in the Valley",
+    },
   },
   {
     slug: "phoenix-to-sedona",
@@ -199,6 +216,12 @@ export const routesData: readonly RouteData[] = [
         a: "Yes — both directions at the same flat rate, including early departures timed to Sky Harbor flights.",
       },
     ],
+    shuttle: {
+      intro:
+        "Looking for a Phoenix to Sedona shuttle? You can ride a shared shuttle van or book a private one. Here's how they compare.",
+      sharedDropoff: "Set stops in Sedona and the Village of Oak Creek",
+      privateDropoff: "Your resort, hotel or rental's front door",
+    },
   },
   {
     slug: "flagstaff-to-phoenix",
@@ -259,6 +282,12 @@ export const routesData: readonly RouteData[] = [
         a: "Yes — executive sprinters seat up to 14, and larger groups run as multi-vehicle bookings under one coordinator and one invoice.",
       },
     ],
+    shuttle: {
+      intro:
+        "Looking for a shuttle between Phoenix airport and Flagstaff? You can ride a shared shuttle van or book a private one. Here's how they compare.",
+      sharedDropoff: "Set stops in Flagstaff",
+      privateDropoff: "Your door: home, hotel, NAU dorm or cabin",
+    },
   },
   {
     slug: "phoenix-to-grand-canyon",
@@ -319,9 +348,10 @@ export const routesData: readonly RouteData[] = [
     slug: "phoenix-to-prescott",
     origin: "Phoenix",
     destination: "Prescott",
-    metaTitle: "Phoenix to Prescott Car Service | Nier Transportation",
+    h1: "Private Phoenix to Prescott Shuttle & Car Service",
+    metaTitle: "Phoenix to Prescott Shuttle: Private Car Service | Nier",
     metaDescription:
-      "Private door-to-door car service between Phoenix and Prescott — about 100 miles and 90 minutes via I-17 and SR-69. Flat rates, Embry-Riddle and Whiskey Row drop-offs, scenic route on request.",
+      "A private Phoenix to Prescott shuttle: about 100 miles and 90 minutes door to door, with Sky Harbor pickups timed to your flight. Flat rates, no shared stops, Embry-Riddle and Whiskey Row drop-offs.",
     heroLine:
       "Private, flat-rate transfers between Phoenix and Prescott — about 100 miles and 90 minutes via I-17 and SR-69, door to door in both directions.",
     distance: "About 100 miles",
@@ -344,6 +374,10 @@ export const routesData: readonly RouteData[] = [
       "Head for the mountain air without the drive — flat-rate private transfers between Phoenix and Prescott. Book online or call (480) 300-6003.",
     faqs: [
       {
+        q: "Is there a shuttle from Phoenix Sky Harbor to Prescott?",
+        a: "Shared shuttle vans run between Sky Harbor and Prescott on a fixed timetable, with other passengers and set stops. Ours is a private shuttle: your own car or Sprinter, leaving when your flight lands, straight to your Prescott door.",
+      },
+      {
         q: "How much is a car service from Phoenix to Prescott?",
         a: "It's a flat intercity rate based on your exact pickup and drop-off — quoted before you book, no meter. Call (480) 300-6003 or book online for an instant quote.",
       },
@@ -364,6 +398,12 @@ export const routesData: readonly RouteData[] = [
         a: "Yes — both directions at the same flat rate, including early departures timed to Sky Harbor flights.",
       },
     ],
+    shuttle: {
+      intro:
+        "Looking for a Phoenix to Prescott shuttle? You can ride a shared shuttle van or book a private one. Here's how they compare.",
+      sharedDropoff: "Set stops in Prescott",
+      privateDropoff: "Your door: home, hotel, Embry-Riddle or Whiskey Row",
+    },
   },
   {
     slug: "scottsdale-to-sky-harbor",
