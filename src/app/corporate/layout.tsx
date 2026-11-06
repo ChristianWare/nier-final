@@ -10,6 +10,11 @@ import { db } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// The corporate portal is behind a login and shouldn't be in Google.
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 type AppRole = "USER" | "ADMIN" | "DRIVER" | "CORPORATE";
 
 export default async function CorporateLayout({

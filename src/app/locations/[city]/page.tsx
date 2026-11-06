@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { locationPageCities } from "@/lib/cities";
+import { locationPageCities, NEARBY_CITIES } from "@/lib/cities";
 import type { CityData } from "@/lib/cities";
 import { servicesData as services } from "@/lib/services";
 import type { Metadata } from "next";
@@ -125,6 +125,9 @@ export default async function LocationCityPage({
   if (!city) notFound();
 
   const pageUrl = `${SITE_URL}/locations/${city.slug}`;
+  const nearby = (NEARBY_CITIES[city.slug] ?? [])
+    .map((slug) => locationPageCities.find((c) => c.slug === slug))
+    .filter((c): c is NonNullable<typeof c> => Boolean(c));
 
   const itemListSchema = {
     "@context": "https://schema.org",
@@ -219,18 +222,45 @@ export default async function LocationCityPage({
                   </a>
                 </div>
               </div>
-              {city.localLandmarks && city.localLandmarks.length > 0 && (
+              {((city.localLandmarks && city.localLandmarks.length > 0) ||
+                nearby.length > 0) && (
                 <div className={styles.cityContextRight}>
-                  <h3 className={styles.landmarksHeading}>
-                    Areas & landmarks we serve
-                  </h3>
-                  <ul className={styles.landmarksList}>
-                    {city.localLandmarks.map((landmark) => (
-                      <li key={landmark} className={styles.landmarkItem}>
-                        {landmark}
-                      </li>
-                    ))}
-                  </ul>
+                  {city.localLandmarks && city.localLandmarks.length > 0 && (
+                    <>
+                      <h3 className={styles.landmarksHeading}>
+                        Areas & landmarks we serve
+                      </h3>
+                      <ul className={styles.landmarksList}>
+                        {city.localLandmarks.map((landmark) => (
+                          <li key={landmark} className={styles.landmarkItem}>
+                            {landmark}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {nearby.length > 0 && (
+                    <>
+                      <h3
+                        className={styles.landmarksHeading}
+                        style={{ marginTop: "3rem" }}
+                      >
+                        Nearby areas we serve
+                      </h3>
+                      <ul className={styles.landmarksList}>
+                        {nearby.map((c) => (
+                          <li key={c.slug} className={styles.landmarkItem}>
+                            <Link
+                              href={`/locations/${c.slug}`}
+                              className={styles.routeLink}
+                            >
+                              Car service in {c.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
               )}
             </div>

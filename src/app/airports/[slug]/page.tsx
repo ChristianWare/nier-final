@@ -19,6 +19,26 @@ import Faq from "@/components/shared/Faq/Faq";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import RelatedLinks from "@/components/shared/RelatedLinks/RelatedLinks";
+import { locationPageCities } from "@/lib/cities";
+
+// The cities each airport is closest to, linked from its page.
+const AIRPORT_NEARBY_CITIES: Record<string, readonly string[]> = {
+  "phx-sky-harbor": ["tempe", "scottsdale", "ahwatukee", "laveen", "chandler"],
+  "mesa-gateway": [
+    "queen-creek",
+    "gilbert",
+    "mesa",
+    "san-tan-valley",
+    "apache-junction",
+  ],
+  "scottsdale-airport": [
+    "scottsdale",
+    "carefree",
+    "cave-creek",
+    "paradise-valley",
+    "fountain-hills",
+  ],
+};
 import styles from "./AirportPage.module.css";
 import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import { SITE_URL } from "@/lib/site";
@@ -106,6 +126,13 @@ export default async function AirportPage({
           { label: "Denū Hotel & Spa airport transfers", href: "/denu-hotel" },
         ]
       : []),
+    ...(AIRPORT_NEARBY_CITIES[airport.slug] ?? [])
+      .map((slug) => locationPageCities.find((c) => c.slug === slug))
+      .filter((c): c is NonNullable<typeof c> => Boolean(c))
+      .map((c) => ({
+        label: `Car service in ${c.name}`,
+        href: `/locations/${c.slug}`,
+      })),
     ...otherAirports.map((a) => ({
       label: `${a.shortName} airport car service`,
       href: `/airports/${a.slug}`,

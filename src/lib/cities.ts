@@ -1520,6 +1520,36 @@ export const serviceAreaCities = [
       "Flagstaff Pulliam Airport (FLG)",
       "Historic Route 66",
     ],
+    faqs: [
+      {
+        q: "How long is the drive from Phoenix Sky Harbor to Flagstaff?",
+        a: "About 145 miles and 2¼ hours via I-17, without traffic or weather delays. We pick you up at baggage claim or the curb and drive you straight to your hotel, NAU dorm or cabin, so you skip the rental car and the climb up the Mogollon Rim at night.",
+        link: {
+          href: "/routes/flagstaff-to-phoenix",
+          label: "Flagstaff to Phoenix car service",
+        },
+      },
+      {
+        q: "Can you take us from Flagstaff to the Grand Canyon?",
+        a: "Yes. The South Rim is about 80 miles and 1½ hours from Flagstaff. We run one-way drop-offs, overnight trips with a scheduled return, and full days with your chauffeur waiting at the rim.",
+        link: {
+          href: "/routes/phoenix-to-grand-canyon",
+          label: "Phoenix to Grand Canyon private car",
+        },
+      },
+      {
+        q: "Do you drive in winter when I-17 has snow?",
+        a: "Yes, with planning. We watch ADOT road conditions and the forecast before every winter run, build in extra time, and will reschedule with you if I-17 or the roads around Flagstaff close. Ski trips to Arizona Snowbowl are a regular winter booking.",
+      },
+      {
+        q: "Do you do NAU move-in and family weekend rides?",
+        a: "Yes. Move-in week, family weekend and graduation are some of our busiest Flagstaff weekends. An SUV or Sprinter fits a family plus a dorm's worth of luggage, and we book these well ahead.",
+      },
+      {
+        q: "Should I fly into Flagstaff Pulliam Airport or Sky Harbor?",
+        a: "Flagstaff Pulliam (FLG) is small, with a limited number of flights. Many travelers fly into Sky Harbor for more nonstop options and lower fares, then take a private car north. We pick up at either airport.",
+      },
+    ],
     routePromo: {
       href: "/routes/flagstaff-to-phoenix",
       anchor: "book a private Flagstaff to Phoenix airport car service",
@@ -1584,6 +1614,33 @@ export const serviceAreaCities = [
       "Embry-Riddle Aeronautical University",
       "Prescott National Forest",
       "Sharlot Hall Museum",
+    ],
+    faqs: [
+      {
+        q: "How far is Prescott from Phoenix Sky Harbor?",
+        a: "About 100 miles and 1¾ hours via I-17 and SR-69. We drive door to door between Sky Harbor or anywhere in the Valley and your home, hotel or Embry-Riddle, at a flat rate set when you book.",
+        link: {
+          href: "/routes/phoenix-to-prescott",
+          label: "Phoenix to Prescott private transfer",
+        },
+      },
+      {
+        q: "Do you drive groups to Prescott Frontier Days?",
+        a: "Yes. Prescott Frontier Days, billed as the World's Oldest Rodeo, runs around the Fourth of July and fills downtown and Whiskey Row. Groups book an SUV or Sprinter so nobody has to drive or park.",
+      },
+      {
+        q: "Can you take us from Prescott to Sedona or the Grand Canyon?",
+        a: "Yes. Sedona is about 1½ hours from Prescott through Cottonwood, and the Grand Canyon's South Rim is about 2½ hours. We can plan a full day with stops and your chauffeur waiting.",
+        link: { href: "/locations/sedona", label: "Car service in Sedona" },
+      },
+      {
+        q: "Do you run rides for Embry-Riddle students and families?",
+        a: "Yes. Move-in, graduation and holiday breaks are busy weeks between Sky Harbor and the Embry-Riddle Prescott campus. An SUV fits a student, family and luggage.",
+      },
+      {
+        q: "Is a private car better than the shuttle between Phoenix and Prescott?",
+        a: "A shared shuttle runs on a fixed schedule with other passengers and stops. A private car leaves when you do, goes straight to your address, and the price is the same whether it's one passenger or five.",
+      },
     ],
     routePromo: {
       href: "/routes/phoenix-to-prescott",
@@ -1880,6 +1937,34 @@ export const serviceAreaCities = [
       "Grandview Recreation Center",
       "Loop 303 Corridor",
     ],
+    routePromo: {
+      href: "/services/reoccurring-rides",
+      anchor: "set up recurring rides to appointments and the airport",
+      blurb: "Need the same ride every week?",
+    },
+    faqs: [
+      {
+        q: "How far is Sun City West from Sky Harbor Airport?",
+        a: "About 35–45 minutes via Loop 303 and I-10, depending on traffic. We track your flight on pickups, help with luggage, and confirm your ride the day before so there's nothing to worry about.",
+      },
+      {
+        q: "Do you drive Sun City West residents to medical appointments?",
+        a: "Yes. Rides to Banner Del E. Webb Medical Center, specialists around the Valley and Mayo Clinic in north Phoenix are some of our most common Sun City West trips. The chauffeur waits or comes back when you're done, whichever you prefer.",
+      },
+      {
+        q: "Can I set up the same ride every week?",
+        a: "Yes. Recurring rides are booked once and run on your schedule, with the same pickup time and, where possible, the same chauffeur. They're popular for treatments, therapy and weekly errands.",
+        link: { href: "/services/reoccurring-rides", label: "Recurring rides" },
+      },
+      {
+        q: "Can family members book a ride for a parent?",
+        a: "Yes. A family member can book and pay online for someone else and get the confirmation and driver details by email, while the chauffeur picks up your parent at home.",
+      },
+      {
+        q: "Do you help with walkers and luggage?",
+        a: "Yes. Chauffeurs help passengers in and out of the vehicle and load walkers, foldable wheelchairs and luggage. Let us know when you book so we send the right vehicle.",
+      },
+    ],
   },
   {
     name: "Anthem",
@@ -1937,6 +2022,45 @@ export const serviceAreaCities = [
       "Anthem Community Park",
       "Anthem Golf and Country Club",
       "I-17 / Anthem Way Interchange",
+    ],
+    routePromo: {
+      href: "/routes/phoenix-to-sedona",
+      anchor: "book a private car to Sedona from the north Valley",
+      blurb: "Heading up I-17?",
+    },
+    faqs: [
+      {
+        q: "How long does it take to get from Anthem to Sky Harbor?",
+        a: "About 35–40 minutes via I-17 most of the day, and longer at rush hour. For early flights we watch I-17 in real time and pick the departure time so you're at the terminal with room to spare.",
+      },
+      {
+        q: "Do you drive from Anthem to Sedona or Flagstaff?",
+        a: "Yes. Anthem is the last stop before I-17 climbs north, so Sedona is about 1½ hours away and Flagstaff about 1¾ hours. Day trips with your chauffeur waiting and one-way drop-offs are both common.",
+        link: {
+          href: "/routes/flagstaff-to-phoenix",
+          label: "Flagstaff to Phoenix car service",
+        },
+      },
+      {
+        q: "Do you serve Deer Valley Airport for private flights?",
+        a: "Yes. Phoenix Deer Valley Airport (DVT) is about 20 minutes from Anthem, and we meet private and charter flyers planeside or at the FBO.",
+        link: {
+          href: "/airports/private-aviation",
+          label: "Private jet and FBO car service",
+        },
+      },
+      {
+        q: "Can you drive a group to Lake Pleasant?",
+        a: "Yes. Lake Pleasant is about 25–30 minutes west of Anthem. Sprinters and mini buses work well for birthday and company outings at the marinas.",
+      },
+      {
+        q: "Do you serve New River and Desert Hills too?",
+        a: "Yes. We pick up across Anthem, New River and Desert Hills, including homes on dirt and private roads. Tell us about the access when you book.",
+        link: {
+          href: "/locations/new-river",
+          label: "Car service in New River",
+        },
+      },
     ],
   },
   {
@@ -1996,6 +2120,41 @@ export const serviceAreaCities = [
       "The Boulders Resort",
       "Cave Creek Road Corridor",
       "Harold's Corral",
+    ],
+    routePromo: {
+      href: "/airports/scottsdale-airport",
+      anchor: "book a car to or from Scottsdale Airport (SDL)",
+      blurb: "Flying private or into SDL?",
+    },
+    faqs: [
+      {
+        q: "How far is Carefree from Sky Harbor and Scottsdale Airport?",
+        a: "Sky Harbor is about 35–45 minutes away via the 51 or the 101, and Scottsdale Airport (SDL) about 25–30 minutes. We plan Carefree pickups with extra lead time for early flights.",
+        link: {
+          href: "/airports/scottsdale-airport",
+          label: "Scottsdale Airport car service",
+        },
+      },
+      {
+        q: "Do you pick up at The Boulders Resort?",
+        a: "Yes. The Boulders is one of our most frequent Carefree pickups, for airport transfers, golf, weddings and dinners in Scottsdale. Your chauffeur meets you at the main entrance.",
+      },
+      {
+        q: "Can you drive us for a night out in Carefree and Cave Creek?",
+        a: "Yes. An hourly chauffeur covers dinner in Carefree, the saloons on Cave Creek Road and a safe ride home, with no surge pricing and nobody hunting for a rideshare at closing time.",
+        link: {
+          href: "/locations/cave-creek",
+          label: "Car service in Cave Creek",
+        },
+      },
+      {
+        q: "Do you drive to homes in the Carefree hills and gated communities?",
+        a: "Yes. Many Carefree homes sit on long private drives or behind gates. Add your gate code and any access notes when you book, and we'll send a vehicle that fits the drive.",
+      },
+      {
+        q: "Do you do airport runs for winter residents?",
+        a: "Yes. Arrival and departure days for winter visitors keep us busy from fall through spring. You can book both rides at once, even months ahead.",
+      },
     ],
   },
   {
@@ -2113,6 +2272,42 @@ export const serviceAreaCities = [
       "Ray Road Corridor",
       "I-10 / Chandler Boulevard Interchange",
     ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate Ahwatukee to Sky Harbor car service",
+      blurb: "Catching a flight out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Ahwatukee from Sky Harbor Airport?",
+        a: "About 20–25 minutes via I-10, one of the shortest airport runs in the Valley. We track your flight on pickups, so a delay doesn't cost you extra.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Can you drive us to Wild Horse Pass?",
+        a: "Yes. The resorts, casino and golf at Wild Horse Pass are about 10–15 minutes from Ahwatukee. Hourly service keeps the same chauffeur with you all evening.",
+      },
+      {
+        q: "Do you serve Mesa Gateway Airport from Ahwatukee?",
+        a: "Yes. Mesa Gateway (AZA) is about 35 minutes away via the 202. It's handy for Allegiant and other low-cost flights.",
+        link: {
+          href: "/airports/mesa-gateway",
+          label: "Mesa Gateway Airport car service",
+        },
+      },
+      {
+        q: "Do you offer corporate accounts for Ahwatukee commuters?",
+        a: "Yes. Many Ahwatukee clients work in Chandler, Tempe or downtown Phoenix. A corporate account keeps every ride on one monthly invoice, with receipts for each trip.",
+        link: { href: "/corporate-accounts", label: "Corporate accounts" },
+      },
+      {
+        q: "Can you pick up at homes in the foothills and Club West?",
+        a: "Yes. We pick up anywhere in Ahwatukee, including the foothills and gated neighborhoods. Add your gate code when you book.",
+      },
+    ],
   },
   {
     name: "Laveen",
@@ -2170,6 +2365,43 @@ export const serviceAreaCities = [
       "South Mountain Community College",
       "Laveen Elementary School District",
       "I-10 / Laveen Corridor",
+    ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate Laveen to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Laveen from Sky Harbor Airport?",
+        a: "About 20–25 minutes via I-10 or the Loop 202 South Mountain Freeway. Early-morning runs are especially quick from Laveen.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Can you take us to State Farm Stadium or Phoenix Raceway?",
+        a: "Yes. Both are about 20–30 minutes from Laveen via the 202 and I-10. We drop you near the gate and pick you up after the event, so nobody deals with stadium parking.",
+        link: {
+          href: "/blog/state-farm-stadium-parking-guide",
+          label: "State Farm Stadium parking and transportation guide",
+        },
+      },
+      {
+        q: "Does the Loop 202 make trips to Chandler faster?",
+        a: "Yes. The South Mountain Freeway connects Laveen directly to Ahwatukee and Chandler, so East Valley meetings and airport runs are much quicker than they used to be.",
+      },
+      {
+        q: "Do you drive to quinceañeras, weddings and family events?",
+        a: "Yes. Limos, SUVs, Sprinters and party buses for weddings, quinceañeras and family celebrations across Laveen and the West Valley.",
+        link: { href: "/services/weddings", label: "Wedding transportation" },
+      },
+      {
+        q: "Can I book recurring rides from Laveen?",
+        a: "Yes. Weekly commutes, appointments and school runs can be booked once and run on a set schedule.",
+        link: { href: "/services/reoccurring-rides", label: "Recurring rides" },
+      },
     ],
   },
   {
@@ -2229,6 +2461,45 @@ export const serviceAreaCities = [
       "San Tan Mountain Regional Park",
       "SR-24 Corridor",
       "Queen Creek Marketplace",
+    ],
+    routePromo: {
+      href: "/airports/mesa-gateway",
+      anchor: "book a car to Phoenix-Mesa Gateway Airport",
+      blurb: "Flying out of Mesa Gateway?",
+    },
+    faqs: [
+      {
+        q: "How far is Queen Creek from Mesa Gateway Airport?",
+        a: "About 15–20 minutes via SR-24, which makes Mesa Gateway (AZA) Queen Creek's closest commercial airport. We track your flight and meet you at the terminal.",
+        link: {
+          href: "/blog/mesa-gateway-airport-airlines-2026",
+          label: "Every airline at Mesa Gateway",
+        },
+      },
+      {
+        q: "How long is the drive from Queen Creek to Sky Harbor?",
+        a: "About 40–50 minutes via SR-24 and the 202, and longer at rush hour. We plan Queen Creek pickups with extra lead time for early flights.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Can you drive a group to Schnepf Farms or the Queen Creek Olive Mill?",
+        a: "Yes. Schnepf Farms' fall festivals and the Olive Mill are popular group outings. A Sprinter or mini bus keeps everyone together and handles the parking.",
+      },
+      {
+        q: "Do you drive to events at Horseshoe Park & Equestrian Centre?",
+        a: "Yes. Rodeos, horse shows and events at Horseshoe Park are a few minutes from most of Queen Creek, and we can wait and drive you home afterward.",
+      },
+      {
+        q: "Do you serve San Tan Valley too?",
+        a: "Yes. We pick up across Queen Creek and neighboring San Tan Valley for airport runs, events and recurring rides.",
+        link: {
+          href: "/locations/san-tan-valley",
+          label: "Car service in San Tan Valley",
+        },
+      },
     ],
   },
   {
@@ -2512,15 +2783,51 @@ export const serviceAreaCities = [
     airportNote:
       "Wickenburg is about 60 miles and one hour from PHX via US-60 and US-93. For guests arriving at Sky Harbor who are heading to Wickenburg's guest ranches or private residences, we offer door-to-door transfers without the hassle of a rental car.",
     corporateNote:
-      "Wickenburg's guest ranch culture — Rancho de los Caballeros, The Hassayampa Inn — attracts executive retreat groups and incentive travel programs. We coordinate PHX airport transfers for corporate groups staying at Wickenburg properties.",
+      "Wickenburg's guest ranch culture — Rancho de los Caballeros and the town's other guest ranches — attracts executive retreat groups and incentive travel programs. We coordinate PHX airport transfers for corporate groups staying at Wickenburg properties.",
     localContext:
       "Wickenburg bills itself as the 'Dude Ranch Capital of the World' and has maintained its western heritage character while attracting an increasingly sophisticated visitor. The drive from Phoenix on US-60 is scenic desert highway — our chauffeurs make it a comfortable part of the experience.",
     localLandmarks: [
       "Rancho de los Caballeros",
-      "The Hassayampa Inn",
+      "Desert Caballeros Western Museum",
       "Vulture Mine",
       "Wickenburg Community Center",
       "US-60 / US-93 Corridor",
+    ],
+    routePromo: {
+      href: "/services/long-distance-drives",
+      anchor: "book a private long-distance car to Wickenburg",
+      blurb: "Headed out to a guest ranch?",
+    },
+    faqs: [
+      {
+        q: "How far is Wickenburg from Sky Harbor Airport?",
+        a: "About 60 miles and 1¼ hours via US-60 or Loop 303 and US-60. We meet you at baggage claim and drive you straight to your ranch, so you don't need a rental car for the week.",
+        link: {
+          href: "/services/long-distance-drives",
+          label: "Long-distance car service",
+        },
+      },
+      {
+        q: "Do you drive guests to Wickenburg's guest ranches?",
+        a: "Yes. Arrival and departure days for the guest ranches, including Rancho de los Caballeros, are our most common Wickenburg trips. SUVs and Sprinters fit a family or a small group with luggage.",
+      },
+      {
+        q: "Can you plan transportation for Gold Rush Days?",
+        a: "Yes. Gold Rush Days is held each February, with a parade, rodeo and downtown events. Groups book a Sprinter or mini bus from the Valley so nobody has to drive back.",
+      },
+      {
+        q: "Do you run corporate retreat transfers to Wickenburg?",
+        a: "Yes. Retreat and incentive groups staying at Wickenburg properties book coordinated arrivals from Sky Harbor, with one vehicle per flight bank and one invoice.",
+        link: {
+          href: "/services/corporate-and-event-logistics",
+          label: "Corporate and event logistics",
+        },
+      },
+      {
+        q: "Can you drive from Wickenburg to Prescott or Sedona?",
+        a: "Yes. Prescott is about 1¼ hours north on US-89, and Sedona about 2½ hours. Day trips with your chauffeur waiting are easy to arrange.",
+        link: { href: "/locations/prescott", label: "Car service in Prescott" },
+      },
     ],
   },
   {
@@ -2983,3 +3290,67 @@ export function cityPageHref(slug: string): string {
 export const locationPageCities = serviceAreaCities.filter(
   (c) => c.slug !== HOMEPAGE_CITY_SLUG,
 );
+
+/**
+ * Neighboring service-area cities, linked from each location page so every
+ * city page (small ones especially) has links pointing to it.
+ */
+export const NEARBY_CITIES: Record<string, readonly string[]> = {
+  scottsdale: [
+    "paradise-valley",
+    "fountain-hills",
+    "carefree",
+    "cave-creek",
+    "tempe",
+  ],
+  tempe: ["chandler", "mesa", "ahwatukee", "scottsdale"],
+  mesa: ["gilbert", "apache-junction", "queen-creek", "gold-canyon", "tempe"],
+  chandler: ["gilbert", "ahwatukee", "tempe", "queen-creek", "san-tan-valley"],
+  gilbert: ["mesa", "chandler", "queen-creek", "san-tan-valley"],
+  peoria: ["glendale", "surprise", "sun-city", "anthem", "el-mirage"],
+  glendale: ["peoria", "tolleson", "avondale", "litchfield-park", "el-mirage"],
+  "paradise-valley": ["scottsdale", "tempe", "fountain-hills"],
+  "cave-creek": ["carefree", "anthem", "new-river", "scottsdale"],
+  "fountain-hills": [
+    "scottsdale",
+    "rio-verde",
+    "mesa",
+    "paradise-valley",
+    "payson",
+  ],
+  surprise: ["sun-city-west", "el-mirage", "peoria", "wickenburg"],
+  goodyear: ["avondale", "litchfield-park", "buckeye", "tolleson"],
+  sedona: ["flagstaff", "prescott", "anthem"],
+  tucson: ["casa-grande", "maricopa", "florence"],
+  flagstaff: ["sedona", "prescott", "anthem"],
+  prescott: ["sedona", "flagstaff", "wickenburg"],
+  avondale: ["goodyear", "tolleson", "litchfield-park", "laveen"],
+  buckeye: ["goodyear", "avondale", "wickenburg"],
+  "litchfield-park": ["goodyear", "avondale", "glendale", "el-mirage"],
+  "sun-city": ["sun-city-west", "peoria", "el-mirage", "surprise"],
+  "sun-city-west": [
+    "sun-city",
+    "surprise",
+    "el-mirage",
+    "peoria",
+    "wickenburg",
+  ],
+  anthem: ["new-river", "cave-creek", "peoria", "flagstaff"],
+  carefree: ["cave-creek", "scottsdale", "anthem", "fountain-hills"],
+  "rio-verde": ["fountain-hills", "scottsdale", "carefree"],
+  ahwatukee: ["chandler", "tempe", "laveen", "maricopa"],
+  laveen: ["ahwatukee", "avondale", "tolleson"],
+  "queen-creek": ["san-tan-valley", "gilbert", "mesa", "gold-canyon"],
+  "san-tan-valley": ["queen-creek", "florence", "gilbert", "chandler"],
+  maricopa: ["casa-grande", "ahwatukee", "chandler"],
+  "apache-junction": ["gold-canyon", "mesa", "queen-creek"],
+  "gold-canyon": ["apache-junction", "mesa", "queen-creek"],
+  wickenburg: ["surprise", "sun-city-west", "prescott", "buckeye"],
+  payson: ["fountain-hills", "rio-verde", "mesa"],
+  yuma: ["buckeye", "goodyear"],
+  tolleson: ["avondale", "glendale", "laveen", "goodyear"],
+  "el-mirage": ["surprise", "sun-city", "peoria", "glendale"],
+  "new-river": ["anthem", "cave-creek", "peoria"],
+  "casa-grande": ["maricopa", "florence", "tucson"],
+  florence: ["san-tan-valley", "casa-grande", "queen-creek"],
+};

@@ -46,6 +46,26 @@ const nextConfig: NextConfig = {
         destination: "/services/special-events",
         permanent: true,
       },
+      {
+        // Deleted post, still indexed (GSC, Oct 2026)
+        source: "/blog/get-to-the-ncaa-women-s-final-four-in-style",
+        destination: "/services/special-events",
+        permanent: true,
+      },
+      {
+        // Deleted post, still indexed (GSC, Oct 2026)
+        source:
+          "/blog/government-shutdown-and-airport-security-what-it-means-for-the-travel-industry-and-how-nier-transportation-keeps-you-moving",
+        destination: "/blog/sky-harbor-airport-guide",
+        permanent: true,
+      },
+      {
+        // Deleted post, crawled but not indexed (GSC, Oct 2026)
+        source:
+          "/blog/phoenix-airport-transportation-premium-car-service-shuttle-and-limousine-service-for-az-corporate-transportation-scottsdale-trips-and-event-transportation",
+        destination: "/airports/phx-sky-harbor",
+        permanent: true,
+      },
       // ── Legacy URL cleanup (GSC soft-404s + stale crawl paths) ──
       {
         source: "/services/charter-bus-rental-phoenix",

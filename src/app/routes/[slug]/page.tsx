@@ -8,6 +8,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { routesData } from "@/lib/routes";
+import { locationPageCities } from "@/lib/cities";
 import Nav from "@/components/shared/Nav/Nav";
 import Button from "@/components/shared/Button/Button";
 import HowItWorks from "@/components/shared/HowItWorks/HowItWorks";
@@ -94,12 +95,28 @@ export default async function RoutePage({
       const bSame = (b.destination === "Sky Harbor") === isAirportRun ? 0 : 1;
       return aSame - bSame;
     })
-    .slice(0, 3);
+    // Airport runs show 3 siblings; intercity runs show every other
+    // intercity route (Sedona, Flagstaff, Grand Canyon, Tucson, Prescott).
+    .slice(0, isAirportRun ? 3 : 6)
+    .filter((r) => isAirportRun || r.destination !== "Sky Harbor");
+
+  // The city pages at either end of the route (Flagstaff, Prescott, Sedona…).
+  const endpointCities = [route.origin, route.destination]
+    .map((name) =>
+      locationPageCities.find(
+        (c) => c.name.toLowerCase() === name.toLowerCase(),
+      ),
+    )
+    .filter((c): c is NonNullable<typeof c> => Boolean(c));
 
   const relatedLinks = [
     ...siblings.map((r) => ({
       label: `${r.origin} to ${r.destination} car service`,
       href: `/routes/${r.slug}`,
+    })),
+    ...endpointCities.map((c) => ({
+      label: `Car service in ${c.name}`,
+      href: `/locations/${c.slug}`,
     })),
     ...(isAirportRun
       ? [
