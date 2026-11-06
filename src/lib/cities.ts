@@ -1193,6 +1193,41 @@ export const serviceAreaCities = [
       "Surprise Recreation Campus",
       "Sun City Grand",
     ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate Surprise to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Surprise from Sky Harbor Airport?",
+        a: "About 35–40 minutes via Loop 303 and I-10, and longer at rush hour. We plan Surprise pickups with extra lead time and track your flight on the way home.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Can you drive us to spring training at Surprise Stadium?",
+        a: "Yes. Surprise Stadium is the spring home of the Royals and the Rangers, and game days fill the lots fast. We drop you at the gate and pick you up after the last out.",
+      },
+      {
+        q: "Do you serve Sun City West and Sun City Grand?",
+        a: "Yes. We pick up across Surprise, including Sun City Grand and the communities along Bell Road, plus neighboring Sun City West.",
+        link: {
+          href: "/locations/sun-city-west",
+          label: "Car service in Sun City West",
+        },
+      },
+      {
+        q: "Can you drive from Surprise to Wickenburg or Prescott?",
+        a: "Yes. Wickenburg is about 45 minutes up US-60, and Prescott about 1½ hours. Day trips with your chauffeur waiting are easy to arrange.",
+        link: {
+          href: "/locations/wickenburg",
+          label: "Car service in Wickenburg",
+        },
+      },
+    ],
   },
   {
     name: "Goodyear",
@@ -1252,6 +1287,37 @@ export const serviceAreaCities = [
       "Goodyear Airport",
       "I-10 / Estrella Parkway Interchange",
       "Litchfield Road Business District",
+    ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate Goodyear to Sky Harbor car service",
+      blurb: "Catching a flight out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Goodyear from Sky Harbor Airport?",
+        a: "About 30–35 minutes via I-10. I-10 backs up at rush hour, so we time Goodyear pickups around live traffic.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Can you drive us to spring training at Goodyear Ballpark?",
+        a: "Yes. Goodyear Ballpark is the spring home of the Guardians and the Reds. We drop you near the entrance and wait or come back after the game.",
+      },
+      {
+        q: "Do you serve Phoenix Goodyear Airport for private flights?",
+        a: "Yes. We meet private and charter flyers at Phoenix Goodyear Airport (GYR) and drive them anywhere in the Valley.",
+        link: {
+          href: "/airports/private-aviation",
+          label: "Private jet and FBO car service",
+        },
+      },
+      {
+        q: "Do you pick up in Estrella and the Goodyear master-planned communities?",
+        a: "Yes. We pick up across Goodyear, including Estrella, Palm Valley and Canyon Trails. Add your gate code when you book.",
+      },
     ],
   },
   {
@@ -1705,6 +1771,42 @@ export const serviceAreaCities = [
       "Coldwater Ridge Park",
       "I-10 / Avondale Boulevard Corridor",
     ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate Avondale to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Avondale from Sky Harbor Airport?",
+        a: "About 25–30 minutes via I-10. We track your flight on pickups, so delays don't cost extra.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Can you drive a group to NASCAR at Phoenix Raceway?",
+        a: "Yes. Phoenix Raceway is in Avondale, and race weekends bring heavy traffic and long walks from parking. A Sprinter or mini bus drops your group close and picks everyone up together.",
+        link: {
+          href: "/services/special-events",
+          label: "Special events transportation",
+        },
+      },
+      {
+        q: "Do you drive to State Farm Stadium from Avondale?",
+        a: "Yes. The stadium is about 15–20 minutes away via the 101. We drop you near the gate and pick you up after the game or concert.",
+        link: {
+          href: "/blog/state-farm-stadium-parking-guide",
+          label: "State Farm Stadium parking and transportation guide",
+        },
+      },
+      {
+        q: "Do you offer recurring rides in Avondale?",
+        a: "Yes. Weekly commutes, appointments and school runs can be booked once and run on a set schedule.",
+        link: { href: "/services/reoccurring-rides", label: "Recurring rides" },
+      },
+    ],
   },
   {
     name: "Buckeye",
@@ -1762,6 +1864,41 @@ export const serviceAreaCities = [
       "Buckeye Municipal Airport",
       "I-10 / Loop 303 Corridor",
       "White Tank Mountain Regional Park (adjacent)",
+    ],
+    routePromo: {
+      href: "/routes/buckeye-to-sky-harbor",
+      anchor: "book a flat-rate Buckeye to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Buckeye from Sky Harbor Airport?",
+        a: "About 40–45 minutes via I-10 from most of Buckeye, and longer from the far west side. We plan extra lead time for early flights.",
+        link: {
+          href: "/routes/buckeye-to-sky-harbor",
+          label: "Buckeye to Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you pick up in Verrado and the newer Buckeye communities?",
+        a: "Yes. We pick up across Buckeye, including Verrado, Sundance and Festival Ranch. Add your gate code and any access notes when you book.",
+      },
+      {
+        q: "Can you drive from Buckeye to Wickenburg?",
+        a: "Yes. Wickenburg is about 45 minutes north via SR-85 and US-60 from much of Buckeye, which makes it an easy guest-ranch or day-trip run.",
+        link: {
+          href: "/locations/wickenburg",
+          label: "Car service in Wickenburg",
+        },
+      },
+      {
+        q: "Do you drive to events at Phoenix Raceway and State Farm Stadium?",
+        a: "Yes. Both are about 25–35 minutes from Buckeye. We drop you near the gate and pick you up afterward, so nobody deals with event parking.",
+        link: {
+          href: "/services/special-events",
+          label: "Special events transportation",
+        },
+      },
     ],
   },
   {
@@ -1821,6 +1958,38 @@ export const serviceAreaCities = [
       "Litchfield Park City Center",
       "Palm Valley Road Corridor",
     ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate Litchfield Park to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Litchfield Park from Sky Harbor Airport?",
+        a: "About 30 minutes via the 101 and I-10. We track your flight and help with luggage at the curb.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you pick up at The Wigwam?",
+        a: "Yes. The Wigwam is one of our most frequent Litchfield Park pickups, for weddings, golf groups and airport transfers.",
+        link: { href: "/services/weddings", label: "Wedding transportation" },
+      },
+      {
+        q: "Do you drive Luke Air Force Base families and visitors?",
+        a: "Yes. We run airport transfers for families and visitors in the Litchfield Park and Luke AFB area. Base access rules apply for on-base pickups, so tell us your plans when you book.",
+      },
+      {
+        q: "Can you drive a golf group from Litchfield Park?",
+        a: "Yes. Golf outings to The Wigwam and courses across the Valley, with room for every bag.",
+        link: {
+          href: "/services/golf-outing-transportation",
+          label: "Golf outing transportation",
+        },
+      },
+    ],
   },
   {
     name: "Sun City",
@@ -1878,6 +2047,37 @@ export const serviceAreaCities = [
       "Bell Recreation Center",
       "Sun City Grand (adjacent)",
       "Del Webb Boulevard Corridor",
+    ],
+    routePromo: {
+      href: "/services/reoccurring-rides",
+      anchor: "set up recurring rides to appointments and the airport",
+      blurb: "Need the same ride every week?",
+    },
+    faqs: [
+      {
+        q: "How far is Sun City from Sky Harbor Airport?",
+        a: "About 30–35 minutes via the 101 and I-10. We confirm your ride the day before and help with luggage at both ends.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you drive Sun City residents to medical appointments?",
+        a: "Yes. Rides to Banner Boswell Medical Center, specialists around the Valley and Mayo Clinic in north Phoenix are among our most common Sun City trips. The chauffeur waits or comes back when you're done.",
+      },
+      {
+        q: "Can family members book rides for a parent in Sun City?",
+        a: "Yes. A family member can book and pay online and get the confirmation and driver details by email, while the chauffeur picks up your parent at home.",
+      },
+      {
+        q: "Do you help with walkers and wheelchairs?",
+        a: "Yes. Chauffeurs help passengers in and out and load walkers and foldable wheelchairs. Let us know when you book so we send the right vehicle.",
+        link: {
+          href: "/locations/sun-city-west",
+          label: "Car service in Sun City West",
+        },
+      },
     ],
   },
   {
@@ -2213,6 +2413,41 @@ export const serviceAreaCities = [
       "Tonto National Forest",
       "Sonoran Desert Foothills",
       "Verde River Greenway (nearby)",
+    ],
+    routePromo: {
+      href: "/airports/scottsdale-airport",
+      anchor: "book a car to or from Scottsdale Airport (SDL)",
+      blurb: "Flying into Scottsdale?",
+    },
+    faqs: [
+      {
+        q: "How far is Rio Verde from Sky Harbor and Scottsdale Airport?",
+        a: "Sky Harbor is about 40 minutes away, and Scottsdale Airport (SDL) about 30–35 minutes. Rideshares are scarce out here, so a booked car is the reliable option for early flights.",
+        link: {
+          href: "/airports/scottsdale-airport",
+          label: "Scottsdale Airport car service",
+        },
+      },
+      {
+        q: "Do you pick up at homes on unpaved or private roads?",
+        a: "Yes. Many Rio Verde homes sit off dirt roads or behind gates. Add access notes and your gate code when you book, and we'll send a vehicle that fits.",
+      },
+      {
+        q: "Do you drive golf groups from Rio Verde?",
+        a: "Yes. Rides from the Rio Verde and Tonto Verde golf communities to Scottsdale and Fountain Hills courses, with room for clubs.",
+        link: {
+          href: "/services/golf-outing-transportation",
+          label: "Golf outing transportation",
+        },
+      },
+      {
+        q: "Can you drive us to dinner in Scottsdale or Fountain Hills?",
+        a: "Yes. An hourly chauffeur covers dinner and the drive home, so nobody has to make the late drive back on the dark desert roads.",
+        link: {
+          href: "/locations/fountain-hills",
+          label: "Car service in Fountain Hills",
+        },
+      },
     ],
   },
   {
@@ -2559,6 +2794,42 @@ export const serviceAreaCities = [
       "Ironwood Crossing",
       "SR-24 Extension",
     ],
+    routePromo: {
+      href: "/airports/mesa-gateway",
+      anchor: "book a car to Phoenix-Mesa Gateway Airport",
+      blurb: "Flying out of Mesa Gateway?",
+    },
+    faqs: [
+      {
+        q: "How far is San Tan Valley from Mesa Gateway Airport?",
+        a: "About 20 minutes from most of San Tan Valley, which makes Mesa Gateway (AZA) the closest commercial airport. We meet you at the terminal and track your flight.",
+        link: {
+          href: "/blog/mesa-gateway-airport-airlines-2026",
+          label: "Every airline at Mesa Gateway",
+        },
+      },
+      {
+        q: "How long is the drive from San Tan Valley to Sky Harbor?",
+        a: "About 45–55 minutes, and longer at rush hour on Hunt Highway and the 202. We plan early-flight pickups with extra lead time.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Can you drive a group to San Tan Mountain Regional Park or Queen Creek?",
+        a: "Yes. Group outings to the park, Schnepf Farms and the Queen Creek Olive Mill are a short ride from San Tan Valley.",
+        link: {
+          href: "/locations/queen-creek",
+          label: "Car service in Queen Creek",
+        },
+      },
+      {
+        q: "Do you offer recurring rides from San Tan Valley?",
+        a: "Yes. Commutes to Chandler and Gilbert, appointments and school runs can be booked once and run on a set schedule.",
+        link: { href: "/services/reoccurring-rides", label: "Recurring rides" },
+      },
+    ],
   },
   {
     name: "Maricopa",
@@ -2616,6 +2887,41 @@ export const serviceAreaCities = [
       "Maricopa-Casa Grande Highway (SR-347)",
       "Harrah's Ak-Chin Casino (nearby)",
       "Maricopa Wells Middle School District",
+    ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate Maricopa to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Maricopa from Sky Harbor Airport?",
+        a: "About 40–45 minutes via SR-347 and I-10. SR-347 is often congested at rush hour, so we watch it live and set your departure time around it.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you pick up at the Maricopa Amtrak station?",
+        a: "Yes. Maricopa's Amtrak station is the closest stop to Phoenix. We meet your train and drive you anywhere in the Valley or to Sky Harbor.",
+      },
+      {
+        q: "Can you drive us to Harrah's Ak-Chin?",
+        a: "Yes. Harrah's Ak-Chin is minutes from most of Maricopa. Hourly service keeps your chauffeur with you for dinner, a show and the ride home.",
+        link: {
+          href: "/services/hourly-chauffeur",
+          label: "Hourly chauffeur service",
+        },
+      },
+      {
+        q: "Do you drive from Maricopa to Tucson?",
+        a: "Yes. Tucson is about 1¼ hours away. We run airport transfers to Tucson International and day trips with your chauffeur waiting.",
+        link: {
+          href: "/routes/tucson-to-phoenix",
+          label: "Tucson to Phoenix car service",
+        },
+      },
     ],
   },
   {
@@ -2676,6 +2982,37 @@ export const serviceAreaCities = [
       "Canyon Lake",
       "US-60 / Superstition Freeway",
     ],
+    routePromo: {
+      href: "/airports/mesa-gateway",
+      anchor: "book a car to Phoenix-Mesa Gateway Airport",
+      blurb: "Flying out of Mesa Gateway?",
+    },
+    faqs: [
+      {
+        q: "How far is Apache Junction from the airports?",
+        a: "Mesa Gateway (AZA) is about 20–25 minutes away and Sky Harbor about 40 minutes via US-60 and the 202. We track your flight on every pickup.",
+        link: {
+          href: "/airports/mesa-gateway",
+          label: "Mesa Gateway car service",
+        },
+      },
+      {
+        q: "Can you drive a group to Lost Dutchman State Park or Goldfield Ghost Town?",
+        a: "Yes. Both sit at the foot of the Superstition Mountains just outside town. A Sprinter keeps the group together, and your chauffeur waits while you explore.",
+      },
+      {
+        q: "Can you take us to the Arizona Renaissance Festival?",
+        a: "Yes. The festival runs on weekends in February and March just east of Apache Junction, and parking lines get long. We drop you at the gate and pick you up when you're ready.",
+        link: {
+          href: "/locations/gold-canyon",
+          label: "Car service in Gold Canyon",
+        },
+      },
+      {
+        q: "Do you do airport runs for winter residents?",
+        a: "Yes. Arrival and departure days for winter visitors keep us busy from fall through spring, and you can book both rides at once.",
+      },
+    ],
   },
   {
     name: "Gold Canyon",
@@ -2733,6 +3070,45 @@ export const serviceAreaCities = [
       "Superstition Mountains",
       "Gold Canyon Golf Resort",
       "US-60 Corridor",
+    ],
+    routePromo: {
+      href: "/airports/mesa-gateway",
+      anchor: "book a car to Phoenix-Mesa Gateway Airport",
+      blurb: "Flying out of Mesa Gateway?",
+    },
+    faqs: [
+      {
+        q: "How far is Gold Canyon from the airports?",
+        a: "Mesa Gateway (AZA) is about 25–30 minutes away and Sky Harbor about 45 minutes via US-60 and the 202.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you drive golf groups in Gold Canyon?",
+        a: "Yes. Rides to and from Gold Canyon Golf Resort, Superstition Mountain Golf & Country Club and courses across the East Valley, with room for clubs.",
+        link: {
+          href: "/services/golf-outing-transportation",
+          label: "Golf outing transportation",
+        },
+      },
+      {
+        q: "Can you take us to the Arizona Renaissance Festival?",
+        a: "Yes. The festival is on US-60 in Gold Canyon, open weekends in February and March. We drop you at the gate and pick you up when you're done.",
+        link: {
+          href: "/services/special-events",
+          label: "Special events transportation",
+        },
+      },
+      {
+        q: "Do you do airport runs for winter residents?",
+        a: "Yes. Many Gold Canyon residents winter here, and we book their arrival and departure rides months ahead.",
+        link: {
+          href: "/locations/apache-junction",
+          label: "Car service in Apache Junction",
+        },
+      },
     ],
   },
   {
@@ -2888,6 +3264,37 @@ export const serviceAreaCities = [
       "Payson Center for the Performing Arts",
       "SR-87 Beeline Highway",
     ],
+    routePromo: {
+      href: "/services/long-distance-drives",
+      anchor: "book a private long-distance car to Payson",
+      blurb: "Heading up the Beeline?",
+    },
+    faqs: [
+      {
+        q: "How far is Payson from Sky Harbor Airport?",
+        a: "About 90 miles and 1½ hours via SR-87, the Beeline Highway, through Fountain Hills. We drive you door to door between Sky Harbor and your cabin or home.",
+        link: {
+          href: "/services/long-distance-drives",
+          label: "Long-distance car service",
+        },
+      },
+      {
+        q: "Do you drive to Payson in summer for cabin weekends?",
+        a: "Yes. Summer is our busiest Payson season, when Valley residents head up to the Rim for cooler weather. Book early for holiday weekends.",
+      },
+      {
+        q: "Can you drive a group to the Payson Rodeo?",
+        a: "Yes. The Payson Rodeo, billed as the World's Oldest Continuous Rodeo, runs each August. Groups book a Sprinter so nobody drives the Beeline home.",
+      },
+      {
+        q: "Can you take us to Tonto Natural Bridge?",
+        a: "Yes. Tonto Natural Bridge State Park is about 20 minutes north of Payson. Day trips with your chauffeur waiting are easy to plan.",
+        link: {
+          href: "/locations/fountain-hills",
+          label: "Car service in Fountain Hills",
+        },
+      },
+    ],
   },
   {
     name: "Yuma",
@@ -2947,6 +3354,37 @@ export const serviceAreaCities = [
       "Colorado River",
       "I-8 / Yuma Corridor",
     ],
+    routePromo: {
+      href: "/services/long-distance-drives",
+      anchor: "book a private long-distance car between Yuma and Phoenix",
+      blurb: "Driving between Yuma and the Valley?",
+    },
+    faqs: [
+      {
+        q: "How far is Yuma from Phoenix Sky Harbor?",
+        a: "About 185 miles and roughly 2½ hours via I-10 and I-8. We drive door to door, so you skip the rental car and the long drive across the desert.",
+        link: {
+          href: "/services/long-distance-drives",
+          label: "Long-distance car service",
+        },
+      },
+      {
+        q: "Should I fly into Yuma or Sky Harbor?",
+        a: "Yuma International (YUM) is small, with limited flights. Many travelers fly into Sky Harbor for more nonstop options and lower fares, then take a private car to Yuma.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you drive military families to and from MCAS Yuma?",
+        a: "Yes. We run Sky Harbor transfers for military families and visitors. Base access rules apply for on-base pickups, so tell us your plans when you book.",
+      },
+      {
+        q: "Do you run trips for winter visitors?",
+        a: "Yes. Yuma's winter visitors book arrival and departure rides from Sky Harbor, often months ahead. You can book both directions at once.",
+      },
+    ],
   },
   {
     name: "Tolleson",
@@ -3004,6 +3442,38 @@ export const serviceAreaCities = [
       "Tolleson Union High School District",
       "West Valley Business Park",
       "Loop 101 Corridor",
+    ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate Tolleson to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is Tolleson from Sky Harbor Airport?",
+        a: "About 20–25 minutes via I-10, one of the quickest West Valley airport runs.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you drive to State Farm Stadium from Tolleson?",
+        a: "Yes. The stadium is about 15 minutes away via the 101. We drop you near the gate and pick you up after the game or concert.",
+        link: {
+          href: "/blog/state-farm-stadium-parking-guide",
+          label: "State Farm Stadium parking and transportation guide",
+        },
+      },
+      {
+        q: "Do you offer corporate rides for the I-10 business corridor?",
+        a: "Yes. Many Tolleson businesses sit along the I-10 and 101 distribution corridor. A corporate account puts every employee and visitor ride on one monthly invoice.",
+        link: { href: "/corporate-accounts", label: "Corporate accounts" },
+      },
+      {
+        q: "Can you pick up visiting clients at the airport for my company?",
+        a: "Yes. Book the ride for your visitor, and we'll meet them at baggage claim with a name sign and drive them to your office or hotel.",
+      },
     ],
   },
   {
@@ -3063,6 +3533,35 @@ export const serviceAreaCities = [
       "Dysart Road Business District",
       "Peoria (adjacent)",
     ],
+    routePromo: {
+      href: "/airports/phx-sky-harbor",
+      anchor: "book a flat-rate El Mirage to Sky Harbor car service",
+      blurb: "Flying out of PHX?",
+    },
+    faqs: [
+      {
+        q: "How far is El Mirage from Sky Harbor Airport?",
+        a: "About 30–35 minutes via the 101 and I-10. We track your flight and plan around rush-hour traffic.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you drive Luke Air Force Base families and visitors?",
+        a: "Yes. We run airport transfers for families and visitors near Luke AFB. Base access rules apply for on-base pickups, so tell us your plans when you book.",
+      },
+      {
+        q: "Can you drive us to spring training in Surprise or Peoria?",
+        a: "Yes. Surprise Stadium and Peoria Sports Complex are each a short ride from El Mirage. We drop you at the gate and pick you up after the game.",
+        link: { href: "/locations/surprise", label: "Car service in Surprise" },
+      },
+      {
+        q: "Do you offer recurring rides in El Mirage?",
+        a: "Yes. Weekly appointments, commutes and school runs can be booked once and run on a set schedule.",
+        link: { href: "/services/reoccurring-rides", label: "Recurring rides" },
+      },
+    ],
   },
   {
     name: "New River",
@@ -3120,6 +3619,38 @@ export const serviceAreaCities = [
       "Sonoran Desert Terrain",
       "Black Canyon City (nearby)",
       "Anthem (nearby)",
+    ],
+    routePromo: {
+      href: "/airports/private-aviation",
+      anchor: "book a car to Deer Valley Airport or your private flight",
+      blurb: "Flying private from Deer Valley?",
+    },
+    faqs: [
+      {
+        q: "How far is New River from Sky Harbor Airport?",
+        a: "About 35–40 minutes via I-17 from most of New River, and longer from homes farther off the freeway. Rideshares are scarce out here, so a booked car is the dependable option for early flights.",
+        link: {
+          href: "/airports/phx-sky-harbor",
+          label: "Sky Harbor car service",
+        },
+      },
+      {
+        q: "Do you pick up at homes on dirt roads and ranch properties?",
+        a: "Yes. Many New River homes sit on unpaved roads or ranch property. Add directions and gate codes when you book, and we'll send a vehicle that fits the road.",
+      },
+      {
+        q: "Can you drive a group to Lake Pleasant?",
+        a: "Yes. Lake Pleasant is about 20–25 minutes west. Sprinters and mini buses work well for birthday and company outings at the marinas.",
+        link: { href: "/locations/anthem", label: "Car service in Anthem" },
+      },
+      {
+        q: "Do you drive from New River to Sedona or Flagstaff?",
+        a: "Yes. New River sits on I-17, so Sedona is about 1½ hours away and Flagstaff about 1¾ hours.",
+        link: {
+          href: "/routes/phoenix-to-sedona",
+          label: "Phoenix to Sedona private car",
+        },
+      },
     ],
   },
   {
@@ -3179,6 +3710,35 @@ export const serviceAreaCities = [
       "I-10 / Sunland Gin Road Interchange",
       "Phoenix Premium Outlets (Chandler, nearby)",
     ],
+    routePromo: {
+      href: "/routes/tucson-to-phoenix",
+      anchor: "book a private car between Phoenix and Tucson",
+      blurb: "Traveling between Phoenix and Tucson?",
+    },
+    faqs: [
+      {
+        q: "How far is Casa Grande from Sky Harbor and Tucson airports?",
+        a: "Casa Grande sits about midway on I-10: roughly 50 minutes to Sky Harbor and 50 minutes to Tucson International. We serve both airports.",
+        link: {
+          href: "/routes/tucson-to-phoenix",
+          label: "Tucson to Phoenix car service",
+        },
+      },
+      {
+        q: "Do you drive business travelers to Casa Grande's plants and offices?",
+        a: "Yes. Executives and visiting teams fly into Sky Harbor and ride to the manufacturing and logistics sites around Casa Grande. Corporate accounts put every ride on one invoice.",
+        link: { href: "/corporate-accounts", label: "Corporate accounts" },
+      },
+      {
+        q: "Can you take a group to Casa Grande Ruins National Monument?",
+        a: "Yes. The monument is about 25 minutes east in Coolidge. Day trips with your chauffeur waiting are easy to plan.",
+      },
+      {
+        q: "Do you serve Maricopa and Florence too?",
+        a: "Yes. We pick up across Casa Grande, Maricopa, Florence and the rest of Pinal County.",
+        link: { href: "/locations/maricopa", label: "Car service in Maricopa" },
+      },
+    ],
   },
   {
     name: "Florence",
@@ -3236,6 +3796,34 @@ export const serviceAreaCities = [
       "Pinal County Courthouse",
       "McFarland State Historic Park",
       "SR-79 Corridor",
+    ],
+    routePromo: {
+      href: "/airports/mesa-gateway",
+      anchor: "book a car to Phoenix-Mesa Gateway Airport",
+      blurb: "Flying out of Mesa Gateway?",
+    },
+    faqs: [
+      {
+        q: "How far is Florence from Sky Harbor and Mesa Gateway?",
+        a: "About 50 minutes to Sky Harbor via US-60 and SR-79, and about 35–40 minutes to Mesa Gateway (AZA).",
+        link: {
+          href: "/airports/mesa-gateway",
+          label: "Mesa Gateway car service",
+        },
+      },
+      {
+        q: "Do you pick up in Anthem at Merrill Ranch?",
+        a: "Yes. We pick up across Florence, including Anthem at Merrill Ranch. Add your gate code when you book.",
+      },
+      {
+        q: "Can you drive a group to Florence's historic downtown?",
+        a: "Yes. Historic Main Street and McFarland State Historic Park make an easy day trip from the Valley, and your chauffeur waits while you explore.",
+      },
+      {
+        q: "Do you offer recurring rides from Florence?",
+        a: "Yes. Commutes, appointments and airport runs can be booked once and run on a set schedule.",
+        link: { href: "/services/reoccurring-rides", label: "Recurring rides" },
+      },
     ],
   },
 ] as const;
