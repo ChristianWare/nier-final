@@ -2539,7 +2539,7 @@ export default function BookingWizard({
                         <div className='miniNote' style={{ marginTop: 8 }}>
                           No vehicles available for {passengers} passengers.
                           Please adjust your party size or{" "}
-                          <a href='tel:+4803004885' className='inlineLink'>
+                          <a href='tel:+14803006003' className='inlineLink'>
                             contact us
                           </a>{" "}
                           for a custom quote.
