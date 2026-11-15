@@ -50,9 +50,9 @@
 }
 
 @media screen and (max-width: 568px) {
-  .container {
+  /* .container {
     padding: 2rem 0;
-  }
+  } */
 
   .content {
     display: grid;
