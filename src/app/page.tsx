@@ -116,6 +116,7 @@ export default async function HomePage() {
         companyTimezoneLabel={widget.companyTimezoneLabel}
       />
       <QuoteBand widget={widget} showMap />
+      <ServiceAreas />
       <AboutUsIntro />
       <Stats />
       <AirportCarService />
@@ -123,7 +124,6 @@ export default async function HomePage() {
       <ServicesMarquee />
       <Fleet />
       <Neighborhoods />
-      <ServiceAreas />
       <CorporateIntro />
       <GroupsIntro />
       <Testimonials />
