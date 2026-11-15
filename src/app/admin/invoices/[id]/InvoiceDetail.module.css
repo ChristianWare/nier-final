@@ -298,7 +298,7 @@
   font-weight: 600;
   padding: 1rem 1.2rem;
   border: 1px solid var(--stroke);
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--white);
   color: var(--black);
   cursor: pointer;
@@ -321,7 +321,7 @@
   font-weight: 600;
   padding: 1rem 1.2rem;
   border: 1px solid var(--accent100);
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--white);
   color: var(--accent600);
   cursor: pointer;

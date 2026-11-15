@@ -172,7 +172,7 @@
 .navBtn {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: 5px;
   border: 1px solid var(--stroke);
   background: transparent;
   cursor: pointer;

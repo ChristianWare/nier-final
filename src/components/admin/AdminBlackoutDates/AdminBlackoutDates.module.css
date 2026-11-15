@@ -38,7 +38,7 @@
 
 .btn {
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 5px;
   border: 2px solid var(--stroke);
   background: var(--tan);
   cursor: pointer;

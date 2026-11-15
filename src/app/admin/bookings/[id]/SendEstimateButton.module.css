@@ -59,7 +59,7 @@
 
 .ghostedBtn {
   height: 42px;
-  border-radius: 6px;
+  border-radius: 5px;
   background: var(--lightGray);
   opacity: 0.5;
 }

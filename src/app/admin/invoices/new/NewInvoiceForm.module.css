@@ -238,7 +238,7 @@
 .removeBtn {
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: 5px;
   border: 1px solid var(--stroke);
   background: var(--white);
   color: var(--black400);
@@ -265,7 +265,7 @@
   font-size: 1.4rem;
   font-weight: 600;
   padding: 0.8rem 1.4rem;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
 }
 

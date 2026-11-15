@@ -207,83 +207,111 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 2rem;
+  gap: 0.6rem;
 }
 
-.btnContainerii {
-  display: none;
-}
+/* ── Dashboard, Log out / Log in ──
+   Quiet links that turn into a red pill on hover and on their page. */
 
-.hamburger {
-  display: none;
-  z-index: 10000;
-  position: relative;
+.acctLink {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  font-family: inherit;
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.8px;
+  color: var(--nav-fg);
+  white-space: nowrap;
   cursor: pointer;
-}
-
-.whiteBar {
-  position: relative;
-  z-index: 10000;
-  display: block;
-  width: 35px;
-  height: 3px;
-  margin: 5px auto;
-  border-radius: 15px;
-  background-color: var(--nav-fg);
   transition:
-    transform 0.3s ease-in-out,
-    opacity 0.2s ease-in-out,
-    background-color 0.35s ease-in-out;
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9990;
-  background: rgba(0, 0, 0, 0.2);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  height: 100dvh;
-  min-height: 100vh;
-  width: 100vw;
+.acctLink:hover,
+.acctLinkActive {
+  background-color: var(--accent);
+  color: var(--white);
 }
 
-.menuImage {
-  display: none;
-  position: relative;
-  width: 100%;
-  height: 185px;
-  overflow: hidden;
-  border-radius: 10px;
-  margin-bottom: 2rem;
-  margin-top: 2rem;
+/* ── Book now ──
+   Over the hero: a white button. On the solid bar: black. Either way the
+   arrow sits in a red box. */
+
+.bookBtn,
+.menuBook {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.4rem;
+  height: 44px;
+  margin-left: 1rem;
+  padding: 0px 5px 0px 16px;
+  border-radius: 5px;
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
 }
 
-.img {
-  object-fit: cover;
-  z-index: 0;
+.bookBtn {
+  background-color: var(--white);
+  color: var(--black);
 }
 
-.menuImageOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
+.solid .bookBtn {
+  background-color: var(--black);
+  color: var(--white);
+}
+
+.bookBox {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  pointer-events: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 5px;
+  background-color: var(--accent);
+  color: var(--white);
 }
 
-.open .whiteBar {
-  background-color: var(--black);
+.bookArrow {
+  width: 14px;
+  height: 14px;
+  transform: rotate(90deg);
 }
-.open .logo {
-  color: var(--black);
+
+/* ── Menu button (1368px and below) ── */
+
+.burger {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  background: none;
+  color: var(--nav-fg);
+  cursor: pointer;
+  transition: color 0.35s ease-in-out;
 }
-.open .text {
-  color: var(--black);
+
+.burger span {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background-color: currentColor;
 }
 
 /* ── Services dropdown (desktop only) ──────────────── */
@@ -426,175 +454,6 @@
   opacity: 0.75;
 }
 
-/* ── Mobile (≤1368px) ───────────────────────────────── */
-
-@media screen and (max-width: 1368px) {
-  .navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.5rem 2rem;
-    padding-right: 2.5rem;
-  }
-
-  .navItems {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    border-bottom-right-radius: 10px;
-    border-bottom-left-radius: 10px;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 2rem;
-    padding-top: 7rem;
-    background: var(--cream);
-    height: auto;
-    max-height: 90vh;
-    overflow-y: auto;
-    transform: translateX(110%);
-    transition: transform 0.35s ease-in-out;
-    z-index: 9998;
-    box-sizing: border-box;
-  }
-
-  .navItems.active {
-    transform: translateX(0);
-    gap: 0rem;
-  }
-
-  .navItem {
-    color: var(--black) !important;
-    font-size: 1.6rem;
-    width: 100%;
-    border-top: 3px solid var(--stroke);
-    padding: 1.8rem 0rem;
-    padding-top: 2rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .navItemLast {
-    border-bottom: 3px solid var(--stroke);
-    margin-bottom: 2rem;
-  }
-
-  .navItemActive::after {
-    position: static;
-    display: inline-block;
-    margin-left: 8px;
-    vertical-align: middle;
-    left: auto;
-    right: auto;
-    border: 1px solid var(--black);
-  }
-
-  /* Services wrapper behaves like a normal row on mobile */
-  .servicesWrapper {
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-  }
-
-  /* Dropdown never shows on mobile */
-  .servicesDropdown {
-    display: none !important;
-  }
-
-  .menuImage {
-    display: block;
-    position: relative;
-    width: 100%;
-    height: 300px;
-    overflow: hidden;
-    display: none;
-  }
-
-  .img {
-    object-fit: cover;
-    border-radius: 12px;
-  }
-
-  .logoii {
-    color: var(--cream);
-    font-size: 10rem;
-  }
-
-  .btnContainer {
-    display: none;
-  }
-
-  .hamburger {
-    display: block;
-  }
-
-  .btnContainerii {
-    display: grid;
-    width: 100%;
-  }
-
-  .hamburger.active .whiteBar:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
-  }
-  .hamburger.active .whiteBar:nth-child(2) {
-    opacity: 0;
-  }
-  .hamburger.active .whiteBar:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
-  }
-}
-
-@media screen and (max-width: 568px) {
-  .navbar {
-    padding: 1rem 2rem;
-  }
-
-  .btnContainerii {
-    display: grid;
-    width: 100%;
-  }
-}
-
-.mobileDashboardLinks {
-  display: none;
-}
-
-@media screen and (max-width: 1368px) {
-  .mobileDashboardLinks {
-    display: grid;
-    gap: 2rem;
-    margin-top: 0rem;
-    width: 100%;
-    margin-bottom: 2rem;
-    background: var(--lightBlue);
-    border: 1px solid var(--blue);
-    border-radius: 7px;
-    padding: 1.5rem;
-  }
-}
-
-.mobileDashboardBtn {
-  display: block;
-  width: 100%;
-  padding: 1.2rem 1.6rem;
-  background: var(--black);
-  color: var(--white);
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  text-align: center;
-  border-radius: 8px;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-}
-
-.mobileDashboardBtn:hover {
-  opacity: 0.8;
-}
-
 /* ── Partners dropdown (desktop only) ──────────────── */
 
 .navItemBtn {
@@ -681,101 +540,226 @@
   }
 }
 
-/* ── Admin options (admin pages, 1368px and below) ──
-   The menu gains an "Admin options" row; it slides a second cream panel
-   in from the right over the menu, with the admin's sections. Each
-   section opens its links below it, one at a time. */
+/* ── Tablets and phones (1368px and below) ── */
 
-/* On admin pages the menu starts at the top: with the extra row it can be
-   taller than the screen, and centring would cut its top off. */
-.navItemsAdmin {
-  justify-content: flex-start !important;
+@media screen and (max-width: 1368px) {
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 2rem;
+  }
+
+  .navItems,
+  .btnContainer {
+    display: none;
+  }
+
+  .burger {
+    display: inline-flex;
+  }
 }
 
-/* While the panel is open it covers the menu, which stops scrolling. */
-.navItemsAdminOpen {
-  overflow: hidden !important;
+@media screen and (max-width: 568px) {
+  .navbar {
+    padding: 1rem 1.6rem;
+  }
 }
 
-.navItems .adminOptions {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  padding: 2rem 0 1.8rem;
-  border-top: 3px solid var(--stroke);
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--accent) !important;
-}
+/* ── The full-screen menu ──
+   Drawn into <body>, over everything: logo and close, the pages as big
+   rows, then Book now at the bottom. */
 
-.adminOptionsArrow {
-  width: 1.8rem;
-  height: 1.8rem;
-  flex-shrink: 0;
-  color: var(--accent);
-  transform: rotate(90deg);
-}
-
-.adminPanel {
-  position: absolute;
+.menu {
+  position: fixed;
   inset: 0;
-  /* Above the menu's rows, which sit at 999. */
-  z-index: 1000;
+  z-index: 10001;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 2rem;
-  padding-top: 7rem;
-  background: var(--cream);
+  padding: 0 2rem 2rem;
+  background-color: var(--white);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
   visibility: hidden;
-  transform: translateX(110%);
+  transform: translateY(-8px);
   transition:
-    transform 0.35s ease-in-out,
-    visibility 0.35s;
-  box-sizing: border-box;
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    visibility 0.25s;
 }
 
-.adminPanelOpen {
+.menuOpen {
+  opacity: 1;
   visibility: visible;
-  transform: translateX(0);
+  transform: none;
 }
 
-.adminBack {
+.menuTop {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.menuLogo {
   display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
+  color: var(--black);
+}
+
+.menuLogoIcon {
+  width: 3rem;
+  height: 3rem;
+}
+
+.menuLogoText {
+  position: relative;
+  top: 6px;
+  font-size: 1.8rem;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  color: var(--black);
+}
+
+.close {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
   padding: 0;
-  border: none;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
   background: none;
-  font-family: inherit;
-  font-size: 1.4rem;
-  font-weight: 600;
-  letter-spacing: -0.4px;
   color: var(--black);
   cursor: pointer;
 }
 
-.adminBackArrow {
-  width: 1.4rem;
-  height: 1.4rem;
+.menuLinks {
+  margin: 2rem 0 3.2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.menuLink {
+  display: block;
+  width: 100%;
+  padding: 1.3rem 0;
+  border: none;
+  border-bottom: 1px solid var(--stroke);
+  background: none;
+  font-family: inherit;
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -1px;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--black);
+  cursor: pointer;
+}
+
+.menuLinkActive {
+  color: var(--accent);
+}
+
+/* "Admin options" (admin pages): same size as the other rows, with an
+   arrow. */
+.menuLinkAdmin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.6rem;
+}
+
+.menuLinkArrow {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+  transform: rotate(90deg);
+}
+
+.menuBook {
+  align-self: flex-start;
+  margin-top: auto;
+  margin-left: 0;
+  background-color: var(--black);
+  color: var(--white);
+}
+
+/* ── Admin options: a full panel over the menu, in from the right ── */
+
+.sub {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 2rem 2rem;
+  background-color: var(--white);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  visibility: hidden;
+  transform: translateX(100%);
+  transition:
+    transform 0.3s ease,
+    visibility 0.3s;
+}
+
+.subOpen {
+  visibility: visible;
+  transform: none;
+}
+
+.subTop {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  height: 42px;
+  padding: 0 1.4rem 0 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  background: none;
+  font-family: inherit;
+  font-size: 1.6rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  color: var(--black);
+  cursor: pointer;
+}
+
+.backArrow {
+  width: 14px;
+  height: 14px;
   transform: rotate(-90deg);
 }
 
-.adminEyebrow {
+.subEyebrow {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 2.4rem 0 1rem;
-  font-size: 1.4rem;
+  margin-top: 2rem;
+  font-size: 1.6rem;
   font-weight: 600;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.8px;
   color: var(--black);
 }
 
-.adminEyebrow::before {
+.subEyebrow::before {
   content: "";
   width: 12px;
   height: 12px;
@@ -783,55 +767,60 @@
   background-color: var(--accent);
 }
 
-.adminGroups {
-  width: 100%;
-  margin: 0 0 2.4rem;
+.subGroups {
+  margin: 1rem 0 3.2rem;
   padding: 0;
   list-style: none;
-  border-bottom: 3px solid var(--stroke);
 }
 
-.adminGroup {
-  border-top: 3px solid var(--stroke);
+.subGroup {
+  border-bottom: 1px solid var(--stroke);
 }
 
-/* Section headings: the menu's own row style, with the caret. */
-.adminHeading {
+/* Section headings: the menu's row style, with a turning chevron. */
+.subHeading {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1.6rem;
   width: 100%;
-  padding: 2rem 0 1.8rem;
+  padding: 1.3rem 0;
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 1.6rem;
+  font-size: 2.8rem;
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.5px;
+  letter-spacing: -1px;
   text-align: left;
   text-transform: uppercase;
   color: var(--black);
   cursor: pointer;
 }
 
-.adminHeading .caret {
-  width: 1.6rem;
-  height: 1.6rem;
+.chevron {
+  flex-shrink: 0;
+  color: var(--paragraph);
+  transition: transform 0.25s ease;
+}
+
+.chevronOpen {
+  color: var(--black);
+  transform: rotate(180deg);
 }
 
 /* The links under a heading, opening and closing smoothly. */
-.adminSection {
+.subPanel {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.25s ease;
 }
 
-.adminSectionOpen {
+.subPanelOpen {
   grid-template-rows: 1fr;
 }
 
-.adminLinks {
+.subLinks {
   min-height: 0;
   margin: 0;
   padding: 0;
@@ -839,11 +828,11 @@
   list-style: none;
 }
 
-.adminSectionOpen .adminLinks {
-  padding-bottom: 1.4rem;
+.subPanelOpen .subLinks {
+  padding-bottom: 1.2rem;
 }
 
-.adminLink {
+.subLink {
   display: flex;
   align-items: center;
   gap: 1.2rem;
@@ -854,50 +843,61 @@
   border-radius: 5px;
   background: none;
   font-family: inherit;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   font-weight: 500;
-  letter-spacing: -0.4px;
   line-height: 1.2;
+  letter-spacing: -0.5px;
   text-align: left;
   color: var(--black);
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-.adminLink:hover {
-  background-color: var(--white);
+.subLink:hover {
+  background-color: var(--cream);
 }
 
-.adminLinkActive,
-.adminLinkActive:hover {
+.subLinkActive,
+.subLinkActive:hover {
   background-color: var(--accent);
   font-weight: 600;
   color: var(--white);
 }
 
-.adminIcon {
+.subIcon {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  color: var(--black400);
+  color: var(--paragraph);
 }
 
-.adminLinkActive .adminIcon {
+.subLinkActive .subIcon {
   color: var(--white);
 }
 
-.adminIcon > *,
-.adminIcon svg {
+.subIcon > *,
+.subIcon svg {
   width: 100%;
   height: 100%;
 }
 
+@media screen and (max-width: 568px) {
+  .menu,
+  .sub {
+    padding: 0 1.6rem 1.6rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .adminPanel,
-  .adminSection {
+  .menu,
+  .sub,
+  .subPanel,
+  .chevron {
     transition: none;
   }
 }

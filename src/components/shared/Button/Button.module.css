@@ -6,8 +6,7 @@
   justify-content: center;
   gap: 1.8rem;
   text-align: center;
-  /* border-radius: 5px; */
-  border-radius: 50px;
+  border-radius: 5px;
   padding: 6px 6px 6px 18px;
   font-size: 16px;
   font-weight: 500;
@@ -75,8 +74,7 @@
 .arrowContainer,
 .plusContainer {
   background-color: var(--white);
-  /* border-radius: 4px 4px 10px; */
-  border-radius: 50px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;

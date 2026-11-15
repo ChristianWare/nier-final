@@ -212,31 +212,36 @@ export default async function AirportGuidePage({
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      <Nav background='cream' />
-      <Breadcrumbs
-        items={[
-          { name: "Airports", href: "/airports" },
-          { name: airport.shortName, href: `/airports/${airport.slug}` },
-          { name: g.shortName },
-        ]}
-      />
-
+      <Nav />
       <GuideHero
-        eyebrow={`${airport.code} · Airport Guide`}
         heading={g.h1}
+        tagline={`Family-owned since 2004. Flat-rate ${airport.shortName} pickups and drop-offs, with no surge pricing, 24/7.`}
         lead={g.lead}
         media={g.hero ?? DEFAULT_HERO}
         primaryCta={{
           href: bookingLink("from-airport", airport.code),
           text: `Book a pickup at ${airport.code}`,
         }}
-        secondaryCta={{
-          href: bookingLink("to-airport", airport.code),
-          text: `Book a ride to ${airport.code}`,
-        }}
         scrollTo='guide-body'
+        marqueeWords={[
+          airport.shortName,
+          ...guidesForAirport(slug).map((o) => o.shortName),
+          "Phoenix",
+          "Scottsdale",
+          "Tempe",
+          "Mesa",
+        ]}
         facts={g.facts}
       />
+      <div className={styles.crumbs}>
+        <Breadcrumbs
+          items={[
+            { name: "Airports", href: "/airports" },
+            { name: airport.shortName, href: `/airports/${airport.slug}` },
+            { name: g.shortName },
+          ]}
+        />
+      </div>
 
       <section id='guide-body' className={`${styles.body} ${styles.bodyTop}`}>
         <LayoutWrapper>

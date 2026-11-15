@@ -319,7 +319,7 @@
   background: var(--black);
   color: white;
   border: none;
-  border-radius: 12px;
+  border-radius: 5px;
   font-size: 1.6rem;
   font-weight: 600;
   cursor: pointer;

@@ -1,3 +1,13 @@
+/* Breadcrumbs sit under the hero here, not under the nav */
+.crumbs {
+  padding-top: 4rem;
+  background-color: var(--white);
+}
+
+.crumbs > nav {
+  top: 0;
+}
+
 .body {
   padding: 8rem 0rem;
   background-color: var(--white);

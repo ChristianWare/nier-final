@@ -1,8 +1,9 @@
 import Image from "next/image";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
-import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
 import BackgroundVideo from "@/components/shared/BackgroundVideo/BackgroundVideo";
+import Marquee from "@/components/shared/Marquee/Marquee";
+import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import styles from "./GuideHero.module.css";
 
 export type GuideHeroMedia = {
@@ -16,76 +17,49 @@ export type GuideHeroMedia = {
 
 export type GuideHeroCta = { href: string; text: string };
 
+const DEFAULT_MARQUEE = [
+  "Phoenix",
+  "Scottsdale",
+  "Mesa",
+  "Chandler",
+  "Goodyear",
+  "Peoria",
+];
+
 /**
- * Page intro for guide-style pages: eyebrow, h1, lead, buttons, a full-width
- * video card, and an optional row of quick facts under it. Everything that
- * changes from page to page comes in as a prop.
+ * Page intro for guide-style pages, laid out like the home page hero: a
+ * full-screen video under the nav, the h1 on the left, a short line and the
+ * booking button on the right, then the lead, a "scroll down" link and a
+ * marquee along the bottom. Everything that changes from page to page comes
+ * in as a prop. The quick facts sit under the hero, on the page.
  */
 export default function GuideHero({
-  eyebrow,
   heading,
+  tagline,
   lead,
   media,
   primaryCta,
-  secondaryCta,
   scrollTo,
   scrollText = "Read the guide",
+  marqueeWords = DEFAULT_MARQUEE,
   facts,
 }: {
-  eyebrow: string;
   heading: string;
+  /** The short line beside the heading. */
+  tagline: string;
+  /** The longer intro, along the bottom of the hero. */
   lead: string;
   media: GuideHeroMedia;
   primaryCta: GuideHeroCta;
-  secondaryCta?: GuideHeroCta;
   /** id of the section the "scroll down" link jumps to. */
   scrollTo?: string;
   scrollText?: string;
+  marqueeWords?: string[];
   facts?: readonly { label: string; value: string }[];
 }) {
   return (
-    <section className={styles.hero}>
-      <LayoutWrapper>
-        <div className={styles.top}>
-          <SectionHeading text={eyebrow} dot />
-          <h1 className={`${styles.heading} h2`}>{heading}</h1>
-          <p className={styles.lead}>{lead}</p>
-        </div>
-
-        <div className={styles.actions}>
-          <div className={styles.ctas}>
-            <Button
-              href={primaryCta.href}
-              text={primaryCta.text}
-              btnType='black'
-              arrow
-            />
-            {secondaryCta && (
-              <Button
-                href={secondaryCta.href}
-                text={secondaryCta.text}
-                btnType='underlinedBlack'
-                arrow
-              />
-            )}
-          </div>
-          {scrollTo && (
-            <a href={`#${scrollTo}`} className={styles.scroll}>
-              {scrollText}
-              <svg viewBox='0 0 24 24' aria-hidden='true'>
-                <path
-                  d='M12 4v14m0 0l-6-6m6 6l6-6'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='2'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                />
-              </svg>
-            </a>
-          )}
-        </div>
-
+    <>
+      <section className={styles.container}>
         <div className={styles.media}>
           {/* Phones: the still frame (no video download on mobile data) */}
           <div className={styles.mobileMedia}>
@@ -93,8 +67,9 @@ export default function GuideHero({
               src={media.poster}
               alt={media.alt}
               fill
+              priority
               sizes='100vw'
-              className={styles.mobileImg}
+              style={{ objectFit: "cover" }}
             />
           </div>
           <div className={styles.desktopMedia}>
@@ -103,22 +78,75 @@ export default function GuideHero({
               poster={media.poster}
               label={media.alt}
             />
-            {/* Slight darkening so the card reads as one piece with the page */}
-            <div className={styles.overlay} aria-hidden='true' />
+          </div>
+
+          <div className={styles.imgOverlay} />
+          <div className={styles.marqueeWrap}>
+            <LayoutWrapper>
+              <div className={styles.cc2}>
+                <div className={styles.left2}>
+                  <p className={styles.copyii}>{lead}</p>
+                </div>
+                {scrollTo && (
+                  <a href={`#${scrollTo}`} className={styles.right2}>
+                    <span className={styles.copyiii}>{scrollText}</span>
+                    <Arrow className={styles.arrow} />
+                  </a>
+                )}
+              </div>
+            </LayoutWrapper>
+            <Marquee words={marqueeWords} speedSeconds={90} />
           </div>
         </div>
+        <LayoutWrapper>
+          <div className={styles.content}>
+            <div className={styles.contentChildren}>
+              <div className={styles.cc1}>
+                <div className={styles.left}>
+                  <h1 className={`${styles.heading} h2`}>{heading}</h1>
+                </div>
+                <div className={styles.right}>
+                  <p className={styles.copy}>{tagline}</p>
 
-        {facts && facts.length > 0 && (
-          <dl className={styles.facts}>
-            {facts.map((f) => (
-              <div key={f.label} className={styles.fact}>
-                <dt className={styles.factLabel}>{f.label}</dt>
-                <dd className={styles.factValue}>{f.value}</dd>
+                  <div className={styles.btnContainerii}>
+                    <div className={styles.btnDesktop}>
+                      <Button
+                        href={primaryCta.href}
+                        text={primaryCta.text}
+                        btnType='underlinedWhite'
+                        arrow
+                      />
+                    </div>
+                    <div className={styles.btnMobile}>
+                      <Button
+                        href={primaryCta.href}
+                        text={primaryCta.text}
+                        btnType='red'
+                        arrow
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
-          </dl>
-        )}
-      </LayoutWrapper>
-    </section>
+            </div>
+          </div>
+        </LayoutWrapper>
+      </section>
+
+      {facts && facts.length > 0 && (
+        <div className={styles.factsBand}>
+          <LayoutWrapper>
+            <dl className={styles.facts}>
+              {facts.map((f) => (
+                <div key={f.label} className={styles.fact}>
+                  <dt className={styles.factLabel}>{f.label}</dt>
+                  <dd className={styles.factValue}>{f.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </LayoutWrapper>
+        </div>
+      )}
+    </>
   );
 }

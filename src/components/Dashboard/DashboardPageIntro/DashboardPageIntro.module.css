@@ -19,6 +19,13 @@
   margin-left: -1.5rem;
 }
 
+/* Tablets and phones: the label lines up with the heading under it */
+@media screen and (max-width: 1068px) {
+  .intro > :first-child {
+    margin-left: 0;
+  }
+}
+
 .heading {
   color: var(--black);
 }

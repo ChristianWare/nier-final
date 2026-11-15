@@ -79,7 +79,7 @@
 .minimizeBtn {
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 5px;
   border: 1px solid var(--stroke);
   background: white;
   cursor: pointer;

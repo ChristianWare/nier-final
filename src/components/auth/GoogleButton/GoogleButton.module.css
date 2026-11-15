@@ -5,7 +5,7 @@
 .googleBtn {
   padding: 1rem 1.5rem;
   border: 1px solid var(--darkGray);
-  border-radius: 50px;
+  border-radius: 5px;
   font-size: 1.4rem;
   width: 100%;
   display: flex;

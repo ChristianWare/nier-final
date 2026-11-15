@@ -60,7 +60,7 @@
 
 .btn {
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--tan);
   color: #333;
   border: 1px solid var(--stroke);
@@ -469,7 +469,7 @@
 
 .footerBtn {
   padding: 10px 12px;
-  border-radius: 7px;
+  border-radius: 5px;
   border: 2px solid var(--stroke);
   background: #fff;
   cursor: pointer;

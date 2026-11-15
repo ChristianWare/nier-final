@@ -120,7 +120,7 @@
 
 .changeImageBtn {
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 5px;
   border: 1px solid var(--stroke);
   background: var(--white);
   cursor: pointer;

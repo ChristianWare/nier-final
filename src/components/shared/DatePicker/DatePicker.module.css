@@ -192,7 +192,7 @@
   width: 3.2rem;
   height: 3.2rem;
   border: 1px solid var(--stroke, #ddd);
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--white, #fff);
   cursor: pointer;
   font-size: 1.8rem;
@@ -232,7 +232,7 @@
   width: var(--day);
   height: var(--day);
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
   background: none;
   font: inherit;
   cursor: pointer;
@@ -292,7 +292,7 @@
   font-size: 1.4rem;
   padding: 1rem 0.6rem;
   border: 1px solid var(--stroke, #ddd);
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--white, #fff);
   cursor: pointer;
 }

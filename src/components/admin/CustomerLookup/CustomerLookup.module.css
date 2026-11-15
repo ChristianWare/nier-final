@@ -24,7 +24,7 @@
   display: grid;
   gap: 3px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
   text-align: left;
 }

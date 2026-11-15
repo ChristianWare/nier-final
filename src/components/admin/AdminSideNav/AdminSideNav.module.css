@@ -161,10 +161,12 @@
   background-color: var(--accent);
   font-family: var(--inter);
   font-weight: 600;
+  color: var(--white);
 }
 
-.navLinkActive .navIcon {
-  color: var(--black);
+.navLinkActive .navIcon,
+.navLinkActive .title {
+  color: var(--white);
 }
 
 .tooltip {
@@ -364,10 +366,12 @@
 @media (hover: hover) {
   .navLink:hover {
     background-color: var(--accent);
+    color: var(--white);
   }
 
-  .navLink:hover .navIcon {
-    color: var(--black);
+  .navLink:hover .navIcon,
+  .navLink:hover .title {
+    color: var(--white);
   }
 
   .signOutBtn:hover,

@@ -147,7 +147,7 @@
   font-size: 1.4rem;
   font-weight: 600;
   border: 1px solid var(--stroke);
-  border-radius: 8px;
+  border-radius: 5px;
   background: var(--white);
   cursor: pointer;
   transition: all 0.15s ease;
