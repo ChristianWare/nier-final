@@ -358,9 +358,9 @@
   }
 }
 
-/* Phones (568px and below): the logo as large as fits, centred, with the
-   heading, copy and button centred under it. */
-@media screen and (max-width: 568px) {
+/* Tablets and phones (768px and below): the logo large and centred, with
+   the heading, copy and button centred under it. */
+@media screen and (max-width: 768px) {
   .content {
     flex-direction: column;
     align-items: center;
@@ -378,12 +378,14 @@
     width: 100%;
   }
 
+  /* The mark is heavier on its left (the N) than its right (the arrow),
+     so it sits a little right of centre to look centred. */
   .heroLogo {
     display: block;
-    width: 100%;
+    width: min(80%, 30svh * 1.115);
     height: auto;
-    max-height: 32svh;
     color: var(--cream);
+    translate: 1.5rem 0;
   }
 
   .cc1,

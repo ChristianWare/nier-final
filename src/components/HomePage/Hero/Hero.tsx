@@ -88,8 +88,8 @@ export default function Hero({
       <LayoutWrapper>
         <div className={styles.content}>
           <div className={styles.contentChildren}>
-            {/* Phones (568px and below): the logo, large and centred, above
-                the heading */}
+            {/* Tablets and phones (768px and below): the logo, large and
+                centred, above the heading */}
             <Logo className={styles.heroLogo} />
             {/* ── Existing headline block (unchanged) ── */}
             <div className={styles.cc1}>
