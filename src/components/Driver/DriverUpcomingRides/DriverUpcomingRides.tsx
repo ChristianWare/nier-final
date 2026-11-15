@@ -3,6 +3,7 @@
 import styles from "./DriverUpcomingRides.module.css";
 import Link from "next/link";
 
+import RouteDot from "@/components/shared/RouteDot/RouteDot";
 export type UpcomingRideItem = {
   id: string;
   status: string;
@@ -239,10 +240,12 @@ export default function DriverUpcomingRides({
                         className={`${styles.cellStack} ${styles.cellInner}`}
                       >
                         <div className={styles.routeFrom}>
-                          📍 {shortAddress(b.pickupAddress)}
+                          <RouteDot kind='pickup' />{" "}
+                          {shortAddress(b.pickupAddress)}
                         </div>
                         <div className={styles.routeTo}>
-                          🏁 {shortAddress(b.dropoffAddress)}
+                          <RouteDot kind='dropoff' />{" "}
+                          {shortAddress(b.dropoffAddress)}
                         </div>
                       </div>
                     </td>

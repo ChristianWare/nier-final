@@ -57,6 +57,11 @@
     z-index: auto;
   }
 
+  /* The bottom bar (DriverBottomBar) replaces the side nav at this size. */
+  .left {
+    display: none;
+  }
+
   .right {
     padding: 0 1.6rem 2rem;
     min-width: 0;

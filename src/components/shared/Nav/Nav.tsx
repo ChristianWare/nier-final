@@ -12,7 +12,17 @@ import Image from "next/image";
 import Img1 from "../../../../public/images/other/road.jpg";
 import { usePathname } from "next/navigation";
 import Logo from "../Logo/Logo";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import Arrow from "../icons/Arrow/Arrow";
+import Users from "../icons/Users/Users";
+import Driver from "../icons/Driver/Driver";
+import Business from "../icons/Business/Business";
+import SignOutLogo from "../icons/SignOutLogo/SignOutLogo";
+import {
+  ADMIN_NAV_GROUPS,
+  isAdminNavActive,
+  type AdminNavGroup,
+} from "@/components/admin/AdminSideNav/adminNav";
 import { servicesData as services } from "@/lib/services";
 import { partners as partnerList } from "@/lib/partners";
 
@@ -37,6 +47,30 @@ const ROLE_DASHBOARD: Record<AppRole, { label: string; href: string }> = {
   CORPORATE: { label: "Corporate Dashboard", href: "/corporate" },
   USER: { label: "My Dashboard", href: "/dashboard" },
 };
+
+/**
+ * The admin sections in the phone menu's "Admin options": the side nav's
+ * groups, then Account (Sign out is added where it's drawn).
+ */
+const ADMIN_MENU_GROUPS: AdminNavGroup[] = [
+  ...ADMIN_NAV_GROUPS,
+  {
+    label: "Account",
+    items: [
+      { title: "User dashboard", href: "/dashboard", icon: <Users /> },
+      {
+        title: "Driver dashboard",
+        href: "/driver-dashboard",
+        icon: <Driver />,
+      },
+      {
+        title: "Corporate dashboard",
+        href: "/corporate",
+        icon: <Business />,
+      },
+    ],
+  },
+];
 
 export default function Nav({
   color = "",
@@ -79,6 +113,7 @@ export default function Nav({
   const servicesTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const partnersTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navRef = useRef<HTMLElement | null>(null);
+  const navItemsRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -100,8 +135,44 @@ export default function Nav({
     };
   }, [isOpen]);
 
-  const toggleMenu = () => setIsOpen((s) => !s);
-  const closeMenu = () => setIsOpen(false);
+  // Admin pages on tablets and phones, where the side nav is hidden: the
+  // menu adds "Admin options", which slides a second panel in from the
+  // right with the admin's sections, each opening its links below it.
+  const inAdmin =
+    roles.includes("ADMIN") &&
+    (pathname === "/admin" || pathname.startsWith("/admin/"));
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+  const openAdmin = () => {
+    const current = ADMIN_MENU_GROUPS.find((g) =>
+      g.items.some((i) => isAdminNavActive(pathname, i.href)),
+    );
+    setOpenGroup(current?.label ?? ADMIN_MENU_GROUPS[0].label);
+    // The panel fills the menu from its top.
+    navItemsRef.current?.scrollTo({ top: 0 });
+    setAdminOpen(true);
+  };
+
+  const toggleMenu = () => {
+    setIsOpen((s) => !s);
+    setAdminOpen(false);
+  };
+  const closeMenu = () => {
+    setIsOpen(false);
+    setAdminOpen(false);
+  };
+
+  // Escape steps back out of the admin panel, then closes the menu.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (adminOpen) setAdminOpen(false);
+      else setIsOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen, adminOpen]);
 
   const handleHamburgerClick = (e: MouseEvent<HTMLSpanElement>) => {
     e.stopPropagation();
@@ -261,9 +332,10 @@ export default function Nav({
         </Link>
 
         <div
-          className={
-            isOpen ? `${styles.navItems} ${styles.active}` : styles.navItems
-          }
+          ref={navItemsRef}
+          className={`${styles.navItems} ${isOpen ? styles.active : ""} ${
+            isMobile && inAdmin ? styles.navItemsAdmin : ""
+          } ${isOpen && adminOpen ? styles.navItemsAdminOpen : ""}`}
         >
           <div className={styles.menuImage}>
             <Image
@@ -277,6 +349,19 @@ export default function Nav({
               <Logo className={styles.logoii} />
             </div>
           </div>
+          {isMobile && inAdmin ? (
+            <button
+              type='button'
+              className={`${styles.navItem} ${styles.navItemBtn} ${styles.adminOptions}`}
+              onClick={openAdmin}
+              aria-expanded={adminOpen}
+              aria-controls='admin-menu'
+            >
+              Admin options
+              <Arrow className={styles.adminOptionsArrow} aria-hidden='true' />
+            </button>
+          ) : null}
+
           {items.map((item) => {
             const active = isActive(item.href);
 
@@ -469,6 +554,124 @@ export default function Nav({
 
           {/* Mobile bottom actions */}
           {/* Mobile bottom actions */}
+
+          {/* Admin options: a second panel over the menu, in from the right. */}
+          {isMobile && inAdmin ? (
+            <div
+              id='admin-menu'
+              className={`${styles.adminPanel} ${
+                isOpen && adminOpen ? styles.adminPanelOpen : ""
+              }`}
+              role='group'
+              aria-label='Admin options'
+              aria-hidden={!(isOpen && adminOpen)}
+              inert={!(isOpen && adminOpen)}
+            >
+              <button
+                type='button'
+                className={styles.adminBack}
+                onClick={() => setAdminOpen(false)}
+              >
+                <Arrow className={styles.adminBackArrow} aria-hidden='true' />
+                Back to menu
+              </button>
+
+              <p className={styles.adminEyebrow}>Admin options</p>
+
+              <ul className={styles.adminGroups}>
+                {ADMIN_MENU_GROUPS.map((group) => {
+                  const open = openGroup === group.label;
+                  const panelId = `admin-menu-${group.label.toLowerCase()}`;
+                  return (
+                    <li key={group.label} className={styles.adminGroup}>
+                      <button
+                        type='button'
+                        className={styles.adminHeading}
+                        aria-expanded={open}
+                        aria-controls={panelId}
+                        onClick={() => setOpenGroup(open ? null : group.label)}
+                      >
+                        {group.label}
+                        <svg
+                          className={`${styles.caret} ${open ? styles.caretOpen : ""}`}
+                          viewBox='0 0 24 24'
+                          fill='none'
+                          stroke='currentColor'
+                          strokeWidth='2.5'
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          aria-hidden='true'
+                        >
+                          <path d='M6 9l6 6 6-6' />
+                        </svg>
+                      </button>
+
+                      <div
+                        id={panelId}
+                        className={`${styles.adminSection} ${open ? styles.adminSectionOpen : ""}`}
+                        inert={!open}
+                      >
+                        <ul className={styles.adminLinks}>
+                          {group.items.map((item) => {
+                            const active = isAdminNavActive(
+                              pathname,
+                              item.href,
+                            );
+                            return (
+                              <li key={item.href}>
+                                <Link
+                                  href={item.href}
+                                  className={`${styles.adminLink} ${active ? styles.adminLinkActive : ""}`}
+                                  aria-current={active ? "page" : undefined}
+                                  onClick={closeMenu}
+                                >
+                                  <span
+                                    className={styles.adminIcon}
+                                    aria-hidden='true'
+                                  >
+                                    {item.icon}
+                                  </span>
+                                  {item.title}
+                                </Link>
+                              </li>
+                            );
+                          })}
+                          {group.label === "Account" ? (
+                            <li>
+                              <button
+                                type='button'
+                                className={styles.adminLink}
+                                onClick={() => {
+                                  closeMenu();
+                                  signOut({ callbackUrl: "/" });
+                                }}
+                              >
+                                <span
+                                  className={styles.adminIcon}
+                                  aria-hidden='true'
+                                >
+                                  <SignOutLogo />
+                                </span>
+                                Sign out
+                              </button>
+                            </li>
+                          ) : null}
+                        </ul>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <Button
+                href='/admin/bookings/new'
+                text='New booking'
+                btnType='red'
+                onClick={closeMenu}
+                arrow
+              />
+            </div>
+          ) : null}
         </div>
 
         {isOpen &&

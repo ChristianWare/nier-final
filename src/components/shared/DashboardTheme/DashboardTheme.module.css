@@ -1,0 +1,311 @@
+/* ─────────────────────────────────────────────────────────────────────
+   The site's look for the signed-in areas (admin, driver dashboard…).
+   Their pages share global classes (.cardTitle, .miniNote, .badge,
+   .input, .primaryBtn …); they're restyled here, only inside an element
+   with this .theme class, the same way the booking tool restyles them.
+   Layout and behaviour don't change.
+
+   Use: <div className={`${styles.right} ${theme.theme}`}>
+   ───────────────────────────────────────────────────────────────────── */
+
+.theme {
+  /* The dashboards tint cards and header bars with these light blues;
+     here they take the site's cream and stroke grey instead. */
+  --lighterBlue: var(--cream);
+  --lightBlue: var(--stroke);
+
+  font-family: var(--inter);
+  color: var(--black);
+}
+
+/* .h5 and .h6 have no size in globals.css, so a heading with them falls
+   back to its tag's size (an h3 with .h6 shows at 48px). Give them one. */
+.theme :global(.h5) {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.theme :global(.h6) {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+/* Buttons, selects, labels and table cells don't pick up the page font on
+   their own. */
+.theme :where(button, select, label, textarea, input, dd, dt, li, td, th) {
+  font-family: inherit;
+}
+
+/* Page titles and section headings: the h3 size, not the marketing h2. */
+.theme :global(h1.h2),
+.theme :global(h2.h2) {
+  font-size: 4rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -1.6px;
+}
+
+/* Card titles: Inter over a black rule, like the site's
+   panels, in place of the cream bar. */
+.theme :global(.cardTitle) {
+  padding: 0 0 1.2rem;
+  border-bottom: 2px solid var(--black);
+  border-radius: 0;
+  background-color: transparent;
+  font-family: var(--inter);
+  font-size: 2.4rem;
+  font-weight: 500;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+  text-transform: none;
+  color: var(--black);
+}
+
+.theme :global(.emptyTitle) {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.06em;
+  color: var(--black);
+}
+
+.theme :global(.emptyTitleSmall) {
+  font-family: var(--inter);
+  font-weight: 600;
+  color: var(--black);
+}
+
+/* The smaller title sizes are section and field labels: small bold caps
+   over a light rule; on a <label>, no rule at all. */
+.theme :global(.cardTitle.h5),
+.theme :global(.cardTitle.h6) {
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--stroke);
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.3rem;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+}
+
+.theme label:global(.cardTitle) {
+  padding: 0;
+  border-bottom: none;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+/* A card title flagged with a border (alerts waiting) keeps just the
+   rule, in red. */
+.theme :global(.cardTitle.redBorder) {
+  border: none;
+  border-bottom: 2px solid var(--red);
+}
+
+/* "View all bookings →" and back links: black with an accent rule, as on
+   the rest of the site, in place of blue. */
+.theme :global(.backBtn) {
+  border-bottom-color: var(--accent);
+  font-family: var(--inter);
+  font-weight: 600;
+  color: var(--black);
+}
+
+.theme :global(.backBtn):hover {
+  color: var(--accent600);
+}
+
+.theme :global(.underline) {
+  border-bottom-width: 1px;
+}
+
+.theme :global(.miniNote) {
+  font-size: 1.4rem;
+  line-height: 1.5;
+  color: var(--paragraph);
+  opacity: 1;
+}
+
+.theme :global(.subheading) {
+  font-weight: normal;
+  color: var(--paragraph);
+}
+
+.theme :global(.emptySmall),
+.theme th {
+  letter-spacing: normal;
+}
+
+.theme th {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--black400);
+  opacity: 1;
+}
+
+.theme :global(.box) {
+  border-width: 1px;
+  border-radius: 10px;
+}
+
+/* Tags: small bold caps, as on the progress panel. */
+.theme :global(.badge),
+.theme :global(.pill) {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+
+.theme :global(.label) {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+
+/* ── Inputs and selects: the booking tool's fields ── */
+
+.theme :global(.input),
+.theme :global(.inputBorder),
+.theme :global(.select),
+.theme :global(.selectBorder) {
+  min-height: 44px;
+  padding: 0 1.2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  background-color: var(--white);
+  font-family: var(--inter);
+  font-size: 16px;
+  font-weight: normal;
+  color: var(--black);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.theme textarea:global(.input),
+.theme textarea:global(.inputBorder) {
+  padding: 1rem 1.2rem;
+  line-height: 1.5;
+}
+
+.theme :global(.select),
+.theme :global(.selectBorder) {
+  padding-right: 4rem;
+  background-position: right 1.2rem center;
+  background-size: 16px 16px;
+}
+
+.theme :global(.input):hover:not(:disabled),
+.theme :global(.inputBorder):hover:not(:disabled),
+.theme :global(.select):hover:not(:disabled),
+.theme :global(.selectBorder):hover:not(:disabled) {
+  border-color: var(--black400);
+}
+
+.theme :global(.input):focus,
+.theme :global(.inputBorder):focus,
+.theme :global(.select):focus,
+.theme :global(.selectBorder):focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(208, 49, 30, 0.18);
+}
+
+.theme :global(.input):disabled,
+.theme :global(.inputBorder):disabled,
+.theme :global(.select):disabled,
+.theme :global(.selectBorder):disabled {
+  background-color: var(--cream);
+  color: var(--black400);
+}
+
+/* ── Small action buttons (.primaryBtn …): Nier's 5px corners, Inter ── */
+
+.theme :global(.primaryBtn),
+.theme :global(.secondaryBtn),
+.theme :global(.tertiaryBtn),
+.theme :global(.warningBtn),
+.theme :global(.dangerBtn),
+.theme :global(.neutralBtn),
+.theme :global(.goodBtn),
+.theme :global(.blueBtn),
+.theme :global(.goodBtnii) {
+  min-height: 40px;
+  padding: 0 1.4rem;
+  border-radius: 5px;
+  font-family: var(--inter);
+  font-size: 1.5rem;
+  font-weight: normal;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.theme :global(.primaryBtn) {
+  border-color: var(--black);
+  background: var(--black);
+  color: var(--white);
+}
+
+.theme :global(.primaryBtn):hover {
+  border-color: #333333;
+  background: #333333;
+}
+
+.theme :global(.secondaryBtn),
+.theme :global(.neutralBtn),
+.theme :global(.blueBtn),
+.theme :global(.tertiaryBtn) {
+  border-color: var(--stroke);
+  background: var(--white);
+  color: var(--black);
+}
+
+.theme :global(.secondaryBtn):hover,
+.theme :global(.neutralBtn):hover,
+.theme :global(.blueBtn):hover,
+.theme :global(.tertiaryBtn):hover {
+  border-color: var(--black);
+}
+
+.theme :global(.dangerBtn) {
+  border-color: var(--red);
+  background: var(--white);
+  color: var(--red);
+}
+
+.theme :global(.dangerBtn):hover {
+  background: var(--red);
+  color: var(--white);
+}
+
+.theme :global(.goodBtn),
+.theme :global(.goodBtnii) {
+  border-color: var(--darkGreen);
+  background: var(--darkGreen);
+  color: var(--white);
+}
+
+.theme :global(.goodBtn):hover,
+.theme :global(.goodBtnii):hover {
+  border-color: #075f39;
+  background: #075f39;
+}
+
+.theme :global(.warningBtn) {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--white);
+}
+
+.theme :global(.warningBtn):hover {
+  border-color: var(--black);
+}

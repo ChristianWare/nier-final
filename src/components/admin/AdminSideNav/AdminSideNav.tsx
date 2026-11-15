@@ -2,61 +2,16 @@
 
 import styles from "./AdminSideNav.module.css";
 import Link from "next/link";
-import Calendar from "@/components/shared/icons/Calendar/Calendar";
-import House from "@/components/shared/icons/House/House";
-import Bell from "@/components/shared/icons/Bell/Bell";
-import Users from "@/components/shared/icons/Users/Users";
-import Car from "@/components/shared/icons/Car/Car";
-import Listing from "@/components/shared/icons/Listing/Listing";
 import { useState, useEffect } from "react";
 import FalseButton from "@/components/shared/FalseButton/FalseButton";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
-import Cog from "@/components/shared/icons/Cog/Cog";
 import SignOutLogo from "@/components/shared/icons/SignOutLogo/SignOutLogo";
-import Plane from "@/components/shared/icons/Plane/Plane";
-import Money from "@/components/shared/icons/Money/Money";
-import Report from "@/components/shared/icons/Report/Report";
-import Company from "@/components/shared/icons/Company/Company";
-import Appointments from "@/components/shared/icons/Appointments/Appointments";
-import Analytics from "@/components/shared/icons/Analytics/Analytics";
-import Business from "@/components/shared/icons/Business/Business";
-import ImageIcon from "@/components/shared/icons/ImageIcon/ImageIcon";
 import Modal from "@/components/shared/Modal/Modal";
 import LoadingPulse from "@/components/shared/LoadingPulse/LoadingPulse";
-import Receipt from "@/components/shared/icons/Receipt/Receipt";
-import Driver from "@/components/shared/icons/Driver/Driver";
+import { ADMIN_NAV_GROUPS, isAdminNavActive } from "./adminNav";
 
-
-const NAV_ITEMS = [
-  { title: "Dashboard", href: "/admin", icon: <House /> },
-  { title: "Earnings", href: "/admin/earnings", icon: <Money /> },
-  { title: "Bookings", href: "/admin/bookings", icon: <Appointments /> },
-  { title: "Calendar", href: "/admin/calendar", icon: <Calendar /> },
-  { title: "Drivers", href: "/admin/drivers", icon: <Driver /> },
-  { title: "Users", href: "/admin/users", icon: <Users /> },
-  { title: "Services", href: "/admin/services", icon: <Bell /> },
-  {
-    title: "Vehicle Categories",
-    href: "/admin/vehicle-categories",
-    icon: <Listing />,
-  },
-  { title: "Vehicles", href: "/admin/vehicles", icon: <Car /> },
-  { title: "Corporate Acct's", href: "/admin/corporate", icon: <Business /> },
-  { title: "Airports", href: "/admin/airports", icon: <Plane /> },
-  { title: "Reports", href: "/admin/reports", icon: <Report /> },
-  { title: "Invoices", href: "/admin/invoices", icon: <Receipt /> },
-  {
-    title: "Discount Codes",
-    href: "/admin/discount-codes",
-    icon: <Listing />,
-  },
-  { title: "Company", href: "/admin/company", icon: <Company /> },
-  { title: "Website Analytics", href: "/admin/analytics", icon: <Analytics /> },
-  { title: "Notifications", href: "/admin/notifications", icon: <Cog /> },
-  { title: "Assets", href: "/admin/assets", icon: <ImageIcon /> },
-];
 
 export type AdminSideNavProps = {
   bookingNeedsAttentionCount?: number;
@@ -70,10 +25,10 @@ export default function AdminSideNav(
   const [isOpen, setIsOpen] = useState(false);
   const [menuModalOpen, setMenuModalOpen] = useState(false);
   const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== "undefined") return window.innerWidth <= 568;
-    return false;
-  });
+  // Starts open on the server and the first render; the effect below folds
+  // it right after load (the fold only shows at 1068px and below). Reading
+  // the window size here made the server and browser disagree.
+  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
 
   const navigating = navigatingTo !== null && pathname !== navigatingTo;
@@ -149,32 +104,34 @@ useEffect(() => {
             <div
               className={`${styles.linksWrapper} ${navigating ? styles.linksHidden : ""}`}
             >
-              {NAV_ITEMS.map(({ title, href, icon }) => {
-                const isDashboard = href === "/admin";
-                const active = isDashboard
-                  ? pathname === "/admin"
-                  : pathname === href || pathname.startsWith(href + "/");
+              {ADMIN_NAV_GROUPS.map((group) => (
+                <div key={group.label} className={styles.group}>
+                  <p className={styles.groupLabel}>{group.label}</p>
+                  {group.items.map(({ title, href, icon }) => {
+                    const active = isAdminNavActive(pathname, href);
 
-                return (
-                  <li key={href} className={styles.navItem}>
-                    <Link
-                      href={href}
-                      className={`${styles.navLink} ${
-                        active ? styles.navLinkActive : ""
-                      }`}
-                      onClick={() => {
-                        setIsOpen(false);
-                        setNavigatingTo(href);
-                      }}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      <span className={styles.navIcon}>{icon}</span>
-                      <span className={styles.title}>{title}</span>
-                      <span className={styles.tooltip}>{title}</span>
-                    </Link>
-                  </li>
-                );
-              })}
+                    return (
+                      <li key={href} className={styles.navItem}>
+                        <Link
+                          href={href}
+                          className={`${styles.navLink} ${
+                            active ? styles.navLinkActive : ""
+                          }`}
+                          onClick={() => {
+                            setIsOpen(false);
+                            setNavigatingTo(href);
+                          }}
+                          aria-current={active ? "page" : undefined}
+                        >
+                          <span className={styles.navIcon}>{icon}</span>
+                          <span className={styles.title}>{title}</span>
+                          <span className={styles.tooltip}>{title}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </div>
+              ))}
 
               <div className={styles.actionBtns}>
                 <Link href='/dashboard' className={styles.dshbrdBtn}>
@@ -182,6 +139,9 @@ useEffect(() => {
                 </Link>
                 <Link href='/driver-dashboard' className={styles.drvrDshbrdBtn}>
                   Driver Dashboard <Arrow className={styles.arrow} />
+                </Link>
+                <Link href='/corporate' className={styles.dshbrdBtn}>
+                  Corporate Dashboard <Arrow className={styles.arrow} />
                 </Link>
                 <button className={styles.signOutBtn} onClick={() => signOut()}>
                   Sign Out <SignOutLogo className={styles.signOutLogo} />
@@ -223,6 +183,13 @@ useEffect(() => {
               onClick={() => setMenuModalOpen(false)}
             >
               Driver Dashboard <Arrow className={styles.modalArrow} />
+            </Link>
+            <Link
+              href='/corporate'
+              className={styles.modalNavLink}
+              onClick={() => setMenuModalOpen(false)}
+            >
+              Corporate Dashboard <Arrow className={styles.modalArrow} />
             </Link>
           </div>
 

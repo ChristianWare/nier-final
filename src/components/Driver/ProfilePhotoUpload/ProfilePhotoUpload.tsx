@@ -6,6 +6,7 @@ import Image from "next/image";
 import ProfilePhotoModal from "../ProfilePhotoModal/ProfilePhotoModal";
 import styles from "./ProfilePhotoUpload.module.css";
 
+import ImageIcon from "@/components/shared/icons/ImageIcon/ImageIcon";
 interface Props {
   currentImage: string | null;
   userName: string;
@@ -53,7 +54,7 @@ export default function ProfilePhotoUpload({
           onClick={() => setIsModalOpen(true)}
           aria-label='Change profile photo'
         >
-          📷
+          <ImageIcon aria-hidden='true' />
         </button>
       </div>
 

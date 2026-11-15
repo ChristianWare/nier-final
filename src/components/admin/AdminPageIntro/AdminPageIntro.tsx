@@ -1,10 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import styles from "./AdminPageIntro.module.css";
+// The top of the admin dashboard: who's signed in, a line on what the
+// page is for, and the two things an admin does most: start a booking and
+// open the bookings list.
+
+import Link from "next/link";
 import { useSession } from "next-auth/react";
-// import AdminKPICard from "@/components/admin/AdminKPICard/AdminKPICard";
-// import AdminQuickActions from "../AdminQuickActions/AdminQuickActions";
+import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
+import Button from "@/components/shared/Button/Button";
+import styles from "./AdminPageIntro.module.css";
 
 type AppRole = "USER" | "ADMIN" | "DRIVER";
 
@@ -31,26 +36,30 @@ export default function AdminPageIntro(
 
   const fullName = isAdmin ? (session?.user?.name ?? "") : "";
   const firstName = fullName.trim().split(/\s+/)[0] || "";
-  const displayName = firstName || "Admin";
 
   return (
     <section className={styles.container}>
-      <div className={styles.content}>
-        <div className={styles.top}>
-          <h1 className={`heading undeline h2`}>
-            Welcome {displayName}! (Admin)
-          </h1>
-        </div>
+      <div className={styles.text}>
+        <SectionHeading dot text='Admin dashboard' />
+        <h1 className={`${styles.heading} h3`}>
+          {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
+        </h1>
+        <p className={styles.copy}>
+          This month&apos;s earnings, then everything that needs you: new
+          requests, rides to finish, approvals and payments.
+        </p>
+      </div>
 
-        {/* <div className={`cardTitle h4`} style={{ marginTop: "7rem" }}>
-          Key Performance Indicators
-        </div>
-
-        <div className={styles.kpiGrid}>
-          <AdminKPICard title='Pending review' value={pendingReview} />
-          <AdminKPICard title='Pending payment' value={pendingPayment} />
-          <AdminKPICard title='Confirmed' value={confirmed} />
-        </div> */}
+      <div className={styles.actions}>
+        <Button
+          href='/admin/bookings/new'
+          text='New booking'
+          btnType='black'
+          arrow
+        />
+        <Link href='/admin/bookings' className={styles.outline}>
+          All bookings
+        </Link>
       </div>
     </section>
   );

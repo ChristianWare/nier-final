@@ -182,3 +182,31 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Call, text and email: each a row with a small label. */
+.contactLink {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.2rem 1.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.6rem;
+  line-height: 1.3;
+  color: var(--black);
+  text-decoration: none;
+  transition: border-color 0.2s ease;
+}
+
+.contactLink:hover {
+  border-color: var(--black);
+}
+
+.contactLabel {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
+}

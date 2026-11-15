@@ -29,7 +29,7 @@
 .card {
   background: #fff;
   border: 1px solid var(--stroke, #d8d6d2);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 1.6rem;
   display: flex;
   flex-direction: column;

@@ -4,6 +4,7 @@ import styles from "./DriverEarningsChart.module.css";
 import Link from "next/link";
 import { useMemo } from "react";
 
+import Money from "@/components/shared/icons/Money/Money";
 export type DailyEarning = {
   date: string; // YYYY-MM-DD
   amountCents: number;
@@ -69,7 +70,9 @@ export default function DriverEarningsChart({
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>
-            <span className={styles.cc}>💰</span>
+            <span className={styles.cc}>
+              <Money aria-hidden='true' />
+            </span>
             Earnings - {monthLabel}
           </h2>
 

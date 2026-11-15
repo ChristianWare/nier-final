@@ -26,26 +26,49 @@
   width: 100%;
 }
 
-@media screen and (max-width: 1068px) {
-  .container {
-    padding-top: 5rem;
-  }
-
-  .content {
-    grid-template-columns: 1fr;
-    grid-gap: 7rem;
-  }
-
+@media screen and (max-width: 968px) {
   .heading {
     display: block;
     text-align: center;
     width: 100%;
     margin-bottom: 1rem;
   }
+}
+
+@media screen and (max-width: 1068px) {
+  .container {
+    padding: 2rem 0;
+  }
+
+  .content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5rem;
+    align-items: start;
+  }
+
+  /* left panel flows normally — no sticky */
+  .left {
+    position: static;
+  }
+
   .AdminSideNavContainer {
-    position: sticky;
-    top: 80px;
-    align-self: start;
+    position: static;
+    z-index: auto;
+  }
+
+  /* The bottom bar (DashboardBottomBar) replaces the side nav here. */
+  .left {
+    display: none;
+  }
+
+  .right {
+    padding: 0 1.6rem 2rem;
+    min-width: 0;
+  }
+
+  .heading {
+    display: none;
   }
 }
 

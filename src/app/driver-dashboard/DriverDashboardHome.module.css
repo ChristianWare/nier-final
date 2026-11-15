@@ -1,272 +1,135 @@
+/* The driver dashboard's overview: header, next trip, this week and this
+   month, then the calendar, upcoming rides and earnings. */
+
 .pageContainer {
   display: grid;
-  gap: 3rem;
+  gap: 3.2rem;
   margin: 0 auto;
 }
 
+/* ── Header, as on the admin dashboard ── */
+
 .pageHeader {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 2rem;
-  flex-wrap: wrap;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid var(--stroke);
+  gap: 1.2rem;
+  padding-bottom: 3rem;
+  border-bottom: 2px solid var(--black);
 }
 
-.headerContent {
+.pageHeader > :first-child {
+  margin-left: -1.5rem;
+}
+
+.heading {
+  color: var(--black);
+}
+
+.headerCopy {
+  max-width: 560px;
+  font-size: 1.7rem;
+  line-height: 1.5;
+  color: var(--paragraph);
+  hyphens: none;
+}
+
+/* ── This week and this month: white cards, colour only where it means
+   something (green edge on tips and total earned) ── */
+
+.headerKpiRows {
   display: grid;
-  gap: 1rem;
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.headerKpiRowLabel {
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--stroke);
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
+}
+
+.headerKpiRowLabelMonthly {
+  margin-top: 1.6rem;
 }
 
 .headerKpis {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 1rem;
-  flex-wrap: wrap;
+  width: 100%;
 }
 
 .headerKpi {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 1rem 1.5rem;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid var(--stroke);
+  border-left: 3px solid var(--stroke);
   border-radius: 5px;
-  border: 2px solid var(--stroke);
-  background: rgba(0, 0, 0, 0.02);
-  min-width: 100px;
-}
-
-.headerKpiRows {
-  display: grid;
-  gap: 1rem;
-  width: 100%;
+  background: var(--white);
 }
 
 .headerKpiValue {
-  font-size: 2.4rem;
-  font-weight: 700;
-  letter-spacing: normal;
-  color: #111827;
+  order: 2;
+  font-family: var(--inter);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-size: 3.6rem;
+  line-height: 0.9;
+  color: var(--black);
 }
 
 .headerKpiLabel {
-  font-size: 1.4rem;
+  order: 1;
+  font-family: var(--inter);
   font-weight: 600;
-  color: #6b7280;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--black400);
 }
 
+/* Upcoming: the accent edge. */
+.headerKpiAccent {
+  border-left-color: var(--accent);
+}
+
+/* Tips and total earned: green. */
 .headerKpiGood {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.3);
+  border-left-color: var(--green);
 }
 
 .headerKpiGood .headerKpiValue {
-  color: #15803d;
+  color: var(--darkGreen);
 }
 
-.headerKpiAccent {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-.headerKpiAccent .headerKpiValue {
-  color: #1d4ed8;
-}
-
-.headerKpiWeekly {
-  background: rgba(139, 92, 246, 0.1);
-  border-color: rgba(139, 92, 246, 0.3);
-}
-
-.headerKpiWeekly .headerKpiValue {
-  color: #6d28d9;
-}
-
-.headerKpiRowLabel {
-  font-size: 1.4rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6b7280;
-  border-bottom: 1px solid var(--stroke);
-  padding-bottom: 0.5rem;
-}
-
-/* Section Headers */
-.sectionHeader {
-  margin-bottom: 1rem;
-}
-
-.sectionIcon {
-  display: inline-block;
-  margin-right: 1rem;
-}
-
-/* Next Trip Section */
-.nextTripSection {
-  display: grid;
-  gap: 1rem;
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  padding: 2rem;
-}
-
-.nextTripCard {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2rem;
-  align-items: center;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 10px;
-  color: white;
-  text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.nextTripCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
-}
-
-.nextTripMain {
-  display: grid;
-  gap: 1rem;
-}
-
-.nextTripTime {
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: normal;
-}
-
-.nextTripCustomer {
-  font-size: 1.4rem;
-  opacity: 0.9;
-}
-
-.nextTripRoute {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  font-size: 1.4rem;
-  opacity: 0.85;
-  flex-wrap: wrap;
-}
-
-.routeArrow {
-  opacity: 0.6;
-}
-
-.nextTripAction {
-  padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 1.4rem;
-  white-space: nowrap;
-}
-
-.headerKpiTip {
-  color: var(--accentBlue, #1d4ed8);
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.25);
-}
-
-@media screen and (max-width: 968px) {
-  .pageHeader p {
-    text-align: center;
-    width: 100%;
-  }
-
+@media screen and (max-width: 1268px) {
   .headerKpis {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .headerKpi {
-    width: 100%;
-  }
-
-  .headerKpi:nth-last-child(1) {
-    grid-column: span 2;
-  }
-
-  .headerKpiRowLabelMonthly {
-    margin-top: 5rem;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .pageHeader {
-    flex-direction: column;
-  }
-
-  .headerKpis {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .headerKpi {
-    flex: 1;
-    min-width: 80px;
-    padding: 0.75rem 1rem;
-  }
-
-  .headerKpiValue {
-    font-size: 2rem;
-  }
-
-  .nextTripCard {
-    grid-template-columns: 1fr;
-  }
-
-  .nextTripAction {
-    text-align: center;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media screen and (max-width: 568px) {
-  .pageContainer {    
-    gap: 5rem;
+  .pageContainer {
+    gap: 4rem;
   }
 
   .headerKpis {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .headerKpi {
-    min-width: unset;
-  }
-
-  .nextTripSection {
-    padding: 1.5rem;
-  }
-
-  .nextTripTime {
-    font-size: 1.6rem;
-  }
-
-  .nextTripRoute {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-
-  .routeArrow {
-    display: none;
-  }
-
-  .headerKpis {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  /* Total earned spans the row. */
+  .headerKpi:last-child {
+    grid-column: 1 / -1;
   }
 }

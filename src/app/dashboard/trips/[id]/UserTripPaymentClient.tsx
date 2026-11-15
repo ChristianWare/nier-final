@@ -90,7 +90,9 @@ function PaymentForm({
 
       {errorMessage && (
         <div className={styles.errorMessage}>
-          <span className={styles.errorIcon}>⚠️</span>
+          <span className={styles.errorIcon} aria-hidden='true'>
+            !
+          </span>
           {errorMessage}
         </div>
       )}
@@ -321,7 +323,9 @@ export default function UserTripPaymentClient({
 
         {error && (
           <div className={styles.errorBanner}>
-            <span className={styles.errorIcon}>⚠️</span>
+            <span className={styles.errorIcon} aria-hidden='true'>
+              !
+            </span>
             {error}
           </div>
         )}

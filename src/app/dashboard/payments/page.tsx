@@ -9,6 +9,7 @@ import PaymentDownloadBtn from "./PaymentDownloadBtn";
 import { getCompanySettings } from "../../../../actions/admin/companySettings";
 import * as tz from "@/lib/timezone";
 import { getStripe, getStripePublishableKey } from "@/lib/stripe";
+import UserAttention from "@/components/Dashboard/UserAttention/UserAttention";
 import SavedCardSection, {
   SavedCard,
 } from "@/components/Dashboard/SavedCardSection/SavedCardSection";
@@ -168,56 +169,77 @@ export default async function DashboardPaymentsPage({
   const now = new Date();
   const { timezone: companyTz } = await getCompanySettings();
 
-  const [savedCards, stripePublishableKey, counts, filteredCount, allPayments] =
-    await Promise.all([
-      fetchSavedCards(userId),
-      getStripePublishableKey(),
-      (async () => {
-        const [all, paid, pending, failed, refunded] = await Promise.all([
-          db.payment.count({ where: { booking: { userId } } }),
-          db.payment.count({
-            where: { booking: { userId }, status: { in: FILTER_MAP.paid } },
-          }),
-          db.payment.count({
-            where: { booking: { userId }, status: { in: FILTER_MAP.pending } },
-          }),
-          db.payment.count({
-            where: { booking: { userId }, status: { in: FILTER_MAP.failed } },
-          }),
-          db.payment.count({
-            where: { booking: { userId }, status: { in: FILTER_MAP.refunded } },
-          }),
-        ]);
-        return { all, paid, pending, failed, refunded };
-      })(),
-      db.payment.count({
-        where:
-          filter === "all"
-            ? { booking: { userId } }
-            : { booking: { userId }, status: { in: FILTER_MAP[filter] } },
-      }),
-      db.payment.findMany({
-        where:
-          filter === "all"
-            ? { booking: { userId } }
-            : { booking: { userId }, status: { in: FILTER_MAP[filter] } },
-        orderBy: [{ booking: { pickupAt: "desc" } }, { updatedAt: "desc" }],
-        include: {
-          booking: {
-            select: {
-              id: true,
-              pickupAt: true,
-              pickupAddress: true,
-              dropoffAddress: true,
-              status: true,
-              totalCents: true,
-              currency: true,
-              serviceType: { select: { name: true } },
-            },
+  const [
+    savedCards,
+    stripePublishableKey,
+    counts,
+    filteredCount,
+    allPayments,
+    dueBookings,
+  ] = await Promise.all([
+    fetchSavedCards(userId),
+    getStripePublishableKey(),
+    (async () => {
+      const [all, paid, pending, failed, refunded] = await Promise.all([
+        db.payment.count({ where: { booking: { userId } } }),
+        db.payment.count({
+          where: { booking: { userId }, status: { in: FILTER_MAP.paid } },
+        }),
+        db.payment.count({
+          where: { booking: { userId }, status: { in: FILTER_MAP.pending } },
+        }),
+        db.payment.count({
+          where: { booking: { userId }, status: { in: FILTER_MAP.failed } },
+        }),
+        db.payment.count({
+          where: { booking: { userId }, status: { in: FILTER_MAP.refunded } },
+        }),
+      ]);
+      return { all, paid, pending, failed, refunded };
+    })(),
+    db.payment.count({
+      where:
+        filter === "all"
+          ? { booking: { userId } }
+          : { booking: { userId }, status: { in: FILTER_MAP[filter] } },
+    }),
+    db.payment.findMany({
+      where:
+        filter === "all"
+          ? { booking: { userId } }
+          : { booking: { userId }, status: { in: FILTER_MAP[filter] } },
+      orderBy: [{ booking: { pickupAt: "desc" } }, { updatedAt: "desc" }],
+      include: {
+        booking: {
+          select: {
+            id: true,
+            pickupAt: true,
+            pickupAddress: true,
+            dropoffAddress: true,
+            status: true,
+            totalCents: true,
+            currency: true,
+            serviceType: { select: { name: true } },
           },
         },
-      }),
-    ]);
+      },
+    }),
+    // Approved rides waiting to be paid for. They have no payment yet, so
+    // they aren't in the history below; the side nav's badge counts them.
+    db.booking.findMany({
+      where: { userId, status: "PENDING_PAYMENT" },
+      orderBy: { pickupAt: "asc" },
+      select: {
+        id: true,
+        pickupAt: true,
+        pickupAddress: true,
+        dropoffAddress: true,
+        totalCents: true,
+        currency: true,
+        serviceType: { select: { name: true } },
+      },
+    }),
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCount / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -235,12 +257,32 @@ export default async function DashboardPaymentsPage({
 
   return (
     <section className={styles.container}>
+      <div className={styles.headerTop}>
+        <div className={styles.top}>
+          <h1 className={`${styles.heading} h2`}>Payments & receipts</h1>
+        </div>
+      </div>
+
+      {/* ── Due now: approved rides to pay for ── */}
+      <UserAttention
+        title='Due now'
+        timeZone={companyTz}
+        items={dueBookings.map((b) => ({
+          id: b.id,
+          kind: "payment" as const,
+          pickupAtIso: b.pickupAt.toISOString(),
+          pickupAddress: b.pickupAddress,
+          dropoffAddress: b.dropoffAddress,
+          serviceName: b.serviceType?.name ?? "Ride",
+          totalCents: b.totalCents,
+          currency: b.currency,
+        }))}
+      />
+
       {/* ── Payments history ── */}
       <header className={styles.header}>
-        <div className={styles.headerTop}>
-          <div className={styles.top}>
-            <h1 className={`${styles.heading} h2`}>Payments & Invoices</h1>
-          </div>
+        <div className={styles.historyTop}>
+          <h2 className='cardTitle h4'>Payment history</h2>
 
           <div className={styles.meta}>
             <strong style={{ fontSize: "1.4rem" }}>{filteredCount}</strong>{" "}
@@ -272,11 +314,13 @@ export default async function DashboardPaymentsPage({
 
       {payments.length === 0 ? (
         <div className={styles.empty}>
-          <p className={styles.emptyTitle}>No payments found.</p>
+          <p className={styles.emptyTitle}>No payments yet.</p>
           <p className={styles.emptyCopy}>
             {filter !== "all"
               ? "Try adjusting your filters."
-              : "Your payments will appear here after you book a ride."}
+              : dueBookings.length > 0
+                ? "Once you pay for a ride, the payment and its receipt show up here."
+                : "Your payments and receipts show up here after you book a ride."}
           </p>
         </div>
       ) : (

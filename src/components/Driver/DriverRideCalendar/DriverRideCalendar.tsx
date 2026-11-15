@@ -5,6 +5,7 @@ import styles from "./DriverRideCalendar.module.css";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import Calendar from "@/components/shared/icons/Calendar/Calendar";
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const MONTH_NAMES = [
@@ -266,6 +267,7 @@ export default function DriverRideCalendar({
             const isToday = ymd === todayYmd;
             const count = countsByYmd[ymd] ?? 0;
             const hasTrips = count > 0;
+            const isPast = ymd < todayYmd;
 
             return (
               <button
@@ -274,9 +276,10 @@ export default function DriverRideCalendar({
                 onClick={() => openDay(ymd)}
                 className={`${styles.dayCell} ${
                   isOtherMonth ? styles.dayCellOther : ""
-                } ${isToday ? styles.today : ""} ${hasTrips ? styles.hasTrips : ""}`}
+                } ${isPast ? styles.dayCellPast : ""} ${isToday ? styles.today : ""} ${hasTrips ? styles.hasTrips : ""}`}
                 aria-label={ymd}
               >
+                {isToday && <span className={styles.todayDot} />}
                 <span className={styles.dayNum}>{d.getUTCDate()}</span>
                 {count > 0 && <span className={styles.countPill}>{count}</span>}
               </button>
@@ -314,7 +317,9 @@ export default function DriverRideCalendar({
       <div className={styles.mobileAgenda}>
         {agendaDays.length === 0 ? (
           <div className={styles.agendaEmpty}>
-            <span className={styles.agendaEmptyIcon}>📭</span>
+            <span className={styles.agendaEmptyIcon}>
+              <Calendar aria-hidden='true' />
+            </span>
             <p className={styles.agendaEmptyText}>No trips this month</p>
           </div>
         ) : (

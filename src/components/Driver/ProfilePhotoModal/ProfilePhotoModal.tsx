@@ -14,6 +14,7 @@ import Button from "@/components/shared/Button/Button";
 import { updateProfilePhoto } from "../../../../actions/driver-dashboard/updateProfilePhoto";
 import styles from "./ProfilePhotoModal.module.css";
 
+import ImageIcon from "@/components/shared/icons/ImageIcon/ImageIcon";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -298,7 +299,9 @@ export default function ProfilePhotoModal({
               className={styles.hiddenInput}
             />
             <div className={styles.dropzoneContent}>
-              <div className={styles.dropzoneIcon}>📷</div>
+              <div className={styles.dropzoneIcon}>
+                <ImageIcon aria-hidden='true' />
+              </div>
               <p className={styles.dropzoneText}>
                 <span className={styles.dropzoneLink}>Click to upload</span> or
                 drag and drop

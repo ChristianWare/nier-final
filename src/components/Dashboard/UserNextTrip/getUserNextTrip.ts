@@ -70,11 +70,7 @@ export async function getUserNextTrip(
   const isPaid = booking.payment?.status === "PAID";
   const driverName = booking.assignment?.driver?.name ?? null;
   const driverPhone = booking.assignment?.driver?.phone ?? null;
-
-  // Use vehicle unit name if assigned, otherwise fall back to category name
-  const vehicleName = booking.assignment?.vehicleUnit
-    ? `${booking.assignment.vehicleUnit.name}${booking.assignment.vehicleUnit.plate ? ` (${booking.assignment.vehicleUnit.plate})` : ""}`
-    : (booking.vehicle?.name ?? null);
+  const unit = booking.assignment?.vehicleUnit ?? null;
 
   return {
     id: booking.id,
@@ -83,7 +79,9 @@ export async function getUserNextTrip(
     pickupAddress: booking.pickupAddress,
     dropoffAddress: booking.dropoffAddress,
     serviceName: booking.serviceType?.name ?? "Transportation",
-    vehicleName,
+    vehicleName: booking.vehicle?.name ?? null,
+    vehicleUnitName: unit?.name ?? null,
+    vehiclePlate: unit?.plate ?? null,
     driverName,
     driverPhone,
     totalCents: booking.totalCents,
@@ -93,5 +91,10 @@ export async function getUserNextTrip(
     specialRequests: booking.specialRequests,
     isPaid,
     checkoutUrl: booking.payment?.checkoutUrl ?? null,
+    flight: booking.flightNumber
+      ? [booking.flightAirline, booking.flightNumber].filter(Boolean).join(" ")
+      : null,
+    durationMinutes: booking.durationMinutes ?? null,
+    hoursRequested: booking.hoursRequested ?? null,
   };
 }

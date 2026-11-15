@@ -16,6 +16,16 @@ import RouteMapDisplay from "@/components/admin/RouteMapDisplay/RouteMapDisplay"
 import InvoiceSection from "@/app/dashboard/trips/[id]/InvoiceSection";
 import { getCorporateInvoiceData } from "../../../../../actions/corporate/getCorporateInvoiceData";
 import type { InvoiceData } from "@/lib/invoice/types";
+import { EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
+import AddressLines from "@/components/shared/AddressLines/AddressLines";
+import AddToCalendar from "@/components/Dashboard/AddToCalendar/AddToCalendar";
+import { rideCalendarEvent } from "@/components/Dashboard/AddToCalendar/rideEvent";
+import Phone from "@/components/shared/icons/Phone/Phone";
+import Email from "@/components/shared/icons/Email/Email";
+import Plane from "@/components/shared/icons/Plane/Plane";
+import RedoIcon from "@/components/shared/icons/RedoIcon/RedoIcon";
+import { relativeFromNow } from "@/lib/relativeTime";
+import { SITE } from "@/config/site";
 
 export const metadata = { title: "Booking Details | Corporate" };
 export const runtime = "nodejs";
@@ -54,6 +64,11 @@ function toNumber(val: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Whether a pickup time is more than two hours behind us. */
+function overTwoHoursAgo(d: Date) {
+  return d.getTime() < Date.now() - 2 * 60 * 60 * 1000;
+}
+
 function getConfirmationCode(bookingId: string): string {
   return bookingId.slice(0, 8).toUpperCase();
 }
@@ -61,19 +76,19 @@ function getConfirmationCode(bookingId: string): string {
 function statusLabel(status: BookingStatus): string {
   switch (status) {
     case "PENDING_REVIEW":
-      return "Pending review";
+      return "Awaiting approval";
     case "DECLINED":
       return "Declined";
     case "PENDING_PAYMENT":
-      return "Approved (awaiting payment)";
+      return "Payment due";
     case "CONFIRMED":
       return "Confirmed";
     case "ASSIGNED":
-      return "Driver assigned";
+      return "Chauffeur assigned";
     case "EN_ROUTE":
-      return "Driver en route";
+      return "On the way";
     case "ARRIVED":
-      return "Driver arrived";
+      return "Chauffeur arrived";
     case "IN_PROGRESS":
       return "In progress";
     case "COMPLETED":
@@ -158,6 +173,7 @@ export default async function CorporateBookingDetailPage({
         select: {
           id: true,
           name: true,
+          status: true,
           billingCycle: true,
           paymentTerms: true,
           discountPercent: true,
@@ -191,9 +207,61 @@ export default async function CorporateBookingDetailPage({
   const currentStatusTone: BadgeTone = badgeTone(currentStatus);
   const isDeclined = currentStatus === "DECLINED";
 
+  // Header: the ride at a glance, as on the customer's trip page.
+  const ACTIVE: BookingStatus[] = [
+    "PENDING_REVIEW",
+    "PENDING_PAYMENT",
+    "CONFIRMED",
+    "ASSIGNED",
+    "EN_ROUTE",
+    "ARRIVED",
+    "IN_PROGRESS",
+  ];
+  const isUpcoming =
+    ACTIVE.includes(currentStatus) && !overTwoHoursAgo(booking.pickupAt);
+  const rel = isUpcoming ? relativeFromNow(booking.pickupAt) : null;
+  const pickupTime = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: companyTz,
+  }).format(booking.pickupAt);
+  const pickupDate = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: companyTz,
+  }).format(booking.pickupAt);
+  // Book again: rides that are over, while the account can book.
+  const canBookAgain =
+    booking.corporateAccount?.status === "ACTIVE" &&
+    ["COMPLETED", "CANCELLED", "NO_SHOW", "REFUNDED"].includes(currentStatus);
+  const calendarEvent = rideCalendarEvent(
+    {
+      id: booking.id,
+      pickupAt: booking.pickupAt,
+      pickupAddress: booking.pickupAddress,
+      dropoffAddress: booking.dropoffAddress,
+      serviceName: booking.serviceType?.name ?? "Ride",
+      vehicleName: booking.vehicle?.name ?? null,
+      durationMinutes: booking.durationMinutes,
+      hoursRequested: booking.hoursRequested,
+      flight: booking.flightNumber
+        ? [booking.flightAirline, booking.flightNumber]
+            .filter(Boolean)
+            .join(" ")
+        : null,
+    },
+    {
+      name: companySettings.companyName || SITE.name,
+      dispatchPhone: companySettings.dispatchPhone,
+    },
+  );
+  calendarEvent.url = `${SITE.url.replace(/\/$/, "")}/corporate/bookings/${booking.id}`;
+
   const hasDriver = !!booking.assignment?.driver;
   const driver = booking.assignment?.driver;
-  const driverName = driver?.name?.trim() || "Your Driver";
+  const driverName = driver?.name?.trim() || "Your chauffeur";
   const driverPhone = driver?.phone || null;
   const driverImage = driver?.image || null;
 
@@ -210,7 +278,7 @@ export default async function CorporateBookingDetailPage({
 
   const hasStops = booking.stops && booking.stops.length > 0;
   const stopCount = booking.stops?.length ?? 0;
-  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
+  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * EXTRA_STOP_FEE_CENTS;
   const totalWaitTimeMinutes =
     booking.stops?.reduce((sum, s) => sum + (s.waitTimeMinutes ?? 5), 0) ?? 0;
 
@@ -255,55 +323,31 @@ export default async function CorporateBookingDetailPage({
 
   return (
     <section className={styles.container}>
-      <header className="header">
+      <header className={styles.header}>
         <Link href="/corporate/bookings" className="backBtn">
-          ← Back to Bookings
+          ← Back to bookings
         </Link>
-        <div className={styles.headerTop}>
-          <div className={styles.headerTopLeft}>
-            <h1 className={`${styles.heading} h2`}>Booking Details</h1>
+        <div className={styles.summary}>
+          <div className={styles.summaryTags}>
+            {rel ? <span className={styles.relPill}>{rel}</span> : null}
+            <span className={`badge badge_${currentStatusTone}`}>
+              {currentStatusLabel}
+            </span>
+            <span className="badge badge_neutral">Corporate billing</span>
           </div>
-          <div className={styles.headerTopRight}>
-            <div className="emptyTitle">Confirmation #</div>
-            <div className={styles.confirmationValue}>
-              {getConfirmationCode(booking.id)}
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.box}>
-          <div className={styles.boxLeft}>
-            <div style={{ marginTop: 12 }}>
-              <div className="emptyTitle">Current Status:</div>
-              <div style={{ marginTop: 6 }}>
-                <span className={`badge badge_${currentStatusTone}`}>
-                  {currentStatusLabel}
-                </span>
-              </div>
-            </div>
-
-            {isDeclined && booking.declineReason && (
-              <div className={styles.declineReasonBox}>
-                <strong>Decline Reason:</strong> {booking.declineReason}
-              </div>
-            )}
-          </div>
-
-          <div className={styles.boxRight}>
-            <div style={{ marginTop: 12 }}>
-              <div className="emptyTitle">Billing:</div>
-              <div className={styles.paymentInfo}>
-                <span className="badge badge_accent">Corporate Billing</span>
-                {booking.totalCents > 0 && (
-                  <span className={styles.paymentAmount}>
-                    {formatMoney(booking.totalCents, booking.currency)}
-                  </span>
-                )}
-              </div>
-
-              {booking.discountCents && booking.discountCents > 0 ? (
+          <h1 className={styles.summaryTime}>{pickupTime}</h1>
+          <p className={styles.summaryDate}>{pickupDate}</p>
+          <p className={styles.summaryMeta}>
+            {passengerName}
+            {booking.serviceType?.name ? ` · ${booking.serviceType.name}` : ""}
+            {booking.vehicle?.name ? ` · ${booking.vehicle.name}` : ""}
+            {booking.totalCents > 0
+              ? ` · ${formatMoney(booking.totalCents, booking.currency)}`
+              : ""}
+          </p>
+          {booking.discountCents && booking.discountCents > 0 ? (
                 <div className={styles.discountDisplay}>
-                  <span style={{ color: "#15803d", fontWeight: 600 }}>
+                  <span style={{ color: "var(--darkGreen)", fontWeight: 600 }}>
                     −{formatMoney(booking.discountCents, booking.currency)} off
                     {booking.corporateAccount?.discountPercent
                       ? ` (${Number(booking.corporateAccount.discountPercent)}%)`
@@ -318,16 +362,53 @@ export default async function CorporateBookingDetailPage({
                   </span>
                 </div>
               ) : null}
-            </div>
-          </div>
+          <p className={styles.confirmation}>
+            Confirmation #
+            <span className={styles.confirmationValue}>
+              {getConfirmationCode(booking.id)}
+            </span>
+          </p>
         </div>
+
+        {isDeclined && booking.declineReason && (
+          <div className={styles.declineReasonBox}>
+            <strong>Why it was declined:</strong> {booking.declineReason}
+          </div>
+        )}
+
+        {(isUpcoming && currentStatus !== "PENDING_REVIEW") || canBookAgain ? (
+          <div className={styles.headerActions}>
+            {isUpcoming && currentStatus !== "PENDING_REVIEW" ? (
+              <AddToCalendar
+                icsHref={`/corporate/bookings/${booking.id}/calendar`}
+                event={calendarEvent}
+              />
+            ) : null}
+            {canBookAgain ? (
+              <Link
+                href={`/corporate/bookings/new?again=${booking.id}`}
+                className={styles.againButton}
+              >
+                <RedoIcon className={styles.againIcon} aria-hidden="true" />
+                Book this again
+              </Link>
+            ) : null}
+          </div>
+        ) : null}
       </header>
 
       <Card title="Passenger">
         <KeyVal k="Name" v={passengerName} />
         {passengerEmail && <KeyVal k="Email" v={passengerEmail} />}
         {passengerPhone && (
-          <KeyVal k="Phone" v={`📞 ${formatPhone(passengerPhone)}`} />
+          <KeyVal
+            k="Phone"
+            v={
+              <a href={`tel:${passengerPhone}`} className={styles.inlineLink}>
+                {formatPhone(passengerPhone)}
+              </a>
+            }
+          />
         )}
         {passengerDepartment && (
           <KeyVal k="Department" v={passengerDepartment} />
@@ -341,7 +422,7 @@ export default async function CorporateBookingDetailPage({
       </Card>
 
       {hasDriver && (
-        <Card title="Your Driver">
+        <Card title="Your chauffeur">
           <div className={styles.driverSection}>
             <div className={styles.driverImageWrap}>
               <Image
@@ -354,7 +435,7 @@ export default async function CorporateBookingDetailPage({
               />
             </div>
             <div className={styles.driverInfo}>
-              <KeyVal k="Driver" v={driverName} />
+              <KeyVal k="Chauffeur" v={driverName} />
               {vehicleUnitDisplay && (
                 <KeyVal k="Vehicle" v={vehicleUnitDisplay} />
               )}
@@ -364,13 +445,14 @@ export default async function CorporateBookingDetailPage({
                     href={`tel:${driverPhone}`}
                     className={styles.contactButton}
                   >
-                    📞 Call Driver
+                    <Phone className={styles.contactIcon} aria-hidden="true" />
+                    Call
                   </a>
                   <a
                     href={`sms:${driverPhone}`}
                     className={styles.contactButton}
                   >
-                    💬 Text
+                    Text
                   </a>
                 </div>
               )}
@@ -383,7 +465,7 @@ export default async function CorporateBookingDetailPage({
         <KeyVal k="Date" v={formatDateTime(booking.pickupAt, companyTz)} />
         <KeyVal
           k="Distance / duration"
-          v={`${toNumber(booking.distanceMiles) ?? "—"} mi • ${booking.durationMinutes ?? "—"} min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
+          v={`${toNumber(booking.distanceMiles) ?? "—"} mi · ${booking.durationMinutes ?? "—"} min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
         />
         <KeyVal
           k="Amount"
@@ -392,7 +474,7 @@ export default async function CorporateBookingDetailPage({
         {booking.discountCents && booking.discountCents > 0 ? (
           <div className={styles.keyVal}>
             <div className="emptyTitle">Corporate discount</div>
-            <p className="subheading" style={{ color: "#15803d" }}>
+            <p className="subheading" style={{ color: "var(--darkGreen)" }}>
               −{formatMoney(booking.discountCents, booking.currency)} off
               {booking.corporateAccount?.discountPercent
                 ? ` (${Number(booking.corporateAccount.discountPercent)}%)`
@@ -425,34 +507,30 @@ export default async function CorporateBookingDetailPage({
             <div className={styles.sectionDivider} />
             <div className={styles.stopsSection}>
               <div className="cardTitle h5" style={{ marginBottom: 10 }}>
-                <span style={{ marginRight: "2rem" }}>🛑</span>Route with{" "}
-                {stopCount} Extra Stop{stopCount > 1 ? "s" : ""}
+                Route with {stopCount} extra stop{stopCount > 1 ? "s" : ""}
               </div>
               <div className={styles.routeTimeline}>
                 <div className={styles.routePoint}>
-                  <div
-                    className={styles.routeMarker}
-                    style={{ background: "#22c55e" }}
-                  >
+                  <div className={`${styles.routeMarker} ${styles.markerPickup}`}>
                     A
                   </div>
                   <div className={styles.routeAddress}>
                     <div className="emptyTitle">Pickup</div>
-                    <p className="subheading">{booking.pickupAddress}</p>
+                    <AddressLines
+                      address={booking.pickupAddress}
+                      className="subheading"
+                    />
                   </div>
                 </div>
 
                 {booking.stops.map((stop, index) => (
                   <div key={stop.id} className={styles.routePoint}>
-                    <div
-                      className={styles.routeMarker}
-                      style={{ background: "#3b82f6" }}
-                    >
+                    <div className={`${styles.routeMarker} ${styles.markerStop}`}>
                       {index + 1}
                     </div>
                     <div className={styles.routeAddress}>
                       <div className="emptyTitle">Stop {index + 1}</div>
-                      <p className="subheading">{stop.address}</p>
+                      <AddressLines address={stop.address} className="subheading" />
                       <span className="miniNote">
                         ~{stop.waitTimeMinutes ?? 5} min wait
                       </span>
@@ -461,15 +539,15 @@ export default async function CorporateBookingDetailPage({
                 ))}
 
                 <div className={styles.routePoint}>
-                  <div
-                    className={styles.routeMarker}
-                    style={{ background: "#ef4444" }}
-                  >
+                  <div className={`${styles.routeMarker} ${styles.markerDropoff}`}>
                     B
                   </div>
                   <div className={styles.routeAddress}>
-                    <div className="emptyTitle">Dropoff</div>
-                    <p className="subheading">{booking.dropoffAddress}</p>
+                    <div className="emptyTitle">Drop-off</div>
+                    <AddressLines
+                      address={booking.dropoffAddress}
+                      className="subheading"
+                    />
                   </div>
                 </div>
               </div>
@@ -490,8 +568,14 @@ export default async function CorporateBookingDetailPage({
           </>
         ) : (
           <>
-            <KeyVal k="Pickup" v={booking.pickupAddress} />
-            <KeyVal k="Dropoff" v={booking.dropoffAddress} />
+            <KeyVal
+              k="Pickup"
+              v={<AddressLines address={booking.pickupAddress} />}
+            />
+            <KeyVal
+              k="Drop-off"
+              v={<AddressLines address={booking.dropoffAddress} />}
+            />
           </>
         )}
 
@@ -525,7 +609,10 @@ export default async function CorporateBookingDetailPage({
             <div className={styles.sectionDivider} />
             <div className={styles.flightSection}>
               <div className="cardTitle h5" style={{ marginBottom: 10 }}>
-                ✈️ Flight Information
+                <span className={styles.flightTitle}>
+                  <Plane className={styles.flightIcon} aria-hidden="true" />
+                  Flight
+                </span>
               </div>
               {booking.flightAirline && (
                 <KeyVal k="Airline" v={booking.flightAirline} />
@@ -556,21 +643,23 @@ export default async function CorporateBookingDetailPage({
         </Card>
       )}
 
-      <Card title="Need Help?">
+      <Card title="Need help?">
         <div className={styles.helpContent}>
           <p className="subheading">
-            If you have questions about this booking or need to make changes,
-            please contact us.
+            Questions about this ride, or need to change something? Dispatch
+            can help.
           </p>
           <div className={styles.helpActions}>
             {supportPhone && (
               <a href={`tel:${supportPhone}`} className={styles.helpButton}>
-                📞 Call Support
+                <Phone className={styles.contactIcon} aria-hidden="true" />
+                Call {supportPhone}
               </a>
             )}
             {supportEmail && (
               <a href={`mailto:${supportEmail}`} className={styles.helpButton}>
-                ✉️ Email Us
+                <Email className={styles.contactIcon} aria-hidden="true" />
+                Email us
               </a>
             )}
           </div>
@@ -591,11 +680,11 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function KeyVal({ k, v }: { k: string; v: string }) {
+function KeyVal({ k, v }: { k: string; v: ReactNode }) {
   return (
     <div className={styles.keyVal}>
       <div className="emptyTitle">{k}</div>
-      <p className="subheading">{v}</p>
+      <div className="subheading">{v}</div>
     </div>
   );
 }

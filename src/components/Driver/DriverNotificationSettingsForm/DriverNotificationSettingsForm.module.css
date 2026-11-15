@@ -237,7 +237,7 @@
 }
 
 .toggleOn {
-  background-color: #16a34a;
+  background-color: var(--green);
 }
 
 .toggleOff {

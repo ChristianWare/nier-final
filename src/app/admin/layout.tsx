@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import styles from "./AdminLayout.module.css";
+import theme from "@/components/shared/DashboardTheme/DashboardTheme.module.css";
 import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
 import AdminSideNav from "@/components/admin/AdminSideNav/AdminSideNav";
@@ -49,7 +50,7 @@ export default async function AdminLayout({
                 />
               </div>
             </div>
-            <div className={styles.right} data-refresh-area>
+            <div className={`${styles.right} ${theme.theme}`} data-refresh-area>
               {children}
             </div>
           </div>

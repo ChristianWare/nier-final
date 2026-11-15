@@ -10,6 +10,12 @@ import * as tz from "@/lib/timezone";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import Button from "@/components/shared/Button/Button";
 
+import RouteDot from "@/components/shared/RouteDot/RouteDot";
+import {
+  isTripPrivate,
+  privateAddress,
+  privateName,
+} from "@/lib/tripPrivacy";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -201,9 +207,15 @@ export default async function DriverScheduleDayPage({
       ) : (
         <div className={styles.tripsList}>
           {trips.map((trip) => {
-            const customerName =
+            // Finished rides: short name, area only, no phone or notes.
+            const isPrivate = isTripPrivate(trip.status);
+            const fullName =
               trip.user?.name?.trim() || trip.guestName?.trim() || "Customer";
-            const customerPhone = trip.user?.phone || trip.guestPhone || null;
+            const customerName = isPrivate ? privateName(fullName) : fullName;
+            const customerPhone = isPrivate
+              ? null
+              : trip.user?.phone || trip.guestPhone || null;
+            const specialRequests = isPrivate ? null : trip.specialRequests;
             const vehicleName =
               trip.assignment?.vehicleUnit?.name || trip.vehicle?.name || null;
             const driverPay = trip.assignment?.driverPaymentCents ?? 0;
@@ -222,20 +234,28 @@ export default async function DriverScheduleDayPage({
                 <div className={styles.tripBody}>
                   <div className={styles.tripRoute}>
                     <div className={styles.tripRouteItem}>
-                      <span className={styles.routeIcon}>📍</span>
+                      <span className={styles.routeIcon}>
+                      <RouteDot kind='pickup' />
+                    </span>
                       <div>
                         <div className={styles.routeLabel}>Pickup</div>
                         <div className={styles.routeAddress}>
-                          {trip.pickupAddress}
+                          {isPrivate
+                            ? privateAddress(trip.pickupAddress)
+                            : trip.pickupAddress}
                         </div>
                       </div>
                     </div>
                     <div className={styles.tripRouteItem}>
-                      <span className={styles.routeIcon}>🏁</span>
+                      <span className={styles.routeIcon}>
+                      <RouteDot kind='dropoff' />
+                    </span>
                       <div>
                         <div className={styles.routeLabel}>Dropoff</div>
                         <div className={styles.routeAddress}>
-                          {trip.dropoffAddress}
+                          {isPrivate
+                            ? privateAddress(trip.dropoffAddress)
+                            : trip.dropoffAddress}
                         </div>
                       </div>
                     </div>
@@ -248,7 +268,11 @@ export default async function DriverScheduleDayPage({
                     </div>
                     <div className={styles.tripDetail}>
                       <span className={styles.detailLabel}>Phone</span>
-                      {customerPhone ? (
+                      {isPrivate ? (
+                        <span className={styles.detailValueMuted}>
+                          Hidden after the ride · ask dispatch
+                        </span>
+                      ) : customerPhone ? (
                         <a
                           href={`tel:${customerPhone}`}
                           className={styles.detailValueLink}
@@ -289,23 +313,23 @@ export default async function DriverScheduleDayPage({
 
                   {(trip.passengers ||
                     trip.luggage ||
-                    trip.specialRequests) && (
+                    specialRequests) && (
                     <div className={styles.tripExtras}>
                       {trip.passengers && (
                         <span className={styles.extraPill}>
-                          👤 {trip.passengers} passenger
+                          {trip.passengers} passenger
                           {trip.passengers !== 1 ? "s" : ""}
                         </span>
                       )}
                       {trip.luggage && (
                         <span className={styles.extraPill}>
-                          🧳 {trip.luggage} bag{trip.luggage !== 1 ? "s" : ""}
+                          {trip.luggage} bag{trip.luggage !== 1 ? "s" : ""}
                         </span>
                       )}
-                      {trip.specialRequests && (
+                      {specialRequests && (
                         <div className={styles.specialRequests}>
                           <span className={styles.detailLabel}>Notes:</span>{" "}
-                          {trip.specialRequests}
+                          {specialRequests}
                         </div>
                       )}
                     </div>

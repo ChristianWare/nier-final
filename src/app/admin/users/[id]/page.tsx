@@ -18,6 +18,7 @@ import EditUserProfileForm from "@/components/admin/EditUserProfileForm/EditUser
 import AdminSaveCardForUser from "@/components/admin/AdminSaveCardForUser/AdminSaveCardForUser";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import { getStripePublishableKey, getStripe } from "@/lib/stripe";
+import CorporateAccessForm from "@/components/admin/CorporateAccessForm/CorporateAccessForm";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -274,6 +275,13 @@ export default async function UserDetailPage({
 
   const roles = (user.roles?.length ? user.roles : ["USER"]) as Role[];
   const isDriver = roles.includes("DRIVER");
+
+  // Corporate accounts to link this user to (Manage roles → Corporate).
+  const corporateAccounts = await db.corporateAccount.findMany({
+    where: { status: "ACTIVE" },
+    orderBy: { name: "asc" },
+    select: { id: true, name: true },
+  });
   const profileImage = user.image ?? null;
 
   const recentBookings = await db.booking.findMany({
@@ -449,7 +457,7 @@ export default async function UserDetailPage({
                       className={`badge ${
                         role === "ADMIN"
                           ? "badge_accent"
-                          : role === "DRIVER"
+                          : role === "DRIVER" || role === "CORPORATE"
                             ? "badge_good"
                             : "badge_neutral"
                       }`}
@@ -551,6 +559,15 @@ export default async function UserDetailPage({
                 (r): r is "USER" | "ADMIN" | "DRIVER" =>
                   ["USER", "ADMIN", "DRIVER"].includes(r),
               )}
+            />
+            <CorporateAccessForm
+              userId={user.id}
+              links={user.corporateContacts.map((cc) => ({
+                accountId: cc.corporateAccount.id,
+                name: cc.corporateAccount.name,
+                role: cc.role,
+              }))}
+              accounts={corporateAccounts}
             />
           </div>
         </div>

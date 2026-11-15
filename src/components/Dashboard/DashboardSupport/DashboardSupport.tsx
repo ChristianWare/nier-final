@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookingStatus } from "@prisma/client";
+import { SITE } from "@/config/site";
 
 type TripLite = {
   id: string;
@@ -17,11 +18,14 @@ type TripLite = {
   serviceName: string;
 };
 
-const SUPPORT = {
-  email: "support@niertransportation.com", // ✅ replace with your real email
-  phone: "+16025550123", // ✅ replace with your real phone
-  sms: "+16025550123", // ✅ replace with your real SMS number
-  hours: "Daily • 6am – 10pm (AZ time)", // ✅ change anytime
+/** How to reach the company, from Admin → Company settings. */
+export type SupportContact = {
+  email: string;
+  /** "(702) 555-0100" */
+  phone: string;
+  /** "+17025550100", for tel: and sms: links. */
+  tel: string;
+  hours: string;
 };
 
 function formatDateTime(iso: string) {
@@ -90,10 +94,12 @@ export default function DashboardSupport({
   viewerRole,
   user,
   trips,
+  contact,
 }: {
   viewerRole: string;
   user: { name: string | null; email: string | null };
   trips: TripLite[];
+  contact: SupportContact;
 }) {
   const router = useRouter();
 
@@ -115,7 +121,7 @@ export default function DashboardSupport({
   const emailBody = useMemo(() => {
     const lines: string[] = [];
 
-    lines.push("Hi Nier Transportation Support,");
+    lines.push(`Hi ${SITE.name} Support,`);
     lines.push("");
     lines.push(message.trim() || "(Describe what you need help with here.)");
     lines.push("");
@@ -143,11 +149,11 @@ export default function DashboardSupport({
 
   const mailtoHref = useMemo(() => {
     return buildMailto({
-      to: SUPPORT.email,
+      to: contact.email,
       subject: emailSubject,
       body: emailBody,
     });
-  }, [emailSubject, emailBody]);
+  }, [contact.email, emailSubject, emailBody]);
 
   function goToTrip() {
     if (!selectedTripId) return;
@@ -167,20 +173,25 @@ export default function DashboardSupport({
         <section className={styles.card}>
           <header className={styles.cardTop}>
             <h2 className={`cardTitle h4`}>Contact</h2>
-            <div className={styles.metaRight}>{SUPPORT.hours}</div>
+            {contact.hours ? (
+              <div className={styles.metaRight}>{contact.hours}</div>
+            ) : null}
           </header>
 
           <div className={styles.contactGrid}>
-            <a className='emptyTitle' href={`mailto:${SUPPORT.email}`}>
-              Email: {SUPPORT.email}
+            <a className={styles.contactLink} href={`tel:${contact.tel}`}>
+              <span className={styles.contactLabel}>Call dispatch</span>
+              {contact.phone}
             </a>
 
-            <a className='emptyTitle' href={`tel:${SUPPORT.phone}`}>
-              Phone: {SUPPORT.phone}
+            <a className={styles.contactLink} href={`sms:${contact.tel}`}>
+              <span className={styles.contactLabel}>Text</span>
+              {contact.phone}
             </a>
 
-            <a className='emptyTitle' href={`sms:${SUPPORT.sms}`}>
-              SMS: {SUPPORT.sms}
+            <a className={styles.contactLink} href={`mailto:${contact.email}`}>
+              <span className={styles.contactLabel}>Email</span>
+              {contact.email}
             </a>
           </div>
 
@@ -284,7 +295,7 @@ export default function DashboardSupport({
                 Email support
               </a>
 
-              <a className='secondaryBtn' href={`sms:${SUPPORT.sms}`}>
+              <a className='secondaryBtn' href={`sms:${contact.tel}`}>
                 Text support
               </a>
             </div>

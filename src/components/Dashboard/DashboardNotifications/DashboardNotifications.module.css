@@ -25,7 +25,7 @@
   gap: 1rem;
   border: 2px solid var(--stroke);
   padding: 2rem;
-  border-radius: 15px;
+  border-radius: 10px;
 }
 
 .dayHeading {
@@ -49,7 +49,7 @@
   gap: 1rem;
   align-items: start;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid var(--stroke);
   background: var(--white);
 }
@@ -125,7 +125,7 @@
 .empty {
   background: var(--white);
   border: 1px solid var(--stroke);
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 14px;
   display: grid;
   gap: 8px;

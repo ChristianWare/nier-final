@@ -1,6 +1,23 @@
 .container {
   display: grid;
-  gap: 1.4rem;
+  gap: 2.4rem;
+}
+
+/* "Payment history" with the count beside it. */
+.historyTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 2px solid var(--black);
+}
+
+.historyTop :global(.cardTitle) {
+  width: auto;
+  padding: 0;
+  border: none;
 }
 
 .header {
@@ -326,7 +343,7 @@
 
   .tr {
     border: 1px solid var(--stroke);
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 12px;
     margin-bottom: 12px;
     background: var(--white);

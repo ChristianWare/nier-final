@@ -1,3 +1,5 @@
+import AddressLines from "@/components/shared/AddressLines/AddressLines";
+import { shortPlace } from "@/lib/shortPlace";
 import styles from "./DashboardSavedDetails.module.css";
 import Button from "@/components/shared/Button/Button";
 import Link from "next/link";
@@ -116,16 +118,18 @@ export default function DashboardSavedDetails({
 
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>From</span>
-                  <span className="emptyTitleSmall">
-                    {lastUsed.pickupAddress}
-                  </span>
+                  <AddressLines
+                    address={lastUsed.pickupAddress}
+                    className={`emptyTitleSmall ${styles.place}`}
+                  />
                 </div>
 
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>To</span>
-                  <span className="emptyTitleSmall">
-                    {lastUsed.dropoffAddress}
-                  </span>
+                  <AddressLines
+                    address={lastUsed.dropoffAddress}
+                    className={`emptyTitleSmall ${styles.place}`}
+                  />
                 </div>
 
                 <div className={styles.tripMetaLine}>
@@ -145,7 +149,9 @@ export default function DashboardSavedDetails({
                 <div className={styles.tripMetaLine}>
                   <span className={styles.tripMetaKey}>Prefs</span>
                   <span className="emptyTitleSmall">
-                    {lastUsed.passengers} pax • {lastUsed.luggage} luggage
+                    {lastUsed.passengers} passenger
+                    {lastUsed.passengers === 1 ? "" : "s"} · {lastUsed.luggage}{" "}
+                    bag{lastUsed.luggage === 1 ? "" : "s"}
                   </span>
                 </div>
 
@@ -174,9 +180,12 @@ export default function DashboardSavedDetails({
                 {frequentPickups.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
-                      <div className='emptyTitleSmall'>{x.label}</div>
+                      <AddressLines
+                        address={x.label}
+                        className={`emptyTitleSmall ${styles.place}`}
+                      />
                       <div className="emptySmall">
-                        {x.count} trip{x.count === 1 ? "" : "s"} • Last:{" "}
+                        {x.count} trip{x.count === 1 ? "" : "s"} · Last:{" "}
                         {formatDate(x.lastAt)}
                       </div>
                     </div>
@@ -199,9 +208,12 @@ export default function DashboardSavedDetails({
                 {frequentDropoffs.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
-                      <div className='emptyTitleSmall'>{x.label}</div>
+                      <AddressLines
+                        address={x.label}
+                        className={`emptyTitleSmall ${styles.place}`}
+                      />
                       <div className="emptySmall">
-                        {x.count} trip{x.count === 1 ? "" : "s"} • Last:{" "}
+                        {x.count} trip{x.count === 1 ? "" : "s"} · Last:{" "}
                         {formatDate(x.lastAt)}
                       </div>
                     </div>
@@ -224,9 +236,14 @@ export default function DashboardSavedDetails({
                 {frequentRoutes.map((x) => (
                   <li key={x.label} className={styles.item}>
                     <div className={styles.itemLeft}>
-                      <div className='emptyTitleSmall'>{x.label}</div>
+                      <div className='emptyTitleSmall'>
+                        {x.label
+                          .split(" → ")
+                          .map((part) => shortPlace(part))
+                          .join(" → ")}
+                      </div>
                       <div className="emptySmall">
-                        {x.count} time{x.count === 1 ? "" : "s"} • Last:{" "}
+                        {x.count} time{x.count === 1 ? "" : "s"} · Last:{" "}
                         {formatDate(x.lastAt)}
                       </div>
                     </div>
@@ -238,23 +255,22 @@ export default function DashboardSavedDetails({
 
           <section className={styles.card}>
             <header className={styles.cardTop}>
-              <h2 className={`cardTitle h4`}>Coming soon</h2>
-              <div className={styles.metaRight}>
-                Manual saves + one-click prefill
-              </div>
+              <h2 className={`cardTitle h4`}>Ride again</h2>
+              <div className={styles.metaRight}>One tap to rebook</div>
             </header>
 
             <p className="miniNote">
-              Soon you’ll be able to save addresses and preferences manually
-              (with one-click prefill in the booking flow).
+              Your recent routes are on your Overview, under Ride again. Tap
+              one and the booking form opens with the same pickup, drop-off
+              and car; you just pick the date and time.
             </p>
 
             <div className={styles.formActions}>
+              <Link className={styles.secondaryBtn} href='/dashboard'>
+                Go to Ride again
+              </Link>
               <Link className={styles.secondaryBtn} href='/dashboard/trips'>
                 View trips
-              </Link>
-              <Link className={styles.secondaryBtn} href='/dashboard/support'>
-                Ask support
               </Link>
             </div>
           </section>

@@ -152,7 +152,7 @@
 .contactDetail {
   font-size: 1.4rem;
   font-weight: 600;
-  color: #3b82f6;
+  color: var(--black);
 }
 
 .contactHours {

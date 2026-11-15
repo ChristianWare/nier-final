@@ -160,7 +160,7 @@
 .detailValueLink {
   font-size: 1.4rem;
   font-weight: 500;
-  color: #3b82f6;
+  color: var(--black);
   text-decoration: none;
 }
 
@@ -176,7 +176,7 @@
 }
 
 .detailValueGood {
-  color: #16a34a;
+  color: var(--green);
   font-weight: 700;
 }
 

@@ -10,6 +10,7 @@ import styles from "./DriverEarningsPage.module.css";
 import DriverEarningsControls from "./DriverEarningsControls";
 import DriverEarningsChart from "./DriverEarningsChart";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
+import { privateName } from "@/lib/tripPrivacy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -589,8 +590,6 @@ export default async function DriverEarningsPage({
         select: {
           id: true,
           pickupAt: true,
-          pickupAddress: true,
-          dropoffAddress: true,
           status: true,
           serviceType: { select: { name: true } },
           user: { select: { name: true } },
@@ -792,8 +791,9 @@ export default async function DriverEarningsPage({
                 <tbody>
                   {recentTrips.map((a) => {
                     const b = a.booking;
-                    const customerName =
-                      b.user?.name?.trim() || b.guestName?.trim() || "Customer";
+                    const customerName = privateName(
+                      b.user?.name?.trim() || b.guestName?.trim() || "Customer",
+                    );
                     const href = `/driver-dashboard/trips/${b.id}`;
 
                     return (

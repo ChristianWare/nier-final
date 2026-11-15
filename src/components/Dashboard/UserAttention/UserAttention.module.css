@@ -1,0 +1,169 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.top {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  padding-bottom: 1.2rem;
+  border-bottom: 2px solid var(--black);
+}
+
+.top :global(.cardTitle) {
+  width: auto;
+  padding: 0;
+  border: none;
+}
+
+.count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 0.6rem;
+  border-radius: 999px;
+  background-color: var(--accent);
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.3rem;
+  line-height: 1;
+  color: var(--white);
+}
+
+.list {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each ride: a white row with an edge in its colour, accent when the
+   customer has to pay, grey while we review. */
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.6rem 2rem;
+  border: 1px solid var(--stroke);
+  border-left: 3px solid var(--black400);
+  border-radius: 5px;
+  background-color: var(--white);
+}
+
+.itemPayment {
+  border-left-color: var(--accent);
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.when {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.7rem;
+  line-height: 1.3;
+  color: var(--black);
+}
+
+.route {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.5rem;
+  line-height: 1.4;
+  color: var(--black);
+}
+
+.routeArrow {
+  width: 12px;
+  height: 12px;
+  color: var(--black400);
+  transform: rotate(90deg);
+}
+
+.note {
+  font-size: 1.4rem;
+  line-height: 1.4;
+  color: var(--paragraph);
+}
+
+.side {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.amount {
+  font-family: var(--inter);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-size: 3.2rem;
+  line-height: 0.9;
+  color: var(--black);
+}
+
+.payBtn,
+.viewBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 110px;
+  padding: 0 1.6rem;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  font-family: var(--inter);
+  font-size: 1.5rem;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.payBtn {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--white);
+}
+
+.payBtn:hover {
+  border-color: var(--black);
+}
+
+.viewBtn {
+  background-color: var(--white);
+  color: var(--black);
+}
+
+.viewBtn:hover {
+  background-color: var(--black);
+  color: var(--cream);
+}
+
+@media screen and (max-width: 568px) {
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.6rem;
+  }
+
+  .side {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

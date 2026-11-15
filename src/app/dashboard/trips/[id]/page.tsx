@@ -19,6 +19,17 @@ import UserCancelTripClient from "./UserCancelTripClient";
 import InvoiceSection from "./InvoiceSection";
 import type { InvoiceData, InvoiceLineItem } from "@/lib/invoice/types";
 import { formatInvoiceDate, formatTripDateTime } from "@/lib/invoice/types";
+import { SITE } from "@/config/site";
+import { EXTRA_STOP_FEE_CENTS } from "@/lib/pricing/calcQuote";
+import AddressLines from "@/components/shared/AddressLines/AddressLines";
+import AddToCalendar from "@/components/Dashboard/AddToCalendar/AddToCalendar";
+import { rideCalendarEvent } from "@/components/Dashboard/AddToCalendar/rideEvent";
+import RideAgainButton from "@/components/Dashboard/RideAgain/RideAgainButton";
+import { rideAgainPrefill } from "@/components/Dashboard/RideAgain/rideAgainPrefill";
+import Phone from "@/components/shared/icons/Phone/Phone";
+import Email from "@/components/shared/icons/Email/Email";
+import Plane from "@/components/shared/icons/Plane/Plane";
+import { relativeFromNow } from "@/lib/relativeTime";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,6 +66,11 @@ function toNumber(val: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Whether a pickup time is more than two hours behind us. */
+function overTwoHoursAgo(d: Date) {
+  return d.getTime() < Date.now() - 2 * 60 * 60 * 1000;
+}
+
 function getConfirmationCode(bookingId: string): string {
   return bookingId.slice(0, 8).toUpperCase();
 }
@@ -62,19 +78,19 @@ function getConfirmationCode(bookingId: string): string {
 function statusLabel(status: BookingStatus): string {
   switch (status) {
     case "PENDING_REVIEW":
-      return "Pending review";
+      return "Awaiting approval";
     case "DECLINED":
       return "Declined";
     case "PENDING_PAYMENT":
-      return "Approved (awaiting payment)";
+      return "Payment due";
     case "CONFIRMED":
       return "Confirmed";
     case "ASSIGNED":
-      return "Driver assigned";
+      return "Chauffeur assigned";
     case "EN_ROUTE":
-      return "Driver en route";
+      return "On the way";
     case "ARRIVED":
-      return "Driver arrived";
+      return "Chauffeur arrived";
     case "IN_PROGRESS":
       return "In progress";
     case "COMPLETED":
@@ -170,7 +186,7 @@ export default async function UserTripDetailPage({
     where: { id },
     include: {
       user: { select: { id: true, name: true, email: true, phone: true } },
-      serviceType: { select: { name: true, slug: true } },
+      serviceType: { select: { name: true, slug: true, airportLeg: true } },
       vehicle: { select: { name: true } },
       payment: {
         select: {
@@ -239,7 +255,7 @@ export default async function UserTripDetailPage({
   // Driver info
   const hasDriver = !!booking.assignment?.driver;
   const driver = booking.assignment?.driver;
-  const driverName = driver?.name?.trim() || "Your Driver";
+  const driverName = driver?.name?.trim() || "Your chauffeur";
   const driverPhone = driver?.phone || null;
   const driverImage = driver?.image || null;
 
@@ -252,7 +268,7 @@ export default async function UserTripDetailPage({
   // Check for stops
   const hasStops = booking.stops && booking.stops.length > 0;
   const stopCount = booking.stops?.length ?? 0;
-  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * 1500;
+  const stopSurchargeCents = booking.stopSurchargeCents ?? stopCount * EXTRA_STOP_FEE_CENTS;
   const totalWaitTimeMinutes =
     booking.stops?.reduce((sum, s) => sum + (s.waitTimeMinutes ?? 5), 0) ?? 0;
 
@@ -306,6 +322,58 @@ export default async function UserTripDetailPage({
 
   // Declined
   const isDeclined = currentStatus === "DECLINED";
+
+  // Header: when, at a glance, as on the driver's trip page.
+  const pickupTime = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: companyTz,
+  }).format(booking.pickupAt);
+  const pickupDate = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: companyTz,
+  }).format(booking.pickupAt);
+  const ACTIVE: BookingStatus[] = [
+    "PENDING_REVIEW",
+    "PENDING_PAYMENT",
+    "CONFIRMED",
+    "ASSIGNED",
+    "EN_ROUTE",
+    "ARRIVED",
+    "IN_PROGRESS",
+  ];
+  const isUpcoming =
+    ACTIVE.includes(currentStatus) && !overTwoHoursAgo(booking.pickupAt);
+  const isOver = !ACTIVE.includes(currentStatus);
+  const rel = isUpcoming ? relativeFromNow(booking.pickupAt) : null;
+  const companyName = companySettings.companyName || SITE.name;
+  const flightLabel = booking.flightNumber
+    ? [booking.flightAirline, booking.flightNumber].filter(Boolean).join(" ")
+    : null;
+
+  // Past trips: book the same ride again.
+  const airports = isOver
+    ? await db.airport.findMany({
+        where: { active: true },
+        select: { id: true, address: true },
+      })
+    : [];
+  const againPrefill = isOver
+    ? rideAgainPrefill(
+        booking,
+        new Map(airports.map((a) => [a.address, a.id])),
+      )
+    : null;
+
+  // Help: the company's own number and email.
+  const supportPhone = companySettings.dispatchPhone || SITE.phone.display;
+  const supportTel = companySettings.dispatchPhoneRaw
+    ? `+1${companySettings.dispatchPhoneRaw}`
+    : SITE.phone.tel;
+  const supportEmail = companySettings.supportEmail || SITE.email.support;
 
   // Prepare stops for payment client
   const stopsForPayment = booking.stops.map((s) => ({
@@ -365,7 +433,7 @@ export default async function UserTripDetailPage({
       paidDate,
 
       company: {
-        name: companySettings.officeName || "Nier Transportation",
+        name: companySettings.officeName || SITE.name,
         address: companySettings.officeAddress || "",
         city: companySettings.officeCity || "",
         phone: companySettings.dispatchPhone || "",
@@ -410,76 +478,88 @@ export default async function UserTripDetailPage({
 
   return (
     <section className={styles.container}>
-      <header className='header'>
+      {/* Header: what this ride is, at a glance */}
+      <header className={styles.header}>
         <Link href='/dashboard/trips' className='backBtn'>
-          ← Back to My Trips
+          ← Back to my trips
         </Link>
-        <div className={styles.headerTop}>
-          <div className={styles.headerTopLeft}>
-            <h1 className={`${styles.heading} h2`}>Trip Details</h1>
+        <div className={styles.summary}>
+          <div className={styles.summaryTags}>
+            {rel ? <span className={styles.relPill}>{rel}</span> : null}
+            <span className={`badge badge_${currentStatusTone}`}>
+              {currentStatusLabel}
+            </span>
+            {booking.totalCents > 0 ? (
+              <span className={`badge badge_${paymentStatusDisplay.tone}`}>
+                {paymentStatusDisplay.label}
+              </span>
+            ) : null}
           </div>
-          <div className={styles.headerTopRight}>
-            <div className='emptyTitle'>Confirmation #</div>
-            <div className={styles.confirmationValue}>
+          <h1 className={styles.summaryTime}>{pickupTime}</h1>
+          <p className={styles.summaryDate}>{pickupDate}</p>
+          <p className={styles.summaryMeta}>
+            {booking.serviceType?.name ?? "Ride"}
+            {booking.vehicle?.name ? ` · ${booking.vehicle.name}` : ""}
+            {booking.totalCents > 0
+              ? ` · ${formatMoney(booking.totalCents, booking.currency)}`
+              : ""}
+            {booking.payment?.paidAt
+              ? `, paid ${formatDateTime(booking.payment.paidAt, companyTz)}`
+              : ""}
+          </p>
+          <p className={styles.confirmation}>
+            Confirmation #
+            <span className={styles.confirmationValue}>
               {getConfirmationCode(booking.id)}
-            </div>
-          </div>
+            </span>
+          </p>
         </div>
 
-        <div className={styles.box}>
-          <div className={styles.boxLeft}>
-            <div style={{ marginTop: 12 }}>
-              <div className='emptyTitle'>Current Status:</div>
-              <div style={{ marginTop: 6 }}>
-                <span className={`badge badge_${currentStatusTone}`}>
-                  {currentStatusLabel}
-                </span>
-              </div>
-            </div>
-
-            {/* Show decline reason if applicable */}
-            {isDeclined && booking.declineReason && (
-              <div className={styles.declineReasonBox}>
-                <strong>Decline Reason:</strong> {booking.declineReason}
-              </div>
-            )}
+        {/* Show decline reason if applicable */}
+        {isDeclined && booking.declineReason && (
+          <div className={styles.declineReasonBox}>
+            <strong>Why it was declined:</strong> {booking.declineReason}
           </div>
+        )}
 
-          {/* Cancel button in boxRight if allowed */}
-          <div className={styles.boxRight}>
-            {/* {canCancel && <UserCancelTripClient bookingId={booking.id} />} */}
-            {/* Payment status */}
-            <div style={{ marginTop: 12 }}>
-              <div className='emptyTitle'>Payment:</div>
-              <div className={styles.paymentInfo}>
-                <span className={`badge badge_${paymentStatusDisplay.tone}`}>
-                  {paymentStatusDisplay.label}
-                </span>
-                {booking.totalCents > 0 && (
-                  <span className={styles.paymentAmount}>
-                    {formatMoney(booking.totalCents, booking.currency)}
-                  </span>
-                )}
-                {booking.payment?.paidAt && (
-                  <span className='miniNote'>
-                    on {formatDateTime(booking.payment.paidAt, companyTz)}
-                  </span>
-                )}
-              </div>
+        {tipCents > 0 && (
+          <p className={styles.tipDisplay}>
+            <span className={styles.tipLabel}>Chauffeur tip</span>
+            <span className={styles.tipAmount}>
+              {formatMoney(tipCents, booking.currency)}
+            </span>
+          </p>
+        )}
 
-              {/* Show tip amount if present */}
-              {tipCents > 0 && (
-                <div className={styles.tipDisplay}>
-                  <span className={styles.tipIcon}>💰</span>
-                  <span className={styles.tipLabel}>Driver Tip:</span>
-                  <span className={styles.tipAmount}>
-                    {formatMoney(tipCents, booking.currency)}
-                  </span>
-                </div>
-              )}
-            </div>
+        {(isUpcoming && !isDeclined && currentStatus !== "PENDING_REVIEW") ||
+        againPrefill ? (
+          <div className={styles.headerActions}>
+            {isUpcoming && currentStatus !== "PENDING_REVIEW" ? (
+              <AddToCalendar
+                bookingId={booking.id}
+                event={rideCalendarEvent(
+                  {
+                    id: booking.id,
+                    pickupAt: booking.pickupAt,
+                    pickupAddress: booking.pickupAddress,
+                    dropoffAddress: booking.dropoffAddress,
+                    serviceName: booking.serviceType?.name ?? "Ride",
+                    vehicleName: booking.vehicle?.name ?? null,
+                    durationMinutes: booking.durationMinutes,
+                    hoursRequested: booking.hoursRequested,
+                    flight: flightLabel,
+                  },
+                  {
+                    name: companyName,
+                    dispatchPhone: companySettings.dispatchPhone,
+                    siteUrl: SITE.url,
+                  },
+                )}
+              />
+            ) : null}
+            {againPrefill ? <RideAgainButton prefill={againPrefill} /> : null}
           </div>
-        </div>
+        ) : null}
       </header>
 
       {/* Payment Section (if pending payment) */}
@@ -499,7 +579,7 @@ export default async function UserTripDetailPage({
 
       {/* Driver Card (if assigned) */}
       {hasDriver && (
-        <Card title='Your Driver'>
+        <Card title='Your chauffeur'>
           <div className={styles.driverSection}>
             <div className={styles.driverImageWrap}>
               <Image
@@ -512,7 +592,7 @@ export default async function UserTripDetailPage({
               />
             </div>
             <div className={styles.driverInfo}>
-              <KeyVal k='Driver' v={driverName} />
+              <KeyVal k='Chauffeur' v={driverName} />
               {vehicleUnitDisplay && (
                 <KeyVal k='Vehicle' v={vehicleUnitDisplay} />
               )}
@@ -522,13 +602,14 @@ export default async function UserTripDetailPage({
                     href={`tel:${driverPhone}`}
                     className={styles.contactButton}
                   >
-                    📞 Call Driver
+                    <Phone className={styles.contactIcon} aria-hidden='true' />
+                    Call
                   </a>
                   <a
                     href={`sms:${driverPhone}`}
                     className={styles.contactButton}
                   >
-                    💬 Text
+                    Text
                   </a>
                 </div>
               )}
@@ -542,7 +623,7 @@ export default async function UserTripDetailPage({
         <KeyVal k='Date' v={formatDateTime(booking.pickupAt, companyTz)} />
         <KeyVal
           k='Distance / duration'
-          v={`${toNumber(booking.distanceMiles) ?? "—"} mi • ${booking.durationMinutes ?? "—"} min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
+          v={`${toNumber(booking.distanceMiles) ?? "—"} mi · ${booking.durationMinutes ?? "—"} min${hasStops ? ` (includes ${stopCount} stop${stopCount > 1 ? "s" : ""})` : ""}`}
         />
         <KeyVal
           k='Amount'
@@ -561,36 +642,32 @@ export default async function UserTripDetailPage({
             <div className={styles.sectionDivider} />
             <div className={styles.stopsSection}>
               <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                <span style={{ marginRight: "2rem" }}>🛑</span>Route with{" "}
-                {stopCount} Extra Stop{stopCount > 1 ? "s" : ""}
+                Route with {stopCount} extra stop{stopCount > 1 ? "s" : ""}
               </div>
               <div className={styles.routeTimeline}>
                 {/* Pickup */}
                 <div className={styles.routePoint}>
-                  <div
-                    className={styles.routeMarker}
-                    style={{ background: "#22c55e" }}
-                  >
+                  <div className={`${styles.routeMarker} ${styles.markerPickup}`}>
                     A
                   </div>
                   <div className={styles.routeAddress}>
                     <div className='emptyTitle'>Pickup</div>
-                    <p className='subheading'>{booking.pickupAddress}</p>
+                    <AddressLines
+                      address={booking.pickupAddress}
+                      className='subheading'
+                    />
                   </div>
                 </div>
 
                 {/* Stops */}
                 {booking.stops.map((stop, index) => (
                   <div key={stop.id} className={styles.routePoint}>
-                    <div
-                      className={styles.routeMarker}
-                      style={{ background: "#3b82f6" }}
-                    >
+                    <div className={`${styles.routeMarker} ${styles.markerStop}`}>
                       {index + 1}
                     </div>
                     <div className={styles.routeAddress}>
                       <div className='emptyTitle'>Stop {index + 1}</div>
-                      <p className='subheading'>{stop.address}</p>
+                      <AddressLines address={stop.address} className='subheading' />
                       <span className='miniNote'>
                         ~{stop.waitTimeMinutes ?? 5} min wait
                       </span>
@@ -600,15 +677,15 @@ export default async function UserTripDetailPage({
 
                 {/* Dropoff */}
                 <div className={styles.routePoint}>
-                  <div
-                    className={styles.routeMarker}
-                    style={{ background: "#ef4444" }}
-                  >
+                  <div className={`${styles.routeMarker} ${styles.markerDropoff}`}>
                     B
                   </div>
                   <div className={styles.routeAddress}>
-                    <div className='emptyTitle'>Dropoff</div>
-                    <p className='subheading'>{booking.dropoffAddress}</p>
+                    <div className='emptyTitle'>Drop-off</div>
+                    <AddressLines
+                      address={booking.dropoffAddress}
+                      className='subheading'
+                    />
                   </div>
                 </div>
               </div>
@@ -630,8 +707,14 @@ export default async function UserTripDetailPage({
           </>
         ) : (
           <>
-            <KeyVal k='Pickup' v={booking.pickupAddress} />
-            <KeyVal k='Dropoff' v={booking.dropoffAddress} />
+            <KeyVal
+              k='Pickup'
+              v={<AddressLines address={booking.pickupAddress} />}
+            />
+            <KeyVal
+              k='Drop-off'
+              v={<AddressLines address={booking.dropoffAddress} />}
+            />
           </>
         )}
 
@@ -667,17 +750,20 @@ export default async function UserTripDetailPage({
             <div className={styles.sectionDivider} />
             <div className={styles.flightSection}>
               <div className='cardTitle h5' style={{ marginBottom: 10 }}>
-                ✈️ Flight Information
+                <span className={styles.flightTitle}>
+                  <Plane className={styles.flightIcon} aria-hidden='true' />
+                  Flight
+                </span>
               </div>
               {booking.flightAirline && (
                 <KeyVal k='Airline' v={booking.flightAirline} />
               )}
               {booking.flightNumber && (
-                <KeyVal k='Flight Number' v={booking.flightNumber} />
+                <KeyVal k='Flight number' v={booking.flightNumber} />
               )}
               {booking.flightScheduledAt && (
                 <KeyVal
-                  k='Scheduled Time'
+                  k='Scheduled time'
                   v={formatDateTime(booking.flightScheduledAt, companyTz)}
                 />
               )}
@@ -697,18 +783,20 @@ export default async function UserTripDetailPage({
       )}
 
       {/* Help Section */}
-      <Card title='Need Help?'>
+      <Card title='Need help?'>
         <div className={styles.helpContent}>
           <p className='subheading'>
-            If you have questions about your booking or need to make changes,
-            please contact us.
+            Questions about this ride, or need to change something? Dispatch
+            can help.
           </p>
           <div className={styles.helpActions}>
-            <a href='tel:+14805551234' className={styles.helpButton}>
-              📞 Call Support
+            <a href={`tel:${supportTel}`} className={styles.helpButton}>
+              <Phone className={styles.contactIcon} aria-hidden='true' />
+              Call {supportPhone}
             </a>
-            <a href='mailto:support@example.com' className={styles.helpButton}>
-              ✉️ Email Us
+            <a href={`mailto:${supportEmail}`} className={styles.helpButton}>
+              <Email className={styles.contactIcon} aria-hidden='true' />
+              Email us
             </a>
           </div>
         </div>
@@ -728,11 +816,11 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function KeyVal({ k, v }: { k: string; v: string }) {
+function KeyVal({ k, v }: { k: string; v: ReactNode }) {
   return (
     <div className={styles.keyVal}>
       <div className='emptyTitle'>{k}</div>
-      <p className='subheading'>{v}</p>
+      <div className='subheading'>{v}</div>
     </div>
   );
 }

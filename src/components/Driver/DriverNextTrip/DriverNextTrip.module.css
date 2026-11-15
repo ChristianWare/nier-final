@@ -1,151 +1,315 @@
+/* The driver's next ride: a white card like the track page's trip details,
+   with the time large, the route as two joined stops, and Open trip /
+   Navigate at the bottom. */
+
 .container {
-  display: grid;
-  gap: 2rem;
-  margin-bottom: 10rem;
-}
-
-.header {
-  display: grid;
-  gap: 12px;
-}
-
-.titleRow {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column;
+  gap: 2.4rem;
+  padding: 2.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background-color: var(--white);
 }
 
-.icon {
-  display: inline-block;
-  margin-right: 1rem;
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.2rem;
+  border-bottom: 2px solid var(--black);
+}
+
+/* The title's own rule is replaced by the header's. */
+.top :global(.cardTitle) {
+  padding: 0;
+  border: none;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .timePill {
-  font-size: 12px;
+  padding: 0.5rem 1rem;
   border-radius: 999px;
-  padding: 6px 12px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  background: rgba(59, 130, 246, 0.1);
-  color: #1d4ed8;
-  font-weight: 700;
-  white-space: nowrap;
+  background-color: var(--black);
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cream);
 }
 
-/* Empty State */
-.empty {
-  padding: 14px 2px;
-  display: grid;
-  gap: 8px;
+/* ── When ── */
+
+.when {
+  display: flex;
+  align-items: baseline;
+  gap: 1.6rem;
+  flex-wrap: wrap;
 }
 
-.emptyTitle {
+.time {
+  font-family: var(--inter);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-size: 48px;
+  line-height: 0.9;
+  color: var(--black);
+}
+
+.date {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.7rem;
+  line-height: 1.3;
+  color: var(--paragraph);
+}
+
+/* ── Where: two stops joined by a line ── */
+
+.route {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
   margin: 0;
-  font-size: 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 1.4rem;
+  row-gap: 0.3rem;
+}
+
+/* The line from the pickup dot down to the drop-off dot. */
+.stop:first-child::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  bottom: -1.6rem;
+  left: 8px;
+  width: 2px;
+  background-color: var(--stroke);
+}
+
+.dot {
+  grid-row: 1 / span 2;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+}
+
+/* The same colours as the booking map's markers. */
+.dotPickup {
+  border: 3px solid var(--white);
+  background-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.dotDropoff {
+  border: 3px solid var(--accent);
+  background-color: var(--black);
+}
+
+.stopLabel {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
+}
+
+/* Place name in bold, then street and city on their own lines. */
+.stopAddress > span:first-child {
+  font-family: var(--inter);
   font-weight: 600;
 }
 
-.emptyCopy {
-  margin: 0;
-  opacity: 0.75;
+.stopAddress {
+  grid-column: 2;
+  font-family: var(--inter);
+  font-size: 1.7rem;
+  line-height: 1.4;
+  color: var(--black);
 }
 
-/* Card - Blue styling with hover effect */
-.card {
-  background: linear-gradient(
-    135deg,
-    rgba(59, 130, 246, 0.08) 0%,
-    rgba(37, 99, 235, 0.12) 100%
-  );
-  border-radius: 12px;
-  padding: 14px;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 3rem;
-  width: 100%;
-  color: inherit;
-  text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-}
+/* ── Who and what ── */
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
-  border-color: rgba(59, 130, 246, 0.5);
-}
-
-.cardTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  width: 100%;
-}
-
-.tripMeta {
+.details {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 2rem;
-  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--stroke);
 }
 
-.row {
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.4rem 1.6rem 1.4rem 0;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.detail dt {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
+}
+
+.detail dd {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1rem;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: var(--inter);
+  font-size: 1.6rem;
+  line-height: 1.4;
+  color: var(--black);
 }
 
-.emptyTitleLocal {
-  border-bottom: 1px solid var(--stroke);
-  width: 100%;
-  padding-bottom: 0.5rem;
+.pay {
+  font-family: var(--inter) !important;
+  font-weight: 600 !important;
+  color: var(--darkGreen) !important;
 }
 
-.pill {
-  margin-left: 10px;
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+.call {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--inter);
+  font-weight: 600;
+  color: var(--black);
+  border-bottom: 1px solid var(--accent);
+  white-space: nowrap;
+}
+
+.callIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.requests {
+  padding: 1.2rem 1.4rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 5px;
+  background-color: var(--cream);
+  font-size: 1.6rem;
+  line-height: 1.5;
+  color: var(--black);
+  hyphens: none;
+}
+
+.requests strong {
+  font-family: var(--inter);
+  font-weight: 600;
+}
+
+/* ── Actions ── */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+}
+
+.navigate {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.8rem;
+  height: 52px;
+  padding: 0 2rem;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  background-color: var(--white);
+  font-family: var(--inter);
+  font-size: 16px;
   line-height: 1;
+  color: var(--black);
   white-space: nowrap;
-  color: #1d4ed8;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
-.btnRow {
+.navigate:hover {
+  background-color: var(--black);
+  color: var(--cream);
+}
+
+.navigateIcon {
+  width: 18px;
+  height: 18px;
+  color: var(--accent);
+}
+
+/* ── Nothing assigned ── */
+
+.empty {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 2.4rem;
+  border: 1px dashed var(--stroke);
+  border-radius: 5px;
+  background-color: var(--cream);
+}
+
+.emptyTitle {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.7rem;
+  line-height: 1.3;
+  color: var(--black);
+}
+
+.emptyCopy {
+  font-size: 1.6rem;
+  line-height: 1.5;
+  color: var(--paragraph);
+  hyphens: none;
+}
+
+.inlineLink {
+  font-family: var(--inter);
+  font-weight: 600;
+  color: var(--black);
+  border-bottom: 1px solid var(--accent);
+  white-space: nowrap;
 }
 
 @media screen and (max-width: 568px) {
   .container {
-    gap: 1rem;
+    padding: 2rem 1.6rem;
   }
 
-  .card {
-    padding: 12px;
-    gap: 2rem;
+  .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .cardTop {
-    flex-direction: column;
-    align-items: flex-start;
+  .actions > * {
+    width: 100% !important;
   }
 }

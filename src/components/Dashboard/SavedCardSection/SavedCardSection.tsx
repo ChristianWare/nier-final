@@ -17,6 +17,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Button from "@/components/shared/Button/Button";
+import Payment from "@/components/shared/icons/Payment/Payment";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -222,11 +223,7 @@ function AddCardForm({
         />
       </div>
 
-      {error && (
-        <div className={styles.formError}>
-          <span>⚠️</span> {error}
-        </div>
-      )}
+      {error && <div className={styles.formError}>{error}</div>}
 
       <div className={styles.formActions}>
         <Button
@@ -348,7 +345,8 @@ export default function SavedCardSection({
       {/* Toast */}
       {toast && (
         <div className={`${styles.toast} ${styles[`toast_${toast.type}`]}`}>
-          {toast.type === "success" ? "✓" : "⚠️"} {toast.msg}
+          {toast.type === "success" ? "✓ " : ""}
+          {toast.msg}
         </div>
       )}
 
@@ -369,7 +367,9 @@ export default function SavedCardSection({
       {/* Empty state — no cards, not adding */}
       {cards.length === 0 && !isAdding && (
         <div className={styles.emptyState}>
-          <span className={styles.emptyIcon}>💳</span>
+          <span className={styles.emptyIcon} aria-hidden='true'>
+            <Payment />
+          </span>
           <div className={styles.emptyText}>
             <span className={styles.emptyTitle}>No card saved yet</span>
             <span className={styles.emptySub}>

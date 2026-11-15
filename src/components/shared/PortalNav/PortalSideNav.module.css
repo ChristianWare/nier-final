@@ -1,0 +1,160 @@
+/* A dashboard's side nav (driver, customer): a white panel with the pages
+   in groups, the current page in the accent with white text, and
+   sign-out at the bottom in one quiet style. At 1068px and below the
+   bottom bar (PortalBottomBar) replaces it. */
+
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.2rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background-color: var(--white);
+  font-family: var(--inter);
+}
+
+.navigating {
+  pointer-events: none;
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+.loadingOverlay > * {
+  width: auto !important;
+  height: auto !important;
+}
+
+/* ── Groups ── */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.groupLabel {
+  padding: 0 1.2rem 0.6rem;
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
+}
+
+/* ── Links ── */
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  border-radius: 5px;
+  font-size: 1.6rem;
+  line-height: 1.2;
+  color: var(--black);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.navIcon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--paragraph);
+  transition: color 0.2s ease;
+}
+
+.navIcon > *,
+.navIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.title {
+  flex: 1;
+}
+
+.navLinkActive {
+  background-color: var(--accent);
+  font-family: var(--inter);
+  font-weight: 600;
+}
+
+.navLinkActive .navIcon {
+  color: var(--black);
+}
+
+/* ── Other dashboards and sign-out, one quiet style ── */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 1.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  background-color: var(--white);
+  font-family: var(--inter);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--black);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.arrow {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  transform: rotate(90deg);
+}
+
+@media (hover: hover) {
+  .navLink:hover {
+    background-color: var(--accent);
+  }
+
+  .navLink:hover .navIcon {
+    color: var(--black);
+  }
+
+  .actionBtn:hover {
+    border-color: var(--black);
+  }
+}

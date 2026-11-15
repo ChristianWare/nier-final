@@ -89,7 +89,7 @@
 
 .rangeSubmit {
   padding: 0.65rem 1.4rem;
-  border-radius: 8px;
+  border-radius: 5px;
   border: 1px solid var(--stroke);
   background: var(--black);
   color: var(--white);
@@ -113,12 +113,8 @@
 }
 
 .filterSection {
-  background: linear-gradient(
-    135deg,
-    rgba(37, 99, 235, 0.03) 0%,
-    rgba(37, 99, 235, 0.06) 100%
-  );
-  border: 2px solid rgba(37, 99, 235, 0.1);
+  background: var(--cream);
+  border: 1px solid var(--stroke);
   border-radius: 10px;
   padding: 1.4rem 2rem;
   display: flex;
@@ -137,7 +133,7 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 1.4rem;
   font-weight: 600;
   color: var(--black, #000);
@@ -170,7 +166,7 @@
   justify-content: center;
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: 5px;
   border: 2px solid var(--stroke, #d8d6d2);
   background: var(--white, #fff);
   flex-shrink: 0;
@@ -211,7 +207,7 @@
 .tableCard {
   background: #fff;
   border: 1px solid var(--stroke, #d8d6d2);
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
 }
 
@@ -389,7 +385,7 @@
   text-align: center;
   background: #fff;
   border: 1px solid var(--stroke, #d8d6d2);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -448,7 +444,7 @@
   min-width: 36px;
   height: 36px;
   padding: 0 0.6rem;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 1.4rem;
   font-weight: 600;
   text-decoration: none;

@@ -6,6 +6,11 @@ import { redirect } from "next/navigation";
 import CorporateNewBookingWizard from "@/components/corporate/CorporateNewBookingWizard/CorporateNewBookingWizard";
 import { getCompanySettings } from "../../../../../actions/admin/companySettings";
 import DirtyFormProvider from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
+import {
+  RIDE_AGAIN_SELECT,
+  rideAgainPrefill,
+} from "@/components/Dashboard/RideAgain/rideAgainPrefill";
+import type { CorporateRideAgainPrefill } from "@/components/corporate/CorporateNewBookingWizard/CorporateNewBookingWizard";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +40,12 @@ function decToNumber(v: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-export default async function CorporateNewBookingPage() {
+export default async function CorporateNewBookingPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ again?: string }>;
+}) {
+  const sp = (await searchParams) ?? {};
   const session = await auth();
   if (!session?.user) redirect("/login?next=/corporate/bookings/new");
 
@@ -120,6 +130,40 @@ export default async function CorporateNewBookingPage() {
     }),
   ]);
 
+  // Book again: /corporate/bookings/new?again=<ride> opens the form with
+  // that ride's passenger, route, service, vehicle and party size. Only
+  // the company's own rides.
+  let initialPrefill: CorporateRideAgainPrefill | undefined;
+  const againId = typeof sp.again === "string" ? sp.again.slice(0, 64) : "";
+  if (againId) {
+    const past = await db.booking.findFirst({
+      where: { id: againId, corporateAccountId: account.id },
+      select: {
+        ...RIDE_AGAIN_SELECT,
+        corporatePassengerId: true,
+        costCenter: true,
+        projectCode: true,
+        serviceType: { select: { airportLeg: true } },
+      },
+    });
+    if (past) {
+      const airports = serviceTypes.flatMap((st) => st.airports);
+      const airportIdByAddress = new Map(
+        airports.map((a) => [a.address, a.id]),
+      );
+      initialPrefill = {
+        ...rideAgainPrefill(past, airportIdByAddress),
+        corporatePassengerId: passengers.some(
+          (p) => p.id === past.corporatePassengerId,
+        )
+          ? (past.corporatePassengerId ?? undefined)
+          : undefined,
+        costCenter: past.costCenter ?? undefined,
+        projectCode: past.projectCode ?? undefined,
+      };
+    }
+  }
+
   const blackoutsByYmd: Record<string, boolean> = {};
   for (const b of blackouts) blackoutsByYmd[b.ymd] = true;
 
@@ -190,6 +234,7 @@ export default async function CorporateNewBookingPage() {
         passengers={passengers}
         corporateAccount={corporateAccountData}
         companyTimezone={companyTz}
+        initialPrefill={initialPrefill}
       />
     </DirtyFormProvider>
   );

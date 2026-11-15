@@ -99,7 +99,7 @@ export default function AdminFinanceSnapshot({
   return (
     <section className={styles.container} aria-label='Finance snapshot'>
       <header className='header'>
-        <h2 className='cardTitle h4'>{monthLabel} - Daily Earnings</h2>
+        <h2 className='cardTitle h4'>{monthLabel}: daily earnings</h2>
       </header>
 
       {Array.isArray(chartData) && chartData.length > 0 ? (
@@ -108,7 +108,21 @@ export default function AdminFinanceSnapshot({
             <div className='emptyTitle underline'>Month to date</div>
             <div className='miniNote'>Daily net with captured & refunded</div>
           </div>
-          <AdminFinanceMiniChart data={chartData} currency={currency} />
+          {/* A month with no payments yet gets a line, not an empty chart. */}
+          {chartData.some(
+            (d) => d.capturedCents || d.refundedCents || d.count,
+          ) ? (
+            <AdminFinanceMiniChart data={chartData} currency={currency} />
+          ) : (
+            <div className={styles.chartEmpty}>
+              <p className={styles.chartEmptyTitle}>
+                No payments yet this month
+              </p>
+              <p className='miniNote'>
+                Each day&apos;s earnings show here as rides are paid.
+              </p>
+            </div>
+          )}
         </div>
       ) : null}
 
@@ -161,7 +175,7 @@ export default function AdminFinanceSnapshot({
         <Button
           href='/admin/earnings'
           text='See all earnings'
-          btnType='green'
+          btnType='black'
           arrow
         />
       </div>

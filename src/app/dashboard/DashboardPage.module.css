@@ -1,5 +1,51 @@
 .container {
   display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 4rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 4rem;
+}
+
+/* No ride booked: one card, one button. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background-color: var(--white);
+}
+
+.emptyBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 2.4rem;
+  border: 1px dashed var(--stroke);
+  border-radius: 5px;
+  background-color: var(--cream);
+}
+
+.emptyTitle {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.8rem;
+  line-height: 1.3;
+  color: var(--black);
+}
+
+.emptyCopy {
+  max-width: 520px;
+  margin-bottom: 1.2rem;
+  font-size: 1.6rem;
+  line-height: 1.5;
+  color: var(--paragraph);
+  hyphens: none;
+}
+
+@media screen and (max-width: 568px) {
+  .empty,
+  .emptyBody {
+    padding: 2rem 1.6rem;
+  }
 }

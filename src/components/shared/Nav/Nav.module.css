@@ -680,3 +680,224 @@
     display: none !important;
   }
 }
+
+/* ── Admin options (admin pages, 1368px and below) ──
+   The menu gains an "Admin options" row; it slides a second cream panel
+   in from the right over the menu, with the admin's sections. Each
+   section opens its links below it, one at a time. */
+
+/* On admin pages the menu starts at the top: with the extra row it can be
+   taller than the screen, and centring would cut its top off. */
+.navItemsAdmin {
+  justify-content: flex-start !important;
+}
+
+/* While the panel is open it covers the menu, which stops scrolling. */
+.navItemsAdminOpen {
+  overflow: hidden !important;
+}
+
+.navItems .adminOptions {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2rem 0 1.8rem;
+  border-top: 3px solid var(--stroke);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--accent) !important;
+}
+
+.adminOptionsArrow {
+  width: 1.8rem;
+  height: 1.8rem;
+  flex-shrink: 0;
+  color: var(--accent);
+  transform: rotate(90deg);
+}
+
+.adminPanel {
+  position: absolute;
+  inset: 0;
+  /* Above the menu's rows, which sit at 999. */
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 2rem;
+  padding-top: 7rem;
+  background: var(--cream);
+  overflow-y: auto;
+  visibility: hidden;
+  transform: translateX(110%);
+  transition:
+    transform 0.35s ease-in-out,
+    visibility 0.35s;
+  box-sizing: border-box;
+}
+
+.adminPanelOpen {
+  visibility: visible;
+  transform: translateX(0);
+}
+
+.adminBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--black);
+  cursor: pointer;
+}
+
+.adminBackArrow {
+  width: 1.4rem;
+  height: 1.4rem;
+  transform: rotate(-90deg);
+}
+
+.adminEyebrow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2.4rem 0 1rem;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--black);
+}
+
+.adminEyebrow::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background-color: var(--accent);
+}
+
+.adminGroups {
+  width: 100%;
+  margin: 0 0 2.4rem;
+  padding: 0;
+  list-style: none;
+  border-bottom: 3px solid var(--stroke);
+}
+
+.adminGroup {
+  border-top: 3px solid var(--stroke);
+}
+
+/* Section headings: the menu's own row style, with the caret. */
+.adminHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 2rem 0 1.8rem;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.5px;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--black);
+  cursor: pointer;
+}
+
+.adminHeading .caret {
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+/* The links under a heading, opening and closing smoothly. */
+.adminSection {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.adminSectionOpen {
+  grid-template-rows: 1fr;
+}
+
+.adminLinks {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+.adminSectionOpen .adminLinks {
+  padding-bottom: 1.4rem;
+}
+
+.adminLink {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.8rem 1.2rem;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  font-family: inherit;
+  font-size: 1.6rem;
+  font-weight: 500;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+  text-align: left;
+  color: var(--black);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.adminLink:hover {
+  background-color: var(--white);
+}
+
+.adminLinkActive,
+.adminLinkActive:hover {
+  background-color: var(--accent);
+  font-weight: 600;
+  color: var(--white);
+}
+
+.adminIcon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--black400);
+}
+
+.adminLinkActive .adminIcon {
+  color: var(--white);
+}
+
+.adminIcon > *,
+.adminIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adminPanel,
+  .adminSection {
+    transition: none;
+  }
+}

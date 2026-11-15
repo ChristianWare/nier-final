@@ -5,6 +5,7 @@ import styles from "./DriverTripsSnapshot.module.css";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import Car from "@/components/shared/icons/Car/Car";
 export type TripItem = {
   id: string;
   status: string;
@@ -167,7 +168,9 @@ export default function DriverTripsSnapshot({
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2 className='cardTitle h4'>
-            <span className={styles.cc}>🚗</span>
+            <span className={styles.cc}>
+              <Car aria-hidden='true' />
+            </span>
             My Trips
           </h2>
 
@@ -268,7 +271,6 @@ export default function DriverTripsSnapshot({
 
                   {trip.specialRequests && (
                     <div className={styles.specialRequests}>
-                      <span className={styles.specialIcon}>⚠️</span>
                       <span className='miniNote'>{trip.specialRequests}</span>
                     </div>
                   )}

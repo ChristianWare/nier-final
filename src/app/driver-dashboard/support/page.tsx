@@ -12,6 +12,14 @@ import {
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import DriverSupportFAQ from "./Driversupportfaq";
 
+import Phone from "@/components/shared/icons/Phone/Phone";
+import Support from "@/components/shared/icons/Support/Support";
+import Email from "@/components/shared/icons/Email/Email";
+import FileIcon from "@/components/shared/icons/FileIcon/FileIcon";
+import Listing from "@/components/shared/icons/Listing/Listing";
+import Saftey from "@/components/shared/icons/Saftey/Saftey";
+import Payment from "@/components/shared/icons/Payment/Payment";
+import Location from "@/components/shared/icons/Location/Location";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -96,7 +104,9 @@ export default async function DriverSupportPage() {
 
       {/* Emergency Contact - Prominent */}
       <div className={styles.emergencyCard}>
-        <div className={styles.emergencyIcon}>🚨</div>
+        <div className={styles.emergencyIcon}>
+          <Phone aria-hidden='true' />
+        </div>
         <div className={styles.emergencyContent}>
           <h2 className={styles.emergencyTitle}>Need Immediate Help?</h2>
           <p className={styles.emergencyText}>
@@ -108,7 +118,7 @@ export default async function DriverSupportPage() {
           href={`tel:${settings.dispatchPhoneRaw}`}
           className={styles.emergencyButton}
         >
-          📞 Call Dispatch Now
+          Call Dispatch Now
         </a>
       </div>
 
@@ -124,7 +134,9 @@ export default async function DriverSupportPage() {
             href={`tel:${settings.dispatchPhoneRaw}`}
             className={styles.contactCard}
           >
-            <div className={styles.contactIcon}>📞</div>
+            <div className={styles.contactIcon}>
+              <Phone aria-hidden='true' />
+            </div>
             <div className={styles.contactInfo}>
               <div className={styles.contactTitle}>Call Dispatch</div>
               <div className={styles.contactDetail}>
@@ -138,7 +150,9 @@ export default async function DriverSupportPage() {
             href={`sms:${settings.dispatchPhoneRaw}`}
             className={styles.contactCard}
           >
-            <div className={styles.contactIcon}>💬</div>
+            <div className={styles.contactIcon}>
+              <Support aria-hidden='true' />
+            </div>
             <div className={styles.contactInfo}>
               <div className={styles.contactTitle}>Text Dispatch</div>
               <div className={styles.contactDetail}>
@@ -152,7 +166,9 @@ export default async function DriverSupportPage() {
             href={`mailto:${settings.supportEmail}`}
             className={styles.contactCard}
           >
-            <div className={styles.contactIcon}>✉️</div>
+            <div className={styles.contactIcon}>
+              <Email aria-hidden='true' />
+            </div>
             <div className={styles.contactInfo}>
               <div className={styles.contactTitle}>Email Support</div>
               <div className={styles.contactDetail}>
@@ -168,7 +184,9 @@ export default async function DriverSupportPage() {
             href={`tel:${settings.emergencyPhoneRaw}`}
             className={`${styles.contactCard} ${styles.contactCardEmergency}`}
           >
-            <div className={styles.contactIcon}>🆘</div>
+            <div className={styles.contactIcon}>
+              <Phone aria-hidden='true' />
+            </div>
             <div className={styles.contactInfo}>
               <div className={styles.contactTitle}>Emergency Line</div>
               <div className={styles.contactDetail}>
@@ -201,7 +219,9 @@ export default async function DriverSupportPage() {
 
         <div className={styles.resourcesGrid}>
           <div className={styles.resourceCard}>
-            <div className={styles.resourceIcon}>📖</div>
+            <div className={styles.resourceIcon}>
+              <FileIcon aria-hidden='true' />
+            </div>
             <div className={styles.resourceContent}>
               <div className={styles.resourceTitle}>Driver Handbook</div>
               <div className={styles.resourceDesc}>
@@ -212,7 +232,9 @@ export default async function DriverSupportPage() {
           </div>
 
           <div className={styles.resourceCard}>
-            <div className={styles.resourceIcon}>✅</div>
+            <div className={styles.resourceIcon}>
+              <Listing aria-hidden='true' />
+            </div>
             <div className={styles.resourceContent}>
               <div className={styles.resourceTitle}>
                 Vehicle Inspection Checklist
@@ -225,7 +247,9 @@ export default async function DriverSupportPage() {
           </div>
 
           <div className={styles.resourceCard}>
-            <div className={styles.resourceIcon}>🛡️</div>
+            <div className={styles.resourceIcon}>
+              <Saftey aria-hidden='true' />
+            </div>
             <div className={styles.resourceContent}>
               <div className={styles.resourceTitle}>Safety Guidelines</div>
               <div className={styles.resourceDesc}>
@@ -236,7 +260,9 @@ export default async function DriverSupportPage() {
           </div>
 
           <div className={styles.resourceCard}>
-            <div className={styles.resourceIcon}>💳</div>
+            <div className={styles.resourceIcon}>
+              <Payment aria-hidden='true' />
+            </div>
             <div className={styles.resourceContent}>
               <div className={styles.resourceTitle}>Payment & Earnings FAQ</div>
               <div className={styles.resourceDesc}>
@@ -282,7 +308,9 @@ export default async function DriverSupportPage() {
             {showAddress && (
               <div className={styles.officeMap}>
                 <div className={styles.officeAddress}>
-                  <div className={styles.officeIcon}>📍</div>
+                  <div className={styles.officeIcon}>
+                    <Location aria-hidden='true' />
+                  </div>
                   <div>
                     {settings.officeName && (
                       <div className={styles.officeName}>

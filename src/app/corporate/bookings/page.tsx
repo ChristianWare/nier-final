@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import RouteDot from "@/components/shared/RouteDot/RouteDot";
+import Appointments from "@/components/shared/icons/Appointments/Appointments";
 import styles from "./CorporateBookings.module.css";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -137,11 +139,11 @@ function statusLabel(status: BookingStatus) {
     case "CONFIRMED":
       return "Confirmed";
     case "ASSIGNED":
-      return "Driver Assigned";
+      return "Chauffeur assigned";
     case "EN_ROUTE":
-      return "Driver En Route";
+      return "On the way";
     case "ARRIVED":
-      return "Driver Arrived";
+      return "Chauffeur arrived";
     case "IN_PROGRESS":
       return "In Progress";
     case "COMPLETED":
@@ -624,8 +626,9 @@ export default async function CorporateBookingsPage({
         >
           <Button
             href='/corporate/bookings/new'
-            text='New Booking +'
-            btnType='greenReg'
+            text='Book a ride'
+            btnType='blackReg'
+            arrow
           />
         </div>
 
@@ -755,7 +758,9 @@ export default async function CorporateBookingsPage({
 
       {bookings.length === 0 ? (
         <div className={styles.empty}>
-          <div className={styles.emptyIcon}>📋</div>
+          <div className={styles.emptyIcon} aria-hidden='true'>
+            <Appointments />
+          </div>
           <p className={styles.emptyTitle}>No bookings found</p>
           <p className={styles.emptyCopy}>
             {hasActiveFilters
@@ -792,7 +797,7 @@ export default async function CorporateBookingsPage({
                     currentOrder={order}
                     baseParams={baseParams}
                   />
-                  <th className={styles.th}>Driver</th>
+                  <th className={styles.th}>Chauffeur</th>
                   <SortableHeader
                     label='Fare'
                     column='total'
@@ -914,11 +919,15 @@ export default async function CorporateBookingsPage({
                         />
                         <div className={styles.routeCell}>
                           <div className={styles.routeFrom}>
-                            <span className={styles.routeIcon}>📍</span>
+                            <span className={styles.routeIcon}>
+                              <RouteDot kind='pickup' />
+                            </span>
                             {shortAddress(b.pickupAddress)}
                           </div>
                           <div className={styles.routeTo}>
-                            <span className={styles.routeIcon}>🏁</span>
+                            <span className={styles.routeIcon}>
+                              <RouteDot kind='dropoff' />
+                            </span>
                             {shortAddress(b.dropoffAddress)}
                           </div>
                         </div>
@@ -952,7 +961,7 @@ export default async function CorporateBookingsPage({
                       {/* Driver */}
                       <td
                         className={styles.td}
-                        data-label='Driver'
+                        data-label='Chauffeur'
                         style={{ position: "relative" }}
                       >
                         <Link

@@ -11,6 +11,8 @@ import UserSearchFormClient from "./UserSearchFormClient";
 import UserFilterSelectClient from "./Userfilterselectclient";
 import UserCustomRangeFormClient from "./UserCustomRangeFormClient";
 import UserClearFiltersButton from "./UserClearFiltersButton";
+import RouteDot from "@/components/shared/RouteDot/RouteDot";
+import Calendar from "@/components/shared/icons/Calendar/Calendar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -131,11 +133,11 @@ function statusLabel(status: BookingStatus) {
     case "CONFIRMED":
       return "Confirmed";
     case "ASSIGNED":
-      return "Driver Assigned";
+      return "Chauffeur assigned";
     case "EN_ROUTE":
-      return "Driver En Route";
+      return "On the way";
     case "ARRIVED":
-      return "Driver Arrived";
+      return "Chauffeur arrived";
     case "IN_PROGRESS":
       return "In Progress";
     case "COMPLETED":
@@ -644,7 +646,9 @@ export default async function UserTripsPage({
 
       {bookings.length === 0 ? (
         <div className={styles.empty}>
-          <div className={styles.emptyIcon}>📅</div>
+          <div className={styles.emptyIcon} aria-hidden='true'>
+            <Calendar />
+          </div>
           <p className={styles.emptyTitle}>No trips found</p>
           <p className={styles.emptyCopy}>
             {hasActiveFilters
@@ -683,7 +687,7 @@ export default async function UserTripsPage({
                     currentOrder={order}
                     baseParams={baseParams}
                   />
-                  <th className={styles.th}>Driver</th>
+                  <th className={styles.th}>Chauffeur</th>
                   <SortableHeader
                     label='Total'
                     column='total'
@@ -788,11 +792,15 @@ export default async function UserTripsPage({
                         />
                         <div className={styles.routeCell}>
                           <div className={styles.routeFrom}>
-                            <span className={styles.routeIcon}>📍</span>
+                            <span className={styles.routeIcon}>
+                              <RouteDot kind='pickup' />
+                            </span>
                             {shortAddress(b.pickupAddress)}
                           </div>
                           <div className={styles.routeTo}>
-                            <span className={styles.routeIcon}>🏁</span>
+                            <span className={styles.routeIcon}>
+                              <RouteDot kind='dropoff' />
+                            </span>
                             {shortAddress(b.dropoffAddress)}
                           </div>
                         </div>
@@ -826,7 +834,7 @@ export default async function UserTripsPage({
                       {/* Driver */}
                       <td
                         className={styles.td}
-                        data-label='Driver'
+                        data-label='Chauffeur'
                         style={{ position: "relative" }}
                       >
                         <Link

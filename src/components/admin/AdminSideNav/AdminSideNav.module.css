@@ -1,8 +1,15 @@
+/* The admin side nav: a white panel with the pages in four groups, the
+   current page in the accent with white text, and the dashboards and
+   sign-out at the bottom in one quiet style. At 1068px and below it folds
+   behind a toggle and opens as a grid of tiles. */
+
 .container {
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--stroke);
   border-radius: 10px;
-  background-color: var(--cream);
+  background-color: var(--white);
+  font-family: var(--inter);
 }
 
 @media screen and (max-width: 568px) {
@@ -10,7 +17,6 @@
     width: 100%;
     overflow: visible;
     transition: none;
-    border-radius: 7px;
   }
 
   .containerCollapsed {
@@ -19,14 +25,14 @@
 }
 
 .nav {
+  position: relative;
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
   gap: 3rem;
   height: 100%;
-  flex: 1;
-  position: relative;
 }
 
 .navNavigating {
@@ -54,22 +60,22 @@
 }
 
 .navLinks {
-  list-style: none;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1rem;
+  width: 100%;
+  padding: 1.2rem;
+  list-style: none;
   transition:
     max-height 0.3s ease,
     opacity 0.3s ease;
-  position: relative;
-  width: 100%;
 }
 
 .linksWrapper {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 2rem;
   transition: opacity 0.2s ease;
 }
 
@@ -85,38 +91,66 @@
   display: none;
 }
 
+/* ── Groups ── */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.groupLabel {
+  padding: 0 1.2rem 0.6rem;
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
+}
+
+/* ── Links ── */
+
 .navItem {
   position: relative;
   list-style: none;
 }
 
-.navLink,
-.signOutBtn,
-.homeBtn {
+.navLink {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 2rem;
+  gap: 1.2rem;
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  border-radius: 5px;
+  background-color: transparent;
+  font-family: var(--inter);
   font-size: 1.6rem;
-  font-weight: 600;
+  line-height: 1.2;
   color: var(--black);
   text-decoration: none;
-  background-color: var(--stroke);
-  border-radius: 5px;
-  width: 100%;
-  padding: 1rem 2rem;
   white-space: nowrap;
-  transition: all 0.2s ease-in;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .navIcon {
-  flex-shrink: 0;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 2rem;
   height: 2rem;
-  transition: all 0.2s ease-in;
+  color: var(--paragraph);
+  transition: color 0.2s ease;
+}
+
+.navIcon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .title {
@@ -125,40 +159,40 @@
 
 .navLink.navLinkActive {
   background-color: var(--accent);
-  color: var(--white);
+  font-family: var(--inter);
+  font-weight: 600;
 }
 
 .navLinkActive .navIcon {
-  color: var(--white);
+  color: var(--black);
 }
 
 .tooltip {
-  display: none;
   position: absolute;
-  left: calc(100% + 10px);
   top: 50%;
-  transform: translateY(-50%);
-  background-color: var(--black);
-  color: var(--white);
-  font-size: 1.3rem;
-  font-weight: 600;
+  left: calc(100% + 10px);
+  z-index: 100;
+  display: none;
   padding: 6px 10px;
   border-radius: 5px;
+  background-color: var(--black);
+  font-size: 1.3rem;
+  color: var(--white);
   white-space: nowrap;
-  pointer-events: none;
   opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
   transition: opacity 0.15s ease;
-  z-index: 100;
 }
 
 .tooltip::before {
   content: "";
   position: absolute;
-  right: 100%;
   top: 50%;
-  transform: translateY(-50%);
+  right: 100%;
   border: 5px solid transparent;
   border-right-color: var(--black);
+  transform: translateY(-50%);
 }
 
 .btnContainer {
@@ -168,30 +202,53 @@
   width: 100%;
 }
 
-.signOutBtn,
-.homeBtn {
-  cursor: pointer;
-  background-color: var(--black);
-  color: var(--cream);
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.homeBtn {
-  background-color: var(--paragraph);
-}
-
-.arrow {
-  transform: rotate(90deg);
-}
+/* ── Dashboards and sign-out, one quiet style ── */
 
 .actionBtns {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.6rem;
   width: 100%;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.signOutBtn,
+.homeBtn,
+.dshbrdBtn,
+.drvrDshbrdBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 1.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  background-color: var(--white);
+  font-family: var(--inter);
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--black);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.arrow {
+  width: 12px;
+  height: 12px;
+  transform: rotate(90deg);
+}
+
+.signOutLogo {
+  width: 16px;
+  height: 16px;
+  color: var(--paragraph);
 }
 
 .compactMenuBtn {
@@ -204,13 +261,13 @@
   justify-content: center;
   gap: 5px;
   width: 100%;
-  padding: 1rem;
-  background-color: var(--stroke);
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in;
   height: 100%;
+  padding: 1rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  background-color: var(--white);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
 .moreBtnDot {
@@ -220,6 +277,8 @@
   border-radius: 50%;
   background-color: var(--black);
 }
+
+/* ── The compact menu's modal ── */
 
 .modalContent {
   display: flex;
@@ -242,101 +301,55 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  font-size: 1.6rem;
-  font-weight: 600;
-  text-decoration: none;
   padding: 1.2rem 2rem;
+  border: 1px solid var(--stroke);
   border-radius: 5px;
-  background-color: var(--lightGray);
-  border: 1px solid var(--strokeii);
+  background-color: var(--white);
+  font-size: 1.6rem;
   color: var(--black);
-  transition: background-color 0.2s ease-in;
+  text-decoration: none;
+  transition: border-color 0.2s ease;
 }
 
 .modalArrow {
-  transform: rotate(90deg);
   flex-shrink: 0;
+  transform: rotate(90deg);
 }
 
 .modalActions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
 }
 
-.navLink,
-.signOutBtn,
-.dshbrdBtn,
-.drvrDshbrdBtn {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 2rem;
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: var(--black);
-  text-decoration: none;
-  background-color: var(--stroke);
-  border-radius: 5px;
-  width: 100%;
-  padding: 1rem 2rem;
-  white-space: nowrap;
-  transition: all 0.2s ease-in;
-}
-
-.signOutBtn,
-.dshbrdBtn,
-.drvrDshbrdBtn {
-  cursor: pointer;
-  background-color: var(--black);
-  color: var(--cream);
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.dshbrdBtn {
-  background-color: var(--lightGray);
-  border: 1px solid var(--strokeii);
-  color: var(--black);
-}
-
-.drvrDshbrdBtn {
-  background-color: var(--black400);
-  border: 1px solid var(--black400);
-}
-
-.signOutLogo {
-  color: var(--cream);
-}
+/* ── Collapse toggle (tablet and phone) ── */
 
 .collapseBar {
   display: none;
 }
 
 .collapseBtn {
-  width: 100%;
-  height: 3.6rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  color: var(--black);
-  border: 1px solid var(--stroke);
-  background: var(--cream);
-  transition: opacity 0.2s ease;
+  width: 100%;
+  height: 3.6rem;
   margin: 1rem;
+  border: 1px solid var(--stroke);
+  background: var(--white);
+  color: var(--black);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
 }
 
 .collapseBtn:hover {
-  opacity: 0.6;
+  border-color: var(--black);
 }
 
 .collapseBtn:disabled {
-  cursor: default;
   opacity: 0.4;
+  cursor: default;
   pointer-events: none;
 }
 
@@ -351,31 +364,25 @@
 @media (hover: hover) {
   .navLink:hover {
     background-color: var(--accent);
-    color: var(--white);
   }
 
   .navLink:hover .navIcon {
-    color: var(--white);
+    color: var(--black);
   }
 
-  .signOutBtn:hover {
-    background-color: var(--black400);
-  }
-
-  .homeBtn:hover {
-    background-color: var(--black300);
+  .signOutBtn:hover,
+  .homeBtn:hover,
+  .dshbrdBtn:hover,
+  .drvrDshbrdBtn:hover {
+    border-color: var(--black);
   }
 
   .moreBtn:hover {
     background-color: var(--accent);
   }
 
-  .moreBtn:hover .moreBtnDot {
-    background-color: var(--white);
-  }
-
   .modalNavLink:hover {
-    background-color: var(--black300);
+    border-color: var(--black);
   }
 }
 
@@ -411,11 +418,21 @@
     display: none;
   }
 
+  /* Open: tiles, three to a row, with the group names across the grid. */
   .container:not(.containerCollapsed) .linksWrapper {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
+    gap: 0.8rem;
     padding: 0.5rem;
+  }
+
+  .container:not(.containerCollapsed) .group {
+    display: contents;
+  }
+
+  .container:not(.containerCollapsed) .groupLabel {
+    grid-column: 1 / -1;
+    padding: 1.2rem 0 0.2rem;
   }
 
   .container:not(.containerCollapsed) .navItem {
@@ -423,20 +440,26 @@
   }
 
   .container:not(.containerCollapsed) .navLink {
+    flex: 1;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1rem 0.5rem;
-    gap: 1rem;
+    gap: 0.8rem;
+    width: 100%;
+    padding: 1.2rem 0.5rem;
+    border: 1px solid var(--stroke);
     text-align: center;
     white-space: normal;
-    width: 100%;
-    flex: 1;
+  }
+
+  .container:not(.containerCollapsed) .navLink.navLinkActive {
+    border-color: var(--accent);
+    background-color: var(--accent);
   }
 
   .container:not(.containerCollapsed) .title {
     display: block;
-    font-size: 1.7rem;
+    font-size: 1.5rem;
     line-height: 1.2;
     text-align: center;
   }
@@ -444,20 +467,17 @@
   .container:not(.containerCollapsed) .navIcon {
     width: 2.2rem;
     height: 2.2rem;
-    flex-shrink: 0;
-  }
-
-  .container:not(.containerCollapsed) .navLink.navLinkActive {
-    background-color: var(--accent);
-    color: var(--white);
   }
 
   .container:not(.containerCollapsed) .actionBtns {
     grid-column: 1 / -1;
     display: flex;
+    margin-top: 1rem;
   }
+}
 
-  .title {
-    font-size: 2rem;
+@media screen and (max-width: 568px) {
+  .container:not(.containerCollapsed) .linksWrapper {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

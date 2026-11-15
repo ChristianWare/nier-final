@@ -1,0 +1,105 @@
+/* Sits under the Driver and Admin toggles, in the same style. */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  padding-top: 14px;
+  border-top: 1px solid var(--stroke);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.label {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: 0.02em;
+}
+
+.desc {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  opacity: 0.75;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--stroke);
+  border-left: 3px solid var(--green);
+  border-radius: 5px;
+  background-color: var(--white);
+}
+
+.linkName {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.4rem;
+  color: var(--black);
+  text-decoration: none;
+}
+
+.linkName:hover {
+  text-decoration: underline;
+}
+
+.linkRole {
+  font-size: 1.2rem;
+  color: var(--black400);
+  white-space: nowrap;
+}
+
+.remove {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--inter);
+  font-size: 1.3rem;
+  color: var(--red);
+  cursor: pointer;
+}
+
+.remove:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.add {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.add select {
+  flex: 1;
+  min-width: 0;
+}
+
+.note {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+}
+
+.inlineLink {
+  font-family: var(--inter);
+  font-weight: 600;
+  color: var(--black);
+  border-bottom: 1px solid var(--accent);
+}

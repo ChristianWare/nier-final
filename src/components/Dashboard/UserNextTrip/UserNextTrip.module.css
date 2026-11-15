@@ -1,244 +1,374 @@
+/* The customer's next ride: the same white card as the driver's next
+   trip, with the time large, the route as two joined stops, the
+   chauffeur once assigned, and the actions at the bottom. */
+
 .container {
-  display: grid;
-  gap: 2rem;
-  margin-bottom: 10rem;
-}
-
-.header {
-  display: grid;
-  gap: 12px;
-}
-
-.titleRow {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
+  flex-direction: column;
+  gap: 2.4rem;
+  padding: 2.4rem;
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  background-color: var(--white);
 }
 
-.icon {
-  display: inline-block;
-  margin-right: 1rem;
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.6rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.2rem;
+  border-bottom: 2px solid var(--black);
+}
+
+/* The title's own rule is replaced by the header's. */
+.top :global(.cardTitle) {
+  width: auto;
+  padding: 0;
+  border: none;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
 }
 
 .timePill {
-  font-size: 14px;
+  padding: 0.5rem 1rem;
   border-radius: 999px;
-  padding: 6px 12px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  background: rgba(59, 130, 246, 0.1);
-  color: #1d4ed8;
-  font-weight: 700;
-  white-space: nowrap;
+  background-color: var(--black);
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cream);
 }
 
-/* Empty State */
-.empty {
-  padding: 14px 2px;
-  display: grid;
-  gap: 8px;
+/* ── When ── */
+
+.when {
+  display: flex;
+  align-items: baseline;
+  gap: 1.6rem;
+  flex-wrap: wrap;
 }
 
-.emptyTitle {
+.time {
+  font-family: var(--inter);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-size: 48px;
+  line-height: 0.9;
+  color: var(--black);
+}
+
+.date {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.7rem;
+  line-height: 1.3;
+  color: var(--paragraph);
+}
+
+/* ── Where: two stops joined by a line ── */
+
+.route {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
   margin: 0;
-  font-size: 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.stop {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 1.4rem;
+  row-gap: 0.3rem;
+}
+
+/* The line from the pickup dot down to the drop-off dot. */
+.stop:first-child::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  bottom: -1.6rem;
+  left: 8px;
+  width: 2px;
+  background-color: var(--stroke);
+}
+
+.dot {
+  grid-row: 1 / span 2;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+}
+
+/* The same colours as the booking map's markers. */
+.dotPickup {
+  border: 3px solid var(--white);
+  background-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.dotDropoff {
+  border: 3px solid var(--accent);
+  background-color: var(--black);
+}
+
+.stopLabel {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
+}
+
+/* Place name in bold, then street and city on their own lines. */
+.stopAddress > span:first-child {
+  font-family: var(--inter);
   font-weight: 600;
 }
 
-.emptyCopy {
-  margin: 0;
-  opacity: 0.75;
+.stopAddress {
+  grid-column: 2;
+  font-family: var(--inter);
+  font-size: 1.7rem;
+  line-height: 1.4;
+  color: var(--black);
 }
 
-/* Payment Alert Banner */
-.paymentAlert {
+/* ── Who and what ── */
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0;
+  margin: 0;
+  border-top: 1px solid var(--stroke);
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.4rem 1.6rem 1.4rem 0;
+  border-bottom: 1px solid var(--stroke);
+}
+
+.detail dt {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
+}
+
+.detail dd {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0;
+  font-family: var(--inter);
+  font-size: 1.6rem;
+  line-height: 1.4;
+  color: var(--black);
+}
+
+/* ── Payment due, or waiting for approval ── */
+
+.notice {
+  padding: 1.2rem 1.4rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 5px;
+  background-color: var(--cream);
+  font-size: 1.6rem;
+  line-height: 1.5;
+  color: var(--black);
+  hyphens: none;
+}
+
+.notice strong {
+  font-family: var(--inter);
+  font-weight: 600;
+}
+
+.muted {
+  font-size: 1.5rem;
+  line-height: 1.5;
+  color: var(--paragraph);
+  hyphens: none;
+}
+
+/* ── The chauffeur ── */
+
+.chauffeur {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 14px 18px;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 2px solid #f59e0b;
-  border-radius: 12px;
+  gap: 1.4rem;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  background-color: var(--cream);
 }
 
-.paymentAlertIcon {
-  font-size: 1.8rem;
+.chauffeurIcon {
+  display: grid;
   flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: var(--black);
+  color: var(--accent);
 }
 
-.paymentAlertContent {
+.chauffeurIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.chauffeurText {
+  display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
   min-width: 0;
 }
 
-.paymentAlertTitle {
-  margin: 0;
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: normal;
-  color: #92400e;
+.chauffeurLabel {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--black400);
 }
 
-.paymentAlertCopy {
-  margin: 4px 0 0;
-  font-size: 1.4rem;
-  color: #a16207;
-  opacity: 0.9;
+.chauffeurName {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.8rem;
+  line-height: 1.2;
+  color: var(--black);
 }
 
-.paymentAlertBtn {
+.chauffeurCar {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  color: var(--paragraph);
+}
+
+.call {
+  display: inline-flex;
   flex-shrink: 0;
-  padding: 10px 18px;
-  background: #f59e0b;
-  color: white;
-  font-size: 1.4rem;
-  font-weight: 700;
-  border-radius: 8px;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background 0.2s;
-}
-
-.paymentAlertBtn:hover {
-  background: #d97706;
-}
-
-/* Card - Blue styling with hover effect */
-.card {
-  background: linear-gradient(
-    135deg,
-    rgba(59, 130, 246, 0.08) 0%,
-    rgba(37, 99, 235, 0.12) 100%
-  );
-  border-radius: 12px;
-  padding: 14px;
-  border: 2px solid rgba(59, 130, 246, 0.3);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 3rem;
-  width: 100%;
-  color: inherit;
-  text-decoration: none;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.25);
-  border-color: rgba(59, 130, 246, 0.5);
-}
-
-.cardTop {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  width: 100%;
+  gap: 0.6rem;
+  min-height: 40px;
+  padding: 0 1.4rem;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  background-color: var(--white);
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--black);
+  white-space: nowrap;
 }
 
-.tripMeta {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 2rem;
-  width: 100%;
+.callIcon {
+  width: 14px;
+  height: 14px;
 }
 
-.row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 1rem;
+.total {
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 0.8rem !important;
+  font-family: var(--inter) !important;
+  font-weight: 600 !important;
 }
 
-.emptyTitleLocal {
-  border-bottom: 1px solid var(--stroke);
-  width: 100%;
-  padding-bottom: 0.5rem;
-}
-
-.pill {
-  margin-left: 10px;
-  font-size: 14px;
-  padding: 4px 8px;
+.paid {
+  padding: 0.3rem 0.8rem;
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background-color: var(--lightGreen, #dcfce7);
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--darkGreen);
+}
+
+/* ── Actions ── */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.dispatch {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  line-height: 1;
+  gap: 0.8rem;
+  min-height: 44px;
+  padding: 0 0.4rem;
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 1.5rem;
+  color: var(--black);
+  border-bottom: 1px solid var(--accent);
   white-space: nowrap;
-  color: #1d4ed8;
 }
 
-.paidBadge {
-  margin-left: 10px;
-  font-size: 14px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: #15803d;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.btnRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.btnContainer {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: fit-content;
+.dispatchIcon {
+  width: 14px;
+  height: 14px;
 }
 
 @media screen and (max-width: 568px) {
   .container {
-    gap: 1rem;
+    padding: 2rem 1.6rem;
   }
 
-  .card {
-    padding: 12px;
-    gap: 2rem;
+  .details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .cardTop {
-    flex-direction: column;
-    align-items: flex-start;
+  .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .paymentAlert {
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
+  .actions > * {
+    width: 100% !important;
   }
 
-  .paymentAlertBtn {
+  .actions > details summary {
     width: 100%;
-    text-align: center;
+    justify-content: center;
   }
 
-  .btnRow {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .btnRow > * {
-    width: 100%;
+  .dispatch {
+    justify-content: center;
+    border: 1px solid var(--stroke);
+    border-radius: 5px;
   }
 }

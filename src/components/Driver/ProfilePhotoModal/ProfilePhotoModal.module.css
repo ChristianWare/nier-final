@@ -50,8 +50,8 @@
 }
 
 .dropzoneActive {
-  border-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.08);
+  border-color: var(--black);
+  background: var(--cream);
 }
 
 .hiddenInput {
@@ -78,7 +78,7 @@
 }
 
 .dropzoneLink {
-  color: #3b82f6;
+  color: var(--black);
   font-weight: 600;
   text-decoration: underline;
 }

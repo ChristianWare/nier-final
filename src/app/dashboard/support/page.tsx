@@ -3,6 +3,8 @@ import styles from "./SupportPage.module.css";
 import { auth } from "../../../../auth";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { getCompanySettings } from "../../../../actions/admin/companySettings";
+import { SITE } from "@/config/site";
 import DashboardSupport from "@/components/Dashboard/DashboardSupport/DashboardSupport";
 import { BookingStatus } from "@prisma/client";
 
@@ -60,6 +62,25 @@ async function resolveViewer(
   return { userId: u.id, roles: normalizeRoles(u.roles) };
 }
 
+/** "Office open today 8 AM – 6 PM", from Admin → Company settings. */
+function todaysHours(
+  hours: Record<string, { enabled: boolean; open: string; close: string }>,
+  timeZone: string,
+) {
+  const day = new Intl.DateTimeFormat("en-US", { weekday: "long", timeZone })
+    .format(new Date())
+    .toLowerCase();
+  const today = hours?.[day];
+  if (!today?.enabled) return "Office closed today";
+  const fmt = (hhmm: string) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    const ampm = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    return m ? `${h12}:${String(m).padStart(2, "0")} ${ampm}` : `${h12} ${ampm}`;
+  };
+  return `Office open today ${fmt(today.open)} – ${fmt(today.close)}`;
+}
+
 export default async function DashboardSupportPage() {
   const session = await auth();
   if (!session) redirect("/login?next=/dashboard/support");
@@ -92,6 +113,8 @@ export default async function DashboardSupportPage() {
         ? { assignment: { driverId: userId } }
         : { userId };
 
+  const settings = await getCompanySettings();
+
   const trips = await db.booking.findMany({
     where,
     orderBy: { pickupAt: "desc" },
@@ -115,6 +138,14 @@ export default async function DashboardSupportPage() {
         user={{
           name: (session.user?.name ?? "").trim() || null,
           email: (session.user?.email ?? "").trim() || null,
+        }}
+        contact={{
+          email: settings.supportEmail || SITE.email.support,
+          phone: settings.dispatchPhone || SITE.phone.display,
+          tel: settings.dispatchPhoneRaw
+            ? `+1${settings.dispatchPhoneRaw}`
+            : SITE.phone.tel,
+          hours: todaysHours(settings.officeHoursParsed, settings.timezone),
         }}
         trips={trips.map((t) => ({
           id: t.id,

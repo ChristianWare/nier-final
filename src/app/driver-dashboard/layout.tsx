@@ -2,9 +2,11 @@
 import { auth } from "../../../auth";
 import { redirect } from "next/navigation";
 import styles from "./DriverDashboardLayout.module.css";
+import theme from "@/components/shared/DashboardTheme/DashboardTheme.module.css";
 import Nav from "@/components/shared/Nav/Nav";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import DriverSideNav from "@/components/Driver/DriverSideNav/DriverSideNav";
+import DriverBottomBar from "@/components/Driver/DriverBottomBar/DriverBottomBar";
 import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
@@ -72,10 +74,12 @@ export default async function DriverDashboardLayout({
               </div>
             </div>
 
-            <div className={styles.right}>{children}</div>
+            <div className={`${styles.right} ${theme.theme}`}>{children}</div>
           </div>
         </section>
       </LayoutWrapper>
+      {/* Tablets and phones: the bottom bar replaces the side nav. */}
+      <DriverBottomBar />
     </main>
   );
 }

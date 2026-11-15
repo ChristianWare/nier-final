@@ -279,7 +279,7 @@ export default function EmployeesClient({
             <strong>{activeCount}</strong> active · {totalCount} total on roster
           </p>
         </div>
-        <button className='goodBtnii' onClick={() => setAddOpen(true)}>
+        <button className='primaryBtn' onClick={() => setAddOpen(true)}>
           + Add Employee
         </button>
       </div>
@@ -333,7 +333,7 @@ export default function EmployeesClient({
               <p className={styles.emptySub}>
                 Add employees to your roster so you can book rides for them.
               </p>
-              <button className='goodBtnii' onClick={() => setAddOpen(true)}>
+              <button className='primaryBtn' onClick={() => setAddOpen(true)}>
                 + Add Your First Employee
               </button>
             </>
@@ -406,7 +406,7 @@ export default function EmployeesClient({
                           Edit
                         </button>
                         <button
-                          className={emp.active ? "warningBtn" : "goodBtn"}
+                          className={emp.active ? "dangerBtn" : "secondaryBtn"}
                           onClick={() => handleToggleClick(emp)}
                           disabled={isPending}
                         >
@@ -440,7 +440,7 @@ export default function EmployeesClient({
             {renderForm(addForm, setAddForm)}
             <div className={styles.modalActions}>
               <button
-                className='goodBtnii'
+                className='primaryBtn'
                 onClick={handleAdd}
                 disabled={isPending}
               >
@@ -469,7 +469,7 @@ export default function EmployeesClient({
             {renderForm(editForm, setEditForm)}
             <div className={styles.modalActions}>
               <button
-                className='goodBtnii'
+                className='primaryBtn'
                 onClick={handleEdit}
                 disabled={isPending}
               >

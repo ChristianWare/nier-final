@@ -1,8 +1,8 @@
 .container {
-  background: white;
-  border-radius: 12px;
+  background: var(--white);
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Stepper */
@@ -10,8 +10,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 32px;
-  padding: 0 8px;
+  margin-bottom: 24px;
+  padding: 0;
 }
 
 .stepWrapper {
@@ -35,22 +35,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--inter);
   font-weight: 600;
   font-size: 14px;
-  background: #e5e7eb;
-  color: #6b7280;
+  background: var(--cream);
+  color: var(--black400);
+  box-shadow: inset 0 0 0 1px var(--stroke);
   transition: all 0.3s ease;
 }
 
+/* Done: black. Now: the accent, with a soft ring. */
 .stepCircle.completed {
-  background: #22c55e;
-  color: white;
+  background: var(--black);
+  color: var(--cream);
+  box-shadow: none;
 }
 
 .stepCircle.current {
-  background: #3b82f6;
-  color: white;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  background: var(--accent);
+  color: var(--white);
+  box-shadow: 0 0 0 4px rgba(208, 49, 30, 0.25);
 }
 
 .stepCircle.noShow {
@@ -59,36 +63,47 @@
 }
 
 .stepLabel {
-  font-size: 11px;
-  color: #6b7280;
+  font-family: var(--inter);
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--paragraph);
   text-align: center;
-  font-weight: 500;
 }
 
 .stepLabelCurrent {
-  color: #3b82f6;
+  font-family: var(--inter);
   font-weight: 600;
+  color: var(--black);
 }
 
 .connector {
   flex: 1;
-  height: 3px;
-  background: #e5e7eb;
+  height: 2px;
+  background: var(--stroke);
   margin: 18px 8px 0;
   border-radius: 2px;
   transition: background 0.3s ease;
 }
 
 .connectorCompleted {
-  background: #22c55e;
+  background: var(--black);
 }
 
 /* Current Status Card */
 .currentStatusCard {
-  background: #f9fafb;
-  border-radius: 12px;
-  padding: 24px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+/* The next-step button, with Call beside it on phones. */
+.actionBar {
+  display: flex;
+  gap: 1rem;
+}
+
+.barCall {
+  display: none;
 }
 
 .currentStatusHeader {
@@ -111,23 +126,23 @@
 
 /* Advance Button */
 .advanceButton {
+  flex: 1;
   width: 100%;
-  padding: 16px 32px;
-  font-size: 18px;
+  min-height: 56px;
+  padding: 0 24px;
+  font-family: var(--inter);
   font-weight: 600;
-  color: white;
-  background: #3b82f6;
+  font-size: 17px;
+  color: var(--cream);
+  background: var(--black);
   border: none;
-  border-radius: 12px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 16px;
+  transition: background-color 0.2s ease;
 }
 
 .advanceButton:hover:not(:disabled) {
-  background: #2563eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  background: #333333;
 }
 
 .advanceButton:disabled {
@@ -138,9 +153,20 @@
 /* Secondary Actions */
 .secondaryActions {
   display: flex;
-  gap: 12px;
-  justify-content: center;
+  gap: 1rem;
+  justify-content: flex-start;
   flex-wrap: wrap;
+}
+
+.secondaryActions:empty {
+  display: none;
+}
+
+.goBackButton,
+.noShowButton {
+  font-family: var(--inter);
+  border-radius: 4px !important;
+  min-height: 44px;
 }
 
 .goBackButton {
@@ -253,9 +279,9 @@
   align-items: center;
   gap: 16px;
   padding: 20px;
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  background: linear-gradient(135deg, var(--cream) 0%, var(--cream) 100%);
   border-radius: 12px;
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  border: 1px solid var(--stroke);
 }
 
 .futureIcon {
@@ -271,13 +297,13 @@
 
 .futureText strong {
   font-size: 16px;
-  color: #1e40af;
+  color: var(--black);
 }
 
 .futureText p {
   margin: 0;
   font-size: 14px;
-  color: #3b82f6;
+  color: var(--black);
 }
 
 /* Modal */
@@ -327,8 +353,8 @@
 
 .reasonInput:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--black);
+  box-shadow: 0 0 0 3px var(--cream);
 }
 
 .modalActions {
@@ -358,7 +384,7 @@
   font-size: 14px;
   font-weight: 600;
   color: white;
-  background: #3b82f6;
+  background: var(--black);
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -366,7 +392,7 @@
 }
 
 .confirmButton:hover:not(:disabled) {
-  background: #2563eb;
+  background: var(--black);
 }
 
 .confirmButton:disabled {
@@ -417,19 +443,23 @@
     border-radius: 16px;
   }
 
-  /* Hide desktop horizontal stepper */
-  .stepper {
-    display: none;
+  /* Smaller step dots so all five fit. */
+  .stepCircle {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
   }
 
-  /* Hide desktop current status card */
-  .currentStatusCard {
-    display: none;
+  .connector {
+    margin: 15px 4px 0;
   }
 
-  /* Hide desktop secondary actions */
-  .secondaryActions {
-    display: none;
+  .step {
+    min-width: 0;
+  }
+
+  .stepLabel {
+    font-size: 11px;
   }
 
   /* Show mobile stacked steps */
@@ -459,10 +489,10 @@
 
   /* Current step - highlighted */
   .mobileStep.mobileStepCurrent {
-    background: #eff6ff;
-    border-color: #3b82f6;
+    background: var(--cream);
+    border-color: var(--black);
     border-width: 3px;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 4px 12px var(--stroke);
   }
 
   /* Upcoming step - dimmed */
@@ -494,14 +524,14 @@
   }
 
   .mobileStepCompleted .mobileStepNumber {
-    background: #22c55e;
+    background: var(--green);
     color: white;
   }
 
   .mobileStepCurrent .mobileStepNumber {
-    background: #3b82f6;
+    background: var(--black);
     color: white;
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 0 0 4px var(--stroke);
   }
 
   .mobileStepUpcoming .mobileStepNumber {
@@ -533,7 +563,7 @@
   }
 
   .mobileStepCurrent .mobileStepLabel {
-    color: #1d4ed8;
+    color: var(--black);
   }
 
   .mobileStepUpcoming .mobileStepLabel {
@@ -551,11 +581,11 @@
   }
 
   .mobileStepCompleted .mobileStepStatus {
-    color: #22c55e;
+    color: var(--green);
   }
 
   .mobileStepCurrent .mobileStepStatus {
-    color: #3b82f6;
+    color: var(--black);
   }
 
   /* Icon on right side */
@@ -572,19 +602,27 @@
     font-size: 18px;
     font-weight: 700;
     color: white;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    background: linear-gradient(
+      135deg,
+      var(--black) 0%,
+      var(--black) 100%
+    );
     border: none;
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
     min-height: 60px;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+    box-shadow: 0 4px 12px var(--stroke);
   }
 
   .mobileStepAction:hover:not(:disabled) {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    background: linear-gradient(
+      135deg,
+      var(--black) 0%,
+      var(--black) 100%
+    );
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.45);
+    box-shadow: 0 6px 16px var(--stroke);
   }
 
   .mobileStepAction:active:not(:disabled) {
@@ -771,5 +809,51 @@
   .mobileSecondaryActions .goBackButton,
   .mobileSecondaryActions .noShowButton {
     width: 100%;
+  }
+}
+/* Tablets and phones: the next-step button and Call are a bar fixed to the
+   bottom of the screen (the driver bottom bar steps aside on trip pages). */
+@media screen and (max-width: 1068px) {
+  .actionBar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 900;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--stroke);
+    background-color: var(--white);
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  /* The button has moved to the bar, so the card is just the steps (and
+     Go back / No-show when they apply). */
+  .stepper {
+    margin-bottom: 0;
+  }
+
+  .secondaryActions:not(:empty) {
+    margin-top: 1.6rem;
+  }
+
+  .barCall {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    padding: 0 2.4rem;
+    border: 1px solid var(--black);
+    border-radius: 5px;
+    background-color: var(--white);
+    font-family: var(--inter);
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--black);
+  }
+
+  /* Room at the bottom of the page for the bar. */
+  :global(body:has([data-trip-action-bar])) {
+    padding-bottom: calc(82px + env(safe-area-inset-bottom));
   }
 }

@@ -10,6 +10,7 @@ import DefaultProfileImg from "../../../../public/images/areas/mesaii.jpg";
 import Arrow from "@/components/shared/icons/Arrow/Arrow";
 import ProfilePhotoUpload from "@/components/Driver/ProfilePhotoUpload/ProfilePhotoUpload";
 import DriverEditProfileForm from "@/components/Driver/DriverEditProfileForm/DriverEditProfileForm";
+import { privateAddress, privateName } from "@/lib/tripPrivacy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -272,19 +273,19 @@ export default async function DriverProfilePage() {
           <div className={styles.cardBody}>
             <div className={styles.quickLinks}>
               <Link href='/driver-dashboard/trips' className={styles.quickLink}>
-                📋 View All Trips
+                View All Trips
               </Link>
               <Link
                 href='/driver-dashboard/earnings'
                 className={styles.quickLink}
               >
-                💰 Earnings Details
+                Earnings Details
               </Link>
               <Link
                 href='/driver-dashboard/support'
                 className={styles.quickLink}
               >
-                🆘 Get Support
+                Get Support
               </Link>
             </div>
           </div>
@@ -358,17 +359,21 @@ export default async function DriverProfilePage() {
                   {recentAssignments.map((a) => {
                     const b = a.booking;
                     const href = `/driver-dashboard/trips/${b.id}`;
-                    const customerName =
-                      b.user?.name?.trim() || b.guestName?.trim() || "Guest";
+                    // Completed rides: short name, area only.
+                    const customerName = privateName(
+                      b.user?.name?.trim() || b.guestName?.trim() || "Guest",
+                    );
+                    const pickupAddress = privateAddress(b.pickupAddress);
+                    const dropoffAddress = privateAddress(b.dropoffAddress);
 
                     const pickupShort =
-                      b.pickupAddress.length > 25
-                        ? b.pickupAddress.slice(0, 25) + "..."
-                        : b.pickupAddress;
+                      pickupAddress.length > 25
+                        ? pickupAddress.slice(0, 25) + "..."
+                        : pickupAddress;
                     const dropoffShort =
-                      b.dropoffAddress.length > 25
-                        ? b.dropoffAddress.slice(0, 25) + "..."
-                        : b.dropoffAddress;
+                      dropoffAddress.length > 25
+                        ? dropoffAddress.slice(0, 25) + "..."
+                        : dropoffAddress;
 
                     return (
                       <tr key={a.id} className={styles.tr}>

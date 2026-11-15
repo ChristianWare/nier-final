@@ -1,36 +1,85 @@
-.content {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-gap: 1rem;
+/* The admin dashboard header: eyebrow, greeting and a line of copy on the
+   left, New booking and All bookings on the right. */
+
+.container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3rem;
+  padding-bottom: 3rem;
+  border-bottom: 2px solid var(--black);
 }
 
-.routeContainer {
-  width: fit-content;
+.text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.2rem;
+  min-width: 0;
 }
 
-.kpiGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-gap: 1rem;
-  /* margin-top: 7rem; */
-  /* padding-top: 1rem; */
-  /* border-top: 2px solid var(--stroke); */
+.text > :first-child {
+  margin-left: -1.5rem;
 }
 
-@media screen and (max-width: 968px) {
-  .heading {
-    display: none;
-  }
+.heading {
+  color: var(--black);
+}
 
-  .kpiGrid  {
-    grid-template-columns: repeat(2, 1fr);
+.copy {
+  max-width: 560px;
+  font-size: 1.7rem;
+  line-height: 1.5;
+  color: var(--paragraph);
+  hyphens: none;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+/* Quiet partner to the black button, same height. */
+.outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  padding: 0 2rem;
+  border: 1px solid var(--black);
+  border-radius: 5px;
+  font-family: var(--inter);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--black);
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.outline:hover {
+  background-color: var(--black);
+  color: var(--cream);
+}
+
+@media screen and (max-width: 1268px) {
+  .container {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
 @media screen and (max-width: 568px) {
+  .actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
 
-
-  .kpiGrid  {
-    grid-template-columns: repeat(1, 1fr);
+  .actions > * {
+    width: 100%;
   }
 }

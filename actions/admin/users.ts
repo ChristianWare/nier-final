@@ -7,7 +7,7 @@ import { auth } from "../../auth";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
-type AppRole = "USER" | "DRIVER" | "ADMIN";
+type AppRole = "USER" | "DRIVER" | "ADMIN" | "CORPORATE";
 
 function getActorId(session: any) {
   return (
@@ -89,10 +89,16 @@ export async function updateUserRoles(formData: FormData) {
         }
       }
 
+      // CORPORATE isn't one of the toggles: it comes with a link to a
+      // corporate account (linkUserToCorporateAccount below). Keep it.
+      const finalRoles: AppRole[] = currentRoles.includes("CORPORATE")
+        ? Array.from(new Set<AppRole>([...nextRoles, "CORPORATE"]))
+        : nextRoles;
+
       await tx.user.update({
         where: { id: userId },
         data: {
-          roles: nextRoles as unknown as any,
+          roles: finalRoles as unknown as any,
         },
       });
     });
@@ -144,5 +150,160 @@ export async function updateUserProfile(formData: FormData) {
     return { success: true };
   } catch (err: any) {
     return { error: err?.message || "Failed to update profile." };
+  }
+}
+
+/* ─────────────────────────────────────────────
+   CORPORATE ACCESS
+   A user can use the corporate portal (/corporate) when they have the
+   CORPORATE role and are a contact on a corporate account. Linking does
+   both; unlinking the last account takes the role away again.
+   ───────────────────────────────────────────── */
+
+const CorporateLinkSchema = z.object({
+  userId: z.string().min(1),
+  accountId: z.string().min(1),
+});
+
+export async function linkUserToCorporateAccount(
+  userId: string,
+  accountId: string,
+) {
+  await requireAdmin();
+
+  const parsed = CorporateLinkSchema.safeParse({ userId, accountId });
+  if (!parsed.success) return { error: "Choose a corporate account." };
+
+  try {
+    const accountName = await db.$transaction(async (tx) => {
+      const [user, account] = await Promise.all([
+        tx.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            roles: true,
+          },
+        }),
+        tx.corporateAccount.findUnique({
+          where: { id: accountId },
+          select: { id: true, name: true },
+        }),
+      ]);
+      if (!user) throw new Error("User not found.");
+      if (!account) throw new Error("Corporate account not found.");
+
+      // A contact who can book and manage rides for the company.
+      await tx.corporateContact.upsert({
+        where: {
+          corporateAccountId_userId: {
+            corporateAccountId: account.id,
+            userId: user.id,
+          },
+        },
+        create: {
+          corporateAccountId: account.id,
+          userId: user.id,
+          role: "ADMIN",
+          phone: user.phone ?? undefined,
+        },
+        update: { active: true },
+      });
+
+      // On the passenger list too, so they can book rides for themselves.
+      if (user.email) {
+        const onRoster = await tx.corporatePassenger.findFirst({
+          where: { corporateAccountId: account.id, email: user.email },
+          select: { id: true },
+        });
+        if (!onRoster) {
+          await tx.corporatePassenger.create({
+            data: {
+              corporateAccountId: account.id,
+              name: user.name?.trim() || user.email,
+              email: user.email,
+              phone: user.phone ?? null,
+              active: true,
+            },
+          });
+        }
+      }
+
+      const roles = (user.roles ?? []) as unknown as AppRole[];
+      if (!roles.includes("CORPORATE")) {
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            roles: Array.from(
+              new Set<AppRole>([...roles, "USER", "CORPORATE"]),
+            ) as unknown as any,
+          },
+        });
+      }
+
+      return account.name;
+    });
+
+    revalidatePath(`/admin/users/${userId}`);
+    revalidatePath(`/admin/corporate/${accountId}`);
+    return { success: true, accountName };
+  } catch (err: any) {
+    return { error: err?.message || "Couldn't link the account." };
+  }
+}
+
+export async function unlinkUserFromCorporateAccount(
+  userId: string,
+  accountId: string,
+) {
+  await requireAdmin();
+
+  const parsed = CorporateLinkSchema.safeParse({ userId, accountId });
+  if (!parsed.success) return { error: "Invalid request." };
+
+  try {
+    await db.$transaction(async (tx) => {
+      const contact = await tx.corporateContact.findUnique({
+        where: {
+          corporateAccountId_userId: { corporateAccountId: accountId, userId },
+        },
+        select: { id: true, role: true },
+      });
+      if (!contact) return;
+
+      // The primary contact gets the invoices; the account needs one.
+      if (contact.role === "PRIMARY") {
+        throw new Error(
+          "This is the account's primary contact, who receives its invoices, so they can't be removed here.",
+        );
+      }
+
+      await tx.corporateContact.delete({ where: { id: contact.id } });
+
+      const remaining = await tx.corporateContact.count({ where: { userId } });
+      if (remaining === 0) {
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+          select: { roles: true },
+        });
+        const roles = ((user?.roles ?? []) as unknown as AppRole[]).filter(
+          (r) => r !== "CORPORATE",
+        );
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            roles: (roles.length ? roles : ["USER"]) as unknown as any,
+          },
+        });
+      }
+    });
+
+    revalidatePath(`/admin/users/${userId}`);
+    revalidatePath(`/admin/corporate/${accountId}`);
+    return { success: true };
+  } catch (err: any) {
+    return { error: err?.message || "Couldn't remove the account." };
   }
 }

@@ -460,6 +460,8 @@ export default function BookingWizard({
         flightNumber?: string;
         flightScheduledAtDate?: string;
         hoursRequested?: number;
+        /** "Ride again" from the dashboard: the same vehicle category. */
+        vehicleId?: string;
         startStep?: 1 | 2;
       };
 
@@ -515,6 +517,12 @@ export default function BookingWizard({
       }
       if (prefill.flightNumber) {
         setValue("flightNumber", prefill.flightNumber, { shouldDirty: true });
+      }
+      if (
+        prefill.vehicleId &&
+        vehicles.some((v) => v.id === prefill.vehicleId)
+      ) {
+        setValue("vehicleId", prefill.vehicleId, { shouldDirty: true });
       }
       if (prefill.flightScheduledAtDate) {
         setValue("flightScheduledAtDate", prefill.flightScheduledAtDate, {

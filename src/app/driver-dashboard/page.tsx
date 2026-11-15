@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { BookingStatus } from "@prisma/client";
 
 import styles from "./DriverDashboardHome.module.css";
+import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import { auth } from "../../../auth";
 import { db } from "@/lib/db";
 import { getCompanySettings } from "../../../actions/admin/companySettings";
@@ -200,6 +201,9 @@ function toNextTripData(booking: any): NextTripData {
     passengers: booking.passengers,
     luggage: booking.luggage,
     specialRequests: booking.specialRequests,
+    flight: booking.flightNumber
+      ? [booking.flightAirline, booking.flightNumber].filter(Boolean).join(" ")
+      : null,
   };
 }
 
@@ -220,7 +224,11 @@ export default async function DriverDashboardHome() {
   const driverName = session.user?.name?.split(" ")[0] || "Driver";
 
   const now = new Date();
-  const { timezone: companyTz } = await getCompanySettings();
+  const {
+    timezone: companyTz,
+    dispatchPhone,
+    dispatchPhoneRaw,
+  } = await getCompanySettings();
 
   const todayStart = startOfDay(now, companyTz);
   const todayEnd = endOfDay(now, companyTz);
@@ -433,87 +441,93 @@ export default async function DriverDashboardHome() {
 
   return (
     <section className={styles.pageContainer}>
-      {/* Page Header */}
+      {/* Page header */}
       <header className={styles.pageHeader}>
-        <div className='header'>
-          <h1 className='heading h2'>
-            Welcome {driverName}! (Driver dashboard)
-          </h1>
-        </div>
-
-        <div className={styles.headerKpiRows}>
-          {/* Weekly Stats */}
-          <span className={styles.headerKpiRowLabel}>This Week</span>
-          <div className={styles.headerKpis}>
-            <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
-              <span className={styles.headerKpiValue}>{weeklyTripsCount}</span>
-              <span className={styles.headerKpiLabel}>Upcoming</span>
-            </div>
-            <div className={styles.headerKpi}>
-              <span className={styles.headerKpiValue}>
-                {weeklyCompletedCount}
-              </span>
-              <span className={styles.headerKpiLabel}>Completed</span>
-            </div>
-            <div className={styles.headerKpi}>
-              <span className={styles.headerKpiValue}>
-                ${Math.round(weeklyBaseCents / 100)}
-              </span>
-              <span className={styles.headerKpiLabel}>Base Pay</span>
-            </div>
-            <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
-              <span className={styles.headerKpiValue}>
-                ${Math.round(weeklyTipsCents / 100)}
-              </span>
-              <span className={styles.headerKpiLabel}>Tips</span>
-            </div>
-            <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
-              <span className={styles.headerKpiValue}>
-                ${Math.round(weeklyEarningsCents / 100)}
-              </span>
-              <span className={styles.headerKpiLabel}>Total Earned</span>
-            </div>
-          </div>
-
-          {/* Monthly Stats */}
-          <span
-            className={`${styles.headerKpiRowLabel} ${styles.headerKpiRowLabelMonthly}`}
-          >
-            This Month
-          </span>
-          <div className={styles.headerKpis}>
-            <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
-              <span className={styles.headerKpiValue}>{activeCount}</span>
-              <span className={styles.headerKpiLabel}>Upcoming</span>
-            </div>
-            <div className={styles.headerKpi}>
-              <span className={styles.headerKpiValue}>{totalTripsMonth}</span>
-              <span className={styles.headerKpiLabel}>Completed</span>
-            </div>
-            <div className={styles.headerKpi}>
-              <span className={styles.headerKpiValue}>
-                ${Math.round(monthlyBaseCents / 100)}
-              </span>
-              <span className={styles.headerKpiLabel}>Base Pay</span>
-            </div>
-            <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
-              <span className={styles.headerKpiValue}>
-                ${Math.round(totalTipsMonthCents / 100)}
-              </span>
-              <span className={styles.headerKpiLabel}>Tips</span>
-            </div>
-            <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
-              <span className={styles.headerKpiValue}>
-                ${Math.round(totalEarningsMonthCents / 100)}
-              </span>
-              <span className={styles.headerKpiLabel}>Total Earned</span>
-            </div>
-          </div>
-        </div>
+        <SectionHeading dot text='Driver dashboard' />
+        <h1 className={`${styles.heading} h3`}>Welcome back, {driverName}</h1>
+        <p className={styles.headerCopy}>
+          Your next ride, your schedule and what you&apos;ve earned.
+        </p>
       </header>
 
-      {/* Next Trip */}
-      <DriverNextTrip trip={nextTrip} timeZone={companyTz} />
+      {/* Next trip: what a driver opens this page for */}
+      <DriverNextTrip
+        trip={nextTrip}
+        timeZone={companyTz}
+        dispatchPhone={dispatchPhone}
+        dispatchPhoneTel={dispatchPhoneRaw ? `+1${dispatchPhoneRaw}` : null}
+      />
+
+      {/* This week and this month */}
+      <div className={styles.headerKpiRows}>
+        {/* Weekly Stats */}
+        <span className={styles.headerKpiRowLabel}>This Week</span>
+        <div className={styles.headerKpis}>
+          <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
+            <span className={styles.headerKpiValue}>{weeklyTripsCount}</span>
+            <span className={styles.headerKpiLabel}>Upcoming</span>
+          </div>
+          <div className={styles.headerKpi}>
+            <span className={styles.headerKpiValue}>
+              {weeklyCompletedCount}
+            </span>
+            <span className={styles.headerKpiLabel}>Completed</span>
+          </div>
+          <div className={styles.headerKpi}>
+            <span className={styles.headerKpiValue}>
+              ${Math.round(weeklyBaseCents / 100)}
+            </span>
+            <span className={styles.headerKpiLabel}>Base Pay</span>
+          </div>
+          <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
+            <span className={styles.headerKpiValue}>
+              ${Math.round(weeklyTipsCents / 100)}
+            </span>
+            <span className={styles.headerKpiLabel}>Tips</span>
+          </div>
+          <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
+            <span className={styles.headerKpiValue}>
+              ${Math.round(weeklyEarningsCents / 100)}
+            </span>
+            <span className={styles.headerKpiLabel}>Total Earned</span>
+          </div>
+        </div>
+
+        {/* Monthly Stats */}
+        <span
+          className={`${styles.headerKpiRowLabel} ${styles.headerKpiRowLabelMonthly}`}
+        >
+          This Month
+        </span>
+        <div className={styles.headerKpis}>
+          <div className={`${styles.headerKpi} ${styles.headerKpiAccent}`}>
+            <span className={styles.headerKpiValue}>{activeCount}</span>
+            <span className={styles.headerKpiLabel}>Upcoming</span>
+          </div>
+          <div className={styles.headerKpi}>
+            <span className={styles.headerKpiValue}>{totalTripsMonth}</span>
+            <span className={styles.headerKpiLabel}>Completed</span>
+          </div>
+          <div className={styles.headerKpi}>
+            <span className={styles.headerKpiValue}>
+              ${Math.round(monthlyBaseCents / 100)}
+            </span>
+            <span className={styles.headerKpiLabel}>Base Pay</span>
+          </div>
+          <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
+            <span className={styles.headerKpiValue}>
+              ${Math.round(totalTipsMonthCents / 100)}
+            </span>
+            <span className={styles.headerKpiLabel}>Tips</span>
+          </div>
+          <div className={`${styles.headerKpi} ${styles.headerKpiGood}`}>
+            <span className={styles.headerKpiValue}>
+              ${Math.round(totalEarningsMonthCents / 100)}
+            </span>
+            <span className={styles.headerKpiLabel}>Total Earned</span>
+          </div>
+        </div>
+      </div>
 
       {/* Calendar */}
       <DriverRideCalendar
