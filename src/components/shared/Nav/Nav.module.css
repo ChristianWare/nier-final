@@ -307,11 +307,14 @@
   transition: color 0.35s ease-in-out;
 }
 
+/* The bars take the nav's text colour (white over the hero, black once
+   scrolled). Not currentColor: the global span rule makes that black. */
 .burger span {
   display: block;
   width: 16px;
   height: 1.5px;
-  background-color: currentColor;
+  background-color: var(--nav-fg);
+  transition: background-color 0.35s ease-in-out;
 }
 
 /* ── Services dropdown (desktop only) ──────────────── */
