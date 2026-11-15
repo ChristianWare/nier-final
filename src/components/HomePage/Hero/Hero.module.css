@@ -70,6 +70,11 @@
   display: none;
 }
 
+/* The logo above the heading: phones only */
+.heroLogo {
+  display: none;
+}
+
 .copy {
   color: var(--lightGrayii);
   font-size: 2rem;
@@ -350,5 +355,61 @@
 @media screen and (max-width: 1068px) {
   .widgetRow {
     padding-bottom: 4rem;
+  }
+}
+
+/* Phones (568px and below): the logo as large as fits, centred, with the
+   heading, copy and button centred under it. */
+@media screen and (max-width: 568px) {
+  .content {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100svh;
+    padding-top: 8rem;
+    padding-bottom: 20rem;
+  }
+
+  .contentChildren {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+    width: 100%;
+  }
+
+  .heroLogo {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 32svh;
+    color: var(--cream);
+  }
+
+  .cc1,
+  .left,
+  .right {
+    align-items: center;
+    text-align: center;
+  }
+
+  .heading,
+  .copy {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+
+  .copy {
+    hyphens: none;
+  }
+
+  .right {
+    gap: 2.4rem;
+  }
+
+  .btnContainerii {
+    width: auto;
+    justify-items: center;
   }
 }
