@@ -226,7 +226,7 @@ export default function AdminRecentBookingRequests({
       <header className={styles.header}>
         <div className={styles.titleRow}>
           <h2
-            className={`cardTitle h4 ${counts.total >= 1 ? "yellowBorder" : ""}`}
+            className={`cardTitle h4 ${counts.total >= 1 ? "" : ""}`}
           >
             New booking requests - needs review
           </h2>
