@@ -36,7 +36,7 @@ export default function AboutPageIntro({
           <div className={styles.leftContent}>
             <div className={styles.top}>
               {eyebrow}
-              <h1 className={styles.heading}>{heading}</h1>
+              <h1 className={`${styles.heading} h2`}>{heading}</h1>
               <p className={styles.copy}>{copy}</p>
               <div className={styles.btnContainer}>
                 <Button
