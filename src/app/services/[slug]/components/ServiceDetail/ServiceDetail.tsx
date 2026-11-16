@@ -43,7 +43,6 @@ export default async function ServiceDetail({
   service: ServiceShape;
 }) {
   const s = await getCompanySettings();
-  const phone = s.dispatchPhone || SITE.phone.display;
   const phoneTel = s.dispatchPhoneRaw
     ? `+1${s.dispatchPhoneRaw}`
     : SITE.phone.tel;
@@ -168,9 +167,13 @@ export default async function ServiceDetail({
                     btnType='red'
                     arrow
                   />
-                  <p className={styles.summaryCall}>
-                    Or call <a href={`tel:${phoneTel}`}>{phone}</a>
-                  </p>
+                  <span className={styles.or}>or</span>
+                  <Button
+                    href={`tel:${phoneTel}`}
+                    text='Call us'
+                    btnType='underlinedWhite'
+                    arrow
+                  />
                 </div>
               </div>
             </aside>

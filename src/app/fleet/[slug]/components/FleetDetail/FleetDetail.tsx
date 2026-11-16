@@ -353,9 +353,13 @@ export default async function FleetDetail({
                     btnType='red'
                     arrow
                   />
-                  <p className={styles.summaryCall}>
-                    Or call <a href={`tel:${phoneTel}`}>{phone}</a>
-                  </p>
+                  <span className={styles.or}>or</span>
+                  <Button
+                    href={`tel:${phoneTel}`}
+                    text='Call us'
+                    btnType='underlinedWhite'
+                    arrow
+                  />
                 </div>
               </div>
             </aside>

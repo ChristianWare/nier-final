@@ -198,24 +198,25 @@
   color: var(--black400);
 }
 
+/* Book (red) and Call us (underlined), each the card's full width, with
+   "or" between. */
 .summaryFoot {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 1.4rem;
+  align-items: stretch;
+  gap: 1.2rem;
 }
 
-.summaryCall {
-  font-size: 14px;
-  line-height: 1.4;
+.summaryFoot > * {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.or {
+  font-size: 1.4rem;
+  line-height: 1;
+  text-align: center;
   color: var(--black400);
-}
-
-.summaryCall a {
-  color: var(--cream);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  white-space: nowrap;
 }
 
 /* ── Content rows ── */
