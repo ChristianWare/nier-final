@@ -242,7 +242,7 @@ select:focus {
 
   h2,
   .h2 {
-    letter-spacing: -.5px;
+    letter-spacing: -1px;
     font-size: 34px;
     /* line-height: 1em; */
   }
