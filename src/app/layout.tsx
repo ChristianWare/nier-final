@@ -6,6 +6,7 @@ import Footer from "@/components/shared/Footer/Footer";
 import SessionProviderWrap from "@/components/Providers/SessionProvider";
 import ToastsProvider from "@/components/Providers/ToastsProvider";
 import ScrollToTop from "@/components/ServicesPage/ScrollToTop/ScrollToTop";
+import ScrollProgress from "@/components/shared/ScrollProgress/ScrollProgress";
 import PlausibleProvider from "next-plausible";
 import { buildBusinessSchema } from "@/lib/schema";
 import { getCompanySettings } from "../../actions/admin/companySettings";
@@ -135,6 +136,8 @@ export default async function RootLayout({
           }}
         />
         <ScrollToTop />
+        {/* How far down the page you are, bottom right (public pages). */}
+        <ScrollProgress />
         <PlausibleProvider
           domain='niertransportation.com'
           // Staff and signed-in areas aren't site traffic: Barry, the
