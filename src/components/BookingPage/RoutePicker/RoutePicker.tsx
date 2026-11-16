@@ -480,10 +480,10 @@ export default function RoutePicker({
         className={fill ? `${styles.map} ${styles.mapFill}` : styles.map}
       />
 
-      <div className={fill ? styles.fillStats : undefined}>
+      <div className={fill ? styles.fillStats : styles.stats}>
       <div className={styles.infoItem}>
-        <div className='emptyTitleSmall'>Total Distance</div>
-        <div className='subheading'>
+        <div className={styles.infoLabel}>Total distance</div>
+        <div className={styles.infoValue}>
           {displayMiles == null ? "—" : `${displayMiles} mi`}
           {stops.length > 0 && displayMiles != null && (
             <span className={styles.includesStops}>
@@ -495,8 +495,8 @@ export default function RoutePicker({
       </div>
 
       <div className={styles.infoItem}>
-        <div className='emptyTitleSmall'>Est. Duration</div>
-        <div className='subheading'>
+        <div className={styles.infoLabel}>Est. duration</div>
+        <div className={styles.infoValue}>
           {displayMinutes == null ? "—" : `${displayMinutes} min`}
           {stops.length > 0 && displayMinutes != null && (
             <span className={styles.includesStops}>

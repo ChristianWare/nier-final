@@ -35,11 +35,11 @@ import { ServicePricingStrategy } from "@prisma/client";
 import FlightLookupInput from "../FlightLookupInput/FlightLookupInput";
 import AirlineSelect from "@/components/BookingPage/AirlineSelect/AirlineSelect";
 import { extractIataFromFlightNumber } from "@/lib/flight/airlineList";
-import Stepper from "../Stepper/Stepper";
 import Modal from "@/components/shared/Modal/Modal";
 import { localToUtcIso, isPickupTooSoon } from "@/lib/timezone";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
-import Button from "@/components/shared/Button/Button";
+import { AddButton, BackButton, NextButton } from "./WizardButtons";
+import WizardTabs from "./WizardTabs";
 import FlightTracker from "@/components/shared/FlightTracker/FlightTracker";
 import {
   BOOKING_LEAD_MINUTES,
@@ -1771,7 +1771,7 @@ export default function BookingWizard({
             }}
             className={styles.addStopBtnWizard}
           >
-            <span>➕</span> Add a stop
+            <span className={styles.addStopPlus}>+</span> Add a stop
             <span className={styles.addStopFeeWizard}>
               ({EXTRA_STOP_FEE_LABEL})
             </span>
@@ -1846,7 +1846,7 @@ export default function BookingWizard({
         selectedService?.pricingStrategy !== "HOURLY" && (
           <div className={styles.stopSurchargeInfo}>
             <span>
-              🛑 {route?.stops?.length} extra stop
+              {route?.stops?.length} extra stop
               {(route?.stops?.length ?? 0) > 1 ? "s" : ""}
             </span>
             <span className={styles.stopSurchargeAmount}>
@@ -1924,7 +1924,7 @@ export default function BookingWizard({
           timeZone={companyTimezone}
         />
         <div className='miniNote' style={{ marginTop: 8 }}>
-          🕐 All times are in {companyTimezoneLabel}
+          All times are in {companyTimezoneLabel}.
         </div>
         {pickupTooSoon && (
           <div
@@ -2013,100 +2013,51 @@ export default function BookingWizard({
             <div className={styles.checklistContainer}>
               {checklistNode}
               {isMultiLeg && (
-                <div
-                  style={{
-                    background: "rgba(0,0,0,0.04)",
-                    border: "1px solid rgba(0,0,0,0.1)",
-                    borderRadius: 8,
-                    padding: "10px 14px",
-                    marginTop: 12,
-                    backgroundColor: "#eaf8ee",
-                    borderColor: "#bfe8cc",
-                    outline: "2px solid #4e94ec33",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "flex-start",
-                    justifyContent: "flex-start",
-                    gap: "1rem",
-                  }}
-                >
-                  <strong>
-                    🗓️ {savedLegs.length} ride
-                    {savedLegs.length > 1 ? "s" : ""} added
-                  </strong>
-                  <span style={{ opacity: 0.7, marginLeft: 8 }}>
-                    {savedLegs.some((l) => l.callForPricing)
-                      ? `(from $${centsToUsd(savedLegsTotal)}+ so far)`
-                      : `($${centsToUsd(savedLegsTotal)} so far)`}
-                  </span>{" "}
-                  {savedLegs.map((leg, idx) => (
-                    <div
-                      key={leg.id}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        padding: "10px 0",
-                        borderBottom: "1px solid rgba(0,0,0,0.08)",
-                        gap: 12,
-                      }}
-                    >
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: "1.4rem" }}>
-                          Ride {idx + 1}: {leg.serviceName}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "1.3rem",
-                            opacity: 0.7,
-                            marginTop: 2,
-                          }}
-                        >
-                          {leg.pickupAtDate} @ {leg.pickupAtTime} ·{" "}
-                          {leg.vehicleName}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "1.2rem",
-                            opacity: 0.6,
-                            marginTop: 2,
-                          }}
-                        >
-                          {shortAddress(leg.pickupAddress, 45)} →{" "}
-                          {shortAddress(leg.dropoffAddress, 45)}
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          flexShrink: 0,
-                        }}
-                      >
-                        <span style={{ fontWeight: 700, fontSize: "1.4rem" }}>
-                          {leg.callForPricing
-                            ? "TBD"
-                            : `$${centsToUsd(leg.estimateCents)}`}
+                <div className={styles.legsBox}>
+                  <p className={styles.legsTitle}>
+                    {savedLegs.length} ride{savedLegs.length > 1 ? "s" : ""}{" "}
+                    added
+                    <span className={styles.legsSoFar}>
+                      {savedLegs.some((l) => l.callForPricing)
+                        ? `From $${centsToUsd(savedLegsTotal)}+ so far`
+                        : `$${centsToUsd(savedLegsTotal)} so far`}
+                    </span>
+                  </p>
+                  <ul className={styles.legsList}>
+                    {savedLegs.map((leg, idx) => (
+                      <li key={leg.id} className={styles.leg}>
+                        <span className={styles.legText}>
+                          <span className={styles.legName}>
+                            Ride {idx + 1}: {leg.serviceName}
+                          </span>
+                          <span className={styles.legMeta}>
+                            {leg.pickupAtDate} at {leg.pickupAtTime} ·{" "}
+                            {leg.vehicleName}
+                          </span>
+                          <span className={styles.legMeta}>
+                            {shortAddress(leg.pickupAddress, 45)} →{" "}
+                            {shortAddress(leg.dropoffAddress, 45)}
+                          </span>
                         </span>
-                        <button
-                          type='button'
-                          onClick={() => setRemoveLegId(leg.id)}
-                          title='Remove this ride'
-                          style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: 16,
-                            opacity: 0.5,
-                            padding: "2px 6px",
-                          }}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                        <span className={styles.legSide}>
+                          <span className={styles.legPrice}>
+                            {leg.callForPricing
+                              ? "TBD"
+                              : `$${centsToUsd(leg.estimateCents)}`}
+                          </span>
+                          <button
+                            type='button'
+                            onClick={() => setRemoveLegId(leg.id)}
+                            className={styles.legRemove}
+                            aria-label={`Remove ride ${idx + 1}`}
+                            title='Remove this ride'
+                          >
+                            ✕
+                          </button>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>
@@ -2119,45 +2070,35 @@ export default function BookingWizard({
             {isMobile && (
               <div className={styles.checklistMobile}>
                 {isMultiLeg && (
-                  <div
-                    style={{
-                      background: "rgba(0,0,0,0.04)",
-                      border: "1px solid rgba(0,0,0,0.1)",
-                      borderRadius: 5,
-                      padding: "10px 14px",
-                      marginTop: 12,
-                      fontSize: "2rem",
-                      backgroundColor: "#eaf8ee",
-                      borderColor: "#bfe8cc",
-                      outline: "2px solid #4e94ec33",
-                    }}
-                  >
-                    <strong>
-                      🗓️ {savedLegs.length} ride
-                      {savedLegs.length > 1 ? "s" : ""} added
-                    </strong>
-                    <span style={{ opacity: 0.7, marginLeft: 8 }}>
-                      {savedLegs.some((l) => l.callForPricing)
-                        ? `(from $${centsToUsd(savedLegsTotal)}+ so far)`
-                        : `($${centsToUsd(savedLegsTotal)} so far)`}
-                    </span>
+                  <div className={styles.legsBox}>
+                    <p className={styles.legsTitle}>
+                      {savedLegs.length} ride{savedLegs.length > 1 ? "s" : ""}{" "}
+                      added
+                      <span className={styles.legsSoFar}>
+                        {savedLegs.some((l) => l.callForPricing)
+                          ? `From $${centsToUsd(savedLegsTotal)}+ so far`
+                          : `$${centsToUsd(savedLegsTotal)} so far`}
+                      </span>
+                    </p>
                   </div>
                 )}
-                <br />
-
-                <Stepper step={step} />
               </div>
             )}
 
             <div className={styles.wizard}>
+              <div className={styles.cardHead}>
+                <p className={styles.cardTitle}>Book a ride</p>
+                <WizardTabs step={step} onGoToStep={(n) => setStep(n)} />
+              </div>
+
               {/* STEP 1 */}
               {step === 1 ? (
                 <div className={`${styles.contentBox} ${styles.stepPane}`}>
-                  <h2 className='underline'>1. Trip details</h2>
-                  <p className='subheading'>
+                  <h2 className={styles.stepTitle}>Trip details</h2>
+                  <p className={styles.stepIntro}>
                     {isMultiLeg
-                      ? `Adding ride ${savedLegs.length + 1} to your trip`
-                      : "Please provide the details for your trip below"}
+                      ? `Adding ride ${savedLegs.length + 1} to your trip.`
+                      : "Where you're going, when, and who's riding."}
                   </p>
 
                   {hasNoServices ? (
@@ -2334,11 +2275,8 @@ export default function BookingWizard({
                             gap: 8,
                           }}
                         >
-                          <span style={{ marginRight: 8 }}>✈️</span>
-                          Flight Information{" "}
-                          <span style={{ fontWeight: 400, opacity: 0.7 }}>
-                            (optional)
-                          </span>
+                          Flight details{" "}
+                          <span className={styles.optional}>(optional)</span>
                         </div>
                         <p
                           className='miniNote'
@@ -2397,16 +2335,11 @@ export default function BookingWizard({
                     </div>
                   )}
 
-                  <div
-                    className={styles.bottomBtnContainer}
-                    style={{ marginLeft: "auto" }}
-                  >
-                    <Button
-                      type='button'
-                      text='Next: Choose Vehicle →'
-                      btnType='greenReg'
-                      onClick={goStep2}
-                    />
+                  <div className={styles.bottomBtnContainer}>
+                    <p className={styles.footHint}>
+                      Next, choose a vehicle and see your estimate.
+                    </p>
+                    <NextButton text='Choose a vehicle' onClick={goStep2} />
                   </div>
                 </div>
               ) : null}
@@ -2414,14 +2347,16 @@ export default function BookingWizard({
               {/* STEP 2 */}
               {step === 2 ? (
                 <div id='wizard-field-vehicle' className={styles.stepPane}>
-                  <h2 className='underline'>2. Choose a vehicle</h2>
-                  <p className='subheading'>Choose a vehicle category</p>
-                  <br />
+                  <h2 className={styles.stepTitle}>Choose a vehicle</h2>
+                  <p className={styles.stepIntro}>
+                    Every price below is for your trip, with the route and time
+                    you picked.
+                  </p>
                   <div className={styles.sectionBox}>
                     <label className={labelCx(Boolean(errors.vehicleId))}>
                       Vehicle category
                     </label>
-                    <div style={{ display: "grid", gap: 10 }}>
+                    <div className={styles.vehicles}>
                       {filteredVehicles.map((v) => {
                         const isSelected = v.id === vehicleId;
                         const rowQuote = selectedService
@@ -2494,52 +2429,53 @@ export default function BookingWizard({
                                 );
                               }
                             }}
-                            style={{
-                              textAlign: "left",
-                              padding: 14,
-                              borderRadius: 7,
-                              border: isSelected
-                                ? "2px solid rgba(0,0,0,0.6)"
-                                : "1px solid rgba(0,0,0,0.25)",
-                              background: "white",
-                              cursor: "pointer",
-                              display: "grid",
-                              gap: 6,
-                            }}
+                            aria-pressed={isSelected}
+                            className={`${styles.vehicle} ${isSelected ? styles.vehicleOn : ""}`}
                           >
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                gap: 12,
-                              }}
-                            >
-                              <div className='emptyTitle'>{v.name}</div>
-                              <div
-                                className='emptyTitleSmall'
-                                style={{ textAlign: "right", width: "100%" }}
-                              >
-                                {v.callForPricing
-                                  ? v.callForPricingMessage ||
-                                    "Call for pricing"
-                                  : `$${centsToUsd(rowEstimateCents)}`}
-                              </div>
-                            </div>
-                            <div className='val'>
-                              Capacity: {v.capacity} • Luggage:{" "}
-                              {v.luggageCapacity}
-                              {rowMinHours !== null
-                                ? ` • Min hours: ${rowMinHours}`
-                                : ""}
-                              {rowBillable !== null
-                                ? ` • Billable hours: ${rowBillable}`
-                                : ""}
-                            </div>
-                            {v.description ? (
-                              <div style={{ fontSize: 12, opacity: 0.75 }}>
-                                {v.description}
-                              </div>
-                            ) : null}
+                            <span className={styles.vehicleMedia}>
+                              {v.imageUrl ? (
+                                // Admin-uploaded photos can live on any host.
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                  src={v.imageUrl}
+                                  alt=''
+                                  className={styles.vehicleImg}
+                                  loading='lazy'
+                                />
+                              ) : null}
+                            </span>
+                            <span className={styles.vehicleBody}>
+                              <span className={styles.vehicleTop}>
+                                <span className={styles.vehicleName}>
+                                  {v.name}
+                                </span>
+                                <span className={styles.vehiclePrice}>
+                                  {v.callForPricing
+                                    ? v.callForPricingMessage ||
+                                      "Call for pricing"
+                                    : `$${centsToUsd(rowEstimateCents)}`}
+                                </span>
+                              </span>
+                              {v.description ? (
+                                <span className={styles.vehicleDesc}>
+                                  {v.description}
+                                </span>
+                              ) : null}
+                              <span className={styles.vehicleMeta}>
+                                <span>Up to {v.capacity} passengers</span>
+                                <span>{v.luggageCapacity} bags</span>
+                                {rowMinHours ? (
+                                  <span>{rowMinHours} hour minimum</span>
+                                ) : null}
+                                {rowBillable !== null ? (
+                                  <span>{rowBillable} billable hours</span>
+                                ) : null}
+                              </span>
+                            </span>
+                            <span
+                              className={styles.vehicleCheck}
+                              aria-hidden='true'
+                            />
                           </button>
                         );
                       })}
@@ -2579,22 +2515,12 @@ export default function BookingWizard({
                       Next
                     </button>
                   </div> */}
-                  <div
-                    className={styles.bottomBtnContainer}
-                    style={{ marginTop: "5rem" }}
-                  >
-                    <Button
-                      type='button'
-                      text='← Back: Trip Details'
-                      btnType='blackReg'
+                  <div className={styles.bottomBtnContainer}>
+                    <BackButton
+                      text='Trip details'
                       onClick={() => setStep(1)}
                     />
-                    <Button
-                      type='button'
-                      text='Next: Confirm →'
-                      btnType='greenReg'
-                      onClick={goStep3}
-                    />
+                    <NextButton text='Review and confirm' onClick={goStep3} />
                   </div>
                 </div>
               ) : null}
@@ -2605,8 +2531,11 @@ export default function BookingWizard({
                   className={styles.stepPane}
                   style={{ display: "grid", gap: 30 }}
                 >
-                  <h2 className='underline'>3. Confirm</h2>
-                  <p className='subheading'>Overview</p>
+                  <h2 className={styles.stepTitle}>Review and confirm</h2>
+                  <p className={styles.stepIntro}>
+                    Check the details, add your contact info and send the
+                    request. Dispatch confirms it before you pay.
+                  </p>
                   <div className='box'>
                     <SummaryRow
                       label='Service'
@@ -2657,7 +2586,7 @@ export default function BookingWizard({
                             className='cardTitle h6'
                             style={{ marginBottom: 8, opacity: 0.7 }}
                           >
-                            🛑 Extra Stops ({route?.stops?.length})
+                            Extra stops ({route?.stops?.length})
                           </div>
                         </div>
                         {route?.stops?.map((stop, index) => (
@@ -2692,7 +2621,7 @@ export default function BookingWizard({
                             className='cardTitle h6'
                             style={{ marginBottom: 8, opacity: 0.7 }}
                           >
-                            💰 Service Fees
+                            Service fees
                           </div>
                         </div>
                         {selectedService?.fees?.map((fee) => (
@@ -2920,8 +2849,7 @@ export default function BookingWizard({
                         className='cardTitle h5'
                         style={{ marginBottom: 12 }}
                       >
-                        <span style={{ marginRight: 10 }}>🗓️</span> Your
-                        multi-day trip ({savedLegs.length + 1} rides)
+                        Your multi-day trip ({savedLegs.length + 1} rides)
                       </div>
                       {savedLegs.map((leg, idx) => (
                         <div
@@ -3212,28 +3140,22 @@ export default function BookingWizard({
                     ➕ Add another ride to this trip
                   </button> */}
                   {isAirportService && (
-                    <Button
-                      type='button'
+                    <AddButton
                       text={
                         rideKind === "airportPickup"
                           ? "Add my ride back to the airport"
                           : "Add my ride back from the airport"
                       }
-                      btnType='greenii'
                       onClick={() => {
                         void addReturnRide();
                       }}
-                      plus
                     />
                   )}
-                  <Button
-                    type='button'
+                  <AddButton
                     text='Add another ride to this trip'
-                    btnType='greenii'
                     onClick={() => {
                       void addAnotherRide();
                     }}
-                    plus
                   />
                   {savedLegs.length === 0 && (
                     <div
@@ -3278,29 +3200,24 @@ export default function BookingWizard({
                             : "Submit request"}
                     </button>
                   </div> */}
-                  <div
-                    className={styles.bottomBtnContainer}
-                    style={{ marginTop: "5rem" }}
-                  >
-                    <Button
-                      type='button'
-                      text='← Back: Vehicle Details'
-                      btnType='blackReg'
+                  <div className={styles.bottomBtnContainer}>
+                    <BackButton
+                      text='Vehicle'
                       onClick={() => setStep(2)}
+                      disabled={submitting || submitted}
                     />
-                    <Button
-                      type='button'
+                    <NextButton
                       text={
                         submitted
                           ? "Submitted"
                           : submitting
                             ? "Submitting..."
                             : isMultiLeg
-                              ? `Submit ${savedLegs.length + 1} rides →`
-                              : "Submit request →"
+                              ? `Submit ${savedLegs.length + 1} rides`
+                              : "Submit request"
                       }
-                      btnType='greenReg'
                       onClick={handleSubmit}
+                      disabled={submitting || submitted}
                     />
                   </div>
                 </div>

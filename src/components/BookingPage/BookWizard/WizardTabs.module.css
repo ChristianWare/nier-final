@@ -1,0 +1,100 @@
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  border-bottom: 2px solid var(--stroke);
+}
+
+.item {
+  min-width: 0;
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0 0 1.4rem;
+  border: none;
+  background: none;
+  font-family: var(--inter);
+  font-size: 1.6rem;
+  line-height: 1.2;
+  color: var(--black400);
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* The underline sits on top of the row's own rule. */
+.tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.current {
+  font-family: var(--inter);
+  font-weight: 600;
+  color: var(--black);
+}
+
+.current::after {
+  background-color: var(--black);
+}
+
+.current .num {
+  border-color: var(--black);
+  background-color: var(--black);
+  color: var(--cream);
+}
+
+.done {
+  color: var(--paragraph);
+  cursor: pointer;
+}
+
+.done .num {
+  border-color: var(--accent);
+  background-color: var(--accent);
+  color: var(--white);
+}
+
+.done:hover {
+  color: var(--black);
+}
+
+.done:hover::after {
+  background-color: var(--stroke);
+}
+
+.tab:disabled {
+  cursor: default;
+}
+
+@media screen and (max-width: 568px) {
+  .tab {
+    font-size: 1.4rem;
+    gap: 0.6rem;
+  }
+}
