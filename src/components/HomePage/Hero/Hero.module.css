@@ -151,10 +151,6 @@
 }
 
 @media screen and (max-width: 1268px) {
-  .container,
-  .content {
-    min-height: 50vh;
-  }
 
   .cc1 {
     display: flex;
@@ -223,7 +219,7 @@
   }
 
   .heading {
-    max-width: 100%;
+    max-width: 400px;
     width: 100%;
   }
 
