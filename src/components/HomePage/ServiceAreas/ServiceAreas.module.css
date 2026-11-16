@@ -146,142 +146,109 @@
   font-size: 11px;
 }
 
-/* ── City labels on the map ── */
+/* ── Airport markers ──
+   A plane on the airport (black for commercial, white for private
+   aviation), its code and name above, and a link once it's selected. */
 
-.label {
+.airport {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.6rem;
+  cursor: pointer;
   transition: opacity 0.2s ease;
 }
 
-.labelName {
+.airportDot {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.6rem 1rem 0.6rem 0.8rem;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background-color: var(--white);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-  font-family: var(--inter);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.3px;
-  color: var(--black);
-  white-space: nowrap;
-  cursor: pointer;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--black);
+  border-radius: 50%;
+  background-color: var(--black);
+  color: var(--white);
+  box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.1);
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
     color 0.2s ease;
 }
 
-.labelName span {
-  color: inherit;
+.airportDot svg {
+  width: 16px;
+  height: 16px;
 }
 
-.labelName svg {
-  width: 14px;
-  height: 14px;
-  color: var(--accent);
-  transition: color 0.2s ease;
+.airportPrivate .airportDot {
+  background-color: var(--white);
+  color: var(--black);
 }
 
-.labelHover .labelName {
+.airportCard {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background-color: var(--white);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  font-family: var(--inter);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.airportCard strong {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--black);
+}
+
+.airportCard span {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--paragraph);
+}
+
+.airportHover .airportCard {
   border-color: var(--black);
 }
 
-.labelSelected .labelName {
+.airportSelected .airportDot {
+  border-color: var(--accent);
   background-color: var(--accent);
   color: var(--white);
 }
 
-.labelSelected .labelName svg {
+.airportSelected .airportCard {
+  background-color: var(--accent);
+}
+
+.airportSelected .airportCard strong,
+.airportSelected .airportCard span {
   color: var(--white);
 }
 
-.labelDim {
-  opacity: 0.55;
+.airportDim {
+  opacity: 0.5;
 }
 
-/* The hovered or selected label sits over its neighbours. */
-.labelHover,
-.labelSelected,
-.homeActive,
-.homeSelected {
+/* The hovered or selected airport sits over its neighbours. */
+.airportHover,
+.airportSelected {
   z-index: 2;
 }
 
-/* Zoomed out: smaller labels. */
-.compact .labelName {
-  gap: 0.4rem;
-  padding: 0.4rem 0.7rem 0.4rem 0.5rem;
-  font-size: 12px;
-}
-
-.compact .labelName svg {
-  width: 11px;
-  height: 11px;
-}
-
-.compact .homeCard {
-  padding: 0.5rem 0.8rem;
-}
-
-.compact .homeCard strong {
-  font-size: 12px;
-}
-
-.compact .homeCard small {
-  display: none;
-}
-
-/* Zoomed out on a phone: pins only, names on hover or selection. */
-.tiny .labelName {
-  gap: 0;
-  padding: 0.5rem;
-}
-
-.tiny .labelName span {
-  display: none;
-}
-
-.tiny .labelHover .labelName,
-.tiny .labelSelected .labelName {
-  gap: 0.4rem;
-  padding: 0.4rem 0.7rem 0.4rem 0.5rem;
-}
-
-.tiny .labelHover .labelName span,
-.tiny .labelSelected .labelName span {
-  display: inline;
-}
-
-.tiny .homeDot {
-  width: 30px;
-  height: 30px;
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.12);
-}
-
-.tiny .homeDot svg {
-  width: 14px;
-  height: 14px;
-}
-
-.tiny .homeCard {
-  display: none;
-}
-
-.tiny .homeActive .homeCard,
-.tiny .homeSelected .homeCard {
-  display: flex;
-}
-
-/* "See Tempe →": only on the selected city. */
-.labelLink {
+/* "PHX guide →": only on the selected airport. */
+.airportLink {
   display: none;
   padding: 0.5rem 0.8rem;
   border-radius: 5px;
@@ -294,91 +261,64 @@
   white-space: nowrap;
 }
 
-.labelSelected .labelLink {
+.airportSelected .airportLink {
   display: inline-block;
 }
 
-/* ── Sky Harbor, home base ── */
+/* Zoomed out: just the code on the card. */
+.compact .airportCard span {
+  display: none;
+}
 
-.home {
+.compact .airportSelected .airportCard span,
+.compact .airportHover .airportCard span {
+  display: inline;
+}
+
+/* Zoomed out on a phone: planes only; the code shows on the one that's
+   hovered or selected. */
+.tiny .airportDot {
+  width: 28px;
+  height: 28px;
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.tiny .airportDot svg {
+  width: 13px;
+  height: 13px;
+}
+
+.tiny .airportCard {
+  display: none;
+}
+
+.tiny .airportHover .airportCard,
+.tiny .airportSelected .airportCard {
   display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-  gap: 0.6rem;
-  cursor: pointer;
 }
 
-.homeDot {
-  position: relative;
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--black);
-  color: var(--white);
-  box-shadow: 0 0 0 6px rgba(0, 0, 0, 0.12);
-  transition: background-color 0.2s ease;
-}
-
-.homeDot svg {
-  width: 18px;
-  height: 18px;
-}
-
-.homeCard {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  padding: 0.7rem 1rem;
-  border: 1px solid transparent;
-  border-radius: 5px;
-  background-color: var(--white);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-  font-family: var(--inter);
-  line-height: 1;
-  white-space: nowrap;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.homeCard strong {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
-  color: var(--black);
-}
-
-.homeCard small {
-  font-size: 11px;
-  color: var(--paragraph);
-}
-
-.homeActive .homeCard {
-  border-color: var(--black);
-}
-
-.homeSelected .homeDot {
-  background-color: var(--accent);
-}
-
-.homeSelected .homeCard {
-  background-color: var(--accent);
-}
-
-.homeSelected .homeCard strong,
-.homeSelected .homeCard small {
-  color: var(--white);
-}
-
-/* ── Areas we serve: the pills ── */
+/* ── Airports we serve: the pills ── */
 
 .areas {
   grid-area: areas;
   gap: 2.4rem;
+}
+
+/* Commercial, then private aviation. */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.groupLabel {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--paragraph);
 }
 
 .areasTitle {
@@ -429,8 +369,17 @@
   transition: color 0.2s ease;
 }
 
-.pillHome .pillIcon {
-  color: var(--black);
+/* The code, small and quiet, after the name. */
+.pillCode {
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--paragraph);
+  transition: color 0.2s ease;
+}
+
+.pillSelected .pillCode {
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .pillHover {
@@ -492,18 +441,20 @@
     height: 520px;
   }
 
-  /* Two columns of full-width pills, the name left and the pin right. */
+  /* One full-width pill per row: plane and name left, code right. */
   .pills {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
     width: 100%;
   }
 
   .pill {
-    flex-direction: row-reverse;
-    justify-content: space-between;
     width: 100%;
     padding: 0rem 1.4rem;
+  }
+
+  .pillCode {
+    margin-left: auto;
   }
 
   .actions {

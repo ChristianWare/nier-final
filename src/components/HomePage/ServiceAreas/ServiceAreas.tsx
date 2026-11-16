@@ -1,9 +1,10 @@
 "use client";
 
-// Where we serve: a map of the cities beside a pill for each. Hovering a
-// pill (or a city on the map) lights it up on both; clicking one zooms the
-// map to it, and clicking another zooms out and back in to that one. Sky
-// Harbor is home base, with its own pill and marker.
+// Where we serve: a map of the airports we serve (three commercial, three
+// private aviation) over a faint outline of the cities we cover, beside a
+// pill for each airport. Hovering a pill (or a marker on the map) lights it
+// up on both; clicking one zooms the map to it, and clicking another zooms
+// out and back in to that one.
 //
 // Above 1068px the map sits on the left with the intro and the pills
 // stacked on the right. Below that it's intro, map, pills, top to bottom.
@@ -17,9 +18,8 @@ import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
 import Logo from "@/components/shared/Logo/Logo";
-import Location from "@/components/shared/icons/Location/Location";
 import Plane from "@/components/shared/icons/Plane/Plane";
-import { SERVICE_AREA_CITIES, SKY_HARBOR } from "@/lib/serviceAreas";
+import { SERVICE_AIRPORTS } from "@/lib/serviceAreas";
 import styles from "./ServiceAreas.module.css";
 
 function MapPlaceholder() {
@@ -35,9 +35,15 @@ const ServiceAreaMap = dynamic(() => import("./ServiceAreaMap"), {
   loading: () => <MapPlaceholder />,
 });
 
-const PILLS = [
-  { slug: SKY_HARBOR.slug, name: SKY_HARBOR.name, home: true },
-  ...SERVICE_AREA_CITIES.map((c) => ({ ...c, home: false })),
+const GROUPS = [
+  {
+    label: "Commercial",
+    airports: SERVICE_AIRPORTS.filter((a) => a.kind === "commercial"),
+  },
+  {
+    label: "Private aviation",
+    airports: SERVICE_AIRPORTS.filter((a) => a.kind === "private"),
+  },
 ];
 
 export default function ServiceAreas() {
@@ -66,7 +72,7 @@ export default function ServiceAreas() {
   const toggle = (slug: string) =>
     setSelected((s) => (s === slug ? null : slug));
   const leave = (slug: string) => setHovered((h) => (h === slug ? null : h));
-  const selectedCity = SERVICE_AREA_CITIES.find((c) => c.slug === selected);
+  const selectedAirport = SERVICE_AIRPORTS.find((a) => a.slug === selected);
 
   return (
     <section className={styles.container} aria-labelledby='areas-heading'>
@@ -80,9 +86,10 @@ export default function ServiceAreas() {
             </h2>
             <p className={styles.copy}>
               No matter where you are in the Phoenix area, Nier Transportation
-              is ready to get you there, from Sky Harbor to Surprise in the west
-              and Gilbert in the east. Hover a city to find it on the map, or
-              select it to zoom in.
+              is ready to get you there, from Sky Harbor and Mesa Gateway to the
+              private jet terminals at Scottsdale, Deer Valley, Falcon Field and
+              Goodyear. Hover an airport to find it on the map, or select it to
+              zoom in.
             </p>
           </div>
 
@@ -100,48 +107,67 @@ export default function ServiceAreas() {
           </div>
 
           <div className={`${styles.card} ${styles.areas}`}>
-            <h3 className={`${styles.areasTitle} h5`}>Areas we serve</h3>
-            <ul className={styles.pills}>
-              {PILLS.map((p) => {
-                const isSelected = selected === p.slug;
-                const Icon = p.home ? Plane : Location;
-                return (
-                  <li key={p.slug}>
-                    <button
-                      type='button'
-                      className={`${styles.pill} ${p.home ? styles.pillHome : ""} ${
-                        hovered === p.slug ? styles.pillHover : ""
-                      } ${isSelected ? styles.pillSelected : ""}`}
-                      aria-pressed={isSelected}
-                      onClick={() => toggle(p.slug)}
-                      onMouseEnter={() => setHovered(p.slug)}
-                      onMouseLeave={() => leave(p.slug)}
-                      onFocus={() => setHovered(p.slug)}
-                      onBlur={() => leave(p.slug)}
-                    >
-                      <Icon className={styles.pillIcon} aria-hidden='true' />
-                      <span className={styles.pillText}>{p.name}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <h3 className={`${styles.areasTitle} h5`}>Airports we serve</h3>
+            {GROUPS.map((g) => (
+              <div key={g.label} className={styles.group}>
+                <p className={styles.groupLabel}>{g.label}</p>
+                <ul className={styles.pills}>
+                  {g.airports.map((a) => {
+                    const isSelected = selected === a.slug;
+                    return (
+                      <li key={a.slug}>
+                        <button
+                          type='button'
+                          className={`${styles.pill} ${
+                            hovered === a.slug ? styles.pillHover : ""
+                          } ${isSelected ? styles.pillSelected : ""}`}
+                          aria-pressed={isSelected}
+                          onClick={() => toggle(a.slug)}
+                          onMouseEnter={() => setHovered(a.slug)}
+                          onMouseLeave={() => leave(a.slug)}
+                          onFocus={() => setHovered(a.slug)}
+                          onBlur={() => leave(a.slug)}
+                        >
+                          <Plane
+                            className={styles.pillIcon}
+                            aria-hidden='true'
+                          />
+                          <span className={styles.pillText}>{a.name}</span>
+                          <span className={styles.pillCode}>{a.code}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
 
             <div className={styles.actions}>
-              {selectedCity ? (
-                <Button
-                  href={`/locations/${selectedCity.slug}`}
-                  text={`Black car service in ${selectedCity.name}`}
-                  btnType='underlinedBlack'
-                  arrow
-                />
-              ) : null}
               <Button
-                href='/locations'
-                text='See all locations'
+                href='/airports'
+                text='See all airports'
                 btnType='black'
                 arrow
               />
+              {selectedAirport ? (
+                <Button
+                  href={selectedAirport.href}
+                  text={
+                    selectedAirport.kind === "private"
+                      ? "Private aviation pickups"
+                      : `${selectedAirport.name} guide`
+                  }
+                  btnType='underlinedBlack'
+                  arrow
+                />
+              ) : (
+                <Button
+                  href='/locations'
+                  text='See all locations'
+                  btnType='underlinedBlack'
+                  arrow
+                />
+              )}
             </div>
           </div>
         </div>
