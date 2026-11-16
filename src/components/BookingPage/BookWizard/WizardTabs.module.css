@@ -1,3 +1,22 @@
+/* "Book a ride" and the tabs, along the top of a wizard. */
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 2.4rem;
+  margin-bottom: 4rem;
+}
+
+.title {
+  font-family: var(--inter);
+  font-size: 3.2rem;
+  font-weight: 500;
+  line-height: 0.95em;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--black);
+}
+
+/* The columns come from the number of tabs (set inline). */
 .tabs {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -71,6 +90,9 @@
 
 .done {
   color: var(--paragraph);
+}
+
+.clickable {
   cursor: pointer;
 }
 
@@ -80,21 +102,65 @@
   color: var(--white);
 }
 
-.done:hover {
+.clickable:hover {
   color: var(--black);
 }
 
-.done:hover::after {
+.clickable:hover::after {
   background-color: var(--stroke);
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
 }
 
 .tab:disabled {
   cursor: default;
 }
 
+/* Five or more steps: numbers only, and the current step's name, which
+   takes the spare room. */
+.crowded {
+  display: flex;
+  gap: 1.6rem;
+}
+
+.crowded .item {
+  flex: 0 0 auto;
+}
+
+.crowded .item:has(.current) {
+  flex: 1 1 auto;
+}
+
+.crowded .tab:not(.current) .label {
+  display: none;
+}
+
 @media screen and (max-width: 568px) {
   .tab {
     font-size: 1.4rem;
     gap: 0.6rem;
+  }
+
+  /* Four or more steps: just the numbers, and the current step's name. */
+  .many .tab:not(.current) .label {
+    display: none;
+  }
+
+  .many {
+    display: flex;
+    gap: 1.6rem;
+  }
+
+  .many .item {
+    flex: 0 0 auto;
+  }
+
+  .many .item:has(.current) {
+    flex: 1 1 auto;
   }
 }

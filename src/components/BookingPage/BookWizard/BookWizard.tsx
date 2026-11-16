@@ -2148,10 +2148,11 @@ export default function BookingWizard({
 
             <div className={styles.wizard}>
               {/* The steps as tabs along the top, on every screen size. */}
-              <div className={styles.cardHead}>
-                <p className={styles.cardTitle}>Book a ride</p>
-                <WizardTabs step={step} onGoToStep={(n) => setStep(n)} />
-              </div>
+              <WizardTabs
+                title='Book a ride'
+                step={step}
+                onGoToStep={(n) => setStep(n)}
+              />
 
               {/* STEP 1 */}
               {step === 1 ? (

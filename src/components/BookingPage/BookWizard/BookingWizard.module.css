@@ -12,24 +12,6 @@
   margin-bottom: 2rem;
 }
 
-/* "Book a ride" and the step tabs, along the top of the wizard. */
-.cardHead {
-  display: flex;
-  flex-direction: column;
-  gap: 2.4rem;
-  margin-bottom: 4rem;
-}
-
-.cardTitle {
-  font-family: var(--inter);
-  font-size: 3.2rem;
-  font-weight: 500;
-  line-height: 0.95em;
-  letter-spacing: -0.04em;
-  text-transform: uppercase;
-  color: var(--black);
-}
-
 .sectionBox {
   border: 1px solid var(--stroke);
   border-radius: 10px;

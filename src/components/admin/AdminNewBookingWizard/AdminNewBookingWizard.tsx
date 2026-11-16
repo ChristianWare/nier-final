@@ -10,7 +10,9 @@ import CustomerLookupInput, {
   PastGuests,
 } from "@/components/admin/CustomerLookup/CustomerLookup";
 import styles from "./AdminNewBookingWizard.module.css";
-import stepperStyles from "@/components/BookingPage/Stepper/Stepper.module.css";
+import WizardTabs, {
+  type WizardTab,
+} from "@/components/BookingPage/BookWizard/WizardTabs";
 import {
   useCallback,
   useEffect,
@@ -1838,13 +1840,15 @@ export default function AdminNewBookingWizard({
         <div className={styles.right}>
           <div ref={wizardTopRef} className={styles.wizardTop} />
 
-          {isMobile && (
-            <div style={{ marginBottom: 20 }}>
-              <AdminBookingStepper step={step} />
-            </div>
-          )}
-
           <div className={styles.wizard}>
+            {/* The steps as tabs (the page already has its heading). Back to
+                an earlier step until the booking is made (Payment). */}
+            <WizardTabs
+              step={step}
+              tabs={ADMIN_TABS}
+              onGoToStep={step < 6 ? (n) => setStep(n) : undefined}
+            />
+
             {/* STEP 1: Trip */}
             {step === 1 ? (
               <div className={`${styles.contentBox} ${styles.stepPane}`}>
@@ -3926,58 +3930,14 @@ export default function AdminNewBookingWizard({
   );
 }
 
-function AdminBookingStepper({ step }: { step: AdminWizardStep }) {
-  const items = [
-    {
-      n: 1 as const,
-      label: "Trip",
-      copy: "Customer, service, date/time, route",
-    },
-    { n: 2 as const, label: "Vehicle", copy: "Vehicle category + notes" },
-    { n: 3 as const, label: "Price", copy: "Approve totals" },
-    { n: 4 as const, label: "Assign", copy: "Driver / unit + status" },
-    { n: 5 as const, label: "Confirm", copy: "Final review" },
-    { n: 6 as const, label: "Payment", copy: "Send link or take card" },
-  ];
-
-  return (
-    <div className={stepperStyles.container}>
-      {items.map((it, idx) => {
-        const isLast = idx === items.length - 1;
-        const isActive = step === it.n;
-        const isComplete = it.n < step;
-
-        const toneClass = isActive
-          ? stepperStyles.stepNumberActive
-          : isComplete
-            ? stepperStyles.stepNumberComplete
-            : stepperStyles.stepNumberInactive;
-
-        return (
-          <div key={it.n} className={stepperStyles.step}>
-            <div className={stepperStyles.stepDetails}>
-              <div className={stepperStyles.left}>
-                <div className={stepperStyles.marker}>
-                  <span className={`${stepperStyles.stepNumber} ${toneClass}`}>
-                    {it.n}
-                  </span>
-                  {!isLast ? (
-                    <span className={stepperStyles.connector} />
-                  ) : null}
-                </div>
-              </div>
-
-              <div className={stepperStyles.right}>
-                <div className={stepperStyles.label}>{it.label}</div>
-                {/* <p className={stepperStyles.copy}>{it.copy}</p> */}
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+const ADMIN_TABS: WizardTab<AdminWizardStep>[] = [
+  { n: 1, label: "Trip" },
+  { n: 2, label: "Vehicle" },
+  { n: 3, label: "Price" },
+  { n: 4, label: "Assign" },
+  { n: 5, label: "Confirm" },
+  { n: 6, label: "Payment" },
+];
 
 const stripePromise = (() => {
   const pk: string | undefined = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;

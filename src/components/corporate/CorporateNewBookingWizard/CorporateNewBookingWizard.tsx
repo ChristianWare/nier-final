@@ -4,7 +4,9 @@
 "use client";
 
 import styles from "./CorporateNewBookingWizard.module.css";
-import stepperStyles from "@/components/BookingPage/Stepper/Stepper.module.css";
+import WizardTabs, {
+  type WizardTab,
+} from "@/components/BookingPage/BookWizard/WizardTabs";
 
 import {
   useCallback,
@@ -977,9 +979,6 @@ export default function CorporateNewBookingWizard({
     <section className={styles.container}>
       <div ref={wizardTopRef} className={styles.wizardTop} />
 
-      {/* Stepper */}
-      {/* <CorporateBookingStepper step={step} /> */}
-
       <div className={styles.content}>
         {/* Left — checklist on desktop, stepper on mobile */}
         <div className={styles.left}>
@@ -1124,14 +1123,18 @@ export default function CorporateNewBookingWizard({
               ]}
             />
           </div>
-          <div className={styles.mobileOnly}>
-            <CorporateBookingStepper step={step} />
-          </div>
         </div>
 
         {/* Right — wizard steps */}
         <div className={styles.right}>
           <div className={styles.wizard}>
+            {/* The steps as tabs (each step has its own heading). Back to
+                an earlier step until the booking is made. */}
+            <WizardTabs
+              step={step}
+              tabs={CORPORATE_TABS}
+              onGoToStep={step < 4 ? (n) => setStep(n) : undefined}
+            />
             {" "}
             {/* ═══════════ STEP 1: Trip Details ═══════════ */}
             {step === 1 && (
@@ -2561,47 +2564,11 @@ export default function CorporateNewBookingWizard({
   );
 }
 
-// ───────────── Stepper ─────────────
+// ───────────── Step tabs ─────────────
 
-function CorporateBookingStepper({ step }: { step: WizardStep }) {
-  const items = [
-    { n: 1 as const, label: "Trip", copy: "Passenger, service, route" },
-    { n: 2 as const, label: "Vehicle", copy: "Vehicle category + notes" },
-    { n: 3 as const, label: "Review", copy: "Confirm details" },
-    { n: 4 as const, label: "Confirmed", copy: "Booking complete" },
-  ];
-
-  return (
-    <div className={stepperStyles.container}>
-      {items.map((it, idx) => {
-        const isLast = idx === items.length - 1;
-        const isActive = step === it.n;
-        const isComplete = it.n < step;
-
-        const toneClass = isActive
-          ? stepperStyles.stepNumberActive
-          : isComplete
-            ? stepperStyles.stepNumberComplete
-            : stepperStyles.stepNumberInactive;
-
-        return (
-          <div key={it.n} className={stepperStyles.step}>
-            <div className={stepperStyles.stepDetails}>
-              <div className={stepperStyles.left}>
-                <div className={stepperStyles.marker}>
-                  <span className={`${stepperStyles.stepNumber} ${toneClass}`}>
-                    {it.n}
-                  </span>
-                  {!isLast && <span className={stepperStyles.connector} />}
-                </div>
-              </div>
-              <div className={stepperStyles.right}>
-                <div className={stepperStyles.label}>{it.label}</div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+const CORPORATE_TABS: WizardTab<WizardStep>[] = [
+  { n: 1, label: "Trip" },
+  { n: 2, label: "Vehicle" },
+  { n: 3, label: "Review" },
+  { n: 4, label: "Confirmed" },
+];

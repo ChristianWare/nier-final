@@ -919,3 +919,18 @@ th {
 html[data-nav-loading="1"] [data-refresh-area] {
   opacity: 0.6;
 }
+
+/* Phones: every h1 in capitals, whatever its own styles say, and the
+   cream card titles (.cardTitle) in capitals with tight tracking.
+   Dashboards keep their own card titles (DashboardTheme). */
+@media screen and (max-width: 568px) {
+  h1,
+  .h1 {
+    text-transform: uppercase !important;
+  }
+
+  .cardTitle {
+    text-transform: uppercase;
+    letter-spacing: -0.2px;
+  }
+}

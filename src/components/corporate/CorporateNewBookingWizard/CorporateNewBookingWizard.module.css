@@ -320,9 +320,9 @@
     grid-gap: 7rem;
   }
 
+  /* Only the checklist lives here, and it's desktop only. */
   .left {
-    position: static;
-    top: auto;
+    display: none;
   }
 
   .desktopOnly {
@@ -344,9 +344,9 @@
     grid-template-columns: 1fr;
   }
 
+  /* Only the checklist lives here, and it's desktop only. */
   .left {
-    position: static;
-    top: auto;
+    display: none;
   }
 
   .sectionBox {
