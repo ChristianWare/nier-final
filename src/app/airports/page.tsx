@@ -119,7 +119,7 @@ export default function AirportsPage() {
         <LayoutWrapper>
           <div className={styles.introContent}>
             <SectionHeading text='Airports in Arizona' dot />
-            <h1 className={`${styles.heading} h1`}>
+            <h1 className={`${styles.heading} h2`}>
               Airports in Arizona: Every Commercial, Private & Regional Airport
             </h1>
             <p className={styles.lead}>
