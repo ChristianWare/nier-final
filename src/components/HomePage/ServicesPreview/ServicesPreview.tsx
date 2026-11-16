@@ -2,9 +2,9 @@
 "use client";
 
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
+import ServiceCard from "@/components/shared/ServiceCard/ServiceCard";
 import styles from "./ServicesPreview.module.css";
 import Button from "@/components/shared/Button/Button";
-import Image from "next/image";
 import { servicesData as services } from "@/lib/services";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import { usePathname } from "next/navigation";
@@ -58,36 +58,7 @@ export default function ServicesPreview() {
 
           <div className={styles.bottom}>
             {servicesMap.map((x) => (
-              <div key={x.id} className={styles.card}>
-                <div className={styles.titleDescBox}>
-                  <div className={styles.idTitleBox}>
-                    {/* <div className={styles.idBox}>
-                      <span className={styles.id}>{x.id}</span>
-                    </div> */}
-                    <h3 className={`cardTitle h5`}>{x.title}</h3>
-                  </div>
-                  <div className={styles.imgContainer}>
-                    <Image
-                      src={x.src}
-                      alt={x.title}
-                      title={x.title}
-                      fill
-                      className={styles.img}
-                      sizes='(max-width: 768px) 100vw, (max-width: 1268px) 50vw, 33vw'
-                    />
-                  </div>
-                </div>
-                <p className={styles.desc}>{x.copy}</p>
-
-                <div className={styles.btnContainer}>
-                  <Button
-                    text='Learn More'
-                    btnType='underlinedBlackii'
-                    href={`/services/${x.slug}`}
-                    arrow
-                  />
-                </div>
-              </div>
+              <ServiceCard key={x.id} service={x} />
             ))}
           </div>
         </div>

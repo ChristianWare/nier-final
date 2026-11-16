@@ -1,10 +1,9 @@
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
+import ServiceCard from "@/components/shared/ServiceCard/ServiceCard";
 import styles from "./LocationCityServicesGrid.module.css";
 import { servicesData as services } from "@/lib/services";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import type { CityData } from "@/lib/cities";
-import Button from "@/components/shared/Button/Button";
-import Image from "next/image";
 
 export default function LocationCityServicesGrid({ city }: { city: CityData }) {
   return (
@@ -18,31 +17,7 @@ export default function LocationCityServicesGrid({ city }: { city: CityData }) {
 
           <div className={styles.bottom}>
             {services.map((x) => (
-              <div key={x.id} className={styles.card}>
-                <div className={styles.titleDescBox}>
-                  <div className={styles.idTitleBox}>
-                    <h3 className={`cardTitle h5`}>{x.title}</h3>
-                  </div>
-                  <div className={styles.imgContainer}>
-                    <Image
-                      src={x.src}
-                      alt={x.title}
-                      title={x.title}
-                      fill
-                      className={styles.img}
-                    />
-                  </div>
-                </div>
-                  <p className={styles.desc}>{x.copy}</p>
-                <div className={styles.btnContainer}>
-                  <Button
-                    text='Learn More'
-                    btnType='black'
-                    href={`/services/${x.slug}`}
-                    arrow
-                  />
-                </div>
-              </div>
+              <ServiceCard key={x.id} service={x} />
             ))}
           </div>
         </div>
