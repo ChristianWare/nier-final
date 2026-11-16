@@ -227,13 +227,14 @@ export default function BookingWizardChecklist({
       {/* Header with progress */}
       <div className={styles.header}>
         <div className={styles.headerTop}>
+          <span className={styles.icon}>{allComplete ? "✅" : "📋"}</span>
           <div className={styles.headerText}>
             <h3 className={styles.title}>
-              {allComplete ? "Ready to send" : "Your booking"}
+              {allComplete ? "Ready to Submit" : "Booking Progress"}
             </h3>
             <p className={styles.subtitle}>
               {allComplete
-                ? "Everything is filled in. Review and send."
+                ? "All details filled — review and submit"
                 : `${visuallyCompleteCount} of ${totalCount} completed`}
             </p>
           </div>

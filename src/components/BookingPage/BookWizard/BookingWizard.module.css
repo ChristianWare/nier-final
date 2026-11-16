@@ -1,81 +1,74 @@
-/* /book: the booking tool. A checklist on the left (desktop) and the tool
-   in a card on the right: title and step tabs, the step, and a footer bar
-   with the buttons. The global form classes the tool shares with the
-   dashboards (.cardTitle, .input, .selectBorder, .miniNote, .box …) are
-   restyled here, inside this section only. */
-
-.container {
-  padding-bottom: 10rem;
-  background-color: var(--white);
-  font-family: var(--inter);
-  color: var(--black);
-}
-
-/* Buttons, selects and labels don't pick up the page font on their own. */
-.container :where(button, select, label, textarea, input, dd, dt, li) {
-  font-family: inherit;
-}
-
 .content {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
-  gap: 4rem;
+  grid-template-columns: 2fr 4fr;
+  grid-gap: 15rem;
   align-items: start;
+  padding-bottom: 10rem;
 }
 
-.checklistContainer {
-  position: sticky;
-  top: 96px;
-  z-index: 10;
+.checklistContainer,
+.checklistMobile {
   height: fit-content;
+  margin-bottom: 2rem;
 }
 
-.right {
-  align-self: start;
-  min-width: 0;
-}
-
-.wizardTop {
-  scroll-margin-top: 96px;
-}
-
-/* ── The card ── */
-
-.wizard {
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  background-color: var(--white);
-}
-
+/* "Book a ride" and the step tabs, along the top of the wizard. */
 .cardHead {
   display: flex;
   flex-direction: column;
   gap: 2.4rem;
-  padding: 3.2rem 3.2rem 0;
+  margin-bottom: 4rem;
 }
 
 .cardTitle {
   font-family: var(--inter);
-  font-weight: 500;
-  letter-spacing: -0.04em;
   font-size: 3.2rem;
+  font-weight: 500;
   line-height: 0.95em;
+  letter-spacing: -0.04em;
   text-transform: uppercase;
   color: var(--black);
 }
 
-.stepPane {
-  display: flex;
-  flex-direction: column;
-  gap: 3.2rem;
-  padding: 3.2rem;
-  animation: stepFadeIn 220ms ease-out both;
+.sectionBox {
+  border: 1px solid var(--stroke);
+  border-radius: 10px;
+  display: grid;
+  grid-gap: 1rem;
+  padding: 2rem;
+}
+
+.routePickerInline {
+  margin-top: 1rem;
+  background-color: var(--cream);
+  padding: 1rem;
+  padding-top: 0rem;
+  border-radius: 14px;
+}
+
+.routePickerContainerMobile {
+  background-color: var(--cream);
+  padding: 1rem;
+  padding-top: 0rem;
+  border-radius: 20px;
+}
+
+.right {
+  align-self: start;
 }
 
 .contentBox {
-  display: flex;
-  flex-direction: column;
-  gap: 3.2rem;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 3rem;
+}
+
+.wizardTop {
+  scroll-margin-top: 110px;
+}
+
+.stepPane {
+  animation: stepFadeIn 220ms ease-out both;
 }
 
 @keyframes stepFadeIn {
@@ -95,343 +88,95 @@
   }
 }
 
-/* Small next to the card title, so the steps read as sections. */
-.stepTitle {
-  font-size: 2.5rem;
-  line-height: 0.95em;
-  margin-bottom: -2rem;
+.summaryCard {
+  padding: 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  display: grid;
+  gap: 6px;
+  background: white;
 }
 
-.stepIntro {
-  max-width: 560px;
-  font-size: 1.6rem;
-  line-height: 1.5;
-  color: var(--paragraph);
+.summaryTitle {
+  font-weight: 600;
 }
 
-/* Each part of a step, under a thin rule. */
-.sectionBox {
+.summaryLine {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.summaryNote {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.textarea {
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  resize: vertical;
+  background: white;
+}
+
+.actionsEnd {
   display: flex;
-  flex-direction: column;
-  gap: 1.4rem;
-  padding-top: 3.2rem;
-  border-top: 1px solid var(--stroke);
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-.optional {
-  font-family: var(--inter);
-  font-size: 1.4rem;
-  text-transform: none;
-  color: var(--black400);
+.actionsBetween {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-/* The footer bar along the bottom of the card. */
 .bottomBtnContainer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 2rem;
-  margin: 0 -3.2rem -3.2rem;
-  padding: 1.6rem 3.2rem;
-  border-top: 1px solid var(--stroke);
-  border-radius: 0 0 10px 10px;
-  background-color: var(--cream);
+  gap: 5rem;
 }
 
-.footHint {
-  font-size: 1.6rem;
-  line-height: 1.4;
-  color: var(--paragraph);
-}
-
-/* ── The shared form classes, restyled for this page ── */
-
-.container :global(.cardTitle) {
-  margin: 0;
-  padding: 0;
-  background: none;
-  border: none;
-  border-radius: 0;
-  font-family: var(--inter);
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  font-size: 2.5rem;
-  line-height: 0.95em;
-  text-transform: uppercase;
-  color: var(--black);
-}
-
-.container :global(.cardTitle.redBorder) {
-  border: none;
-  color: var(--red);
-}
-
-.container :global(.input),
-.container :global(.selectBorder) {
-  width: 100%;
-  height: 48px;
-  padding: 0 1.2rem;
-  border: 1px solid var(--stroke);
+.button {
+  padding: 0.8rem 1rem;
   border-radius: 5px;
-  background-color: var(--white);
-  font-family: var(--inter);
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: normal;
-  color: var(--black);
-  opacity: 1;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-.container :global(.input::placeholder) {
-  color: var(--black400);
-  opacity: 1;
-}
-
-.container textarea:global(.input) {
-  height: auto;
-  min-height: 120px;
-  padding: 1.2rem;
-  resize: vertical;
-}
-
-.container :global(.selectBorder) {
-  padding-right: 3.6rem;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a93a6' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 1.2rem center;
-  background-size: 16px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: white;
   cursor: pointer;
 }
 
-.container :global(.input:hover),
-.container :global(.selectBorder:hover) {
-  border-color: var(--black400);
-}
-
-.container :global(.input:focus),
-.container :global(.selectBorder:focus) {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(201, 162, 74, 0.25);
-}
-
-.container :global(.miniNote) {
-  font-size: 1.4rem;
-  line-height: 1.5;
-  letter-spacing: normal;
-  color: var(--paragraph);
+.buttonEnabled {
   opacity: 1;
+  cursor: pointer;
 }
 
-.container :global(.inlineLink) {
-  color: var(--black);
-  border-bottom: 1px solid var(--accent);
+.buttonDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.container :global(.inlineLink:hover) {
-  color: var(--accent600);
+.btnContainer {
+  display: grid;
+  width: 100%;
 }
-
-.container :global(.box) {
-  display: flex;
-  flex-direction: column;
-  padding: 2.4rem;
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  background-color: var(--white);
-}
-
-/* ── Pickup, stops, drop-off ── */
 
 .pickupDropoffContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 3.2rem;
-}
-
-.routePickerInline {
-  padding: 0;
-  background: none;
-}
-
-.airportOptions {
   display: grid;
-  gap: 1rem;
+  grid-template-columns: repeat(1, 1fr);
+  grid-gap: 3rem;
 }
-
-.airportOption {
-  display: flex;
-  align-items: flex-start;
-  gap: 1.2rem;
-  padding: 1.4rem 1.6rem;
-  border: 1px solid var(--stroke);
-  border-radius: 5px;
-  background-color: var(--white);
-  cursor: pointer;
-  transition: border-color 0.2s ease;
-}
-
-.airportOption:hover {
-  border-color: var(--black);
-}
-
-.airportOptionActive {
-  border-color: var(--black);
-  box-shadow: inset 0 0 0 1px var(--black);
-}
-
-.airportOption input {
-  margin-top: 0.3rem;
-  width: 1.8rem;
-  height: 1.8rem;
-  flex-shrink: 0;
-  accent-color: var(--black);
-}
-
-.airportOptionText {
-  display: grid;
-  gap: 0.3rem;
-}
-
-.airportOptionName {
-  font-family: var(--inter);
-  font-weight: 600;
-  font-size: 1.6rem;
-  color: var(--black);
-}
-
-.airportOptionAddress {
-  font-size: 1.4rem;
-  line-height: 1.4;
-  color: var(--paragraph);
-}
-
-.stopsListWizard {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.4rem;
-  border-radius: 5px;
-  background-color: var(--cream);
-}
-
-.stopRowWizard {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.stopBadgeWizard {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border-radius: 3px;
-  background-color: var(--black);
-  font-family: var(--inter);
-  font-weight: 600;
-  font-size: 1.4rem;
-  color: var(--cream);
-}
-
-.removeStopBtnWizard {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--stroke);
-  border-radius: 5px;
-  background-color: var(--white);
-  color: var(--red);
-  font-size: 1.4rem;
-  cursor: pointer;
-  transition: border-color 0.15s ease;
-}
-
-.removeStopBtnWizard:hover {
-  border-color: var(--red);
-}
-
-.addStopBtnWizard {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  width: 100%;
-  min-height: 48px;
-  padding: 1rem 1.6rem;
-  border: 1px dashed var(--black400);
-  border-radius: 5px;
-  background-color: var(--white);
-  font-size: 1.6rem;
-  color: var(--black);
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease;
-}
-
-.addStopBtnWizard:hover {
-  border-color: var(--accent);
-  background-color: var(--cream);
-}
-
-.addStopPlus {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 3px;
-  background-color: var(--accent);
-  font-family: var(--inter);
-  font-weight: 600;
-  line-height: 1;
-  color: var(--white);
-}
-
-.addStopFeeWizard {
-  font-size: 1.4rem;
-  color: var(--paragraph);
-}
-
-.stopSurchargeInfo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.6rem;
-  padding: 1.2rem 1.4rem;
-  border: 1px solid var(--stroke);
-  border-radius: 5px;
-  background-color: var(--cream);
-  font-size: 1.4rem;
-  color: var(--black);
-}
-
-.stopSurchargeAmount {
-  font-family: var(--inter);
-  font-weight: 600;
-  color: var(--accent600);
-}
-
-/* ── Flight details ── */
 
 .flightInfoSection {
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
+  margin-top: 1rem;
+  border: 2px solid var(--stroke);
+  border-radius: 12px;
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .flightInfoFields {
+  padding: 0 1.25rem 1.25rem 1.25rem;
   display: grid;
   gap: 1rem;
   animation: flightFieldsFadeIn 200ms ease-out;
@@ -454,132 +199,123 @@
   }
 }
 
-/* ── Vehicles ── */
-
-.vehicles {
+.stopsListWizard {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 10px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
 }
 
-.vehicle {
-  position: relative;
-  display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
-  gap: 2rem;
+.stopRowWizard {
+  display: flex;
   align-items: center;
-  width: 100%;
-  padding: 1.2rem 5.2rem 1.2rem 1.2rem;
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  background-color: var(--white);
-  text-align: left;
-  color: var(--black);
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+  gap: 10px;
 }
 
-.vehicle:hover {
-  border-color: var(--black400);
-}
-
-.vehicleOn,
-.vehicleOn:hover {
-  border-color: var(--black);
-  box-shadow: inset 0 0 0 1px var(--black);
-}
-
-.vehicleMedia {
+.stopBadgeWizard {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100px;
-  border-radius: 6px;
-  background-color: var(--cream);
-  overflow: hidden;
+  width: 28px;
+  height: 28px;
+  background: #3b82f6;
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: normal;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.vehicleImg {
+.removeStopBtnWizard {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fee2e2;
+  color: #dc2626;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  transition: all 0.15s ease;
+}
+
+.removeStopBtnWizard:hover {
+  background: #fecaca;
+}
+
+.addStopBtnWizard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border: 2px dashed #cbd5e1;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #475569;
+  transition: all 0.15s ease;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
-.vehicleBody {
+.addStopBtnWizard:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+  color: #3b82f6;
+}
+
+.addStopFeeWizard {
+  font-size: 1.4rem;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.stopSurchargeInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  font-size: 1.4rem;
+  color: #92400e;
+}
+
+.stopSurchargeAmount {
+  font-weight: 600;
+  color: #b45309;
+}
+
+/* Modal content */
+.modalContent {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  min-width: 0;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
 }
 
-.vehicleTop {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1.6rem;
+.modalSubnote {
+  display: inline-block;
+  margin-top: 1rem;
+  opacity: 0.8;
 }
 
-.vehicleName {
-  font-family: var(--inter);
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  font-size: 2.5rem;
-  line-height: 0.95em;
-  text-transform: uppercase;
-}
-
-.vehiclePrice {
-  flex-shrink: 0;
-  font-family: var(--inter);
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  font-size: 2.5rem;
-  line-height: 1;
-  text-align: right;
-}
-
-.vehicleDesc {
-  font-size: 1.4rem;
-  line-height: 1.4;
-  color: var(--paragraph);
-}
-
-.vehicleMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.vehicleMeta > span {
-  padding: 0.5rem 0.8rem;
-  border-radius: 3px;
-  background-color: var(--cream);
-  font-size: 12px;
-  line-height: 1;
-  color: var(--paragraph);
-}
-
-/* The tick box on the right; filled in red when chosen. */
-.vehicleCheck {
-  position: absolute;
-  top: 50%;
-  right: 1.6rem;
-  width: 22px;
-  height: 22px;
-  border: 1px solid var(--black400);
-  border-radius: 3px;
-  transform: translateY(-50%);
-}
-
-.vehicleOn .vehicleCheck {
-  border-color: var(--accent);
-  background-color: var(--accent);
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b0f1a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M5 12l5 5 9-10'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 14px 14px;
+.modalActions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 2rem;
+  margin-top: 2rem;
 }
 
 .callForPricingBadge {
@@ -587,142 +323,105 @@
   align-items: center;
   gap: 1rem;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--stroke);
-  border-radius: 3px;
-  background-color: var(--cream);
-  font-family: var(--inter);
-  font-weight: 600;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
   font-size: 1.4rem;
-  color: var(--accent600);
+  font-weight: 600;
+  color: #92400e;
 }
 
 .callForPricingNote {
+  padding: 1.25rem;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
   margin-top: 1rem;
-  padding: 1.4rem;
-  border: 1px solid var(--stroke);
-  border-radius: 5px;
-  background-color: var(--cream);
 }
 
 .callForPricingNote strong {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 1.4rem;
-  color: var(--black);
+  color: #78350f;
 }
 
 .callForPricingNote p {
   margin: 0;
   font-size: 1.4rem;
+  color: #92400e;
   line-height: 1.5;
-  color: var(--paragraph);
 }
 
 .callForPricingNote a {
-  color: var(--black);
-  border-bottom: 1px solid var(--accent);
-}
-
-/* ── Rides added to a multi-day trip ── */
-
-.legsBox {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.2rem;
-  padding: 1.6rem 2rem;
-  border: 1px solid var(--stroke);
-  border-radius: 10px;
-  background-color: var(--cream);
-}
-
-.legsTitle {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  font-family: var(--inter);
+  color: #78350f;
   font-weight: 600;
-  font-size: 1.6rem;
-  line-height: 1.3;
-  color: var(--black);
+  text-decoration: underline;
 }
 
-.legsSoFar {
-  font-family: var(--inter);
-  font-size: 1.4rem;
-  color: var(--paragraph);
+@media screen and (max-width: 1268px) {
+  .content {
+    grid-gap: 2rem;
+    grid-template-columns: 1.5fr 2fr;
+  }
 }
 
-.legsList {
-  display: flex;
-  flex-direction: column;
-  list-style: none;
+@media screen and (max-width: 1068px) {
+  .content {
+    grid-template-columns: 1fr;
+    grid-gap: 7rem;
+  }
+
+  .wizard {
+    margin-top: 5rem;
+    padding: 1rem;
+  }
+
+  .checklistMobile {
+    display: block;
+  }
+
+  .contentBox {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .routePickerInline {
+    padding: 1rem;
+  }
 }
 
-.leg {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.2rem;
-  padding: 1rem 0;
-  border-top: 1px solid var(--stroke);
+@media screen and (min-width: 1069px) {
+  .checklistMobile {
+    display: none;
+  }
 }
 
-.legText {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  min-width: 0;
+@media screen and (max-width: 568px) {
+  .bottomBtnContainer {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 4rem;
+  }
+
+  .modalActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .modalActions > * {
+    width: 100%;
+  }
 }
 
-.legName {
-  font-family: var(--inter);
-  font-weight: 600;
-  font-size: 1.4rem;
-}
-
-.legMeta {
-  font-size: 1.4rem;
-  line-height: 1.3;
-  color: var(--paragraph);
-}
-
-.legSide {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  flex-shrink: 0;
-}
-
-.legPrice {
-  font-family: var(--inter);
-  font-weight: 600;
-  font-size: 1.4rem;
-}
-
-.legRemove {
-  padding: 0.2rem 0.6rem;
-  border: none;
-  background: none;
-  font-size: 1.4rem;
-  color: var(--black400);
-  cursor: pointer;
-}
-
-.legRemove:hover {
-  color: var(--red);
-}
-
-/* ── Confirm step ── */
-
+/* ── Flight summary card (Step 3) ── */
 .flightSummaryCard {
-  position: relative;
-  margin: 1.6rem 0;
-  padding: 2rem 2.4rem 1.6rem;
+  background: var(--accent);
   border-radius: 10px;
-  background-color: #333333;
-  color: var(--cream);
+  padding: 2rem 2.4rem 1.6rem;
+  color: var(--white);
+  position: relative;
   overflow: hidden;
 }
 
@@ -734,83 +433,33 @@
 }
 
 .flightSummaryAirlineCode {
-  padding: 0.3rem 0.7rem;
-  border-radius: 3px;
-  background-color: var(--accent);
-  font-family: var(--inter);
-  font-weight: 600;
-  font-size: 12px;
-  color: var(--white);
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.7rem;
+  border-radius: 4px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
 }
 
 .flightSummaryAirlineName {
-  font-family: var(--inter);
-  font-weight: 600;
   font-size: 1.4rem;
+  font-weight: 600;
+  opacity: 0.9;
 }
 
 .flightSummaryFlightNum {
-  font-size: 1.4rem;
-  color: var(--black400);
-}
-
-.flightSummaryRoute {
-  display: flex;
-  align-items: center;
-  gap: 1.6rem;
-  margin-bottom: 1.6rem;
-}
-
-.flightSummaryIata {
-  flex-shrink: 0;
-  font-family: var(--inter);
+  font-size: 1.3rem;
+  opacity: 0.7;
   font-weight: 500;
-  letter-spacing: -0.04em;
-  font-size: 48px;
-  line-height: 0.9em;
-  color: var(--white);
-}
-
-.flightSummaryPath {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  height: 24px;
-}
-
-.flightSummaryDashedLine {
-  flex: 1;
-  height: 2px;
-  background: repeating-linear-gradient(
-    to right,
-    rgba(232, 217, 176, 0.5) 0,
-    rgba(232, 217, 176, 0.5) 6px,
-    transparent 6px,
-    transparent 12px
-  );
-}
-
-.flightSummaryPlane {
-  flex-shrink: 0;
-  font-size: 2rem;
-  color: var(--accent);
-}
-
-.flightSummaryDot {
-  flex-shrink: 0;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: var(--accent);
 }
 
 .flightSummaryTimes {
   display: flex;
   align-items: center;
   gap: 2rem;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
   padding: 1.4rem 1.8rem;
-  border-radius: 6px;
-  background-color: rgba(11, 15, 26, 0.4);
 }
 
 .flightSummaryTimeBlock {
@@ -822,207 +471,177 @@
 }
 
 .flightSummaryTimeLabel {
-  margin-bottom: 0.4rem;
-  font-family: var(--inter);
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  font-size: 1.1rem;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--black400);
+  letter-spacing: 0.8px;
+  opacity: 0.65;
+  margin-bottom: 0.3rem;
 }
 
 .flightSummaryTimeValue {
-  font-family: var(--inter);
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  font-size: 2.5rem;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
   line-height: 1;
 }
 
 .flightSummaryTerminal {
-  margin-top: 0.4rem;
-  font-size: 12px;
-  color: var(--black400);
+  font-size: 1.2rem;
+  opacity: 0.7;
+  margin-top: 0.3rem;
+  font-weight: 500;
 }
 
 .flightSummaryDivider {
-  flex-shrink: 0;
   width: 1px;
   height: 40px;
-  background-color: rgba(232, 217, 176, 0.25);
+  background: rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
 }
 
 .flightSummaryDate {
-  margin-top: 1.4rem;
-  font-family: var(--inter);
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   text-align: center;
-  color: var(--black400);
+  margin-top: 1.4rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  opacity: 0.6;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
+.flightSummaryRoute {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+  margin-bottom: 1.6rem;
+}
+
+.flightSummaryIata {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+  color: var(--white);
+  flex-shrink: 0;
+}
+
+.flightSummaryPath {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 24px;
+}
+
+.flightSummaryDashedLine {
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.5) 0px,
+    rgba(255, 255, 255, 0.5) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+.flightSummaryPlane {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.flightSummaryDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
+}
+
+/* ─── Airport list (airport pickup / drop-off services) ─── */
+.airportOptions {
+  display: grid;
+  gap: 1rem;
+}
+
+.airportOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  padding: 1.4rem 1.6rem;
+  border: 1px solid var(--strokeii);
+  border-radius: 8px;
+  background: var(--white);
+  cursor: pointer;
+}
+
+.airportOption:hover {
+  border-color: var(--black400);
+}
+
+.airportOptionActive {
+  border: 2px solid var(--black);
+  padding: calc(1.4rem - 1px) calc(1.6rem - 1px);
+}
+
+.airportOption input {
+  margin-top: 0.3rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  flex-shrink: 0;
+  accent-color: var(--black);
+}
+
+.airportOptionText {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.airportOptionName {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--black);
+}
+
+.airportOptionAddress {
+  font-size: 1.3rem;
+  color: var(--paragraph);
+  line-height: 1.3;
+}
+
+/* ─── Confirm step: what's included ─── */
 .includedBox {
-  border-color: var(--stroke);
-  background-color: var(--cream);
-}
-
-.container :global(.box).includedBox {
-  border-color: var(--stroke);
-  background-color: var(--cream);
+  background: #f7f7f5;
 }
 
 .includedList {
   display: grid;
   gap: 0.6rem;
-  margin: 1.2rem 0 0;
+  margin: 0;
   padding-left: 2rem;
-  font-size: 1.6rem;
-  line-height: 1.5;
-  color: var(--paragraph);
-}
-
-.includedList li::marker {
-  color: var(--accent);
+  font-size: 1.45rem;
+  line-height: 1.4;
 }
 
 .meetGreetRow {
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  margin-top: 1.6rem;
-  padding: 1.2rem 1.4rem;
+  margin-top: 1.4rem;
+  padding: 1rem 1.2rem;
   border: 1px solid var(--stroke);
-  border-radius: 5px;
-  background-color: var(--white);
+  border-radius: 8px;
+  background: var(--white);
   font-size: 1.4rem;
   line-height: 1.4;
   cursor: pointer;
 }
 
 .meetGreetRow input {
-  margin-top: 0.2rem;
+  margin-top: 0.3rem;
   width: 1.6rem;
   height: 1.6rem;
   flex-shrink: 0;
-  accent-color: var(--black);
-}
-
-/* ── Remove-ride modal ── */
-
-.modalContent {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2rem;
-}
-
-.modalSubnote {
-  display: inline-block;
-  margin-top: 1rem;
-  color: var(--paragraph);
-}
-
-.modalActions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  margin-top: 2rem;
-}
-
-/* ── Smaller screens ── */
-
-@media screen and (max-width: 1268px) {
-  .content {
-    grid-template-columns: 300px minmax(0, 1fr);
-    gap: 3rem;
-  }
-}
-
-@media screen and (max-width: 1068px) {
-  .content {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-  }
-
-  .checklistMobile {
-    margin-bottom: 2rem;
-  }
-
-  .checklistMobile:empty {
-    display: none;
-  }
-}
-
-@media screen and (min-width: 1069px) {
-  .checklistMobile {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .vehicle {
-    grid-template-columns: 110px minmax(0, 1fr);
-    gap: 1.4rem;
-  }
-
-  .vehicleMedia {
-    height: 80px;
-  }
-}
-
-@media screen and (max-width: 568px) {
-  .cardHead {
-    padding: 2.4rem 2rem 0;
-  }
-
-  .stepPane {
-    padding: 2.4rem 2rem;
-  }
-
-  .bottomBtnContainer {
-    flex-direction: column-reverse;
-    align-items: stretch;
-    gap: 1.2rem;
-    margin: 0 -2rem -2.4rem;
-    padding: 1.6rem 2rem;
-  }
-
-  .footHint {
-    text-align: center;
-  }
-
-  .vehicle {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 1.2rem;
-  }
-
-  .vehicleMedia {
-    height: 120px;
-  }
-
-  .vehicleCheck {
-    top: 2.4rem;
-    right: 2.4rem;
-    transform: none;
-    background-color: var(--white);
-  }
-
-  .vehicleTop {
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .vehiclePrice {
-    text-align: left;
-  }
-
-  .flightSummaryIata {
-    font-size: 3.2rem;
-  }
-
-  .modalActions {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }

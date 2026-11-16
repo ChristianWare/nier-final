@@ -30,9 +30,10 @@
 }
 
 /* Mobile checklist — sticky above the form */
-/* Phones and tablets: the step tabs above the card (they scroll with the
-   page, like the main booking tool's). */
 .checklistMobile {
+  position: sticky;
+  top: 54px;
+  z-index: 10;
   height: fit-content;
   margin-bottom: 3rem;
 }
@@ -415,6 +416,7 @@
 
   .checklistMobile {
     display: block;
+    top: 54px;
     margin-bottom: 4rem;
   }
 

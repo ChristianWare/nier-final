@@ -1,6 +1,5 @@
-import styles from "./SummaryRow.module.css";
+import React from "react";
 
-/** One label and value line in a booking summary. `strong` is the total. */
 export default function SummaryRow({
   label,
   value,
@@ -14,10 +13,26 @@ export default function SummaryRow({
 }) {
   return (
     <div
-      className={`${styles.row} ${noBorder ? styles.noBorder : ""} ${strong ? styles.strong : ""}`}
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: 12,
+        borderBottom: noBorder ? "none" : "1px solid var(--black300)",
+        paddingBottom: 8,
+        marginBottom: 8,
+      }}
     >
-      <div className={styles.label}>{label}</div>
-      <div className={styles.value}>{value}</div>
+      <div className='emptyTitleSmall'>{label}</div>
+      <div
+        style={{
+          fontSize: strong ? 20 : 13,
+          fontWeight: strong ? 800 : 500,
+          textAlign: "right",
+          color: strong ? "var(--darkGreen)" : "var(--black)",
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
 }

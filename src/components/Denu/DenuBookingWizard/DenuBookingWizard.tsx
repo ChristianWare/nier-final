@@ -23,7 +23,7 @@ import Modal from "@/components/shared/Modal/Modal";
 import BookingWizardChecklist, {
   type ChecklistItem,
 } from "@/components/BookingPage/BookingWizardChecklist/BookingWizardChecklist";
-import WizardTabs from "@/components/BookingPage/BookWizard/WizardTabs";
+import Stepper from "@/components/BookingPage/Stepper/Stepper";
 import FlightLookupInput from "@/components/BookingPage/FlightLookupInput/FlightLookupInput";
 import Button from "@/components/shared/Button/Button";
 
@@ -917,7 +917,7 @@ export default function DenuBookingWizard({
           <div className={styles.right}>
             {isMobile && (
               <div className={styles.checklistMobile}>
-                <WizardTabs step={step} onGoToStep={(n) => setStep(n)} />
+                <Stepper step={step} />
               </div>
             )}
 
