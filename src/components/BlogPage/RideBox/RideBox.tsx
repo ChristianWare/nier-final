@@ -1,9 +1,8 @@
 import Link from "next/link";
-import Script from "next/script";
 import HomeBookingWidget from "@/components/HomePage/HomeBookingWidget/HomeBookingWidget";
 import type { BookingWidgetData } from "@/lib/booking/widgetData";
 import styles from "./RideBox.module.css";
-import { googleMapsSrc } from "@/lib/googleMaps";
+import GoogleMapsLoader from "@/components/shared/GoogleMapsLoader/GoogleMapsLoader";
 
 /**
  * In-article booking box for blog posts. Used from MDX:
@@ -26,14 +25,9 @@ export default function RideBox({
 }) {
   return (
     <aside className={styles.box} aria-label={title}>
-      {/* Maps for the route map and pickup/drop-off search. next/script
-          loads it once per page even if a post uses RideBox twice. */}
-      <Script
-        id='google-maps'
-        src={googleMapsSrc()}
-        data-google-maps='1'
-        strategy='lazyOnload'
-      />
+      {/* Maps for the route map and pickup/drop-off search. The shared
+          loader loads it once per page even if a post uses RideBox twice. */}
+      <GoogleMapsLoader />
       <div className={styles.intro}>
         <p className={styles.title}>{title}</p>
         <p className={styles.copy}>

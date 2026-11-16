@@ -2,45 +2,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 
 declare global {
   interface Window {
     google?: any;
   }
 }
-
-const loadGoogleMaps = (browserKey: string) => {
-  return new Promise<void>((resolve, reject) => {
-    if (window.google?.maps?.places && window.google?.maps?.geometry) {
-      return resolve();
-    }
-
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-google-maps="1"]',
-    );
-
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () =>
-        reject(new Error("Failed to load Google Maps")),
-      );
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.dataset.googleMaps = "1";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      browserKey,
-    )}&libraries=places,geometry`;
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => resolve();
-    script.onerror = () =>
-      reject(new Error("Failed to load Google Maps script"));
-    document.head.appendChild(script);
-  });
-};
 
 // ✅ NEW: Stop type
 type StopMarker = {

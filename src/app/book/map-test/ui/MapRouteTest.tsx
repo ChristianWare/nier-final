@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 
 type LatLng = { lat: number; lng: number };
 
@@ -17,38 +18,6 @@ declare global {
   }
 }
 
-const loadGoogleMaps = (browserKey: string) => {
-  return new Promise<void>((resolve, reject) => {
-    // We need BOTH places + geometry (for polyline decode)
-    if (window.google?.maps?.places && window.google?.maps?.geometry)
-      return resolve();
-
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-google-maps="1"]'
-    );
-
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () =>
-        reject(new Error("Failed to load Google Maps"))
-      );
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.dataset.googleMaps = "1";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      browserKey
-    )}&libraries=places,geometry`;
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => resolve();
-    script.onerror = () =>
-      reject(new Error("Failed to load Google Maps script"));
-    document.head.appendChild(script);
-  });
-};
 
 export default function MapRouteTest() {
   const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;

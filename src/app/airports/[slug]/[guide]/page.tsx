@@ -5,7 +5,6 @@
 
 import type { Metadata } from "next";
 import Link from "next/link";
-import Script from "next/script";
 import { notFound } from "next/navigation";
 import Nav from "@/components/shared/Nav/Nav";
 import Faq from "@/components/shared/Faq/Faq";
@@ -26,7 +25,7 @@ import {
 } from "@/lib/airportGuides";
 import { bookingLink } from "@/lib/booking/linkPrefill";
 import { getBookingWidgetData } from "@/lib/booking/widgetData";
-import { googleMapsSrc } from "@/lib/googleMaps";
+import GoogleMapsLoader from "@/components/shared/GoogleMapsLoader/GoogleMapsLoader";
 import { BUSINESS_REF } from "@/lib/schema";
 import { SITE_URL } from "@/lib/site";
 import styles from "./GuidePage.module.css";
@@ -254,12 +253,7 @@ export default async function AirportGuidePage({
       </section>
 
       {/* Places autocomplete for the booking widget's address fields */}
-      <Script
-        id='google-maps'
-        src={googleMapsSrc()}
-        data-google-maps='1'
-        strategy='lazyOnload'
-      />
+      <GoogleMapsLoader />
       <QuoteBand
         widget={widget}
         heading={g.rideBox.title}

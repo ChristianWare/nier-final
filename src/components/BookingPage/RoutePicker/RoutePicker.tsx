@@ -5,7 +5,7 @@
 
 import styles from "./RoutePicker.module.css";
 import { RefObject, useEffect, useRef, useState } from "react";
-import { googleMapsSrc, GOOGLE_MAPS_SCRIPT_ATTR } from "@/lib/googleMaps";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 
 type LatLng = { lat: number; lng: number };
 
@@ -38,69 +38,6 @@ declare global {
     google?: any;
   }
 }
-
-const mapsReady = () =>
-  !!(window.google?.maps?.places && window.google?.maps?.geometry);
-
-/**
- * Resolve once Maps is loaded with `places` and `geometry`.
- * Maps may already be on the page (the homepage or a blog post loads it for
- * the booking widget). It must never be loaded a second time, so:
- *  - already complete → done
- *  - loaded but missing a library → add it with importLibrary
- *  - our script tag is still loading → wait for it
- *  - nothing on the page yet → add the script
- */
-const loadGoogleMaps = (browserKey: string) => {
-  return new Promise<void>((resolve, reject) => {
-    if (mapsReady()) return resolve();
-
-    if (window.google?.maps?.importLibrary) {
-      Promise.all([
-        window.google.maps.importLibrary("places"),
-        window.google.maps.importLibrary("geometry"),
-      ])
-        .then(() => resolve())
-        .catch(() => reject(new Error("Failed to load Google Maps libraries")));
-      return;
-    }
-
-    const existing = document.querySelector<HTMLScriptElement>(
-      `script[${GOOGLE_MAPS_SCRIPT_ATTR}]`,
-    );
-
-    if (existing) {
-      // The tag may finish loading before or after we attach a listener,
-      // so poll as well as listen; give up after 20 seconds.
-      const started = Date.now();
-      const poll = window.setInterval(() => {
-        if (mapsReady()) {
-          window.clearInterval(poll);
-          resolve();
-        } else if (Date.now() - started > 20000) {
-          window.clearInterval(poll);
-          reject(new Error("Failed to load Google Maps"));
-        }
-      }, 100);
-      existing.addEventListener("error", () => {
-        window.clearInterval(poll);
-        reject(new Error("Failed to load Google Maps"));
-      });
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.setAttribute(GOOGLE_MAPS_SCRIPT_ATTR, "1");
-    script.src = googleMapsSrc(browserKey);
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => resolve();
-    script.onerror = () =>
-      reject(new Error("Failed to load Google Maps script"));
-    document.head.appendChild(script);
-  });
-};
 
 export default function RoutePicker({
   value,

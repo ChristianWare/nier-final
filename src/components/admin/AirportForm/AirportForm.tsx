@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useDirtyForm } from "@/components/shared/DirtyFormProvider/DirtyFormProvider";
 import Button from "@/components/shared/Button/Button";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 
 type ActionResult = { success?: string; error?: string };
 
@@ -32,35 +33,6 @@ declare global {
   interface Window {
     google?: any;
   }
-}
-
-function loadGooglePlaces(browserKey: string) {
-  return new Promise<void>((resolve, reject) => {
-    if (window.google?.maps?.places) return resolve();
-
-    const existing = document.querySelector<HTMLScriptElement>(
-      'script[data-google-places="1"]',
-    );
-    if (existing) {
-      existing.addEventListener("load", () => resolve());
-      existing.addEventListener("error", () =>
-        reject(new Error("Failed to load Google Places")),
-      );
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.dataset.googlePlaces = "1";
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(
-      browserKey,
-    )}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load Google Places"));
-    document.head.appendChild(script);
-  });
 }
 
 function toStr(v: any) {
@@ -201,7 +173,7 @@ export default function AirportForm({
 
     (async () => {
       try {
-        await loadGooglePlaces(browserKey);
+        await loadGoogleMaps(browserKey);
         if (cancelled) return;
 
         const google = window.google;

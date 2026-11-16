@@ -1,4 +1,3 @@
-import Script from "next/script";
 import dynamic from "next/dynamic";
 import Hero from "@/components/HomePage/Hero/Hero";
 import Nav from "@/components/shared/Nav/Nav";
@@ -9,7 +8,7 @@ import { homepageFaqs } from "@/lib/data";
 import { Metadata } from "next";
 import ServicesMarquee from "@/components/shared/ServicesMarquee/ServicesMarquee";
 import { getBookingWidgetData } from "@/lib/booking/widgetData";
-import { googleMapsSrc } from "@/lib/googleMaps";
+import GoogleMapsLoader from "@/components/shared/GoogleMapsLoader/GoogleMapsLoader";
 import FinalCTA from "@/components/shared/FinalCTA/FinalCTA";
 
 const AirportCarService = dynamic(
@@ -101,13 +100,8 @@ export default async function HomePage() {
         type='application/ld+json'
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-      {/* ── Google Maps script for Places autocomplete in the booking widget ── */}
-      <Script
-        id='google-maps'
-        src={googleMapsSrc()}
-        data-google-maps='1'
-        strategy='lazyOnload'
-      />
+      {/* ── Google Maps for Places autocomplete in the booking widget ── */}
+      <GoogleMapsLoader />
       <Nav />
       <Hero
         serviceTypes={widget.serviceTypes}
