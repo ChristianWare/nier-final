@@ -1,0 +1,433 @@
+/* ── Hero ── */
+
+/* Clears the fixed nav; the breadcrumbs sit at the top. */
+.hero {
+  background-color: var(--white);
+  padding-top: 10rem;
+}
+
+.crumbs {
+  margin-bottom: 1rem;
+}
+
+/* The shared Breadcrumbs push themselves down for pages without a hero
+   like this one; here they sit in place. */
+.crumbs > nav {
+  top: 0;
+}
+
+.heroTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 6rem;
+  align-items: end;
+  padding: 2rem 0 5rem;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.heading {
+  max-width: 720px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2.4rem;
+  max-width: 520px;
+  justify-self: end;
+}
+
+.intro {
+  font-size: 2rem;
+  line-height: 1.5em;
+  color: var(--paragraph);
+  opacity: 0.8;
+  hyphens: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2.4rem;
+}
+
+.textLink {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--black);
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--black);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.textLink:hover {
+  color: var(--accent600);
+  border-bottom-color: var(--accent600);
+}
+
+.heroFigure {
+  margin: 0;
+}
+
+/* Wide photo, the same shape as the About hero's. */
+.heroImage {
+  position: relative;
+  aspect-ratio: 2.45;
+  border-radius: 5px;
+  overflow: hidden;
+  background-color: var(--black);
+}
+
+.image {
+  object-fit: cover;
+}
+
+.heroTag {
+  position: absolute;
+  left: 1.6rem;
+  bottom: 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.7rem 1rem;
+  border-radius: 3px;
+  background-color: var(--cream);
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--black);
+}
+
+.heroDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--accent);
+}
+
+/* ── Details: sticky card left, rows right ── */
+
+.details {
+  padding: 2rem 0 10rem;
+  background-color: var(--white);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 400px) minmax(0, 1fr);
+  gap: 6rem;
+  align-items: start;
+}
+
+.aside {
+  align-self: stretch;
+}
+
+.summary {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 3.2rem;
+  padding: 2.8rem;
+  border-radius: 5px;
+  background-color: var(--black);
+  color: var(--white);
+}
+
+/* "Service details" and the service's three highlights. */
+.summaryTitle {
+  font-family: var(--inter);
+  font-size: 2.4rem;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.8px;
+  color: var(--white);
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.feature {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.6rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.featureTitle {
+  font-family: var(--inter);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--white);
+}
+
+.featureDetails {
+  font-size: 1.5rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.summaryLabel {
+  display: block;
+  font-family: var(--inter);
+  font-size: 11px;
+  line-height: 1.3;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--black400);
+}
+
+.summaryFoot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.4rem;
+}
+
+.summaryCall {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--black400);
+}
+
+.summaryCall a {
+  color: var(--cream);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+/* ── Content rows ── */
+
+.content {
+  min-width: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 4fr);
+  gap: 2.4rem;
+  padding: 2.4rem 0 4.4rem;
+  border-top: 1px solid var(--stroke);
+}
+
+.rowTitle {
+  margin: 0;
+  color: var(--black);
+}
+
+.rowBody {
+  min-width: 0;
+  margin: 0;
+}
+
+.text {
+  font-size: 1.7rem;
+  line-height: 1.65em;
+  color: var(--paragraph);
+  hyphens: none;
+}
+
+.text + .text {
+  margin-top: 1.6rem;
+}
+
+/* What to expect: numbered cards, two across. */
+.steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 0;
+  padding: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  min-height: 200px;
+  padding: 2.4rem 2rem 2.4rem 0;
+  border: 1px solid var(--stroke);
+  border-radius: 5px;
+  background-color: var(--cream);
+}
+
+.stepTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.6rem;
+}
+
+/* Red bar on the card's left edge */
+.stepBar {
+  flex-shrink: 0;
+  width: 4px;
+  height: 5.2rem;
+  background-color: var(--accent);
+}
+
+.stepTitle {
+  flex: 1;
+  font-family: var(--inter);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-size: 2.6rem;
+  line-height: 1;
+  color: var(--black);
+}
+
+.stepNum {
+  font-family: var(--inter);
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--accent600);
+}
+
+.stepBody {
+  padding-left: 2rem;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--paragraph);
+  hyphens: none;
+}
+
+/* What's included */
+.included {
+  list-style: none;
+  padding: 0;
+}
+
+.includedItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.2rem;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid var(--stroke);
+  font-size: 1.7rem;
+  line-height: 1.5;
+  color: var(--black);
+  hyphens: none;
+}
+
+.includedItem:first-child {
+  padding-top: 0;
+}
+
+.check {
+  flex-shrink: 0;
+  margin-top: 0.3rem;
+  color: var(--accent600);
+}
+
+/* Questions: title on top, the FAQ cards across the full width. */
+.rowWide {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.4rem;
+}
+
+/* ── 1268px ── */
+
+@media screen and (max-width: 1268px) {
+  .layout {
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: 4rem;
+  }
+
+  .step {
+    min-height: 200px;
+  }
+}
+
+/* ── 1068px: card on top, not sticky ── */
+
+@media screen and (max-width: 1068px) {
+  .heroTop {
+    grid-template-columns: 1fr;
+    gap: 2.4rem;
+    padding: 2rem 0 4rem;
+  }
+
+  .side {
+    justify-self: start;
+    max-width: 560px;
+  }
+
+  .intro {
+    font-size: 1.8rem;
+  }
+
+  .heroImage {
+    aspect-ratio: 16 / 10;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 3.2rem;
+  }
+
+  .summary {
+    position: static;
+    gap: 2.4rem;
+  }
+
+  .step {
+    min-height: 180px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+  }
+}
+
+/* ── 568px ── */
+
+@media screen and (max-width: 568px) {
+  .heroImage {
+    aspect-ratio: 4 / 3;
+  }
+
+  .summary {
+    padding: 2.4rem 1.6rem;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .step {
+    min-height: 0;
+    padding: 1.8rem 1.4rem 1.8rem 0;
+  }
+
+  .stepBody {
+    padding-left: 1.8rem;
+  }
+}

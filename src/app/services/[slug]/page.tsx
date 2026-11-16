@@ -5,7 +5,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { servicesData } from "@/lib/services";
 import { routesData } from "@/lib/routes";
-import ServiceDetailsClient from "./components/ServiceDetailsClient/ServiceDetailsClient";
+import ServiceDetail from "./components/ServiceDetail/ServiceDetail";
+import Nav from "@/components/shared/Nav/Nav";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import promoStyles from "./PopularRoutes.module.css";
 import { BUSINESS_REF } from "@/lib/schema";
@@ -160,7 +161,10 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
       )}
-      <ServiceDetailsClient service={svc} />
+      <main>
+        <Nav background='white' />
+        <ServiceDetail service={svc} />
+      </main>
 
       {svc.slug === "airport-transfers" && (
         <section className={promoStyles.section}>

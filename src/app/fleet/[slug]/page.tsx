@@ -2,12 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { fleetData } from "@/lib/data";
 import type { VehicleData } from "@/lib/types/fleet";
-import FleetDetails from "./components/FleetDetails/FleetDetails";
-import FleetSlugPageIntro from "./components/FleetSlugPageIntro/FleetSlugPageIntro";
+import FleetDetail from "./components/FleetDetail/FleetDetail";
 import BlogSection from "@/components/shared/BlogSection/BlogSection";
 import AboutNumbers from "@/components/shared/AboutNumbers/AboutNumbers";
 import Nav from "@/components/shared/Nav/Nav";
-import Breadcrumbs from "@/components/shared/Breadcrumbs/Breadcrumbs";
 import { BUSINESS_REF } from "@/lib/schema";
 import { getFleetRates } from "@/lib/booking/publicRates";
 
@@ -95,12 +93,10 @@ export default async function Page({ params }: { params: Promise<Params> }) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
       )}
-      <Nav background='cream' />
-      <Breadcrumbs
-        items={[{ name: "Fleet", href: "/fleet" }, { name: vehicle.title }]}
-      />
-      <FleetSlugPageIntro vehicle={vehicle} />
-      <FleetDetails vehicle={vehicle} rates={rates} />
+      <Nav background='white' />
+      {/* Intro, details, the rest of the fleet and the questions. The
+          breadcrumbs are in the intro. */}
+      <FleetDetail vehicle={vehicle} rates={rates} />
       <BlogSection />
       <AboutNumbers />
     </main>
