@@ -357,7 +357,7 @@ export default async function FleetDetail({
                   <Button
                     href={`tel:${phoneTel}`}
                     text='Call us'
-                    btnType='underlinedWhite'
+                    btnType='gray'
                     arrow
                   />
                 </div>

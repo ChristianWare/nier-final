@@ -441,8 +441,8 @@
   color: var(--cream);
 }
 
-/* Book (red) and Call us (underlined), each the card's full width, with
-   "or" between. */
+/* Book (red) and Call us (grey), each the card's full width, with "or"
+   between. */
 .summaryFoot {
   display: flex;
   flex-direction: column;
@@ -456,10 +456,21 @@
 }
 
 .or {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
   font-size: 1.4rem;
   line-height: 1;
-  text-align: center;
   color: var(--black400);
+}
+
+/* A thin grey rule either side of "or". */
+.or::before,
+.or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* ── The rest of the fleet ── */

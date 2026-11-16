@@ -171,7 +171,7 @@ export default async function ServiceDetail({
                   <Button
                     href={`tel:${phoneTel}`}
                     text='Call us'
-                    btnType='underlinedWhite'
+                    btnType='gray'
                     arrow
                   />
                 </div>
