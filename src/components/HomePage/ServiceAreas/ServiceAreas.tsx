@@ -1,9 +1,10 @@
 "use client";
 
 // Where we serve: a map of the airports we serve (three commercial, three
-// private aviation) over a faint outline of the cities we cover, beside a
-// pill for each airport. Hovering a pill (or a marker on the map) lights it
-// up on both; clicking one zooms the map to it, and clicking another zooms
+// private aviation) beside a pill for each. One airport is selected at a
+// time, Sky Harbor to start, with the map in close: its grounds are filled
+// in red and its marker and pill are red. Hovering a pill (or a marker) lights both up; clicking
+// one selects it and zooms the map in to it, and clicking another zooms
 // out and back in to that one.
 //
 // Above 1068px the map sits on the left with the intro and the pills
@@ -17,6 +18,7 @@ import dynamic from "next/dynamic";
 import LayoutWrapper from "@/components/shared/LayoutWrapper";
 import SectionHeading from "@/components/shared/SectionHeading/SectionHeading";
 import Button from "@/components/shared/Button/Button";
+import { DEFAULT_AIRPORT } from "@/lib/serviceAreas";
 import Logo from "@/components/shared/Logo/Logo";
 import Plane from "@/components/shared/icons/Plane/Plane";
 import { SERVICE_AIRPORTS } from "@/lib/serviceAreas";
@@ -48,7 +50,13 @@ const GROUPS = [
 
 export default function ServiceAreas() {
   const [hovered, setHovered] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  // Always one airport selected. `focus` is where the map is looking: an
+  // airport, or the whole Valley (null). It opens on Sky Harbor, close
+  // enough to see its grounds in red. `moves` counts the requests, so
+  // clicking the selected airport again still flies to it.
+  const [selected, setSelected] = useState<string>(DEFAULT_AIRPORT);
+  const [focus, setFocus] = useState<string | null>(DEFAULT_AIRPORT);
+  const [moves, setMoves] = useState(0);
   const [showMap, setShowMap] = useState(false);
   const mapCardRef = useRef<HTMLDivElement | null>(null);
 
@@ -69,27 +77,36 @@ export default function ServiceAreas() {
     return () => io.disconnect();
   }, []);
 
-  const toggle = (slug: string) =>
-    setSelected((s) => (s === slug ? null : slug));
+  const select = (slug: string) => {
+    setSelected(slug);
+    setFocus(slug);
+    setMoves((n) => n + 1);
+  };
+  // Back to the whole Valley, with Sky Harbor selected again.
+  const reset = () => {
+    setSelected(DEFAULT_AIRPORT);
+    setFocus(null);
+    setMoves((n) => n + 1);
+  };
   const leave = (slug: string) => setHovered((h) => (h === slug ? null : h));
-  const selectedAirport = SERVICE_AIRPORTS.find((a) => a.slug === selected);
 
   return (
     <section className={styles.container} aria-labelledby='areas-heading'>
       <LayoutWrapper>
         <div className={styles.grid}>
           <div className={`${styles.card} ${styles.intro}`}>
-            <SectionHeading text='Where we serve' dot />
+            <SectionHeading text='Airport service' dot />
             <h2 id='areas-heading' className={`${styles.heading} h2`}>
-              Proudly serving Phoenix &amp;{" "}
-              <span className={styles.headingAccent}>the whole Valley.</span>
+              Black car service at{" "}
+              <span className={styles.headingAccent}>
+                every Valley airport.
+              </span>
             </h2>
             <p className={styles.copy}>
-              No matter where you are in the Phoenix area, Nier Transportation
-              is ready to get you there, from Sky Harbor and Mesa Gateway to the
-              private jet terminals at Scottsdale, Deer Valley, Falcon Field and
-              Goodyear. Hover an airport to find it on the map, or select it to
-              zoom in.
+              From the terminals at Sky Harbor and Mesa Gateway to the private
+              jet ramps at Scottsdale, Deer Valley, Falcon Field and Goodyear,
+              your chauffeur is waiting when you land. Select an airport to zoom
+              in.
             </p>
           </div>
 
@@ -98,8 +115,11 @@ export default function ServiceAreas() {
               <ServiceAreaMap
                 hovered={hovered}
                 selected={selected}
+                focus={focus}
+                moves={moves}
                 onHover={setHovered}
-                onSelect={setSelected}
+                onSelect={select}
+                onReset={reset}
               />
             ) : (
               <MapPlaceholder />
@@ -122,7 +142,7 @@ export default function ServiceAreas() {
                             hovered === a.slug ? styles.pillHover : ""
                           } ${isSelected ? styles.pillSelected : ""}`}
                           aria-pressed={isSelected}
-                          onClick={() => toggle(a.slug)}
+                          onClick={() => select(a.slug)}
                           onMouseEnter={() => setHovered(a.slug)}
                           onMouseLeave={() => leave(a.slug)}
                           onFocus={() => setHovered(a.slug)}
@@ -149,25 +169,6 @@ export default function ServiceAreas() {
                 btnType='black'
                 arrow
               />
-              {selectedAirport ? (
-                <Button
-                  href={selectedAirport.href}
-                  text={
-                    selectedAirport.kind === "private"
-                      ? "Private aviation pickups"
-                      : `${selectedAirport.name} guide`
-                  }
-                  btnType='underlinedBlack'
-                  arrow
-                />
-              ) : (
-                <Button
-                  href='/locations'
-                  text='See all locations'
-                  btnType='underlinedBlack'
-                  arrow
-                />
-              )}
             </div>
           </div>
         </div>

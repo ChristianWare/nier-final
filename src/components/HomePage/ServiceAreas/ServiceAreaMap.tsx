@@ -1,10 +1,10 @@
 "use client";
 
-// The service area map: the airports we serve, each a plane marker with its
-// code and name, over a faint outline of the cities we cover. ServiceAreas
-// owns which airport is hovered and which is selected; this draws them.
-// Hovering a marker reports it back, so its pill lights up too, and
-// clicking one selects it.
+// The airport map: each airport we serve as a plane marker with its code
+// and name, and the selected airport's grounds filled in red, one at a
+// time. ServiceAreas owns which airport is hovered and selected and where
+// the map is looking; this draws them. Hovering a marker reports it back,
+// so its pill lights up too, and clicking one selects it.
 //
 // Selecting an airport flies in close enough to see its runways. Going
 // from one airport to another zooms out to the whole Valley first, then in
@@ -28,15 +28,22 @@ import {
   SERVICE_AIRPORTS,
   SERVICE_AREA_BOUNDS,
   SERVICE_AREA_MAP_STYLE,
-  SERVICE_AREAS_GEOJSON,
+  AIRPORT_GROUNDS_GEOJSON,
 } from "@/lib/serviceAreas";
 import styles from "./ServiceAreas.module.css";
 
 type Props = {
   hovered: string | null;
-  selected: string | null;
+  /** The airport whose grounds are red. */
+  selected: string;
+  /** Where to look: an airport, or the whole Valley (null). */
+  focus: string | null;
+  /** Goes up with each request to move, so a repeat still moves. */
+  moves: number;
   onHover: (slug: string | null) => void;
-  onSelect: (slug: string | null) => void;
+  onSelect: (slug: string) => void;
+  /** The "show everything" button. */
+  onReset: () => void;
 };
 
 const ACCENT = "#d0311e";
@@ -46,6 +53,10 @@ const PLANE_SVG =
 
 /** How close to come in on an airport: enough to see its runways. */
 const AIRPORT_ZOOM = { commercial: 13, private: 13.75 } as const;
+
+/** A little further out on a phone-sized map, so the grounds fit. */
+const zoomFor = (kind: keyof typeof AIRPORT_ZOOM, el: HTMLElement | null) =>
+  AIRPORT_ZOOM[kind] - ((el?.clientWidth ?? 800) < 600 ? 0.9 : 0);
 
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -57,13 +68,18 @@ const paddingFor = (el: HTMLElement | null) =>
 export default function ServiceAreaMap({
   hovered,
   selected,
+  focus,
+  moves,
   onHover,
   onSelect,
+  onReset,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<Record<string, HTMLElement>>({});
-  const prevSelectedRef = useRef<string | null>(null);
+  const readyRef = useRef(false);
+  // Where the map opened (ServiceAreas starts on Sky Harbor).
+  const prevFocusRef = useRef<string | null>(focus);
   const moveRef = useRef(0);
   // The latest props, for the map's own event handlers.
   const latest = useRef({ hovered, selected, onHover, onSelect });
@@ -72,21 +88,22 @@ export default function ServiceAreaMap({
     latest.current = { hovered, selected, onHover, onSelect };
   });
 
-  // ── Marker classes: hover, selected, dimmed ──
+  // ── The selected airport's grounds, and the markers' classes ──
   const paint = () => {
-    const { hovered: h, selected: s } = latest.current;
-    const anything = h !== null || s !== null;
+    const { hovered: h, selected: sel } = latest.current;
     for (const a of SERVICE_AIRPORTS) {
       const el = markersRef.current[a.slug];
-      if (!el) continue;
-      const isHover = a.slug === h;
-      const isSelected = a.slug === s;
-      el.classList.toggle(styles.airportHover, isHover);
-      el.classList.toggle(styles.airportSelected, isSelected);
-      el.classList.toggle(
-        styles.airportDim,
-        anything && !isHover && !isSelected,
-      );
+      if (el) {
+        el.classList.toggle(styles.airportHover, a.slug === h);
+        el.classList.toggle(styles.airportSelected, a.slug === sel);
+      }
+      const map = mapRef.current;
+      if (map && readyRef.current) {
+        map.setFeatureState(
+          { source: "grounds", id: a.slug },
+          { selected: a.slug === sel },
+        );
+      }
     }
   };
 
@@ -96,11 +113,17 @@ export default function ServiceAreaMap({
     if (!el) return;
     let cancelled = false;
 
+    // Open on the airport in focus, or the whole Valley.
+    const start = SERVICE_AIRPORTS.find((a) => a.slug === prevFocusRef.current);
     const map = new maplibregl.Map({
       container: el,
       style: SERVICE_AREA_MAP_STYLE,
-      bounds: SERVICE_AREA_BOUNDS,
-      fitBoundsOptions: { padding: paddingFor(el) },
+      ...(start
+        ? { center: [start.lng, start.lat], zoom: zoomFor(start.kind, el) }
+        : {
+            bounds: SERVICE_AREA_BOUNDS,
+            fitBoundsOptions: { padding: paddingFor(el) },
+          }),
       attributionControl: false,
       // Scrolling the page past the map shouldn't zoom it; two fingers
       // (or Ctrl + scroll) move it.
@@ -130,8 +153,7 @@ export default function ServiceAreaMap({
     map.on("zoom", sizeMarkers);
     map.on("resize", sizeMarkers);
 
-    const toggle = (slug: string) =>
-      latest.current.onSelect(latest.current.selected === slug ? null : slug);
+    const choose = (slug: string) => latest.current.onSelect(slug);
 
     // One marker per airport: the plane on the airport, its code and name
     // above, and a link to its page once it's selected.
@@ -161,7 +183,7 @@ export default function ServiceAreaMap({
       m.append(link, card, dot);
       m.addEventListener("click", (e) => {
         e.stopPropagation();
-        toggle(a.slug);
+        choose(a.slug);
       });
       m.addEventListener("mouseenter", () => latest.current.onHover(a.slug));
       m.addEventListener("mouseleave", () => latest.current.onHover(null));
@@ -178,42 +200,64 @@ export default function ServiceAreaMap({
     });
     paint();
 
-    const data = fetch(SERVICE_AREAS_GEOJSON).then((r) => r.json());
+    const data = fetch(AIRPORT_GROUNDS_GEOJSON).then((r) => r.json());
 
-    // The cities, faintly, under the map's own labels: just where we cover.
+    // The airports' grounds, under the map's own labels. Only the selected
+    // one shows: filled in red with a red edge.
     map.on("load", async () => {
       const geo = (await data) as GeoJSON.FeatureCollection;
       if (cancelled) return;
       const firstSymbol = map
         .getStyle()
         .layers.find((l) => l.type === "symbol")?.id;
-      map.addSource("areas", { type: "geojson", data: geo });
+      map.addSource("grounds", {
+        type: "geojson",
+        data: geo,
+        promoteId: "slug",
+      });
       map.addLayer(
         {
-          id: "areas-fill",
+          id: "grounds-fill",
           type: "fill",
-          source: "areas",
-          paint: { "fill-color": ACCENT, "fill-opacity": 0.07 },
-        },
-        firstSymbol,
-      );
-      map.addLayer(
-        {
-          id: "areas-line",
-          type: "line",
-          source: "areas",
+          source: "grounds",
           paint: {
-            "line-color": ACCENT,
-            "line-width": 0.75,
-            "line-opacity": 0.35,
+            "fill-color": ACCENT,
+            "fill-opacity": [
+              "case",
+              ["boolean", ["feature-state", "selected"], false],
+              0.3,
+              0,
+            ],
+            "fill-opacity-transition": { duration: 300 },
           },
         },
         firstSymbol,
       );
+      map.addLayer(
+        {
+          id: "grounds-line",
+          type: "line",
+          source: "grounds",
+          paint: {
+            "line-color": ACCENT,
+            "line-width": 2,
+            "line-opacity": [
+              "case",
+              ["boolean", ["feature-state", "selected"], false],
+              0.9,
+              0,
+            ],
+          },
+        },
+        firstSymbol,
+      );
+      readyRef.current = true;
+      paint();
     });
 
     return () => {
       cancelled = true;
+      readyRef.current = false;
       markers.forEach((m) => m.remove());
       markersRef.current = {};
       map.remove();
@@ -226,12 +270,12 @@ export default function ServiceAreaMap({
     paint();
   }, [hovered, selected]);
 
-  // ── Selection: move the camera ──
+  // ── Focus: move the camera ──
   useEffect(() => {
     const map = mapRef.current;
-    const prev = prevSelectedRef.current;
-    prevSelectedRef.current = selected;
-    if (!map || prev === selected) return;
+    if (!map || moves === 0) return;
+    const prev = prevFocusRef.current;
+    prevFocusRef.current = focus;
 
     const move = ++moveRef.current;
     const instant = reducedMotion();
@@ -239,7 +283,7 @@ export default function ServiceAreaMap({
 
     const goTo = () => {
       if (move !== moveRef.current) return;
-      const a = SERVICE_AIRPORTS.find((x) => x.slug === selected);
+      const a = SERVICE_AIRPORTS.find((x) => x.slug === focus);
       if (!a) {
         map.fitBounds(SERVICE_AREA_BOUNDS, {
           padding,
@@ -249,14 +293,14 @@ export default function ServiceAreaMap({
       }
       map.flyTo({
         center: [a.lng, a.lat],
-        zoom: AIRPORT_ZOOM[a.kind],
+        zoom: zoomFor(a.kind, containerRef.current),
         duration: instant ? 0 : 1300,
         essential: true,
       });
     };
 
     // From one airport to another: out to the whole Valley, then in.
-    if (prev !== null && selected !== null && !instant) {
+    if (prev !== null && focus !== null && prev !== focus && !instant) {
       map.fitBounds(SERVICE_AREA_BOUNDS, { padding, duration: 700 });
       let done = false;
       const next = () => {
@@ -269,7 +313,9 @@ export default function ServiceAreaMap({
       return () => clearTimeout(t);
     }
     goTo();
-  }, [selected]);
+    // Moves when asked to (moves), not on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moves]);
 
   const zoom = (by: 1 | -1) => {
     const map = mapRef.current;
@@ -279,16 +325,8 @@ export default function ServiceAreaMap({
     else map.zoomOut({ duration });
   };
 
-  const reset = () => {
-    if (latest.current.selected !== null) {
-      onSelect(null);
-      return;
-    }
-    mapRef.current?.fitBounds(SERVICE_AREA_BOUNDS, {
-      padding: paddingFor(containerRef.current),
-      duration: reducedMotion() ? 0 : 800,
-    });
-  };
+  // Back to the whole Valley (ServiceAreas selects Sky Harbor again).
+  const reset = () => onReset();
 
   return (
     <>

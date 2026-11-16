@@ -237,10 +237,6 @@
   color: var(--white);
 }
 
-.airportDim {
-  opacity: 0.5;
-}
-
 /* The hovered or selected airport sits over its neighbours. */
 .airportHover,
 .airportSelected {

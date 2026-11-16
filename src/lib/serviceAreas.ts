@@ -1,10 +1,10 @@
-// The home page's service area map: the airports we serve, over a faint
-// outline of the cities we cover.
+// The home page's airport map: the airports we serve, and the map's
+// settings.
 //
-// The outlines are the cities' limits from the US Census (TIGER places),
-// simplified, in public/geo/service-areas.json. Each feature's properties
-// carry its slug, name, a point to pin its label to and its bounding box.
-// They're background only now: no labels, nothing to click.
+// Each airport's grounds (public/geo/airports.json) are drawn around its
+// runways: the runway ends from OurAirports (runways.csv), widened and
+// wrapped in one outline, so the terminals between them are inside it.
+// The selected airport's grounds are filled in red.
 
 export type ServiceAirport = {
   slug: string;
@@ -85,13 +85,16 @@ export const SERVICE_AIRPORTS: readonly ServiceAirport[] = [
   },
 ];
 
-export const SERVICE_AREAS_GEOJSON = "/geo/service-areas.json";
+/** Selected when the page loads. */
+export const DEFAULT_AIRPORT = "phx";
+
+export const AIRPORT_GROUNDS_GEOJSON = "/geo/airports.json";
 
 /** Free vector tiles, no key needed. Credit is shown on the map. */
 export const SERVICE_AREA_MAP_STYLE =
   "https://tiles.openfreemap.org/styles/positron";
 
-/** All ten cities (and so every airport), west/south/east/north. */
+/** Every airport, with room around, west/south/east/north. */
 export const SERVICE_AREA_BOUNDS: [number, number, number, number] = [
-  -112.6085, 33.0146, -111.5806, 33.9571,
+  -112.45, 33.26, -111.58, 33.73,
 ];
