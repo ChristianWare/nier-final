@@ -6,6 +6,7 @@ import { getFlightStatus } from "../../../../actions/flight/getFlightStatus";
 import type { FlightStatusResponse } from "../../../../actions/flight/getFlightStatus";
 import styles from "./FlightTracker.module.css";
 import Link from "next/link";
+import Button from "../Button/Button";
 
 const PHX_AIRPORTS = ["PHX", "AZA", "SDL", "DVT"];
 
@@ -66,8 +67,7 @@ function isPhxRelated(iata: string | null | undefined): boolean {
 }
 
 type FlightResult =
-  | Extract<FlightStatusResponse, { ok: true }>["flight"]
-  | null;
+  Extract<FlightStatusResponse, { ok: true }>["flight"] | null;
 
 type Props = {
   onFlightFound?: (data: {
@@ -305,9 +305,10 @@ function FlightCard({
               <p className={styles.ctaBody}>{ctaBody}</p>
             </div>
           </div>
-          <Link href={ctaHref} className={styles.ctaBtn}>
-            {ctaLabel}
-          </Link>
+          <div  className={styles.ctaBtn}>
+          <Button href={ctaHref} text='Book your Ride' btnType='red' arrow />
+            
+          </div>
         </div>
       )}
     </div>
