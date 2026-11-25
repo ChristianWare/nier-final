@@ -29,7 +29,7 @@ export const partners: readonly Partner[] = [
     kind: "Golf club & casino resort",
     location: "Fort McDowell",
     blurb:
-      "Flat-rate transfers between Sky Harbor and We-Ko-Pa, 38 miles each way: $90 for an SUV, $162 for a van, same price there and back.",
+      "Flat-rate transfers between Sky Harbor and We-Ko-Pa, 38 miles each way: $90 for an SUV, $174 for a van, same price there and back.",
     image: WekopaImg,
     imageAlt: "We-Ko-Pa Golf Club course in Fort McDowell",
   },

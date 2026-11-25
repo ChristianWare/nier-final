@@ -11,7 +11,7 @@ const data = [
     id: 1,
     title: "Flat-Rate. No Surprises.",
     description:
-      "$90 for the SUV. $162 for the Van. Same price there and back — no surge pricing, no metered miles.",
+      "$90 for the SUV. $174 for the Van. Same price there and back — no surge pricing, no metered miles.",
     icon: <Donut className={styles.icon} />,
   },
   {

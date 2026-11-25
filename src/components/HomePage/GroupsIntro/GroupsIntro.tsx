@@ -14,7 +14,7 @@ const cards = [
     stat: "$90",
     statNote: "flat, SUV, each way",
     title: "We-Ko-Pa Golf Club & Casino Resort",
-    copy: "One of our most-requested transfers: 38 miles from Sky Harbor, flight tracked, $90 for an SUV or $162 for a van, same price there and back.",
+    copy: "One of our most-requested transfers: 38 miles from Sky Harbor, flight tracked, $90 for an SUV or $174 for a van, same price there and back.",
     href: "/wekopa",
     cta: "Book a We-Ko-Pa transfer",
   },

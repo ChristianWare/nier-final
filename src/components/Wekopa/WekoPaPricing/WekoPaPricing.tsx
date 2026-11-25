@@ -30,8 +30,8 @@ const plans = [
     airport: "Phoenix Sky Harbor",
     name: "14-Passenger Van",
     tagline: "Ideal for golf groups, corporate outings, and full parties.",
-    price: 162,
-    priceDetails: "$135 base fare + $27 gratuity",
+    price: 174,
+    priceDetails: "$145 base fare + $29 gratuity",
     theme: "dark2",
     popular: true,
     features: [
@@ -49,8 +49,8 @@ const plans = [
     airport: "Mesa Gateway",
     name: "Executive SUV",
     tagline: "Perfect for small groups and solo travelers.",
-    price: 120,
-    priceDetails: "$100 base fare + $20 gratuity",
+    price: 144,
+    priceDetails: "$120 base fare + $24 gratuity",
     theme: "light1",
     popular: true,
     features: [
@@ -68,8 +68,8 @@ const plans = [
     airport: "Mesa Gateway",
     name: "14-Passenger Van",
     tagline: "Ideal for golf groups, corporate outings, and full parties.",
-    price: 195,
-    priceDetails: "$165 base fare + $30 gratuity",
+    price: 210,
+    priceDetails: "$175 base fare + $35 gratuity",
     theme: "light2",
     popular: true,
     features: [
